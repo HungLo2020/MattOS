@@ -602,6 +602,57 @@ fn build_non_qt_cmake(
     )
 }
 
+/// The selected Plasma desktop is a Wayland session (Xwayland remains
+/// available for legacy clients), but this pager revision still references
+/// TaskManager's removed X11 model and NETRootInfo in two code paths.  Keep
+/// the real pager and its Wayland behavior; remove only those obsolete X11
+/// branches from the disposable source mirror.
+fn plasma_pager_wayland_only_mirror(source: &str) -> Result<String> {
+    let x11_move = "#if HAVE_X11\n    if (KWindowSystem::isPlatformX11() && !index.data(TaskManager::AbstractTasksModel::IsFullScreen).toBool()\n        && (targetItemId == sourceItemId || isOnAllDesktops)) {";
+    let x11_move_end = "        info.moveResizeWindowRequest(winIds[0].toUInt(), flags, d.x(), d.y(), 0, 0);\n    }\n#endif";
+    let x11_drop = "    if (KWindowSystem::isPlatformX11()) {\n        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));\n    } else if (KWindowSystem::isPlatformWayland()) {";
+    if source.matches("#include <xwindowtasksmodel.h>").count() != 1
+        || source.matches(x11_move).count() != 1
+        || source.matches(x11_move_end).count() != 1
+        || source.matches(x11_drop).count() != 1
+    {
+        bail!("plasma-desktop pager no longer matches the expected 6.6.5 Wayland/X11 boundaries");
+    }
+
+    let (before_move, after_start) = source.split_once(x11_move).unwrap();
+    let (_, after_move) = after_start.split_once(x11_move_end).unwrap();
+    let without_move = format!("{before_move}{after_move}");
+    let adjusted = without_move
+        .replacen("#include <xwindowtasksmodel.h>\n", "", 1)
+        .replacen(x11_drop, "    if (KWindowSystem::isPlatformWayland()) {", 1);
+    if adjusted.contains("xwindowtasksmodel.h")
+        || adjusted.contains("XWindowTasksModel")
+        || adjusted.contains("NETRootInfo")
+        || !adjusted.contains("if (KWindowSystem::isPlatformWayland()) {")
+    {
+        bail!("plasma-desktop pager Wayland mirror retained an unavailable X11 API");
+    }
+    Ok(adjusted)
+}
+
+fn plasma_pager_qmimedata_header_mirror(source: &str) -> Result<String> {
+    const FORWARD_DECLARATION: &str = "class QMimeData;";
+    const MODEL_INCLUDE: &str = "#include <QAbstractListModel>";
+    if source.matches(FORWARD_DECLARATION).count() != 1
+        || source.matches(MODEL_INCLUDE).count() != 1
+        || source.contains("#include <QMimeData>")
+    {
+        bail!("plasma-desktop pager header no longer matches the Qt 6 QMimeData meta-type boundary");
+    }
+    let adjusted = source
+        .replacen(MODEL_INCLUDE, "#include <QAbstractListModel>\n#include <QMimeData>", 1)
+        .replacen("class QMimeData;\n", "", 1);
+    if !adjusted.contains("#include <QMimeData>") || adjusted.contains(FORWARD_DECLARATION) {
+        bail!("plasma-desktop pager header does not provide a complete QMimeData type to moc");
+    }
+    Ok(adjusted)
+}
+
 fn build_cmake_component(
     repo_root: &Path,
     component: &str,
@@ -637,6 +688,16 @@ fn build_cmake_component(
         )?;
     }
     sync_build_source(&repo_root.join(source), &source_copy)?;
+    if component == "plasma-login-manager" {
+        let wallpaper_cmake = source_copy.join("src/frontend/wallpaper/CMakeLists.txt");
+        let root_cmake = source_copy.join("CMakeLists.txt");
+        let (root_adjusted, wallpaper_adjusted) = plasma_login_manager_build_mirror_policy(
+            &fs::read_to_string(&root_cmake)?,
+            &fs::read_to_string(&wallpaper_cmake)?,
+        )?;
+        fs::write(&root_cmake, root_adjusted)?;
+        fs::write(&wallpaper_cmake, wallpaper_adjusted)?;
+    }
     if component == "kfilemetadata" {
         // Upstream's legacy FindXattr module hard-codes host /usr paths and
         // ignores pkg-config. Point it at the two source-owned target roots
@@ -832,49 +893,6 @@ public:
             fs::write(path, adjusted)?;
         }
     }
-    if component == "kscreenlocker" {
-        // The Wayland-only MattOS build does not ship X11/XCB.  Keep the
-        // upstream X11 probe in the disposable mirror, but make it optional
-        // so the source can configure without host X11 development files.
-        let cmake_lists = source_copy.join("CMakeLists.txt");
-        if cmake_lists.is_file() {
-            let contents = fs::read_to_string(&cmake_lists)?;
-            let mut adjusted = contents
-                .replace("find_package(X11)\nset_package_properties(X11 PROPERTIES TYPE REQUIRED", "find_package(X11)\nset_package_properties(X11 PROPERTIES TYPE OPTIONAL")
-                .replace("TYPE REQUIRED\n                        PURPOSE \"Required for building the X11 based workspace\"", "TYPE OPTIONAL\n                        PURPOSE \"Required for building the X11 based workspace\"")
-                .replace("find_package(XCB MODULE REQUIRED COMPONENTS XCB KEYSYMS XTEST)", "find_package(XCB MODULE QUIET COMPONENTS XCB KEYSYMS XTEST)")
-                .replace("set_package_properties(XCB PROPERTIES TYPE REQUIRED", "set_package_properties(XCB PROPERTIES TYPE OPTIONAL");
-            if let (Some(start), Some(end)) = (adjusted.find("find_package(X11)"), adjusted.find("find_package(WaylandScanner)")) {
-                adjusted.replace_range(start..end, "# MattOS: X11/XCB screen-grabber support is disabled for the Wayland-only target.\n\n");
-            }
-            if adjusted != contents { fs::write(&cmake_lists, adjusted)?; }
-            for relative in ["CMakeLists.txt", "greeter/CMakeLists.txt"] {
-                let path = source_copy.join(relative);
-                if path.is_file() {
-                    let contents = fs::read_to_string(&path)?;
-                    let adjusted = contents
-                        .replace("   X11::X11\n", "")
-                        .replace("   XCB::XCB\n", "")
-                        .replace("   XCB::KEYSYMS\n", "")
-                        .replace("    X11::X11\n", "")
-                        .replace("    KF6::ScreenDpms\n", "");
-                    if adjusted != contents { fs::write(path, adjusted)?; }
-                }
-            }
-            for relative in ["CMakeLists.txt", "greeter/CMakeLists.txt"] {
-                let path = source_copy.join(relative);
-                if path.is_file() {
-                    let contents = fs::read_to_string(&path)?;
-                    let adjusted = contents
-                        .replace("   X11::X11\n", "")
-                        .replace("   XCB::XCB\n", "")
-                        .replace("    X11::X11\n", "")
-                        .replace("    KF6::ScreenDpms\n", "");
-                    if adjusted != contents { fs::write(path, adjusted)?; }
-                }
-            }
-        }
-    }
     if component == "plasma-desktop" {
         // This imported Plasma revision still names the pre-split
         // KF6NotifyConfig widget package, while KF 6.26's KNotifications
@@ -932,33 +950,14 @@ public:
             let pager = source_copy.join("applets/pager/pagermodel.cpp");
             if pager.is_file() {
                 let contents = fs::read_to_string(&pager)?;
-                let mut adjusted = contents
-                    .replace("#if HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif", "#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif")
-                    .replace("#ifdef HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif", "#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif")
-                    .replace(
-                        "    if (KWindowSystem::isPlatformX11()) {\n        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));\n    } else if (KWindowSystem::isPlatformWayland()) {",
-                        "#if defined(HAVE_X11) && HAVE_X11\n    if (KWindowSystem::isPlatformX11()) {\n        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));\n    } else\n#endif\n    if (KWindowSystem::isPlatformWayland()) {",
-                    );
-                if !adjusted.contains("#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif") {
-                    adjusted = adjusted.replace("#include <xwindowtasksmodel.h>", "#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>\n#endif");
-                }
-                // WITH_X11 is enabled solely to build the XKB keyboard
-                // backend.  LibTaskManager remains Wayland-only, so the
-                // pager must not compile its X11 drag/drop branch merely
-                // because config-X11.h reports that X11 headers exist.
-                adjusted = adjusted
-                    .replace("#if defined(HAVE_X11) && HAVE_X11\n#include <xwindowtasksmodel.h>", "#if 0 // MattOS: no Plasma X11 session/task model\n#include <xwindowtasksmodel.h>")
-                    .replace("#if defined(HAVE_X11) && HAVE_X11\n    if (KWindowSystem::isPlatformX11())", "#if 0 // MattOS: no Plasma X11 session/task model\n    if (KWindowSystem::isPlatformX11())")
-                    .replace("#if HAVE_X11\n    if (KWindowSystem::isPlatformX11()", "#if 0 // MattOS: no Plasma X11 session/task model\n    if (KWindowSystem::isPlatformX11()");
-                if !adjusted.contains("#include <QMimeData>") {
-                    adjusted = adjusted.replace("#include <QDBusConnection>", "#include <QDBusConnection>\n#include <QMimeData>");
-                }
-                if !adjusted.contains("#if 0 // MattOS: no Plasma X11 session/task model\n#include <xwindowtasksmodel.h>\n#endif")
-                    || !adjusted.contains("#include <QMimeData>")
-                {
-                    bail!("plasma-desktop pager Wayland adaptation no longer matches upstream source");
-                }
+                let adjusted = plasma_pager_wayland_only_mirror(&contents)?;
                 if adjusted != contents { fs::write(pager, adjusted)?; }
+            }
+            let pager_header = source_copy.join("applets/pager/pagermodel.h");
+            if pager_header.is_file() {
+                let contents = fs::read_to_string(&pager_header)?;
+                let adjusted = plasma_pager_qmimedata_header_mirror(&contents)?;
+                if adjusted != contents { fs::write(pager_header, adjusted)?; }
             }
         }
         let kcms = source_copy.join("kcms/CMakeLists.txt");
@@ -981,9 +980,10 @@ public:
         }
         // The activity switcher is shared by Wayland and X11, but this
         // imported Plasma revision leaves its X11 model header include and
-        // one X11-only drag path unconditional.  LibTaskManager is correctly
-        // built with WITH_X11=OFF here, so guard only those X11 references;
-        // the Wayland model remains fully available to the shell.
+        // one X11-only drag path unconditional. Guard those references for
+        // configurations without X11; the MattOS build enables this backend
+        // only as compatibility support for Xwayland clients, not as a login
+        // session.
         let activity_manager = source_copy.join("imports/activitymanager/switcherbackend.cpp");
         if activity_manager.is_file() {
             let contents = fs::read_to_string(&activity_manager)?;
@@ -995,11 +995,6 @@ public:
                     "    if (KWindowSystem::isPlatformX11()) {\n        return TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData).count();\n    }\n",
                     "#if HAVE_X11\n    if (KWindowSystem::isPlatformX11()) {\n        return TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData).count();\n    }\n#endif\n",
                 );
-            // As with the pager, HAVE_X11 now means only that the keyboard
-            // backend can use XKB.  The Plasma session and LibTaskManager are
-            // still Wayland-only, so every X11 activity-switcher branch must
-            // remain excluded.
-            let adjusted = adjusted.replace("#if HAVE_X11", "#if 0 // MattOS: no Plasma X11 session/task model");
             if adjusted != contents { fs::write(activity_manager, adjusted)?; }
         }
     }
@@ -1093,7 +1088,8 @@ public:
         if taskmanager.is_file() {
             let contents = fs::read_to_string(&taskmanager)?;
             let adjusted = contents
-                .replace("#include <KX11Extras>", "// MattOS: KX11Extras is only used by the HAVE_X11 implementation below")
+                .replace("#include <KWindowSystem>\n", "#include <KWindowSystem>\n#include <config-X11.h>\n")
+                .replace("#include <KX11Extras>", "#if HAVE_X11\n#include <KX11Extras>\n#endif")
                 .replace("namespace X11Info\n{", "#if HAVE_X11\nnamespace X11Info\n{")
                 .replace("}\n\nnamespace TaskManager", "}\n#endif\n\nnamespace TaskManager");
             if adjusted != contents { fs::write(taskmanager, adjusted)?; }
@@ -1110,7 +1106,7 @@ public:
         if panelview.is_file() {
             let contents = fs::read_to_string(&panelview)?;
             let adjusted = contents
-                .replace("#include <KX11Extras>", "// MattOS: KX11Extras is unavailable in the Wayland-only target")
+                .replace("#include <KX11Extras>", "#include <KX11Extras>")
                 .replace("!KWindowSystem::isPlatformX11() || KX11Extras::compositingActive()", "!KWindowSystem::isPlatformX11() || true")
                 .replace("KX11Extras::setState(winId(), NET::SkipSwitcher | NET::KeepAbove);", "// X11-only window state is not applicable on Wayland.")
                 .replace("KX11Extras::forceActiveWindow(winId());", "// Wayland activation is handled by the compositor.");
@@ -1150,9 +1146,10 @@ public:
             let path = source_copy.join(relative);
             if path.is_file() {
                 let contents = fs::read_to_string(&path)?;
-                let mut adjusted = contents
-                .replace("#include <KX11Extras>", "// MattOS: KX11Extras omitted for Wayland-only target")
-                .replace("#include <KStartupInfo>", "// MattOS: KStartupInfo omitted for Wayland-only target");
+                // These APIs are part of MattOS's Xwayland compatibility
+                // closure. A Wayland-only *session* still needs them for
+                // Xwayland windows; only startplasma-x11 is excluded.
+                let mut adjusted = contents.clone();
             if relative == "applets/kicker/windowsystem.cpp" {
                 adjusted = adjusted.replace(
                     "            KX11Extras::forceActiveWindow(window->winId());",
@@ -1180,34 +1177,9 @@ public:
                 );
             if adjusted != contents { fs::write(klipper_popup, adjusted)?; }
         }
-        let krunner_view = source_copy.join("krunner/view.cpp");
-        if krunner_view.is_file() {
-            let contents = fs::read_to_string(&krunner_view)?;
-            let adjusted = contents
-                .replace("#include <KX11Extras>", "// MattOS: no X11 session")
-                .replace("KX11Extras::setOnAllDesktops(winId(), true);", "// X11-only window state omitted.")
-                .replace("KX11Extras::forceActiveWindow(winId());", "// Wayland activation handled by the compositor.")
-                .replace("KX11Extras::setOnDesktop(winId(), KX11Extras::currentDesktop());", "// X11-only desktop assignment omitted.")
-                .replace("KX11Extras::setOnAllDesktops(winId(), true);", "// X11-only desktop assignment omitted.")
-                .replace("KX11Extras::setState(winId(), NET::SkipTaskbar | NET::SkipPager);", "// X11-only window state omitted.");
-            if adjusted != contents { fs::write(krunner_view, adjusted)?; }
-        }
-        for relative in ["applets/kicker/dashboardwindow.cpp", "applets/notifications/notificationapplet.cpp", "applets/notifications/notificationwindow.cpp"] {
-            let path = source_copy.join(relative);
-            if path.is_file() {
-                let contents = fs::read_to_string(&path)?;
-                let adjusted = contents
-                    .replace("#include <KX11Extras>", "// MattOS: no X11 session")
-                    .replace("KX11Extras::forceActiveWindow(window->winId());", "// Wayland activation is handled by the compositor.")
-                    .replace("KX11Extras::forceActiveWindow(window->winId());", "// Wayland activation is handled by the compositor.")
-                    .replace("KX11Extras::forceActiveWindow(winId());", "// Wayland activation is handled by the compositor.")
-                    .replace("KX11Extras::setOnAllDesktops(winId(), true);", "// X11-only window state omitted.")
-                    .replace("KX11Extras::setType(winId(), NET::Notification);", "// X11-only window type omitted.")
-                    .replace("KX11Extras::setType(winId(), critical ? NET::CriticalNotification : NET::Notification);", "// X11-only window type omitted.")
-                    .replace("KX11Extras::setState(winId(), NET::SkipTaskbar | NET::SkipPager | NET::SkipSwitcher);", "// X11-only window state omitted.");
-                if adjusted != contents { fs::write(path, adjusted)?; }
-            }
-        }
+        // KRunner and the launcher/notification windows keep upstream's
+        // guarded Xwayland behavior. They run within the native Wayland
+        // session and do not add an X11 session entry.
         let solidui = source_copy.join("soliduiserver/CMakeLists.txt");
         if solidui.is_file() {
             let contents = fs::read_to_string(&solidui)?;
@@ -1514,6 +1486,32 @@ public:
         let x11_root = repo_root.join("out/build/x11-compat/install/usr");
         command.push(format!("-DX11_X11_INCLUDE_PATH={}/include", x11_root.display()));
         command.push(format!("-DX11_X11_LIB={}/lib/x86_64-linux-gnu/libX11.so", x11_root.display()));
+        // CMake's FindX11 only defines X11::Xft when its separate
+        // FindFreetype and FindFontconfig probes succeed. Its stock finders
+        // search `lib` but miss Debian's multiarch target output, so pass the
+        // exact MattOS-owned headers/libraries instead of allowing host
+        // fallback or incorrectly disabling the workspace's X11 support
+        // needed for KSMServer while the X11 session itself stays off.
+        let freetype = repo_root.join("out/build/freetype/install/usr");
+        let fontconfig = repo_root.join("out/build/fontconfig/install/usr");
+        for path in [
+            freetype.join("include/freetype2/ft2build.h"),
+            freetype.join("include/freetype2/freetype/freetype.h"),
+            freetype.join("lib/x86_64-linux-gnu/libfreetype.so"),
+            fontconfig.join("include/fontconfig/fontconfig.h"),
+            fontconfig.join("lib/x86_64-linux-gnu/libfontconfig.so"),
+        ] {
+            if !path.is_file() {
+                bail!("target-owned X11 font dependency is missing: {}", path.display());
+            }
+        }
+        command.extend([
+            format!("-DFREETYPE_INCLUDE_DIR_ft2build={}/include/freetype2", freetype.display()),
+            format!("-DFREETYPE_INCLUDE_DIR_freetype2={}/include/freetype2", freetype.display()),
+            format!("-DFREETYPE_LIBRARY={}/lib/x86_64-linux-gnu/libfreetype.so", freetype.display()),
+            format!("-DFontconfig_INCLUDE_DIR={}/include", fontconfig.display()),
+            format!("-DFontconfig_LIBRARY={}/lib/x86_64-linux-gnu/libfontconfig.so", fontconfig.display()),
+        ]);
         // FindX11/FindXCB can locate the aggregate libraries through the
         // isolated pkg-config view, but several upstream targets consume the
         // raw XCB headers without propagating the discovered include path.
@@ -1535,6 +1533,12 @@ public:
         command.push(format!(
             "-DKF6ColorScheme_DIR={}/lib/x86_64-linux-gnu/cmake/KF6ColorScheme",
             repo_root.join("out/build/kcolorscheme/install/usr").display()
+        ));
+    }
+    if components.contains(&"kscreenlocker") {
+        command.push(format!(
+            "-DKScreenLocker_DIR={}/lib/x86_64-linux-gnu/cmake/KScreenLocker",
+            repo_root.join("out/build/kscreenlocker/install/usr").display()
         ));
     }
     if component == "plasma-workspace" || component == "plasma-desktop" {
@@ -1690,6 +1694,20 @@ public:
         // satisfy it from a host Qt.
         let qt_x11_private = repo_root.join("out/build/qtbase/source/src/gui/platform/unix");
         append_cmake_flag(&mut command, "-DCMAKE_CXX_FLAGS", &format!("-I{}", qt_x11_private.display()));
+    }
+    if component == "plasma-login-manager" {
+        // LibKWorkspace installs this public header as
+        // include/kworkspace6/sessionmanagement.h, and Plasma Login Manager
+        // includes it with the same kworkspace6/ prefix. Its exported target
+        // currently advertises include/kworkspace6 instead of the parent
+        // include directory, so expose the staged Plasma workspace root and
+        // never a host include path.
+        let workspace_include = repo_root.join("out/build/plasma-workspace/install/usr/include");
+        append_cmake_flag(
+            &mut command,
+            "-DCMAKE_CXX_FLAGS",
+            &format!("-I{}", workspace_include.display()),
+        );
     }
     if components.contains(&"libdrm") {
         // libdrm installs its public top-level headers beside (not below)
@@ -1893,6 +1911,35 @@ public:
         bail!("{component} did not publish required target output {}", output.display());
     }
     Ok(())
+}
+
+fn plasma_login_manager_build_mirror_policy(
+    root_cmake: &str,
+    wallpaper_cmake: &str,
+) -> Result<(String, String)> {
+    // Upstream marks its wallpaper fragment shader OPTIMIZED, which makes
+    // Qt's qsb invoke the optional SPIRV-Tools `spirv-opt` executable. That
+    // optional optimization does not change shader semantics. Generate the
+    // normal QSB shader without pulling a build-only Vulkan toolchain into
+    // MattOS runtime ownership. Keep this change in the disposable mirror.
+    let optimized = "    BATCHABLE\n    OPTIMIZED\n    PREFIX \"/qt/qml/org/kde/plasma/login/wallpaper/shaders\"";
+    if !wallpaper_cmake.contains(optimized) {
+        bail!("Plasma Login Manager wallpaper shader stanza changed; refusing to apply the output-mirror qsb optimization policy");
+    }
+    let wallpaper = wallpaper_cmake.replace(
+        optimized,
+        "    BATCHABLE\n    PREFIX \"/qt/qml/org/kde/plasma/login/wallpaper/shaders\"",
+    );
+
+    // Upstream currently adds test/ unconditionally, so BUILD_TESTING=OFF
+    // alone still builds test executables in the production stage. Gate that
+    // subdirectory in the mirror so only production targets are built.
+    let tests = "add_subdirectory(test)";
+    if root_cmake.matches(tests).count() != 1 {
+        bail!("Plasma Login Manager test-subdirectory declaration changed; refusing to alter its output-mirror build policy");
+    }
+    let root = root_cmake.replace(tests, "if(BUILD_TESTING)\n    add_subdirectory(test)\nendif()");
+    Ok((root, wallpaper))
 }
 
 /// Remove disposable build-prefix references from generated KDE metadata at
@@ -2466,5 +2513,90 @@ mod kde_foundation_tests {
     #[test]
     fn missing_or_old_ecm_fails_closed() {
         assert!(KDE_ECM_MIN_VERSION >= (6, 5, 0));
+    }
+
+    #[test]
+    fn plasma_login_manager_uses_only_the_staged_kworkspace_header_root() {
+        let source = include_str!("plasma.rs");
+        let build = include_str!("kde_foundation.rs");
+        assert!(source.contains("\"plasma-workspace\""));
+        assert!(build.contains("component == \"plasma-login-manager\""));
+        assert!(build.contains("out/build/plasma-workspace/install/usr/include"));
+        assert!(build.contains("format!(\"-I{}\", workspace_include.display())"));
+    }
+
+    #[test]
+    fn plasma_login_manager_mirror_omits_only_optional_shader_optimization_and_tests() {
+        let root = "add_subdirectory(data)\nadd_subdirectory(test)\n";
+        let wallpaper = "qt_add_shaders(app shaders\n    PRECOMPILE\n    BATCHABLE\n    OPTIMIZED\n    PREFIX \"/qt/qml/org/kde/plasma/login/wallpaper/shaders\"\n)\n";
+        let (root, wallpaper) = plasma_login_manager_build_mirror_policy(root, wallpaper).unwrap();
+        assert!(root.contains("if(BUILD_TESTING)\n    add_subdirectory(test)\nendif()"));
+        assert!(!root.contains("\nadd_subdirectory(test)\n"));
+        assert!(wallpaper.contains("    BATCHABLE\n    PREFIX"));
+        assert!(!wallpaper.contains("OPTIMIZED"));
+    }
+
+    #[test]
+    fn plasma_login_manager_mirror_policy_fails_closed_on_upstream_changes() {
+        assert!(plasma_login_manager_build_mirror_policy(
+            "add_subdirectory(test)\n",
+            "qt_add_shaders(app shaders BATCHABLE)\n"
+        )
+        .is_err());
+        assert!(plasma_login_manager_build_mirror_policy(
+            "add_subdirectory(test)\nadd_subdirectory(test)\n",
+            "OPTIMIZED\n    PREFIX \"/qt/qml/org/kde/plasma/login/wallpaper/shaders\""
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn plasma_desktop_pager_mirror_keeps_wayland_and_removes_unavailable_x11_task_model() {
+        let source = r#"
+#include <xwindowtasksmodel.h>
+void PagerModel::moveWindow() {
+#if HAVE_X11
+    if (KWindowSystem::isPlatformX11() && !index.data(TaskManager::AbstractTasksModel::IsFullScreen).toBool()
+        && (targetItemId == sourceItemId || isOnAllDesktops)) {
+        NETRootInfo info(x11App->connection(), NET::Properties());
+        info.moveResizeWindowRequest(winIds[0].toUInt(), flags, d.x(), d.y(), 0, 0);
+    }
+#endif
+}
+void PagerModel::drop() {
+    if (KWindowSystem::isPlatformX11()) {
+        indices = findWindows(TaskManager::XWindowTasksModel::winIdsFromMimeData(mimeData, &ok));
+    } else if (KWindowSystem::isPlatformWayland()) {
+        indices = findWindows(TaskManager::WaylandTasksModel::winIdsFromMimeData(mimeData, &ok));
+    }
+}
+"#;
+        let adjusted = plasma_pager_wayland_only_mirror(source).unwrap();
+        assert!(adjusted.contains("TaskManager::WaylandTasksModel::winIdsFromMimeData"));
+        assert!(adjusted.contains("if (KWindowSystem::isPlatformWayland()) {"));
+        assert!(!adjusted.contains("xwindowtasksmodel.h"));
+        assert!(!adjusted.contains("XWindowTasksModel"));
+        assert!(!adjusted.contains("NETRootInfo"));
+    }
+
+    #[test]
+    fn plasma_desktop_pager_mirror_fails_closed_when_upstream_x11_boundaries_change() {
+        assert!(plasma_pager_wayland_only_mirror(
+            "#include <xwindowtasksmodel.h>\nvoid PagerModel::moveWindow() {}\n"
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn plasma_desktop_pager_header_exposes_complete_qmimedata_type_to_qt_moc() {
+        let source = "#include <QAbstractListModel>\nclass QMimeData;\nclass PagerModel {};\n";
+        let adjusted = plasma_pager_qmimedata_header_mirror(source).unwrap();
+        assert!(adjusted.contains("#include <QMimeData>"));
+        assert!(!adjusted.contains("class QMimeData;"));
+    }
+
+    #[test]
+    fn plasma_desktop_pager_header_patch_fails_closed_on_upstream_changes() {
+        assert!(plasma_pager_qmimedata_header_mirror("class PagerModel {};\n").is_err());
     }
 }

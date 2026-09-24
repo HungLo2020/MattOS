@@ -121,6 +121,7 @@ const APT_CONFFILES: &[&str] = &[
 ];
 const PAM_MODULES: &[&str] = &[
     "pam_unix.so",
+    "pam_limits.so",
     "pam_env.so",
     "pam_nologin.so",
     "pam_rootok.so",
@@ -992,6 +993,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         // packages tied only to their shared build stage.
         "installer" => &["installer", "linux"],
         "greetd" => &["greetd"],
+        "plasma-login-manager" => &["plasma-login-manager"],
+        "kscreenlocker" => &["kscreenlocker"],
+        "mattos-plasma-live" => &[],
         "btrfs-progs" | "dosfstools" => &["installer"],
         "e2fsprogs" => &["e2fsprogs"],
         "procps-ng" => &["procps-ng"],
@@ -1057,7 +1061,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "attica" => &["attica"],
             "sonnet" => &["sonnet"],
             "plasma-workspace" => &["plasma-workspace"],
+            "kscreenlocker" => &["kscreenlocker"],
             "plasma-desktop" => &["plasma-desktop"],
+            "plasma-login-manager" => &["plasma-login-manager"],
             "breeze" => &["breeze"],
             "breeze-icons" => &["breeze-icons"],
             "lm-sensors" => &["lm-sensors"],
@@ -1232,6 +1238,10 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/userland/sed",
             "src/userland/findutils",
             "src/userland/diffutils",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "mattos-plasma-live" => &[
+            "src/system/session/plasma",
             "src/tools/mattos-build/src/packaging/staging.rs",
         ],
         "mattos-compat" => &["src/system/compat/mattos-compat"],
@@ -1424,6 +1434,18 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         ],
         "plasma-workspace" => &[
             "src/desktop/kde/plasma-workspace",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "kscreenlocker" => &[
+            "src/desktop/kde/kscreenlocker",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "plasma-login-manager" => &[
+            "src/desktop/kde/plasma-login-manager",
             "src/tools/mattos-build/src/stages/plasma.rs",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
             "src/tools/mattos-build/src/packaging/staging.rs",
@@ -1723,11 +1745,18 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/graphics/xtrans",
             "src/system/graphics/libxau",
             "src/system/graphics/libxdmcp",
+            "src/system/graphics/libice",
+            "src/system/graphics/libsm",
+            "src/system/graphics/libxi",
+            "src/system/graphics/libxcursor",
+            "src/system/graphics/libxft",
             "src/system/graphics/xcb-proto",
             "src/system/graphics/libxcb",
             "src/system/graphics/libx11",
             "src/system/graphics/libxext",
             "src/system/graphics/libxfixes",
+            "src/system/graphics/libxrender",
+            "src/system/graphics/libxtst",
             "src/system/graphics/xcb-util",
             "src/system/graphics/xcb-renderutil",
             "src/system/graphics/xcb-image",
@@ -1837,6 +1866,11 @@ fn package_configuration_roots(package: &str) -> &'static [&'static str] {
             "src/system/session/user-units",
         ],
         "libpam-runtime" => &["src/system/auth/config/pam.d"],
+        "plasma-login-manager" => &[
+            "src/system/session/plasma-login-manager",
+            "src/system/session/plasma/start-plasma",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
         "passwd" => &[
             "src/system/auth/config/login.defs",
             "src/system/auth/config/default/useradd",
@@ -2076,6 +2110,13 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         }
         "libxau6" => component_snapshot_version(repo_root, "libxau")?,
         "libxdmcp6" => component_snapshot_version(repo_root, "libxdmcp")?,
+        "libice6" => component_snapshot_version(repo_root, "libice")?,
+        "libsm6" => component_snapshot_version(repo_root, "libsm")?,
+        "libxi6" => component_snapshot_version(repo_root, "libxi")?,
+        "libxrender1" => component_snapshot_version(repo_root, "libxrender")?,
+        "libxtst6" => component_snapshot_version(repo_root, "libxtst")?,
+        "libxcursor1" => component_snapshot_version(repo_root, "libxcursor")?,
+        "libxft2" => component_snapshot_version(repo_root, "libxft")?,
         "libxcb1" => component_snapshot_version(repo_root, "libxcb")?,
         "libx11-6" => component_snapshot_version(repo_root, "libx11")?,
         "libxext6" => component_snapshot_version(repo_root, "libxext")?,
@@ -2107,6 +2148,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "grub-efi-amd64" => component_snapshot_version(repo_root, "grub")?,
         "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
         "greetd" => component_snapshot_version(repo_root, "greetd")?,
+        "plasma-login-manager" => component_snapshot_version(repo_root, "plasma-login-manager")?,
         "kwin" => component_snapshot_version(repo_root, "kwin")?,
         "layer-shell-qt" => component_snapshot_version(repo_root, "layer-shell-qt")?,
         "plasma-framework" => component_snapshot_version(repo_root, "plasma-framework")?,
@@ -2114,6 +2156,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "kactivitymanagerd" => component_snapshot_version(repo_root, "kactivitymanagerd")?,
         "kglobalacceld" => component_snapshot_version(repo_root, "kglobalacceld")?,
         "plasma-workspace" => component_snapshot_version(repo_root, "plasma-workspace")?,
+        "kscreenlocker" => component_snapshot_version(repo_root, "kscreenlocker")?,
         "plasma-desktop" => component_snapshot_version(repo_root, "plasma-desktop")?,
         "breeze" => component_snapshot_version(repo_root, "breeze")?,
         "lm-sensors" => component_snapshot_version(repo_root, "lm-sensors")?,
@@ -2192,7 +2235,11 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "e2fsprogs" => "1.47.2".to_string(),
         "mattos-installer" => "0.1".to_string(),
         "systemd" => component_snapshot_version(repo_root, "systemd")?,
-        "mattos-base-runtime" | "mattos-base" | "mattos-cli" | "mattos-plasma" => "0.1".to_string(),
+        "mattos-base-runtime"
+        | "mattos-base"
+        | "mattos-cli"
+        | "mattos-plasma"
+        | "mattos-plasma-live" => "0.1".to_string(),
         _ => bail!("unknown package {}", spec.name),
     };
     let epoch = compatibility_epoch(repo_root, &spec.name)?;
@@ -2244,8 +2291,15 @@ fn release_version_from_branch(branch: &str) -> Option<String> {
         "libxau-",
         "libxcb-",
         "libxdmcp-",
+        "libice-",
+        "libsm-",
+        "libxi-",
+        "libxrender-",
         "libxext-",
         "libxfixes-",
+        "libxtst-",
+        "libxcursor-",
+        "libxft-",
         "llvmorg-",
         "openssl-",
         "pcre2-",
@@ -2516,13 +2570,32 @@ fn write_provenance(
             )
         }
         "x11-compat" => {
-            let state = read_sync_state(repo_root, "libx11")?
+            let libx11 = read_sync_state(repo_root, "libx11")?
                 .ok_or_else(|| anyhow!("upstream state missing for libx11"))?;
+            let libice = read_sync_state(repo_root, "libice")?
+                .ok_or_else(|| anyhow!("upstream state missing for libice"))?;
+            let libsm = read_sync_state(repo_root, "libsm")?
+                .ok_or_else(|| anyhow!("upstream state missing for libsm"))?;
+            let libxi = read_sync_state(repo_root, "libxi")?
+                .ok_or_else(|| anyhow!("upstream state missing for libxi"))?;
+            let libxrender = read_sync_state(repo_root, "libxrender")?
+                .ok_or_else(|| anyhow!("upstream state missing for libxrender"))?;
+            let libxtst = read_sync_state(repo_root, "libxtst")?
+                .ok_or_else(|| anyhow!("upstream state missing for libxtst"))?;
+            let libxcursor = read_sync_state(repo_root, "libxcursor")?
+                .ok_or_else(|| anyhow!("upstream state missing for libxcursor"))?;
+            let libxft = read_sync_state(repo_root, "libxft")?
+                .ok_or_else(|| anyhow!("upstream state missing for libxft"))?;
             (
-                "src/system/graphics/{libxau,libxdmcp,libxcb,libx11,libxext}".to_string(),
+                "src/system/graphics/{libxau,libxdmcp,libice,libsm,libxi,libxcb,libx11,libxext,libxrender,libxtst,libxcursor,libxft}".to_string(),
                 "https://gitlab.freedesktop.org/xorg".to_string(),
-                format!("libx11:{} (see upstream/state for complete closure)", state.imported_commit),
-                "source-built minimal client ABI for immutable NVIDIA Vulkan dependencies; no X server, GLX dispatcher, or X11 platform metadata".to_string(),
+                format!(
+                    "libx11:{}; libICE:{}; libSM:{}; libXi:{}; libXrender:{}; libXtst:{}; libXcursor:{}; libXft:{}",
+                    libx11.imported_commit, libice.imported_commit, libsm.imported_commit,
+                    libxi.imported_commit, libxrender.imported_commit, libxtst.imported_commit,
+                    libxcursor.imported_commit, libxft.imported_commit
+                ),
+                "source-built X11 client/session ABI for Wayland session management, Xwayland, cursor and font support; no X server or X11 desktop session".to_string(),
             )
         }
         "nvidia-driver" => {
@@ -3814,6 +3887,11 @@ mod tests {
         );
         assert_eq!(package_stage_dependencies("btrfs-progs"), ["installer"]);
         assert_eq!(package_stage_dependencies("dosfstools"), ["installer"]);
+        assert_eq!(
+            package_stage_dependencies("plasma-login-manager"),
+            ["plasma-login-manager"]
+        );
+        assert!(package_stage_dependencies("mattos-plasma-live").is_empty());
         assert_eq!(package_stage_dependencies("e2fsprogs"), ["e2fsprogs"]);
     }
 
@@ -4495,7 +4573,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 319);
+        assert_eq!(PACKAGE_NAMES.len(), 329);
     }
 
     #[test]
@@ -4543,7 +4621,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 319);
+        assert_eq!(PACKAGE_NAMES.len(), 329);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4590,6 +4668,7 @@ mod tests {
         assert_eq!(package_recipe_revision("git"), 2);
         assert_eq!(package_recipe_revision("openssh-server"), 2);
         assert_eq!(package_recipe_revision("libpam-runtime"), 2);
+        assert_eq!(package_recipe_revision("libpam-modules"), 2);
         // Flatpak's package payload includes MattOS's signed Flathub policy,
         // a minimal initialized OSTree layout, and the target-rooted optional
         // install helper. Keep this expectation aligned with that contract.
@@ -4624,7 +4703,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 319);
+        assert_eq!(PACKAGE_NAMES.len(), 329);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",
@@ -5832,6 +5911,8 @@ mod tests {
         );
         for (branch, version) in [
             ("libxcb-1.17.0", "1.17.0"),
+            ("libICE-1.1.2", "1.1.2"),
+            ("libSM-1.2.6", "1.2.6"),
             ("libX11-1.8.12", "1.8.12"),
             ("libXext-1.3.6", "1.3.6"),
             ("xkbcommon-1.9.2", "1.9.2"),
@@ -5863,9 +5944,49 @@ mod tests {
     }
 
     #[test]
+    fn x11_compat_package_versions_follow_their_pinned_component_releases() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let specs = package_specs();
+        for (name, expected) in [
+            ("libxau6", "1:1.0.12-1mattos1"),
+            ("libxdmcp6", "1:1.1.5-1mattos1"),
+            ("libice6", "1.1.2-1mattos1"),
+            ("libsm6", "1.2.6-1mattos1"),
+            ("libxi6", "1.8.3-1mattos1"),
+            ("libxrender1", "0.9.12-1mattos1"),
+            ("libxtst6", "1.2.5-1mattos1"),
+            ("libxcursor1", "1:1.2.3-1mattos1"),
+            ("libxft2", "2.3.9-1mattos1"),
+            ("libxcb1", "1.17.0-1mattos1"),
+            ("libx11-6", "2:1.8.12-1mattos1"),
+            ("libxext6", "2:1.3.6-1mattos1"),
+            ("libxfixes3", "6.0.2-1mattos1"),
+        ] {
+            let spec = specs.iter().find(|spec| spec.name == name).unwrap();
+            assert_eq!(package_version(&root, spec).unwrap(), expected);
+        }
+    }
+
+    #[test]
     fn compatibility_manifest_pins_and_read_only_publisher_validate() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         validate_debian_compatibility(&root).unwrap();
+        let compatibility: DebianCompatibilityManifest = toml::from_str(
+            &fs::read_to_string(root.join("src/system/packages/debian-compat/trixie.toml"))
+                .unwrap(),
+        )
+        .unwrap();
+        let libxcb = compatibility
+            .package
+            .iter()
+            .find(|package| package.mattos_name == "libxcb1")
+            .unwrap();
+        assert!(
+            libxcb
+                .owned_paths
+                .iter()
+                .any(|path| path == "/usr/lib/x86_64-linux-gnu/libxcb-xinput.so.0")
+        );
         let preferences =
             fs::read_to_string(root.join("src/system/packages/config/apt/00mattos-priority"))
                 .unwrap();

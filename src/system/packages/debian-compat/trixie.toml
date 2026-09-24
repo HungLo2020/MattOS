@@ -1927,6 +1927,18 @@ classification = "debian-compatible"
 known_gaps = ["None"]
 
 [[package]]
+debian_name = "libice6"
+mattos_name = "libice6"
+source_component = "X.Org libICE pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libICE.so.6"]
+provided_abi_or_commands = ["libICE ABI 6"]
+protected = true
+current_mattos_version = "1.1.2-1mattos1"
+expected_debian_role = "X11 inter-client exchange runtime ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
 debian_name = "libwayland-server0"
 mattos_name = "libwayland-server0"
 source_component = "Wayland pinned source"
@@ -1952,6 +1964,79 @@ classification = "debian-compatible"
 known_gaps = ["None"]
 
 [[package]]
+debian_name = "libsm6"
+mattos_name = "libsm6"
+source_component = "X.Org libSM pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libSM.so.6"]
+provided_abi_or_commands = ["libSM ABI 6"]
+protected = true
+current_mattos_version = "1.2.6-1mattos1"
+expected_debian_role = "X11 session management runtime ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libxi6"
+mattos_name = "libxi6"
+source_component = "X.Org libXi pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXi.so.6"]
+provided_abi_or_commands = ["libXi ABI 6"]
+protected = true
+current_mattos_version = "1.8.3-1mattos1"
+expected_debian_role = "X Input extension runtime ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libxrender1"
+mattos_name = "libxrender1"
+source_component = "X.Org libXrender pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXrender.so.1"]
+provided_abi_or_commands = ["libXrender ABI 1"]
+protected = true
+current_mattos_version = "0.9.12-1mattos1"
+expected_debian_role = "X Render extension runtime ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libxtst6"
+mattos_name = "libxtst6"
+source_component = "X.Org libXtst pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXtst.so.6"]
+provided_abi_or_commands = ["libXtst ABI 6"]
+protected = true
+current_mattos_version = "1.2.5-1mattos1"
+expected_debian_role = "X Test extension runtime ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libxcursor1"
+mattos_name = "libxcursor1"
+debian_epoch = 1
+source_component = "X.Org libXcursor pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXcursor.so.1"]
+provided_abi_or_commands = ["libXcursor ABI 1"]
+protected = true
+current_mattos_version = "1:1.2.3-1mattos1"
+expected_debian_role = "X cursor management runtime ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
+debian_name = "libxft2"
+mattos_name = "libxft2"
+source_component = "X.Org libXft pinned source"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXft.so.2"]
+provided_abi_or_commands = ["libXft ABI 2"]
+protected = true
+current_mattos_version = "2.3.9-1mattos1"
+expected_debian_role = "Xft FreeType-backed font rendering runtime ABI"
+classification = "debian-compatible"
+known_gaps = ["None"]
+
+[[package]]
 debian_name = "libxcb1"
 mattos_name = "libxcb1"
 source_component = "X.Org libxcb pinned source"
@@ -1967,6 +2052,7 @@ owned_paths = [
   "/usr/lib/x86_64-linux-gnu/libxcb-shape.so.0",
   "/usr/lib/x86_64-linux-gnu/libxcb-shm.so.0",
   "/usr/lib/x86_64-linux-gnu/libxcb-sync.so.1",
+  "/usr/lib/x86_64-linux-gnu/libxcb-xinput.so.0",
   "/usr/lib/x86_64-linux-gnu/libxcb-xfixes.so.0",
   "/usr/lib/x86_64-linux-gnu/libxcb-xkb.so.1",
 ]
@@ -3031,6 +3117,30 @@ classification = "mattos-extension"
 known_gaps = ["MattOS packages the source-owned daemon for its Plasma Wayland session"]
 
 [[package]]
+debian_name = "plasma-login-manager"
+mattos_name = "plasma-login-manager"
+source_component = "plasma-login-manager"
+owned_paths = ["/usr/bin/plasmalogin", "/usr/lib/systemd/system/plasmalogin.service", "/etc/pam.d/plasmalogin", "/usr/share/wayland-sessions/mattos-plasma.desktop"]
+provided_abi_or_commands = ["KDE Plasma Login Manager", "display-manager", "MattOS Plasma Wayland session"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "KDE Plasma graphical login and session manager"
+classification = "mattos-extension"
+known_gaps = ["MattOS supplies its own PAM stacks and session entry"]
+
+[[package]]
+debian_name = "mattos-plasma-live"
+mattos_name = "mattos-plasma-live"
+source_component = "mattos-plasma-live"
+owned_paths = ["/etc/greetd/plasma-live.toml", "/usr/lib/systemd/system/plasma-greeter.service", "/usr/bin/mattos-plasma-greeter"]
+provided_abi_or_commands = ["Live-image-only greetd integration"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "Live-only Plasma session integration"
+classification = "mattos-specific"
+known_gaps = ["Must not be installed by CLI or Plasma target profiles"]
+
+[[package]]
 debian_name = "plasma-workspace"
 mattos_name = "plasma-workspace"
 source_component = "plasma-workspace"
@@ -3041,6 +3151,18 @@ current_mattos_version = "6.4.3-1mattos1"
 expected_debian_role = "Plasma workspace and session shell"
 classification = "mattos-extension"
 known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kscreenlocker"
+mattos_name = "kscreenlocker"
+source_component = "kscreenlocker"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libKScreenLocker.so.6", "/usr/lib/x86_64-linux-gnu/libexec/kscreenlocker_greet", "/usr/lib/x86_64-linux-gnu/plugins/plasma/kcms/systemsettings/kcm_screenlocker.so"]
+provided_abi_or_commands = ["Plasma screen-locking runtime", "KScreenLocker library"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "Plasma screen locker and settings module"
+classification = "mattos-extension"
+known_gaps = ["MattOS packages source-built Plasma screen-locking components"]
 
 [[package]]
 debian_name = "plasma-desktop"

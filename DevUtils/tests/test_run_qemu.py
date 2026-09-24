@@ -17,12 +17,24 @@ from run_qemu import (
     ensure_iso_exists,
     graphical_gpu_device,
     image_build_commands,
+    installed_plasma_greeter_probe,
+    installed_plasma_greeter_process_probe,
+    installed_plasma_wayland_socket_probe,
+    installed_plasma_user_desktop_absent_probe,
+    installed_plasma_logout_command,
+    installed_plasma_applet_runtime_probes,
     install_completion_marker,
     launch_qemu,
     network_arguments,
     prepare_install_disk,
     scheduled_poweroff_command,
+    scheduled_reboot_command,
+    schedule_and_wait_for_guest_reboot,
+    submit_plasma_greeter_password,
     test_control_socket,
+    _capture_plasma_verification_window,
+    _select_installed_qemu_window,
+    wake_installed_plasma_greeter,
     uefi_firmware_arguments,
     validate_completed_install,
     write_install_completion,
@@ -30,6 +42,217 @@ from run_qemu import (
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
+    def test_installed_plasma_verifier_checks_dynamic_applet_elf_and_qml_failures(self) -> None:
+        probes = dict(installed_plasma_applet_runtime_probes())
+        runtime = probes["plasma-applet-runtime-libraries"]
+        self.assertIn("dpkg-query -W libicu78 libpulse0", runtime)
+        self.assertIn("libkickerplugin.so", runtime)
+        self.assertIn("libdigitalclockplugin.so", runtime)
+        self.assertIn("libplasma-volume-declarative.so", runtime)
+        self.assertEqual(runtime.count("grep -q 'not found'"), 3)
+        loaded = probes["plasma-applets-loaded"]
+        self.assertIn("journalctl -b _COMM=plasmashell", loaded)
+        for applet in ("kickoff", "digitalclock", "pager", "volume"):
+            self.assertIn(applet, loaded)
+        self.assertIn("Cannot load library", loaded)
+
+    def test_installed_reboot_waits_for_qmp_reset_before_returning_to_serial_probe(self) -> None:
+        events: list[str] = []
+
+        class FakeQmp:
+            def __init__(self, socket: Path, timeout: float) -> None:
+                events.append(f"qmp-open:{socket}:{timeout}")
+
+            def __enter__(self) -> "FakeQmp":
+                events.append("qmp-ready")
+                return self
+
+            def __exit__(self, *_: object) -> None:
+                events.append("qmp-close")
+
+            def wait_for_event(self, name: str, timeout: float) -> dict[str, object]:
+                events.append(f"wait-event:{name}")
+                return {"event": name, "data": {"guest": True, "reason": "guest-reset"}}
+
+        def serial(_path: Path, command: str, _timeout: float, **_kwargs: object) -> str:
+            events.append(f"serial:{command}")
+            return "reboot scheduled"
+
+        with mock.patch("run_qemu.QmpClient", FakeQmp), mock.patch(
+            "run_qemu.serial_command_stream", side_effect=serial
+        ):
+            observed = schedule_and_wait_for_guest_reboot(
+                Path("qmp.sock"), Path("serial.sock"), scheduled_reboot_command("test")
+            )
+        self.assertEqual(observed, {"event": "RESET", "guest": True, "reason": "guest-reset"})
+        self.assertLess(events.index("qmp-ready"), next(i for i, item in enumerate(events) if item.startswith("serial:")))
+        self.assertLess(next(i for i, item in enumerate(events) if item.startswith("serial:")), events.index("wait-event:RESET"))
+        self.assertEqual(events[-1], "qmp-close")
+
+    def test_plasma_verification_captures_largest_installed_qemu_display(self) -> None:
+        with TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "greeter.png"
+            calls: list[list[str]] = []
+
+            def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+                calls.append(command)
+                if command[0].endswith("xwininfo"):
+                    output = '\n'.join([
+                        '  0x100 "QEMU (mattos-installed-plasma-login-verification-1)" 640x384+0+0',
+                        '  0x200 "QEMU (mattos-installed-plasma-login-verification-0)" 1280x800+0+0',
+                    ])
+                    return subprocess.CompletedProcess(command, 0, output, "")
+                if command[0].endswith("import"):
+                    destination.write_bytes(b"test-image")
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[0].endswith("identify"):
+                    return subprocess.CompletedProcess(command, 0, "1280 800" if "-format" in command and "%w %h" in command else "0.18", "")
+                self.fail(f"unexpected capture command: {command}")
+
+            with mock.patch("run_qemu.shutil.which", side_effect=lambda name: f"/usr/bin/{name}"), mock.patch(
+                "run_qemu.subprocess.run", side_effect=run
+            ):
+                self.assertEqual(
+                    _capture_plasma_verification_window(Path(temporary), destination),
+                    (1280, 800),
+                )
+            self.assertIn("0x200", calls[1])
+            self.assertEqual(calls[1][calls[1].index("-window") + 1], "0x200")
+            self.assertIn("%[fx:standard_deviation]", calls[3])
+
+    def test_plasma_verification_rejects_black_guest_surface(self) -> None:
+        with TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "black-greeter.png"
+
+            def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+                if command[0].endswith("xwininfo"):
+                    return subprocess.CompletedProcess(command, 0,
+                        '  0x200 "QEMU (mattos-installed-plasma-login-verification-0)" 1280x800+0+0', "")
+                if command[0].endswith("import"):
+                    destination.write_bytes(b"test-image")
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[0].endswith("identify"):
+                    value = "1280 800" if "%w %h" in command else "0"
+                    return subprocess.CompletedProcess(command, 0, value, "")
+                self.fail(f"unexpected capture command: {command}")
+
+            with mock.patch("run_qemu.shutil.which", side_effect=lambda name: f"/usr/bin/{name}"), mock.patch(
+                "run_qemu.subprocess.run", side_effect=run
+            ), self.assertRaisesRegex(RepoError, "did not visibly render"):
+                _capture_plasma_verification_window(Path(temporary), destination, timeout=0)
+
+    def test_plasma_capture_retries_transient_black_startup_frame(self) -> None:
+        with TemporaryDirectory() as temporary:
+            destination = Path(temporary) / "greeter.png"
+            calls = 0
+
+            def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+                nonlocal calls
+                if command[0].endswith("xwininfo"):
+                    return subprocess.CompletedProcess(command, 0,
+                        '  0x200 "QEMU (mattos-installed-plasma-login-verification-0)" 1280x800+0+0', "")
+                if command[0].endswith("import"):
+                    calls += 1
+                    destination.write_bytes(b"frame")
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[0].endswith("identify"):
+                    value = "1280 800" if "%w %h" in command else ("0" if calls == 1 else "0.2")
+                    return subprocess.CompletedProcess(command, 0, value, "")
+                self.fail(f"unexpected capture command: {command}")
+
+            with mock.patch("run_qemu.shutil.which", side_effect=lambda name: f"/usr/bin/{name}"), mock.patch(
+                "run_qemu.subprocess.run", side_effect=run
+            ), mock.patch("run_qemu.time.sleep"):
+                self.assertEqual(
+                    _capture_plasma_verification_window(Path(temporary), destination, timeout=5),
+                    (1280, 800),
+                )
+            self.assertEqual(calls, 2)
+
+    def test_installed_plasma_probe_distinguishes_greeter_kwin_from_user_desktop(self) -> None:
+        greeter = installed_plasma_greeter_probe()
+        self.assertIn("plasmalogin.service", greeter)
+        self.assertIn("loginctl --no-pager show-user plasmalogin -p Sessions", greeter)
+        self.assertIn("pgrep -u plasmalogin -x kwin_wayland", greeter)
+        self.assertIn("pgrep -u plasmalogin -f startplasma-login-wayland", greeter)
+        self.assertIn("wayland-0", greeter)
+        socket_probe = installed_plasma_wayland_socket_probe()
+        self.assertIn("sudo -S -p '' test -S", socket_probe)
+        self.assertIn("$(id -u plasmalogin)", socket_probe)
+        self.assertTrue(greeter.endswith(socket_probe))
+        process_probe = installed_plasma_greeter_process_probe()
+        self.assertIn("startplasma-login-wayland", process_probe)
+        self.assertNotIn("kwin_wayland", process_probe)
+        self.assertNotIn("awk", greeter)
+        self.assertNotIn("! pgrep", greeter)
+
+        user_absent = installed_plasma_user_desktop_absent_probe("mattos")
+        self.assertIn("! pgrep -u mattos -x kwin_wayland", user_absent)
+        self.assertIn("! pgrep -u mattos -x plasmashell", user_absent)
+
+    def test_installed_plasma_verification_keeps_graphical_auth_enabled(self) -> None:
+        plan = run_qemu._test_install_plan("plasma")
+        self.assertIn('automatic_login = false', plan)
+        self.assertIn('test_autologin = true', plan)
+
+    def test_plasma_window_selection_ignores_blank_secondary_sdl_head(self) -> None:
+        tree = '\n'.join([
+            '  0x3200012 "QEMU (mattos-installed-plasma-login-verification-1)" 640x384+0+0',
+            '  0x320000a "QEMU (mattos-installed-plasma-login-verification-0)" 1280x800+0+0',
+            '  0x1600004 "unrelated application" 1920x1080+0+0',
+        ])
+        self.assertEqual(_select_installed_qemu_window(tree), "0x320000a")
+        self.assertIsNone(_select_installed_qemu_window('  0x1 "Other window" 800x600+0+0'))
+
+    def test_greeter_wakeup_is_real_qmp_keyboard_input(self) -> None:
+        events: list[str] = []
+
+        class FakeQmp:
+            def __init__(self, socket: Path, timeout: int) -> None:
+                self.socket = socket
+
+            def __enter__(self) -> "FakeQmp":
+                events.append("connect")
+                return self
+
+            def __exit__(self, *_: object) -> None:
+                events.append("close")
+
+        with mock.patch("run_qemu.QmpClient", FakeQmp), mock.patch(
+            "run_qemu.send_key", side_effect=lambda _qmp, key: events.append(key)
+        ), mock.patch("run_qemu.time.sleep") as sleep:
+            wake_installed_plasma_greeter(Path("guest-qmp.sock"))
+        self.assertEqual(events, ["connect", "shift", "close"])
+        sleep.assert_called_once_with(0.4)
+
+    def test_greeter_password_submission_clears_rejected_entry_before_typing(self) -> None:
+        events: list[tuple[str, str]] = []
+        with mock.patch(
+            "run_qemu.send_key", side_effect=lambda _qmp, key: events.append(("key", key))
+        ), mock.patch(
+            "run_qemu.type_text", side_effect=lambda _qmp, value: events.append(("text", value))
+        ), mock.patch("run_qemu.time.sleep"):
+            submit_plasma_greeter_password(object(), "mattos")
+        self.assertEqual(events, [
+            ("key", "ctrl-a"),
+            ("key", "backspace"),
+            ("text", "mattos"),
+            ("key", "ret"),
+        ])
+
+    def test_plasma_logout_uses_session_shutdown_service_and_user_bus(self) -> None:
+        command = installed_plasma_logout_command()
+        self.assertIn('test -S "/run/user/$uid/bus"', command)
+        self.assertIn('DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus"', command)
+        self.assertIn("qdbus org.kde.Shutdown /Shutdown org.kde.Shutdown.logout", command)
+        self.assertNotIn("loginctl terminate-session", command)
+
+    def test_cli_install_fixture_does_not_enable_a_display_manager(self) -> None:
+        plan = run_qemu._test_install_plan("cli")
+        self.assertIn('installed_profile = "cli"', plan)
+        self.assertIn('automatic_login = false', plan)
+        self.assertIn('test_autologin = true', plan)
+
     def test_shutdown_is_scheduled_after_serial_result_marker(self) -> None:
         self.assertEqual(
             scheduled_poweroff_command(),
@@ -481,6 +704,7 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                     "dry_run": False, "no_kvm": True, "memory": 1024, "cpus": 1,
                     "headless": False, "test_control": True, "qmp_socket": None,
                     "require_virgl": True, "run_installed": True, "install": False,
+                    "plasma_login_verification": True,
                     "serial_console": False, "no_network": True, "qemu_arg": [],
                     "live_media": "optical", "no_install_disk": False,
                     "install_disk": Path("out/qemu/installed-test.qcow2"),
@@ -505,8 +729,9 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 )
             command = launched.call_args.args[0]
             self.assertIn("virtio-vga-gl,blob=true,hostmem=256M", command)
-            self.assertIn("gtk,gl=on", command)
+            self.assertIn("sdl,gl=on", command)
             self.assertNotIn("gtk,gl=off", command)
+            self.assertEqual(launched.call_args.kwargs["env"]["SDL_VIDEODRIVER"], "x11")
 
 
 @unittest.skipUnless(

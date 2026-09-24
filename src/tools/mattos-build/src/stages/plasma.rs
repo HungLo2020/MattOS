@@ -17,7 +17,7 @@ fn build_plasma_component(repo_root: &Path, stage: &str, source: &str, component
     // package interface or searching the host.
     let mut build_components = components.to_vec();
     if stage == "plasma-workspace" {
-        build_components.extend(["polkit", "glib"]);
+        build_components.extend(["polkit", "glib", "kscreenlocker"]);
     }
     if stage == "plasma-desktop" {
         build_components.extend(["kbookmarks", "kcompletion", "kitemviews", "kitemmodels", "kjobwidgets", "kservice", "kparts", "solid", "kirigami", "kded", "plasma-framework", "plasma-activities", "plasma-activities-stats", "plasma5support", "kwin", "ksysguard", "xorgproto", "libxcb", "libxau", "libxdmcp", "libx11", "x11-compat", "xkeyboard-config", "qtshadertools"]);
@@ -25,12 +25,23 @@ fn build_plasma_component(repo_root: &Path, stage: &str, source: &str, component
     if stage == "kscreenlocker" {
         build_components.push("libkscreen");
     }
-    let mut build_options = options.to_vec();
+    let build_options = options.to_vec();
     if stage == "kscreenlocker" {
-        build_options.push("-DWITH_X11=OFF");
         build_components.push("linux-pam");
         build_components.push("x11-compat");
         build_components.push("libxcb");
+        // The upstream greeter is linked with MattOS's strict undefined-
+        // symbol policy. These are transitive DT_NEEDED providers of its
+        // staged KF/Wayland libraries, so expose their target-owned library
+        // directories to the linker rather than permitting host resolution.
+        build_components.extend([
+            "qtsvg",
+            "kiconthemes",
+            "breeze-icons",
+            "plasma-activities",
+            "libcanberra",
+            "libffi",
+        ]);
     }
     build_kde_cmake(repo_root, stage, source, &build_components, &build_options, required_output)
 }
@@ -114,10 +125,28 @@ fn build_plasma_workspace(repo_root: &Path) -> Result<()> {
         repo_root,
         "plasma-workspace",
         "src/desktop/kde/plasma-workspace",
-        &["qtbase", "qtdeclarative", "qtshadertools", "qtpositioning", "qtlocation", "qcoro", "kconfig", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kholidays", "kidletime", "kpackage", "ksvg", "kcolorscheme", "kwidgetsaddons", "kdeclarative", "kirigami", "kirigami-addons", "kquickcharts", "kiconthemes", "kitemmodels", "kitemviews", "kcmutils", "kded", "kio", "kwindowsystem", "kwayland", "libkscreen", "layer-shell-qt", "knighttime", "plasma-wayland-protocols", "xkbcommon", "kbookmarks", "kcompletion", "solid", "kservice", "kcodecs", "knewstuff", "attica", "knotifications", "kparts", "kjobwidgets", "prison", "krunner", "kstatusnotifieritem", "ktextwidgets", "sonnet", "ktexteditor", "kwallet", "kconfigwidgets", "kxmlgui", "breeze-icons", "libffi", "libcanberra", "zlib", "icu", "polkit-qt-1", "plasma-framework", "plasma-activities", "plasma-activities-stats", "kwin", "systemd", "dbus", "networkmanager", "pipewire", "x11-compat"],
-        &["-DBUILD_TESTING=OFF", "-DWITH_X11=OFF", "-DWITH_X11_SESSION=OFF", "-DWITH_WAYLAND=ON", "-DBUILD_CAMERAINDICATOR=OFF"],
+        &["qtbase", "qtdeclarative", "qtshadertools", "qtpositioning", "qtlocation", "qcoro", "kconfig", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kholidays", "kidletime", "kpackage", "ksvg", "kcolorscheme", "kwidgetsaddons", "kdeclarative", "kirigami", "kirigami-addons", "kquickcharts", "kiconthemes", "kitemmodels", "kitemviews", "kcmutils", "kded", "kio", "kwindowsystem", "kwayland", "libkscreen", "layer-shell-qt", "knighttime", "plasma-wayland-protocols", "xkbcommon", "kbookmarks", "kcompletion", "solid", "kservice", "kcodecs", "knewstuff", "attica", "knotifications", "kparts", "kjobwidgets", "prison", "krunner", "kstatusnotifieritem", "ktextwidgets", "sonnet", "ktexteditor", "kwallet", "kconfigwidgets", "kxmlgui", "breeze-icons", "libffi", "libcanberra", "zlib", "icu", "polkit-qt-1", "plasma-framework", "plasma-activities", "plasma-activities-stats", "kwin", "systemd", "dbus", "networkmanager", "pipewire", "x11-compat", "kscreenlocker"],
+        // WITH_X11 builds the shared KSMServer session manager, which is
+        // required for orderly Wayland logout/re-login. WITH_X11_SESSION=OFF
+        // continues to exclude the Plasma X11 session and startplasma-x11.
+        &["-DBUILD_TESTING=OFF", "-DWITH_X11=ON", "-DWITH_X11_SESSION=OFF", "-DWITH_WAYLAND=ON", "-DBUILD_CAMERAINDICATOR=OFF"],
         "usr/bin/startplasma-wayland",
-    )
+    )?;
+    let install = repo_root.join("out/build/plasma-workspace/install");
+    for required in [
+        "usr/bin/ksmserver",
+        "usr/lib/systemd/user/plasma-ksmserver.service",
+    ] {
+        if !install.join(required).is_file() {
+            bail!("Plasma Wayland workspace build lacks required session component {required}");
+        }
+    }
+    for forbidden in ["usr/bin/startplasma-x11", "usr/share/xsessions/plasma.desktop"] {
+        if install.join(forbidden).exists() {
+            bail!("Wayland-only Plasma build unexpectedly produced X11 session artifact {forbidden}");
+        }
+    }
+    Ok(())
 }
 
 fn build_plasma_desktop(repo_root: &Path) -> Result<()> {
@@ -146,6 +175,33 @@ fn build_plasma_desktop(repo_root: &Path) -> Result<()> {
         );
     }
     Ok(())
+}
+
+fn build_plasma_login_manager(repo_root: &Path) -> Result<()> {
+    build_plasma_component(
+        repo_root,
+        "plasma-login-manager",
+        "src/desktop/kde/plasma-login-manager",
+        &[
+            "qtbase", "qtdeclarative", "qtshadertools", "qttools", "kconfig", "kcoreaddons",
+            "kpackage", "kwindowsystem", "ki18n", "kdbusaddons", "kcmutils", "kconfigwidgets",
+            "kguiaddons", "kitemviews", "kxmlgui", "kauth", "kio", "kbookmarks", "kcompletion",
+            "kjobwidgets", "solid", "kwidgetsaddons", "kservice", "kiconthemes", "kcolorscheme",
+            "kcrash", "karchive", "kitemmodels", "kirigami", "plasma-framework", "layer-shell-qt",
+            "ksvg", "knotifications", "kglobalaccel", "plasma-activities", "breeze-icons", "libffi",
+            "libcanberra", "plasma-workspace", "libkscreen", "linux-pam", "systemd", "x11-compat",
+        ],
+        &[
+            "-DBUILD_TESTING=OFF",
+            // PAM policy is MattOS-owned below; upstream's auto-detection
+            // would select configuration based on the build host.
+            "-DINSTALL_PAM_CONFIGURATION=OFF",
+            "-DPAM_CONFIG_DIR=/usr/lib/pam.d",
+            "-DUID_MIN=1000",
+            "-DUID_MAX=60000",
+        ],
+        "usr/bin/plasmalogin",
+    )
 }
 
 fn build_breeze(repo_root: &Path) -> Result<()> {

@@ -413,6 +413,11 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/tools/mattos-build/src/stages/plasma.rs",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
         ],
+        BuildStage::PlasmaLoginManager => &[
+            "src/desktop/kde/plasma-login-manager",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
         BuildStage::PlasmaDesktop => &[
             "src/desktop/kde/plasma-desktop",
             "src/tools/mattos-build/src/stages/plasma.rs",
@@ -536,11 +541,19 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::VulkanLoader => &["src/system/graphics/vulkan-loader"],
         BuildStage::VulkanTools => &["src/system/graphics/vulkan-tools"],
         BuildStage::X11Compat => &[
+            "src/tools/mattos-build/src/stages/graphics.rs",
             "src/system/graphics/xorgproto",
             "src/system/graphics/xorg-util-macros",
             "src/system/graphics/xtrans",
             "src/system/graphics/libxau",
             "src/system/graphics/libxdmcp",
+            "src/system/graphics/libice",
+            "src/system/graphics/libsm",
+            "src/system/graphics/libxi",
+            "src/system/graphics/libxrender",
+            "src/system/graphics/libxtst",
+            "src/system/graphics/libxcursor",
+            "src/system/graphics/libxft",
             "src/system/graphics/xcb-proto",
             "src/system/graphics/libxcb",
             "src/system/graphics/libx11",
@@ -1097,6 +1110,17 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::YamlCpp
         | BuildStage::KPMCore
         | BuildStage::Calamares => &[
+            "gcc",
+            "g++",
+            "ld",
+            "cmake",
+            "ninja",
+            "pkg-config",
+            "python3",
+            "msgfmt",
+            "msgmerge",
+        ],
+        BuildStage::PlasmaLoginManager => &[
             "gcc",
             "g++",
             "ld",

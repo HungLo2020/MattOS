@@ -24,7 +24,7 @@ packages = [
   "libdrm2", "libdrm-amdgpu1", "libdrm-nouveau2", "libgbm1", "libegl1",
   "libgles1", "libgles2", "libgl1-mesa-dri", "libvulkan1", "libvulkan-dev",
   "mesa-vulkan-drivers", "vulkan-tools", "libegl-mesa0",
-  "libxau6", "libxdmcp6", "libxcb1", "libx11-6", "libxext6", "libxfixes3",
+  "libxau6", "libxdmcp6", "libice6", "libsm6", "libxi6", "libxcursor1", "libxft2", "libxcb1", "libx11-6", "libxext6", "libxfixes3", "libxrender1", "libxtst6",
   "libglvnd0", "libglx0", "libgl1", "libopengl0",
   "libduktape207", "polkit", "network-manager",
   "linux-modules-nvidia-595-open-7.2.0-rc5-mattos", "nvidia-firmware-595",

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+import json
 import sys
 import tempfile
 import unittest
@@ -51,6 +52,30 @@ class _FakeSerialSocket:
 
 
 class QemuTestControlTests(unittest.TestCase):
+    def test_qmp_wait_for_event_ignores_other_events_until_reset(self) -> None:
+        client = control.QmpClient(Path("qmp.sock"), 1)
+        client.socket = mock.Mock()
+        responses = deque([
+            {"event": "STOP", "data": {}},
+            {"event": "RESET", "data": {"guest": True, "reason": "guest-reset"}},
+        ])
+        client._reader = mock.Mock()
+        client._reader.readline.side_effect = [
+            json.dumps(response).encode() + b"\n" for response in responses
+        ]
+        event = client.wait_for_event("RESET", 1)
+        self.assertEqual(event["event"], "RESET")
+        self.assertEqual(event["data"]["reason"], "guest-reset")
+        self.assertGreaterEqual(client.socket.settimeout.call_count, 2)
+
+    def test_qmp_wait_for_event_requires_an_open_connection_and_positive_timeout(self) -> None:
+        client = control.QmpClient(Path("qmp.sock"), 1)
+        with self.assertRaisesRegex(control.QmpError, "not open"):
+            client.wait_for_event("RESET", 1)
+        client.socket = mock.Mock()
+        with self.assertRaisesRegex(control.QmpError, "positive"):
+            client.wait_for_event("RESET", 0)
+
     def test_text_delivery_paces_balanced_character_batches(self) -> None:
         client = mock.Mock()
         with mock.patch.object(control.time, "sleep") as pause:

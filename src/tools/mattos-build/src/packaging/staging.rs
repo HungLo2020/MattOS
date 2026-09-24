@@ -37,6 +37,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "mattos-base" | "mattos-cli" | "mattos-plasma" => {
             stage_profile_package(repo_root, &staging, spec.name)?
         }
+        "mattos-plasma-live" => stage_plasma_live_session_integration(repo_root, &staging)?,
         "ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
         "mattos-brush" => stage_brush(repo_root, &staging)?,
         "coreutils" => stage_coreutils(repo_root, &staging)?,
@@ -529,6 +530,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "plasma-workspace" => {
             stage_kde_module(repo_root, &staging, "plasma-workspace", "plasma-workspace")?
         }
+        "kscreenlocker" => stage_kde_module(repo_root, &staging, "kscreenlocker", "kscreenlocker")?,
         "plasma-framework" => {
             stage_kde_module(repo_root, &staging, "plasma-framework", "plasma-framework")?
         }
@@ -539,6 +541,15 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "plasma-desktop" => {
             stage_kde_module(repo_root, &staging, "plasma-desktop", "plasma-desktop")?;
             stage_plasma_session_integration(repo_root, &staging)?;
+        }
+        "plasma-login-manager" => {
+            stage_kde_module(
+                repo_root,
+                &staging,
+                "plasma-login-manager",
+                "plasma-login-manager",
+            )?;
+            stage_plasma_login_manager_integration(repo_root, &staging)?;
         }
         "breeze" => stage_kde_module(repo_root, &staging, "breeze", "breeze")?,
         "breeze-icons" => stage_kde_module(repo_root, &staging, "breeze-icons", "breeze-icons")?,
@@ -1114,6 +1125,62 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "src/system/graphics/libxdmcp/COPYING",
             "libxdmcp6",
         )?,
+        "libice6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libICE.so.6",
+            "src/system/graphics/libice/COPYING",
+            "libice6",
+        )?,
+        "libsm6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libSM.so.6",
+            "src/system/graphics/libsm/COPYING",
+            "libsm6",
+        )?,
+        "libxi6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXi.so.6",
+            "src/system/graphics/libxi/COPYING",
+            "libxi6",
+        )?,
+        "libxrender1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXrender.so.1",
+            "src/system/graphics/libxrender/COPYING",
+            "libxrender1",
+        )?,
+        "libxtst6" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXtst.so.6",
+            "src/system/graphics/libxtst/COPYING",
+            "libxtst6",
+        )?,
+        "libxcursor1" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXcursor.so.1",
+            "src/system/graphics/libxcursor/COPYING",
+            "libxcursor1",
+        )?,
+        "libxft2" => stage_imported_soname_library(
+            repo_root,
+            &staging,
+            "x11-compat",
+            "libXft.so.2",
+            "src/system/graphics/libxft/COPYING",
+            "libxft2",
+        )?,
         "libxcb1" => {
             for (component, soname) in [
                 ("x11-compat", "libxcb.so.1"),
@@ -1129,6 +1196,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                 ("x11-compat", "libxcb-shape.so.0"),
                 ("x11-compat", "libxcb-shm.so.0"),
                 ("x11-compat", "libxcb-sync.so.1"),
+                ("x11-compat", "libxcb-xinput.so.0"),
                 ("x11-compat", "libxcb-xfixes.so.0"),
                 ("xcb-util", "libxcb-util.so.1"),
                 ("xcb-renderutil", "libxcb-render-util.so.0"),
@@ -1989,16 +2057,9 @@ fn copy_qt_prefix_inner(
 fn stage_plasma_session_integration(repo_root: &Path, staging: &Path) -> Result<()> {
     let integration = repo_root.join("src/system/session/plasma");
     for (source, destination) in [
-        ("plasma-live.toml", "etc/greetd/plasma-live.toml"),
-        ("plasma.toml", "etc/greetd/plasma.toml"),
-        ("plasma-greeter.pam", "etc/pam.d/plasma-greeter"),
         (
             "plasma-desktop.conf",
             "usr/lib/environment.d/90-plasma-desktop.conf",
-        ),
-        (
-            "plasma-greeter.service",
-            "usr/lib/systemd/system/plasma-greeter.service",
         ),
         (
             "mattos-graphics-watchdog.service",
@@ -2015,23 +2076,11 @@ fn stage_plasma_session_integration(repo_root: &Path, staging: &Path) -> Result<
     ] {
         copy_preserving(&integration.join(source), &staging.join(destination))?;
     }
-    for name in [
-        "mattos-plasma-greeter",
-        "start-plasma",
-        "mattos-graphics-report",
-        "mattos-graphics-startup",
-    ] {
+    for name in ["mattos-graphics-report", "mattos-graphics-startup"] {
         copy_preserving(&integration.join(name), &staging.join("usr/bin").join(name))?;
         set_mode(staging.join("usr/bin").join(name), 0o755)?;
     }
 
-    let display_manager = staging.join("etc/systemd/system/display-manager.service");
-    fs::create_dir_all(display_manager.parent().expect("display-manager parent"))?;
-    #[cfg(unix)]
-    std::os::unix::fs::symlink(
-        "/usr/lib/systemd/system/plasma-greeter.service",
-        &display_manager,
-    )?;
     let wants = staging.join("etc/systemd/system/multi-user.target.wants");
     fs::create_dir_all(&wants)?;
     #[cfg(unix)]
@@ -2041,20 +2090,236 @@ fn stage_plasma_session_integration(repo_root: &Path, staging: &Path) -> Result<
     )?;
 
     for required in [
-        "etc/greetd/plasma-live.toml",
-        "etc/greetd/plasma.toml",
-        "etc/pam.d/plasma-greeter",
-        "etc/systemd/system/display-manager.service",
-        "usr/bin/mattos-plasma-greeter",
-        "usr/bin/start-plasma",
         "usr/bin/mattos-graphics-report",
         "usr/bin/mattos-graphics-startup",
-        "usr/lib/systemd/system/plasma-greeter.service",
         "usr/lib/systemd/system/mattos-graphics-watchdog.service",
         "usr/lib/environment.d/90-plasma-desktop.conf",
     ] {
         if fs::symlink_metadata(staging.join(required)).is_err() {
             bail!("plasma-desktop package is missing /{required}");
+        }
+    }
+    Ok(())
+}
+
+fn stage_plasma_login_manager_integration(repo_root: &Path, staging: &Path) -> Result<()> {
+    let policy = repo_root.join("src/system/session/plasma-login-manager");
+    for (source, destination) in [
+        ("plasmalogin.pam", "etc/pam.d/plasmalogin"),
+        ("plasmalogin-greeter.pam", "etc/pam.d/plasmalogin-greeter"),
+        (
+            "plasmalogin-autologin.pam",
+            "etc/pam.d/plasmalogin-autologin",
+        ),
+        (
+            "mattos-plasma.desktop",
+            "usr/share/wayland-sessions/mattos-plasma.desktop",
+        ),
+        ("../plasma/start-plasma", "usr/bin/start-plasma"),
+    ] {
+        copy_preserving(&policy.join(source), &staging.join(destination))?;
+    }
+    set_mode(staging.join("usr/bin/start-plasma"), 0o755)?;
+    // Upstream PLM's KWin unit requests optional KWin features unconditionally.
+    // MattOS deliberately builds KWin without its screen locker and Activities
+    // integration, so those conditional CLI switches are not compiled into
+    // our kwin_wayland binary. Remove only the switches for disabled features
+    // from the package-owned unit; keep upstream source pristine and preserve
+    // all supported options (notably the Wayland input method and locale1).
+    let kwin_unit = staging.join("usr/lib/systemd/user/plasma-login-kwin_wayland.service");
+    let unit_contents = fs::read_to_string(&kwin_unit).with_context(|| {
+        format!(
+            "Plasma Login Manager did not install its KWin user unit at {}",
+            kwin_unit.display()
+        )
+    })?;
+    let unit_contents = adapt_plasma_login_kwin_unit(&unit_contents)?;
+    fs::write(&kwin_unit, unit_contents)?;
+    // KWin opens the active seat's DRM card/render nodes as the dedicated
+    // greeter account.  MattOS's installed users receive these groups from
+    // the installer, but the system account generated by PLM otherwise has
+    // only its private primary group and cannot open /dev/dri/card*.  Keep
+    // the access scoped to the display-manager account and let systemd's
+    // native sysusers mechanism apply it before the login-manager starts.
+    let sysusers = staging.join("usr/lib/sysusers.d/plasmalogin.conf");
+    let sysusers_contents = fs::read_to_string(&sysusers)?;
+    fs::write(&sysusers, adapt_plasma_login_sysusers(&sysusers_contents)?)?;
+    for required in [
+        "usr/bin/plasmalogin",
+        "usr/bin/start-plasma",
+        "usr/lib/systemd/system/plasmalogin.service",
+        "usr/lib/systemd/user/plasma-login-kwin_wayland.service",
+        "usr/lib/sysusers.d/plasmalogin.conf",
+        "usr/lib/tmpfiles.d/plasmalogin.conf",
+        "etc/pam.d/plasmalogin",
+        "etc/pam.d/plasmalogin-greeter",
+        "etc/pam.d/plasmalogin-autologin",
+        "usr/share/wayland-sessions/mattos-plasma.desktop",
+    ] {
+        if fs::symlink_metadata(staging.join(required)).is_err() {
+            bail!("plasma-login-manager package is missing /{required}");
+        }
+    }
+    let session =
+        fs::read_to_string(staging.join("usr/share/wayland-sessions/mattos-plasma.desktop"))?;
+    if !session.contains("Exec=/usr/bin/start-plasma") || session.contains("startplasma-x11") {
+        bail!("MattOS Plasma Login Manager session must select start-plasma Wayland wrapper");
+    }
+    Ok(())
+}
+
+fn adapt_plasma_login_kwin_unit(contents: &str) -> Result<String> {
+    const DISABLED_FEATURE_OPTIONS: [&str; 2] = ["--no-lockscreen", "--no-kactivities"];
+    let mut exec_start_count = 0;
+    let mut adjusted = String::with_capacity(contents.len());
+    for line in contents.lines() {
+        if let Some(command) = line.strip_prefix("ExecStart=") {
+            exec_start_count += 1;
+            if !command.contains("/kwin_wayland ") {
+                bail!("Plasma Login Manager KWin unit does not launch kwin_wayland");
+            }
+            let mut adapted = command.to_owned();
+            for option in DISABLED_FEATURE_OPTIONS {
+                let occurrences = adapted
+                    .split_whitespace()
+                    .filter(|part| *part == option)
+                    .count();
+                if occurrences != 1 {
+                    bail!(
+                        "expected exactly one {option} in upstream Plasma Login Manager KWin unit; found {occurrences}"
+                    );
+                }
+                adapted = adapted.replace(&format!(" {option}"), "");
+            }
+            adjusted.push_str("ExecStart=");
+            adjusted.push_str(&adapted);
+        } else {
+            adjusted.push_str(line);
+        }
+        adjusted.push('\n');
+    }
+    if exec_start_count != 1 {
+        bail!(
+            "expected exactly one ExecStart in Plasma Login Manager KWin unit; found {exec_start_count}"
+        );
+    }
+    if !adjusted.contains("--no-global-shortcuts")
+        || !adjusted.contains("--inputmethod plasma-keyboard --locale1")
+        || adjusted.contains("--no-lockscreen")
+        || adjusted.contains("--no-kactivities")
+    {
+        bail!("adapted Plasma Login Manager KWin unit does not match MattOS KWin feature policy");
+    }
+    Ok(adjusted)
+}
+
+fn adapt_plasma_login_sysusers(contents: &str) -> Result<String> {
+    let account_lines = contents
+        .lines()
+        .filter(|line| {
+            let mut fields = line.split_whitespace();
+            fields.next() == Some("u") && fields.next() == Some("plasmalogin")
+        })
+        .count();
+    if account_lines != 1 {
+        bail!("expected exactly one upstream plasmalogin sysusers account; found {account_lines}");
+    }
+
+    let mut output = contents.trim_end_matches('\n').to_owned();
+    for group in ["video", "render"] {
+        let expected = format!("m plasmalogin {group}");
+        let memberships = contents
+            .lines()
+            .filter(|line| {
+                let fields = line.split_whitespace().collect::<Vec<_>>();
+                fields.as_slice() == ["m", "plasmalogin", group]
+            })
+            .count();
+        if memberships > 1 {
+            bail!("duplicate plasmalogin membership for {group} in upstream sysusers file");
+        }
+        if memberships == 0 {
+            output.push('\n');
+            output.push_str(&expected);
+        }
+    }
+    output.push('\n');
+    Ok(output)
+}
+
+#[cfg(test)]
+#[test]
+fn plasma_login_kwin_unit_omits_disabled_kwin_feature_options_only() {
+    let upstream = "[Service]\nExecStart=/usr/bin/kwin_wayland --no-lockscreen --no-global-shortcuts --no-kactivities --inputmethod plasma-keyboard --locale1\n";
+    let adapted = adapt_plasma_login_kwin_unit(upstream).unwrap();
+    assert_eq!(
+        adapted,
+        "[Service]\nExecStart=/usr/bin/kwin_wayland --no-global-shortcuts --inputmethod plasma-keyboard --locale1\n"
+    );
+    assert!(
+        adapt_plasma_login_kwin_unit("[Service]\nExecStart=/usr/bin/kwin_wayland --locale1\n")
+            .is_err()
+    );
+    assert!(
+        adapt_plasma_login_kwin_unit(
+            "[Service]\nExecStart=/usr/bin/kwin --no-lockscreen --no-kactivities\n"
+        )
+        .is_err()
+    );
+}
+
+#[cfg(test)]
+#[test]
+fn plasma_login_greeter_receives_only_required_drm_device_groups() {
+    let upstream =
+        "# Generated by Plasma Login Manager\nu plasmalogin - \"Greeter\" /var/lib/plasmalogin -\n";
+    let adapted = adapt_plasma_login_sysusers(upstream).unwrap();
+    assert_eq!(
+        adapted,
+        "# Generated by Plasma Login Manager\nu plasmalogin - \"Greeter\" /var/lib/plasmalogin -\nm plasmalogin video\nm plasmalogin render\n"
+    );
+    assert_eq!(adapt_plasma_login_sysusers(&adapted).unwrap(), adapted);
+    assert!(adapt_plasma_login_sysusers("u other - \"Greeter\" - -\n").is_err());
+    assert!(
+        adapt_plasma_login_sysusers(
+            "u plasmalogin - \"Greeter\" - -\nm plasmalogin video\nm plasmalogin video\n"
+        )
+        .is_err()
+    );
+}
+
+fn stage_plasma_live_session_integration(repo_root: &Path, staging: &Path) -> Result<()> {
+    let integration = repo_root.join("src/system/session/plasma");
+    for (source, destination) in [
+        ("plasma-live.toml", "etc/greetd/plasma-live.toml"),
+        ("plasma-greeter.pam", "etc/pam.d/plasma-greeter"),
+        (
+            "plasma-greeter.service",
+            "usr/lib/systemd/system/plasma-greeter.service",
+        ),
+    ] {
+        copy_preserving(&integration.join(source), &staging.join(destination))?;
+    }
+    for name in ["mattos-plasma-greeter"] {
+        copy_preserving(&integration.join(name), &staging.join("usr/bin").join(name))?;
+        set_mode(staging.join("usr/bin").join(name), 0o755)?;
+    }
+    let display_manager = staging.join("etc/systemd/system/display-manager.service");
+    fs::create_dir_all(display_manager.parent().expect("display-manager parent"))?;
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(
+        "/usr/lib/systemd/system/plasma-greeter.service",
+        &display_manager,
+    )?;
+    for required in [
+        "etc/greetd/plasma-live.toml",
+        "etc/pam.d/plasma-greeter",
+        "etc/systemd/system/display-manager.service",
+        "usr/bin/mattos-plasma-greeter",
+        "usr/lib/systemd/system/plasma-greeter.service",
+    ] {
+        if fs::symlink_metadata(staging.join(required)).is_err() {
+            bail!("mattos-plasma-live package is missing /{required}");
         }
     }
     Ok(())
@@ -3406,7 +3671,7 @@ fn stage_mattos_base_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
     Ok(())
 }
 
-const PLASMA_PROFILE_POSTINST: &str = "#!/bin/sh\nset -e\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v systemctl >/dev/null 2>&1; then\n    systemctl enable plasma-greeter.service >/dev/null\n    systemctl set-default graphical.target >/dev/null\nfi\n";
+const PLASMA_PROFILE_POSTINST: &str = "#!/bin/sh\nset -e\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v systemctl >/dev/null 2>&1; then\n    if [ \"$(readlink /etc/systemd/system/display-manager.service 2>/dev/null || true)\" = \"/usr/lib/systemd/system/plasma-greeter.service\" ]; then rm /etc/systemd/system/display-manager.service; fi\n    systemctl enable plasmalogin.service >/dev/null\n    systemctl set-default graphical.target >/dev/null\nfi\n";
 
 fn stage_profile_package(repo_root: &Path, staging: &Path, package: &str) -> Result<()> {
     let profile = package.strip_prefix("mattos-").unwrap_or(package);
@@ -3439,7 +3704,8 @@ fn plasma_profile_package_activates_graphical_target_only_on_real_systems() {
     let source = include_str!("../../../../system/packages/profiles/plasma.toml");
     assert!(source.contains("meta_package = \"mattos-plasma\""));
     assert!(PLASMA_PROFILE_POSTINST.contains("DPKG_ROOT"));
-    assert!(PLASMA_PROFILE_POSTINST.contains("systemctl enable plasma-greeter.service"));
+    assert!(PLASMA_PROFILE_POSTINST.contains("systemctl enable plasmalogin.service"));
+    assert!(PLASMA_PROFILE_POSTINST.contains("display-manager.service"));
     assert!(PLASMA_PROFILE_POSTINST.contains("systemctl set-default graphical.target"));
 }
 
@@ -5136,6 +5402,24 @@ fn stage_pam_modules(repo_root: &Path, staging: &Path) -> Result<()> {
         copy_preserving(&source.join(module), &destination.join(module))?;
     }
     Ok(())
+}
+
+#[test]
+fn pam_module_package_contains_modules_referenced_by_plasma_login_policy() {
+    let plasma_login_pam =
+        include_str!("../../../../system/session/plasma-login-manager/plasmalogin.pam");
+    for module in [
+        "pam_unix.so",
+        "pam_limits.so",
+        "pam_env.so",
+        "pam_nologin.so",
+    ] {
+        assert!(
+            PAM_MODULES.contains(&module),
+            "PAM package must stage {module}, referenced by Plasma Login Manager policy"
+        );
+    }
+    assert!(plasma_login_pam.contains("session    required     pam_limits.so"));
 }
 
 fn stage_pam_runtime(repo_root: &Path, staging: &Path) -> Result<()> {

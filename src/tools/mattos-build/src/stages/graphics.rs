@@ -79,6 +79,26 @@ fn remove_staged_libtool_archives(path: &Path) -> Result<()> {
     Ok(())
 }
 
+fn autotools_configure_needs_regeneration(
+    stamp_matches: bool,
+    configure_exists: bool,
+    configure_is_stale: bool,
+) -> bool {
+    !stamp_matches || !configure_exists || configure_is_stale
+}
+
+fn autotools_build_tree_needs_reset(
+    stamp_matches: bool,
+    configure_exists: bool,
+    configure_is_stale: bool,
+    build_configuration_is_stale: bool,
+) -> bool {
+    !stamp_matches
+        || !configure_exists
+        || configure_is_stale
+        || build_configuration_is_stale
+}
+
 fn build_xorg_autotools_component(
     repo_root: &Path,
     component: &str,
@@ -98,14 +118,13 @@ fn build_xorg_autotools_component(
             .join(format!("{component}.toml")),
     )?;
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\nxorg-compat-recipe=4\n",
+        "{state}\n{}\ndependencies={}\nxorg-compat-recipe=7\n",
         options.join("\n"),
         dependencies.join(",")
     );
-    if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
+    let stamp_matches = fs::read_to_string(&stamp_path).ok().as_deref() == Some(stamp.as_str());
+    if !stamp_matches {
         remove_path_if_exists(&source_copy)?;
-        remove_path_if_exists(&build_dir)?;
-        remove_path_if_exists(&install_dir)?;
     }
     fs::create_dir_all(&out_root)?;
     sync_build_source(&source, &source_copy)?;
@@ -134,7 +153,53 @@ fn build_xorg_autotools_component(
             std::env::join_paths(aclocal_paths)?.to_string_lossy().to_string(),
         ));
     }
-    if !source_copy.join("configure").is_file() {
+    let configure = source_copy.join("configure");
+    let configure_ac = source_copy.join("configure.ac");
+    let configure_is_stale = if configure.is_file() && configure_ac.is_file() {
+        match (
+            fs::metadata(&configure).and_then(|metadata| metadata.modified()),
+            fs::metadata(&configure_ac).and_then(|metadata| metadata.modified()),
+        ) {
+            (Ok(configure_time), Ok(input_time)) => configure_time < input_time,
+            // Missing/unreadable freshness evidence is not proof that the
+            // checked-in generated configure script is current.
+            _ => true,
+        }
+    } else {
+        false
+    };
+    let configure_needs_regeneration = autotools_configure_needs_regeneration(
+        stamp_matches,
+        configure.is_file(),
+        configure_is_stale,
+    );
+    let config_status = build_dir.join("config.status");
+    let build_configuration_is_stale = if config_status.is_file() && configure.is_file() {
+        match (
+            fs::metadata(&config_status).and_then(|metadata| metadata.modified()),
+            fs::metadata(&configure).and_then(|metadata| metadata.modified()),
+        ) {
+            (Ok(configured_at), Ok(configure_at)) => configured_at < configure_at,
+            _ => true,
+        }
+    } else {
+        false
+    };
+    if autotools_build_tree_needs_reset(
+        stamp_matches,
+        configure.is_file(),
+        configure_is_stale,
+        build_configuration_is_stale,
+    ) {
+        // Autotools' generated Makefiles run config.status --recheck when the
+        // configure script is newer than the old build directory.  Reusing
+        // that tree is unsafe for libICE: it has a generated `specs/`
+        // directory which shadows GCC's own specs file during the recheck.
+        // Reset only this disposable component build/install output.
+        remove_path_if_exists(&build_dir)?;
+        remove_path_if_exists(&install_dir)?;
+    }
+    if configure_needs_regeneration {
         run_cmd_with_env_overrides(&source_copy, "autoreconf", &["-fiv"], &env)?;
     }
     fs::create_dir_all(&build_dir)?;
@@ -213,6 +278,31 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
     )?;
     build_xorg_autotools_component(
         repo_root,
+        "libice",
+        &["xorg-util-macros", "xorgproto", "xtrans"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+            "--disable-docs",
+            // libICE's generated specs/Makefile creates a directory named
+            // `specs` in the build root. GCC treats that relative path as a
+            // specs file during Autoconf's make-time recheck, so omit the
+            // optional functional-specification targets from this runtime
+            // library build.
+            "--disable-specs",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libICE.so.6"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libsm",
+        &["xorg-util-macros", "xorgproto", "xtrans", "libice"],
+        &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static", "--without-libuuid"],
+        &["usr/lib/x86_64-linux-gnu/libSM.so.6"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
         "xcb-proto",
         &["xorg-util-macros", "cpython"],
         &["--prefix=/usr"],
@@ -231,7 +321,10 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
             "expat",
         ],
         &common,
-        &["usr/lib/x86_64-linux-gnu/libxcb.so.1"],
+        &[
+            "usr/lib/x86_64-linux-gnu/libxcb.so.1",
+            "usr/lib/x86_64-linux-gnu/libxcb-xinput.so.0",
+        ],
     )?;
     build_xorg_autotools_component(
         repo_root,
@@ -275,6 +368,47 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
         ],
         &common,
         &["usr/lib/x86_64-linux-gnu/libXfixes.so.3"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxi",
+        &["xorg-util-macros", "xorgproto", "xtrans", "libxau", "libxdmcp", "libxcb", "libx11", "libxext", "libxfixes"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXi.so.6"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxrender",
+        &["xorg-util-macros", "xorgproto", "xtrans", "libxau", "libxdmcp", "libxcb", "libx11"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXrender.so.1"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxtst",
+        &["xorg-util-macros", "xorgproto", "xtrans", "libxau", "libxdmcp", "libxcb", "libx11", "libxext", "libxfixes", "libxi"],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXtst.so.6"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxcursor",
+        &[
+            "xorg-util-macros", "xorgproto", "xtrans", "libxau", "libxdmcp",
+            "libxcb", "libx11", "libxfixes", "libxrender",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXcursor.so.1"],
+    )?;
+    build_xorg_autotools_component(
+        repo_root,
+        "libxft",
+        &[
+            "xorg-util-macros", "xorgproto", "xtrans", "libxau", "libxdmcp",
+            "libxcb", "libx11", "libxrender", "freetype", "fontconfig", "expat", "zlib",
+        ],
+        &common,
+        &["usr/lib/x86_64-linux-gnu/libXft.so.2"],
     )?;
     build_xorg_autotools_component(
         repo_root,
@@ -347,11 +481,18 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
         "xtrans",
         "libxau",
         "libxdmcp",
+        "libice",
+        "libsm",
         "xcb-proto",
+        "libxi",
         "libxcb",
         "libx11",
         "libxext",
         "libxfixes",
+        "libxrender",
+        "libxtst",
+        "libxcursor",
+        "libxft",
         "xcb-util",
         "xcb-renderutil",
         "xcb-image",
@@ -367,7 +508,13 @@ fn build_x11_compat(repo_root: &Path) -> Result<()> {
     for relative in [
         "usr/lib/x86_64-linux-gnu/libX11.so.6",
         "usr/lib/x86_64-linux-gnu/libXext.so.6",
+        "usr/lib/x86_64-linux-gnu/libXi.so.6",
+        "usr/lib/x86_64-linux-gnu/libXrender.so.1",
+        "usr/lib/x86_64-linux-gnu/libXtst.so.6",
+        "usr/lib/x86_64-linux-gnu/libXcursor.so.1",
+        "usr/lib/x86_64-linux-gnu/libXft.so.2",
         "usr/lib/x86_64-linux-gnu/libxcb.so.1",
+        "usr/lib/x86_64-linux-gnu/libxcb-xinput.so.0",
     ] {
         if !aggregate.join(relative).exists() {
             bail!("X11 compatibility runtime did not produce {relative}");

@@ -394,6 +394,11 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // Revision 2 includes Linux-PAM's source-built vendor pam_env.conf;
         // the revision-1 cache key tracked only MattOS /etc/pam.d policy.
         "libpam-runtime" => 2,
+        // Revision 2 adds pam_limits.so to the source-built PAM module
+        // payload, required by the Plasma Login Manager session policy.
+        // Package staging implementation is intentionally not a blanket
+        // cache input, so record this package-specific payload migration here.
+        "libpam-modules" => 2,
         // Own libdrm's AMD device-name database as well as its SONAME.
         "libdrm-amdgpu1" => 2,
         "mattos-compat" => 3,

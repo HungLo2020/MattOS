@@ -113,6 +113,31 @@ class QmpClient:
                 raise QmpError(f"QMP {command} failed: {detail}")
             return response.get("return", {})
 
+    def wait_for_event(self, event_name: str, timeout: float) -> dict[str, Any]:
+        """Wait for an asynchronous QMP event without submitting guest input.
+
+        Keeping this QMP connection open while a guest reboot is requested is
+        important: the serial shell from the previous boot remains interactive
+        until the kernel actually resets, so prompt detection alone cannot
+        distinguish the old shell from the new boot.
+        """
+        if self.socket is None:
+            raise QmpError("QMP connection is not open")
+        if not event_name or timeout <= 0:
+            raise QmpError("QMP event name and timeout must be positive")
+        deadline = time.monotonic() + timeout
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise QmpError(f"timed out waiting for QMP {event_name} event")
+            self.socket.settimeout(remaining)
+            try:
+                response = self._receive()
+            except TimeoutError as exc:
+                raise QmpError(f"timed out waiting for QMP {event_name} event") from exc
+            if response.get("event") == event_name:
+                return response
+
 
 def wait_for_socket(socket_path: Path, timeout: float) -> None:
     deadline = time.monotonic() + timeout

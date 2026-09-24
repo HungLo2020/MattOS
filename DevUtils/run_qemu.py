@@ -3,6 +3,7 @@ import argparse
 import base64
 import json
 import os
+import re
 import shlex
 import shutil
 import signal
@@ -14,7 +15,16 @@ from pathlib import Path
 from collections.abc import Callable
 from typing import List
 
-from qemu_test_control import QmpClient, QmpError, serial_command, serial_command_stream, wait_for_socket
+from qemu_test_control import (
+    QmpClient,
+    QmpError,
+    click,
+    serial_command,
+    serial_command_stream,
+    send_key,
+    type_text,
+    wait_for_socket,
+)
 
 from common import (
     RepoError,
@@ -581,6 +591,10 @@ def _launch_one(
         "-smp",
         str(args.cpus),
     ]
+    if getattr(args, "plasma_login_verification", False):
+        # Gives the host-side screenshot path a unique GTK/XWayland window
+        # title without changing the guest configuration.
+        qemu_cmd.extend(["-name", "mattos-installed-plasma-login-verification"])
     if boot_iso:
         if iso_path is None:
             raise RepoError("installation-media boot requires an ISO")
@@ -681,7 +695,16 @@ def _launch_one(
             (getattr(args, "test_control", False) or getattr(args, "install", False))
             and not getattr(args, "require_virgl", False)
         )
-        display = "gtk,gl=off" if use_capturable_gpu else choose_graphical_display(repo_root)
+        if use_capturable_gpu:
+            display = "gtk,gl=off"
+        elif getattr(args, "plasma_login_verification", False):
+            # GTK follows the host's native Wayland backend, whose surface is
+            # not visible to the X11-only screenshot helper below. SDL's X11
+            # window keeps the guest GL/VirGL path while making the named
+            # verifier window capturable under both X11 and Wayland hosts.
+            display = "sdl,gl=on"
+        else:
+            display = choose_graphical_display(repo_root)
         if display == "default":
             qemu_cmd.extend(["-display", "default"])
         else:
@@ -702,7 +725,13 @@ def _launch_one(
 
     proc: subprocess.Popen[str] | None = None
     try:
-        proc = subprocess.Popen(qemu_cmd, cwd=str(repo_root), env=mattos_build_environment(repo_root))
+        process_environment = mattos_build_environment(repo_root)
+        if getattr(args, "plasma_login_verification", False):
+            # The screenshot helper needs the SDL surface on X11/Xwayland;
+            # constrain only QEMU's host-side UI backend. Guest GL is still
+            # provided by the same VirGL device.
+            process_environment["SDL_VIDEODRIVER"] = "x11"
+        proc = subprocess.Popen(qemu_cmd, cwd=str(repo_root), env=process_environment)
         if lifecycle is not None:
             if control_paths is None:
                 raise RepoError("noninteractive QEMU lifecycle requires test-control sockets")
@@ -741,6 +770,99 @@ def installed_grub_menu_probe() -> str:
     )
 
 
+def installed_plasma_greeter_process_probe() -> str:
+    """Wait for PLM's greeter helper before checking compositor readiness."""
+    return (
+        "systemctl is-active --quiet plasmalogin.service && "
+        "loginctl --no-pager show-user plasmalogin -p Sessions --value | grep -q '[^[:space:]]' && "
+        "pgrep -u plasmalogin -f startplasma-login-wayland >/dev/null"
+    )
+
+
+def installed_plasma_wayland_socket_probe() -> str:
+    """Check the greeter socket as root because /run/user/<uid> is mode 0700."""
+    return (
+        f"printf '%s\\n' {shlex.quote(TEST_INSTALL_PASSWORD)} | "
+        "sudo -S -p '' test -S /run/user/$(id -u plasmalogin)/wayland-0"
+    )
+
+
+def installed_plasma_greeter_probe() -> str:
+    """Require PLM's greeter session, KWin compositor, and Wayland socket."""
+    return (
+        f"{installed_plasma_greeter_process_probe()} && "
+        "pgrep -u plasmalogin -x kwin_wayland >/dev/null && "
+        f"{installed_plasma_wayland_socket_probe()}"
+    )
+
+
+def wake_installed_plasma_greeter(qmp_socket: Path) -> None:
+    """Wake PLM's intentionally idle-hidden login controls with real input."""
+    with QmpClient(qmp_socket, 10) as qmp:
+        send_key(qmp, "shift")
+    # Let the upstream greeter's wake animation finish before taking evidence.
+    time.sleep(0.4)
+
+
+def submit_plasma_greeter_password(qmp: QmpClient, password: str) -> None:
+    """Replace the focused greeter password, then submit it through QMP.
+
+    Plasma Login Manager leaves the password entry focused after a rejected
+    attempt. Typing a subsequent credential without clearing that field
+    appends it to the rejected password, making a correct account password
+    fail PAM authentication. Explicitly select and delete the old contents.
+    """
+    send_key(qmp, "ctrl-a")
+    send_key(qmp, "backspace")
+    time.sleep(0.2)
+    type_text(qmp, password)
+    send_key(qmp, "ret")
+
+
+def installed_plasma_user_desktop_absent_probe(username: str = "mattos") -> str:
+    """Ensure an unauthenticated/logged-out user has no Plasma session."""
+    return (
+        f"! pgrep -u {shlex.quote(username)} -x kwin_wayland >/dev/null && "
+        f"! pgrep -u {shlex.quote(username)} -x plasmashell >/dev/null"
+    )
+
+
+def installed_plasma_logout_command() -> str:
+    """Request logout through Plasma's session shutdown service and user bus."""
+    return (
+        'uid=$(id -u); '
+        'test -S "/run/user/$uid/bus" && '
+        'env XDG_RUNTIME_DIR="/run/user/$uid" '
+        'DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" '
+        'qdbus org.kde.Shutdown /Shutdown org.kde.Shutdown.logout'
+    )
+
+
+def installed_plasma_applet_runtime_probes() -> tuple[tuple[str, str], ...]:
+    """Check dynamically loaded Plasma applet ABIs, not just plasmashell PID.
+
+    Kickoff and Digital Clock are QML/plugin-loaded, so a healthy plasmashell
+    process can coexist with those applets silently failing to instantiate.
+    Verify the MattOS ICU/PulseAudio providers are installed, their applet
+    plugins have no unresolved ELF dependencies, and the current boot journal
+    contains no loader failure for the affected applets.
+    """
+    return (
+        (
+            "plasma-applet-runtime-libraries",
+            "dpkg-query -W libicu78 libpulse0 >/dev/null && "
+            "! ldd /usr/lib/x86_64-linux-gnu/qml/org/kde/plasma/private/kicker/libkickerplugin.so | grep -q 'not found' && "
+            "! ldd /usr/lib/x86_64-linux-gnu/qml/org/kde/plasma/private/digitalclock/libdigitalclockplugin.so | grep -q 'not found' && "
+            "! ldd /usr/lib/x86_64-linux-gnu/qml/org/kde/plasma/private/volume/libplasma-volume-declarative.so | grep -q 'not found'",
+        ),
+        (
+            "plasma-applets-loaded",
+            "! printf '%s\\n' mattos | sudo -S -p '' journalctl -b _COMM=plasmashell --no-pager | "
+            "grep -Eq 'error when loading applet \\\"org\\.kde\\.plasma\\.(kickoff|digitalclock|pager|volume)\\\"|Cannot load library .*not found'",
+        ),
+    )
+
+
 def _test_install_plan(profile: str = "plasma") -> str:
     if profile not in {"cli", "plasma"}:
         raise RepoError(f"unsupported test install profile: {profile}")
@@ -752,10 +874,135 @@ def _test_install_plan(profile: str = "plasma") -> str:
         f'installed_profile = "{installer_profile}"', f'optional_packages = {optional_packages}', 'hostname = "mattos-test"',
         'full_name = "MattOS Test User"', 'username = "mattos"',
         f'password_hash = "{TEST_INSTALL_PASSWORD_HASH}"', 'administrator = true',
-        'automatic_login = true', 'root_credential = { mode = "same_as_user" }',
+        # Keep the installed graphical greeter on screen: the serial test
+        # login below is deliberately separate from Plasma Login Manager.
+        'automatic_login = false', 'root_credential = { mode = "same_as_user" }',
         'locale = "en_US.UTF-8"', 'keyboard_layout = "us"', 'keyboard_variant = ""',
         'timezone = "Etc/UTC"', 'test_autologin = true', '',
     ])
+
+
+def _capture_plasma_verification_window(
+    repo_root: Path,
+    destination: Path,
+    *,
+    timeout: float = 30,
+    qmp_socket: Path | None = None,
+) -> tuple[int, int]:
+    """Wait for a rendered guest frame instead of mistaking startup black for failure."""
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            return _capture_plasma_verification_window_once(repo_root, destination, timeout=timeout)
+        except RepoError as exc:
+            if "did not visibly render" not in str(exc) or time.monotonic() >= deadline:
+                raise
+            if qmp_socket is not None:
+                wake_installed_plasma_greeter(qmp_socket)
+            else:
+                time.sleep(min(0.4, max(0, deadline - time.monotonic())))
+
+
+def _capture_plasma_verification_window_once(
+    repo_root: Path,
+    destination: Path,
+    *,
+    timeout: float,
+) -> tuple[int, int]:
+    """Capture the rendered QEMU guest window, not a blank SDL secondary head."""
+    required = {name: shutil.which(name) for name in ("xwininfo", "import", "identify")}
+    missing = [name for name, path in required.items() if path is None]
+    if missing:
+        raise RepoError(
+            "installed Plasma visual verification requires host capture tools "
+            f"({', '.join(missing)}); the VirGL display cannot be captured with QMP screendump"
+        )
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    windows = subprocess.run(
+        [required["xwininfo"], "-root", "-tree"],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=timeout,
+    )
+    if windows.returncode != 0:
+        raise RepoError(
+            f"could not enumerate host QEMU windows: {windows.stderr.strip()}"
+        )
+    # SDL creates one top-level window per virtual display head. The smaller
+    # secondary head can be entirely black and may be the host's active window;
+    # choose the largest visible QEMU window belonging to this verifier.
+    window_id = _select_installed_qemu_window(windows.stdout)
+    if window_id is None:
+        raise RepoError(
+            "could not find the installed Plasma verification guest window in xwininfo output"
+        )
+    captured = subprocess.run(
+        [required["import"], "-window", window_id, "-silent", str(destination)],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        timeout=timeout,
+    )
+    if captured.returncode != 0 or not destination.is_file():
+        raise RepoError(
+            "could not capture the installed Plasma guest window "
+            f"{window_id}: {captured.stderr.strip()}"
+        )
+    dimensions = subprocess.run(
+        [required["identify"], "-format", "%w %h", str(destination)],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    try:
+        width, height = (int(part) for part in dimensions.stdout.split())
+    except (ValueError, TypeError):
+        raise RepoError(f"captured Plasma verification screenshot has invalid dimensions: {destination}")
+    if dimensions.returncode != 0 or width <= 0 or height <= 0:
+        raise RepoError(f"captured QEMU screenshot is empty or invalid: {destination}")
+    # A capturable QEMU guest window may still contain a completely black
+    # surface if KWin failed before opening Wayland. import captures the client
+    # area only, so require actual rendered pixel variation directly.
+    rendered = subprocess.run(
+        [
+            required["identify"], "-format", "%[fx:standard_deviation]", str(destination),
+        ],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    try:
+        variation = float(rendered.stdout.strip())
+    except ValueError:
+        raise RepoError(
+            f"could not measure Plasma greeter rendering in screenshot {destination}: "
+            f"{rendered.stderr.strip()}"
+        )
+    if rendered.returncode != 0 or variation <= 0.01:
+        raise RepoError(
+            "installed Plasma Login Manager did not visibly render in the QEMU guest "
+            f"surface (pixel variation {variation:.5f}); screenshot: {destination}"
+        )
+    return width, height
+
+
+def _select_installed_qemu_window(tree: str) -> str | None:
+    """Select the largest SDL head for this verification VM, not a blank head."""
+    pattern = re.compile(
+        r'^\s*(0x[0-9a-fA-F]+) "QEMU \(mattos-installed-plasma-login-verification[^\"]*\)".*?\b(\d+)x(\d+)[+-]'
+    )
+    candidates: list[tuple[int, str]] = []
+    for line in tree.splitlines():
+        match = pattern.match(line)
+        if match:
+            window_id, width_text, height_text = match.groups()
+            candidates.append((int(width_text) * int(height_text), window_id))
+    return max(candidates)[1] if candidates else None
 
 
 def _run_automatic_test_install(
@@ -822,6 +1069,44 @@ def scheduled_poweroff_command(password: str | None = None) -> str:
     return f"printf '%s\\n' {shlex.quote(password)} | {command.replace('sudo ', 'sudo -S ', 1)}"
 
 
+def scheduled_reboot_command(password: str | None = None) -> str:
+    """Schedule reboot after the serial command's completion marker."""
+    command = "sudo systemd-run --on-active=3s --unit=mattos-test-reboot systemctl reboot"
+    if password is None:
+        return command
+    return f"printf '%s\\n' {shlex.quote(password)} | {command.replace('sudo ', 'sudo -S ', 1)}"
+
+
+def schedule_and_wait_for_guest_reboot(
+    qmp_socket: Path,
+    serial_socket: Path,
+    command: str,
+    *,
+    timeout: float = 90,
+    on_output: Callable[[str], None] | None = None,
+) -> dict[str, object]:
+    """Schedule a guest reboot and wait for QEMU's actual guest RESET event.
+
+    Do not probe the serial shell between scheduling and RESET: during the
+    delay, the old boot's serial login shell is still live and would accept a
+    post-boot readiness command that gets killed moments later by reboot.
+    """
+    with QmpClient(qmp_socket, min(timeout, 10)) as qmp:
+        serial_command_stream(
+            serial_socket,
+            command,
+            INSTALL_BOOT_IDLE_SECONDS,
+            on_output=on_output,
+        )
+        event = qmp.wait_for_event("RESET", timeout)
+    data = event.get("data", {})
+    return {
+        "event": event.get("event"),
+        "guest": data.get("guest") if isinstance(data, dict) else None,
+        "reason": data.get("reason") if isinstance(data, dict) else None,
+    }
+
+
 def _verify_installed_disk_boot(
     repo_root: Path,
     disk: Path,
@@ -837,6 +1122,7 @@ def _verify_installed_disk_boot(
     # test-control VGA surface has GL disabled and can make KWin report that
     # neither hardware acceleration nor software rendering is available.
     verification_args.require_virgl = True
+    verification_args.plasma_login_verification = getattr(args, "install_profile", "plasma") == "plasma"
     verification_args.serial_console = False
     verification_args.headless = False
     output_path = install_task_log(repo_root).with_name("installed-test-boot.log")
@@ -858,26 +1144,27 @@ def _verify_installed_disk_boot(
     profile_checks = (
         (
             "cli-package-boundary",
-            "dpkg-query -W mattos-cli >/dev/null 2>&1 && ! dpkg-query -W qt6-base kwin plasma-workspace plasma-desktop greetd dolphin konsole systemsettings >/dev/null 2>&1",
+            "dpkg-query -W mattos-cli >/dev/null 2>&1 && ! dpkg-query -W qt6-base kwin plasma-workspace plasma-desktop greetd plasma-login-manager mattos-plasma-live dolphin konsole systemsettings >/dev/null 2>&1",
         ),
         ("cli-target", "systemctl is-active multi-user.target && ! systemctl is-active graphical.target"),
     ) if profile == "cli" else (
-        ("plasma-package", "dpkg-query -W mattos-plasma kwin plasma-workspace plasma-desktop greetd dolphin konsole systemsettings"),
+        ("plasma-package", "dpkg-query -W mattos-plasma plasma-login-manager kwin plasma-workspace plasma-desktop dolphin konsole systemsettings && ! dpkg-query -W greetd mattos-plasma-live >/dev/null 2>&1"),
         ("graphical-target", "systemctl is-active graphical.target"),
         (
             "compositor",
             "(for n in $(seq 1 90); do "
-            "pgrep -x kwin_wayland >/dev/null && pgrep -x plasmashell >/dev/null && "
+            "pgrep -u mattos -x kwin_wayland >/dev/null && pgrep -u mattos -x plasmashell >/dev/null && "
             "systemctl --user is-active --quiet plasma-workspace.target && "
             "test -S \"${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/wayland-0\" && "
             "busctl --user --no-pager list | grep -q '^org.kde.plasmashell[[:space:]]' && exit 0; "
             "sleep 1; done; "
             "echo 'Plasma compositor/session readiness timed out'; "
-            "systemctl --no-pager --full status plasma-greeter.service; "
+            "systemctl --no-pager --full status plasmalogin.service; "
             "systemctl --user --no-pager --full status plasma-workspace.target plasma-plasmashell.service; "
-            "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 200 -u plasma-greeter.service; "
+            "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 200 -u plasmalogin.service; "
             "exit 1)",
         ),
+        *installed_plasma_applet_runtime_probes(),
     )
     checks = (
         ("not-live", "test ! -e /run/mattos-live"),
@@ -911,6 +1198,52 @@ def _verify_installed_disk_boot(
                 log.write(chunk)
 
         completed_checks: list[str] = []
+        if profile == "plasma":
+            greeter_probe = installed_plasma_greeter_probe()
+            user_desktop_absent = installed_plasma_user_desktop_absent_probe()
+            wait_for_greeter = (
+                f"for n in $(seq 1 90); do {greeter_probe} && "
+                f"{user_desktop_absent} && exit 0; sleep 1; done; exit 1"
+            )
+            serial_command_stream(
+                control_paths[1].resolve(), wait_for_greeter,
+                INSTALL_BOOT_IDLE_SECONDS, on_output=stream,
+            )
+            greeter_image = repo_root / "out/logs/installed-plasma-login-greeter.png"
+            wake_installed_plasma_greeter(control_paths[0])
+            greeter_size = _capture_plasma_verification_window(
+                repo_root, greeter_image, qmp_socket=control_paths[0]
+            )
+            stream("[installed-check] PASS visible-graphical-greeter-before-login\n")
+            stream(f"[installed-check] screenshot greeter={greeter_image} size={greeter_size}\n")
+            stream("[installed-check] PASS greeter-kwin-wayland-ready\n")
+
+            # The newly installed user must not get a session from a rejected
+            # credential. The serial test login is on ttyS0 only; PLM owns the
+            # graphical seat and must remain at its greeter after this attempt.
+            with QmpClient(control_paths[0], 10) as qmp:
+                type_text(qmp, "not-the-install-password")
+                send_key(qmp, "ret")
+            time.sleep(3)
+            serial_command_stream(
+                control_paths[1].resolve(),
+                f"{greeter_probe} && {user_desktop_absent}",
+                INSTALL_BOOT_IDLE_SECONDS,
+                on_output=stream,
+            )
+            stream("[installed-check] PASS rejected-password-stays-at-greeter\n")
+            failed_image = repo_root / "out/logs/installed-plasma-login-rejected-password.png"
+            wake_installed_plasma_greeter(control_paths[0])
+            failed_size = _capture_plasma_verification_window(
+                repo_root, failed_image, qmp_socket=control_paths[0]
+            )
+            stream(f"[installed-check] screenshot rejected-password={failed_image} size={failed_size}\n")
+
+            with QmpClient(control_paths[0], 10) as qmp:
+                send_key(qmp, "ctrl-a")
+                submit_plasma_greeter_password(qmp, TEST_INSTALL_PASSWORD)
+            stream("[installed-check] submitted valid graphical credentials\n")
+
         for name, command in checks:
             output = serial_command_stream(
                 control_paths[1].resolve(),
@@ -920,6 +1253,95 @@ def _verify_installed_disk_boot(
             )
             stream(f"[installed-check] PASS {name}\n")
             completed_checks.append(output)
+        if profile == "plasma":
+            desktop_image = repo_root / "out/logs/installed-plasma-desktop.png"
+            desktop_size = _capture_plasma_verification_window(
+                repo_root, desktop_image, qmp_socket=control_paths[0]
+            )
+            stream(f"[installed-check] screenshot desktop={desktop_image} size={desktop_size}\n")
+            with QmpClient(control_paths[0], 10) as qmp:
+                click(qmp, 30, desktop_size[1] - 22, *desktop_size)
+                time.sleep(2)
+                launcher_image = repo_root / "out/logs/installed-plasma-launcher.png"
+                _capture_plasma_verification_window(repo_root, launcher_image, qmp_socket=control_paths[0])
+                send_key(qmp, "esc")
+                click(qmp, desktop_size[0] - 35, desktop_size[1] - 22, *desktop_size)
+                time.sleep(2)
+                clock_image = repo_root / "out/logs/installed-plasma-clock.png"
+                _capture_plasma_verification_window(repo_root, clock_image, qmp_socket=control_paths[0])
+                send_key(qmp, "esc")
+                click(qmp, desktop_size[0] // 2, desktop_size[1] - 22, *desktop_size)
+                time.sleep(2)
+                pager_image = repo_root / "out/logs/installed-plasma-pager.png"
+                _capture_plasma_verification_window(repo_root, pager_image, qmp_socket=control_paths[0])
+            stream(
+                "[installed-check] PASS launcher/clock/pager interactions; "
+                f"screenshots={launcher_image},{clock_image},{pager_image}\n"
+            )
+            logout_graphical = (
+                f"{installed_plasma_logout_command()} && "
+                "for n in $(seq 1 90); do "
+                f"{installed_plasma_greeter_probe()} && "
+                f"{installed_plasma_user_desktop_absent_probe()} && exit 0; "
+                "sleep 1; done; "
+                "journalctl -b --no-pager -n 100 -u plasmalogin.service; "
+                "loginctl list-sessions --no-legend; "
+                "ps -eo user,pid,comm,args; exit 1"
+            )
+            serial_command_stream(
+                control_paths[1].resolve(), logout_graphical,
+                INSTALL_BOOT_IDLE_SECONDS, on_output=stream,
+            )
+            stream("[installed-check] PASS logout-returned-to-greeter\n")
+            logout_image = repo_root / "out/logs/installed-plasma-logout-greeter.png"
+            wake_installed_plasma_greeter(control_paths[0])
+            logout_size = _capture_plasma_verification_window(
+                repo_root, logout_image, qmp_socket=control_paths[0]
+            )
+            stream(f"[installed-check] screenshot logout-greeter={logout_image} size={logout_size}\n")
+            with QmpClient(control_paths[0], 10) as qmp:
+                submit_plasma_greeter_password(qmp, TEST_INSTALL_PASSWORD)
+            serial_command_stream(
+                control_paths[1].resolve(),
+                "for n in $(seq 1 90); do pgrep -u mattos -x kwin_wayland >/dev/null && "
+                "pgrep -u mattos -x plasmashell >/dev/null && systemctl --user is-active --quiet plasma-workspace.target && "
+                "test -S /run/user/$(id -u)/wayland-0 && exit 0; sleep 1; done; exit 1",
+                INSTALL_BOOT_IDLE_SECONDS, on_output=stream,
+            )
+            stream("[installed-check] PASS second-graphical-login\n")
+            reboot_event = schedule_and_wait_for_guest_reboot(
+                control_paths[0].resolve(),
+                control_paths[1].resolve(),
+                scheduled_reboot_command(TEST_INSTALL_PASSWORD),
+                on_output=stream,
+            )
+            stream(f"[installed-check] observed guest reboot event: {reboot_event}\n")
+            serial_command_stream(
+                control_paths[1].resolve(),
+                "for n in $(seq 1 120); do "
+                f"{installed_plasma_greeter_probe()} && "
+                f"{installed_plasma_user_desktop_absent_probe()} && exit 0; "
+                "sleep 1; done; loginctl list-sessions --no-legend; "
+                "ps -eo user,pid,comm,args; exit 1",
+                INSTALL_BOOT_IDLE_SECONDS, on_output=stream,
+            )
+            stream("[installed-check] PASS reboot-returned-to-graphical-greeter\n")
+            reboot_image = repo_root / "out/logs/installed-plasma-reboot-greeter.png"
+            wake_installed_plasma_greeter(control_paths[0])
+            reboot_size = _capture_plasma_verification_window(
+                repo_root, reboot_image, qmp_socket=control_paths[0]
+            )
+            stream(f"[installed-check] screenshot reboot-greeter={reboot_image} size={reboot_size}\n")
+            with QmpClient(control_paths[0], 10) as qmp:
+                submit_plasma_greeter_password(qmp, TEST_INSTALL_PASSWORD)
+            serial_command_stream(
+                control_paths[1].resolve(),
+                "for n in $(seq 1 90); do pgrep -u mattos -x kwin_wayland >/dev/null && "
+                "pgrep -u mattos -x plasmashell >/dev/null && systemctl --user is-active --quiet plasma-workspace.target && exit 0; "
+                "sleep 1; done; exit 1",
+                INSTALL_BOOT_IDLE_SECONDS, on_output=stream,
+            )
+            stream("[installed-check] PASS login-after-reboot\n")
         result.update({"uefi_grub_boot": True, "serial_checks": "".join(completed_checks)})
         serial_command_stream(
             control_paths[1].resolve(),

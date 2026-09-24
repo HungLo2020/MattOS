@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=MattOS Plasma (Wayland)
+Comment=Start the MattOS Plasma Wayland session
+Exec=/usr/bin/start-plasma
+TryExec=/usr/bin/start-plasma
+Type=Application
+DesktopNames=KDE

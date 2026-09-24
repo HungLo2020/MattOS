@@ -347,7 +347,7 @@ fn normalize_qt_target_metadata(repo_root: &Path, install: &Path) -> Result<()> 
     // the aggregate's internal, non-published construction paths.
     for component in [
         "xorg-util-macros", "xorgproto", "xtrans", "libxau", "libxdmcp", "xcb-proto",
-        "libxcb", "libx11", "libxext", "libxfixes", "xcb-util", "xcb-renderutil",
+        "libxcb", "libx11", "libxext", "libxfixes", "libxrender", "xcb-util", "xcb-renderutil",
         "xcb-image", "xcb-cursor", "xcb-util-wm", "xcb-keysyms",
     ] {
         published_prefixes.push((
@@ -1140,12 +1140,14 @@ mod qt_tests {
         fs::create_dir_all(repo.join("out/build/qtbase/install/usr/lib/x86_64-linux-gnu/cmake/Qt6")).unwrap();
         let glvnd = repo.join("out/build/libglvnd/install/usr/include");
         let wayland = repo.join("out/build/wayland/install/usr/include");
+        let xrender = repo.join("out/build/libxrender/install/usr/include");
         fs::write(
             modules.join("qt_lib_gui_private.pri"),
             format!(
-                "QMAKE_INCDIR_OPENGL = {}\nQMAKE_INCDIR_WAYLAND_CLIENT = {}\n",
+                "QMAKE_INCDIR_OPENGL = {}\nQMAKE_INCDIR_WAYLAND_CLIENT = {}\nQMAKE_INCDIR_XRENDER = {}\n",
                 glvnd.display(),
                 wayland.display(),
+                xrender.display(),
             ),
         )
         .unwrap();
@@ -1153,6 +1155,7 @@ mod qt_tests {
         let metadata = fs::read_to_string(modules.join("qt_lib_gui_private.pri")).unwrap();
         assert!(metadata.contains("QMAKE_INCDIR_OPENGL = /usr/include"));
         assert!(metadata.contains("QMAKE_INCDIR_WAYLAND_CLIENT = /usr/include"));
+        assert!(metadata.contains("QMAKE_INCDIR_XRENDER = /usr/include"));
         assert!(!metadata.contains("out/build"));
     }
 

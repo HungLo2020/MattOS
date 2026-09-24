@@ -499,11 +499,14 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
         "etc/systemd/system/display-manager.service",
         "etc/systemd/system/plasma-greeter.service.d/live.conf",
         "etc/greetd/plasma-live.toml",
-        "etc/greetd/plasma.toml",
         "etc/pam.d/plasma-greeter",
         "usr/lib/environment.d/90-plasma-desktop.conf",
         "usr/bin/greetd",
         "usr/bin/start-plasma",
+        "usr/bin/plasmalogin",
+        "usr/lib/systemd/system/plasmalogin.service",
+        "etc/pam.d/plasmalogin",
+        "usr/share/wayland-sessions/mattos-plasma.desktop",
         "usr/bin/mattos-graphics-report",
         "usr/bin/mattos-graphics-startup",
         "usr/lib/systemd/system/mattos-graphics-watchdog.service",
@@ -572,10 +575,8 @@ fn validate_live_desktop_boot_contract(rootfs: &Path) -> Result<()> {
     }
     let display_manager =
         fs::read_to_string(rootfs.join("usr/lib/systemd/system/plasma-greeter.service"))?;
-    if !display_manager.contains("Wants=systemd-logind.service systemd-udev-trigger.service")
-        || !display_manager.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma.toml")
-    {
-        bail!("Plasma display manager does not pull in logind/udev or its installed configuration")
+    if !display_manager.contains("Wants=systemd-logind.service systemd-udev-trigger.service") {
+        bail!("live Plasma greetd service does not pull in logind/udev")
     }
     #[cfg(unix)]
     {
@@ -1730,7 +1731,16 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
     }
 
     let expected_hook = "session    optional     pam_systemd.so";
-    for stack in ["login", "su-l", "systemd-user", "sshd"] {
+    for stack in [
+        "login",
+        "su-l",
+        "systemd-user",
+        "sshd",
+        "plasma-greeter",
+        "plasmalogin",
+        "plasmalogin-autologin",
+        "plasmalogin-greeter",
+    ] {
         let body = fs::read_to_string(rootfs.join("etc/pam.d").join(stack))
             .with_context(|| format!("failed to read effective PAM stack {stack}"))?;
         if body.matches(expected_hook).count() != 1 {
@@ -1756,6 +1766,9 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
                 | "systemd-user"
                 | "sshd"
                 | "plasma-greeter"
+                | "plasmalogin"
+                | "plasmalogin-autologin"
+                | "plasmalogin-greeter"
         ) {
             continue;
         }

@@ -1,0 +1,10 @@
+#%PAM-1.0
+# The upstream greeter helper runs under the dedicated plasmalogin account.
+# This service authenticates no desktop user; the selected user's login uses
+# the separate plasmalogin PAM service above.
+auth       required     pam_env.so
+auth       required     pam_permit.so
+account    required     pam_permit.so
+password   required     pam_deny.so
+session    required     pam_unix.so
+session    optional     pam_systemd.so

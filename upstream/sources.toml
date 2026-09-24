@@ -872,6 +872,22 @@ path = "src/system/graphics/libxdmcp"
 sync = "copy"
 
 [[component]]
+name = "libice"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libICE.git"
+branch = "libICE-1.1.2"
+revision = "adf389fc19aedbf1be077b05365d164cd6f463d8"
+path = "src/system/graphics/libice"
+sync = "copy"
+
+[[component]]
+name = "libsm"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libsm.git"
+branch = "libSM-1.2.6"
+revision = "5f6da959a34bcefc425b6e37462553acf44369a3"
+path = "src/system/graphics/libsm"
+sync = "copy"
+
+[[component]]
 name = "xcb-proto"
 repo = "https://gitlab.freedesktop.org/xorg/proto/xcbproto.git"
 branch = "xcb-proto-1.17.0"
@@ -909,6 +925,46 @@ repo = "https://gitlab.freedesktop.org/xorg/lib/libxfixes.git"
 branch = "libXfixes-6.0.2"
 revision = "70d5b0e37f8a759f3dbc218f22954347ceed094a"
 path = "src/system/graphics/libxfixes"
+sync = "copy"
+
+[[component]]
+name = "libxrender"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libXrender.git"
+branch = "libXrender-0.9.12"
+revision = "46e12ff9e8e4d3f0313a2f097df93dbfdc14f92f"
+path = "src/system/graphics/libxrender"
+sync = "copy"
+
+[[component]]
+name = "libxtst"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libXtst.git"
+branch = "libXtst-1.2.5"
+revision = "abf3ff74b97c4231d2324d66318bfa1d22e44913"
+path = "src/system/graphics/libxtst"
+sync = "copy"
+
+[[component]]
+name = "libxi"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libXi.git"
+branch = "libXi-1.8.3"
+revision = "f00f7e9140b4707775331950dd67851e55058c40"
+path = "src/system/graphics/libxi"
+sync = "copy"
+
+[[component]]
+name = "libxcursor"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libXcursor.git"
+branch = "libXcursor-1.2.3"
+revision = "8ae6cf61b18ecddf26f72a07bbfbd1ea9f022c36"
+path = "src/system/graphics/libxcursor"
+sync = "copy"
+
+[[component]]
+name = "libxft"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libXft.git"
+branch = "libXft-2.3.9"
+revision = "f4805c8645914cbdcfd42e71051ba3f8fc664ef5"
+path = "src/system/graphics/libxft"
 sync = "copy"
 
 [[component]]
@@ -1612,6 +1668,14 @@ repo = "https://invent.kde.org/plasma/plasma-desktop.git"
 branch = "v6.6.5"
 revision = "c9b4885d4c80e4f22e7ff324c5eba08b44f49df9"
 path = "src/desktop/kde/plasma-desktop"
+sync = "copy"
+
+[[component]]
+name = "plasma-login-manager"
+repo = "https://invent.kde.org/plasma/plasma-login-manager.git"
+branch = "v6.6.5"
+revision = "fc429687709b8b32f2cb41437b6b31bb8e9c78c4"
+path = "src/desktop/kde/plasma-login-manager"
 sync = "copy"
 
 [[component]]

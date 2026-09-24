@@ -2119,46 +2119,48 @@ fn configure_installed_profile_values(
         enable_system_unit(target, wanted_by, service)?;
     }
 
-    let greetd_config = target.join("etc/greetd/plasma.toml");
-    if installed_profile == InstalledProfile::Desktop && !greetd_config.is_file() {
-        bail!("desktop profile is missing Plasma greetd configuration")
-    }
     if installed_profile == InstalledProfile::Desktop {
-        let mut config = fs::read_to_string(&greetd_config)?;
-        // The live image's default session intentionally names `mattos`, but
-        // an installed target has the account chosen in the installer.  Keep
-        // greetd's source-owned session command and replace only the account
-        // in the installed target; otherwise greetd exits successfully before
-        // KWin can start because the live-only user does not exist.
-        let mut in_default_session = false;
-        let mut replaced = false;
-        let mut rewritten = String::with_capacity(config.len() + username.len());
-        for line in config.lines() {
-            if line.starts_with('[') {
-                in_default_session = line.trim() == "[default_session]";
-            }
-            if in_default_session && line.trim_start().starts_with("user =") {
-                rewritten.push_str(&format!("user = \"{username}\""));
-                replaced = true;
-            } else {
-                rewritten.push_str(line);
-            }
-            rewritten.push('\n');
+        if !target
+            .join("usr/lib/systemd/system/plasmalogin.service")
+            .is_file()
+        {
+            bail!("desktop profile is missing Plasma Login Manager systemd service")
         }
-        if !replaced {
-            bail!("installed Plasma greetd configuration lacks default-session user")
+        if !target
+            .join("usr/share/wayland-sessions/mattos-plasma.desktop")
+            .is_file()
+        {
+            bail!("desktop profile is missing the MattOS Plasma Wayland session")
         }
-        config = rewritten;
+        // Plasma Login Manager discovers normal users from the target account
+        // database and authenticates through its PAM service. Autologin stays
+        // opt-in and uses PLM's native configuration/PAM service, never a
+        // greetd initial-session shortcut.
+        let autologin = target.join("etc/plasmalogin.conf.d/90-mattos-autologin.conf");
         if automatic_login {
-            config.push_str(&format!(
-                "\n[initial_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"{}\"\n",
-                username
-            ));
+            fs::create_dir_all(
+                autologin
+                    .parent()
+                    .context("autologin config has no parent")?,
+            )?;
+            fs::write(
+                &autologin,
+                format!(
+                    "[Autologin]\nUser={username}\nSession=mattos-plasma.desktop\nRelogin=false\n"
+                ),
+            )?;
+        } else {
+            remove_optional_file(&autologin)?;
         }
-        fs::write(greetd_config, config)?;
-    }
-    if installed_profile == InstalledProfile::Desktop {
-        enable_system_unit(target, "graphical.target", "plasma-greeter.service")?;
+        remove_optional_file(&target.join("etc/greetd/plasma.toml"))?;
+        enable_system_unit(target, "graphical.target", "plasmalogin.service")?;
+        let display_manager = target.join("etc/systemd/system/display-manager.service");
+        remove_optional_file(&display_manager)?;
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(
+            "/usr/lib/systemd/system/plasmalogin.service",
+            display_manager,
+        )?;
     }
     remove_optional_file(&target.join("etc/mattos-desktop-pending"))?;
     Ok(())
@@ -2899,7 +2901,14 @@ mod tests {
             fs::write(units.join(unit), "[Unit]\n").unwrap();
         }
         if desktop {
-            fs::write(units.join("plasma-greeter.service"), "[Unit]\n").unwrap();
+            fs::write(units.join("plasmalogin.service"), "[Unit]\n").unwrap();
+            let sessions = root.join("usr/share/wayland-sessions");
+            fs::create_dir_all(&sessions).unwrap();
+            fs::write(
+                sessions.join("mattos-plasma.desktop"),
+                "Exec=/usr/bin/start-plasma\n",
+            )
+            .unwrap();
         }
     }
 
@@ -3538,12 +3547,6 @@ mod tests {
             let directory = tempfile::tempdir().unwrap();
             fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
             stage_profile_units(directory.path(), profile == InstalledProfile::Desktop);
-            fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
-            fs::write(
-                directory.path().join("etc/greetd/plasma.toml"),
-                "[default_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"mattos\"\n",
-            )
-            .unwrap();
             let mut candidate = plan("/dev/vda", profile);
             candidate.automatic_login = false;
             configure_installed_profile(&candidate, directory.path()).unwrap();
@@ -3552,32 +3555,49 @@ mod tests {
                 PathBuf::from(expected)
             );
             if profile == InstalledProfile::Desktop {
-                let config =
-                    fs::read_to_string(directory.path().join("etc/greetd/plasma.toml")).unwrap();
-                assert!(config.contains(&format!("user = \"{}\"", candidate.username)));
-                assert!(!config.contains("user = \"mattos\""));
+                assert!(
+                    directory
+                        .path()
+                        .join("etc/systemd/system/graphical.target.wants/plasmalogin.service")
+                        .is_symlink()
+                );
+                assert!(!directory.path().join("etc/greetd/plasma.toml").exists());
+                assert!(
+                    !directory
+                        .path()
+                        .join("etc/plasmalogin.conf.d/90-mattos-autologin.conf")
+                        .exists()
+                );
             }
         }
     }
 
     #[test]
-    fn desktop_autologin_uses_greetd_initial_session() {
+    fn desktop_autologin_uses_plasma_login_manager_configuration() {
         let directory = tempfile::tempdir().unwrap();
         fs::create_dir_all(directory.path().join("etc/systemd/system")).unwrap();
         stage_profile_units(directory.path(), true);
-        fs::create_dir_all(directory.path().join("etc/greetd")).unwrap();
-        fs::write(
-            directory.path().join("etc/greetd/plasma.toml"),
-            "[default_session]\ncommand = \"/usr/bin/start-plasma\"\nuser = \"mattos\"\n",
-        )
-        .unwrap();
         let mut candidate = plan("/dev/vda", InstalledProfile::Desktop);
         candidate.automatic_login = true;
         configure_installed_profile(&candidate, directory.path()).unwrap();
-        let config = fs::read_to_string(directory.path().join("etc/greetd/plasma.toml")).unwrap();
-        assert!(config.contains("[initial_session]"));
-        assert!(config.contains("command = \"/usr/bin/start-plasma\""));
-        assert!(config.contains(&format!("user = \"{}\"", candidate.username)));
+        let config = fs::read_to_string(
+            directory
+                .path()
+                .join("etc/plasmalogin.conf.d/90-mattos-autologin.conf"),
+        )
+        .unwrap();
+        assert!(config.contains("[Autologin]"));
+        assert!(config.contains("Session=mattos-plasma.desktop"));
+        assert!(config.contains(&format!("User={}", candidate.username)));
+        assert_eq!(
+            fs::read_link(
+                directory
+                    .path()
+                    .join("etc/systemd/system/display-manager.service")
+            )
+            .unwrap(),
+            PathBuf::from("/usr/lib/systemd/system/plasmalogin.service")
+        );
     }
 
     #[test]

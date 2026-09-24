@@ -161,6 +161,7 @@ const SYSTEMD_PROVIDER: &str = "systemd";
 const SYSTEMD_PAM_MODULE_REL: &str = "usr/lib/x86_64-linux-gnu/security/pam_systemd.so";
 const REQUIRED_PAM_MODULES: &[&str] = &[
     "pam_unix.so",
+    "pam_limits.so",
     "pam_env.so",
     "pam_nologin.so",
     "pam_rootok.so",
@@ -1623,6 +1624,18 @@ include!("stages/image.rs");
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn autotools_regenerates_configure_for_new_or_stale_inputs_only() {
+        assert!(autotools_configure_needs_regeneration(false, true, false));
+        assert!(autotools_configure_needs_regeneration(true, false, false));
+        assert!(autotools_configure_needs_regeneration(true, true, true));
+        assert!(!autotools_configure_needs_regeneration(true, true, false));
+        assert!(autotools_build_tree_needs_reset(false, true, false, false));
+        assert!(autotools_build_tree_needs_reset(true, true, true, false));
+        assert!(autotools_build_tree_needs_reset(true, true, false, true));
+        assert!(!autotools_build_tree_needs_reset(true, true, false, false));
+    }
 
     fn write_pkgconfig_overlay_fixture_manifest(root: &Path, stage: &str, digest: &str) {
         let manifest = cache_manifest::StageManifest {
@@ -3615,10 +3628,13 @@ mod tests {
         assert!(live_greetd.contains("[initial_session]"));
         assert!(live_greetd.contains("command = \"/usr/bin/start-plasma\""));
         assert!(live_greetd.contains("user = \"mattos\""));
-        let installed_greetd = include_str!("../../../system/session/plasma/plasma.toml");
-        assert!(installed_greetd.contains("command = \"/usr/bin/mattos-plasma-greeter\""));
-        assert!(installed_greetd.contains("user = \"mattos\""));
-        assert!(!installed_greetd.contains("command = \"/usr/bin/start-plasma\""));
+        let manager_pam =
+            include_str!("../../../system/session/plasma-login-manager/plasmalogin.pam");
+        assert!(manager_pam.contains("pam_unix.so"));
+        assert!(manager_pam.contains("pam_systemd.so"));
+        let manager_session =
+            include_str!("../../../system/session/plasma-login-manager/mattos-plasma.desktop");
+        assert!(manager_session.contains("Exec=/usr/bin/start-plasma"));
         let plasma_greeter = include_str!("../../../system/session/plasma/mattos-plasma-greeter");
         assert!(plasma_greeter.contains("exec /usr/bin/agreety --cmd /usr/bin/start-plasma"));
         let live_override = include_str!(
@@ -5485,6 +5501,19 @@ mod tests {
                 "sshd",
                 "auth       required     pam_unix.so\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n",
             ),
+            ("plasma-greeter", "session    optional     pam_systemd.so\n"),
+            (
+                "plasmalogin",
+                "auth       required     pam_unix.so\nsession    optional     pam_systemd.so\n",
+            ),
+            (
+                "plasmalogin-autologin",
+                "auth       required     pam_permit.so\nsession    optional     pam_systemd.so\n",
+            ),
+            (
+                "plasmalogin-greeter",
+                "auth       required     pam_permit.so\nsession    optional     pam_systemd.so\n",
+            ),
         ] {
             write(&rootfs.join("etc/pam.d").join(stack), body);
         }
@@ -6265,11 +6294,29 @@ mod tests {
         let implementation = include_str!("stages/kde_foundation.rs");
         assert!(implementation.contains("applets/pager/pagermodel.cpp"));
         assert!(
-            implementation.contains("#ifdef HAVE_X11\\n#include <xwindowtasksmodel.h>\\n#endif")
+            implementation.contains("#if HAVE_X11\\n#include <xwindowtasksmodel.h>\\n#endif")
         );
-        assert!(implementation.contains("#include <QDBusConnection>\\n#include <QMimeData>"));
+        assert!(implementation.contains("plasma_pager_qmimedata_header_mirror(&contents)"));
         let plasma = include_str!("stages/plasma.rs");
-        assert!(plasma.contains("-DWITH_X11=OFF"));
+        assert!(plasma.contains("-DWITH_X11=ON"));
         assert!(plasma.contains("-DWITH_X11_SESSION=OFF"));
+        assert!(plasma.contains("usr/bin/ksmserver"));
+        assert!(plasma.contains("plasma-ksmserver.service"));
+        assert!(
+            stage_graph::direct_dependencies(BuildStage::PlasmaWorkspace).contains(&"x11-compat")
+        );
+        let x11_sources = stage_inputs::source_inputs(BuildStage::X11Compat);
+        for source in [
+            "src/system/graphics/libice",
+            "src/system/graphics/libsm",
+            "src/tools/mattos-build/src/stages/graphics.rs",
+        ] {
+            assert!(
+                x11_sources.contains(&PathBuf::from(source)),
+                "missing {source}"
+            );
+        }
+        assert!(packaging::PACKAGE_NAMES.contains(&"libice6"));
+        assert!(packaging::PACKAGE_NAMES.contains(&"libsm6"));
     }
 }

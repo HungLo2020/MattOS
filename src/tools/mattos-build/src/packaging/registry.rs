@@ -80,6 +80,79 @@ mod wifi_grub_tests {
     }
 
     #[test]
+    fn plasma_wayland_workspace_owns_session_manager_runtime_closure() {
+        let specs = package_specs();
+        let workspace = specs
+            .iter()
+            .find(|spec| spec.name == "plasma-workspace")
+            .unwrap();
+        assert!(workspace.depends.contains(&"libice6"));
+        assert!(workspace.depends.contains(&"libsm6"));
+        assert!(workspace.depends.contains(&"libxi6"));
+        assert!(workspace.depends.contains(&"libxrender1"));
+        assert!(workspace.depends.contains(&"libxtst6"));
+        assert!(workspace.depends.contains(&"libxcursor1"));
+        assert!(workspace.depends.contains(&"libxft2"));
+        // These QML applets are loaded by Qt at runtime, so their ICU
+        // DT_NEEDED entries are not visible to the Plasma meta-package unless
+        // the workspace package declares the source-owned ICU runtime itself.
+        assert!(workspace.depends.contains(&"libicu78"));
+        assert!(workspace.depends.contains(&"kscreenlocker"));
+        let locker = specs
+            .iter()
+            .find(|spec| spec.name == "kscreenlocker")
+            .expect("workspace's declared screen-locker runtime package exists");
+        assert_eq!(locker.source_component, "kscreenlocker");
+        assert!(locker.depends.contains(&"plasma-framework"));
+        assert!(locker.depends.contains(&"breeze-icons"));
+        assert!(locker.depends.contains(&"libpam0g"));
+        assert_eq!(
+            specs
+                .iter()
+                .find(|spec| spec.name == "libice6")
+                .unwrap()
+                .source_component,
+            "x11-compat"
+        );
+        let libsm = specs.iter().find(|spec| spec.name == "libsm6").unwrap();
+        assert_eq!(libsm.source_component, "x11-compat");
+        assert!(libsm.depends.contains(&"libice6"));
+        for name in [
+            "libxi6",
+            "libxrender1",
+            "libxtst6",
+            "libxcursor1",
+            "libxft2",
+        ] {
+            assert_eq!(
+                specs
+                    .iter()
+                    .find(|spec| spec.name == name)
+                    .unwrap()
+                    .source_component,
+                "x11-compat"
+            );
+        }
+    }
+
+    #[test]
+    fn plasma_profile_closes_dynamic_launcher_clock_and_audio_runtime_dependencies() {
+        let specs = package_specs();
+        let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
+
+        assert!(spec("plasma-workspace").depends.contains(&"libicu78"));
+        assert!(spec("plasma-pa").depends.contains(&"libpulse0"));
+
+        let installed_profile = closure("mattos-plasma");
+        for runtime in ["libicu78", "libpulse0"] {
+            assert!(
+                installed_profile.contains(runtime),
+                "mattos-plasma must install {runtime} for dynamically loaded QML applets"
+            );
+        }
+    }
+
+    #[test]
     fn font_runtime_and_discovery_packages_have_explicit_ownership() {
         let specs = package_specs();
         let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
@@ -123,6 +196,8 @@ mod wifi_grub_tests {
             "plasma-desktop",
             "libegl-mesa0",
             "greetd",
+            "plasma-login-manager",
+            "mattos-plasma-live",
             "dolphin",
             "konsole",
             "systemsettings",
@@ -143,7 +218,7 @@ mod wifi_grub_tests {
             "plasma-workspace",
             "plasma-desktop",
             "libegl-mesa0",
-            "greetd",
+            "plasma-login-manager",
             "kf6-kpackage",
             "kf6-kdeclarative",
             "kf6-kirigami",
@@ -169,6 +244,14 @@ mod wifi_grub_tests {
         assert!(
             !plasma.contains("mattos-installer"),
             "Plasma profile contains the live-only installer"
+        );
+        assert!(
+            !plasma.contains("greetd"),
+            "installed Plasma profile retains greetd"
+        );
+        assert!(
+            !plasma.contains("mattos-plasma-live"),
+            "installed Plasma profile contains live-only greetd integration"
         );
         assert!(
             !plasma.contains("calamares"),
@@ -208,6 +291,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "mattos-base",
     "mattos-cli",
     "mattos-plasma",
+    "mattos-plasma-live",
     "ca-certificates",
     "mattos-brush",
     "coreutils",
@@ -301,7 +385,9 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "plasma5support",
     "libprocesscore10",
     "greetd",
+    "plasma-login-manager",
     "plasma-workspace",
+    "kscreenlocker",
     "plasma-desktop",
     "breeze",
     "breeze-icons",
@@ -430,10 +516,17 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "libdrm-nouveau2",
     "libxau6",
     "libxdmcp6",
+    "libice6",
+    "libsm6",
+    "libxi6",
     "libxcb1",
     "libx11-6",
     "libxext6",
     "libxfixes3",
+    "libxcursor1",
+    "libxft2",
+    "libxrender1",
+    "libxtst6",
     "libglvnd0",
     "libglvnd-dev",
     "libglx0",
@@ -655,7 +748,7 @@ const MATTOS_PLASMA_DEPENDS: &[&str] = &[
     "kf6-networkmanager-qt",
     "kf6-purpose",
     "polkit-qt6-1",
-    "greetd",
+    "plasma-login-manager",
     "kwin",
     "layer-shell-qt",
     "plasma-framework",
@@ -1045,6 +1138,17 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             source_component: "mattos-profiles",
             depends: MATTOS_PLASMA_DEPENDS,
             provides: &["mattos-installed-profile", "mattos-desktop-profile"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-plasma-live",
+            description: "Live-image-only greetd session integration for MattOS Plasma",
+            source_component: "mattos-plasma-live",
+            depends: &["greetd", "plasma-login-manager", "libpam0g"],
+            provides: &["mattos-plasma-live-session"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -2476,6 +2580,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "kf6-ki18n",
                 "libc6",
                 "libstdc++6",
+                "libcanberra0",
             ],
             provides: &["libkf6notifications6", "kf6-knotifications-dev"],
             conflicts: &[],
@@ -3250,6 +3355,89 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             source_component: "x11-compat",
             depends: &["libc6"],
             provides: &["libxdmcp6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libice6",
+            description: "X11 Inter-Client Exchange runtime library used by Plasma session management",
+            source_component: "x11-compat",
+            depends: &["libc6"],
+            provides: &["libice6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libsm6",
+            description: "X11 Session Management runtime library used by Plasma session management",
+            source_component: "x11-compat",
+            depends: &["libc6", "libice6"],
+            provides: &["libsm6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxi6",
+            description: "X Input extension runtime ABI used by Xtst and Xwayland clients",
+            source_component: "x11-compat",
+            depends: &["libc6", "libxext6", "libxfixes3", "libx11-6"],
+            provides: &["libxi6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxrender1",
+            description: "X Render extension runtime ABI for Xwayland clients",
+            source_component: "x11-compat",
+            depends: &["libc6", "libx11-6"],
+            provides: &["libxrender1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxtst6",
+            description: "X Test extension runtime ABI used by Plasma workspace compatibility components",
+            source_component: "x11-compat",
+            depends: &["libc6", "libx11-6", "libxext6", "libxi6"],
+            provides: &["libxtst6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxcursor1",
+            description: "X cursor theme and rendering runtime ABI for Wayland desktop clients",
+            source_component: "x11-compat",
+            depends: &["libc6", "libx11-6", "libxfixes3", "libxrender1"],
+            provides: &["libxcursor1"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: "libxft2",
+            description: "Xft font rendering runtime ABI for Xwayland clients",
+            source_component: "x11-compat",
+            depends: &[
+                "libc6",
+                "libfontconfig1",
+                "libfreetype6",
+                "libx11-6",
+                "libxrender1",
+            ],
+            provides: &["libxft2"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -4333,11 +4521,61 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
+            name: "plasma-login-manager",
+            description: "KDE Plasma Login Manager with MattOS PAM and Wayland session policy",
+            source_component: "plasma-login-manager",
+            depends: &[
+                "qt6-base",
+                "qt6-declarative",
+                "qt6-shadertools",
+                "qt6-tools",
+                "kf6-kconfig",
+                "kf6-kcoreaddons",
+                "kf6-kpackage",
+                "kf6-kwindowsystem",
+                "kf6-ki18n",
+                "kf6-kdbusaddons",
+                "kf6-kcmutils",
+                "kf6-kauth",
+                "kf6-kio",
+                "kf6-kirigami",
+                "kf6-ksvg",
+                "kf6-knotifications",
+                "kf6-kglobalaccel",
+                "plasma-framework",
+                "plasma-activities",
+                "layer-shell-qt",
+                "plasma-workspace",
+                "kf6-libkscreen",
+                "breeze-icons",
+                "libpam0g",
+                "libpam-modules",
+                "libpam-runtime",
+                "systemd",
+                "libxau6",
+                "libffi8",
+            ],
+            provides: &["plasma-login-manager", "display-manager"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "plasma-workspace",
             description: "Plasma Wayland workspace and session shell",
             source_component: "plasma-workspace",
             depends: &[
                 "qt6-base",
+                "libicu78",
+                "libice6",
+                "libsm6",
+                "libxi6",
+                "libxrender1",
+                "libxtst6",
+                "libxcursor1",
+                "libxft2",
+                "kscreenlocker",
                 "kwin",
                 "kactivitymanagerd",
                 "kglobalacceld",
@@ -4354,6 +4592,35 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
+            name: "kscreenlocker",
+            description: "Plasma screen-locking runtime and settings module",
+            source_component: "kscreenlocker",
+            depends: &[
+                "qt6-base",
+                "qt6-declarative",
+                "kf6-kcoreaddons",
+                "kf6-kconfig",
+                "kf6-kconfigwidgets",
+                "kf6-ki18n",
+                "kf6-kpackage",
+                "kf6-kcmutils",
+                "kf6-kio",
+                "kf6-kwindowsystem",
+                "kf6-kglobalaccel",
+                "kf6-knotifications",
+                "kf6-solid",
+                "plasma-framework",
+                "layer-shell-qt",
+                "breeze-icons",
+                "libpam0g",
+            ],
+            provides: &["kscreenlocker", "libkscreenlocker6"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "plasma-desktop",
             description: "Plasma desktop shell and control modules",
             source_component: "plasma-desktop",
@@ -4362,8 +4629,6 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "kwin",
                 "kf6-qqc2-desktop-style",
                 "kf6-kirigami-addons",
-                "greetd",
-                "libpam0g",
                 "fonts-fira",
             ],
             provides: &["plasma-desktop"],
@@ -4662,6 +4927,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "qt6-base",
                 "qt6-declarative",
                 "pulseaudio-qt",
+                "libpulse0",
                 "plasma-framework",
                 "libcanberra0",
             ],
