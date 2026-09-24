@@ -133,9 +133,17 @@ fn build_plasma_workspace(repo_root: &Path) -> Result<()> {
         "usr/bin/startplasma-wayland",
     )?;
     let install = repo_root.join("out/build/plasma-workspace/install");
+    validate_plasma_workspace_install(&install)
+}
+
+fn validate_plasma_workspace_install(install: &Path) -> Result<()> {
     for required in [
         "usr/bin/ksmserver",
         "usr/lib/systemd/user/plasma-ksmserver.service",
+        // Kickoff's power buttons require this D-Bus-activated confirmation
+        // helper before the session asks logind to power off or reboot.
+        "usr/lib/x86_64-linux-gnu/libexec/ksmserver-logout-greeter",
+        "usr/share/dbus-1/services/org.kde.LogoutPrompt.service",
     ] {
         if !install.join(required).is_file() {
             bail!("Plasma Wayland workspace build lacks required session component {required}");
@@ -147,6 +155,40 @@ fn build_plasma_workspace(repo_root: &Path) -> Result<()> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod plasma_workspace_tests {
+    use super::validate_plasma_workspace_install;
+    use std::fs;
+
+    #[test]
+    fn workspace_requires_logout_confirmation_service_and_helper_without_x11_session() {
+        let root = tempfile::tempdir().unwrap();
+        let required = [
+            "usr/bin/ksmserver",
+            "usr/lib/systemd/user/plasma-ksmserver.service",
+            "usr/lib/x86_64-linux-gnu/libexec/ksmserver-logout-greeter",
+            "usr/share/dbus-1/services/org.kde.LogoutPrompt.service",
+        ];
+        for relative in required {
+            let path = root.path().join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "test artifact").unwrap();
+        }
+        let x11_session = root.path().join("usr/bin/startplasma-x11");
+        fs::write(&x11_session, "unexpected X11 session").unwrap();
+        assert!(validate_plasma_workspace_install(root.path()).is_err());
+        fs::remove_file(x11_session).unwrap();
+        validate_plasma_workspace_install(root.path()).unwrap();
+
+        fs::remove_file(
+            root.path()
+                .join("usr/lib/x86_64-linux-gnu/libexec/ksmserver-logout-greeter"),
+        )
+        .unwrap();
+        assert!(validate_plasma_workspace_install(root.path()).is_err());
+    }
 }
 
 fn build_plasma_desktop(repo_root: &Path) -> Result<()> {

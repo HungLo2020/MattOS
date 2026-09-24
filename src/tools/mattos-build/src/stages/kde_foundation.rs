@@ -1036,16 +1036,6 @@ public:
             "# MattOS: KSysGuard is outside the core Wayland shell closure\n",
         );
         if adjusted != contents { fs::write(&cmake_lists, adjusted)?; }
-        // The logout greeter is an X11 helper.  The Wayland-only workspace
-        // does not provide X11::X11, and building this helper would pull the
-        // forbidden X11 session dependency into the target closure.
-        let logout = source_copy.join("logout-greeter/CMakeLists.txt");
-        if logout.is_file() {
-            let contents = fs::read_to_string(&logout)?;
-            if !contents.starts_with("# MattOS: X11-only") {
-                fs::write(&logout, "# MattOS: X11-only logout greeter omitted from Wayland-only shell.\n")?;
-            }
-        }
         let kcms = source_copy.join("kcms/CMakeLists.txt");
         if kcms.is_file() {
             let contents = fs::read_to_string(&kcms)?;

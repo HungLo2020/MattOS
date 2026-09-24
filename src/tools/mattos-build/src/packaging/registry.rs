@@ -88,6 +88,7 @@ mod wifi_grub_tests {
             .unwrap();
         assert!(workspace.depends.contains(&"libice6"));
         assert!(workspace.depends.contains(&"libsm6"));
+        assert!(workspace.depends.contains(&"libx11-6"));
         assert!(workspace.depends.contains(&"libxi6"));
         assert!(workspace.depends.contains(&"libxrender1"));
         assert!(workspace.depends.contains(&"libxtst6"));
@@ -4570,6 +4571,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "libicu78",
                 "libice6",
                 "libsm6",
+                "libx11-6",
                 "libxi6",
                 "libxrender1",
                 "libxtst6",
