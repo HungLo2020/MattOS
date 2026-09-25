@@ -1,0 +1,128 @@
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the aurorae package.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: aurorae\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-20 00:43+0000\n"
+"PO-Revision-Date: 2025-03-15 08:49+0200\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Lokalize 23.04.3\n"
+
+#: config/auroraeconfig.cpp:48
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Tiny"
+msgstr "Крихітний"
+
+#: config/auroraeconfig.cpp:49
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Normal"
+msgstr "Звичайний"
+
+#: config/auroraeconfig.cpp:50
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Large"
+msgstr "Великий"
+
+#: config/auroraeconfig.cpp:51
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Large"
+msgstr "Дуже великий"
+
+#: config/auroraeconfig.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Huge"
+msgstr "Величезний"
+
+#: config/auroraeconfig.cpp:53
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Huge"
+msgstr "Гігантський"
+
+#: config/auroraeconfig.cpp:54
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Oversized"
+msgstr "Найбільший"
+
+#: config/auroraeconfig.cpp:57
+#, kde-format
+msgid "Button size:"
+msgstr "Розмір кнопок:"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, PlastikConfigDialog)
+#: v1/themes/plastik/package/contents/ui/config.ui:14
+#, kde-format
+msgid "Config Dialog"
+msgstr "Вікно налаштувань"
+
+#. i18n: ectx: property (title), widget (KButtonGroup, titleAlign)
+#: v1/themes/plastik/package/contents/ui/config.ui:23
+#, kde-format
+msgid "Title &Alignment"
+msgstr "Ви&рівнювання заголовка"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignLeft)
+#: v1/themes/plastik/package/contents/ui/config.ui:29
+#, kde-format
+msgid "Left"
+msgstr "Ліворуч"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignCenter)
+#: v1/themes/plastik/package/contents/ui/config.ui:36
+#, kde-format
+msgid "Center"
+msgstr "За центром"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignRight)
+#: v1/themes/plastik/package/contents/ui/config.ui:43
+#, kde-format
+msgid "Right"
+msgstr "Праворуч"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:53
+#, kde-format
+msgid ""
+"Check this option if the window border should be painted in the titlebar "
+"color. Otherwise it will be painted in the background color."
+msgstr ""
+"Якщо вибрано, обрамлення вікон будуть малюватися з використанням кольорів "
+"смужки заголовка. Інакше, будуть вжиті кольори звичайних меж вікна."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:56
+#, kde-format
+msgid "Colored window border"
+msgstr "Кольорове обрамлення вікна"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:66
+#, kde-format
+msgid ""
+"Check this option if you want the buttons to fade in when the mouse pointer "
+"hovers over them and fade out again when it moves away."
+msgstr ""
+"Позначте цей пункт, якщо ви хочете, щоб при наведенні курсора мишки кнопки "
+"підсвічувались, а при відведенні — згасали."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:69
+#, kde-format
+msgid "Animate buttons"
+msgstr "Анімація кнопок"

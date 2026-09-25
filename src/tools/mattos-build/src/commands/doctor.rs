@@ -61,6 +61,7 @@ fn doctor() -> Result<()> {
         "xz",
         "tar",
         "triehash",
+        "magick",
     ] {
         if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
             missing_required.push(tool);
@@ -74,6 +75,7 @@ fn doctor() -> Result<()> {
         ("ninja", vec!["--version"]),
         ("xorriso", vec!["-version"]),
         ("bindgen", vec!["--version"]),
+        ("magick", vec!["-version"]),
     ] {
         if missing_required.contains(&tool) {
             continue;
@@ -99,6 +101,10 @@ fn doctor() -> Result<()> {
             (&["--exists", "libzstd"][..], "libzstd-dev"),
             (&["--exists", "liblz4"][..], "liblz4-dev"),
             (&["--exists", "libxxhash"][..], "libxxhash-dev"),
+            (&["--exists", "x11"][..], "libx11-dev"),
+            (&["--exists", "xcursor"][..], "libxcursor-dev"),
+            (&["--exists", "libpng"][..], "libpng-dev"),
+            (&["--exists", "xproto"][..], "x11proto-dev"),
         ] {
             if let Some(message) = check_tool_runtime("pkg-config", args)? {
                 println!("[broken]  {package} ({message})");

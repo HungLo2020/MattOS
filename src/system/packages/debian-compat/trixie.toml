@@ -2577,13 +2577,25 @@ known_gaps = ["Common utilities included in this package rather than Debian's se
 debian_name = "kwin"
 mattos_name = "kwin"
 source_component = "kwin"
-owned_paths = ["/usr/bin/kwin_wayland"]
-provided_abi_or_commands = ["KWin Wayland compositor"]
+owned_paths = ["/usr/bin/kwin_wayland", "/usr/lib/x86_64-linux-gnu/plugins/plasma/kcms/systemsettings/kcm_kwindecoration.so", "/usr/lib/x86_64-linux-gnu/libexec/kwin-applywindowdecoration", "/usr/share/applications/kcm_kwindecoration.desktop", "/usr/share/config.kcfg/kwindecorationsettings.kcfg"]
+provided_abi_or_commands = ["KWin Wayland compositor and window-decoration configuration module"]
 protected = false
-current_mattos_version = "6.6.3-1mattos1"
+current_mattos_version = "6.6.5-1mattos1"
 expected_debian_role = "Wayland compositor"
 classification = "mattos-extension"
 known_gaps = ["MattOS Plasma foundation package"]
+
+[[package]]
+debian_name = "kwin-aurorae"
+mattos_name = "kwin-aurorae"
+source_component = "aurorae"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3", "/usr/lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3.kcm", "/usr/lib/x86_64-linux-gnu/qml/org/kde/kwin/decoration", "/usr/share/kwin/aurorae", "/usr/lib/x86_64-linux-gnu/libexec/plasma-apply-aurorae"]
+provided_abi_or_commands = ["Aurorae KWin decoration plugins and QML support"]
+protected = false
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "KWin Aurorae decoration runtime"
+classification = "mattos-extension"
+known_gaps = ["No known compatibility gaps are currently identified for this MattOS-owned Aurorae runtime package"]
 
 [[package]]
 debian_name = "qt6-declarative"
@@ -3139,6 +3151,18 @@ current_mattos_version = "0.1-1mattos1"
 expected_debian_role = "Live-only Plasma session integration"
 classification = "mattos-specific"
 known_gaps = ["Must not be installed by CLI or Plasma target profiles"]
+
+[[package]]
+debian_name = "mattos-plasma-theme"
+mattos_name = "mattos-plasma-theme"
+source_component = "mattos-plasma-theme"
+owned_paths = ["/etc/xdg/kdeglobals", "/etc/xdg/kcminputrc", "/etc/xdg/kwinrc", "/etc/xdg/plasmarc", "/usr/share/plasma/look-and-feel/org.mattos.desktop", "/usr/share/plasma/desktoptheme/Nordic", "/usr/share/color-schemes/Nordic.colors", "/usr/share/icons/Papirus-Dark", "/usr/share/icons/material_light_cursors", "/usr/share/aurorae/themes/Utterly-Round-Dark", "/usr/share/desktop-directories/kf5-development.directory", "/usr/share/desktop-directories/kf5-education.directory", "/usr/share/desktop-directories/kf5-games.directory", "/usr/share/desktop-directories/kf5-graphics.directory", "/usr/share/desktop-directories/kf5-internet.directory", "/usr/share/desktop-directories/kf5-multimedia.directory", "/usr/share/desktop-directories/kf5-office.directory", "/usr/share/desktop-directories/kf5-science.directory", "/usr/share/desktop-directories/kf5-system.directory", "/usr/share/desktop-directories/kf5-utilities.directory"]
+provided_abi_or_commands = ["MattOS Plasma look-and-feel, Nordic Plasma style, Papirus Dark icons, Material Light cursors, and Utterly Round Dark Aurorae decoration"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS Plasma appearance and system-wide desktop defaults"
+classification = "mattos-specific"
+known_gaps = ["External slideshow directory is user-configured and is not packaged"]
 
 [[package]]
 debian_name = "plasma-workspace"

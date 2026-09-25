@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [{"Email": "", "Name": "MattOS contributors"}],
+        "Description": "MattOS Plasma appearance and default desktop layout",
+        "Id": "org.mattos.desktop",
+        "License": "GPL-3.0-or-later",
+        "Name": "MattOS",
+        "Website": "https://github.com/HungLo2020/MattOS"
+    },
+    "Keywords": "Desktop;Workspace;Appearance;Look and Feel;",
+    "X-Plasma-APIVersion": "2",
+    "X-Plasma-MainScript": "default"
+}

@@ -1,0 +1,130 @@
+# Lithuanian translations for aurorae package.
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the aurorae package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: aurorae\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-20 00:43+0000\n"
+"PO-Revision-Date: 2025-09-04 14:14+0300\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: lt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n%10>=2 && (n%100<10 || n"
+"%100>=20) ? 1 : n%10==0 || (n%100>10 && n%100<20) ? 2 : 3);\n"
+"X-Generator: Poedit 3.6\n"
+
+#: config/auroraeconfig.cpp:48
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Tiny"
+msgstr "Mažytis"
+
+#: config/auroraeconfig.cpp:49
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Normal"
+msgstr "Normalus"
+
+#: config/auroraeconfig.cpp:50
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Large"
+msgstr "Didelis"
+
+#: config/auroraeconfig.cpp:51
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Large"
+msgstr "Labai didelis"
+
+#: config/auroraeconfig.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Huge"
+msgstr "Didžiulis"
+
+#: config/auroraeconfig.cpp:53
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Huge"
+msgstr "Milžiniškas"
+
+#: config/auroraeconfig.cpp:54
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Oversized"
+msgstr "Per didelis"
+
+#: config/auroraeconfig.cpp:57
+#, kde-format
+msgid "Button size:"
+msgstr "Mygtukų dydis:"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, PlastikConfigDialog)
+#: v1/themes/plastik/package/contents/ui/config.ui:14
+#, kde-format
+msgid "Config Dialog"
+msgstr "Konfigūracijos dialogas"
+
+#. i18n: ectx: property (title), widget (KButtonGroup, titleAlign)
+#: v1/themes/plastik/package/contents/ui/config.ui:23
+#, kde-format
+msgid "Title &Alignment"
+msgstr "Antraščių &lygiavimas"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignLeft)
+#: v1/themes/plastik/package/contents/ui/config.ui:29
+#, kde-format
+msgid "Left"
+msgstr "Kairėje"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignCenter)
+#: v1/themes/plastik/package/contents/ui/config.ui:36
+#, kde-format
+msgid "Center"
+msgstr "Centre"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignRight)
+#: v1/themes/plastik/package/contents/ui/config.ui:43
+#, kde-format
+msgid "Right"
+msgstr "Dešinėje"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:53
+#, kde-format
+msgid ""
+"Check this option if the window border should be painted in the titlebar "
+"color. Otherwise it will be painted in the background color."
+msgstr ""
+"Pažymėkite šią parinktį jei norite, kad langų rėmeliai būtų piešiami "
+"naudojant antraštės juostos spalvas. Priešingu atveju, jie bus piešiami "
+"naudojant įprastas fono spalvas."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:56
+#, kde-format
+msgid "Colored window border"
+msgstr "Spalvotas lango rėmelis"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:66
+#, kde-format
+msgid ""
+"Check this option if you want the buttons to fade in when the mouse pointer "
+"hovers over them and fade out again when it moves away."
+msgstr ""
+"Pažymėkite šią parinktį jei norite, kad mygtukai, užvedus ant jų pelę, "
+"laipniškai išryškėtų, o po to, pelę patraukus, vėl laipsniškai išnyktų."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:69
+#, kde-format
+msgid "Animate buttons"
+msgstr "Animuoti mygtukus"

@@ -1,0 +1,13 @@
+[Effect-blur]
+BlurStrength=5
+NoiseStrength=4
+
+[Effect-translucency]
+MoveResize=75
+
+[Plugins]
+blurEnabled=true
+translucencyEnabled=true
+
+[Windows]
+Placement=Centered

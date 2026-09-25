@@ -109,15 +109,96 @@ fn build_kwin(repo_root: &Path) -> Result<()> {
         repo_root,
         "kwin",
         "src/desktop/kde/kwin",
-        &["qtbase", "qt5compat", "qtwayland", "qtdeclarative", "qttools", "kconfig", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcolorscheme", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kidletime", "kpackage", "kservice", "ksvg", "kwidgetsaddons", "kwindowsystem", "kdecoration", "kwayland", "knighttime", "kholidays", "qtpositioning", "lcms2", "x11-compat", "libxcb", "libffi", "libevdev", "plasma-wayland-protocols", "wayland-protocols", "wayland", "xkbcommon", "libdrm", "mesa", "libinput", "libdisplay-info", "seatd", "libepoxy", "libxcvt", "libcanberra", "systemd", "dbus", "xwayland"],
+        &["aurorae", "qtbase", "qt5compat", "qtwayland", "qtdeclarative", "qttools", "kconfig", "kdeclarative", "kcmutils", "kconfigwidgets", "kwidgetsaddons", "knewstuff", "attica", "kxmlgui", "kcoreaddons", "kdbusaddons", "kauth", "karchive", "kcolorscheme", "kcrash", "kglobalaccel", "kguiaddons", "ki18n", "kidletime", "kpackage", "kservice", "ksvg", "kwindowsystem", "kdecoration", "kwayland", "knighttime", "kholidays", "qtpositioning", "lcms2", "x11-compat", "libxcb", "libffi", "libevdev", "plasma-wayland-protocols", "wayland-protocols", "wayland", "xkbcommon", "libdrm", "mesa", "libinput", "libdisplay-info", "seatd", "libepoxy", "libxcvt", "libcanberra", "systemd", "dbus", "xwayland"],
         // The installed Wayland wrapper and Plasma session deliberately pass
         // --xwayland to KWin.  Keep the X11 common code/Xwayland server
         // enabled so that legacy X11 clients work inside the Wayland session;
         // disabling this option leaves an installed wrapper that KWin rejects
         // immediately with "Unknown option 'xwayland'".
-        &["-DBUILD_TESTING=OFF", "-DKWIN_BUILD_X11=ON", "-DKWIN_BUILD_KCMS=OFF", "-DKWIN_BUILD_NOTIFICATIONS=OFF", "-DKWIN_BUILD_SCREENLOCKER=OFF", "-DKWIN_BUILD_TABBOX=OFF", "-DKWIN_BUILD_GLOBALSHORTCUTS=OFF", "-DKWIN_BUILD_RUNNERS=OFF", "-DKWIN_BUILD_DECORATIONS=OFF", "-DWITH_PIPEWIRE=ON"],
+        &["-DBUILD_TESTING=OFF", "-DKWIN_BUILD_X11=ON", "-DKWIN_BUILD_KCMS=ON", "-DKWIN_BUILD_NOTIFICATIONS=OFF", "-DKWIN_BUILD_SCREENLOCKER=OFF", "-DKWIN_BUILD_TABBOX=OFF", "-DKWIN_BUILD_GLOBALSHORTCUTS=OFF", "-DKWIN_BUILD_RUNNERS=OFF", "-DKWIN_BUILD_DECORATIONS=ON", "-DWITH_PIPEWIRE=ON"],
         "usr/bin/kwin_wayland",
     )
+}
+
+#[cfg(test)]
+mod appearance_build_tests {
+    use std::fs;
+
+    #[test]
+    fn kwin_build_enables_its_decoration_and_window_decoration_kcm_features() {
+        let source = include_str!("plasma.rs");
+        assert!(source.contains("-DKWIN_BUILD_KCMS=ON"));
+        assert!(source.contains("-DKWIN_BUILD_DECORATIONS=ON"));
+        assert!(source.contains("\"aurorae\""));
+    }
+
+    #[test]
+    fn aurorae_install_validation_accepts_the_theme_directory_and_requires_plugins() {
+        let temp = tempfile::tempdir().unwrap();
+        let install = temp.path();
+        for path in [
+            "lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.v2.so",
+            "lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.so",
+            "lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3.kcm/kcm_auroraedecoration.so",
+            "lib/x86_64-linux-gnu/cmake/Aurorae/AuroraeConfig.cmake",
+            "lib/x86_64-linux-gnu/qml/org/kde/kwin/decoration/qmldir",
+        ] {
+            let path = install.join(path);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, b"fixture").unwrap();
+        }
+        fs::create_dir_all(install.join("share/kwin/aurorae")).unwrap();
+        assert!(super::validate_aurorae_install(install).is_ok());
+        fs::remove_dir_all(install.join("share/kwin/aurorae")).unwrap();
+        assert!(super::validate_aurorae_install(install).is_err());
+    }
+}
+
+fn build_aurorae(repo_root: &Path) -> Result<()> {
+    build_plasma_component(
+        repo_root,
+        "aurorae",
+        "src/desktop/kde/aurorae",
+        &[
+            "qtbase",
+            "qtdeclarative",
+            "qttools",
+            "kconfig",
+            "kcoreaddons",
+            "kcolorscheme",
+            "kconfigwidgets",
+            "kwidgetsaddons",
+            "ki18n",
+            "kcmutils",
+            "knewstuff",
+            "attica",
+            "kpackage",
+            "ksvg",
+            "kdecoration",
+        ],
+        &["-DBUILD_TESTING=OFF"],
+        "usr/lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.v2.so",
+    )?;
+    let install = repo_root.join("out/build/aurorae/install/usr");
+    validate_aurorae_install(&install)
+}
+
+fn validate_aurorae_install(install: &Path) -> Result<()> {
+    for required in [
+        "lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.v2.so",
+        "lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.so",
+        "lib/x86_64-linux-gnu/plugins/org.kde.kdecoration3.kcm/kcm_auroraedecoration.so",
+        "lib/x86_64-linux-gnu/cmake/Aurorae/AuroraeConfig.cmake",
+        "lib/x86_64-linux-gnu/qml/org/kde/kwin/decoration/qmldir",
+    ] {
+        if !install.join(required).is_file() {
+            bail!("Aurorae install is missing required decoration/KCM payload: {required}");
+        }
+    }
+    if !install.join("share/kwin/aurorae").is_dir() {
+        bail!("Aurorae install is missing required decoration theme directory: share/kwin/aurorae");
+    }
+    Ok(())
 }
 
 fn build_plasma_workspace(repo_root: &Path) -> Result<()> {

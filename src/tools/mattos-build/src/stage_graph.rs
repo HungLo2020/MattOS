@@ -98,6 +98,7 @@ pub(crate) enum BuildStage {
     YamlCpp,
     KPMCore,
     Calamares,
+    Aurorae,
     PlasmaKWin,
     PlasmaFramework,
     PlasmaActivities,
@@ -178,6 +179,7 @@ pub(crate) enum BuildStage {
     Freetype,
     Fontconfig,
     PopFonts,
+    MaterialCursors,
     Libfontenc,
     Libxfont,
     Libxcvt,
@@ -366,6 +368,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::YamlCpp => "yaml-cpp",
         BuildStage::KPMCore => "kpmcore",
         BuildStage::Calamares => "calamares",
+        BuildStage::Aurorae => "aurorae",
         BuildStage::PlasmaKWin => "kwin",
         BuildStage::PlasmaFramework => "plasma-framework",
         BuildStage::PlasmaActivities => "plasma-activities",
@@ -446,6 +449,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Freetype => "freetype",
         BuildStage::Fontconfig => "fontconfig",
         BuildStage::PopFonts => "pop-fonts",
+        BuildStage::MaterialCursors => "material-cursors",
         BuildStage::Libfontenc => "libfontenc",
         BuildStage::Libxfont => "libxfont",
         BuildStage::Libxcvt => "libxcvt",
@@ -1193,14 +1197,40 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "util-linux",
             "installer",
         ],
+        BuildStage::Aurorae => &[
+            "formal-sysroot",
+            "qtbase",
+            "qtdeclarative",
+            "qttools",
+            "kconfig",
+            "kcoreaddons",
+            "kcolorscheme",
+            "kconfigwidgets",
+            "kwidgetsaddons",
+            "ki18n",
+            "kcmutils",
+            "knewstuff",
+            "attica",
+            "kpackage",
+            "ksvg",
+            "kdecoration",
+        ],
         BuildStage::PlasmaKWin => &[
             "formal-sysroot",
+            "aurorae",
             "qtbase",
             "qt5compat",
             "qtwayland",
             "qtdeclarative",
             "qttools",
             "kconfig",
+            "kdeclarative",
+            "kcmutils",
+            "kconfigwidgets",
+            "kwidgetsaddons",
+            "knewstuff",
+            "attica",
+            "kxmlgui",
             "kcoreaddons",
             "kdbusaddons",
             "kauth",
@@ -2474,6 +2504,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Freetype => &["formal-sysroot", "zlib"],
         BuildStage::Fontconfig => &["formal-sysroot", "expat", "freetype", "zlib"],
         BuildStage::PopFonts => &[],
+        BuildStage::MaterialCursors => &[],
         // libfontenc's configure probe includes zlib.h; keep the target-owned
         // zlib development output in its explicit native build environment.
         BuildStage::Libfontenc => &["formal-sysroot", "x11-compat", "zlib"],
@@ -2941,6 +2972,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::YamlCpp,
         BuildStage::KPMCore,
         BuildStage::Calamares,
+        BuildStage::Aurorae,
         BuildStage::PlasmaKWin,
         BuildStage::PlasmaFramework,
         BuildStage::PlasmaActivities,
@@ -3020,6 +3052,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Freetype,
         BuildStage::Fontconfig,
         BuildStage::PopFonts,
+        BuildStage::MaterialCursors,
         BuildStage::Libfontenc,
         BuildStage::Libxfont,
         BuildStage::Libxcvt,
@@ -3220,6 +3253,18 @@ mod tests {
             direct_dependencies(BuildStage::Greetd),
             &["formal-sysroot", "linux-pam"]
         );
+    }
+
+    #[test]
+    fn aurorae_is_built_before_kwin_and_owns_the_decoration_dependency_closure() {
+        assert!(direct_dependencies(BuildStage::PlasmaKWin).contains(&"aurorae"));
+        for dependency in [
+            "qtbase", "qtdeclarative", "qttools", "kconfig", "kcoreaddons",
+            "kcolorscheme", "ki18n", "kcmutils", "knewstuff", "attica",
+            "kpackage", "ksvg", "kdecoration",
+        ] {
+            assert!(direct_dependencies(BuildStage::Aurorae).contains(&dependency));
+        }
     }
 
     #[test]
@@ -3532,21 +3577,21 @@ mod tests {
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // Fontconfig and the Plasma closure are first-class consumers of
             // glibc through their source-owned runtime dependencies.
-            ("glibc source", &["glibc"], 264, &["linux"]),
+            ("glibc source", &["glibc"], 265, &["linux"]),
             ("Linux x86_64 config", &["linux"], 14, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                265,
+                266,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                262,
+                263,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 184, &["brush", "linux"]),
+            ("zlib shared library", &["zlib"], 185, &["brush", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

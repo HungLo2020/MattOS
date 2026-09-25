@@ -1,0 +1,130 @@
+# Translation for aurorae.po to Euskara/Basque (eu).
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the aurorae package.
+# SPDX-FileCopyrightText: 2025 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>.
+#
+# Translators:
+# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2025.
+msgid ""
+msgstr ""
+"Project-Id-Version: aurorae\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-20 00:43+0000\n"
+"PO-Revision-Date: 2025-03-27 21:36+0100\n"
+"Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
+"Language-Team: Basque <kde-i18n-eu@kde.org>\n"
+"Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 24.12.3\n"
+
+#: config/auroraeconfig.cpp:48
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Tiny"
+msgstr "Ñimiñoa"
+
+#: config/auroraeconfig.cpp:49
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Normal"
+msgstr "Arrunta"
+
+#: config/auroraeconfig.cpp:50
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Large"
+msgstr "Handia"
+
+#: config/auroraeconfig.cpp:51
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Large"
+msgstr "Oso handia"
+
+#: config/auroraeconfig.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Huge"
+msgstr "Itzela"
+
+#: config/auroraeconfig.cpp:53
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Huge"
+msgstr "Oso itzela"
+
+#: config/auroraeconfig.cpp:54
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Oversized"
+msgstr "Neurriz kanpokoa"
+
+#: config/auroraeconfig.cpp:57
+#, kde-format
+msgid "Button size:"
+msgstr "Botoiaren neurria:"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, PlastikConfigDialog)
+#: v1/themes/plastik/package/contents/ui/config.ui:14
+#, kde-format
+msgid "Config Dialog"
+msgstr "Konfigurazio elkarrizketa-koadroa"
+
+#. i18n: ectx: property (title), widget (KButtonGroup, titleAlign)
+#: v1/themes/plastik/package/contents/ui/config.ui:23
+#, kde-format
+msgid "Title &Alignment"
+msgstr "Titulua &lerrokatzea"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignLeft)
+#: v1/themes/plastik/package/contents/ui/config.ui:29
+#, kde-format
+msgid "Left"
+msgstr "Ezkerrean"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignCenter)
+#: v1/themes/plastik/package/contents/ui/config.ui:36
+#, kde-format
+msgid "Center"
+msgstr "Erdian"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignRight)
+#: v1/themes/plastik/package/contents/ui/config.ui:43
+#, kde-format
+msgid "Right"
+msgstr "Eskuinean"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:53
+#, kde-format
+msgid ""
+"Check this option if the window border should be painted in the titlebar "
+"color. Otherwise it will be painted in the background color."
+msgstr ""
+"Markatu aukera hau, leihoaren ertza titulu-barraren kolore berean "
+"margotzeko. Bestela, atzeko planoaren kolorearekin margotuko da."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:56
+#, kde-format
+msgid "Colored window border"
+msgstr "Leiho-ertz koloreduna"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:66
+#, kde-format
+msgid ""
+"Check this option if you want the buttons to fade in when the mouse pointer "
+"hovers over them and fade out again when it moves away."
+msgstr ""
+"Markatu aukera hau, saguaren erakuslea gainetik igarotzean botoiak mailaka "
+"argitzea eta aldentzean mailaka itzaltzea nahi baduzu."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:69
+#, kde-format
+msgid "Animate buttons"
+msgstr "Botoiak animatu"

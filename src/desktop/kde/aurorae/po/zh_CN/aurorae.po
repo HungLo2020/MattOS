@@ -1,0 +1,124 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: kdeorg\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-20 00:43+0000\n"
+"PO-Revision-Date: 2025-02-23 19:23\n"
+"Last-Translator: \n"
+"Language-Team: Chinese Simplified\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: kdeorg\n"
+"X-Crowdin-Project-ID: 269464\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /kf6-stable/messages/aurorae/aurorae.pot\n"
+"X-Crowdin-File-ID: 57528\n"
+
+#: config/auroraeconfig.cpp:48
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Tiny"
+msgstr "小"
+
+#: config/auroraeconfig.cpp:49
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Normal"
+msgstr "正常"
+
+#: config/auroraeconfig.cpp:50
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Large"
+msgstr "大"
+
+#: config/auroraeconfig.cpp:51
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Large"
+msgstr "特大"
+
+#: config/auroraeconfig.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Huge"
+msgstr "超大"
+
+#: config/auroraeconfig.cpp:53
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Huge"
+msgstr "超特大"
+
+#: config/auroraeconfig.cpp:54
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Oversized"
+msgstr "极大"
+
+#: config/auroraeconfig.cpp:57
+#, kde-format
+msgid "Button size:"
+msgstr "按钮大小："
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, PlastikConfigDialog)
+#: v1/themes/plastik/package/contents/ui/config.ui:14
+#, kde-format
+msgid "Config Dialog"
+msgstr "配置对话框"
+
+#. i18n: ectx: property (title), widget (KButtonGroup, titleAlign)
+#: v1/themes/plastik/package/contents/ui/config.ui:23
+#, kde-format
+msgid "Title &Alignment"
+msgstr "标题对齐(&A)"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignLeft)
+#: v1/themes/plastik/package/contents/ui/config.ui:29
+#, kde-format
+msgid "Left"
+msgstr "左对齐"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignCenter)
+#: v1/themes/plastik/package/contents/ui/config.ui:36
+#, kde-format
+msgid "Center"
+msgstr "居中对齐"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignRight)
+#: v1/themes/plastik/package/contents/ui/config.ui:43
+#, kde-format
+msgid "Right"
+msgstr "右对齐"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:53
+#, kde-format
+msgid ""
+"Check this option if the window border should be painted in the titlebar "
+"color. Otherwise it will be painted in the background color."
+msgstr ""
+"勾选此项后，窗口边框将使用标题栏颜色绘制。如果不勾选，则使用背景颜色绘制。"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:56
+#, kde-format
+msgid "Colored window border"
+msgstr "窗口边框着色"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:66
+#, kde-format
+msgid ""
+"Check this option if you want the buttons to fade in when the mouse pointer "
+"hovers over them and fade out again when it moves away."
+msgstr "勾选此项后，鼠标指针移入或移出按钮时，按钮将显示颜色渐变的动效。"
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:69
+#, kde-format
+msgid "Animate buttons"
+msgstr "按钮动效"

@@ -1,0 +1,128 @@
+# Copyright (C) 2025 This file is copyright:
+# This file is distributed under the same license as the aurorae package.
+#
+# SPDX-FileCopyrightText: 2025 Kristof Kiszel <ulysses@fsf.hu>
+msgid ""
+msgstr ""
+"Project-Id-Version: aurorae\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-20 00:43+0000\n"
+"PO-Revision-Date: 2025-05-18 20:13+0200\n"
+"Last-Translator: Kristof Kiszel <ulysses@fsf.hu>\n"
+"Language-Team: Hungarian <kde-l10n-hu@kde.org>\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.1\n"
+
+#: config/auroraeconfig.cpp:48
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Tiny"
+msgstr "Apró"
+
+#: config/auroraeconfig.cpp:49
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Normal"
+msgstr "Normál"
+
+#: config/auroraeconfig.cpp:50
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Large"
+msgstr "Nagy"
+
+#: config/auroraeconfig.cpp:51
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Large"
+msgstr "Nagyon nagy"
+
+#: config/auroraeconfig.cpp:52
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Huge"
+msgstr "Hatalmas"
+
+#: config/auroraeconfig.cpp:53
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Very Huge"
+msgstr "Óriási"
+
+#: config/auroraeconfig.cpp:54
+#, kde-format
+msgctxt "@item:inlistbox Button size:"
+msgid "Oversized"
+msgstr "Túlméretezett"
+
+#: config/auroraeconfig.cpp:57
+#, kde-format
+msgid "Button size:"
+msgstr "Gombméret:"
+
+#. i18n: ectx: property (windowTitle), widget (QWidget, PlastikConfigDialog)
+#: v1/themes/plastik/package/contents/ui/config.ui:14
+#, kde-format
+msgid "Config Dialog"
+msgstr "Beállító párbeszédablak"
+
+#. i18n: ectx: property (title), widget (KButtonGroup, titleAlign)
+#: v1/themes/plastik/package/contents/ui/config.ui:23
+#, kde-format
+msgid "Title &Alignment"
+msgstr "Címsor&igazítás"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignLeft)
+#: v1/themes/plastik/package/contents/ui/config.ui:29
+#, kde-format
+msgid "Left"
+msgstr "Balra"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignCenter)
+#: v1/themes/plastik/package/contents/ui/config.ui:36
+#, kde-format
+msgid "Center"
+msgstr "Középre"
+
+#. i18n: ectx: property (text), widget (QRadioButton, kcfg_titleAlignRight)
+#: v1/themes/plastik/package/contents/ui/config.ui:43
+#, kde-format
+msgid "Right"
+msgstr "Jobbra"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:53
+#, kde-format
+msgid ""
+"Check this option if the window border should be painted in the titlebar "
+"color. Otherwise it will be painted in the background color."
+msgstr ""
+"Ha ez az opció be van jelölve, az ablakkeretek színe meg fog egyezni a "
+"címsoréval. Máskülönben a háttérszín lesz érvényes."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_coloredBorder)
+#: v1/themes/plastik/package/contents/ui/config.ui:56
+#, kde-format
+msgid "Colored window border"
+msgstr "Színezett ablakszegély"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:66
+#, kde-format
+msgid ""
+"Check this option if you want the buttons to fade in when the mouse pointer "
+"hovers over them and fade out again when it moves away."
+msgstr ""
+"Jelölje be ezt az opciót, ha azt szeretné, hogy a nyomógombok előtűnjenek, "
+"ha az egérmutató föléjük ér, és fokozatosan eltűnjenek, ha az egérmutató "
+"továbbhalad."
+
+#. i18n: ectx: property (text), widget (QCheckBox, kcfg_animateButtons)
+#: v1/themes/plastik/package/contents/ui/config.ui:69
+#, kde-format
+msgid "Animate buttons"
+msgstr "Animált nyomógombok"

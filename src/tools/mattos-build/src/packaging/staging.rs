@@ -38,6 +38,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             stage_profile_package(repo_root, &staging, spec.name)?
         }
         "mattos-plasma-live" => stage_plasma_live_session_integration(repo_root, &staging)?,
+        "mattos-plasma-theme" => stage_mattos_plasma_theme(repo_root, &staging)?,
         "ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
         "mattos-brush" => stage_brush(repo_root, &staging)?,
         "coreutils" => stage_coreutils(repo_root, &staging)?,
@@ -524,6 +525,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "qca-qt6" => stage_kde_module(repo_root, &staging, "qca", "qca-qt6")?,
         "qcoro-qt6" => stage_kde_module(repo_root, &staging, "qcoro", "qcoro-qt6")?,
         "kwin" => stage_kde_module(repo_root, &staging, "kwin", "kwin")?,
+        "kwin-aurorae" => stage_kde_module(repo_root, &staging, "aurorae", "kwin-aurorae")?,
         "layer-shell-qt" => {
             stage_kde_module(repo_root, &staging, "layer-shell-qt", "layer-shell-qt")?
         }
@@ -2325,6 +2327,240 @@ fn stage_plasma_live_session_integration(repo_root: &Path, staging: &Path) -> Re
     Ok(())
 }
 
+const MATTOS_THEME_CONFIG_DIR: &str = "src/system/desktop/branding/MattOS";
+const MATTOS_DESKTOP_DIRECTORY_OVERRIDES: &[&str] = &[
+    "kf5-development.directory",
+    "kf5-education.directory",
+    "kf5-games.directory",
+    "kf5-graphics.directory",
+    "kf5-internet.directory",
+    "kf5-multimedia.directory",
+    "kf5-office.directory",
+    "kf5-science.directory",
+    "kf5-system.directory",
+    "kf5-utilities.directory",
+];
+
+fn is_mattos_desktop_directory_override(relative: &Path) -> bool {
+    relative.starts_with("share/desktop-directories")
+        && relative
+            .file_name()
+            .and_then(OsStr::to_str)
+            .is_some_and(|name| MATTOS_DESKTOP_DIRECTORY_OVERRIDES.contains(&name))
+}
+
+fn stage_mattos_plasma_theme(repo_root: &Path, staging: &Path) -> Result<()> {
+    let branding = repo_root.join(MATTOS_THEME_CONFIG_DIR);
+    let laf_root = staging.join("usr/share/plasma/look-and-feel/org.mattos.desktop");
+    copy_preserving(
+        &branding.join("metadata.json"),
+        &laf_root.join("metadata.json"),
+    )?;
+    copy_tree_preserving(&branding.join("contents"), &laf_root.join("contents"))?;
+    let layout_path = laf_root.join("contents/layouts/org.kde.plasma.desktop-layout.js");
+    let layout_template = fs::read_to_string(&layout_path)?;
+    let panel_config = fs::read_to_string(branding.join("panel-defaults.conf"))?;
+    fs::write(
+        &layout_path,
+        render_mattos_panel_layout(&layout_template, &panel_config)?,
+    )?;
+
+    let theme_root = staging.join("usr/share/plasma/desktoptheme/Nordic");
+    let nordic = repo_root.join("src/desktop/themes/nordic-kde");
+    for relative in ["widgets", "icons", "dialogs"] {
+        copy_tree_preserving(&nordic.join(relative), &theme_root.join(relative))?;
+    }
+    copy_preserving(
+        &nordic.join("metadata.desktop"),
+        &theme_root.join("metadata.desktop"),
+    )?;
+    copy_preserving(
+        &nordic.join("colors"),
+        &staging.join("usr/share/color-schemes/Nordic.colors"),
+    )?;
+
+    copy_tree_preserving(
+        &repo_root.join("src/desktop/themes/papirus-icon-theme/Papirus"),
+        &staging.join("usr/share/icons/Papirus"),
+    )?;
+    copy_tree_preserving(
+        &repo_root.join("src/desktop/themes/papirus-icon-theme/Papirus-Dark"),
+        &staging.join("usr/share/icons/Papirus-Dark"),
+    )?;
+    let papirus_dark_index = staging.join("usr/share/icons/Papirus-Dark/index.theme");
+    let index_contents = fs::read_to_string(&papirus_dark_index)?;
+    let patched_index = add_papirus_base_fallback(&index_contents)?;
+    fs::write(&papirus_dark_index, patched_index)?;
+    copy_tree_preserving(
+        &repo_root.join("src/desktop/themes/utterly-round-aurorae/Utterly-Round-Dark"),
+        &staging.join("usr/share/aurorae/themes/Utterly-Round-Dark"),
+    )?;
+    copy_tree_preserving(
+        &repo_root
+            .join("out/build/material-cursors/install/usr/share/icons/material_light_cursors"),
+        &staging.join("usr/share/icons/material_light_cursors"),
+    )?;
+
+    for config in ["kdeglobals", "kcminputrc", "kwinrc", "plasmarc"] {
+        copy_preserving(
+            &branding.join("xdg").join(config),
+            &staging.join("etc/xdg").join(config),
+        )?;
+    }
+    copy_tree_preserving(
+        &branding.join("desktop-directories"),
+        &staging.join("usr/share/desktop-directories"),
+    )?;
+
+    let docs = staging.join("usr/share/doc/mattos-plasma-theme/upstream-licenses");
+    for (source, destination, is_directory) in [
+        ("src/desktop/themes/nordic-kde/LICENSE", "nordic-kde", true),
+        (
+            "src/desktop/themes/papirus-icon-theme/LICENSE",
+            "papirus-icon-theme.LICENSE",
+            false,
+        ),
+        (
+            "src/desktop/themes/material-cursors/LICENSE",
+            "material-cursors.LICENSE",
+            false,
+        ),
+        (
+            "src/desktop/themes/utterly-round-aurorae/Utterly-Round-Dark/LICENSE.md",
+            "utterly-round-aurorae.LICENSE.md",
+            false,
+        ),
+    ] {
+        if is_directory {
+            copy_tree_preserving(&repo_root.join(source), &docs.join(destination))?;
+        } else {
+            copy_preserving(&repo_root.join(source), &docs.join(destination))?;
+        }
+    }
+    let notice = "MattOS-owned desktop defaults. Upstream source revisions are recorded in mattos-build-info.toml. Wallpaper image files are intentionally not included; the configured slideshow paths are stored in the Plasma layout.\n";
+    fs::write(
+        staging.join("usr/share/doc/mattos-plasma-theme/README.MattOS"),
+        notice,
+    )?;
+
+    for required in [
+        "usr/share/plasma/look-and-feel/org.mattos.desktop/metadata.json",
+        "usr/share/plasma/look-and-feel/org.mattos.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
+        "usr/share/plasma/desktoptheme/Nordic/metadata.desktop",
+        "usr/share/color-schemes/Nordic.colors",
+        "usr/share/icons/Papirus/index.theme",
+        "usr/share/icons/Papirus-Dark/index.theme",
+        "usr/share/icons/Papirus/24x24/apps/org.kde.dolphin.svg",
+        "usr/share/icons/Papirus/24x24/apps/kate.svg",
+        "usr/share/icons/Papirus/24x24/apps/utilities-terminal.svg",
+        "usr/share/icons/material_light_cursors/index.theme",
+        "usr/share/icons/material_light_cursors/cursors/left_ptr",
+        "usr/share/aurorae/themes/Utterly-Round-Dark/metadata.json",
+        "etc/xdg/kdeglobals",
+        "etc/xdg/kcminputrc",
+        "etc/xdg/kwinrc",
+        "etc/xdg/plasmarc",
+    ] {
+        if !staging.join(required).is_file() {
+            bail!("mattos-plasma-theme package is missing /{required}");
+        }
+    }
+    if staging.join("usr/share/wallpapers").exists() {
+        bail!("mattos-plasma-theme must not package wallpaper images");
+    }
+    Ok(())
+}
+
+fn add_papirus_base_fallback(index: &str) -> Result<String> {
+    let original = "Inherits=breeze-dark,hicolor";
+    if index.matches(original).count() != 1 {
+        bail!("Papirus-Dark index.theme must contain exactly one known inheritance declaration");
+    }
+    Ok(index.replacen(original, "Inherits=Papirus,breeze-dark,hicolor", 1))
+}
+
+fn render_mattos_panel_layout(template: &str, config: &str) -> Result<String> {
+    let mut values = BTreeMap::new();
+    let mut section = String::new();
+    for (line_number, line) in config.lines().enumerate() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') || line.starts_with(';') {
+            continue;
+        }
+        if line.starts_with('[') && line.ends_with(']') {
+            section = line[1..line.len() - 1].to_string();
+            continue;
+        }
+        if section != "Panel" {
+            bail!(
+                "panel-defaults.conf has unsupported section on line {}",
+                line_number + 1
+            );
+        }
+        let (key, value) = line
+            .split_once('=')
+            .with_context(|| format!("invalid panel-defaults.conf line {}", line_number + 1))?;
+        let key = key.trim();
+        if !matches!(
+            key,
+            "floating" | "lengthMode" | "opacityMode" | "visibilityMode" | "thickness"
+        ) {
+            bail!("unknown MattOS panel default {key}");
+        }
+        if values
+            .insert(key.to_string(), value.trim().to_string())
+            .is_some()
+        {
+            bail!("duplicate MattOS panel default {key}");
+        }
+    }
+    let get = |key: &str| {
+        values
+            .get(key)
+            .with_context(|| format!("panel-defaults.conf is missing {key}"))
+    };
+    let floating = match get("floating")?.as_str() {
+        "true" => "true",
+        "false" => "false",
+        other => bail!("invalid panel floating value {other:?}"),
+    };
+    let length_mode = match get("lengthMode")?.as_str() {
+        "0" => "fill",
+        "1" => "fit",
+        "2" => "custom",
+        other => bail!("invalid panel lengthMode value {other:?}"),
+    };
+    let opacity = match get("opacityMode")?.as_str() {
+        "0" => "adaptive",
+        "1" => "opaque",
+        "2" => "translucent",
+        other => bail!("invalid panel opacityMode value {other:?}"),
+    };
+    let hiding = match get("visibilityMode")?.as_str() {
+        "0" => "none",
+        "1" => "autohide",
+        "2" => "dodgewindows",
+        "3" => "windowsgobelow",
+        other => bail!("invalid panel visibilityMode value {other:?}"),
+    };
+    let thickness = get("thickness")?
+        .parse::<u16>()
+        .context("panel thickness must be a positive integer")?;
+    if !(24..=256).contains(&thickness) {
+        bail!("panel thickness {thickness} is outside the supported 24..=256 range");
+    }
+    let rendered = template
+        .replace("@@MATTOS_PANEL_FLOATING@@", floating)
+        .replace("@@MATTOS_PANEL_LENGTH_MODE@@", length_mode)
+        .replace("@@MATTOS_PANEL_OPACITY@@", opacity)
+        .replace("@@MATTOS_PANEL_HIDING@@", hiding)
+        .replace("@@MATTOS_PANEL_THICKNESS@@", &thickness.to_string());
+    if rendered.contains("@@MATTOS_PANEL_") {
+        bail!("unexpanded MattOS panel-defaults template token");
+    }
+    Ok(rendered)
+}
+
 fn stage_kde_module(
     repo_root: &Path,
     staging: &Path,
@@ -2339,7 +2575,15 @@ fn stage_kde_module(
             install.display()
         );
     }
-    copy_tree_preserving(&install, &staging.join("usr"))?;
+    if component == "plasma-workspace" {
+        // MattOS's Plasma appearance package owns these customized menu
+        // categories. The upstream copy would otherwise claim the same paths.
+        copy_tree_filtered(&install, &staging.join("usr"), &|relative, _| {
+            !is_mattos_desktop_directory_override(relative)
+        })?;
+    } else {
+        copy_tree_preserving(&install, &staging.join("usr"))?;
+    }
     // ModemManagerQt's disposable SDK prefix is hydrated with the underlying
     // ModemManager C headers so isolated downstream CMake probes can resolve
     // its exported private include contract.  Those headers remain owned by
@@ -5957,4 +6201,87 @@ pub(crate) fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
         fs::set_permissions(destination, fs::Permissions::from_mode(mode))?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod mattos_plasma_theme_tests {
+    use super::*;
+
+    const TEMPLATE: &str = "floating=@@MATTOS_PANEL_FLOATING@@;length=@@MATTOS_PANEL_LENGTH_MODE@@;opacity=@@MATTOS_PANEL_OPACITY@@;hiding=@@MATTOS_PANEL_HIDING@@;height=@@MATTOS_PANEL_THICKNESS@@";
+
+    #[test]
+    fn panel_policy_is_consumed_and_mapped_to_supported_plasma_values() {
+        let policy =
+            "[Panel]\nfloating=true\nlengthMode=0\nopacityMode=0\nvisibilityMode=0\nthickness=60\n";
+        assert_eq!(
+            render_mattos_panel_layout(TEMPLATE, policy).unwrap(),
+            "floating=true;length=fill;opacity=adaptive;hiding=none;height=60"
+        );
+    }
+
+    #[test]
+    fn panel_policy_fails_closed_on_unknown_or_out_of_range_values() {
+        assert!(render_mattos_panel_layout(TEMPLATE, "[Panel]\nfloating=true\nlengthMode=8\nopacityMode=0\nvisibilityMode=0\nthickness=60\n").is_err());
+        assert!(render_mattos_panel_layout(TEMPLATE, "[Panel]\nfloating=true\nlengthMode=0\nopacityMode=0\nvisibilityMode=0\nthickness=999\n").is_err());
+        assert!(
+            render_mattos_panel_layout(
+                TEMPLATE,
+                "[Panel]\nfloating=true\nlengthMode=0\nopacityMode=0\nvisibilityMode=0\n"
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn wallpaper_mount_is_preserved_without_packaging_wallpaper_files() {
+        let layout = include_str!(
+            "../../../../system/desktop/branding/MattOS/contents/layouts/org.kde.plasma.desktop-layout.js"
+        );
+        assert!(layout.contains("/mnt/storage/OneDrive/Media/Wallpapers/Wide/"));
+        assert!(layout.contains("/usr/share/wallpapers/"));
+        let rendered = render_mattos_panel_layout(
+            layout,
+            "[Panel]\nfloating=true\nlengthMode=0\nopacityMode=0\nvisibilityMode=0\nthickness=60\n",
+        )
+        .unwrap();
+        assert!(!rendered.contains("@@MATTOS_PANEL_"));
+        assert!(rendered.contains("/mnt/storage/OneDrive/Media/Wallpapers/Wide/"));
+    }
+
+    #[test]
+    fn plasma_workspace_filter_transfers_only_the_ten_custom_categories() {
+        for name in MATTOS_DESKTOP_DIRECTORY_OVERRIDES {
+            assert!(is_mattos_desktop_directory_override(
+                Path::new("share/desktop-directories").join(name).as_path()
+            ));
+        }
+        assert!(!is_mattos_desktop_directory_override(Path::new(
+            "share/desktop-directories/kf5-audio.directory"
+        )));
+        assert!(!is_mattos_desktop_directory_override(Path::new(
+            "share/applications/kf5-games.directory"
+        )));
+    }
+
+    #[test]
+    fn papirus_dark_inherits_the_full_app_icon_theme_without_changing_upstream() {
+        let upstream = include_str!("../../../../desktop/themes/papirus-icon-theme/Papirus-Dark/index.theme");
+        let base = include_str!("../../../../desktop/themes/papirus-icon-theme/Papirus/index.theme");
+        let staged = add_papirus_base_fallback(upstream).unwrap();
+        assert!(staged.contains("Inherits=Papirus,breeze-dark,hicolor"));
+        assert_eq!(upstream.matches("Inherits=breeze-dark,hicolor").count(), 1);
+        assert!(base.contains("[Icon Theme]"));
+        let apps = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../desktop/themes/papirus-icon-theme/Papirus/24x24/apps");
+        for app_icon in ["org.kde.dolphin.svg", "kate.svg", "utilities-terminal.svg"] {
+            assert!(apps.join(app_icon).is_file(), "Papirus app fallback lacks {app_icon}");
+        }
+    }
+
+    #[test]
+    fn papirus_theme_patch_rejects_unknown_or_ambiguous_upstream_metadata() {
+        assert!(add_papirus_base_fallback("[Icon Theme]\nInherits=breeze-dark,hicolor\n").is_ok());
+        assert!(add_papirus_base_fallback("[Icon Theme]\nInherits=hicolor\n").is_err());
+        assert!(add_papirus_base_fallback("Inherits=breeze-dark,hicolor\nInherits=breeze-dark,hicolor\n").is_err());
+    }
 }

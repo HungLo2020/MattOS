@@ -30,13 +30,14 @@ pub(crate) use cache::{
 };
 #[cfg(test)]
 pub(crate) use staging::{
-    GLIBC_RUNTIME_LIBRARIES, copy_path_preserving, copy_preserving, copy_tree_preserving,
-    stage_brush, stage_ca_certificates, stage_cargo, stage_flatpak_system_remote,
-    stage_gcc_development, stage_iso_codes, stage_rustc, stage_wireless_regdb,
-    stage_xdg_desktop_portal, validate_no_mutable_system_state, validate_vulkan_icd_manifests,
+    GLIBC_RUNTIME_LIBRARIES, copy_path_preserving, copy_preserving, stage_brush,
+    stage_ca_certificates, stage_cargo, stage_flatpak_system_remote, stage_gcc_development,
+    stage_iso_codes, stage_rustc, stage_wireless_regdb, stage_xdg_desktop_portal,
+    validate_no_mutable_system_state, validate_vulkan_icd_manifests,
 };
 pub(crate) use staging::{
-    apply_live_apt_policy, component_install, stage_package, validate_udev_hwdb_payload,
+    apply_live_apt_policy, component_install, copy_tree_preserving, stage_package,
+    validate_udev_hwdb_payload,
 };
 
 mod registry;
@@ -994,8 +995,10 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         "installer" => &["installer", "linux"],
         "greetd" => &["greetd"],
         "plasma-login-manager" => &["plasma-login-manager"],
+        "aurorae" => &["aurorae"],
         "kscreenlocker" => &["kscreenlocker"],
         "mattos-plasma-live" => &[],
+        "mattos-plasma-theme" => &["material-cursors"],
         "btrfs-progs" | "dosfstools" => &["installer"],
         "e2fsprogs" => &["e2fsprogs"],
         "procps-ng" => &["procps-ng"],
@@ -1244,6 +1247,26 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/session/plasma",
             "src/tools/mattos-build/src/packaging/staging.rs",
         ],
+        "mattos-plasma-theme" => &[
+            "src/system/desktop/branding/MattOS",
+            "src/desktop/themes/nordic-kde/widgets",
+            "src/desktop/themes/nordic-kde/icons",
+            "src/desktop/themes/nordic-kde/dialogs",
+            "src/desktop/themes/nordic-kde/metadata.desktop",
+            "src/desktop/themes/nordic-kde/colors",
+            "src/desktop/themes/nordic-kde/LICENSE",
+            "src/desktop/themes/papirus-icon-theme/Papirus-Dark",
+            "src/desktop/themes/papirus-icon-theme/Papirus",
+            "src/desktop/themes/papirus-icon-theme/LICENSE",
+            "src/desktop/themes/material-cursors/src/material_light_cursors",
+            "src/desktop/themes/material-cursors/src/config",
+            "src/desktop/themes/material-cursors/src/cursorList",
+            "src/desktop/themes/material-cursors/LICENSE",
+            "src/desktop/themes/material-cursors/build.sh",
+            "src/build-tools/xcursorgen",
+            "src/desktop/themes/utterly-round-aurorae/Utterly-Round-Dark",
+            "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
         "mattos-compat" => &["src/system/compat/mattos-compat"],
         "MattOS" => &[
             "src/rootfs/skeleton",
@@ -1425,6 +1448,11 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/tools/mattos-build/src/stages/plasma.rs",
             "src/tools/mattos-build/src/stages/kde_foundation.rs",
             "src/tools/mattos-build/src/packaging/staging.rs",
+        ],
+        "aurorae" => &[
+            "src/desktop/kde/aurorae",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
         ],
         "layer-shell-qt" => &[
             "src/desktop/kde/layer-shell-qt",
@@ -2150,6 +2178,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "greetd" => component_snapshot_version(repo_root, "greetd")?,
         "plasma-login-manager" => component_snapshot_version(repo_root, "plasma-login-manager")?,
         "kwin" => component_snapshot_version(repo_root, "kwin")?,
+        "kwin-aurorae" => component_snapshot_version(repo_root, "aurorae")?,
         "layer-shell-qt" => component_snapshot_version(repo_root, "layer-shell-qt")?,
         "plasma-framework" => component_snapshot_version(repo_root, "plasma-framework")?,
         "krunner" => component_snapshot_version(repo_root, "krunner")?,
@@ -2239,7 +2268,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "mattos-base"
         | "mattos-cli"
         | "mattos-plasma"
-        | "mattos-plasma-live" => "0.1".to_string(),
+        | "mattos-plasma-live"
+        | "mattos-plasma-theme" => "0.1".to_string(),
         _ => bail!("unknown package {}", spec.name),
     };
     let epoch = compatibility_epoch(repo_root, &spec.name)?;
@@ -2606,6 +2636,29 @@ fn write_provenance(
                 "https://download.nvidia.com/XFree86/Linux-x86_64/595.84/ + https://github.com/NVIDIA/open-gpu-kernel-modules".to_string(),
                 format!("runfile-sha256:9e4f5d56e74e1ec12a05b2b0afda893c3187da71cbd8fb14c1a394bbeeeb4148; open:{}", open.imported_commit),
                 "NVIDIA 595.84 production stack; proprietary files extracted verbatim without stripping; open modules built for 7.2.0-rc5-mattos".to_string(),
+            )
+        }
+        "mattos-plasma-theme" => {
+            let components = [
+                "nordic-kde",
+                "papirus-icon-theme",
+                "material-cursors",
+                "utterly-round-aurorae",
+                "xcursorgen",
+            ];
+            let mut repositories = Vec::new();
+            let mut commits = Vec::new();
+            for component in components {
+                let state = read_sync_state(repo_root, component)?
+                    .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
+                repositories.push(format!("{component}={}", state.repo));
+                commits.push(format!("{component}={}", state.imported_commit));
+            }
+            (
+                "src/system/desktop/branding/MattOS; four pinned runtime theme sources plus pinned host-only xcursorgen asset compiler".to_string(),
+                repositories.join("; "),
+                commits.join("; "),
+                "MattOS-owned appearance defaults/layout; panel-defaults.conf is validated and rendered into Plasma's supported layout scripting API; external slideshow paths retained verbatim; wallpaper images excluded; xcursorgen is build-only and excluded from runtime payload".to_string(),
             )
         }
         component @ ("glibc" | "ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker"
@@ -4573,7 +4626,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 329);
+        assert_eq!(PACKAGE_NAMES.len(), 331);
     }
 
     #[test]
@@ -4621,7 +4674,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 329);
+        assert_eq!(PACKAGE_NAMES.len(), 331);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4703,7 +4756,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 329);
+        assert_eq!(PACKAGE_NAMES.len(), 331);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

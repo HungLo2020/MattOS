@@ -1639,6 +1639,14 @@ patch_manifest = "upstream/patches/kwin/manifest.toml"
 patch_manifest_sha256 = "e56ee21b0aa25a30ca042a1cb0d34e17a63b85ec51ba7d424f0406a5e2852c28"
 
 [[component]]
+name = "aurorae"
+repo = "https://invent.kde.org/plasma/aurorae.git"
+branch = "v6.6.5"
+revision = "9c314e075f70a1132cf16c233e24c44744e59e39"
+path = "src/desktop/kde/aurorae"
+sync = "copy"
+
+[[component]]
 name = "kdecoration"
 repo = "https://invent.kde.org/plasma/kdecoration.git"
 branch = "v6.6.5"
@@ -2446,4 +2454,44 @@ repo = "https://github.com/linux-nvme/libnvme.git"
 branch = "v1.16.2"
 revision = "07d6c32c10fd63fad141cd0120314a055695de32"
 path = "src/system/libraries/libnvme"
+sync = "copy"
+
+[[component]]
+name = "nordic-kde"
+repo = "https://github.com/EliverLara/Nordic-kde.git"
+branch = "master"
+revision = "5078055624735a48699c758aa55edec5fd859e48"
+path = "src/desktop/themes/nordic-kde"
+sync = "copy"
+
+[[component]]
+name = "papirus-icon-theme"
+repo = "https://github.com/PapirusDevelopmentTeam/papirus-icon-theme.git"
+branch = "20260801"
+revision = "5f8b701d7521e27b4859d7e4f9b0da4c423c036c"
+path = "src/desktop/themes/papirus-icon-theme"
+sync = "copy"
+
+[[component]]
+name = "material-cursors"
+repo = "https://github.com/varlesh/material-cursors.git"
+branch = "master"
+revision = "2a5f302fefe04678c421473bed636b4d87774b4a"
+path = "src/desktop/themes/material-cursors"
+sync = "copy"
+
+[[component]]
+name = "utterly-round-aurorae"
+repo = "https://github.com/numbpill3d/kde-aurorae-themes-utterly-round-dark.git"
+branch = "master"
+revision = "9de6c36182a20a4714b0162a6399e228223c7389"
+path = "src/desktop/themes/utterly-round-aurorae"
+sync = "copy"
+
+[[component]]
+name = "xcursorgen"
+repo = "https://gitlab.freedesktop.org/xorg/app/xcursorgen.git"
+branch = "xcursorgen-1.0.9"
+revision = "3d0909b630ca82401489411c9b496de14f664c55"
+path = "src/build-tools/xcursorgen"
 sync = "copy"

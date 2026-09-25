@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="svg5327" width="32" height="32" version="1.1">
+ <defs id="defs5329">
+  <filter id="filter849" style="color-interpolation-filters:sRGB" width="1.096" height="1.096" x="-.05" y="-.05">
+   <feGaussianBlur id="feGaussianBlur851" stdDeviation=".44"/>
+  </filter>
+ </defs>
+ <circle id="circle938" style="opacity:0.3;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal;filter:url(#filter849)" cx="16" cy="16.5" r="11"/>
+ <circle id="circle824" style="opacity:0.75;fill:#010101;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" cx="16" cy="16" r="12"/>
+ <circle id="path828-6" style="opacity:1;fill:#f44336;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" cx="16" cy="16" r="11"/>
+ <path id="path929" style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" d="M 21.57327,10.26 A 7.9999959,7.9999959 0 0 0 15.99928,8.0006 7.9999959,7.9999959 0 0 0 8.0001349,15.9997 7.9999959,7.9999959 0 0 0 15.99928,23.9988 7.9999959,7.9999959 0 0 0 23.998426,15.9997 7.9999959,7.9999959 0 0 0 21.57327,10.26 Z m -2.099223,0.8507 -8.360985,8.361 a 6,6 0 0 1 0.643578,-7.7146 6,6 0 0 1 7.717407,-0.6464 z m 1.411451,1.417 a 6,6 0 0 1 -0.643577,7.7146 6,6 0 0 1 -7.717407,0.6464 z"/>
+</svg>

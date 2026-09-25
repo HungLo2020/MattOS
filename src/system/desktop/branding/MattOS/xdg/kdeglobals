@@ -1,0 +1,9 @@
+[General]
+ColorScheme=Nordic
+
+[Icons]
+Theme=Papirus-Dark
+
+[KDE]
+LookAndFeelPackage=org.mattos.desktop
+widgetStyle=Breeze

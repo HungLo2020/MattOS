@@ -1,0 +1,5 @@
+*.tar.gz
+*.bak*
+*.swp
+.DS_Store
+Thumbs.db

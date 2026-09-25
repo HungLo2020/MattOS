@@ -57,6 +57,7 @@ REQUIRED_TOOLS = [
     "xz",
     "tar",
     "triehash",
+    "magick",
 ]
 
 # These are pulled in by the existing kernel workflow and WSL bootstrap logic.
@@ -83,6 +84,15 @@ EXTRA_DBUS_BROKER_PACKAGES: List[str] = []
 # REQUIRED_TOOLS. Target development libraries come from imported MattOS source
 # builds and the controlled sysroot, not distro -dev packages.
 EXTRA_PACKAGING_PACKAGES: List[str] = []
+
+# Build-only host dependencies for the source-pinned xcursorgen utility used
+# while compiling the Material Light cursor theme. None are target packages.
+EXTRA_CURSOR_BUILD_PACKAGES = [
+    "libx11-dev",
+    "libxcursor-dev",
+    "libpng-dev",
+    "x11proto-dev",
+]
 
 # GCC uses these only while building the source-derived target runtimes. They
 # are host bootstrap inputs and are never copied into the MattOS image.
@@ -140,6 +150,7 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "xz": ["xz-utils"],
     "tar": ["tar"],
     "triehash": ["triehash"],
+    "magick": ["imagemagick"],
 }
 
 
@@ -216,6 +227,11 @@ def compute_missing_packages(missing_tools: List[str], dry_run: bool) -> List[st
             packages.append(package_name)
 
     for package_name in EXTRA_PACKAGING_PACKAGES:
+        if not package_installed(package_name) and package_name not in seen:
+            seen.add(package_name)
+            packages.append(package_name)
+
+    for package_name in EXTRA_CURSOR_BUILD_PACKAGES:
         if not package_installed(package_name) and package_name not in seen:
             seen.add(package_name)
             packages.append(package_name)

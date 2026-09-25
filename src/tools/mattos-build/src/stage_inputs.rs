@@ -344,7 +344,13 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "upstream/state/calamares.toml",
             "src/tools/mattos-build/src/stages/calamares.rs",
         ],
+        BuildStage::Aurorae => &[
+            "src/desktop/kde/aurorae",
+            "src/tools/mattos-build/src/stages/plasma.rs",
+            "src/tools/mattos-build/src/stages/kde_foundation.rs",
+        ],
         BuildStage::PlasmaKWin => &[
+            "src/desktop/kde/aurorae",
             "src/desktop/kde/kwin",
             "upstream/patches/kwin",
             "src/tools/mattos-build/src/stages/plasma.rs",
@@ -572,6 +578,11 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Fontconfig => &["src/system/libraries/fontconfig"],
         BuildStage::PopFonts => &[
             "src/desktop/fonts/pop-fonts",
+            "src/tools/mattos-build/src/stages/desktop_support.rs",
+        ],
+        BuildStage::MaterialCursors => &[
+            "src/desktop/themes/material-cursors",
+            "src/build-tools/xcursorgen",
             "src/tools/mattos-build/src/stages/desktop_support.rs",
         ],
         BuildStage::Libfontenc => &["src/system/graphics/libfontenc"],
@@ -1064,6 +1075,16 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
         BuildStage::Duktape => &["gcc", "python3"],
         BuildStage::Initramfs => &["gcc", "cpio", "xz", "modinfo"],
+        BuildStage::MaterialCursors => &[
+            "bash",
+            "gcc",
+            "magick",
+            "meson",
+            "ninja",
+            "nproc",
+            "pkg-config",
+            "xargs",
+        ],
         BuildStage::Xkbcommon => &["gcc", "ld", "meson", "ninja"],
         BuildStage::Dav1d
         | BuildStage::Glib
@@ -1187,6 +1208,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
 pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
     match stage {
         BuildStage::All => 0,
+        BuildStage::MaterialCursors => 1,
         BuildStage::Bzip2 | BuildStage::Xz | BuildStage::Zstd => 2,
         // Revision 2 disables host libseccomp discovery for the target APT
         // build; only target-owned native interfaces may be selected.
@@ -2026,5 +2048,33 @@ mod tests {
             crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
                 .expect("unrelated bzip2 identity")
         );
+    }
+
+    #[test]
+    fn material_cursor_stage_owns_only_cursor_inputs_and_its_recipe() {
+        let inputs = source_inputs(BuildStage::MaterialCursors);
+        assert!(inputs.contains(&PathBuf::from("src/desktop/themes/material-cursors")));
+        assert!(inputs.contains(&PathBuf::from("src/build-tools/xcursorgen")));
+        assert!(inputs.contains(&PathBuf::from(
+            "src/tools/mattos-build/src/stages/desktop_support.rs"
+        )));
+        assert!(!inputs.contains(&PathBuf::from("src/system/desktop/branding/MattOS")));
+        assert!(!inputs.contains(&PathBuf::from("src/desktop/themes/papirus-icon-theme")));
+        assert_eq!(
+            tool_names(BuildStage::MaterialCursors),
+            [
+                "bash",
+                "gcc",
+                "magick",
+                "meson",
+                "ninja",
+                "nproc",
+                "pkg-config",
+                "xargs"
+            ]
+            .map(str::to_string)
+        );
+        assert_eq!(recipe_revision(BuildStage::MaterialCursors), 1);
+        assert!(crate::stage_graph::direct_dependencies(BuildStage::MaterialCursors).is_empty());
     }
 }

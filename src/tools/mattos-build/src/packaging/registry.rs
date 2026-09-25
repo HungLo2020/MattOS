@@ -195,6 +195,7 @@ mod wifi_grub_tests {
             "kwin",
             "plasma-workspace",
             "plasma-desktop",
+            "mattos-plasma-theme",
             "libegl-mesa0",
             "greetd",
             "plasma-login-manager",
@@ -215,6 +216,7 @@ mod wifi_grub_tests {
             "qt6-base",
             "qt6-declarative",
             "kwin",
+            "kwin-aurorae",
             "plasma-framework",
             "plasma-workspace",
             "plasma-desktop",
@@ -260,6 +262,16 @@ mod wifi_grub_tests {
         );
         assert!(plasma.len() > cli.len() + 50);
     }
+
+    #[test]
+    fn aurorae_decoration_is_declared_for_the_plasma_profile_and_matches_source() {
+        let specs = package_specs();
+        let aurorae = specs.iter().find(|spec| spec.name == "kwin-aurorae").unwrap();
+        assert_eq!(aurorae.source_component, "aurorae");
+        assert!(aurorae.depends.contains(&"kf6-kdecoration"));
+        assert!(package_specs().iter().find(|spec| spec.name == "kwin").unwrap().depends.contains(&"kwin-aurorae"));
+        assert!(closure("mattos-plasma").contains("kwin-aurorae"));
+    }
 }
 
 pub(crate) const PACKAGE_NAMES: &[&str] = &[
@@ -293,6 +305,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "mattos-cli",
     "mattos-plasma",
     "mattos-plasma-live",
+    "mattos-plasma-theme",
     "ca-certificates",
     "mattos-brush",
     "coreutils",
@@ -375,6 +388,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "qt6-core5compat",
     "qca-qt6",
     "qcoro-qt6",
+    "kwin-aurorae",
     "kwin",
     "layer-shell-qt",
     "plasma-framework",
@@ -662,6 +676,7 @@ const MATTOS_BASE_DEPENDS: &[&str] = &[
 
 const MATTOS_PLASMA_DEPENDS: &[&str] = &[
     "mattos-base",
+    "mattos-plasma-theme",
     // This meta-package is the installed Plasma profile authority.  Keep the
     // complete desktop closure explicit here: individual upstream packages
     // intentionally describe their direct ABI dependencies, while a usable
@@ -751,6 +766,7 @@ const MATTOS_PLASMA_DEPENDS: &[&str] = &[
     "polkit-qt6-1",
     "plasma-login-manager",
     "kwin",
+    "kwin-aurorae",
     "layer-shell-qt",
     "plasma-framework",
     "krunner",
@@ -1148,8 +1164,24 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             name: "mattos-plasma-live",
             description: "Live-image-only greetd session integration for MattOS Plasma",
             source_component: "mattos-plasma-live",
-            depends: &["greetd", "plasma-login-manager", "libpam0g"],
+            depends: &[
+                "greetd",
+                "plasma-login-manager",
+                "libpam0g",
+                "mattos-plasma-theme",
+            ],
             provides: &["mattos-plasma-live-session"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-plasma-theme",
+            description: "MattOS Plasma look-and-feel, themes, icons, cursor, and defaults",
+            source_component: "mattos-plasma-theme",
+            depends: &["mattos-filesystem"],
+            provides: &["mattos-plasma-appearance"],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -2764,6 +2796,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "kf6-kirigami",
                 "kf6-kiconthemes",
                 "kf6-kcolorscheme",
+                "kf6-kconfigwidgets",
                 "kf6-sonnet",
                 "libc6",
                 "libstdc++6",
@@ -2783,6 +2816,8 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "qt6-declarative",
                 "kf6-kirigami",
                 "kf6-kconfig",
+                "kf6-kconfigwidgets",
+                "kf6-kwidgetsaddons",
                 "kf6-kcoreaddons",
                 "kf6-kguiaddons",
                 "kf6-ki18n",
@@ -2821,6 +2856,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "qt6-base",
                 "qt6-declarative",
                 "kf6-kconfig",
+                "kf6-kconfigwidgets",
                 "kf6-kcoreaddons",
                 "kf6-ki18n",
                 "kf6-kguiaddons",
@@ -4270,8 +4306,34 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             name: "kwin",
             description: "KWin Wayland compositor",
             source_component: "kwin",
-            depends: &["qt6-base"],
+            depends: &["qt6-base", "kwin-aurorae", "kf6-kconfigwidgets", "kf6-attica"],
             provides: &["kwin-wayland"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "kwin-aurorae",
+            description: "Aurorae KWin decoration plugins and configuration module",
+            source_component: "aurorae",
+            depends: &[
+                "qt6-base",
+                "qt6-declarative",
+                "kf6-kconfig",
+                "kf6-kcoreaddons",
+                "kf6-kcolorscheme",
+                "kf6-kconfigwidgets",
+                "kf6-kwidgetsaddons",
+                "kf6-ki18n",
+                "kf6-kcmutils",
+                "kf6-knewstuffcore",
+                "kf6-attica",
+                "kf6-kpackage",
+                "kf6-ksvg",
+                "kf6-kdecoration",
+            ],
+            provides: &["kwin-decoration-aurorae"],
             conflicts: &[],
             replaces: &[],
             essential: false,
