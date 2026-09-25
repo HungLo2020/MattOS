@@ -6210,6 +6210,17 @@ mod mattos_plasma_theme_tests {
     const TEMPLATE: &str = "floating=@@MATTOS_PANEL_FLOATING@@;length=@@MATTOS_PANEL_LENGTH_MODE@@;opacity=@@MATTOS_PANEL_OPACITY@@;hiding=@@MATTOS_PANEL_HIDING@@;height=@@MATTOS_PANEL_THICKNESS@@";
 
     #[test]
+    fn system_defaults_select_the_bundled_nordic_color_scheme() {
+        let kdeglobals = include_str!("../../../../system/desktop/branding/MattOS/xdg/kdeglobals");
+        let look_and_feel_defaults = include_str!("../../../../system/desktop/branding/MattOS/contents/defaults");
+        let nordic = include_str!("../../../../desktop/themes/nordic-kde/colors");
+
+        assert!(kdeglobals.contains("ColorScheme=Nordic"));
+        assert!(look_and_feel_defaults.contains("[kdeglobals][General]\nColorScheme=Nordic"));
+        assert!(nordic.contains("Name=Nordic"));
+    }
+
+    #[test]
     fn panel_policy_is_consumed_and_mapped_to_supported_plasma_values() {
         let policy =
             "[Panel]\nfloating=true\nlengthMode=0\nopacityMode=0\nvisibilityMode=0\nthickness=60\n";

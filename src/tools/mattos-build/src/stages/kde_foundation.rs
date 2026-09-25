@@ -1041,8 +1041,7 @@ public:
             let contents = fs::read_to_string(&kcms)?;
             let adjusted = contents
                 .replace("add_subdirectory(krdb)", "add_subdirectory(krdb)")
-                .replace("add_subdirectory(users)", "# MattOS: users KCM requires optional KF6TextEditor/Wallet UI")
-                .replace("add_subdirectory(colors)", "# MattOS: color KCM requires X11 targets and is omitted from Wayland-only shell");
+                .replace("add_subdirectory(users)", "# MattOS: users KCM requires optional KF6TextEditor/Wallet UI");
             if adjusted != contents { fs::write(kcms, adjusted)?; }
         }
         // The upstream Qt protocol helper expands Wayland_DATADIR too early

@@ -221,6 +221,10 @@ fn validate_plasma_workspace_install(install: &Path) -> Result<()> {
     for required in [
         "usr/bin/ksmserver",
         "usr/lib/systemd/user/plasma-ksmserver.service",
+        // The Colors page is an upstream plasma-workspace KCM. Only optional
+        // X11-specific portions are conditional; the Wayland module itself
+        // must always be built and shipped.
+        "usr/lib/x86_64-linux-gnu/plugins/plasma/kcms/systemsettings/kcm_colors.so",
         // Kickoff's power buttons require this D-Bus-activated confirmation
         // helper before the session asks logind to power off or reboot.
         "usr/lib/x86_64-linux-gnu/libexec/ksmserver-logout-greeter",
@@ -249,6 +253,7 @@ mod plasma_workspace_tests {
         let required = [
             "usr/bin/ksmserver",
             "usr/lib/systemd/user/plasma-ksmserver.service",
+            "usr/lib/x86_64-linux-gnu/plugins/plasma/kcms/systemsettings/kcm_colors.so",
             "usr/lib/x86_64-linux-gnu/libexec/ksmserver-logout-greeter",
             "usr/share/dbus-1/services/org.kde.LogoutPrompt.service",
         ];
@@ -262,6 +267,13 @@ mod plasma_workspace_tests {
         assert!(validate_plasma_workspace_install(root.path()).is_err());
         fs::remove_file(x11_session).unwrap();
         validate_plasma_workspace_install(root.path()).unwrap();
+
+        let colors_kcm = root.path().join(
+            "usr/lib/x86_64-linux-gnu/plugins/plasma/kcms/systemsettings/kcm_colors.so",
+        );
+        fs::remove_file(&colors_kcm).unwrap();
+        assert!(validate_plasma_workspace_install(root.path()).is_err());
+        fs::write(&colors_kcm, "test artifact").unwrap();
 
         fs::remove_file(
             root.path()
