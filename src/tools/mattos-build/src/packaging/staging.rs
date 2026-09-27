@@ -34,7 +34,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
         "systemd" => stage_systemd_runtime(repo_root, &staging)?,
         "mattos-base-runtime" => stage_mattos_base_runtime(repo_root, &staging)?,
-        "mattos-base" | "mattos-cli" | "mattos-plasma" => {
+        "mattos-base" | "mattos-cli" | "mattos-plasma" | "mattos-toolchain" => {
             stage_profile_package(repo_root, &staging, spec.name)?
         }
         "mattos-plasma-live" => stage_plasma_live_session_integration(repo_root, &staging)?,
@@ -3961,6 +3961,16 @@ fn stage_profile_package(repo_root: &Path, staging: &Path, package: &str) -> Res
             &staging
                 .join("usr/share/mattos/install-profiles")
                 .join(format!("{profile}.toml")),
+        )?;
+    }
+    if package == "mattos-toolchain" {
+        let doc = staging.join("usr/share/doc/mattos-toolchain");
+        fs::create_dir_all(&doc)?;
+        fs::write(
+            doc.join("README"),
+            "MattOS native development toolchain: GCC, Binutils, Clang/LLVM and Rust,\n\
+             with their development headers.  The installer adds it to every installed\n\
+             system; the live image omits it and keeps the packages on the medium.\n",
         )?;
     }
     if package == "mattos-plasma" {

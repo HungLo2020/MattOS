@@ -304,6 +304,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "mattos-base",
     "mattos-cli",
     "mattos-plasma",
+    "mattos-toolchain",
     "mattos-plasma-live",
     "mattos-plasma-theme",
     "ca-certificates",
@@ -1144,6 +1145,17 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             source_component: "mattos-profiles",
             depends: &["mattos-base"],
             provides: &["mattos-installed-profile"],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "mattos-toolchain",
+            description: "MattOS native development toolchain (GCC, Clang/LLVM, Rust) for installed systems",
+            source_component: "mattos-profiles",
+            depends: MATTOS_TOOLCHAIN_PACKAGES,
+            provides: &[],
             conflicts: &[],
             replaces: &[],
             essential: false,
@@ -5542,6 +5554,63 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
 pub(crate) fn package_install_order() -> Result<Vec<&'static str>> {
     let specs = package_specs();
     package_install_order_for(&specs, PACKAGE_NAMES)
+}
+
+/// The native development toolchain every installed system receives through
+/// `mattos-toolchain` (the installer adds it to each profile).  The live root
+/// leaves these out: the installer composes targets from the repository on
+/// the medium, never from the live root, and the live session itself does
+/// not compile code.  No live package may depend on them (checked when the
+/// live root is assembled).
+pub(crate) const MATTOS_TOOLCHAIN_PACKAGES: &[&str] = &[
+    "binutils",
+    "cargo",
+    "clang",
+    "cpp",
+    "g++",
+    "gcc",
+    "libc6-dev",
+    "libffi-dev",
+    "libglvnd-dev",
+    "libvulkan-dev",
+    "linux-libc-dev",
+    "lld",
+    "llvm",
+    "llvm-dev",
+    "make",
+    "mattos-gcc-common",
+    "mattos-libgcc-dev",
+    "mattos-libstdc++-dev",
+    "python3-dev",
+    "rustc",
+];
+
+/// Installed on every installed system in addition to its profile.
+pub(crate) const MATTOS_TOOLCHAIN_META_PACKAGE: &str = "mattos-toolchain";
+
+/// Packages installed systems receive but the live root leaves out.
+pub(crate) fn live_excluded_packages() -> Vec<&'static str> {
+    let mut excluded = MATTOS_TOOLCHAIN_PACKAGES.to_vec();
+    excluded.push(MATTOS_TOOLCHAIN_META_PACKAGE);
+    excluded
+}
+
+/// Packages unpacked into the live root.
+pub(crate) fn live_package_names() -> Vec<&'static str> {
+    PACKAGE_NAMES
+        .iter()
+        .copied()
+        .filter(|name| !live_excluded_packages().contains(name))
+        .collect()
+}
+
+pub(crate) fn live_package_install_order() -> Result<Vec<&'static str>> {
+    let live = live_package_names();
+    let specs = package_specs()
+        .into_iter()
+        .filter(|spec| live.contains(&spec.name))
+        .collect::<Vec<_>>();
+    package_install_order_for(&specs, &live)
 }
 
 pub(crate) fn package_install_order_for(

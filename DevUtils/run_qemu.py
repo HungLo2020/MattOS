@@ -827,6 +827,18 @@ def installed_plasma_user_desktop_absent_probe(username: str = "mattos") -> str:
     )
 
 
+def installed_toolchain_probe() -> str:
+    """Toolchain commands present, and GCC builds a program that runs."""
+    commands = " ".join(("gcc", "g++", "cpp", "ld", "make", "clang", "lld", "rustc", "cargo"))
+    return (
+        "( dpkg-query -W -f='${db:Status-Status}' mattos-toolchain | grep -qx installed && "
+        f"for tool in {commands}; do command -v $tool >/dev/null || {{ echo missing $tool; exit 1; }}; done && "
+        "printf 'int main(void) { return 42; }\\n' > /tmp/mattos-toolchain-check.c && "
+        "gcc /tmp/mattos-toolchain-check.c -o /tmp/mattos-toolchain-check && "
+        "{ /tmp/mattos-toolchain-check; test $? -eq 42; } )"
+    )
+
+
 def installed_plasma_logout_command() -> str:
     """Request logout through Plasma's session shutdown service and user bus."""
     return (
@@ -1236,6 +1248,9 @@ def _verify_installed_disk_boot(
         *profile_checks,
         ("local-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/00-mattos-local.sources && test -f /usr/share/mattos/repository/dists/trixie/main/binary-amd64/Packages"),
         ("plasma-upgrade-candidate", "apt-cache show mattos-plasma >/dev/null"),
+        # Every installed system carries the native toolchain (mattos-toolchain),
+        # and it must actually compile and run a program.
+        ("toolchain", installed_toolchain_probe()),
         ("mattos-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources"),
     )
     result: dict[str, object] = {}

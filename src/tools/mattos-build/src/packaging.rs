@@ -44,6 +44,10 @@ mod registry;
 #[cfg(test)]
 pub(crate) use registry::package_install_order_for;
 pub(crate) use registry::{PACKAGE_NAMES, PackageSpec, package_install_order, package_specs};
+pub(crate) use registry::{
+    MATTOS_TOOLCHAIN_META_PACKAGE, MATTOS_TOOLCHAIN_PACKAGES, live_excluded_packages,
+    live_package_install_order, live_package_names,
+};
 
 const ARCH: &str = "amd64";
 const REVISION: &str = "1mattos1";
@@ -2292,6 +2296,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "mattos-base"
         | "mattos-cli"
         | "mattos-plasma"
+        | "mattos-toolchain"
         | "mattos-plasma-live"
         | "mattos-plasma-theme" => "0.1".to_string(),
         _ => bail!("unknown package {}", spec.name),
@@ -3099,7 +3104,7 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
         // and SSD writes.  Image builders such as mmdebstrap do the same.
         .arg("--force-unsafe-io")
         .arg("--install");
-    for name in package_install_order()? {
+    for name in live_package_install_order()? {
         let entry = inventory
             .package
             .iter()
@@ -3133,7 +3138,16 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
 
 pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
     let admindir = rootfs.join("var/lib/dpkg");
-    for name in PACKAGE_NAMES {
+    for name in live_excluded_packages() {
+        let output = Command::new("dpkg-query")
+            .arg(format!("--admindir={}", admindir.display()))
+            .args(["-W", "-f=${db:Status-Status}", name])
+            .output()?;
+        if String::from_utf8_lossy(&output.stdout) == "installed" {
+            bail!("development package {name} was unpacked into the live root");
+        }
+    }
+    for name in live_package_names() {
         let output = Command::new("dpkg-query")
             .arg(format!("--admindir={}", admindir.display()))
             .args(["-W", "-f=${db:Status-Status}", name])
@@ -3159,7 +3173,6 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
             "libapt-pkg7.0",
         ),
         ("/usr/lib/x86_64-linux-gnu/libgcc_s.so.1", "libgcc-s1"),
-        ("/usr/lib/x86_64-linux-gnu/libgcc_s.so", "mattos-libgcc-dev"),
         ("/usr/lib/x86_64-linux-gnu/libstdc++.so.6", "libstdc++6"),
         ("/etc/ssl/certs/ca-certificates.crt", "ca-certificates"),
         ("/etc/ssl/cert.pem", "ca-certificates"),
@@ -3214,7 +3227,7 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
 pub(crate) fn package_owned_paths(rootfs: &Path) -> Result<BTreeSet<PathBuf>> {
     let admindir = rootfs.join("var/lib/dpkg/info");
     let mut owned = BTreeSet::new();
-    for name in PACKAGE_NAMES {
+    for name in live_package_names() {
         let list = fs::read_to_string(admindir.join(format!("{name}.list")))?;
         for line in list.lines() {
             let rel = line.trim_start_matches('/');
@@ -3280,12 +3293,22 @@ pub(crate) fn validate_package_snapshot(
     Ok(())
 }
 
+/// Where the live root finds the offline package repository: on the live
+/// medium beside the SquashFS (see `build_iso_atomic`), which `live-init`
+/// keeps mounted at /run/mattos/medium.  The .debs are already compressed,
+/// so packing them into the SquashFS only cost build time.
+pub(crate) const LIVE_REPOSITORY_LINK_TARGET: &str = "/run/mattos/medium/mattos/repository";
+
 pub(crate) fn embed_repository(repo_root: &Path, rootfs: &Path) -> Result<()> {
     let source = repo_root.join("out/repository");
     if !source.join("dists/trixie/Release").is_file() {
         bail!("local repository has not been generated");
     }
-    copy_tree_excluding_dotgit(&source, &rootfs.join("usr/share/mattos/repository"))
+    let link = rootfs.join("usr/share/mattos/repository");
+    fs::create_dir_all(link.parent().context("repository link has no parent")?)?;
+    remove_path_if_exists(&link)?;
+    std::os::unix::fs::symlink(LIVE_REPOSITORY_LINK_TARGET, &link)?;
+    Ok(())
 }
 
 pub(crate) fn build_dpkg(repo_root: &Path) -> Result<()> {
@@ -3960,6 +3983,29 @@ mod tests {
     };
     use super::*;
 
+
+    #[test]
+    fn live_root_leaves_out_only_real_development_packages_nothing_depends_on() {
+        for name in live_excluded_packages() {
+            assert!(PACKAGE_NAMES.contains(&name), "{name} is not a MattOS package");
+        }
+        // Whatever the live root leaves out, installed systems get.
+        let toolchain = package_specs()
+            .into_iter()
+            .find(|spec| spec.name == MATTOS_TOOLCHAIN_META_PACKAGE)
+            .unwrap();
+        assert_eq!(toolchain.depends, MATTOS_TOOLCHAIN_PACKAGES);
+        // Runtime libraries the desktop links against stay in the live root.
+        let live = live_package_names();
+        for runtime in ["libllvm22", "libstdc++6", "libgcc-s1", "libpython3.14", "python3"] {
+            assert!(live.contains(&runtime), "{runtime} left the live root");
+        }
+        // Ordering the live subset fails if any live package depends on an
+        // excluded one.
+        let order = live_package_install_order().unwrap();
+        assert_eq!(order.len(), PACKAGE_NAMES.len() - live_excluded_packages().len());
+        assert!(order.iter().all(|name| !live_excluded_packages().contains(name)));
+    }
 
     #[test]
     fn parallel_package_work_keeps_input_order_and_reports_failures() {
@@ -4691,7 +4737,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 331);
+        assert_eq!(PACKAGE_NAMES.len(), 332);
     }
 
     #[test]
@@ -4739,7 +4785,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 331);
+        assert_eq!(PACKAGE_NAMES.len(), 332);
         assert_eq!(
             UTIL_LINUX_BASE_PATHS,
             &[
@@ -4821,7 +4867,7 @@ mod tests {
         ] {
             assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
         }
-        assert_eq!(PACKAGE_NAMES.len(), 331);
+        assert_eq!(PACKAGE_NAMES.len(), 332);
         let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
         for dependency in [
             "libffi8",

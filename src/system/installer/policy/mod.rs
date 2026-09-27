@@ -1585,6 +1585,18 @@ fn resolve_profile_packages(
     root: &str,
     packages: &BTreeMap<String, RepositoryPackage>,
 ) -> Result<Vec<RepositoryPackage>> {
+    resolve_installed_packages(&[root], packages)
+}
+
+/// Every installed system receives the native development toolchain in
+/// addition to its profile (see `mattos-toolchain`).
+const TOOLCHAIN_META_PACKAGE: &str = "mattos-toolchain";
+
+/// Dependency-ordered union of the closures of `roots`, each package once.
+fn resolve_installed_packages(
+    roots: &[&str],
+    packages: &BTreeMap<String, RepositoryPackage>,
+) -> Result<Vec<RepositoryPackage>> {
     fn visit(
         name: &str,
         packages: &BTreeMap<String, RepositoryPackage>,
@@ -1610,13 +1622,10 @@ fn resolve_profile_packages(
         Ok(())
     }
     let mut ordered = Vec::new();
-    visit(
-        root,
-        packages,
-        &mut BTreeSet::new(),
-        &mut BTreeSet::new(),
-        &mut ordered,
-    )?;
+    let mut installed = BTreeSet::new();
+    for root in roots {
+        visit(root, packages, &mut BTreeSet::new(), &mut installed, &mut ordered)?;
+    }
     Ok(ordered)
 }
 
@@ -1695,7 +1704,10 @@ fn compose_target_from_profile(
     let repository = live_source.join(EMBEDDED_REPOSITORY.trim_start_matches('/'));
     let packages_path = repository.join("dists/trixie/main/binary-amd64/Packages");
     let packages = parse_repository_packages(&fs::read_to_string(&packages_path)?, &repository)?;
-    let selection = resolve_profile_packages(&manifest.meta_package, &packages)?;
+    let selection = resolve_installed_packages(
+        &[manifest.meta_package.as_str(), TOOLCHAIN_META_PACKAGE],
+        &packages,
+    )?;
     for package in &selection {
         verify_repository_artifact(package)?;
     }
@@ -1726,11 +1738,18 @@ fn compose_target_from_profile(
             .parent()
             .context("repository target has no parent")?,
     )?;
+    // On the live system the repository path links to the live medium; copy
+    // the directory it names, root-owned like the rest of the installed
+    // system rather than with the medium's recorded owner.
+    let repository_source = fs::canonicalize(&repository)
+        .with_context(|| format!("resolve offline repository {}", repository.display()))?;
     engine::run(
         "cp",
         &[
-            "-a".as_ref(),
-            repository.as_os_str(),
+            "-R".as_ref(),
+            "--preserve=mode,timestamps,links".as_ref(),
+            "--no-preserve=ownership".as_ref(),
+            repository_source.as_os_str(),
             target_repository.as_os_str(),
         ],
     )?;
@@ -3676,6 +3695,41 @@ mod tests {
         assert!(resolve_profile_packages("missing", &packages).is_err());
         let escaped = "Package: bad\nFilename: ../bad.deb\nSHA256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
         assert!(parse_repository_packages(escaped, repository.path()).is_err());
+    }
+
+    #[test]
+    fn installed_systems_always_receive_the_toolchain_with_their_profile() {
+        let repository = tempfile::tempdir().unwrap();
+        fs::create_dir_all(repository.path().join("pool/main")).unwrap();
+        fs::write(repository.path().join("pool/main/p.deb"), "p").unwrap();
+        let entry = |name: &str, depends: &str| {
+            format!(
+                "Package: {name}\nDepends: {depends}\nFilename: pool/main/p.deb\nSHA256: {}\n",
+                "a".repeat(64)
+            )
+        };
+        let body = [
+            entry("libc6", ""),
+            entry("mattos-base", "libc6"),
+            entry("mattos-cli", "mattos-base"),
+            entry("gcc", "libc6"),
+            entry("rustc", "libc6, gcc"),
+            entry(TOOLCHAIN_META_PACKAGE, "gcc, rustc"),
+        ]
+        .join("\n");
+        let packages = parse_repository_packages(&body, repository.path()).unwrap();
+        let selection = resolve_installed_packages(&["mattos-cli", TOOLCHAIN_META_PACKAGE], &packages)
+            .unwrap()
+            .into_iter()
+            .map(|package| package.name)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            selection,
+            ["libc6", "mattos-base", "mattos-cli", "gcc", "rustc", TOOLCHAIN_META_PACKAGE]
+        );
+        // The offline composition requests exactly these roots.
+        let source = include_str!("mod.rs");
+        assert!(source.contains("&[manifest.meta_package.as_str(), TOOLCHAIN_META_PACKAGE]"));
     }
 
     #[test]

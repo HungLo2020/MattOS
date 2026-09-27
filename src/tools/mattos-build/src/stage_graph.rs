@@ -2887,7 +2887,8 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         ],
         BuildStage::LiveRoot => &["rootfs"],
         BuildStage::Initramfs => &["formal-sysroot", "linux"],
-        BuildStage::Iso => &["linux", "live-root", "initramfs", "grub"],
+        // The ISO carries the offline package repository beside the live root.
+        BuildStage::Iso => &["linux", "live-root", "initramfs", "grub", "repository"],
         // Cargo-built userland: compiled by the MattOS-built rustc.
         BuildStage::Brush
         | BuildStage::Coreutils

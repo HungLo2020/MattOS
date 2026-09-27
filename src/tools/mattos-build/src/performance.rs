@@ -910,6 +910,9 @@ fn tracked_source_digest_uncached(
                 if !absolute.symlink_metadata().is_ok() {
                     return Ok(None);
                 }
+                if let Some(value) = crate::source_identity::git_index_value(absolute)? {
+                    return Ok(Some(value));
+                }
                 let inventory = inventory_for_path(repo_root, absolute, false)?;
                 Ok(Some(digest_serializable(&inventory)?))
             },
@@ -943,14 +946,9 @@ fn populate_git_source_values<'a>(
         if snapshot.is_modified(path) {
             let absolute = repo_root.join(&path_buf);
             if absolute.symlink_metadata().is_ok() {
-                let mut inventory = Vec::new();
-                collect_inventory(repo_root, &absolute, false, &mut inventory)?;
-                values.insert(
-                    path,
-                    format!("working:{}", digest_serializable(&inventory)?),
-                );
+                values.insert(path, format!("index:{}", reference_working_value(repo_root, &absolute)?));
             } else {
-                values.insert(path, "working:<deleted>".to_string());
+                values.insert(path, "index:<deleted>".to_string());
             }
         } else {
             values.insert(path, format!("index:{header}"));
@@ -961,14 +959,24 @@ fn populate_git_source_values<'a>(
         if exclude_documentation && is_irrelevant_documentation(&path_buf) {
             continue;
         }
-        let mut inventory = Vec::new();
-        collect_inventory(repo_root, &repo_root.join(&path_buf), false, &mut inventory)?;
         values.insert(
             path,
-            format!("untracked:{}", digest_serializable(&inventory)?),
+            format!("index:{}", reference_working_value(repo_root, &repo_root.join(&path_buf))?),
         );
     }
     Ok(())
+}
+
+/// Reference form of a working-tree entry: its git index value, or the
+/// inventory digest for a non-blob path.
+#[cfg(test)]
+fn reference_working_value(repo_root: &Path, absolute: &Path) -> Result<String> {
+    if let Some(value) = crate::source_identity::git_index_value(absolute)? {
+        return Ok(value);
+    }
+    let mut inventory = Vec::new();
+    collect_inventory(repo_root, absolute, false, &mut inventory)?;
+    digest_serializable(&inventory)
 }
 
 #[cfg(test)]
@@ -1018,9 +1026,7 @@ fn tracked_source_canonical_bytes(
         if !absolute.symlink_metadata().is_ok() {
             return Ok(None);
         }
-        let mut inventory = Vec::new();
-        collect_inventory(repo_root, absolute, false, &mut inventory)?;
-        Ok(Some(digest_serializable(&inventory)?))
+        reference_working_value(repo_root, absolute).map(Some)
     };
     let streamed = snapshot.canonical_query_bytes(repo_root, &query, &mut digest_working)?;
     let mut values = BTreeMap::new();

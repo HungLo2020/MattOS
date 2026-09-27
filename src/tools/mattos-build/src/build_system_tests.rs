@@ -306,7 +306,7 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
     );
     assert_eq!(
         graph["iso"],
-        ["grub", "initramfs", "linux", "live-root"]
+        ["grub", "initramfs", "linux", "live-root", "repository"]
             .into_iter()
             .collect()
     );
@@ -1091,6 +1091,50 @@ fn meson_stages_with_rust_code_depend_on_and_reconfigure_for_the_mattos_rustc() 
         assert!(body.contains("\"rust\""), "{recipe} does not bind its Meson directory to rust");
     }
     assert!(include_str!("stages/system_runtime.rs").contains("[\"expat\", \"systemd\", \"rust\"]"));
+}
+
+#[test]
+fn shared_command_infrastructure_is_not_an_image_stage_input() {
+    // Editing run_cmd and the build environment must not rebuild rootfs,
+    // live-root, initramfs and the ISO (about six minutes) by itself.
+    let helpers = PathBuf::from("src/tools/mattos-build/src/stages/helpers/command.rs");
+    for stage in crate::stage_graph::build_plan(BuildStage::All) {
+        assert!(!crate::stage_inputs::source_inputs(stage).contains(&helpers), "{stage:?}");
+    }
+    let image = include_str!("stages/image.rs");
+    for generic in ["fn run_cmd(", "fn apply_mattos_sysroot_environment(", "fn apply_ccache_environment("] {
+        assert!(!image.contains(generic), "{generic} moved back into image.rs");
+    }
+}
+
+#[test]
+fn iso_carries_the_package_repository_and_links_large_payloads() {
+    assert!(build_stage_spec(BuildStage::Iso).dependencies.contains(&"repository".to_string()));
+    let image = include_str!("stages/image.rs");
+    let start = image.find("fn build_iso_atomic(").unwrap();
+    let body = &image[start..start + image[start..].find("\n}\n").unwrap()];
+    assert!(body.contains("link_or_copy(&live_root"));
+    assert!(body.contains("link_tree(&repository"));
+    assert!(!body.contains("fs::copy(&live_root"));
+}
+
+#[test]
+fn link_tree_hard_links_files_and_preserves_layout() {
+    use std::os::unix::fs::MetadataExt;
+    let temporary = tempfile::tempdir().unwrap();
+    let source = temporary.path().join("repository");
+    fs::create_dir_all(source.join("dists/trixie")).unwrap();
+    fs::write(source.join("dists/trixie/Release"), "release").unwrap();
+    std::os::unix::fs::symlink("dists", source.join("alias")).unwrap();
+    let destination = temporary.path().join("iso/mattos/repository");
+    crate::link_tree(&source, &destination).unwrap();
+    let copied = destination.join("dists/trixie/Release");
+    assert_eq!(fs::read_to_string(&copied).unwrap(), "release");
+    assert_eq!(
+        fs::metadata(&copied).unwrap().ino(),
+        fs::metadata(source.join("dists/trixie/Release")).unwrap().ino()
+    );
+    assert_eq!(fs::read_link(destination.join("alias")).unwrap(), PathBuf::from("dists"));
 }
 
 #[test]

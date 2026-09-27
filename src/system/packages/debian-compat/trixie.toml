@@ -737,6 +737,18 @@ classification = "mattos-specific"
 known_gaps = ["MattOS-specific profile has no Debian package identity"]
 
 [[package]]
+debian_name = "mattos-toolchain"
+mattos_name = "mattos-toolchain"
+source_component = "mattos-profiles"
+owned_paths = ["/usr/share/doc/mattos-toolchain/README"]
+provided_abi_or_commands = ["MattOS native development toolchain for installed systems"]
+protected = false
+current_mattos_version = "0.1-1mattos1"
+expected_debian_role = "MattOS toolchain metapackage (comparable to build-essential)"
+classification = "mattos-specific"
+known_gaps = ["MattOS-specific metapackage has no Debian package identity"]
+
+[[package]]
 debian_name = "mattos-plasma"
 mattos_name = "mattos-plasma"
 source_component = "mattos-profiles"

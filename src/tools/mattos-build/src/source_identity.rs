@@ -256,9 +256,11 @@ impl GitSourceSnapshot {
                 }
                 let digest = working_digest(&repo_root.join(path))?
                     .with_context(|| format!("untracked source disappeared: {path}"))?;
+                // Recorded exactly as `git add` would index it, so tracking
+                // or committing an unchanged file does not change its digest.
                 entries.push(SourceEntry {
                     path: path.clone(),
-                    prefix: "untracked:".to_string(),
+                    prefix: "index:".to_string(),
                     value: digest,
                 });
             } else {
@@ -269,7 +271,7 @@ impl GitSourceSnapshot {
                 if self.modified.contains(path) {
                     entries.push(SourceEntry {
                         path: path.clone(),
-                        prefix: "working:".to_string(),
+                        prefix: "index:".to_string(),
                         value: working_digest(&repo_root.join(path))?
                             .unwrap_or_else(|| "<deleted>".to_string()),
                     });
@@ -343,6 +345,30 @@ fn nul_paths(output: &[u8]) -> BTreeSet<String> {
         .filter(|bytes| !bytes.is_empty())
         .map(|bytes| String::from_utf8_lossy(bytes).into_owned())
         .collect()
+}
+
+/// The `git ls-files --stage` value (`<mode> <blob id> 0`) the working-tree
+/// file at `path` would have once added, so a modified or untracked file is
+/// digested exactly like the committed file with the same content and mode.
+/// `None` when the path is gone; directories (nested repositories) are not
+/// blobs and return `Ok(None)` from here for the caller to digest.
+pub(crate) fn git_index_value(path: &Path) -> Result<Option<String>> {
+    let Ok(metadata) = path.symlink_metadata() else {
+        return Ok(None);
+    };
+    let (mode, content) = if metadata.file_type().is_symlink() {
+        ("120000", std::fs::read_link(path)?.into_os_string().into_encoded_bytes())
+    } else if metadata.is_file() {
+        use std::os::unix::fs::PermissionsExt;
+        let executable = metadata.permissions().mode() & 0o100 != 0;
+        (if executable { "100755" } else { "100644" }, std::fs::read(path)?)
+    } else {
+        return Ok(None);
+    };
+    let mut blob = sha1::Sha1::new();
+    sha1::Digest::update(&mut blob, format!("blob {}\0", content.len()).as_bytes());
+    sha1::Digest::update(&mut blob, &content);
+    Ok(Some(format!("{mode} {:x} 0", sha1::Digest::finalize(blob))))
 }
 
 /// Bounds of the paths strictly inside directory `root`: `root/` up to (but
@@ -475,7 +501,47 @@ mod tests {
         assert!(body.contains("openssh/ssh-pam") && body.contains("openssh/new"), "{body}");
         assert!(!body.contains("openssh-portable"), "{body}");
         // The modified working file is read from the working tree.
-        assert!(body.contains("\"openssh/ssh-pam\":\"working:/repo/openssh/ssh-pam=one\""), "{body}");
+        assert!(body.contains("\"openssh/ssh-pam\":\"index:/repo/openssh/ssh-pam=one\""), "{body}");
+    }
+
+    #[test]
+    fn a_file_digests_the_same_whether_untracked_staged_committed_or_modified_back() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        let git = |args: &[&str]| {
+            let status = std::process::Command::new("git")
+                .args(["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"])
+                .args(args)
+                .current_dir(repo)
+                .output()
+                .unwrap();
+            assert!(status.status.success(), "{args:?}: {}", String::from_utf8_lossy(&status.stderr));
+        };
+        git(&["init", "-q"]);
+        std::fs::create_dir_all(repo.join("component")).unwrap();
+        std::fs::write(repo.join("component/recipe.rs"), "fn build() {}\n").unwrap();
+        let script = repo.join("component/run.sh");
+        std::fs::write(&script, "#!/bin/sh\n").unwrap();
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+        std::os::unix::fs::symlink("recipe.rs", repo.join("component/alias.rs")).unwrap();
+        let digest = || {
+            let snapshot = GitSourceSnapshot::capture(repo, |_, _| {}).unwrap();
+            let query = SourceQuery::new(&[PathBuf::from("component")], false);
+            snapshot
+                .digest_query(repo, &query, |path| git_index_value(path), |_, _| {})
+                .unwrap()
+        };
+        let untracked = digest();
+        git(&["add", "-A"]);
+        assert_eq!(digest(), untracked, "staging changed the digest");
+        git(&["commit", "-q", "-m", "c"]);
+        assert_eq!(digest(), untracked, "committing changed the digest");
+        std::fs::write(repo.join("component/recipe.rs"), "fn build() { edit(); }\n").unwrap();
+        let modified = digest();
+        assert_ne!(modified, untracked, "a content edit must change the digest");
+        std::fs::write(repo.join("component/recipe.rs"), "fn build() {}\n").unwrap();
+        assert_eq!(digest(), untracked, "restoring the content must restore the digest");
     }
 
     #[test]

@@ -95,6 +95,16 @@ cargo run -p mattos-build -- build all --keep-going
 
 Stages that did build are cached, so the next run resumes after the fixes.
 
+Check that the cache is stable (a no-op build after the unit tests must reuse
+every stage and package; any miss names the input that moved):
+
+```
+python3 DevUtils/check_cache_stability.py            # build, test, build
+python3 DevUtils/check_cache_stability.py --no-establish   # after a build
+```
+
+Run it after changing cache keys, stage inputs, or anything tests execute.
+
 Inspect a stage without building it:
 
 ```text
@@ -135,7 +145,17 @@ The pipeline stages are:
 26. `rust`: Rust compiler, native standard library, rustdoc, and Cargo from the checksummed official source release and its explicit stage-0 bootstrap metadata; this MattOS rustc compiles all target Rust code, so the Cargo-built stages (`brush`, `coreutils`, the uutils tools, `init`, `sudo-rs`, ...) follow it
 27. `init`: MattOS rescue init build
 28. `rootfs`, `live-root`, `initramfs`, `iso`: package root assembly,
-    deterministic SquashFS, minimal early userspace, and bootable ISO
+    deterministic SquashFS, minimal early userspace, and bootable ISO.
+    The live root installs every package except the development toolchain
+    (`MATTOS_TOOLCHAIN_PACKAGES`: GCC, Binutils, Clang/LLVM tools,
+    rustc/Cargo, and `-dev` packages) and its `mattos-toolchain`
+    metapackage.  Every installed system gets the toolchain: the installer
+    installs `mattos-toolchain` alongside the selected profile.  The offline package repository with
+    all packages, toolchain included, sits on the ISO at `/mattos/repository`
+    rather than inside the SquashFS; the live root's
+    `/usr/share/mattos/repository` links to it on the mounted medium
+    (`/run/mattos/medium`), and the installer copies it onto installed
+    systems so they can install the toolchain offline.
 
 Tar's explicit Gnulib replacement is copied into Tar's output-owned source mirror before bootstrap. A checksummed Tar patch adds the gitlink-era `FLEXNSIZEOF` compatibility macro to that mirror because the pinned stable-202301 replacement predates the macro used by Tar 1.35; the authoritative Tar and Gnulib imports remain unchanged.
 

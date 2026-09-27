@@ -1420,6 +1420,9 @@ fn scheduled_build_nodes(stages: &[BuildStage]) -> Vec<scheduler::SchedulerNode>
                     .map(|dependency| match dependency.as_str() {
                         "linux-headers" => "glibc",
                         "formal-sysroot" => "make",
+                        // Packages and the repository are produced inside
+                        // the rootfs stage's scheduled action.
+                        "packages" | "repository" => "rootfs",
                         other => other,
                     })
                     .map(str::to_string)
@@ -1642,6 +1645,7 @@ fn rewrite_selected_pkgconfig_prefixes(
 }
 
 include!("stages/image.rs");
+include!("stages/helpers/command.rs");
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2096,7 +2100,7 @@ mod tests {
         assert_eq!(by_id["initramfs"].dependencies, ["linux", "make"]);
         assert_eq!(
             by_id["iso"].dependencies,
-            ["grub", "initramfs", "linux", "live-root"]
+            ["grub", "initramfs", "linux", "live-root", "rootfs"]
         );
 
         let mut durations: BTreeMap<String, f64> = BTreeMap::from([
@@ -4788,7 +4792,7 @@ mod tests {
 
     #[test]
     fn cargo_sysroot_link_argument_is_checkout_independent() {
-        let source = include_str!("stages/image.rs");
+        let source = include_str!("stages/helpers/command.rs");
         let start = source.find("fn apply_mattos_sysroot_environment").unwrap();
         let end = source[start..].find("fn run_cmd_output").unwrap() + start;
         let body = &source[start..end];
