@@ -403,6 +403,17 @@ def ignored_repository_paths(paths: list[Path]) -> set[str]:
     }
 
 
+def tracked_component_paths(component: dict) -> set[str]:
+    """Return component-relative paths recorded in the MattOS Git index."""
+    prefix = component["path"].rstrip("/") + "/"
+    raw = run(["git", "ls-files", "-z", "--cached", "--", component["path"]])
+    return {
+        os.fsdecode(value)[len(prefix):]
+        for value in raw.split(b"\0")
+        if value
+    }
+
+
 def symlink_escapes(component_root: Path, path: str, target: str) -> bool:
     if os.path.isabs(target):
         return True
@@ -424,6 +435,33 @@ def declared_broken_test_link(component: dict, path: str, target: str) -> bool:
         and item.get("path") == path and item.get("target") == target
         and bool(item.get("reason"))
         for item in document.get("fixture", [])
+    )
+
+
+HOST_AUTOTOOLS_DATA_PREFIXES = (
+    "/usr/share/aclocal/",
+    "/usr/share/automake-",
+    "/usr/share/gtk-doc/data/",
+    "/usr/share/libtool/",
+)
+
+
+def declared_host_autotools_link(component: dict, path: str, target: str) -> bool:
+    """Upstream-committed links into an Autotools installation's data files.
+
+    They are dangling on every other host, so the MattOS recipe regenerates
+    them with autoreconf in its output-owned mirror and never follows them.
+    Each link is declared exactly; any other absolute target stays a failure.
+    """
+    document = load_toml(ROOT / "upstream/policies/verification-symlinks.toml")
+    if not target.startswith(HOST_AUTOTOOLS_DATA_PREFIXES) or ".." in target.split("/"):
+        return False
+    return any(
+        item.get("component") == component["name"]
+        and item.get("upstream_commit") == component["revision"]
+        and item.get("path") == path and item.get("target") == target
+        and bool(item.get("reason"))
+        for item in document.get("host_autotools_link", [])
     )
 
 
@@ -467,6 +505,9 @@ def verify_component_tree(
     # transformed by this repository's .gitattributes. This matters for
     # intentionally CRLF upstream blobs such as a small set in Rust.
     regular_oids = raw_worktree_blob_oids(component, regular_paths)
+    # Nested upstream .gitignore files stay active inside vendored trees, so an
+    # upstream file can exist locally yet be silently absent from a fresh clone.
+    tracked = tracked_component_paths(component)
 
     for mode, object_type, oid, path in entries:
         if mode == "160000":
@@ -485,6 +526,8 @@ def verify_component_tree(
         except FileNotFoundError:
             failures.append(f"missing upstream path {path}")
             continue
+        if path not in tracked:
+            failures.append(f"upstream path is not tracked by Git (ignored?): {path}")
 
         if mode == "120000":
             if not stat.S_ISLNK(metadata.st_mode):
@@ -492,7 +535,11 @@ def verify_component_tree(
                 continue
             target = os.readlink(local)
             payload = os.fsencode(target)
-            if symlink_escapes(source_root, path, target) and not declared_broken_test_link(component, path, target):
+            if (
+                symlink_escapes(source_root, path, target)
+                and not declared_broken_test_link(component, path, target)
+                and not declared_host_autotools_link(component, path, target)
+            ):
                 failures.append(f"upstream symlink escapes component tree: {path} -> {target}")
         else:
             if not stat.S_ISREG(metadata.st_mode):
@@ -886,6 +933,10 @@ def main() -> int:
         )
         verified += 1
 
+    for record in run(["git", "ls-files", "-s", "-z"]).split(b"\0"):
+        if record.startswith(b"160000 "):
+            path = os.fsdecode(record.split(b"\t", 1)[1])
+            failures.append(f"MattOS index contains a gitlink instead of source files: {path}")
     failures.extend(verify_linuxscripts())
     failures.extend(verify_release_archive_policy(components))
     mapped_gitlinks = set(gitlink_by_path)

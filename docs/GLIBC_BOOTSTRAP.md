@@ -1,13 +1,14 @@
 # MattOS glibc bootstrap
 
-MattOS builds its runtime C library from imported GNU glibc source. This is a runtime transition, not a self-hosting toolchain milestone:
+MattOS builds its runtime C library from imported GNU glibc source, compiled by MattOS-built tools:
 
 ```text
 runtime libc and ELF loader: MattOS-built
-compiler, assembler, linker, and compiler runtimes used to build them: host-bootstrap
+compiler and Binutils used to build them: MattOS pass-1 GCC and cross Binutils (cross-toolchain stage)
+build-time helper programs (BUILD_CC): host compiler, never installed
 ```
 
-The later GCC runtime milestone replaces the final host-derived target files, `libgcc_s.so.1` and `libstdc++.so.6`. GCC compiler drivers, Binutils, Rust, Python, and other build tools are not built by MattOS yet.
+The pass-1 GCC has no C library, so glibc is configured as a cross build (`--build=x86_64-build-linux-gnu`). As a result, `make install` does not run the freshly built `ldconfig` to generate `etc/ld.so.cache`; that file was never packaged. See `NATIVE_TOOLCHAIN.md` for the complete toolchain order.
 
 ## Source and kernel ABI
 
@@ -49,7 +50,7 @@ src/system/libc/glibc/configure \
   --prefix=/usr \
   --libdir=/usr/lib/x86_64-linux-gnu \
   --libexecdir=/usr/libexec \
-  --build=x86_64-pc-linux-gnu \
+  --build=x86_64-build-linux-gnu \
   --host=x86_64-pc-linux-gnu \
   --enable-kernel=5.10.0 \
   --with-headers=<repo>/out/sysroot/usr/include \
@@ -62,7 +63,7 @@ src/system/libc/glibc/configure \
   --enable-bind-now
 ```
 
-The minimum supported kernel is 5.10.0. `config.make` is checked after configuration to ensure the selected system headers are the generated MattOS UAPI tree.
+`CC` and `CXX` are the MattOS pass-1 wrappers under `out/build/cross-toolchain/pass1-bin`, and `BUILD_CC=gcc`. The minimum supported kernel is 5.10.0. `config.make` is checked after configuration to ensure the selected system headers are the generated MattOS UAPI tree and the selected compiler is the MattOS pass-1 GCC.
 
 The focused development sysroot is rebuilt at `out/sysroot` and contains:
 

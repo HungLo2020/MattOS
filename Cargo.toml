@@ -18,7 +18,15 @@ resolver = "2"
 edition = "2024"
 license = "MIT"
 authors = ["MattOS Contributors"]
-repository = "https://example.invalid/mattos"
+repository = "https://github.com/HungLo2020/MattOS"
+
+# mattos-build does substantial in-process work (hashing, payload scans,
+# packaging, ELF inspection); unoptimized it dominates the build's tail.
+[profile.dev.package.mattos-build]
+opt-level = 2
+
+[profile.dev.package."*"]
+opt-level = 2
 
 [profile.dev.package.serde_json]
 opt-level = 3

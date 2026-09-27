@@ -252,7 +252,25 @@ pub(crate) fn can_migrate_narrowed_manifest(
             .inputs
             .dependency_digests
             .iter()
-            .all(|(stage, digest)| manifest.inputs.dependency_digests.get(stage) == Some(digest))
+            .all(|(stage, digest)| {
+                manifest.inputs.dependency_digests.get(stage) == Some(digest)
+                    || (stage == crate::TARGET_TOOLCHAIN_CACHE_KEY
+                        && !manifest.inputs.dependency_digests.contains_key(stage))
+            })
+    {
+        return Ok(false);
+    }
+    // Manifests from before the target toolchain was a cache key adopt it
+    // only when the workspace guard recorded that toolchain for this stage.
+    if current
+        .inputs
+        .dependency_digests
+        .contains_key(crate::TARGET_TOOLCHAIN_CACHE_KEY)
+        && !manifest
+            .inputs
+            .dependency_digests
+            .contains_key(crate::TARGET_TOOLCHAIN_CACHE_KEY)
+        && !crate::stage_built_by_current_target_toolchain(repo_root, &manifest.stage)?
     {
         return Ok(false);
     }
@@ -265,7 +283,21 @@ pub(crate) fn can_migrate_narrowed_manifest(
     {
         return Ok(false);
     }
-    if !shared_values_match(&manifest.input_details.source, &current.details.source)
+    // Manifests from before recipe projection recorded whole-file digests;
+    // a byte-identical file proves the projection's recipe is unchanged too.
+    let mut current_source = current.details.source.clone();
+    for (path, digest) in current_source.iter_mut() {
+        let Some(stored) = manifest.input_details.source.get(path) else {
+            continue;
+        };
+        if digest.starts_with(crate::recipe_projection::PROJECTION_PREFIX)
+            && !stored.starts_with(crate::recipe_projection::PROJECTION_PREFIX)
+            && digest_source_inputs(repo_root, &[PathBuf::from(path)])? == *stored
+        {
+            digest.clone_from(stored);
+        }
+    }
+    if !shared_values_match(&manifest.input_details.source, &current_source)
         || !shared_values_match(
             &manifest.input_details.configuration,
             &current.details.configuration,
@@ -637,14 +669,24 @@ pub(crate) fn compute_stage_evaluation(
     spec: &StageSpec,
 ) -> Result<StageEvaluation> {
     let source_timer = Instant::now();
-    let source_digest = digest_source_inputs(repo_root, &spec.source_inputs)?;
     let mut source = BTreeMap::new();
+    let mut projected = false;
     for path in &spec.source_inputs {
-        source.insert(
-            diagnostic_path(repo_root, path),
-            digest_source_inputs(repo_root, std::slice::from_ref(path))?,
-        );
+        let digest = match crate::recipe_projection::projected_recipe_digest(repo_root, &spec.id, path)? {
+            Some(digest) => {
+                projected = true;
+                digest
+            }
+            None => digest_source_inputs(repo_root, std::slice::from_ref(path))?,
+        };
+        source.insert(diagnostic_path(repo_root, path), digest);
     }
+    // A shared recipe file contributes only this stage's projection of it.
+    let source_digest = if projected {
+        digest_serializable(&source)?
+    } else {
+        digest_source_inputs(repo_root, &spec.source_inputs)?
+    };
     record_category("input_phase:source", source_timer.elapsed());
     let configuration_timer = Instant::now();
     let mut configuration = spec.configuration_inputs.clone();
@@ -690,6 +732,17 @@ pub(crate) fn compute_stage_evaluation(
         // cascade merely because the dependency's own input identity changed.
         dependency_digests.insert(dependency.clone(), identity.output_digest.clone());
         dependencies.insert(dependency.clone(), identity);
+    }
+    if let Some(identity) = crate::target_toolchain_cache_identity(repo_root, &spec.id)? {
+        let key = crate::TARGET_TOOLCHAIN_CACHE_KEY.to_string();
+        dependency_digests.insert(key.clone(), identity.clone());
+        dependencies.insert(
+            key,
+            DependencyIdentity {
+                input_digest: identity.clone(),
+                output_digest: identity,
+            },
+        );
     }
     record_category("input_phase:dependencies", dependency_timer.elapsed());
     let full_digest = digest_serializable(&(

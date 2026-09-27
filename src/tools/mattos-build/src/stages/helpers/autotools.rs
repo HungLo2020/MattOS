@@ -453,8 +453,19 @@ fn build_autotools_import(
     }
     remove_path_if_exists(&install_dir)?;
     let destdir = format!("DESTDIR={}", install_dir.display());
-    let install_target = if component == "lvm2" { "install_device-mapper" } else { "install" };
-    run_cmd_with_env_overrides(&build_dir, "make", &[install_target, &destdir], &env)?;
+    if component == "lvm2" {
+        // `install_device-mapper` also builds dm-tools (dmsetup), whose link
+        // rule races its own objects under a parallel make; a fresh tree
+        // exposes it.  Install serially.
+        run_cmd_with_env_overrides(
+            &build_dir,
+            "make",
+            &["-j1", "install_device-mapper", &destdir],
+            &env,
+        )?;
+    } else {
+        run_cmd_with_env_overrides(&build_dir, "make", &["install", &destdir], &env)?;
+    }
     for relative in required_outputs {
         if !install_dir.join(relative).is_file() {
             bail!("{component} install did not produce {relative}");

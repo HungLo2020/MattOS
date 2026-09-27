@@ -11,6 +11,11 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/kernel/config/x86_64_mattos.policy.toml",
             "src/tools/mattos-build/src/stages/toolchain.rs",
         ],
+        BuildStage::CrossToolchain => &[
+            "src/toolchain/binutils",
+            "src/toolchain/gcc",
+            "src/system/libc/glibc/version.h",
+        ],
         BuildStage::Glibc => &["src/system/libc/glibc"],
         BuildStage::GccRuntime | BuildStage::GccToolchain => &["src/toolchain/gcc"],
         BuildStage::Binutils => &["src/toolchain/binutils"],
@@ -674,12 +679,12 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         ],
         BuildStage::Llvm => &[
             "src/toolchain/llvm-project",
-            "src/tools/mattos-build/src/stages/runtime_tooling.rs",
+            "src/tools/mattos-build/src/stages/llvm_toolchain.rs",
         ],
         BuildStage::Rust => &[
             "src/toolchain/rust",
             "upstream/policies/release-archives.toml",
-            "src/tools/mattos-build/src/stages/runtime_tooling.rs",
+            "src/tools/mattos-build/src/stages/rust_toolchain.rs",
         ],
         BuildStage::Kmod => &["src/system/kmod"],
         BuildStage::Procps => &["src/userland/procps-ng"],
@@ -916,7 +921,12 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
     }
     if matches!(
         stage,
-        BuildStage::GccRuntime | BuildStage::GccToolchain | BuildStage::Binutils | BuildStage::Make
+        BuildStage::CrossToolchain
+            | BuildStage::Glibc
+            | BuildStage::GccRuntime
+            | BuildStage::GccToolchain
+            | BuildStage::Binutils
+            | BuildStage::Make
     ) {
         inputs.push("src/tools/mattos-build/src/stages/toolchain.rs".into());
     }

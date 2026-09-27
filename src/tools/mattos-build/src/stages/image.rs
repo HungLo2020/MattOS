@@ -310,6 +310,12 @@ fn build_installer(repo_root: &Path) -> Result<()> {
     let installer_out = repo_root.join("out/build/installer");
     let cargo_target = installer_out.join("cargo-target");
     fs::create_dir_all(&installer_out)?;
+    // The installer links libcrypt; resolve it from the staged libxcrypt,
+    // never from whatever an earlier stage left in the sysroot.
+    let xcrypt_lib = repo_root.join("out/build/libxcrypt/install/usr/lib/x86_64-linux-gnu");
+    if !xcrypt_lib.join("libcrypt.so").exists() {
+        bail!("installer requires the staged libxcrypt; run build libxcrypt first");
+    }
     run_cmd_with_env_overrides(
         repo_root,
         "cargo",
@@ -320,11 +326,15 @@ fn build_installer(repo_root: &Path) -> Result<()> {
             "--manifest-path",
             "src/system/installer/Cargo.toml",
         ],
-        &[("CARGO_TARGET_DIR", cargo_target.display().to_string())],
+        &[
+            ("CARGO_TARGET_DIR", cargo_target.display().to_string()),
+            ("LIBRARY_PATH", xcrypt_lib.display().to_string()),
+        ],
     )?;
 
     let source = repo_root.join("src/system/installer/engine/installed-init.c");
-    let compiler = repo_root.join("out/build/gcc-toolchain/install/usr/bin/gcc");
+    // The MattOS target compiler, not the guest-native driver run on the host.
+    let compiler = require_mattos_target_toolchain(repo_root)?.tool("gcc");
     let sysroot = repo_root.join("out/sysroot");
     let init_tree = performance::temporary_sibling(
         &repo_root.join("out/build/installed-initramfs-root"),
@@ -749,7 +759,7 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     install_mattos_system_units(repo_root, &out)?;
     install_network_configuration(repo_root, &out)?;
 
-    let init_bin = repo_root.join("target/release/mattos-init");
+    let init_bin = repo_root.join("out/build/init/cargo-target/release/mattos-init");
     if !init_bin.exists() {
         bail!(
             "init binary missing at {}; run build init first",
@@ -1100,10 +1110,7 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
         }
         let bytes = fs::read(&path)?;
         let build_root = repo_root.to_string_lossy();
-        if bytes
-            .windows(build_root.len())
-            .any(|window| window == build_root.as_bytes())
-        {
+        if memchr::memmem::find(&bytes, build_root.as_bytes()).is_some() {
             bail!(
                 "ELF object /{} embeds the host build root {}",
                 path.strip_prefix(rootfs)?.display(),
@@ -1158,11 +1165,18 @@ fn validate_glibc_rootfs(repo_root: &Path, rootfs: &Path) -> Result<()> {
     }
 
     let library_path = std::env::join_paths(target_library_dirs)?;
+    let compiler_signatures = mattos_compiler_signatures(repo_root)?;
     let mut rows = Vec::new();
     let mut gcc_runtime_consumers = Vec::new();
     let mut executable_count = 0usize;
     for (path, facts) in &elf_files {
         let relative = format!("/{}", path.strip_prefix(rootfs)?.display());
+        if let Some(foreign) = foreign_compiler_signature(&fs::read(path)?, &compiler_signatures) {
+            bail!(
+                "{relative} contains code compiled by a non-MattOS compiler ({foreign}); \
+                 every target binary must be built by the MattOS toolchain"
+            )
+        }
         let interpreter = facts.interpreter.clone();
         if let Some(actual) = &interpreter {
             executable_count += 1;
@@ -1747,6 +1761,18 @@ fn validate_user_session_configuration(rootfs: &Path) -> Result<()> {
             bail!("PAM stack {stack} must contain exactly one optional pam_systemd session hook");
         }
     }
+    // Text logins (console, su -, SSH) get LANG only through pam_env; without
+    // it Qt and other UTF-8 programs run in the C locale.
+    let locale_session = "session    required     pam_env.so readenv=1 envfile=/etc/default/locale";
+    for stack in ["login", "su-l", "sshd"] {
+        let body = fs::read_to_string(rootfs.join("etc/pam.d").join(stack))?;
+        if !body.lines().any(|line| line == locale_session) {
+            bail!("PAM stack {stack} must load the system locale from /etc/default/locale");
+        }
+    }
+    if fs::read_link(rootfs.join("etc/default/locale"))?.as_path() != Path::new("../locale.conf") {
+        bail!("/etc/default/locale must be the systemd-localed /etc/locale.conf");
+    }
     if fs::read_to_string(rootfs.join("usr/share/pam/security/pam_env.conf"))?
         .trim()
         .is_empty()
@@ -2231,9 +2257,7 @@ fn validate_network_configuration(rootfs: &Path) -> Result<()> {
     }
     let ca_bundle = fs::read(rootfs.join("etc/ssl/certs/ca-certificates.crt"))?;
     if ca_bundle.len() < 100_000
-        || !ca_bundle
-            .windows(27)
-            .any(|window| window == b"-----BEGIN CERTIFICATE-----")
+        || memchr::memmem::find(&ca_bundle, b"-----BEGIN CERTIFICATE-----").is_none()
     {
         bail!("CA bundle is missing or does not contain PEM certificates");
     }
@@ -2647,6 +2671,13 @@ fn generate_baseline_locale(repo_root: &Path, rootfs: &Path) -> Result<()> {
         bail!("baseline en_US.UTF-8 generation produced no compiled en_US.utf8 locale");
     }
     fs::write(rootfs.join("etc/locale.conf"), "LANG=en_US.UTF-8\n")?;
+    // Debian's PAM stacks load the system locale for console, su and SSH
+    // logins from /etc/default/locale; systemd-localed maintains
+    // /etc/locale.conf.  One file serves both (both are KEY=VALUE).
+    let default_locale = rootfs.join("etc/default/locale");
+    fs::create_dir_all(rootfs.join("etc/default"))?;
+    remove_path_if_exists(&default_locale)?;
+    std::os::unix::fs::symlink("../locale.conf", &default_locale)?;
     Ok(())
 }
 
@@ -2941,7 +2972,11 @@ fn build_live_root_atomic(repo_root: &Path) -> Result<()> {
     }
     let destination = repo_root.join(LIVE_ROOT_IMAGE_PATH);
     let temp = performance::temporary_sibling(&destination, "building")?;
-    let processors = scheduler::child_job_limit().clamp(1, 4).to_string();
+    // The live root is compressed at the end of the build with the host
+    // otherwise idle; mksquashfs output does not depend on the thread count.
+    let processors = std::thread::available_parallelism()
+        .map_or(1, usize::from)
+        .to_string();
     let result = run_cmd(
         repo_root,
         "mksquashfs",
@@ -3061,7 +3096,8 @@ fn build_initramfs_atomic(repo_root: &Path) -> Result<()> {
     fs::create_dir_all(&tree)?;
     set_mode(tree.clone(), 0o755)?;
     let source = repo_root.join("src/boot/live-init.c");
-    let compiler = repo_root.join("out/build/gcc-toolchain/install/usr/bin/gcc");
+    // The MattOS target compiler, not the guest-native driver run on the host.
+    let compiler = require_mattos_target_toolchain(repo_root)?.tool("gcc");
     let sysroot = repo_root.join("out/sysroot");
     if !source.is_file() || !compiler.is_file() || !sysroot.is_dir() {
         bail!("early-init source or MattOS compiler/sysroot is missing");
@@ -3760,12 +3796,51 @@ fn effective_command_display(program: &str, args: &[String]) -> String {
     )
 }
 
+/// With a shared jobserver, Make/Ninja/Cargo take parallelism from the token
+/// pool; an explicit `-jN` would make a top-level client ignore the pool and
+/// fix its parallelism for the whole run.  Explicit serial requests (`-j1`)
+/// are recipe semantics and are kept.
+fn strip_job_count_arguments(args: &[&str]) -> Vec<String> {
+    let is_count = |value: &str| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit());
+    let is_serial = |value: &str| value.parse::<usize>().is_ok_and(|count| count <= 1);
+    let mut result = Vec::with_capacity(args.len());
+    let mut index = 0;
+    while index < args.len() {
+        let argument = args[index];
+        let next = args.get(index + 1).copied();
+        if matches!(argument, "-j" | "--jobs" | "--parallel") && next.is_some_and(is_count) {
+            if is_serial(next.unwrap()) {
+                result.push(argument.to_string());
+                result.push(next.unwrap().to_string());
+            }
+            index += 2;
+            continue;
+        }
+        let joined = argument
+            .strip_prefix("--jobs=")
+            .or_else(|| argument.strip_prefix("--parallel="))
+            .or_else(|| argument.strip_prefix("-j").filter(|value| !value.is_empty()));
+        if let Some(value) = joined.filter(|value| is_count(value)) {
+            if is_serial(value) {
+                result.push(argument.to_string());
+            }
+        } else {
+            result.push(argument.to_string());
+        }
+        index += 1;
+    }
+    result
+}
+
 fn scheduler_command_args(args: &[&str]) -> Vec<String> {
+    let experimental_limit = EXPERIMENTAL_CHILD_JOBS.with(Cell::get);
+    if experimental_limit.is_none() && scheduler::elastic_child_jobs() {
+        return strip_job_count_arguments(args);
+    }
     // A very small cgroup memory ceiling can yield no parallel CPU grant.
     // External build tools require a positive jobs value; retain serial
     // progress while the cgroup remains the hard memory safety boundary.
     let limit = scheduler::child_job_limit().max(1);
-    let experimental_limit = EXPERIMENTAL_CHILD_JOBS.with(Cell::get);
     let mut previous_sets_jobs = false;
     args.iter()
         .map(|argument| {
@@ -3804,6 +3879,21 @@ fn scheduler_command_args(args: &[&str]) -> Vec<String> {
 }
 
 fn apply_scheduler_parallelism(command: &mut Command) {
+    if EXPERIMENTAL_CHILD_JOBS.with(Cell::get).is_none() && scheduler::elastic_child_jobs() {
+        if let Some(makeflags) = jobserver::makeflags() {
+            let ceiling = scheduler::child_job_limit().max(1).to_string();
+            // Make and Ninja join the shared jobserver through MAKEFLAGS;
+            // Cargo reads CARGO_MAKEFLAGS.  Fixed -j overrides are removed.
+            command
+                .env("MAKEFLAGS", &makeflags)
+                .env("CARGO_MAKEFLAGS", &makeflags)
+                .env("CARGO_BUILD_JOBS", &ceiling)
+                .env("MESON_NUM_PROCESSES", &ceiling)
+                .env_remove("CMAKE_BUILD_PARALLEL_LEVEL")
+                .env_remove("NINJAFLAGS");
+            return;
+        }
+    }
     // External build tools uniformly reject a zero job count.  A tight
     // memory admission budget may intentionally grant no parallel token, but
     // it must still permit one serial child inside the cgroup ceiling.
@@ -3828,6 +3918,17 @@ fn apply_mattos_sysroot_environment(
             .is_file()
     }) else {
         return Ok(());
+    };
+    // A working directory spelled with `..` (for example a test's
+    // CARGO_MANIFEST_DIR/../../..) must resolve to the same checkout path as
+    // the build itself: the compiler wrappers regenerated below embed it, and
+    // a different spelling rewrites them and changes every target stage's
+    // toolchain cache key.
+    let normalized_root = lexically_normalized(repo_root);
+    let repo_root = if normalized_root.join("src/tools/mattos-build/Cargo.toml").is_file() {
+        normalized_root.as_path()
+    } else {
+        repo_root
     };
     let sysroot = repo_root.join("out/sysroot");
     if !sysroot.join("usr/include/stdio.h").is_file()
@@ -3906,8 +4007,263 @@ fn apply_mattos_sysroot_environment(
         };
         command.env("RUSTFLAGS", value);
     }
+    // Target builds compile with the MattOS-built GCC and Binutils: their
+    // wrappers shadow the host `cc`, `gcc`, `g++`, `ld`, `ar`, ... on PATH.
+    if let Some(toolchain) = mattos_target_toolchain(repo_root)? {
+        // Like `Command::env`, the last override of a variable wins.
+        let inherited = overrides
+            .iter()
+            .rev()
+            .find(|(candidate, _)| *candidate == "PATH")
+            .map(|(_, value)| OsString::from(value))
+            .or_else(|| std::env::var_os("PATH"))
+            .unwrap_or_default();
+        let mut paths = vec![toolchain.bin.clone()];
+        // Target Rust code (Cargo crates and Meson's Rust support) is compiled
+        // by the MattOS-built rustc, never a host rustc/rustup found on PATH.
+        let rust_bin = mattos_rust_toolchain(repo_root, cwd);
+        if let Some(rust_bin) = &rust_bin {
+            paths.push(rust_bin.clone());
+            command
+                .env("RUSTC", rust_bin.join("rustc"))
+                .env("RUSTDOC", rust_bin.join("rustdoc"));
+        } else if matches!(program, "cargo" | "rustc") && !builds_mattos_rust(repo_root, cwd) {
+            bail!(
+                "target Rust code requires the MattOS Rust toolchain at {}; build the rust stage first",
+                repo_root.join(MATTOS_RUST_TOOLS).display()
+            );
+        }
+        // ccache masquerades as the compiler names first on PATH and runs the
+        // MattOS wrapper that follows it.
+        if let Some(ccache_bin) = ccache_masquerade(repo_root)? {
+            paths.insert(0, ccache_bin);
+            apply_ccache_environment(command, repo_root)?;
+            add_cmake_ccache_launcher(command, program, repo_root)?;
+        }
+        let owned = paths.clone();
+        paths.extend(std::env::split_paths(&inherited).filter(|path| !owned.contains(path)));
+        command.env("PATH", std::env::join_paths(paths)?);
+    }
     command.env("MATTOS_SYSROOT", &sysroot);
     Ok(())
+}
+
+/// `path` with `.` and `..` components resolved textually.
+fn lexically_normalized(path: &Path) -> PathBuf {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                normalized.pop();
+            }
+            other => normalized.push(other.as_os_str()),
+        }
+    }
+    normalized
+}
+
+/// Install location of the MattOS-built Rust toolchain (the `rust` stage).
+const MATTOS_RUST_TOOLS: &str = "out/build/rust/install/usr/bin";
+
+/// The rust stage bootstraps the MattOS rustc from its pinned stage0 compiler.
+fn builds_mattos_rust(repo_root: &Path, cwd: &Path) -> bool {
+    cwd.starts_with(repo_root.join("out/build/rust"))
+}
+
+/// MattOS Rust toolchain used for target Rust code, when it has been built.
+fn mattos_rust_toolchain(repo_root: &Path, cwd: &Path) -> Option<PathBuf> {
+    if builds_mattos_rust(repo_root, cwd) {
+        return None;
+    }
+    let bin = repo_root.join(MATTOS_RUST_TOOLS);
+    ["rustc", "cargo", "rustdoc"]
+        .iter()
+        .all(|tool| bin.join(tool).is_file())
+        .then_some(bin)
+}
+
+/// Host ccache used to cache MattOS target C/C++ compiles, unless
+/// `MATTOS_CCACHE=0`.  It is a build accelerator only: cache keys include the
+/// MattOS toolchain identity, and hits return byte-identical objects.
+fn host_ccache() -> Option<PathBuf> {
+    static CCACHE: std::sync::OnceLock<Option<PathBuf>> = std::sync::OnceLock::new();
+    CCACHE
+        .get_or_init(|| {
+            if std::env::var("MATTOS_CCACHE").is_ok_and(|value| value == "0") {
+                return None;
+            }
+            std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
+                .map(|directory| directory.join("ccache"))
+                .find(|candidate| candidate.is_file())
+        })
+        .clone()
+}
+
+const CCACHE_COMPILER_NAMES: &[&str] = &[
+    "gcc",
+    "g++",
+    "cc",
+    "c++",
+    "x86_64-pc-linux-gnu-gcc",
+    "x86_64-pc-linux-gnu-g++",
+    "x86_64-pc-linux-gnu-cc",
+    "x86_64-pc-linux-gnu-c++",
+];
+
+/// Directory of compiler-named links to ccache, placed before the MattOS
+/// compiler wrappers on PATH.
+fn ccache_masquerade(repo_root: &Path) -> Result<Option<PathBuf>> {
+    match host_ccache() {
+        Some(ccache) => ccache_masquerade_for(repo_root, &ccache),
+        None => Ok(None),
+    }
+}
+
+fn ccache_masquerade_for(repo_root: &Path, ccache: &Path) -> Result<Option<PathBuf>> {
+    if target_toolchain_identity(repo_root)?.is_none() {
+        return Ok(None);
+    }
+    let directory = repo_root.join("out/toolchain/ccache-bin");
+    fs::create_dir_all(&directory)?;
+    for name in CCACHE_COMPILER_NAMES {
+        let link = directory.join(name);
+        if fs::read_link(&link).ok().as_deref() != Some(ccache) {
+            remove_path_if_exists(&link)?;
+            std::os::unix::fs::symlink(ccache, &link)?;
+        }
+    }
+    Ok(Some(directory))
+}
+
+fn apply_ccache_environment(command: &mut Command, repo_root: &Path) -> Result<()> {
+    let Some(identity) = target_toolchain_identity(repo_root)? else {
+        return Ok(());
+    };
+    command
+        .env("CCACHE_DIR", repo_root.join("out/cache/ccache"))
+        .env("CCACHE_MAXSIZE", "40G")
+        // The wrapper scripts never change when the compiler or hardening
+        // specs do; key the cache to the actual toolchain configuration.
+        .env("CCACHE_COMPILERCHECK", format!("string:{identity}"));
+    // CMake initializes CMAKE_<LANG>_COMPILER_LAUNCHER from these, which also
+    // covers build trees whose cache already records an absolute compiler
+    // path (bypassing the PATH masquerade).
+    if let Some(ccache) = host_ccache() {
+        command
+            .env("CMAKE_C_COMPILER_LAUNCHER", &ccache)
+            .env("CMAKE_CXX_COMPILER_LAUNCHER", &ccache);
+    }
+    Ok(())
+}
+
+/// CMake records an absolute compiler path in an existing build tree and reads
+/// the launcher environment variables only when a tree is first created, so
+/// pass the launcher explicitly on every CMake configure invocation.
+fn add_cmake_ccache_launcher(command: &mut Command, program: &str, repo_root: &Path) -> Result<()> {
+    if Path::new(program).file_name().and_then(OsStr::to_str) != Some("cmake") {
+        return Ok(());
+    }
+    let is_configure = !command.get_args().any(|argument| {
+        matches!(
+            argument.to_str(),
+            Some("--build" | "--install" | "-E" | "-P" | "--version" | "--help")
+        ) || argument
+            .to_str()
+            .is_some_and(|value| value.starts_with("-DCMAKE_C_COMPILER_LAUNCHER="))
+    });
+    if is_configure {
+        command.args(ccache_cmake_launcher_args(repo_root)?);
+    }
+    Ok(())
+}
+
+/// `CMAKE_<LANG>_COMPILER_LAUNCHER` arguments for CMake builds that name the
+/// compiler explicitly (bypassing the PATH masquerade).
+fn ccache_cmake_launcher_args(repo_root: &Path) -> Result<Vec<String>> {
+    let Some(ccache) = host_ccache() else {
+        return Ok(Vec::new());
+    };
+    if target_toolchain_identity(repo_root)?.is_none() {
+        return Ok(Vec::new());
+    }
+    Ok(vec![
+        format!("-DCMAKE_C_COMPILER_LAUNCHER={}", ccache.display()),
+        format!("-DCMAKE_CXX_COMPILER_LAUNCHER={}", ccache.display()),
+    ])
+}
+
+/// The `.comment` signature GCC records in every object it compiles.
+fn mattos_gcc_signature() -> String {
+    format!("GCC: (GNU) {GCC_TOOLCHAIN_VERSION}")
+}
+
+/// Compiler identifications that GCC, rustc and Clang record in the ELF
+/// `.comment` section.  Entries of these families must name a MattOS compiler.
+const COMPILER_SIGNATURE_FAMILIES: &[&str] = &["GCC: (", "rustc version ", "clang version "];
+
+/// The `.comment` entries the MattOS GCC, rustc and Clang record, taken from
+/// the built compilers themselves.
+fn mattos_compiler_signatures(repo_root: &Path) -> Result<Vec<String>> {
+    let mut signatures = vec![mattos_gcc_signature()];
+    for (tool, family) in [
+        ("out/build/rust/install/usr/bin/rustc", "rustc "),
+        ("out/build/llvm/install/usr/bin/clang", "clang version "),
+    ] {
+        let output = run_cmd_capture(repo_root, path_str(&repo_root.join(tool))?, &["--version"])?;
+        let first = output.lines().next().unwrap_or_default().trim();
+        let Some(version) = first.strip_prefix(family) else {
+            bail!("unexpected {tool} --version output: {first}");
+        };
+        let family = if family == "rustc " { "rustc version " } else { family };
+        signatures.push(format!("{family}{version}"));
+    }
+    Ok(signatures)
+}
+
+/// Contents of an ELF64 little-endian image's `.comment` section, if any.
+fn elf_comment_section(bytes: &[u8]) -> Option<&[u8]> {
+    let u16_at = |offset: usize| Some(u16::from_le_bytes(bytes.get(offset..offset + 2)?.try_into().ok()?));
+    let u32_at = |offset: usize| Some(u32::from_le_bytes(bytes.get(offset..offset + 4)?.try_into().ok()?));
+    let u64_at = |offset: usize| {
+        Some(usize::try_from(u64::from_le_bytes(bytes.get(offset..offset + 8)?.try_into().ok()?)).ok()?)
+    };
+    if bytes.get(..6)? != b"\x7fELF\x02\x01" {
+        return None;
+    }
+    let (table, entry_size) = (u64_at(0x28)?, usize::from(u16_at(0x3a)?));
+    let (count, names_index) = (usize::from(u16_at(0x3c)?), usize::from(u16_at(0x3e)?));
+    let section = |index: usize| {
+        let header = table.checked_add(index.checked_mul(entry_size)?)?;
+        let (offset, size) = (u64_at(header + 0x18)?, u64_at(header + 0x20)?);
+        Some((u32_at(header)? as usize, bytes.get(offset..offset.checked_add(size)?)?))
+    };
+    let (_, names) = section(names_index)?;
+    (0..count).find_map(|index| {
+        let (name, contents) = section(index)?;
+        let name = names.get(name..)?;
+        (name.split(|byte| *byte == 0).next()? == b".comment").then_some(contents)
+    })
+}
+
+/// Returns a compiler identification recorded in an ELF image's `.comment`
+/// section that is not one of `expected` (for example a host distribution
+/// compiler, or an upstream prebuilt Rust standard library).
+fn foreign_compiler_signature(bytes: &[u8], expected: &[String]) -> Option<String> {
+    foreign_compiler_signature_in_comment(elf_comment_section(bytes)?, expected)
+}
+
+fn foreign_compiler_signature_in_comment(comment: &[u8], expected: &[String]) -> Option<String> {
+    comment
+        .split(|byte| *byte == 0)
+        .map(String::from_utf8_lossy)
+        .find(|entry| {
+            COMPILER_SIGNATURE_FAMILIES
+                .iter()
+                .any(|family| entry.starts_with(family))
+                && !expected.iter().any(|signature| signature == entry)
+        })
+        .map(|entry| entry.into_owned())
 }
 
 fn run_cmd_output(cwd: &Path, program: &str, args: &[&str]) -> Result<Output> {

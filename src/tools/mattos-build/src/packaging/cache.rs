@@ -482,16 +482,50 @@ pub(crate) fn package_stage_dependency_digest(
     repo_root: &Path,
     source_component: &str,
 ) -> Result<String> {
-    let stage_dependencies = package_stage_dependencies(source_component);
+    // Most packages have no explicit mapping (`_ => &[]`) yet are produced by
+    // the stage of the same name; always key on that producer when it exists,
+    // so a rebuilt stage can never leave its package stale.
+    let mut stage_dependencies = package_stage_dependencies(source_component).to_vec();
+    if !stage_dependencies.contains(&source_component)
+        && (performance::read_stage_manifest(repo_root, source_component).is_ok()
+            || repo_root
+                .join("out/build")
+                .join(source_component)
+                .join("install")
+                .is_dir())
+    {
+        stage_dependencies.push(source_component);
+    }
     let mut dependency_values = BTreeMap::new();
     for dependency in stage_dependencies {
-        let value = match performance::read_stage_manifest(repo_root, dependency) {
+        let manifest_digest = match performance::read_stage_manifest(repo_root, dependency) {
             Ok(manifest) => manifest.output_content_digest,
             Err(_) => "<missing>".to_string(),
         };
-        dependency_values.insert(dependency.to_string(), value);
+        // A stage manifest's output digest covers only its registered
+        // sentinel outputs (often a single SONAME symlink), which can stay
+        // identical while every packaged file changes, e.g. after a compiler
+        // change.  Key packages on the producer's complete install tree.
+        let install_digest = stage_install_tree_digest(repo_root, dependency)?;
+        dependency_values.insert(dependency.to_string(), (manifest_digest, install_digest));
     }
     performance::digest_value(&dependency_values)
+}
+
+/// Content digest of a stage's `out/build/<stage>/install` tree.  Repeated
+/// walks are cheap: per-file digests come from the fingerprint-keyed
+/// integrity cache, so unchanged files cost a `stat`.
+fn stage_install_tree_digest(repo_root: &Path, stage: &str) -> Result<Option<String>> {
+    let install = repo_root.join("out/build").join(stage).join("install");
+    if !install.is_dir() {
+        return Ok(None);
+    }
+    Ok(Some(performance::digest_paths(
+        repo_root,
+        &[install],
+        false,
+        "package-dependency-install-tree-v1",
+    )?))
 }
 
 pub(crate) fn package_payload_source_digests(

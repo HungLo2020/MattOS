@@ -14,11 +14,11 @@
 using namespace KHolidays;
 
 HolidayParserDriver::HolidayParserDriver(const QString &filePath)
-    : m_filePath(filePath)
-    , m_parseYear(0)
+    : m_parseYear(0)
     , m_parseStartYear(0)
     , m_parseEndYear(0)
 {
+    m_filePath = filePath;
 }
 
 HolidayParserDriver::~HolidayParserDriver()
@@ -52,8 +52,7 @@ Holiday::List HolidayParserDriver::parseHolidays(const QDate &startDate, const Q
     m_resultList.clear();
 
     for (const KHolidays::Holiday &holidayCat : m_resultListTemp) {
-        const QStringList categories = holidayCat.categoryList();
-        for (const QString &mCategoryList : categories) {
+        for (const QString &mCategoryList : holidayCat.categoryList()) {
             if (mCategoryList == category) {
                 m_resultList.append(holidayCat);
                 break;

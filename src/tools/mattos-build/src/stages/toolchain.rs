@@ -132,6 +132,9 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         );
     }
     let output_arg = format!("O={}", build.display());
+    // Target code is compiled by the MattOS-built GCC and Binutils; HOSTCC
+    // remains the host compiler for Kbuild's build-machine helpers.
+    let cross_compile = format!("CROSS_COMPILE={}", kernel_cross_compile(repo_root)?);
     // The kernel does not consume SOURCE_DATE_EPOCH directly for all of its
     // generated metadata.  Pin the release banner and built-in initramfs cpio
     // mtimes explicitly; otherwise two healthy builds differ only by their
@@ -166,13 +169,13 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         source.display(),
         source.display()
     );
-    let mut olddefconfig_args = vec![output_arg.as_str(), "olddefconfig"];
+    let mut olddefconfig_args = vec![output_arg.as_str(), cross_compile.as_str(), "olddefconfig"];
     olddefconfig_args.extend(kernel_reproducible_args);
     olddefconfig_args.push(kernel_cppflags_map.as_str());
     olddefconfig_args.push(kernel_cflags_map.as_str());
     run_cmd_with_env(&source, "make", &olddefconfig_args, env.as_ref())?;
     validate_kernel_config_policy(&fs::read_to_string(build.join(".config"))?, &policy)?;
-    let mut build_args = vec![output_arg.as_str(), "-j", "4"];
+    let mut build_args = vec![output_arg.as_str(), cross_compile.as_str(), "-j", "4"];
     build_args.extend(kernel_reproducible_args);
     build_args.push(kernel_cppflags_map.as_str());
     build_args.push(kernel_cflags_map.as_str());
@@ -191,6 +194,7 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     let modlib = format!("MODLIB={}", module_dir.display());
     let mut modules_install_args = vec![
         output_arg.as_str(),
+        cross_compile.as_str(),
         "modules_install",
         modlib.as_str(),
         "DEPMOD=true",
@@ -346,11 +350,28 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
         )
     }
 
+    if !cross_toolchain_bin(repo_root)
+        .join(format!("{TOOLCHAIN_TARGET}-gcc"))
+        .is_file()
+    {
+        bail!("glibc requires the MattOS pass-1 cross compiler; build cross-toolchain first")
+    }
     remove_path_if_exists(&output)?;
     remove_path_if_exists(&sysroot)?;
     fs::create_dir_all(&build)?;
     fs::create_dir_all(&install)?;
     fs::create_dir_all(&headers_root)?;
+    // glibc is compiled by the source-built pass-1 GCC.  It is configured as
+    // a cross build because pass 1 has no C library to link test programs
+    // against; BUILD_CC compiles only build-time helpers that never ship.
+    let (pass1_cc, pass1_cxx) = write_pass1_compiler_wrappers(repo_root)?;
+    let mut cross_path = vec![cross_toolchain_bin(repo_root)];
+    if let Some(host_path) = std::env::var_os("PATH") {
+        cross_path.extend(std::env::split_paths(&host_path));
+    }
+    let cross_path = std::env::join_paths(cross_path)?
+        .to_string_lossy()
+        .into_owned();
 
     let linux_source = output.join("linux-source");
     let linux_build = output.join("linux-build");
@@ -401,7 +422,9 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
         repo_root.display()
     );
     let configure_text = format!(
-        "CFLAGS='{}' {} \\\n+  --prefix=/usr \\\n+  --libdir=/usr/lib/x86_64-linux-gnu \\\n+  --libexecdir=/usr/libexec \\\n+  --build=x86_64-pc-linux-gnu \\\n+  --host=x86_64-pc-linux-gnu \\\n+  --enable-kernel={} \\\n+  --with-headers={} \\\n+  --without-selinux \\\n+  --disable-werror \\\n+  --disable-profile \\\n+  --disable-build-nscd \\\n+  --disable-nscd \\\n+  --enable-stack-protector=strong \\\n+  --enable-bind-now\n",
+        "CC='{}' CXX='{}' BUILD_CC=gcc CFLAGS='{}' {} \\\n+  --prefix=/usr \\\n+  --libdir=/usr/lib/x86_64-linux-gnu \\\n+  --libexecdir=/usr/libexec \\\n+  --build=x86_64-build-linux-gnu \\\n+  --host=x86_64-pc-linux-gnu \\\n+  --enable-kernel={} \\\n+  --with-headers={} \\\n+  --without-selinux \\\n+  --disable-werror \\\n+  --disable-profile \\\n+  --disable-build-nscd \\\n+  --disable-nscd \\\n+  --enable-stack-protector=strong \\\n+  --enable-bind-now\n",
+        pass1_cc.display(),
+        pass1_cxx.display(),
         glibc_cflags,
         configure.display(),
         GLIBC_MINIMUM_KERNEL,
@@ -422,7 +445,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
         "--prefix=/usr",
         "--libdir=/usr/lib/x86_64-linux-gnu",
         "--libexecdir=/usr/libexec",
-        "--build=x86_64-pc-linux-gnu",
+        "--build=x86_64-build-linux-gnu",
         "--host=x86_64-pc-linux-gnu",
         kernel_option.as_str(),
         headers_option.as_str(),
@@ -439,6 +462,10 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
         ("LC_ALL", "C".to_string()),
         ("TZ", "UTC".to_string()),
         ("CFLAGS", glibc_cflags),
+        ("CC", path_str(&pass1_cc)?.to_string()),
+        ("CXX", path_str(&pass1_cxx)?.to_string()),
+        ("BUILD_CC", "gcc".to_string()),
+        ("PATH", cross_path.clone()),
         ("libc_cv_slibdir", "/usr/lib/x86_64-linux-gnu".to_string()),
         ("libc_cv_rtlddir", "/lib64".to_string()),
     ];
@@ -449,6 +476,10 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     if !config_make.contains(&format!("sysheaders = {}", headers.display())) {
         bail!("glibc config.make does not select the controlled MattOS UAPI headers")
     }
+    let selected_cc = format!("CC = {}", pass1_cc.display());
+    if !config_make.lines().any(|line| line.trim() == selected_cc) {
+        bail!("glibc config.make does not select the MattOS pass-1 compiler")
+    }
     run_cmd_with_env_overrides(
         &build,
         "make",
@@ -457,6 +488,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
             ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
             ("LC_ALL", "C".to_string()),
             ("TZ", "UTC".to_string()),
+            ("PATH", cross_path.clone()),
         ],
     )
     .context("glibc build failed")?;
@@ -469,6 +501,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
             ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
             ("LC_ALL", "C".to_string()),
             ("TZ", "UTC".to_string()),
+            ("PATH", cross_path),
         ],
     )
     .context("glibc install failed")?;
@@ -691,6 +724,15 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
     {
         bail!("GCC runtime build requires the completed MattOS glibc sysroot")
     }
+    let cross_as = cross_binutil(repo_root, "as");
+    let cross_ld = cross_binutil(repo_root, "ld");
+    let prereq_install = repo_root
+        .join(CROSS_TOOLCHAIN_OUTPUT)
+        .join("prerequisite-install");
+    if !cross_as.is_file() || !cross_ld.is_file() || !prereq_install.join("lib/libgmp.a").is_file() {
+        bail!("GCC runtime build requires the MattOS cross-toolchain stage")
+    }
+    let toolchain_install = repo_root.join(TARGET_COMPILER_INSTALL);
 
     remove_path_if_exists(&output)?;
     fs::create_dir_all(&build)?;
@@ -703,7 +745,16 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
     let build_triplet = format!("--build={GCC_RUNTIME_TARGET}");
     let host_triplet = format!("--host={GCC_RUNTIME_TARGET}");
     let target_triplet = format!("--target={GCC_RUNTIME_TARGET}");
-    let configure_args = [
+    let with_as = format!("--with-as={}", cross_as.display());
+    let with_ld = format!("--with-ld={}", cross_ld.display());
+    let with_gmp = format!("--with-gmp={}", prereq_install.display());
+    let with_mpfr = format!("--with-mpfr={}", prereq_install.display());
+    let with_mpc = format!("--with-mpc={}", prereq_install.display());
+    // One build yields both the shipped runtime libraries and the complete
+    // host-running MattOS compiler that later stages use (installed to
+    // `TARGET_COMPILER_INSTALL`).  The compiler proper is built by the host
+    // compiler; libgcc, libstdc++, and libgomp are built by that new GCC.
+    let mut configure_args = vec![
         "--prefix=/usr",
         "--libdir=/usr/lib/x86_64-linux-gnu",
         "--libexecdir=/usr/libexec",
@@ -713,11 +764,14 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
         target_triplet.as_str(),
         sysroot_option.as_str(),
         build_sysroot_option.as_str(),
+        with_as.as_str(),
+        with_ld.as_str(),
+        with_gmp.as_str(),
+        with_mpfr.as_str(),
+        with_mpc.as_str(),
         "--enable-languages=c,c++",
+        "--enable-lto",
         "--disable-bootstrap",
-        "--disable-multilib",
-        "--disable-nls",
-        "--disable-werror",
         "--disable-checking",
         "--disable-analyzer",
         "--enable-shared",
@@ -728,17 +782,19 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
         "--disable-libatomic",
         "--disable-libvtv",
         "--disable-libcc1",
-        "--disable-lto",
         "--disable-plugin",
         "--disable-libstdcxx-pch",
-        "--without-isl",
-        "--with-system-zlib",
     ];
+    configure_args.extend_from_slice(MATTOS_GCC_DEFAULTS);
     let prefix_map = format!(
         "-O2 -g0 -ffile-prefix-map={}=/usr/src/mattos/gcc -fdebug-prefix-map={}=/usr/src/mattos/gcc",
         repo_root.display(),
         repo_root.display()
     );
+    let mut path = vec![cross_toolchain_bin(repo_root)];
+    if let Some(host_path) = std::env::var_os("PATH") {
+        path.extend(std::env::split_paths(&host_path));
+    }
     let env = [
         ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
         ("LC_ALL", "C".to_string()),
@@ -746,17 +802,30 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
         ("CFLAGS_FOR_TARGET", prefix_map.clone()),
         ("CXXFLAGS_FOR_TARGET", prefix_map),
         ("LDFLAGS_FOR_TARGET", "-Wl,-z,relro -Wl,-z,now".to_string()),
+        ("PATH", std::env::join_paths(path)?.to_string_lossy().into_owned()),
+        ("CC", "gcc".to_string()),
+        ("CXX", "g++".to_string()),
+        ("CFLAGS", "-O2 -g0".to_string()),
+        ("CXXFLAGS", "-O2 -g0".to_string()),
+    ];
+    let runtime_targets = [
+        "install-target-libgcc",
+        "install-target-libstdc++-v3",
+        "install-target-libgomp",
     ];
     fs::write(
         output.join("configure-invocation.txt"),
         format!(
-            "SOURCE_DATE_EPOCH={} LC_ALL=C TZ=UTC CFLAGS_FOR_TARGET='{}' CXXFLAGS_FOR_TARGET='{}' LDFLAGS_FOR_TARGET='-Wl,-z,relro -Wl,-z,now' {} {}\nmake all-target-libgcc all-target-libstdc++-v3 all-target-libgomp\nmake DESTDIR={} install-target-libgcc install-target-libstdc++-v3 install-target-libgomp\n",
+            "SOURCE_DATE_EPOCH={} LC_ALL=C TZ=UTC CC=gcc CXX=g++ CFLAGS_FOR_TARGET='{}' CXXFLAGS_FOR_TARGET='{}' LDFLAGS_FOR_TARGET='-Wl,-z,relro -Wl,-z,now' {} {}\nmake all-gcc all-lto-plugin all-target-libgcc all-target-libstdc++-v3 all-target-libgomp\nmake DESTDIR={} {}\nmake DESTDIR={} install-gcc install-lto-plugin {}\n",
             MATTOS_SOURCE_DATE_EPOCH,
             env[3].1,
             env[4].1,
             configure.display(),
             configure_args.join(" "),
-            raw_install.display()
+            raw_install.display(),
+            runtime_targets.join(" "),
+            toolchain_install.display(),
+            runtime_targets.join(" "),
         ),
     )?;
     run_gcc_bootstrap_command(&build, &configure, &configure_args, &env)
@@ -764,7 +833,13 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
     run_gcc_bootstrap_command(
         &build,
         Path::new("make"),
-        &["all-target-libgcc", "all-target-libstdc++-v3", "all-target-libgomp"],
+        &[
+            "all-gcc",
+            "all-lto-plugin",
+            "all-target-libgcc",
+            "all-target-libstdc++-v3",
+            "all-target-libgomp",
+        ],
         &env,
     )
     .context("GCC runtime build failed")?;
@@ -781,6 +856,12 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
         &env,
     )
     .context("GCC runtime install failed")?;
+    remove_path_if_exists(&toolchain_install)?;
+    let toolchain_destdir = format!("DESTDIR={}", toolchain_install.display());
+    let mut toolchain_targets = vec![toolchain_destdir.as_str(), "install-gcc", "install-lto-plugin"];
+    toolchain_targets.extend(runtime_targets);
+    run_gcc_bootstrap_command(&build, Path::new("make"), &toolchain_targets, &env)
+        .context("MattOS target compiler install failed")?;
 
     let libgcc = find_unique_file_named(&raw_install, "libgcc_s.so.1")?;
     let libstdcxx = find_unique_file_named(&raw_install, GCC_RUNTIME_LIBSTDCXX_ABI)?;
@@ -862,16 +943,15 @@ fn build_gcc_runtime(repo_root: &Path) -> Result<()> {
         &validation_source,
         "#include <iostream>\n#include <stdexcept>\n#include <string>\nint main() { try { throw std::runtime_error(std::string(\"mattos\")); } catch (const std::exception &e) { std::cout << \"caught:\" << e.what() << '\\n'; return 0; } return 1; }\n",
     )?;
-    let sysroot_flag = format!("--sysroot={}", sysroot.display());
+    let toolchain = require_mattos_target_toolchain(repo_root)?;
     let library_flag = format!("-L{}", runtime.display());
     let rpath_link = format!("-Wl,-rpath-link,{}", runtime.display());
     let validation_source_arg = path_str(&validation_source)?;
     let validation_binary_arg = path_str(&validation_binary)?;
     run_gcc_bootstrap_command(
         repo_root,
-        Path::new("g++"),
+        &toolchain.tool("g++"),
         &[
-            sysroot_flag.as_str(),
             library_flag.as_str(),
             rpath_link.as_str(),
             "-Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2",
@@ -928,55 +1008,208 @@ fn write_executable_script(path: &Path, body: &str) -> Result<()> {
     Ok(())
 }
 
-fn write_sysroot_compiler_wrappers(
-    repo_root: &Path,
-    directory: &Path,
-    binutils: &Path,
-) -> Result<(PathBuf, PathBuf)> {
-    let sysroot = repo_root.join("out/sysroot");
-    let map = format!(
-        "-O2 -g0 -ffile-prefix-map={}=/usr/src/mattos -fdebug-prefix-map={}=/usr/src/mattos",
-        repo_root.display(),
-        repo_root.display()
-    );
-    let gcc = directory.join(format!("{TOOLCHAIN_TARGET}-gcc"));
-    let gxx = directory.join(format!("{TOOLCHAIN_TARGET}-g++"));
-    let target_lib = sysroot.join("usr/lib/x86_64-linux-gnu");
-    let target_gcc = target_lib
-        .join("gcc")
-        .join(TOOLCHAIN_TARGET)
-        .join(GCC_TOOLCHAIN_VERSION);
-    let common = format!(
-        "--sysroot={} -B{}/ -B{}/ -B{}/ -L{} {}",
-        shell_escape(path_str(&sysroot)?),
-        shell_escape(path_str(binutils)?),
-        shell_escape(path_str(&target_gcc)?),
-        shell_escape(path_str(&target_lib)?),
-        shell_escape(path_str(&target_lib)?),
-        map
-    );
-    write_executable_script(
-        &gcc,
-        &format!("#!/bin/sh\nexec /usr/bin/gcc {common} \"$@\"\n"),
-    )?;
-    write_executable_script(
-        &gxx,
-        &format!("#!/bin/sh\nexec /usr/bin/g++ {common} \"$@\"\n"),
-    )?;
-    Ok((gcc, gxx))
+// MattOS target code is compiled only by source-built GCC and Binutils.  The
+// host compiler is a stage-0 input used for exactly three things: building
+// the cross toolchain below, building the host-running compiler proper in the
+// gcc-runtime stage, and compiling build-machine helpers (`*_FOR_BUILD`,
+// `BUILD_CC`, `HOSTCC`) that execute during a build and are never installed.
+
+/// Stage-0 cross toolchain: MattOS Binutils and a libc-less pass-1 GCC, both
+/// host-running and targeting MattOS, used to compile glibc.
+const CROSS_TOOLCHAIN_OUTPUT: &str = "out/build/cross-toolchain";
+/// Relocatable install of the complete MattOS-built GCC produced by the
+/// gcc-runtime stage.  Every later target build compiles through it.
+const TARGET_COMPILER_INSTALL: &str = "out/build/gcc-runtime/toolchain";
+/// Wrapper directories derived only from the fixed paths above.
+const TARGET_TOOL_WRAPPERS: &str = "out/toolchain/bin";
+const CROSS_BINUTILS_TOOLS: &[&str] = &[
+    "addr2line", "ar", "as", "c++filt", "elfedit", "ld", "ld.bfd", "nm", "objcopy", "objdump",
+    "ranlib", "readelf", "size", "strings", "strip",
+];
+/// Multiarch directories resolved inside the configured sysroot (`=`), so the
+/// cross linker finds MattOS libraries and their DT_NEEDED dependencies.
+const CROSS_LINKER_LIB_PATH: &str =
+    "=/usr/lib/x86_64-linux-gnu:=/lib/x86_64-linux-gnu:=/usr/lib:=/lib";
+
+/// MattOS was previously compiled and validated with the Ubuntu host GCC,
+/// whose distribution-patched defaults enable hardening that upstream GCC
+/// leaves off.  Reproduce those defaults for userland target code as a specs
+/// overlay (each clause yields to an explicit caller option) so that moving to
+/// the source-built compiler does not silently weaken shipped binaries.  Like
+/// Ubuntu's `distro_defaults`, the clauses live in the preprocessor options so
+/// feature probes (`-E -dM`, e.g. glibc's `__CET__` check) see what
+/// compilation will do.
+/// PIE, build IDs, and GNU hash style are configured into GCC directly.
+const MATTOS_HARDENING_SPECS: &str = "\
+*cpp_unique_options:
++ %{!fno-stack-protector:%{!fstack-protector-explicit:%{!fstack-protector-all:%{!ffreestanding:%{!nostdlib:%{!fstack-protector:%{!fstack-protector-strong:-fstack-protector-strong}}}}}}} %{!Wformat:%{!Wformat=2:%{!Wformat=0:%{!Wall:-Wformat} %{!Wno-format-security:-Wformat-security}}}} %{!fno-stack-clash-protection:-fstack-clash-protection} %{!m16:%{!m32:%{!fcf-protection*:%{!fno-cf-protection:-fcf-protection}}}} %{!fzero-init-padding-bits*:-fzero-init-padding-bits=all} %{!Wno-bidi-chars:%{!Wbidi-chars*:-Wbidi-chars=any}} %{!O0:%{O*:%{!D_FORTIFY_SOURCE:%{!D_FORTIFY_SOURCE=*:%{!U_FORTIFY_SOURCE:-D_FORTIFY_SOURCE=3}}}}}
+
+*link:
++ %{!fsanitize=*:--as-needed} %{!r:-z relro} %{static|shared|r|no-pie:;:-z now}
+
+";
+
+/// GCC configuration shared by the pass-1 and final compilers so both apply
+/// the same code-generation and link defaults.
+const MATTOS_GCC_DEFAULTS: &[&str] = &[
+    "--enable-default-pie",
+    "--enable-cet",
+    "--enable-linker-build-id",
+    "--with-linker-hash-style=gnu",
+    "--disable-multilib",
+    "--disable-nls",
+    "--disable-werror",
+    "--without-isl",
+    "--without-zstd",
+];
+
+fn cross_toolchain_bin(repo_root: &Path) -> PathBuf {
+    repo_root.join(CROSS_TOOLCHAIN_OUTPUT).join("install/bin")
 }
 
-fn toolchain_environment(
-    cc: &Path,
-    cxx: &Path,
-    binutils: &Path,
-) -> Result<Vec<(&'static str, String)>> {
-    let tool = |name: &str| path_str(&binutils.join(name)).map(str::to_string);
-    let mut paths = vec![
-        cc.parent()
-            .context("toolchain compiler wrapper has no parent directory")?
-            .to_path_buf(),
-    ];
+fn cross_binutil(repo_root: &Path, tool: &str) -> PathBuf {
+    cross_toolchain_bin(repo_root).join(format!("{TOOLCHAIN_TARGET}-{tool}"))
+}
+
+fn hardening_specs_path(repo_root: &Path) -> PathBuf {
+    repo_root
+        .join(CROSS_TOOLCHAIN_OUTPUT)
+        .join("mattos-hardening.specs")
+}
+
+fn target_compiler_driver(repo_root: &Path, driver: &str) -> PathBuf {
+    repo_root
+        .join(TARGET_COMPILER_INSTALL)
+        .join("usr/bin")
+        .join(driver)
+}
+
+fn write_script_if_changed(path: &Path, body: &str) -> Result<()> {
+    if fs::read_to_string(path).ok().as_deref() != Some(body) {
+        write_executable_script(path, body)?;
+    }
+    Ok(())
+}
+
+fn link_binutils(repo_root: &Path, directory: &Path) -> Result<()> {
+    for tool in CROSS_BINUTILS_TOOLS {
+        let target = cross_binutil(repo_root, tool);
+        if !target.is_file() {
+            continue;
+        }
+        for name in [format!("{TOOLCHAIN_TARGET}-{tool}"), (*tool).to_string()] {
+            let link = directory.join(name);
+            if fs::read_link(&link).ok().as_deref() != Some(target.as_path()) {
+                remove_path_if_exists(&link)?;
+                std::os::unix::fs::symlink(&target, &link)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Userland C/C++ wrappers around a MattOS-built compiler driver: MattOS
+/// sysroot, multiarch start files and libraries, and the hardening defaults.
+fn userland_compiler_script(repo_root: &Path, driver: &Path) -> Result<String> {
+    let sysroot = repo_root.join("out/sysroot");
+    let multiarch = sysroot.join("usr/lib/x86_64-linux-gnu");
+    Ok(format!(
+        "#!/bin/sh\n# MattOS target compiler: source-built GCC and Binutils.\nexec {} -specs={} --sysroot={} -B{}/ -L{} {} \"$@\"\n",
+        shell_escape(path_str(driver)?),
+        shell_escape(path_str(&hardening_specs_path(repo_root))?),
+        shell_escape(path_str(&sysroot)?),
+        shell_escape(path_str(&multiarch)?),
+        shell_escape(path_str(&multiarch)?),
+        // Callers' later, more specific maps take precedence.
+        shell_escape(&format!("-ffile-prefix-map={}=/usr/src/mattos", path_str(repo_root)?)),
+    ))
+}
+
+/// Pass-1 wrappers used only to compile glibc (see `build_glibc`).
+fn write_pass1_compiler_wrappers(repo_root: &Path) -> Result<(PathBuf, PathBuf)> {
+    let directory = repo_root.join(CROSS_TOOLCHAIN_OUTPUT).join("pass1-bin");
+    fs::create_dir_all(&directory)?;
+    let mut wrappers = Vec::new();
+    for driver in ["gcc", "g++"] {
+        let raw = cross_toolchain_bin(repo_root).join(format!("{TOOLCHAIN_TARGET}-{driver}"));
+        let wrapper = directory.join(format!("{TOOLCHAIN_TARGET}-{driver}"));
+        write_script_if_changed(&wrapper, &userland_compiler_script(repo_root, &raw)?)?;
+        wrappers.push(wrapper);
+    }
+    Ok((wrappers[0].clone(), wrappers[1].clone()))
+}
+
+/// Kbuild `CROSS_COMPILE` prefix for the kernel and its out-of-tree modules:
+/// the libc-independent MattOS pass-1 GCC and MattOS Binutils.  The kernel
+/// selects all of its own code-generation flags, so no userland defaults or
+/// sysroot apply, and a glibc change never forces a kernel rebuild.
+fn kernel_cross_compile(repo_root: &Path) -> Result<String> {
+    let bin = cross_toolchain_bin(repo_root);
+    if !bin.join(format!("{TOOLCHAIN_TARGET}-gcc")).is_file() {
+        bail!("the MattOS kernel compiler is missing; build the cross-toolchain stage first")
+    }
+    Ok(format!("{}/{TOOLCHAIN_TARGET}-", bin.display()))
+}
+
+/// The MattOS userland target toolchain as seen by later build stages.
+#[derive(Debug, Clone)]
+struct TargetToolchain {
+    /// Userland wrappers (`gcc`, `cc`, `g++`, `c++`, `cpp`, triplet-prefixed
+    /// forms, and MattOS Binutils) placed first on a build's PATH.
+    bin: PathBuf,
+}
+
+impl TargetToolchain {
+    fn tool(&self, name: &str) -> PathBuf {
+        self.bin.join(name)
+    }
+}
+
+/// Returns the MattOS target toolchain once the gcc-runtime stage has
+/// installed it, creating its stable wrapper directories on first use.
+fn mattos_target_toolchain(repo_root: &Path) -> Result<Option<TargetToolchain>> {
+    let gcc = target_compiler_driver(repo_root, "gcc");
+    if !gcc.is_file()
+        || !cross_binutil(repo_root, "ld").is_file()
+        || !hardening_specs_path(repo_root).is_file()
+    {
+        return Ok(None);
+    }
+    let bin = repo_root.join(TARGET_TOOL_WRAPPERS);
+    fs::create_dir_all(&bin)?;
+    for (driver, names) in [
+        ("gcc", &["gcc", "cc"][..]),
+        ("g++", &["g++", "c++"][..]),
+        ("cpp", &["cpp"][..]),
+    ] {
+        let raw = target_compiler_driver(repo_root, driver);
+        let script = userland_compiler_script(repo_root, &raw)?;
+        for name in names {
+            write_script_if_changed(&bin.join(name), &script)?;
+            write_script_if_changed(&bin.join(format!("{TOOLCHAIN_TARGET}-{name}")), &script)?;
+        }
+    }
+    for tool in ["gcc-ar", "gcc-nm", "gcc-ranlib"] {
+        let raw = target_compiler_driver(repo_root, tool);
+        write_script_if_changed(
+            &bin.join(tool),
+            &format!("#!/bin/sh\nexec {} \"$@\"\n", shell_escape(path_str(&raw)?)),
+        )?;
+    }
+    link_binutils(repo_root, &bin)?;
+    Ok(Some(TargetToolchain { bin }))
+}
+
+fn require_mattos_target_toolchain(repo_root: &Path) -> Result<TargetToolchain> {
+    mattos_target_toolchain(repo_root)?.context(
+        "the MattOS-built target compiler is missing; build the cross-toolchain and gcc-runtime stages first",
+    )
+}
+
+/// Environment for autotools-style builds whose host is MattOS.
+fn toolchain_environment(toolchain: &TargetToolchain) -> Result<Vec<(&'static str, String)>> {
+    let tool = |name: &str| path_str(&toolchain.tool(name)).map(str::to_string);
+    let mut paths = vec![toolchain.bin.clone()];
     if let Some(host_path) = std::env::var_os("PATH") {
         paths.extend(std::env::split_paths(&host_path));
     }
@@ -988,60 +1221,99 @@ fn toolchain_environment(
             "PATH",
             std::env::join_paths(paths)?.to_string_lossy().into_owned(),
         ),
-        ("CC", path_str(cc)?.to_string()),
-        ("CXX", path_str(cxx)?.to_string()),
+        ("CC", tool(&format!("{TOOLCHAIN_TARGET}-gcc"))?),
+        ("CXX", tool(&format!("{TOOLCHAIN_TARGET}-g++"))?),
         ("AR", tool("ar")?),
         ("AS", tool("as")?),
         ("LD", tool("ld")?),
         ("NM", tool("nm")?),
         ("RANLIB", tool("ranlib")?),
         ("STRIP", tool("strip")?),
-        ("CC_FOR_BUILD", "/usr/bin/gcc".to_string()),
-        ("CXX_FOR_BUILD", "/usr/bin/g++".to_string()),
+        // Build-machine helpers run during the build and are never shipped.
+        ("CC_FOR_BUILD", "gcc".to_string()),
+        ("CXX_FOR_BUILD", "g++".to_string()),
     ])
 }
 
-fn build_binutils(repo_root: &Path) -> Result<()> {
-    let imported_source = repo_root.join("src/toolchain/binutils");
-    let output = repo_root.join("out/build/binutils");
-    let source = output.join("source");
-    let cross_build = output.join("cross-build");
-    let cross_install = output.join("cross-install");
-    let native_build = output.join("native-build");
-    let native_install = output.join("install");
-    let wrapper_dir = output.join("bootstrap-bin");
-    if !imported_source.join("configure").is_file() {
-        bail!(
-            "Binutils source is missing at {}",
-            imported_source.display()
-        )
-    }
-    if !repo_root.join("out/sysroot/usr/include/stdio.h").is_file() {
-        bail!("Binutils requires the completed MattOS development sysroot")
-    }
-    let sysroff_info = ensure_binutils_sysroff_info(repo_root)?;
-    remove_path_if_exists(&output)?;
-    copy_imported_working_tree(repo_root, Path::new("src/toolchain/binutils"), &source)?;
-    fs::copy(&sysroff_info, source.join("binutils/sysroff.info")).with_context(|| {
-        format!(
-            "failed to stage {} into output-owned Binutils source mirror",
-            sysroff_info.display()
-        )
-    })?;
-    for directory in [&cross_build, &cross_install, &native_build, &native_install] {
-        fs::create_dir_all(directory)?;
-    }
+/// glibc release the pass-1 compiler is configured for, so it selects the
+/// glibc TLS stack-protector guard and other libc-provided features.
+const CROSS_TOOLCHAIN_GLIBC_VERSION: &str = "2.43";
 
-    let configure = source.join("configure");
+fn verify_cross_toolchain_glibc_version(repo_root: &Path) -> Result<()> {
+    let version_h = fs::read_to_string(repo_root.join("src/system/libc/glibc/version.h"))
+        .context("failed to read the imported glibc version")?;
+    let expected = format!("#define VERSION \"{CROSS_TOOLCHAIN_GLIBC_VERSION}\"");
+    if !version_h.lines().any(|line| line.trim() == expected) {
+        bail!(
+            "pass-1 GCC is configured for glibc {CROSS_TOOLCHAIN_GLIBC_VERSION}, but the imported glibc version differs; update CROSS_TOOLCHAIN_GLIBC_VERSION"
+        )
+    }
+    Ok(())
+}
+
+/// Builds the stage-0 cross toolchain with the host compiler: MattOS Binutils
+/// and a libc-less pass-1 GCC targeting MattOS with `out/sysroot` as its
+/// system root.  Nothing produced here is installed into MattOS; pass 1 exists
+/// only to compile glibc, and the Binutils are reused by every later stage.
+fn build_cross_toolchain(repo_root: &Path) -> Result<()> {
+    let output = repo_root.join(CROSS_TOOLCHAIN_OUTPUT);
+    let install = output.join("install");
+    let prereq_install = output.join("prerequisite-install");
     let sysroot = repo_root.join("out/sysroot");
+    if !repo_root.join("src/toolchain/gcc/configure").is_file() {
+        bail!("GCC source is missing; import the pinned GCC component first")
+    }
+    verify_cross_toolchain_glibc_version(repo_root)?;
+    remove_path_if_exists(&output)?;
+    fs::create_dir_all(&install)?;
+    fs::create_dir_all(&prereq_install)?;
+
+    let mut path = vec![install.join("bin")];
+    if let Some(host_path) = std::env::var_os("PATH") {
+        path.extend(std::env::split_paths(&host_path));
+    }
+    let host_env = vec![
+        ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
+        ("LC_ALL", "C".to_string()),
+        ("TZ", "UTC".to_string()),
+        ("PATH", std::env::join_paths(path)?.to_string_lossy().into_owned()),
+        ("CC", "gcc".to_string()),
+        ("CXX", "g++".to_string()),
+        ("CFLAGS", "-O2 -g0".to_string()),
+        ("CXXFLAGS", "-O2 -g0".to_string()),
+    ];
+    let prefix = format!("--prefix={}", install.display());
     let sysroot_arg = format!("--with-sysroot={}", sysroot.display());
-    let cross_prefix = format!("--prefix={}", cross_install.join("usr").display());
-    let cross_args = [
-        cross_prefix.as_str(),
-        "--build=x86_64-pc-linux-gnu",
-        "--host=x86_64-pc-linux-gnu",
-        "--target=x86_64-pc-linux-gnu",
+    let build_triplet = format!("--build={TOOLCHAIN_BUILD}");
+    let host_triplet = format!("--host={TOOLCHAIN_BUILD}");
+    let target_triplet = format!("--target={TOOLCHAIN_TARGET}");
+
+    let binutils_source = output.join("binutils-source");
+    let binutils_build = output.join("binutils-build");
+    stage_binutils_source(repo_root, &binutils_source)?;
+    fs::create_dir_all(&binutils_build)?;
+    let lib_path = format!("--with-lib-path={CROSS_LINKER_LIB_PATH}");
+    // Binutils are configured with host == target so ld runs in native mode
+    // inside the sysroot: like the distribution linker MattOS was previously
+    // built with, it resolves DT_NEEDED dependencies through DT_RUNPATH/
+    // DT_RPATH, LD_LIBRARY_PATH, and `$sysroot/etc/ld.so.conf`.  A cross-mode
+    // ld skips those searches and breaks links (e.g. libgcrypt's tests) that
+    // rely on them.  The program prefix keeps the triplet-qualified names.
+    let native_build = format!("--build={TOOLCHAIN_TARGET}");
+    let native_host = format!("--host={TOOLCHAIN_TARGET}");
+    let program_prefix = format!("--program-prefix={TOOLCHAIN_TARGET}-");
+    let binutils_args = [
+        prefix.as_str(),
+        native_build.as_str(),
+        native_host.as_str(),
+        target_triplet.as_str(),
+        program_prefix.as_str(),
         sysroot_arg.as_str(),
+        lib_path.as_str(),
+        // Emit DT_RUNPATH, not DT_RPATH, like Debian/Ubuntu binutils: an
+        // RPATH cannot be overridden by LD_LIBRARY_PATH and resolves before
+        // the loader's --library-path used by rootfs validation.
+        "--enable-new-dtags",
         "--disable-nls",
         "--disable-werror",
         "--disable-gdb",
@@ -1052,32 +1324,190 @@ fn build_binutils(repo_root: &Path) -> Result<()> {
         "--without-zstd",
         "--enable-deterministic-archives",
     ];
-    let reproducible_env = [
-        ("SOURCE_DATE_EPOCH", MATTOS_SOURCE_DATE_EPOCH.to_string()),
-        ("LC_ALL", "C".to_string()),
-        ("TZ", "UTC".to_string()),
-        ("CFLAGS", "-O2 -g0".to_string()),
-        ("CXXFLAGS", "-O2 -g0".to_string()),
-    ];
-    run_gcc_bootstrap_command(&cross_build, &configure, &cross_args, &reproducible_env)
-        .context("Binutils bootstrap configure failed")?;
+    let binutils_configure = binutils_source.join("configure");
+    run_gcc_bootstrap_command(&binutils_build, &binutils_configure, &binutils_args, &host_env)
+        .context("MattOS cross Binutils configure failed")?;
     run_gcc_bootstrap_command(
-        &cross_build,
+        &binutils_build,
         Path::new("make"),
-        &["-j", "4", "all-binutils", "all-gas", "all-ld"],
-        &reproducible_env,
+        &["all-binutils", "all-gas", "all-ld"],
+        &host_env,
     )
-    .context("Binutils bootstrap build failed")?;
+    .context("MattOS cross Binutils build failed")?;
     run_gcc_bootstrap_command(
-        &cross_build,
+        &binutils_build,
         Path::new("make"),
         &["install-binutils", "install-gas", "install-ld"],
-        &reproducible_env,
+        &host_env,
+    )?;
+    for tool in ["as", "ld", "ar", "nm", "ranlib", "objcopy", "objdump", "readelf", "strip"] {
+        if !cross_binutil(repo_root, tool).is_file() {
+            bail!("MattOS cross Binutils did not install {TOOLCHAIN_TARGET}-{tool}")
+        }
+    }
+
+    // GCC's arithmetic prerequisites are linked statically into the
+    // host-running compilers only; they are never MattOS runtimes.
+    let prereq_sources = prepare_gcc_prerequisite_sources(repo_root, &output)?;
+    // The pinned GMP/MPFR/MPC configure probes predate C23 prototypes.
+    let mut prereq_env = host_env.clone();
+    prereq_env.extend([
+        ("CFLAGS", "-O2 -g0 -std=gnu17".to_string()),
+        ("CXXFLAGS", "-O2 -g0 -std=gnu++17".to_string()),
+    ]);
+    let with_gmp = format!("--with-gmp={}", prereq_install.display());
+    let with_mpfr = format!("--with-mpfr={}", prereq_install.display());
+    let with_mpc = format!("--with-mpc={}", prereq_install.display());
+    build_static_prerequisite(
+        &prereq_sources.join("gmp-6.2.1"),
+        &output.join("prerequisite-build/gmp"),
+        &prereq_install,
+        TOOLCHAIN_BUILD,
+        &[],
+        &prereq_env,
+    )?;
+    build_static_prerequisite(
+        &prereq_sources.join("mpfr-4.1.0"),
+        &output.join("prerequisite-build/mpfr"),
+        &prereq_install,
+        TOOLCHAIN_BUILD,
+        std::slice::from_ref(&with_gmp),
+        &prereq_env,
+    )?;
+    build_static_prerequisite(
+        &prereq_sources.join("mpc-1.2.1"),
+        &output.join("prerequisite-build/mpc"),
+        &prereq_install,
+        TOOLCHAIN_BUILD,
+        &[with_gmp.clone(), with_mpfr.clone()],
+        &prereq_env,
     )?;
 
-    let cross_bin = cross_install.join("usr/bin");
-    let (cc, cxx) = write_sysroot_compiler_wrappers(repo_root, &wrapper_dir, &cross_bin)?;
-    let native_env = toolchain_environment(&cc, &cxx, &cross_bin)?;
+    let pass1_build = output.join("gcc-pass1-build");
+    fs::create_dir_all(&pass1_build)?;
+    let glibc_version = format!("--with-glibc-version={CROSS_TOOLCHAIN_GLIBC_VERSION}");
+    let mut pass1_args = vec![
+        prefix.as_str(),
+        build_triplet.as_str(),
+        host_triplet.as_str(),
+        target_triplet.as_str(),
+        sysroot_arg.as_str(),
+        glibc_version.as_str(),
+        "--with-newlib",
+        "--without-headers",
+        with_gmp.as_str(),
+        with_mpfr.as_str(),
+        with_mpc.as_str(),
+        "--enable-languages=c,c++",
+        "--disable-bootstrap",
+        "--disable-shared",
+        "--disable-threads",
+        "--disable-libatomic",
+        "--disable-libgomp",
+        "--disable-libquadmath",
+        "--disable-libssp",
+        "--disable-libvtv",
+        "--disable-libstdcxx",
+        "--disable-libsanitizer",
+        "--disable-libcc1",
+        "--disable-lto",
+        "--disable-plugin",
+        "--disable-analyzer",
+    ];
+    pass1_args.extend_from_slice(MATTOS_GCC_DEFAULTS);
+    let target_prefix_map = format!(
+        "-O2 -g0 -ffile-prefix-map={}=/usr/src/mattos/gcc -fdebug-prefix-map={}=/usr/src/mattos/gcc",
+        repo_root.display(),
+        repo_root.display()
+    );
+    let mut pass1_env = host_env.clone();
+    pass1_env.extend([
+        ("CFLAGS_FOR_TARGET", target_prefix_map.clone()),
+        ("CXXFLAGS_FOR_TARGET", target_prefix_map),
+    ]);
+    let gcc_configure = repo_root.join("src/toolchain/gcc/configure");
+    run_gcc_bootstrap_command(&pass1_build, &gcc_configure, &pass1_args, &pass1_env)
+        .context("MattOS pass-1 GCC configure failed")?;
+    run_gcc_bootstrap_command(
+        &pass1_build,
+        Path::new("make"),
+        &["all-gcc", "all-target-libgcc"],
+        &pass1_env,
+    )
+    .context("MattOS pass-1 GCC build failed")?;
+    run_gcc_bootstrap_command(
+        &pass1_build,
+        Path::new("make"),
+        &["install-gcc", "install-target-libgcc"],
+        &pass1_env,
+    )?;
+    fs::write(hardening_specs_path(repo_root), MATTOS_HARDENING_SPECS)?;
+
+    // Prove pass 1 targets MattOS with its own assembler and the specs parse.
+    let probe_source = output.join("pass1-probe.c");
+    let probe_object = output.join("pass1-probe.o");
+    fs::write(&probe_source, "int mattos_pass1_probe(int value) { return value + 1; }\n")?;
+    let specs = format!("-specs={}", hardening_specs_path(repo_root).display());
+    run_gcc_bootstrap_command(
+        &output,
+        &install.join(format!("bin/{TOOLCHAIN_TARGET}-gcc")),
+        &[
+            specs.as_str(),
+            "-O2",
+            "-ffreestanding",
+            "-c",
+            path_str(&probe_source)?,
+            "-o",
+            path_str(&probe_object)?,
+        ],
+        &pass1_env,
+    )
+    .context("MattOS pass-1 GCC could not compile a probe object")?;
+    let header = Command::new(cross_binutil(repo_root, "readelf"))
+        .arg("-h")
+        .arg(&probe_object)
+        .output()?;
+    if !String::from_utf8_lossy(&header.stdout).contains("Advanced Micro Devices X86-64") {
+        bail!("MattOS pass-1 GCC did not produce an x86-64 ELF object")
+    }
+    fs::write(
+        output.join("configure-invocation.txt"),
+        format!(
+            "binutils: {} {}\ngcc-pass1: {} {}\nmake all-gcc all-target-libgcc\n",
+            binutils_configure.display(),
+            binutils_args.join(" "),
+            gcc_configure.display(),
+            pass1_args.join(" "),
+        ),
+    )?;
+    println!("built MattOS cross Binutils and pass-1 GCC for {TOOLCHAIN_TARGET}");
+    Ok(())
+}
+
+fn build_binutils(repo_root: &Path) -> Result<()> {
+    let imported_source = repo_root.join("src/toolchain/binutils");
+    let output = repo_root.join("out/build/binutils");
+    let source = output.join("source");
+    let native_build = output.join("native-build");
+    let native_install = output.join("install");
+    if !imported_source.join("configure").is_file() {
+        bail!(
+            "Binutils source is missing at {}",
+            imported_source.display()
+        )
+    }
+    if !repo_root.join("out/sysroot/usr/include/stdio.h").is_file() {
+        bail!("Binutils requires the completed MattOS development sysroot")
+    }
+    let toolchain = require_mattos_target_toolchain(repo_root)?;
+    remove_path_if_exists(&output)?;
+    stage_binutils_source(repo_root, &source)?;
+    for directory in [&native_build, &native_install] {
+        fs::create_dir_all(directory)?;
+    }
+
+    let configure = source.join("configure");
+    let native_env = toolchain_environment(&toolchain)?;
     let native_args = [
         "--prefix=/usr",
         "--libdir=/usr/lib/x86_64-linux-gnu",
@@ -1141,16 +1571,28 @@ fn build_binutils(repo_root: &Path) -> Result<()> {
     fs::write(
         output.join("configure-invocation.txt"),
         format!(
-            "bootstrap: {} {}\nnative: CC={} CXX={} {} {}\n",
-            configure.display(),
-            cross_args.join(" "),
-            cc.display(),
-            cxx.display(),
+            "native: CC={} CXX={} {} {}\n",
+            toolchain.tool(&format!("{TOOLCHAIN_TARGET}-gcc")).display(),
+            toolchain.tool(&format!("{TOOLCHAIN_TARGET}-g++")).display(),
             configure.display(),
             native_args.join(" ")
         ),
     )?;
     println!("built source-native Binutils for {TOOLCHAIN_TARGET}");
+    Ok(())
+}
+
+/// Output-owned Binutils source mirror including the pinned generated manual
+/// that the imported tree omits.
+fn stage_binutils_source(repo_root: &Path, source: &Path) -> Result<()> {
+    let sysroff_info = ensure_binutils_sysroff_info(repo_root)?;
+    copy_imported_working_tree(repo_root, Path::new("src/toolchain/binutils"), source)?;
+    fs::copy(&sysroff_info, source.join("binutils/sysroff.info")).with_context(|| {
+        format!(
+            "failed to stage {} into output-owned Binutils source mirror",
+            sysroff_info.display()
+        )
+    })?;
     Ok(())
 }
 
@@ -1252,6 +1694,7 @@ fn build_static_prerequisite(
     source: &Path,
     build: &Path,
     install: &Path,
+    host: &str,
     configure_extra: &[String],
     env: &[(&str, String)],
 ) -> Result<()> {
@@ -1260,7 +1703,7 @@ fn build_static_prerequisite(
     let mut owned_args = vec![
         prefix,
         format!("--build={TOOLCHAIN_BUILD}"),
-        format!("--host={TOOLCHAIN_TARGET}"),
+        format!("--host={host}"),
         "--disable-shared".to_string(),
         "--enable-static".to_string(),
     ];
@@ -1300,13 +1743,10 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     let prereq_install = output.join("prerequisite-install");
     performance::trace_log_context("build_gcc_toolchain-entry");
     log_gcc_info_index_boundary("build_gcc_toolchain-entry", &install)?;
-    let binutils = repo_root.join("out/build/binutils/cross-install/usr/bin");
     if !repo_root.join("src/toolchain/gcc/configure").is_file() {
         bail!("GCC source is missing; import the pinned GCC component first")
     }
-    if !binutils.join("as").is_file() || !binutils.join("ld").is_file() {
-        bail!("GCC toolchain build requires the Binutils bootstrap tools")
-    }
+    let toolchain = require_mattos_target_toolchain(repo_root)?;
     remove_path_if_exists(&output)?;
     fs::create_dir_all(&build)?;
     fs::create_dir_all(&install)?;
@@ -1320,9 +1760,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         std::os::unix::fs::symlink("../../sysroot", output.join("mattos-sysroot"))?;
         std::os::unix::fs::symlink("../mattos-sysroot", build.join("mattos-sysroot"))?;
     }
-    let wrappers = output.join("bootstrap-bin");
-    let (cc, cxx) = write_sysroot_compiler_wrappers(repo_root, &wrappers, &binutils)?;
-    let env = toolchain_environment(&cc, &cxx, &binutils)?;
+    let env = toolchain_environment(&toolchain)?;
     let mut env = env;
     env.extend([
         ("CFLAGS", "-O2 -g0 -std=gnu17".to_string()),
@@ -1336,6 +1774,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         &gmp_source,
         &output.join("prerequisite-build/gmp"),
         &prereq_install,
+        TOOLCHAIN_TARGET,
         &[],
         &env,
     )?;
@@ -1344,6 +1783,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         &mpfr_source,
         &output.join("prerequisite-build/mpfr"),
         &prereq_install,
+        TOOLCHAIN_TARGET,
         std::slice::from_ref(&prereq_with_gmp),
         &env,
     )?;
@@ -1352,6 +1792,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         &mpc_source,
         &output.join("prerequisite-build/mpc"),
         &prereq_install,
+        TOOLCHAIN_TARGET,
         &[prereq_with_gmp, prereq_with_mpfr],
         &env,
     )?;
@@ -1406,16 +1847,8 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     // The wrapper directory is already first in PATH, so use stable basenames
     // for the compiler proper while retaining absolute paths for prerequisite
     // builds that execute from several different working directories.
-    let cc_name = cc
-        .file_name()
-        .and_then(OsStr::to_str)
-        .context("GCC bootstrap C wrapper has no UTF-8 basename")?
-        .to_string();
-    let cxx_name = cxx
-        .file_name()
-        .and_then(OsStr::to_str)
-        .context("GCC bootstrap C++ wrapper has no UTF-8 basename")?
-        .to_string();
+    let cc_name = format!("{TOOLCHAIN_TARGET}-gcc");
+    let cxx_name = format!("{TOOLCHAIN_TARGET}-g++");
     gcc_env.extend([
         ("CC", cc_name.clone()),
         ("CXX", cxx_name.clone()),
@@ -1508,7 +1941,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     fs::write(
         output.join("configure-invocation.txt"),
         format!(
-            "CC={} CXX={} CC_FOR_BUILD=/usr/bin/gcc CXX_FOR_BUILD=/usr/bin/g++ {} {}\nmake all-gcc\nmake DESTDIR={} install-gcc\n",
+            "CC={} CXX={} CC_FOR_BUILD=gcc CXX_FOR_BUILD=g++ {} {}\nmake all-gcc\nmake DESTDIR={} install-gcc\n",
             cc_name,
             cxx_name,
             configure.display(),
@@ -1527,7 +1960,6 @@ fn build_make(repo_root: &Path) -> Result<()> {
     let source = output.join("source");
     let build = output.join("build");
     let install = output.join("install");
-    let binutils = repo_root.join("out/build/binutils/cross-install/usr/bin");
     if !imported.join("bootstrap").is_file() {
         bail!("GNU Make source is missing at {}", imported.display())
     }
@@ -1556,9 +1988,8 @@ fn build_make(repo_root: &Path) -> Result<()> {
             ("TZ", "UTC".to_string()),
         ],
     )?;
-    let wrappers = output.join("bootstrap-bin");
-    let (cc, cxx) = write_sysroot_compiler_wrappers(repo_root, &wrappers, &binutils)?;
-    let mut env = toolchain_environment(&cc, &cxx, &binutils)?;
+    let toolchain = require_mattos_target_toolchain(repo_root)?;
+    let mut env = toolchain_environment(&toolchain)?;
     env.extend([
         ("CC", format!("{TOOLCHAIN_TARGET}-gcc")),
         ("CXX", format!("{TOOLCHAIN_TARGET}-g++")),
@@ -1705,4 +2136,137 @@ fn assert_kernel_build_path_safe(repo_root: &Path) -> Result<()> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+fn install_fake_mattos_target_toolchain(repo_root: &Path) {
+    for path in [
+        target_compiler_driver(repo_root, "gcc"),
+        cross_binutil(repo_root, "ld"),
+        cross_toolchain_bin(repo_root).join(format!("{TOOLCHAIN_TARGET}-gcc")),
+        hardening_specs_path(repo_root),
+    ] {
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, "").unwrap();
+    }
+}
+
+#[cfg(test)]
+mod target_toolchain_tests {
+    use super::*;
+
+    #[test]
+    fn target_toolchain_is_absent_until_gcc_runtime_installs_it() {
+        let temporary = tempfile::tempdir().unwrap();
+        assert!(mattos_target_toolchain(temporary.path()).unwrap().is_none());
+        assert!(require_mattos_target_toolchain(temporary.path()).is_err());
+        assert!(kernel_cross_compile(temporary.path()).is_err());
+    }
+
+    #[test]
+    fn userland_wrappers_use_mattos_gcc_sysroot_and_hardening_specs() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        install_fake_mattos_target_toolchain(repo);
+        let toolchain = mattos_target_toolchain(repo).unwrap().unwrap();
+        let driver = target_compiler_driver(repo, "gcc");
+        for name in ["gcc", "cc", "x86_64-pc-linux-gnu-gcc"] {
+            let script = fs::read_to_string(toolchain.tool(name)).unwrap();
+            assert!(script.contains(&format!("exec {}", driver.display())), "{name}: {script}");
+            assert!(script.contains(&format!("-specs={}", hardening_specs_path(repo).display())));
+            assert!(script.contains(&format!("--sysroot={}", repo.join("out/sysroot").display())));
+            assert!(script.contains(&format!(
+                "-B{}/",
+                repo.join("out/sysroot/usr/lib/x86_64-linux-gnu").display()
+            )));
+            assert!(!script.contains("exec /usr/bin/gcc"));
+        }
+        let gxx = fs::read_to_string(toolchain.tool("c++")).unwrap();
+        assert!(gxx.contains(&target_compiler_driver(repo, "g++").display().to_string()));
+        for tool in ["ld", "x86_64-pc-linux-gnu-ld"] {
+            assert_eq!(
+                fs::read_link(toolchain.tool(tool)).unwrap(),
+                cross_binutil(repo, "ld")
+            );
+        }
+        assert_eq!(
+            kernel_cross_compile(repo).unwrap(),
+            format!("{}/x86_64-pc-linux-gnu-", cross_toolchain_bin(repo).display())
+        );
+    }
+
+    #[test]
+    fn hardening_specs_reproduce_validated_distribution_defaults() {
+        for required in [
+            "-fstack-protector-strong",
+            "-fstack-clash-protection",
+            "-fcf-protection",
+            "-Wformat-security",
+            "-D_FORTIFY_SOURCE=3",
+            "--as-needed",
+            "-z relro",
+            "-z now",
+        ] {
+            assert!(MATTOS_HARDENING_SPECS.contains(required), "missing {required}");
+        }
+        // Every default must yield to an explicit caller choice.
+        for opt_out in [
+            "!fno-stack-protector",
+            "!fno-stack-clash-protection",
+            "!fno-cf-protection",
+            "!U_FORTIFY_SOURCE",
+            "!ffreestanding",
+        ] {
+            assert!(MATTOS_HARDENING_SPECS.contains(opt_out), "missing opt-out {opt_out}");
+        }
+        for configured in ["--enable-default-pie", "--enable-linker-build-id", "--with-linker-hash-style=gnu"] {
+            assert!(MATTOS_GCC_DEFAULTS.contains(&configured));
+        }
+    }
+
+    #[test]
+    fn target_builds_never_select_the_host_compiler() {
+        let source = include_str!("toolchain.rs");
+        let production = &source[..source.find("#[cfg(test)]").unwrap()];
+        assert!(!production.contains("exec /usr/bin/gcc"));
+        assert!(!production.contains("exec /usr/bin/g++"));
+        assert!(!production.contains("binutils/cross-install"));
+        let glibc = &production[production.find("fn build_glibc").unwrap()..];
+        let glibc = &glibc[..glibc.find("\nfn ").unwrap()];
+        assert!(glibc.contains("write_pass1_compiler_wrappers"));
+        assert!(glibc.contains("--build=x86_64-build-linux-gnu"));
+        let kernel = &production[production.find("fn build_kernel").unwrap()..];
+        let kernel = &kernel[..kernel.find("\nfn ").unwrap()];
+        assert!(kernel.contains("CROSS_COMPILE="));
+    }
+
+    #[test]
+    fn sysroot_environment_puts_mattos_toolchain_first_on_path() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        install_fake_mattos_target_toolchain(repo);
+        fs::create_dir_all(repo.join("src/tools/mattos-build")).unwrap();
+        fs::write(repo.join("src/tools/mattos-build/Cargo.toml"), "").unwrap();
+        fs::create_dir_all(repo.join("out/sysroot/usr/include")).unwrap();
+        fs::write(repo.join("out/sysroot/usr/include/stdio.h"), "").unwrap();
+        let cwd = repo.join("out/build/example");
+        fs::create_dir_all(&cwd).unwrap();
+        let mut command = Command::new("true");
+        apply_mattos_sysroot_environment(
+            &mut command,
+            &cwd,
+            "make",
+            &[("PATH", "/usr/local/bin:/usr/bin".to_string())],
+        )
+        .unwrap();
+        let path = command
+            .get_envs()
+            .find(|(key, _)| *key == OsStr::new("PATH"))
+            .and_then(|(_, value)| value)
+            .unwrap()
+            .to_owned();
+        let entries = std::env::split_paths(&path).collect::<Vec<_>>();
+        assert_eq!(entries[0], repo.join(TARGET_TOOL_WRAPPERS));
+        assert_eq!(entries[1..], [PathBuf::from("/usr/local/bin"), PathBuf::from("/usr/bin")]);
+    }
 }

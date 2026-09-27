@@ -83,9 +83,20 @@ pub(crate) fn clear() {
 
 pub(crate) fn serialized_if_dirty() -> Result<Option<(PathBuf, Vec<u8>)>> {
     with_index(|borrowed| {
-        let Some(index) = borrowed.as_ref().filter(|index| index.dirty) else {
+        let Some(index) = borrowed.as_mut() else {
             return Ok(None);
         };
+        // Never persist digests for files that no longer exist (deleted stage
+        // workspaces, replaced outputs); otherwise the index only ever grows.
+        let repo_root = index.repo_root.clone();
+        let original_len = index.entries.len();
+        index.entries.retain(|path, _| {
+            fs::symlink_metadata(repo_root.join(path)).is_ok_and(|metadata| metadata.is_file())
+        });
+        index.dirty |= index.entries.len() != original_len;
+        if !index.dirty {
+            return Ok(None);
+        }
         Ok(Some((
             path(&index.repo_root),
             serialize_binary(&index.entries),
@@ -299,9 +310,31 @@ fn key(index: &PersistentIntegrityIndex, path: &Path) -> Option<String> {
     if !absolute.starts_with(index.repo_root.join("out")) {
         return None;
     }
-    Some(normalize_path(
-        absolute.strip_prefix(&index.repo_root).ok()?,
-    ))
+    let relative = absolute.strip_prefix(&index.repo_root).ok()?;
+    // Files under a transient build directory are renamed or deleted within
+    // the run that created them; caching them only accumulates dead entries.
+    if relative.components().any(|component| {
+        component
+            .as_os_str()
+            .to_str()
+            .is_some_and(is_transient_directory_name)
+    }) {
+        return None;
+    }
+    Some(normalize_path(relative))
+}
+
+/// `performance::temporary_sibling` and `atomic_replace_path` name transient
+/// directories `.<name>.<label>-<pid>` (e.g. `.rootfs.building-1234`,
+/// `.rootfs.previous-1234`).
+fn is_transient_directory_name(name: &str) -> bool {
+    let Some(rest) = name.strip_prefix('.') else {
+        return false;
+    };
+    let Some((head, pid)) = rest.rsplit_once('-') else {
+        return false;
+    };
+    !pid.is_empty() && pid.bytes().all(|byte| byte.is_ascii_digit()) && head.contains('.')
 }
 
 fn entries_valid(entries: &BTreeMap<String, PersistentFileDigest>) -> bool {
@@ -332,4 +365,49 @@ fn normalize_path(path: &Path) -> String {
         .map(|component| component.as_os_str().to_string_lossy())
         .collect::<Vec<_>>()
         .join("/")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fingerprint_for(path: &Path) -> FileFingerprint {
+        super::fingerprint(&fs::metadata(path).unwrap()).unwrap()
+    }
+
+    #[test]
+    fn transient_build_directories_are_never_indexed() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        start(repo);
+        for (relative, expected) in [
+            ("out/build/.rootfs.building-1234/usr/bin/true", false),
+            ("out/build/.rootfs.previous-99/usr/bin/true", false),
+            ("out/build/rootfs/usr/bin/true", true),
+            ("out/build/.pkgconfig-overlays/abc/lib/x.pc", true),
+        ] {
+            assert_eq!(eligible(&repo.join(relative)), expected, "{relative}");
+        }
+        clear();
+    }
+
+    #[test]
+    fn saving_prunes_digests_of_files_that_no_longer_exist() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        let kept = repo.join("out/build/a/kept");
+        let removed = repo.join("out/build/b/removed");
+        for file in [&kept, &removed] {
+            fs::create_dir_all(file.parent().unwrap()).unwrap();
+            fs::write(file, "payload").unwrap();
+        }
+        start(repo);
+        store(&kept, fingerprint_for(&kept), "a".repeat(64));
+        store(&removed, fingerprint_for(&removed), "b".repeat(64));
+        fs::remove_dir_all(repo.join("out/build/b")).unwrap();
+        let (_, body) = serialized_if_dirty().unwrap().unwrap();
+        let entries = parse_binary(&body).unwrap();
+        assert_eq!(entries.keys().collect::<Vec<_>>(), ["out/build/a/kept"]);
+        clear();
+    }
 }

@@ -1,0 +1,63 @@
+.\" SPDX-FileCopyrightText: 1983, 1991 The Regents of the University of California.
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\"
+.\"	$Id$
+.\"
+.\"
+.\" Translated into Spanish on Fri Aug 28 1998 by Gerardo Aburruzaga
+.\" García <gerado@cica.es>
+.\"
+.Dd 7 Julio 1996
+.Dt VIPW 8
+.Os Util-Linux 2.6
+.Sh NOMBRE
+.Nm vipw, vigr
+.Nd editan los ficheros de cuentas y grupos
+.Sh SINOPSIS
+.Nm vipw
+.Op -V
+.Op --version
+.Pp
+.Nm vigr
+.Op -V
+.Op --version
+.Sh DESCRIPCIÓN
+.Nm Vipw
+edita el fichero de cuentas tras establecer los bloqueos apropiados, y
+hace cualquier procesado que sea necesario después de que el fichero
+de cuentas se desbloquee.
+Si el fichero de cuentas ya está bloqueado para la edición por parte
+de otro usuario, 
+.Nm vipw
+le pedirá que lo intente de nuevo más tarde. El editor predeterminado
+para 
+.Nm vipw
+suele ser, como indica su nombre,
+.Xr vi 1 .
+.br
+.Nm Vigr
+edita el fichero de grupos de la misma manera que vipw.
+.Sh ENTORNO
+Si la siguiente variable de entorno existe, será utilizada por
+.Nm vipw :
+.Bl -tag -width EDITOR
+.It Ev EDITOR
+El editor especificado por la cadena
+.Ev EDITOR
+será llamado en vez del predeterminado
+.Xr vi 1 .
+.El
+.Sh VÉASE TAMBIÉN
+.Xr passwd 1 ,
+.Xr vi 1 ,
+.Xr passwd 5
+.Sh HISTORIA
+La orden
+.Nm vipw
+apareció en
+.Bx 4.0 .
+.br
+La orden
+.Nm vigr
+apareció en
+Util-Linux 2.6.

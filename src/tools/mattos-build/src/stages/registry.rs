@@ -85,15 +85,21 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             "out/sysroot/usr/lib/x86_64-linux-gnu/libc.so.6".into(),
             "out/sysroot/lib64/ld-linux-x86-64.so.2".into(),
         ],
+        BuildStage::CrossToolchain => vec![
+            "out/build/cross-toolchain/install".into(),
+            "out/build/cross-toolchain/prerequisite-install".into(),
+            "out/build/cross-toolchain/mattos-hardening.specs".into(),
+            "out/build/cross-toolchain/configure-invocation.txt".into(),
+        ],
         BuildStage::GccRuntime => vec![
             "out/build/gcc-runtime/install".into(),
+            "out/build/gcc-runtime/toolchain".into(),
             "out/build/gcc-runtime/runtime".into(),
             "out/build/gcc-runtime/runtime-abi.tsv".into(),
             "out/sysroot/usr/lib/x86_64-linux-gnu/libgcc_s.so.1".into(),
             "out/sysroot/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.34".into(),
         ],
         BuildStage::Binutils => vec![
-            "out/build/binutils/cross-install".into(),
             "out/build/binutils/install".into(),
             "out/build/binutils/configure-invocation.txt".into(),
         ],
@@ -278,7 +284,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Llvm => vec!["out/build/llvm/install".into()],
         BuildStage::Rust => vec!["out/build/rust/install".into()],
         BuildStage::SudoRs => vec!["out/build/sudo-rs/cargo-target/release/sudo".into()],
-        BuildStage::Init => vec!["target/release/mattos-init".into()],
+        BuildStage::Init => vec!["out/build/init/cargo-target/release/mattos-init".into()],
         BuildStage::Installer => vec![
             "out/build/installer/cargo-target/release/mattos-install".into(),
             "out/build/btrfs-progs/install/usr/bin/btrfs".into(),
@@ -422,6 +428,13 @@ fn validate_cached_build_stage(repo_root: &Path, stage: BuildStage) -> Result<()
                 }
             }
         }
+        BuildStage::CrossToolchain => {
+            for tool in ["gcc", "as", "ld"] {
+                if !cross_binutil(repo_root, tool).is_file() {
+                    bail!("cached MattOS cross toolchain is missing {TOOLCHAIN_TARGET}-{tool}")
+                }
+            }
+        }
         BuildStage::GccToolchain => {
             for tool in ["gcc", "g++"] {
                 if !repo_root
@@ -521,10 +534,184 @@ fn cacheable_stage_specs(repo_root: &Path) -> Result<Vec<performance::StageSpec>
     Ok(specs)
 }
 
+/// Markers recording which MattOS target toolchain produced each stage
+/// workspace.  They live outside `out/build/<stage>` because some stages
+/// (rootfs) publish that whole directory as their output.
+const STAGE_TOOLCHAIN_MARKER_DIR: &str = "out/state/toolchain-markers";
+/// Earlier in-workspace marker location, still honoured so existing
+/// workspaces are migrated instead of discarded.
+const LEGACY_STAGE_TOOLCHAIN_MARKER: &str = ".mattos-target-toolchain";
+
+/// Identity of the MattOS target toolchain: the recorded cross-toolchain and
+/// compiler configurations plus the hardening specs every wrapper applies.
+/// `None` until the toolchain exists (the toolchain stages themselves).
+fn target_toolchain_identity(repo_root: &Path) -> Result<Option<String>> {
+    let mut digest = Sha256Hasher::new();
+    for relative in [
+        "out/build/cross-toolchain/configure-invocation.txt",
+        "out/build/cross-toolchain/mattos-hardening.specs",
+        "out/build/gcc-runtime/configure-invocation.txt",
+    ] {
+        let Ok(bytes) = fs::read(repo_root.join(relative)) else {
+            return Ok(None);
+        };
+        digest.update(relative.as_bytes());
+        digest.update([0]);
+        digest.update(&bytes);
+    }
+    Ok(Some(format!("{:x}", digest.finalize())))
+}
+
+/// Recipes reuse their `out/build/<stage>` workspaces through many
+/// recipe-local stamps (configured CMake caches, reused build directories)
+/// that do not encode the compiler.  A workspace produced by a different
+/// target toolchain is therefore discarded before its stage rebuilds, so a
+/// compiler change can never leave objects or cached compiler paths from the
+/// previous toolchain in place.  Returns the marker to record on success.
+fn prepare_stage_workspace_for_toolchain(
+    repo_root: &Path,
+    stage: BuildStage,
+) -> Result<Option<(PathBuf, String)>> {
+    if matches!(
+        stage,
+        BuildStage::CrossToolchain
+            | BuildStage::Glibc
+            | BuildStage::GccRuntime
+            | BuildStage::Kernel
+            | BuildStage::All
+    ) {
+        return Ok(None);
+    }
+    let Some(identity) = target_toolchain_identity(repo_root)? else {
+        return Ok(None);
+    };
+    let stage_id = build_stage_id(stage);
+    let workspace = repo_root.join("out/build").join(stage_id);
+    let marker = repo_root.join(STAGE_TOOLCHAIN_MARKER_DIR).join(stage_id);
+    let legacy_marker = workspace.join(LEGACY_STAGE_TOOLCHAIN_MARKER);
+    let recorded = fs::read_to_string(&marker)
+        .or_else(|_| fs::read_to_string(&legacy_marker))
+        .ok();
+    if workspace.is_dir() && recorded.as_deref() != Some(identity.as_str()) {
+        println!("{stage_id}: discarding workspace built by a different target toolchain");
+        remove_path_if_exists(&workspace)?;
+        remove_path_if_exists(&marker)?;
+    } else if legacy_marker.is_file() {
+        record_stage_toolchain_marker(&marker, &identity)?;
+        fs::remove_file(&legacy_marker)?;
+    }
+    Ok(Some((marker, identity)))
+}
+
+/// Pseudo-dependency naming the MattOS target toolchain in stage cache keys.
+/// Versioned: a manifest keyed by an older definition adopts this one through
+/// the same workspace-marker proof as a manifest that had no key.
+pub(crate) const TARGET_TOOLCHAIN_CACHE_KEY: &str = "<target-toolchain-v2>";
+
+/// Stages that build the toolchain, or only assemble its outputs, and so are
+/// not compiled by it.  The kernel (`linux`) is built by the pass-1 compiler,
+/// a direct dependency; packaging keys packages on their producer stages.
+fn stage_precedes_target_toolchain(stage_id: &str) -> bool {
+    matches!(
+        stage_id,
+        "cross-toolchain"
+            | "glibc"
+            | "gcc-runtime"
+            | "linux"
+            | "linux-headers"
+            | "formal-sysroot"
+            | "packages"
+            | "repository"
+            | "all"
+    )
+}
+
+/// Every name the target toolchain places in `out/toolchain/bin`.
+fn target_tool_wrapper_names() -> Vec<String> {
+    let mut names = ["gcc", "cc", "g++", "c++", "cpp"]
+        .iter()
+        .flat_map(|name| [(*name).to_string(), format!("{TOOLCHAIN_TARGET}-{name}")])
+        .chain(["gcc-ar", "gcc-nm", "gcc-ranlib"].iter().map(|name| (*name).to_string()))
+        .chain(
+            CROSS_BINUTILS_TOOLS
+                .iter()
+                .flat_map(|tool| [(*tool).to_string(), format!("{TOOLCHAIN_TARGET}-{tool}")]),
+        )
+        .collect::<Vec<_>>();
+    names.sort();
+    names
+}
+
+/// Cache identity of the MattOS target toolchain for `stage_id`: the published
+/// cross-toolchain and gcc-runtime outputs plus the compiler wrappers on
+/// PATH.  Target stages reach the compiler only through PATH, so without this
+/// a toolchain change that leaves the sysroot bytes unchanged would not
+/// invalidate them.  Only the wrappers the toolchain itself generates are
+/// read, with the checkout location normalized, so unrelated files in the
+/// directory or a relocated checkout do not change the identity.
+pub(crate) fn target_toolchain_cache_identity(repo_root: &Path, stage_id: &str) -> Result<Option<String>> {
+    if stage_precedes_target_toolchain(stage_id) || target_toolchain_identity(repo_root)?.is_none() {
+        return Ok(None);
+    }
+    let mut digest = Sha256Hasher::new();
+    for stage in ["cross-toolchain", "gcc-runtime"] {
+        let output = performance::read_stage_manifest(repo_root, stage)
+            .map_or_else(|_| "<missing>".to_string(), |manifest| manifest.output_content_digest);
+        digest.update(format!("{stage}={output}\n").as_bytes());
+    }
+    let checkout = repo_root.to_string_lossy().into_owned();
+    let wrappers = repo_root.join(TARGET_TOOL_WRAPPERS);
+    for name in target_tool_wrapper_names() {
+        let path = wrappers.join(&name);
+        let content = match fs::read_link(&path) {
+            Ok(target) => format!("link:{}", target.to_string_lossy()),
+            Err(_) => match fs::read(&path) {
+                Ok(bytes) => format!("file:{}", String::from_utf8_lossy(&bytes)),
+                Err(_) => "<missing>".to_string(),
+            },
+        };
+        digest.update(format!("{name}\0{}\0", content.replace(&checkout, "<repo>")).as_bytes());
+    }
+    Ok(Some(format!("{:x}", digest.finalize())))
+}
+
+/// Whether `stage_id`'s published output was built by the current target
+/// toolchain, as recorded by the workspace guard.  Lets manifests written
+/// before the toolchain was a cache key adopt it without a rebuild.
+pub(crate) fn stage_built_by_current_target_toolchain(repo_root: &Path, stage_id: &str) -> Result<bool> {
+    let Some(identity) = target_toolchain_identity(repo_root)? else {
+        return Ok(false);
+    };
+    let marker = repo_root.join(STAGE_TOOLCHAIN_MARKER_DIR).join(stage_id);
+    let legacy_marker = repo_root
+        .join("out/build")
+        .join(stage_id)
+        .join(LEGACY_STAGE_TOOLCHAIN_MARKER);
+    let recorded = fs::read_to_string(&marker).or_else(|_| fs::read_to_string(&legacy_marker));
+    Ok(recorded.ok().as_deref() == Some(identity.as_str()))
+}
+
+fn record_stage_toolchain_marker(marker: &Path, identity: &str) -> Result<()> {
+    if let Some(parent) = marker.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    performance::atomic_write(marker, identity.as_bytes())
+}
+
 fn build_stage(repo_root: &Path, stage: BuildStage) -> Result<()> {
+    let marker = prepare_stage_workspace_for_toolchain(repo_root, stage)?;
+    build_stage_recipe(repo_root, stage)?;
+    if let Some((marker, identity)) = marker {
+        record_stage_toolchain_marker(&marker, &identity)?;
+    }
+    Ok(())
+}
+
+fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
     performance::trace_log_context("build_stage-entry");
     match stage {
         BuildStage::Kernel => build_kernel(repo_root),
+        BuildStage::CrossToolchain => build_cross_toolchain(repo_root),
         BuildStage::Glibc => build_glibc(repo_root),
         BuildStage::GccRuntime => build_gcc_runtime(repo_root),
         BuildStage::Binutils => build_binutils(repo_root),

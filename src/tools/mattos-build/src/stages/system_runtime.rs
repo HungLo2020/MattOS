@@ -452,7 +452,8 @@ fn build_dbus_broker(repo_root: &Path) -> Result<()> {
         .context("failed to read dbus-broker upstream state")?;
     let expat_state = fs::read_to_string(repo_root.join("upstream/state/expat.toml"))
         .context("failed to read Expat upstream state")?;
-    let dependency_outputs = ["expat", "systemd"]
+    // dbus-broker's Meson build compiles Rust with the MattOS rustc.
+    let dependency_outputs = ["expat", "systemd", "rust"]
         .iter()
         .map(|dependency| {
             let manifest = stage_cache::read_stage_manifest(repo_root, dependency)

@@ -137,7 +137,7 @@ impl PressureTracker {
 
 fn pressure_candidate(
     budget: &ResourceBudget,
-    _swap_in_rate: f64,
+    swap_in_rate: f64,
     swap_out_rate: f64,
     psi_some_avg10: Option<f64>,
 ) -> PressureLevel {
@@ -157,10 +157,20 @@ fn pressure_candidate(
     const CONSTRAINED_SWAP_OUT_PAGES_PER_SECOND: f64 = 256.0;
     const CRITICAL_SWAP_OUT_PAGES_PER_SECOND: f64 = 4096.0;
     const CONSTRAINED_PSI_SOME_PERCENT: f64 = 5.0;
-    if budget.build_memory_bytes == 0 || swap_out_rate >= CRITICAL_SWAP_OUT_PAGES_PER_SECOND {
+    // Sustained swap-in means the working set no longer fits: tasks fault
+    // their pages back from disk.  A full-build measurement averaged 23 MiB/s
+    // of swap-in while PSI and swap-out still classified memory as healthy.
+    // 4 MiB/s constrains; 32 MiB/s is thrashing.
+    const CONSTRAINED_SWAP_IN_PAGES_PER_SECOND: f64 = 1024.0;
+    const CRITICAL_SWAP_IN_PAGES_PER_SECOND: f64 = 8192.0;
+    if budget.build_memory_bytes == 0
+        || swap_out_rate >= CRITICAL_SWAP_OUT_PAGES_PER_SECOND
+        || swap_in_rate >= CRITICAL_SWAP_IN_PAGES_PER_SECOND
+    {
         PressureLevel::Critical
     } else if budget.build_memory_bytes <= 512 * MIB
         || swap_out_rate >= CONSTRAINED_SWAP_OUT_PAGES_PER_SECOND
+        || swap_in_rate >= CONSTRAINED_SWAP_IN_PAGES_PER_SECOND
         || psi_some_avg10.is_some_and(|value| value >= CONSTRAINED_PSI_SOME_PERCENT)
     {
         PressureLevel::Constrained
@@ -624,6 +634,26 @@ mod pressure_starvation_regression_tests {
             reserved_memory_bytes: 2 * GIB,
             available_memory_bytes: 8 * GIB,
         }
+    }
+
+    #[test]
+    fn sustained_swap_in_is_memory_pressure() {
+        assert_eq!(
+            pressure_candidate(&roomy_budget(), 512.0, 0.0, Some(0.0)),
+            PressureLevel::Healthy
+        );
+        assert_eq!(
+            pressure_candidate(&roomy_budget(), 1024.0, 0.0, Some(0.0)),
+            PressureLevel::Constrained
+        );
+        assert_eq!(
+            pressure_candidate(&roomy_budget(), 23.0 * 256.0, 0.0, Some(0.3)),
+            PressureLevel::Constrained
+        );
+        assert_eq!(
+            pressure_candidate(&roomy_budget(), 8192.0, 0.0, Some(0.0)),
+            PressureLevel::Critical
+        );
     }
 
     #[test]

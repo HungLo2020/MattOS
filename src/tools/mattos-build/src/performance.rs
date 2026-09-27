@@ -406,6 +406,20 @@ pub(crate) fn trace_log_context(boundary: &str) {
     }
 }
 
+/// Log of the stage executing on this thread, for handing to worker threads.
+pub(crate) fn current_stage_log() -> Option<PathBuf> {
+    ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone())
+}
+
+/// Runs `action` on a worker thread with the spawning stage's build log, so
+/// commands it runs are logged like the stage's own.
+pub(crate) fn with_inherited_stage_log<T>(log: Option<PathBuf>, action: impl FnOnce() -> T) -> T {
+    ACTIVE_BUILD_LOG.with(|slot| *slot.borrow_mut() = log);
+    let result = action();
+    ACTIVE_BUILD_LOG.with(|slot| *slot.borrow_mut() = None);
+    result
+}
+
 /// Appends an internal diagnostic to the log of the currently executing stage.
 /// It deliberately does nothing outside `with_stage_log`, so normal callers
 /// do not create logs or change build output.
@@ -767,6 +781,17 @@ pub(crate) fn atomic_write_json<T: Serialize>(path: &Path, value: &T) -> Result<
     atomic_write(path, &body)
 }
 
+/// Suffix for temporary paths: unique across the stage worker threads of this
+/// process, which all share one process ID.
+pub(crate) fn unique_temporary_suffix() -> String {
+    static SEQUENCE: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    format!(
+        "{}-{}",
+        std::process::id(),
+        SEQUENCE.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+    )
+}
+
 pub(crate) fn atomic_write(path: &Path, body: &[u8]) -> Result<()> {
     let parent = path
         .parent()
@@ -777,7 +802,7 @@ pub(crate) fn atomic_write(path: &Path, body: &[u8]) -> Result<()> {
         path.file_name()
             .and_then(OsStr::to_str)
             .unwrap_or("manifest"),
-        std::process::id()
+        unique_temporary_suffix()
     ));
     fs::write(&temp, body).with_context(|| format!("failed to write {}", temp.display()))?;
     fs::rename(&temp, path)

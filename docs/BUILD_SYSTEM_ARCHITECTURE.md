@@ -47,13 +47,47 @@ not machine-specific `-j` assignments: standard and memory-heavy work can use
 additional capacity on a large, healthy host; the libcap serial profile remains
 one job.
 
+### Shared jobserver
+
+`build all` runs one GNU make jobserver (a FIFO token pool under `out/tmp`)
+for the whole invocation. Make (4.4+), Ninja (1.13+, and so CMake and Meson)
+and Cargo join it through `MAKEFLAGS`/`CARGO_MAKEFLAGS`, and explicit `-jN`
+arguments are removed for them (an explicit `-j1` serialization request is
+kept). Stages are admitted at their minimum grant, so memory reservations
+still gate admission, and then grow into idle CPUs as tokens are released.
+This replaces launch-time-only grants, under which a large stage that started
+during contention kept one or two jobs for its whole run. Every scheduler pass
+sets the pool to the idle CPU count while memory pressure is healthy, half of
+it when constrained, and zero when critical; tokens held by running jobs are
+reclaimed as they are returned. The pool is also memory-aware: it never
+exceeds the tokens already held by running jobs plus the measured build-memory
+headroom divided by the largest per-job memory estimate among the building
+stages (at least 512 MiB). The pool grows by at most one token per pass and
+shrinks immediately. Sustained swap-in counts as memory pressure (4 MiB/s
+constrained, 32 MiB/s critical), since pages faulting back from swap mean the
+working set no longer fits. Serial and capped stages keep fixed limits.
+Single-stage `build <stage>` runs do not use the jobserver.
+
+### Compiler cache
+
+When a host `ccache` is installed (and `MATTOS_CCACHE` is not `0`), target
+C/C++ compiles are cached in `out/cache/ccache` (40 GB cap). Compiler-named
+links to ccache in `out/toolchain/ccache-bin` precede the MattOS compiler
+wrappers on `PATH`, and CMake builds that name their compiler explicitly get
+`CMAKE_<LANG>_COMPILER_LAUNCHER`. Entries are keyed to the MattOS toolchain
+identity (`CCACHE_COMPILERCHECK=string:<identity>`: cross-toolchain and
+compiler configurations plus the hardening specs), so a changed compiler never
+reuses objects. Hits are byte-identical objects, so ccache accelerates rebuilds
+without affecting outputs. It does not cache Rust (rustc).
+
 Admission is deterministic for a fixed snapshot and ready-set order. It always
 requires a profile's minimum CPU and memory estimate, reserves minimum CPU for
 already-ready peers before lending idle capacity, and prevents a new action
 from crossing the memory budget. Existing swap use reduces memory-heavy
-concurrency to one and disables borrowed CPU grants. This milestone chooses a
-grant only at launch; it never attempts unsafe mid-command resizing of Make,
-Cargo, Ninja, Meson, or CMake.
+concurrency to one and disables borrowed CPU grants. Without the shared
+jobserver (single-stage builds) a grant is chosen only at launch; with it,
+running stages grow and shrink through jobserver tokens instead of any
+mid-command resizing.
 
 The scheduler also samples the resource envelope before each launch decision.
 It refreshes effective available/cgroup memory, `pswpin`/`pswpout`, and Linux
@@ -89,6 +123,32 @@ the exact transitive downstream closure in `stage_graph` must miss. Missing or
 corrupted outputs invalidate their owner; downstream work is necessary only if
 the repaired output digest differs.
 
+Target stages also carry a `<target-toolchain>` pseudo-dependency: the output
+digests of `cross-toolchain` and `gcc-runtime` plus the compiler wrappers in
+`out/toolchain/bin`. Target code reaches the compiler through PATH rather than
+through a published dependency, so without it a toolchain change that leaves
+the sysroot bytes unchanged would not invalidate them. The toolchain stages
+themselves, `linux` (built by the pass-1 compiler, a direct dependency),
+`formal-sysroot`, `packages` and `repository` do not carry it. A manifest
+written before the key existed adopts it without a rebuild only when the
+workspace guard's marker (`out/state/toolchain-markers/<stage>`) records the
+current toolchain for that stage.
+
+Recipe implementation files under `src/tools/mattos-build/src/stages/` are
+hashed per stage. When a file defines other stages' recipe functions (the
+functions `build_stage_recipe` dispatches to), a stage hashes the file with
+those functions removed, unless its own retained code calls them. Shared
+helpers, constants and imports stay in every projection, so editing them still
+invalidates every stage in the file; editing one recipe invalidates only its
+stage. Files that define no other stage's recipe are hashed whole.
+
+Cargo-built userland (`brush`, `coreutils`, `grep`, `sed`, `findutils`,
+`diffutils`, `init`, `sudo-rs`, `greetd`, `cozy`, `installer`, and the
+`mattos-compat` package) and Meson's Rust support (`mesa`) are compiled by the
+MattOS rustc from the `rust` stage, which is their declared dependency. The
+rootfs audit rejects any ELF whose `.comment` names a GCC, rustc or Clang other
+than the MattOS-built ones.
+
 The package layer is an explicit artifact node. Package producer output or
 package metadata changes invalidate `packages`; changed package inventory or
 artifacts invalidate `repository` and `rootfs`; changed rootfs bytes invalidate
@@ -110,12 +170,12 @@ include workspace `Cargo.toml` and `Cargo.lock`.
 | `gcc-compiler` | GCC | none | `binutils`, `gcc-runtime` | native compiler install and configure record |
 | `make` | Make and gnulib | none | compiler, Binutils, GCC runtime | native Make install |
 | `formal-sysroot` | none | none | headers, glibc, GCC runtime | declared sysroot boundary files |
-| `brush` | Brush and patches | Cargo workspace | formal sysroot | release binary |
-| `coreutils` | uutils coreutils | Cargo workspace | formal sysroot | release multicall binary |
-| `grep` | uutils grep | Cargo workspace | formal sysroot | release binary |
-| `sed` | uutils sed | Cargo workspace | formal sysroot | release binary |
-| `findutils` | uutils findutils | Cargo workspace | formal sysroot | release binary |
-| `diffutils` | uutils diffutils | Cargo workspace | formal sysroot | release multicall binary |
+| `brush` | Brush and patches | Cargo workspace | formal sysroot, MattOS rustc | release binary |
+| `coreutils` | uutils coreutils | Cargo workspace | formal sysroot, MattOS rustc | release multicall binary |
+| `grep` | uutils grep | Cargo workspace | formal sysroot, MattOS rustc | release binary |
+| `sed` | uutils sed | Cargo workspace | formal sysroot, MattOS rustc | release binary |
+| `findutils` | uutils findutils | Cargo workspace | formal sysroot, MattOS rustc | release binary |
+| `diffutils` | uutils diffutils | Cargo workspace | formal sysroot, MattOS rustc | release multicall binary |
 | `expat`, `libcap`, `attr`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`, `pcre2`, `libxcrypt`, `libmd`, `ncurses`, `iputils`, `kmod`, `init` | named component tree | Cargo workspace for `init`; otherwise none | formal sysroot | component install (or `mattos-init` binary) |
 | `acl` | ACL | none | formal sysroot, Attr | ACL install |
 | `openssl` | OpenSSL | none | formal sysroot, zlib, zstd | OpenSSL install |
@@ -129,7 +189,7 @@ include workspace `Cargo.toml` and `Cargo.lock`.
 | `linux-pam` | Linux-PAM | none | formal sysroot, libxcrypt | PAM install |
 | `util-linux` | util-linux | none | formal sysroot, PAM, SELinux, PCRE2 | util-linux install |
 | `shadow` | shadow | none | formal sysroot, PAM, libbsd, libmd, libxcrypt | shadow install |
-| `sudo-rs` | sudo-rs | Cargo workspace | formal sysroot, PAM | release binary |
+| `sudo-rs` | sudo-rs | Cargo workspace | formal sysroot, PAM, MattOS rustc | release binary |
 | `systemd` | systemd | none | formal sysroot, kmod, util-linux, PAM, libcap, OpenSSL, PCRE2 | systemd install |
 | `dbus-broker` | dbus-broker and patches | none | formal sysroot, systemd, Expat | dbus-broker install |
 | `dpkg` | dpkg | none | formal sysroot, zlib, bzip2, xz, zstd, libmd, SELinux, PCRE2 | dpkg install |

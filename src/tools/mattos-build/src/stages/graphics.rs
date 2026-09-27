@@ -777,7 +777,8 @@ fn build_gstreamer(repo_root: &Path) -> Result<()> {
         repo_root,
         "gstreamer",
         "src/system/multimedia/gstreamer/subprojects/gstreamer",
-        &["glib", "libffi", "zlib", "pcre2"],
+        // Meson builds GStreamer's Rust helpers with the MattOS rustc.
+        &["glib", "libffi", "zlib", "pcre2", "rust"],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
@@ -1054,37 +1055,43 @@ fn build_nvidia_driver(repo_root: &Path) -> Result<()> {
     let jobs = scheduler::child_job_limit().max(1).to_string();
     let sys_source = format!("SYSSRC={}", kernel_source.display());
     let sys_output = format!("SYSOUT={}", kernel_output.display());
-    run_cmd(
-        &open_source,
-        "make",
-        &[
-            "modules",
-            "-j",
-            &jobs,
-            &sys_source,
-            &sys_output,
-            // Linux 7.2's delayed final-link objtool pass cannot rewrite the
-            // immutable precompiled NVIDIA core. Per-object objtool checking
-            // remains enabled for every source-built open-module object.
-            "delay-objtool=",
-        ],
-    )?;
+    // Modules must use the kernel's exact MattOS-built compiler, not the
+    // userland wrappers, which carry userland code-generation defaults.
+    let cross_compile = kernel_cross_compile(repo_root)?;
+    let module_tools = [
+        format!("CROSS_COMPILE={cross_compile}"),
+        format!("CC={cross_compile}gcc"),
+        format!("LD={cross_compile}ld"),
+        format!("OBJDUMP={cross_compile}objdump"),
+    ];
+    let module_tools = module_tools.iter().map(String::as_str).collect::<Vec<_>>();
+    let mut module_args = vec![
+        "modules",
+        "-j",
+        &jobs,
+        &sys_source,
+        &sys_output,
+        // Linux 7.2's delayed final-link objtool pass cannot rewrite the
+        // immutable precompiled NVIDIA core. Per-object objtool checking
+        // remains enabled for every source-built open-module object.
+        "delay-objtool=",
+    ];
+    module_args.extend(&module_tools);
+    run_cmd(&open_source, "make", &module_args)?;
     let raw_install = out_root.join("modules-install");
     remove_path_if_exists(&raw_install)?;
     let install_mod_path = format!("INSTALL_MOD_PATH={}", raw_install.display());
-    run_cmd(
-        &open_source,
-        "make",
-        &[
-            "modules_install",
-            &sys_source,
-            &sys_output,
-            &install_mod_path,
-            "INSTALL_MOD_DIR=updates/nvidia",
-            "DEPMOD=true",
-            "delay-objtool=",
-        ],
-    )?;
+    let mut install_args = vec![
+        "modules_install",
+        &sys_source,
+        &sys_output,
+        &install_mod_path,
+        "INSTALL_MOD_DIR=updates/nvidia",
+        "DEPMOD=true",
+        "delay-objtool=",
+    ];
+    install_args.extend(&module_tools);
+    run_cmd(&open_source, "make", &install_args)?;
 
     let install = out_root.join("install");
     remove_path_if_exists(&install)?;
@@ -2010,6 +2017,9 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
             "systemd",
             "wayland",
             "libglvnd",
+            // Meson compiles Mesa's Rust (NVK) with the MattOS rustc; binding
+            // it here reconfigures when that compiler changes.
+            "rust",
         ],
         &[
             "--prefix=/usr",

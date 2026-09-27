@@ -37,6 +37,19 @@
 #define LIVE_CLI_TARGET "mattos.target"
 #define INSTALL_CLI_TARGET "mattos-install-cli.target"
 
+/* Best-effort diagnostic output: retry short writes, stop on error. */
+static void write_all(int fd, const char *buffer, size_t length) {
+    while (length > 0) {
+        ssize_t written = write(fd, buffer, length);
+        if (written < 0) {
+            if (errno == EINTR) continue;
+            return;
+        }
+        buffer += written;
+        length -= (size_t)written;
+    }
+}
+
 static void message(const char *format, ...)
 {
     char text[2048];
@@ -77,8 +90,8 @@ static void fatal(const char *operation)
             char buffer[4096];
             ssize_t n;
             while ((n = read(fd, buffer, sizeof(buffer))) > 0) {
-                (void)write(STDERR_FILENO, buffer, (size_t)n);
-                if (screen >= 0) (void)write(screen, buffer, (size_t)n);
+                write_all(STDERR_FILENO, buffer, (size_t)n);
+                if (screen >= 0) write_all(screen, buffer, (size_t)n);
             }
             close(fd);
         }

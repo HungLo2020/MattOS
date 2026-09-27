@@ -157,7 +157,7 @@ fn kde_target_environment(
             Some(&repo_root.join("out/build/qtbase/install/usr")),
         )?
     } else {
-        qt_build_tool_environment(build, None)?
+        qt_build_tool_environment(repo_root, build, None)?
     };
     // KDE's generated imported targets intentionally keep many low-level
     // shared-library dependencies transitive.  The modern linker does not
@@ -201,9 +201,13 @@ fn kde_target_environment(
             environment.push((key, value));
         }
     }
-    let mut trusted_bins = BTreeSet::new();
-    for program in ["cmake", "ninja", "gcc", "g++", "ar", "ranlib", "pkg-config", "python3", "msgfmt", "msgmerge"] {
-        trusted_bins.insert(qt_host_tool(program)?.parent().unwrap().to_path_buf());
+    // MattOS-built compilers and Binutils first, then trusted host build tools.
+    let mut trusted_bins = vec![qt_target_toolchain(repo_root)?.bin];
+    for program in ["cmake", "ninja", "pkg-config", "python3", "msgfmt", "msgmerge"] {
+        let directory = qt_host_tool(program)?.parent().unwrap().to_path_buf();
+        if !trusted_bins.contains(&directory) {
+            trusted_bins.push(directory);
+        }
     }
     environment.retain(|(key, _)| *key != "PATH");
     environment.push(("PATH", std::env::join_paths(trusted_bins)?.to_string_lossy().into_owned()));
@@ -1316,7 +1320,7 @@ public:
     if qt_integration {
         command.extend(qt_target_cmake_args(repo_root, &prefixes)?);
     } else {
-        command.extend(isolated_target_cmake_args(&prefixes)?);
+        command.extend(isolated_target_cmake_args(repo_root, &prefixes)?);
     }
     if components.contains(&"qtbase") {
         let qtbase = repo_root.join("out/build/qtbase/install/usr");

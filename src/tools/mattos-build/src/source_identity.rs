@@ -220,8 +220,19 @@ impl GitSourceSnapshot {
         let root_text = root.to_string_lossy();
         let root_text = root_text.trim_end_matches('/');
         let lookup_timer = Instant::now();
-        let mut index = self.index.range(root_text.to_string()..).peekable();
-        let mut untracked = self.untracked.range(root_text.to_string()..).peekable();
+        let (first, last) = root_path_bounds(root_text);
+        let mut index = self
+            .index
+            .get_key_value(root_text)
+            .into_iter()
+            .chain(self.index.range(first.clone()..last.clone()))
+            .peekable();
+        let mut untracked = self
+            .untracked
+            .get(root_text)
+            .into_iter()
+            .chain(self.untracked.range(first..last))
+            .peekable();
         record_phase("prefix_lookup", lookup_timer.elapsed());
         let selection_timer = Instant::now();
         let mut entries = Vec::new();
@@ -334,6 +345,14 @@ fn nul_paths(output: &[u8]) -> BTreeSet<String> {
         .collect()
 }
 
+/// Bounds of the paths strictly inside directory `root`: `root/` up to (but
+/// excluding) `root0`, `'0'` being the byte after `'/'`.  Siblings such as
+/// `root-extra` or `root.d` sort between `root` and `root/`, so a scan
+/// starting at `root` itself must not stop at the first unselected path.
+fn root_path_bounds(root: &str) -> (String, String) {
+    (format!("{root}/"), format!("{root}0"))
+}
+
 fn path_is_selected(path: &str, root: &Path) -> bool {
     let root = root.to_string_lossy();
     let root = root.trim_end_matches('/');
@@ -372,17 +391,11 @@ fn selected_values<'a>(
         let root = root.to_string_lossy();
         let root = root.trim_end_matches('/');
         let timer = Instant::now();
-        let range = values.range(root.to_string()..);
+        let (first, last) = root_path_bounds(root);
+        let range = values.get_key_value(root).into_iter().chain(values.range(first..last));
         profile.prefix_lookup += timer.elapsed();
         let timer = Instant::now();
         for (path, value) in range {
-            if path != root
-                && !path
-                    .strip_prefix(root)
-                    .is_some_and(|rest| rest.starts_with('/'))
-            {
-                break;
-            }
             selected.insert(path.as_str(), value.as_str());
         }
         profile.entry_selection_sorting += timer.elapsed();
@@ -396,14 +409,8 @@ fn selected_paths<'a>(values: &'a BTreeSet<String>, roots: &[PathBuf]) -> BTreeS
     for root in roots {
         let root = root.to_string_lossy();
         let root = root.trim_end_matches('/');
-        for path in values.range(root.to_string()..) {
-            if path != root
-                && !path
-                    .strip_prefix(root)
-                    .is_some_and(|rest| rest.starts_with('/'))
-            {
-                break;
-            }
+        let (first, last) = root_path_bounds(root);
+        for path in values.get(root).into_iter().chain(values.range(first..last)) {
             selected.insert(path.as_str());
         }
     }
@@ -437,6 +444,38 @@ mod tests {
             snapshot.untracked_paths(&roots),
             ["root/new"].into_iter().collect()
         );
+    }
+
+    #[test]
+    fn siblings_sorting_before_the_directory_separator_do_not_hide_a_root() {
+        // `openssh-portable` and `openssh.d` sort between `openssh` and
+        // `openssh/` ('-' and '.' precede '/'); the root must still be read.
+        let snapshot = GitSourceSnapshot::from_git_output(
+            b"100644 a 0\topenssh-portable/configure\0100644 b 0\topenssh.d/x\0100644 c 0\topenssh/ssh-pam\0100644 d 0\topenssh/sshd_config\0",
+            b"openssh/ssh-pam\0openssh-portable/configure\0",
+            b"openssh-portable/new\0openssh/new\0",
+        )
+        .unwrap();
+        let roots = [PathBuf::from("openssh")];
+        assert_eq!(
+            snapshot.index_entries(&roots).0.keys().copied().collect::<Vec<_>>(),
+            ["openssh/ssh-pam", "openssh/sshd_config"]
+        );
+        assert_eq!(snapshot.untracked_paths(&roots), ["openssh/new"].into_iter().collect());
+
+        let query = SourceQuery::new(&roots, false);
+        let digest = |content: &'static str| {
+            snapshot
+                .canonical_query_bytes(Path::new("/repo"), &query, |path| {
+                    Ok(Some(format!("{}={content}", path.display())))
+                })
+                .unwrap()
+        };
+        let body = String::from_utf8(digest("one")).unwrap();
+        assert!(body.contains("openssh/ssh-pam") && body.contains("openssh/new"), "{body}");
+        assert!(!body.contains("openssh-portable"), "{body}");
+        // The modified working file is read from the working tree.
+        assert!(body.contains("\"openssh/ssh-pam\":\"working:/repo/openssh/ssh-pam=one\""), "{body}");
     }
 
     #[test]

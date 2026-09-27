@@ -62,6 +62,7 @@ fn doctor() -> Result<()> {
         "tar",
         "triehash",
         "magick",
+        "ccache",
     ] {
         if !check_host_tool_with_hint(tool, true, local_path_hint.as_deref())? {
             missing_required.push(tool);

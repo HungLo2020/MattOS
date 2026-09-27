@@ -97,6 +97,37 @@ fn qt_declarative_private_bridge(repo_root: &Path, build: &Path, qt: &Path) -> R
     Ok(cmake)
 }
 
+/// Merges a provider directory into a disposable Qt consumer view: real
+/// directories and copied files, never a directory symlink that writes could
+/// traverse into the provider's published tree.  Existing view entries win
+/// (earlier providers take precedence), and a directory symlink left by an
+/// older view layout is replaced by a real directory.
+fn mirror_into_qt_view(source: &Path, destination: &Path) -> Result<()> {
+    if destination
+        .symlink_metadata()
+        .is_ok_and(|metadata| metadata.file_type().is_symlink() && destination.is_dir())
+    {
+        fs::remove_file(destination)?;
+    }
+    fs::create_dir_all(destination)?;
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let from = entry.path();
+        let to = destination.join(entry.file_name());
+        let metadata = fs::symlink_metadata(&from)?;
+        if metadata.is_dir() {
+            mirror_into_qt_view(&from, &to)?;
+        } else if to.symlink_metadata().is_err() {
+            if metadata.file_type().is_symlink() {
+                std::os::unix::fs::symlink(fs::read_link(&from)?, &to)?;
+            } else {
+                fs::copy(&from, &to)?;
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Resolve only build-only tools from the host. Returned paths are supplied
 /// explicitly to CMake, so its target package search never needs host paths.
 fn qt_host_tool(name: &str) -> Result<PathBuf> {
@@ -109,19 +140,29 @@ fn qt_host_tool(name: &str) -> Result<PathBuf> {
     bail!("Qt build requires trusted host executable `{name}` in PATH")
 }
 
-fn qt_host_tool_environment() -> Result<Vec<(&'static str, String)>> {
-    let paths = ["cmake", "ninja", "gcc", "g++", "ar", "ranlib", "pkg-config"]
+/// The MattOS-built compilers and Binutils used for Qt and KDE target code.
+fn qt_target_toolchain(repo_root: &Path) -> Result<TargetToolchain> {
+    require_mattos_target_toolchain(repo_root)
+}
+
+fn qt_host_tool_environment(toolchain: &TargetToolchain) -> Result<Vec<(&'static str, String)>> {
+    let paths = ["cmake", "ninja", "pkg-config"]
         .iter()
         .map(|tool| qt_host_tool(tool))
         .collect::<Result<Vec<_>>>()?;
-    let path_dirs = paths.iter().filter_map(|path| path.parent()).collect::<BTreeSet<_>>();
+    let mut path_dirs = vec![toolchain.bin.clone()];
+    for directory in paths.iter().filter_map(|path| path.parent()) {
+        if !path_dirs.iter().any(|existing| existing == directory) {
+            path_dirs.push(directory.to_path_buf());
+        }
+    }
     Ok(vec![
         ("PATH", std::env::join_paths(path_dirs)?.to_string_lossy().into_owned()),
         ("CMAKE_MAKE_PROGRAM", qt_host_tool("ninja")?.display().to_string()),
-        ("CC", qt_host_tool("gcc")?.display().to_string()),
-        ("CXX", qt_host_tool("g++")?.display().to_string()),
-        ("AR", qt_host_tool("ar")?.display().to_string()),
-        ("RANLIB", qt_host_tool("ranlib")?.display().to_string()),
+        ("CC", toolchain.tool("gcc").display().to_string()),
+        ("CXX", toolchain.tool("g++").display().to_string()),
+        ("AR", toolchain.tool("ar").display().to_string()),
+        ("RANLIB", toolchain.tool("ranlib").display().to_string()),
         ("PKG_CONFIG", qt_host_tool("pkg-config")?.display().to_string()),
         // Clear inherited target-discovery state before explicitly supplying
         // the MattOS prefixes below. These variables are otherwise accepted
@@ -141,8 +182,12 @@ fn qt_host_tool_environment() -> Result<Vec<(&'static str, String)>> {
 /// its own build.  They must load the just-built Qt libraries, never a host
 /// Qt library with an unrelated symbol-version namespace.  This path is
 /// private to the disposable build tree and is not a target search prefix.
-fn qt_build_tool_environment(build: &Path, qtbase: Option<&Path>) -> Result<Vec<(&'static str, String)>> {
-    let mut env = qt_host_tool_environment()?;
+fn qt_build_tool_environment(
+    repo_root: &Path,
+    build: &Path,
+    qtbase: Option<&Path>,
+) -> Result<Vec<(&'static str, String)>> {
+    let mut env = qt_host_tool_environment(&qt_target_toolchain(repo_root)?)?;
     let mut libraries = vec![build.join("lib/x86_64-linux-gnu")];
     if let Some(qtbase) = qtbase {
         libraries.push(qtbase.join("lib/x86_64-linux-gnu"));
@@ -163,7 +208,7 @@ fn qt_target_environment(
     build: &Path,
     qtbase: Option<&Path>,
 ) -> Result<Vec<(&'static str, String)>> {
-    let mut env = qt_build_tool_environment(build, qtbase)?;
+    let mut env = qt_build_tool_environment(repo_root, build, qtbase)?;
     // QtGui's target-owned font backend links against these providers. Keep
     // their library/pkg-config directories in every Qt module environment so
     // downstream consumers can resolve QtGui's DT_NEEDED closure without
@@ -202,19 +247,21 @@ fn qt_target_environment(
     Ok(env)
 }
 
-fn isolated_target_cmake_args(prefixes: &[PathBuf]) -> Result<Vec<String>> {
+fn isolated_target_cmake_args(repo_root: &Path, prefixes: &[PathBuf]) -> Result<Vec<String>> {
     // CMake lists are semicolon-delimited; OS PATH delimiters are not valid.
     let prefix = prefixes
         .iter()
         .map(|path| path.display().to_string())
         .collect::<Vec<_>>()
         .join(";");
-    Ok(vec![
+    let toolchain = qt_target_toolchain(repo_root)?;
+    let launcher = ccache_cmake_launcher_args(repo_root)?;
+    Ok(launcher.into_iter().chain([
         format!("-DCMAKE_MAKE_PROGRAM={}", qt_host_tool("ninja")?.display()),
-        format!("-DCMAKE_C_COMPILER={}", qt_host_tool("gcc")?.display()),
-        format!("-DCMAKE_CXX_COMPILER={}", qt_host_tool("g++")?.display()),
-        format!("-DCMAKE_AR={}", qt_host_tool("ar")?.display()),
-        format!("-DCMAKE_RANLIB={}", qt_host_tool("ranlib")?.display()),
+        format!("-DCMAKE_C_COMPILER={}", toolchain.tool("gcc").display()),
+        format!("-DCMAKE_CXX_COMPILER={}", toolchain.tool("g++").display()),
+        format!("-DCMAKE_AR={}", toolchain.tool("ar").display()),
+        format!("-DCMAKE_RANLIB={}", toolchain.tool("ranlib").display()),
         format!("-DPKG_CONFIG_EXECUTABLE={}", qt_host_tool("pkg-config")?.display()),
         format!("-DCMAKE_PREFIX_PATH={prefix}"),
         format!("-DCMAKE_FIND_ROOT_PATH={prefix}"),
@@ -227,14 +274,14 @@ fn isolated_target_cmake_args(prefixes: &[PathBuf]) -> Result<Vec<String>> {
         "-DCMAKE_INSTALL_RPATH=".into(),
         "-DCMAKE_BUILD_RPATH=".into(),
         "-DCMAKE_SKIP_RPATH=ON".into(),
-    ])
+    ]).collect())
 }
 
 fn qt_target_cmake_args(repo_root: &Path, extra_prefix: &[PathBuf]) -> Result<Vec<String>> {
     let bridge = qt_opengl_bridge(repo_root)?;
     let mut prefixes = vec![bridge, repo_root.join("out/build/libglvnd/install/usr"), repo_root.join("out/build/mesa/install/usr")];
     prefixes.extend_from_slice(extra_prefix);
-    isolated_target_cmake_args(&prefixes)
+    isolated_target_cmake_args(repo_root, &prefixes)
 }
 
 fn qt_install(repo_root: &Path, build: &Path, install: &Path) -> Result<()> {
@@ -401,6 +448,13 @@ fn normalize_qt_target_metadata(repo_root: &Path, install: &Path) -> Result<()> 
             "/usr",
         ));
     }
+    // qt.toolchain.cmake records the configure-time compiler, the MattOS
+    // build wrappers.  In the installed system the same compiler is the
+    // native MattOS GCC in /usr/bin.
+    published_prefixes.push((
+        repo_root.join(TARGET_TOOL_WRAPPERS).to_string_lossy().into_owned(),
+        "/usr/bin",
+    ));
     let build_root = repo_root.join("out/build").to_string_lossy().into_owned();
     let entries = fs::read_dir(&modules)
         .with_context(|| format!("Qt install is missing qmake module metadata at {}", modules.display()))?;
@@ -686,19 +740,13 @@ fn build_qt_module(repo_root: &Path, component: &str) -> Result<()> {
             for directory in directories {
                 let source_directory = prefix.join(directory);
                 if !source_directory.is_dir() { continue; }
-                let destination_directory = view_root.join(directory);
-                fs::create_dir_all(&destination_directory)?;
-                for entry in fs::read_dir(source_directory)? {
-                    let entry = entry?;
-                    let destination = destination_directory.join(entry.file_name());
-                    if destination.symlink_metadata().is_err() {
-                        if entry.path().is_file() {
-                            fs::copy(entry.path(), destination)?;
-                        } else {
-                            std::os::unix::fs::symlink(entry.path(), destination)?;
-                        }
-                    }
-                }
+                // Qt module builds write their own plugins into the view's
+                // `plugins/<category>` directories.  Those must be real
+                // directories: a symlinked category directory made the build
+                // write through into the provider's published install tree
+                // (e.g. qtsvg's image plugin landing in QtBase), invalidating
+                // QtBase and every Qt/KDE stage on the next run.
+                mirror_into_qt_view(&source_directory, &view_root.join(directory))?;
             }
         }
         let view_include = view_root.join("include");
@@ -1011,6 +1059,28 @@ fn build_qtspeech(repo_root: &Path) -> Result<()> { build_qt_module(repo_root, "
 #[cfg(test)]
 mod qt_tests {
     use super::*;
+
+    #[test]
+    fn qt_view_writes_never_reach_the_provider_install_tree() {
+        let temporary = tempfile::tempdir().unwrap();
+        let provider = temporary.path().join("qtbase/install/usr/plugins");
+        fs::create_dir_all(provider.join("imageformats")).unwrap();
+        fs::write(provider.join("imageformats/libqjpeg.so"), "qtbase").unwrap();
+        let view = temporary.path().join("qtsvg/build/mattos-qt-cmake-view/plugins");
+        // An older view layout linked the whole category directory.
+        fs::create_dir_all(&view).unwrap();
+        std::os::unix::fs::symlink(provider.join("imageformats"), view.join("imageformats"))
+            .unwrap();
+        mirror_into_qt_view(&provider, &view).unwrap();
+        assert!(!view.join("imageformats").symlink_metadata().unwrap().file_type().is_symlink());
+        assert_eq!(fs::read_to_string(view.join("imageformats/libqjpeg.so")).unwrap(), "qtbase");
+        // A module build writing its own plugin stays in the view.
+        fs::write(view.join("imageformats/libqsvg.so"), "qtsvg").unwrap();
+        assert!(!provider.join("imageformats/libqsvg.so").exists());
+        // Overwriting a mirrored file does not modify the provider either.
+        fs::write(view.join("imageformats/libqjpeg.so"), "changed").unwrap();
+        assert_eq!(fs::read_to_string(provider.join("imageformats/libqjpeg.so")).unwrap(), "qtbase");
+    }
     use crate::stage_graph::direct_dependencies;
 
     #[test]
@@ -1068,6 +1138,7 @@ mod qt_tests {
     fn qt_target_environment_exposes_the_source_owned_qtgui_font_closure() {
         let temporary = tempfile::tempdir().unwrap();
         let repo = temporary.path();
+        install_fake_mattos_target_toolchain(repo);
         for component in ["wayland", "xkbcommon", "libglvnd", "mesa", "openssl", "x11-compat", "freetype", "fontconfig", "expat"] {
             fs::create_dir_all(repo.join("out/build").join(component).join("install/usr/lib/x86_64-linux-gnu")).unwrap();
         }
@@ -1097,7 +1168,10 @@ mod qt_tests {
 
     #[test]
     fn qt_host_environment_clears_inherited_qt_target_discovery() {
-        let environment = qt_host_tool_environment().unwrap();
+        let toolchain = TargetToolchain {
+            bin: PathBuf::from("/nonexistent/mattos-toolchain/bin"),
+        };
+        let environment = qt_host_tool_environment(&toolchain).unwrap();
         for variable in [
             "CMAKE_PREFIX_PATH", "CMAKE_FIND_ROOT_PATH", "Qt6_DIR",
             "Qt6Core_DIR", "Qt6Gui_DIR", "Qt6Widgets_DIR", "QTDIR", "QT_PLUGIN_PATH",

@@ -1,0 +1,11 @@
+setuptools
+wheel
+pymdown-extensions~=10.20
+pygments~=2.19
+mkdocs
+mkdocs-material
+mkdocs-section-index
+mkdocs-include-markdown-plugin
+mkdocs-macros-plugin
+mkdocs-blogging-plugin
+mkdocs-rss-plugin

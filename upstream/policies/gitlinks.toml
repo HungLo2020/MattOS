@@ -272,3 +272,117 @@ path = "wycheproof"
 upstream_commit = "2196000605e45d91097147c9c71f26b72af58003"
 action = "exclude"
 reason = "External cryptographic test vectors are not runtime or build inputs for MattOS."
+
+[[component]]
+name = "qtdeclarative"
+upstream_commit = "4e3399c26ec57246c08de019cfcbda8d23604cfa"
+
+[[component.gitlink]]
+path = "tests/auto/qml/ecmascripttests/test262"
+upstream_commit = "a0efb7e1ab1cee24c387abe1897ff18fa116c17d"
+action = "exclude"
+reason = "The ECMAScript conformance suite is test-only input; MattOS builds qtdeclarative with tests disabled."
+
+[[component]]
+name = "qttools"
+upstream_commit = "8026c0462f19e9549501718152523ea223a19fd3"
+
+[[component.gitlink]]
+path = "src/assistant/qlitehtml"
+upstream_commit = "3fe5821dad98747d6e41c9ed54b86c3d0eee9daf"
+action = "exclude"
+reason = "qlitehtml backs Qt Assistant, which the MattOS qttools build disables (FEATURE_assistant=OFF)."
+
+[[component]]
+name = "zxing-cpp"
+upstream_commit = "287c85df6f961c8efbfb5ffd736cd9457b8b890e"
+
+[[component.gitlink]]
+path = "zint"
+upstream_commit = "55541e139e62b9209b71cd9b0ba9010cec28b1d9"
+action = "exclude"
+reason = "zint serves only the new barcode writer; MattOS builds zxing-cpp with ZXING_WRITERS=OLD, implemented in-tree."
+
+[[component]]
+name = "xcb-util"
+upstream_commit = "523cbc8af809d9525703f2fa3680d8c880fe4e9c"
+
+[[component.gitlink]]
+path = "m4"
+upstream_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+action = "replacement"
+replacement_component = "xcb-util-m4"
+replacement_path = "src/system/graphics/xcb-util-m4"
+replacement_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+exact_gitlink_match = true
+reason = "The shared xcb-util autotools macros are imported once as xcb-util-m4 at the exact gitlink commit."
+
+[[component]]
+name = "xcb-cursor"
+upstream_commit = "7b0fa99aa13084a9bf7be4180066f6a74b0adef1"
+
+[[component.gitlink]]
+path = "m4"
+upstream_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+action = "replacement"
+replacement_component = "xcb-util-m4"
+replacement_path = "src/system/graphics/xcb-util-m4"
+replacement_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+exact_gitlink_match = true
+reason = "The shared xcb-util autotools macros are imported once as xcb-util-m4 at the exact gitlink commit."
+
+[[component]]
+name = "xcb-image"
+upstream_commit = "525ce59fe2329d4b23fc0c52ed9dd92daac8ac2a"
+
+[[component.gitlink]]
+path = "m4"
+upstream_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+action = "replacement"
+replacement_component = "xcb-util-m4"
+replacement_path = "src/system/graphics/xcb-util-m4"
+replacement_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+exact_gitlink_match = true
+reason = "The shared xcb-util autotools macros are imported once as xcb-util-m4 at the exact gitlink commit."
+
+[[component]]
+name = "xcb-keysyms"
+upstream_commit = "85e093f14b0ade2956e0a5d1c37cfde06d8b1ba6"
+
+[[component.gitlink]]
+path = "m4"
+upstream_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+action = "replacement"
+replacement_component = "xcb-util-m4"
+replacement_path = "src/system/graphics/xcb-util-m4"
+replacement_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+exact_gitlink_match = true
+reason = "The shared xcb-util autotools macros are imported once as xcb-util-m4 at the exact gitlink commit."
+
+[[component]]
+name = "xcb-renderutil"
+upstream_commit = "5293d8b6165f23b9f7a8bcc903da0e4d7a75984c"
+
+[[component.gitlink]]
+path = "m4"
+upstream_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+action = "replacement"
+replacement_component = "xcb-util-m4"
+replacement_path = "src/system/graphics/xcb-util-m4"
+replacement_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+exact_gitlink_match = true
+reason = "The shared xcb-util autotools macros are imported once as xcb-util-m4 at the exact gitlink commit."
+
+[[component]]
+name = "xcb-util-wm"
+upstream_commit = "0c6681e465c9cc7b1fbb60778ba1eaa61ab01a14"
+
+[[component.gitlink]]
+path = "m4"
+upstream_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+action = "replacement"
+replacement_component = "xcb-util-m4"
+replacement_path = "src/system/graphics/xcb-util-m4"
+replacement_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
+exact_gitlink_match = true
+reason = "The shared xcb-util autotools macros are imported once as xcb-util-m4 at the exact gitlink commit."

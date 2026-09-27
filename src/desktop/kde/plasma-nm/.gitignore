@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: none
+.gitignore
+*.directory
+*~
+.*.sw[p,o]
+/build
+tags
+.swp.*
+.kdev4/
+*.kdev4
+CMakeLists.txt.user
+*.qmlc
+.clang-format
+/build*/
+/compile_commands.json
+.clangd
+.idea
+/cmake-build*
+.cache

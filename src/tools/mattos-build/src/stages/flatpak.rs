@@ -228,7 +228,8 @@ fn build_flatpak_target_install_helper(repo_root: &Path) -> Result<()> {
     if let Some(parent) = output.parent() {
         fs::create_dir_all(parent)?;
     }
-    let compiler = repo_root.join("out/build/gcc-toolchain/install/usr/bin/gcc");
+    // The MattOS target compiler, not the guest-native driver run on the host.
+    let compiler = require_mattos_target_toolchain(repo_root)?.tool("gcc");
     let sysroot = repo_root.join("out/sysroot");
     let libc_search = format!("-B{}/usr/lib/x86_64-linux-gnu/", sysroot.display());
     let gcc_search = format!(
@@ -436,7 +437,9 @@ fn build_ostree(repo_root: &Path) -> Result<()> {
             "installer",
         ],
         &[
-            "--host=x86_64-linux-gnu",
+            // Use the MattOS triplet: autoconf probes `<host>-gcc`, and the
+            // generic Debian triplet resolves to the host distro's compiler.
+            "--host=x86_64-pc-linux-gnu",
             "--prefix=/usr",
             "--libdir=/usr/lib/x86_64-linux-gnu",
             "--disable-tests",

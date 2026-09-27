@@ -146,7 +146,12 @@ fn staged_pkgconfig_overlay(
     if !root.is_dir() {
         let parent = root.parent().expect("pkg-config overlay parent");
         fs::create_dir_all(parent)?;
-        let temporary = parent.join(format!(".{digest}.building-{}", std::process::id()));
+        // Stage threads share one process ID; concurrent stages with the same
+        // dependency set must not share a temporary directory.
+        let temporary = parent.join(format!(
+            ".{digest}.building-{}",
+            performance::unique_temporary_suffix()
+        ));
         remove_path_if_exists(&temporary)?;
         fs::create_dir_all(&temporary)?;
         for (component, kind, source) in &sources {

@@ -1,0 +1,168 @@
+name: Windows CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+env:
+  BUILD_TYPE: Debug
+  QTEST_FUNCTION_TIMEOUT: 60000
+
+
+jobs:
+  detect_run:
+    name: Check changes
+    outputs: { "source_code_changed": "${{ steps.source_code_changed.outputs.source_code_changed}}" }
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+      - id: changed_files
+        uses: tj-actions/changed-files@v47
+        name: Get changed files
+        with:
+          files_ignore: |
+            docs/**
+            docker/**
+            requirements.txt
+            mkdocs.yml
+            README.md
+            .github/**
+      - id: source_code_changed
+        name: Check for source code changes
+        if: steps.changed_files.outputs.any_changed == 'true'
+        run: |
+          echo "Detected changed files:"
+          echo "${{ steps.changed_files.outputs.all_changed_files }}"
+          echo "source_code_changed=true" >> "$GITHUB_OUTPUT"
+
+
+  generate-matrix:
+    name: Generate build matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v6
+    - id: set-matrix
+      name: Generate matrix
+      run: |
+        matrix_json=$(python3 ./.github/workflows/generate-matrix.py --platform=windows)
+        echo "matrix=${matrix_json}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: [ generate-matrix, detect_run ]
+    strategy:
+      matrix: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
+      fail-fast: false
+
+    runs-on: ${{ matrix.runs_on }}
+    name: ${{ matrix.platform }}-${{ matrix.compiler_full }}-qt-${{ matrix.qt_version }}
+
+    steps:
+    - name: Checkout sources
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' }}
+      uses: actions/checkout@v6
+
+    - name: Install Qt
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' }}
+      uses: ./.github/actions/install-qt
+      with:
+        qt_version: ${{ matrix.qt_version }}
+        qt_archives: ${{ matrix.qt_archives }}
+        qt_modules: ${{ matrix.qt_modules }}
+        platform: ${{ matrix.platform }}
+
+    - name: Create Build Environment
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' }}
+      run: |
+        cmake -E make_directory ${{ github.workspace }}/build
+
+    - name: Configure CMake
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' }}
+      shell: bash
+      working-directory: ${{ github.workspace }}/build
+      run: |
+        QT_VERSION_MAJOR=$(echo ${{ matrix.qt_version }} | cut -d'.' -f1)
+
+        if [[ "${{ matrix.compiler }}" == "clang-cl" ]]; then
+          # FIXME: allow ASAN with clang-cl
+          EXTRA_CMAKE_FLAGS="${EXTRA_CMAKE_FLAGS} -T ClangCL -DQCORO_ENABLE_ASAN=OFF"
+        fi
+        if [[ "${QT_VERSION_MAJOR}" == "5" ]]; then
+          EXTRA_CMAKE_FLAGS="${EXTRA_CMAKE_FLAGS} -DQCORO_ENABLE_ASAN=OFF"
+        fi
+
+        cmake $GITHUB_WORKSPACE \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DUSE_QT_VERSION=$QT_VERSION_MAJOR \
+          -DQCORO_WITH_QTDBUS=${{ matrix.with_qtdbus }} \
+          -DQCORO_ENABLE_ASAN=ON \
+          ${EXTRA_CMAKE_FLAGS}
+
+    - name: Add ASAN DLL directory to PATH
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' }}
+      shell: pwsh
+      run: |
+        $installDir=(& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath)
+        echo "Detected MSVC install dir: \"${installDir}\""
+        if ("${{ matrix.compiler}}" -eq "msvc") {
+          if (Test-Path -Path "${installDir}\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt") {
+            $vctoolsVersion=(Get-Content -Path "${installDir}\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt")
+            echo "Detected VCTools version: ${vctoolsVersion}"
+          } else {
+            echo "Failed to detect MSVC version"
+            exit 1
+          }
+          "${installDir}\VC\Tools\MSVC\${vctoolsVersion}\bin\HostX64\x64" >> $env:GITHUB_PATH
+        } else {
+          $clangVersion=((& "${installDir}\VC\Tools\Llvm\x64\bin\clang.exe" --version) | Select-String -Pattern "\d+.\d+.\d+" | % { $_.Matches } | % { $_.Value })
+          echo "Detected clang version: ${clangVersion}"
+          "${installDir}\VC\Tools\Llvm\x64\lib\clang\${clangVersion}\lib\windows" >> $env:GITHUB_PATH
+        }
+
+    - name: Build
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' }}
+      shell: bash
+      working-directory: ${{ github.workspace }}/build
+      run: |
+        cmake --build . --config $BUILD_TYPE --parallel $(nproc) --verbose
+
+    - name: Test
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' }}
+      shell: bash
+      working-directory: ${{ github.workspace }}/build
+      run: |
+        QT_LOGGING_TO_CONSOLE=1 ctest -C $BUILD_TYPE \
+          --output-on-failure \
+          --verbose \
+          --output-junit ${{ matrix.platform }}-${{ matrix.compiler_full }}-qt-${{ matrix.qt_version }}.xml
+
+    - name: Upload Test Results
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' && always() }}
+      uses: actions/upload-artifact@v5
+      with:
+        name: Unit Tests Results (${{ matrix.platform }}-${{ matrix.compiler_full }}-qt-${{ matrix.qt_version }})
+        path: |
+          ${{ github.workspace }}/build/${{ matrix.platform }}-${{ matrix.compiler_full }}-qt-${{ matrix.qt_version }}.xml
+
+    - name: Upload build logs on failure
+      if: ${{ needs.detect_run.outputs.source_code_changed == 'true' && failure() }}
+      uses: actions/upload-artifact@v5
+      with:
+        name: build-${{ matrix.platform }}-${{ matrix.compiler_full }}-qt-${{ matrix.qt_version }}
+        path: build/**
+
+  event_file:
+    name: "Event File"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Upload
+      uses: actions/upload-artifact@v5
+      with:
+        name: Event File
+        path: ${{ github.event_path }}

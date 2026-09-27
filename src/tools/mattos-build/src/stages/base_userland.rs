@@ -146,7 +146,11 @@ fn build_diffutils(repo_root: &Path) -> Result<()> {
 }
 
 fn build_init(repo_root: &Path) -> Result<()> {
-    run_cmd(
+    // An output-owned target directory (like the other Rust stages) so the
+    // shipped binary is never a stale artifact from the developer's shared
+    // `target/`, and toolchain changes invalidate it with the stage workspace.
+    let target = repo_root.join("out/build/init/cargo-target");
+    run_cmd_with_env_overrides(
         repo_root,
         "cargo",
         &[
@@ -155,6 +159,7 @@ fn build_init(repo_root: &Path) -> Result<()> {
             "--manifest-path",
             "src/userland/init/Cargo.toml",
         ],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
     )
 }
 
@@ -691,6 +696,15 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     let ncurses_pkgconfig = ncurses_install.join("lib/x86_64-linux-gnu/pkgconfig");
     let ncurses_include = ncurses_install.join("include");
     let ncurses_lib = ncurses_install.join("lib/x86_64-linux-gnu");
+    // login utilities link libcrypt; resolve it from the staged libxcrypt
+    // rather than whatever an earlier stage happened to leave in the sysroot.
+    let xcrypt_install = repo_root.join("out/build/libxcrypt/install/usr");
+    let xcrypt_pkgconfig = xcrypt_install.join("lib/x86_64-linux-gnu/pkgconfig");
+    let xcrypt_include = xcrypt_install.join("include");
+    let xcrypt_lib = xcrypt_install.join("lib/x86_64-linux-gnu");
+    if !xcrypt_lib.join("libcrypt.so").exists() {
+        bail!("staged libxcrypt is missing; run build libxcrypt first");
+    }
     if !pam_pkgconfig.exists() {
         bail!(
             "linux-pam pkg-config directory missing at {}; run build pam first",
@@ -708,6 +722,7 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
         &selinux_pkgconfig,
         &pcre2_pkgconfig,
         &ncurses_pkgconfig,
+        &xcrypt_pkgconfig,
     ])?
     .to_string_lossy()
     .to_string();
@@ -718,11 +733,12 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     };
     let current_cflags = std::env::var("CFLAGS").unwrap_or_default();
     let staged_cflags = format!(
-        "-I{} -I{} -I{} -I{}",
+        "-I{} -I{} -I{} -I{} -I{}",
         pam_include.display(),
         selinux_include.display(),
         pcre2_include.display(),
-        ncurses_include.display()
+        ncurses_include.display(),
+        xcrypt_include.display()
     );
     let cflags = if current_cflags.is_empty() {
         staged_cflags
@@ -731,18 +747,20 @@ fn build_util_linux(repo_root: &Path) -> Result<()> {
     };
     let current_ldflags = std::env::var("LDFLAGS").unwrap_or_default();
     let staged_ldflags = format!(
-        "-L{} -L{} -L{} -L{}",
+        "-L{} -L{} -L{} -L{} -L{}",
         pam_lib.display(),
         selinux_lib.display(),
         pcre2_lib.display(),
-        ncurses_lib.display()
+        ncurses_lib.display(),
+        xcrypt_lib.display()
     );
     let ldflags = if current_ldflags.is_empty() {
         staged_ldflags
     } else {
         format!("{staged_ldflags} {current_ldflags}")
     };
-    let library_path = std::env::join_paths([&pam_lib, &selinux_lib, &pcre2_lib, &ncurses_lib])?
+    let library_path =
+        std::env::join_paths([&pam_lib, &selinux_lib, &pcre2_lib, &ncurses_lib, &xcrypt_lib])?
         .to_string_lossy()
         .to_string();
     let env_overrides = vec![

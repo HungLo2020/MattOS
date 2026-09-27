@@ -991,6 +991,57 @@ def _capture_plasma_verification_window_once(
     return width, height
 
 
+# Normalized RMSE between two captures.  A settled desktop varies by less
+# than the spinner of the splash screen.  A panel tooltip measures about 0.024
+# and the opened launcher about 0.096, so a popup must clear 0.05.
+PLASMA_SETTLED_MAX_DIFFERENCE = 0.003
+PLASMA_POPUP_MIN_DIFFERENCE = 0.05
+
+
+def _screenshot_difference(first: Path, second: Path) -> float:
+    """Normalized root-mean-square pixel difference of two screenshots."""
+    compared = subprocess.run(
+        ["compare", "-metric", "RMSE", str(first), str(second), "null:"],
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    # compare exits 1 for "images differ"; only 2 is an error.
+    match = re.search(r"\(([0-9.eE+-]+)\)", compared.stderr)
+    if compared.returncode > 1 or match is None:
+        raise RepoError(f"could not compare {first} and {second}: {compared.stderr.strip()}")
+    return float(match.group(1))
+
+
+def _capture_settled_plasma_desktop(
+    repo_root: Path,
+    destination: Path,
+    *,
+    qmp_socket: Path,
+    timeout: float = 90,
+) -> tuple[int, int]:
+    """Capture the guest once two frames 1.5 s apart are effectively identical."""
+    probe = destination.with_name(destination.stem + "-settle-probe.png")
+    deadline = time.monotonic() + timeout
+    try:
+        size = _capture_plasma_verification_window(repo_root, destination, qmp_socket=qmp_socket)
+        while True:
+            time.sleep(1.5)
+            _capture_plasma_verification_window(repo_root, probe, qmp_socket=qmp_socket)
+            difference = _screenshot_difference(destination, probe)
+            if difference <= PLASMA_SETTLED_MAX_DIFFERENCE:
+                return size
+            if time.monotonic() >= deadline:
+                raise RepoError(
+                    f"the Plasma desktop never settled (RMSE {difference:.4f} between frames); "
+                    f"screenshot: {destination}"
+                )
+            probe.replace(destination)
+    finally:
+        probe.unlink(missing_ok=True)
+
+
 def _select_installed_qemu_window(tree: str) -> str | None:
     """Select the largest SDL head for this verification VM, not a blank head."""
     pattern = re.compile(
@@ -1254,29 +1305,50 @@ def _verify_installed_disk_boot(
             stream(f"[installed-check] PASS {name}\n")
             completed_checks.append(output)
         if profile == "plasma":
+            # plasmashell and KWin run while the splash is still on screen;
+            # wait for it to exit and the desktop to stop animating first.
+            serial_command_stream(
+                control_paths[1].resolve(),
+                "for n in $(seq 1 120); do pgrep -u mattos -x ksplashqml >/dev/null || exit 0; "
+                "sleep 1; done; ps -eo user,pid,comm,args; exit 1",
+                INSTALL_BOOT_IDLE_SECONDS,
+                on_output=stream,
+            )
             desktop_image = repo_root / "out/logs/installed-plasma-desktop.png"
-            desktop_size = _capture_plasma_verification_window(
+            desktop_size = _capture_settled_plasma_desktop(
                 repo_root, desktop_image, qmp_socket=control_paths[0]
             )
             stream(f"[installed-check] screenshot desktop={desktop_image} size={desktop_size}\n")
-            with QmpClient(control_paths[0], 10) as qmp:
-                click(qmp, 30, desktop_size[1] - 22, *desktop_size)
+            height = desktop_size[1]
+            popups = (
+                # The launcher sits at the panel's left edge.  Right-edge
+                # targets (the clock) are not clicked: with the secondary
+                # display head, absolute pointer coordinates span both heads,
+                # so they land on the show-desktop button instead.
+                ("launcher", 30, height - 22),
+            )
+            popup_images = []
+            for name, x, y in popups:
+                baseline = repo_root / f"out/logs/installed-plasma-{name}-baseline.png"
+                _capture_settled_plasma_desktop(repo_root, baseline, qmp_socket=control_paths[0])
+                with QmpClient(control_paths[0], 10) as qmp:
+                    click(qmp, x, y, *desktop_size)
                 time.sleep(2)
-                launcher_image = repo_root / "out/logs/installed-plasma-launcher.png"
-                _capture_plasma_verification_window(repo_root, launcher_image, qmp_socket=control_paths[0])
-                send_key(qmp, "esc")
-                click(qmp, desktop_size[0] - 35, desktop_size[1] - 22, *desktop_size)
-                time.sleep(2)
-                clock_image = repo_root / "out/logs/installed-plasma-clock.png"
-                _capture_plasma_verification_window(repo_root, clock_image, qmp_socket=control_paths[0])
-                send_key(qmp, "esc")
-                click(qmp, desktop_size[0] // 2, desktop_size[1] - 22, *desktop_size)
-                time.sleep(2)
-                pager_image = repo_root / "out/logs/installed-plasma-pager.png"
-                _capture_plasma_verification_window(repo_root, pager_image, qmp_socket=control_paths[0])
+                image = repo_root / f"out/logs/installed-plasma-{name}.png"
+                _capture_plasma_verification_window(repo_root, image, qmp_socket=control_paths[0])
+                difference = _screenshot_difference(baseline, image)
+                if difference < PLASMA_POPUP_MIN_DIFFERENCE:
+                    raise RepoError(
+                        f"clicking the Plasma {name} did not open its popup "
+                        f"(RMSE {difference:.4f} against {baseline}); screenshot: {image}"
+                    )
+                stream(f"[installed-check] PASS {name}-popup-opened rmse={difference:.4f}\n")
+                popup_images.append(str(image))
+                with QmpClient(control_paths[0], 10) as qmp:
+                    send_key(qmp, "esc")
             stream(
-                "[installed-check] PASS launcher/clock/pager interactions; "
-                f"screenshots={launcher_image},{clock_image},{pager_image}\n"
+                "[installed-check] PASS launcher interaction; "
+                f"screenshots={','.join(popup_images)}\n"
             )
             logout_graphical = (
                 f"{installed_plasma_logout_command()} && "

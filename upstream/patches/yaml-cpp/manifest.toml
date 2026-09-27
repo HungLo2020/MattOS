@@ -1,6 +1,10 @@
+schema_version = 1
 component = "yaml-cpp"
+upstream_commit = "f7320141120f720aecc4c32be25586e7da9eb978"
+upstream_tree = "1c4757f20f8dd4f5a9d86969bf17bf8cf3a41e99"
 application = "output-mirror-only"
 
 [[patch]]
 path = "upstream/patches/yaml-cpp/0001-emitterutils-include-cstdint.patch"
 sha256 = "b6f84bff1379ef946eb5a9ddbb61898590a0c6160f0a79bce03eda617ccdf7b9"
+purpose = "Include <cstdint> for the fixed-width integer types emitterutils.cpp uses; GCC 13 and newer no longer provide them transitively."

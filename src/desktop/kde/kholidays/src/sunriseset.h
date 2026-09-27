@@ -39,9 +39,7 @@ namespace SunRiseSet
   \note the latitude and longitude are truncated as needed to fit into their proper range.
 
 */
-KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead")
-KHOLIDAYS_EXPORT
-QTime utcSunrise(const QDate &date, double latitude, double longitude);
+KHOLIDAYS_EXPORT KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead") QTime utcSunrise(const QDate &date, double latitude, double longitude);
 
 /*!
   Compute the sunset time (UTC) for a date and Earth location.
@@ -56,9 +54,7 @@ QTime utcSunrise(const QDate &date, double latitude, double longitude);
 
   \note the latitude and longitude are truncated as needed to fit into their proper range.
 */
-KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead")
-KHOLIDAYS_EXPORT
-QTime utcSunset(const QDate &date, double latitude, double longitude);
+KHOLIDAYS_EXPORT KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead") QTime utcSunset(const QDate &date, double latitude, double longitude);
 
 /*!
   Compute the civil dawn time (UTC) for a date and Earth location.
@@ -76,9 +72,7 @@ QTime utcSunset(const QDate &date, double latitude, double longitude);
   \note the latitude and longitude are truncated as needed to fit into their proper range.
   \since 5.77
 */
-KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead")
-KHOLIDAYS_EXPORT
-QTime utcDawn(const QDate &date, double latitude, double longitude);
+KHOLIDAYS_EXPORT KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead") QTime utcDawn(const QDate &date, double latitude, double longitude);
 
 /*!
   Compute the civil dawn time (UTC) for a date and Earth location.
@@ -96,9 +90,7 @@ QTime utcDawn(const QDate &date, double latitude, double longitude);
   \note the latitude and longitude are truncated as needed to fit into their proper range.
   \since 5.77
 */
-KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead")
-KHOLIDAYS_EXPORT
-QTime utcDusk(const QDate &date, double latitude, double longitude);
+KHOLIDAYS_EXPORT KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead") QTime utcDusk(const QDate &date, double latitude, double longitude);
 
 /*!
   Checks whether it is polar day on day \a date at \a latitude.
@@ -113,9 +105,7 @@ QTime utcDusk(const QDate &date, double latitude, double longitude);
 
   \since 5.97
 */
-KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead")
-KHOLIDAYS_EXPORT
-bool isPolarDay(const QDate &date, double latitude);
+KHOLIDAYS_EXPORT KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead") bool isPolarDay(const QDate &date, double latitude);
 
 /*!
   Checks whether it is polar twilight on day \a date at \a latitude.
@@ -130,9 +120,7 @@ bool isPolarDay(const QDate &date, double latitude);
 
   \since 5.97
 */
-KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead")
-KHOLIDAYS_EXPORT
-bool isPolarTwilight(const QDate &date, double latitude);
+KHOLIDAYS_EXPORT KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead") bool isPolarTwilight(const QDate &date, double latitude);
 
 /*!
   Checks whether it is polar night on day \a date at \a latitude.
@@ -146,9 +134,7 @@ bool isPolarTwilight(const QDate &date, double latitude);
 
   \since 5.97
 */
-KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead")
-KHOLIDAYS_EXPORT
-bool isPolarNight(const QDate &date, double latitude);
+KHOLIDAYS_EXPORT KHOLIDAYS_DEPRECATED_VERSION(6, 15, "Use SunEvents instead") bool isPolarNight(const QDate &date, double latitude);
 }
 #endif
 

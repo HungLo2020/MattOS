@@ -31,7 +31,7 @@ for build temporary files. It is created and write-tested automatically, and
 takes precedence over an inherited `TMPDIR` so a full host `/tmp` cannot break
 the build. `--build-only` runs `doctor` and the same `cargo run -p mattos-build -- build all` command used directly, in separate child processes. Stage keys normalize the build locale/time policy and identify selected tools rather than hashing the caller's raw `PATH`, so unchanged direct and launcher builds share the same cache identity.
 
-This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, glibc/GCC-runtime-bootstrap, and ELF-inspection tools declared by `DevUtils/setup.py`, including GCC/G++, GNU assembler and linker tools, Make, Bison, Meson/Ninja, CMake, Autoconf/Automake/libtool, `gnulib-tool`, GNU awk (`gawk`), `rsync`, `bindgen`, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`. Host GMP, MPFR, and MPC development files are GCC-internal build prerequisites only. Target runtime development files come from imported source builds and `out/sysroot`, not host distribution `-dev` packages.
+This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, glibc/GCC-runtime-bootstrap, and ELF-inspection tools declared by `DevUtils/setup.py`, including GCC/G++, GNU assembler and linker tools, Make, Bison, Meson/Ninja, CMake, Autoconf/Automake/libtool, `gnulib-tool`, GNU awk (`gawk`), `rsync`, `bindgen`, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`. The host compiler only builds the stage-0 cross toolchain, the host-running compiler proper, and build-time helper programs. All target code is compiled by source-built GCC and Binutils (see `docs/NATIVE_TOOLCHAIN.md`). GCC's GMP, MPFR, and MPC prerequisites are built from checksum-pinned sources, not host `-dev` packages. Target runtime development files come from imported source builds and `out/sysroot`, not host distribution `-dev` packages.
 
 ## Upstream source status
 
@@ -84,6 +84,17 @@ cargo run -p mattos-build -- upstream import linuxscripts
 cargo run -p mattos-build -- build
 ```
 
+By default the first failing stage stops the build: nothing new is
+dispatched and running stages finish. With `--keep-going`, every stage that
+does not depend on a failed stage still builds, and the run ends with a list
+of each failure and the stages it kept from building:
+
+```
+cargo run -p mattos-build -- build all --keep-going
+```
+
+Stages that did build are cached, so the next run resumes after the fixes.
+
 Inspect a stage without building it:
 
 ```text
@@ -95,9 +106,10 @@ The detailed form compares schema, source/configuration/environment/tool/depende
 
 The pipeline stages are:
 
-1. `kernel`: Linux kernel build using `src/kernel/config/x86_64_mattos.config`
-2. `glibc`: controlled Linux UAPI export, out-of-tree GNU libc build, and initial MattOS development sysroot
-3. `gcc-runtime`: top-level GCC runtime-only build selecting `libgcc_s.so.1` and `libstdc++.so.6`
+0. `cross-toolchain`: host-built stage-0 MattOS cross Binutils and libc-less pass-1 GCC
+1. `kernel`: Linux kernel build using `src/kernel/config/x86_64_mattos.config`, compiled by the pass-1 GCC
+2. `glibc`: controlled Linux UAPI export, out-of-tree GNU libc build by the pass-1 GCC, and initial MattOS development sysroot
+3. `gcc-runtime`: top-level GCC build selecting `libgcc_s.so.1` and `libstdc++.so.6`, and installing the MattOS compiler used by every later stage
 4. `brush`: Brush release build
 5. `coreutils`: uutils/coreutils multicall build
 6. `attr`, `expat`, `libcap`, `acl`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`: focused source-built development/runtime libraries
@@ -120,7 +132,7 @@ The pipeline stages are:
 23. `apt`: imported APT CMake/Ninja build against MattOS compression and libcrypto libraries
 24. `libffi`, `cpython`: CPython runtime, standard library, venv/ensurepip, and development surface against MattOS-owned native libraries
 25. `llvm`: LLVM shared runtime, selected tools, Clang, and LLD with X86, AArch64, and RISC-V backends
-26. `rust`: Rust compiler, native standard library, rustdoc, and Cargo from the checksummed official source release and its explicit stage-0 bootstrap metadata
+26. `rust`: Rust compiler, native standard library, rustdoc, and Cargo from the checksummed official source release and its explicit stage-0 bootstrap metadata; this MattOS rustc compiles all target Rust code, so the Cargo-built stages (`brush`, `coreutils`, the uutils tools, `init`, `sudo-rs`, ...) follow it
 27. `init`: MattOS rescue init build
 28. `rootfs`, `live-root`, `initramfs`, `iso`: package root assembly,
     deterministic SquashFS, minimal early userspace, and bootable ISO

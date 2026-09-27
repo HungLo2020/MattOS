@@ -5,6 +5,7 @@ auth       required     pam_env.so
 auth       required     pam_unix.so
 account    required     pam_unix.so
 session    required     pam_env.so
+session    required     pam_env.so readenv=1 envfile=/etc/default/locale
 session    required     pam_unix.so
 session    optional     pam_systemd.so
 password   required     pam_unix.so

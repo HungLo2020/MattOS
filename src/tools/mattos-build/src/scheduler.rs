@@ -15,6 +15,9 @@ use std::time::{Duration, Instant};
 // Resource release and ready-set events wake admission immediately.  This is
 // only a recovery/safety poll: it must never be the normal scheduling clock.
 const PRESSURE_RECOVERY_POLL: Duration = Duration::from_secs(1);
+/// Floor for the per-job memory estimate used to size the jobserver pool;
+/// profiles with no per-job estimate still run real compilers.
+const MINIMUM_JOB_MEMORY_BYTES: u64 = 512 * 1024 * 1024;
 
 thread_local! {
     static GRANTED_TOKENS: Cell<usize> = const { Cell::new(4) };
@@ -140,8 +143,20 @@ pub(crate) fn configure_child_jobs(granted_tokens: usize, policy: ChildJobPolicy
 }
 
 pub(crate) fn child_job_limit() -> usize {
+    if elastic_child_jobs() {
+        // Jobserver clients take real parallelism from the shared token pool;
+        // the advertised limit is only its ceiling.
+        return crate::jobserver::ceiling().unwrap_or(1);
+    }
     let granted = GRANTED_TOKENS.with(Cell::get);
     CHILD_JOB_POLICY.with(|policy| child_job_limit_for(granted, policy.get()))
+}
+
+/// Whether this stage's build tools draw parallelism from the shared
+/// jobserver.  Serial and capped stages keep their fixed limits.
+pub(crate) fn elastic_child_jobs() -> bool {
+    CHILD_JOB_POLICY.with(|policy| policy.get() == ChildJobPolicy::SchedulerGrant)
+        && crate::jobserver::ceiling().is_some()
 }
 
 fn child_job_limit_for(granted: usize, policy: ChildJobPolicy) -> usize {
@@ -677,18 +692,104 @@ fn admission_grant(
     })
 }
 
+/// What the scheduler does when a stage fails.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum FailurePolicy {
+    /// Stop dispatching, let running stages finish, report the failure.
+    FailFast,
+    /// Keep building every stage that does not depend on a failed one, then
+    /// report all failures and the stages they blocked.
+    KeepGoing,
+}
+
+#[cfg(test)]
 pub(crate) fn execute<F>(nodes: Vec<SchedulerNode>, budget: ResourceBudget, action: F) -> Result<()>
 where
     F: Fn(&str, &JobContext) -> Result<()> + Sync,
 {
+    execute_with_policy(nodes, budget, FailurePolicy::FailFast, action)
+}
+
+pub(crate) fn execute_with_policy<F>(
+    nodes: Vec<SchedulerNode>,
+    budget: ResourceBudget,
+    policy: FailurePolicy,
+    action: F,
+) -> Result<()>
+where
+    F: Fn(&str, &JobContext) -> Result<()> + Sync,
+{
     let mut sampler = HostResourceSampler::new();
-    execute_with_sampler(nodes, budget, &mut sampler, action)
+    let mut jobserver =
+        crate::jobserver::Jobserver::create(Path::new("out/tmp"), budget.cpu_tokens)?;
+    jobserver.activate();
+    execute_with_sampler(nodes, budget, policy, &mut sampler, Some(&mut jobserver), action)
+}
+
+/// Summary of a keep-going run: every failure, then the stages each failure
+/// kept from running (directly or transitively).
+fn keep_going_report(
+    nodes: &BTreeMap<String, SchedulerNode>,
+    complete: &BTreeSet<String>,
+    failures: &BTreeMap<String, anyhow::Error>,
+) -> String {
+    let blocked = nodes
+        .keys()
+        .filter(|id| !complete.contains(*id) && !failures.contains_key(*id))
+        .cloned()
+        .collect::<Vec<_>>();
+    let mut report = format!(
+        "{} stage(s) failed; {} stage(s) not built because a dependency failed; {} stage(s) completed",
+        failures.len(),
+        blocked.len(),
+        complete.len()
+    );
+    for (id, error) in failures {
+        report.push_str(&format!("\n  failed: {id}: {error:#}"));
+    }
+    if !blocked.is_empty() {
+        report.push_str(&format!("\n  not built: {}", blocked.join(", ")));
+    }
+    report
+}
+
+/// Elastic admission used with a shared jobserver: a stage starts with its
+/// minimum grant (its memory reservation must still fit) and then grows by
+/// acquiring jobserver tokens, so it never waits for a large launch grant.
+fn elastic_admission_grant(
+    profile: StageResourceProfile,
+    budget: ResourceBudget,
+    pressure: PressureLevel,
+    used_tokens: usize,
+    used_memory: u64,
+) -> Result<Allocation, &'static str> {
+    if profile.memory_heavy && pressure == PressureLevel::Critical {
+        return Err("critical-pressure");
+    }
+    let available_cpu = budget
+        .cpu_tokens
+        .checked_sub(used_tokens)
+        .ok_or("cpu-budget")?;
+    let available_memory = budget
+        .build_memory_bytes
+        .checked_sub(used_memory)
+        .ok_or("memory-budget")?;
+    let minimum = profile.minimum_cpu_grant.max(profile.minimum_child_jobs);
+    if available_cpu < minimum || memory_reservation(profile, minimum) > available_memory {
+        return Err("insufficient-cpu-or-memory-budget");
+    }
+    Ok(Allocation {
+        cpu_tokens: minimum,
+        child_jobs: minimum,
+    })
 }
 
 fn execute_with_sampler<F, S>(
     nodes: Vec<SchedulerNode>,
     budget: ResourceBudget,
+    policy: FailurePolicy,
     sampler: &mut S,
+    mut jobserver: Option<&mut crate::jobserver::Jobserver>,
     action: F,
 ) -> Result<()>
 where
@@ -717,12 +818,15 @@ where
     let mut used_memory = 0u64;
     let mut heavy_jobs = 0usize;
     let mut first_error = None;
+    let mut failures = BTreeMap::<String, anyhow::Error>::new();
     let mut deferred = BTreeMap::<String, DeferredStage>::new();
     let mut admission_passes = 0usize;
     let mut sampler_calls = 0usize;
     let mut sampler_time = Duration::ZERO;
     let mut admission_time = Duration::ZERO;
     let mut next_pressure_poll = Instant::now();
+    let elastic = jobserver.is_some();
+    let mut jobserver_target = None;
 
     thread::scope(|scope| {
         loop {
@@ -832,14 +936,25 @@ where
                         .iter()
                         .filter(|other| *other != &id)
                         .map(|other| nodes[other].profile);
-                    let allocation = match admission_grant(
-                        node.profile,
-                        admission_budget,
-                        sampled.pressure,
-                        used_tokens,
-                        used_memory,
-                        peers,
-                    ) {
+                    let admission = if elastic {
+                        elastic_admission_grant(
+                            node.profile,
+                            admission_budget,
+                            sampled.pressure,
+                            used_tokens,
+                            used_memory,
+                        )
+                    } else {
+                        admission_grant(
+                            node.profile,
+                            admission_budget,
+                            sampled.pressure,
+                            used_tokens,
+                            used_memory,
+                            peers,
+                        )
+                    };
+                    let allocation = match admission {
                         Ok(allocation) => allocation,
                         Err(reason) => {
                             record_defer(
@@ -897,6 +1012,53 @@ where
                 }
             }
             admission_time += admission_started.elapsed();
+
+            // Idle CPUs flow to running stages through the shared jobserver;
+            // memory pressure shrinks the pool as tokens are returned.
+            if let Some(server) = jobserver.as_deref_mut() {
+                // Each stage past admission runs a jobserver client that owns
+                // one implicit job slot outside the pool.
+                let building = running
+                    .values()
+                    .filter(|job| job.build_started.is_some())
+                    .count();
+                // Size by memory as well as CPU: each additional compiler must
+                // fit the measured build-memory headroom at the largest
+                // per-job estimate among the building stages.
+                let per_job_memory = running
+                    .iter()
+                    .filter(|(_, job)| job.build_started.is_some())
+                    .map(|(id, _)| nodes[id].profile.memory_per_child_job_bytes)
+                    .max()
+                    .unwrap_or(0)
+                    .max(MINIMUM_JOB_MEMORY_BYTES);
+                let desired = crate::jobserver::memory_capped_target(
+                    crate::jobserver::target_tokens(
+                        budget.cpu_tokens,
+                        building,
+                        sampled.pressure.as_str(),
+                    ),
+                    server.held(),
+                    sampled.budget.build_memory_bytes,
+                    per_job_memory,
+                );
+                let target = crate::jobserver::smoothed_target(
+                    jobserver_target.unwrap_or(0),
+                    desired,
+                );
+                if let Err(error) = server.rebalance(target) {
+                    trace.event(&format!("event=jobserver-error error={error:#}"));
+                }
+                if jobserver_target != Some(target) {
+                    trace.event(&format!(
+                        "event=jobserver-target tokens={target} desired={desired} building={building} held={} per_job_memory_bytes={per_job_memory} build_memory_bytes={} used_tokens={used_tokens} pressure={}",
+                        server.held(),
+                        sampled.budget.build_memory_bytes,
+                        sampled.pressure.as_str()
+                    ));
+                    jobserver_target = Some(target);
+                }
+            }
 
             if running.is_empty() {
                 break;
@@ -1006,6 +1168,13 @@ where
                                 complete.insert(id);
                             }
                             Ok(()) => {}
+                            Err(error) if policy == FailurePolicy::KeepGoing => {
+                                // Its dependents never become ready; every
+                                // independent stage keeps building.
+                                trace.event(&format!("event=stage-failed-keep-going stage={id}"));
+                                eprintln!("[scheduler] {id} failed; continuing with independent stages");
+                                failures.insert(id, error);
+                            }
                             Err(error) if first_error.is_none() => first_error = Some(error),
                             Err(_) => {}
                         }
@@ -1018,6 +1187,9 @@ where
     if let Some(error) = first_error {
         trace.event("event=scheduler-end result=failed");
         Err(error)
+    } else if !failures.is_empty() {
+        trace.event("event=scheduler-end result=failed-keep-going");
+        bail!("{}", keep_going_report(&nodes, &complete, &failures))
     } else if complete.len() != nodes.len() {
         trace.event("event=scheduler-end result=incomplete");
         bail!("scheduler stopped before all stages completed")
@@ -1184,7 +1356,9 @@ mod tests {
         execute_with_sampler(
             nodes,
             budget(12, 8 * GIB, false),
+            FailurePolicy::FailFast,
             &mut sampler,
+            None,
             |_, context| {
                 context.acquire_build_resources()?;
                 {
@@ -1492,6 +1666,51 @@ mod tests {
         let ran = ran.lock().unwrap();
         assert!(ran.contains(&"b-running".to_string()));
         assert!(!ran.contains(&"z-blocked".to_string()));
+    }
+
+    #[test]
+    fn keep_going_builds_independent_stages_and_reports_blocked_dependents() {
+        let ran = Arc::new(Mutex::new(Vec::new()));
+        let result = execute_with_policy(
+            vec![
+                node("a-fail", &[], 1),
+                node("b-independent", &[], 1),
+                node("c-after-independent", &["b-independent"], 1),
+                node("d-blocked", &["a-fail"], 1),
+                node("e-transitively-blocked", &["d-blocked"], 1),
+                node("f-second-failure", &["b-independent"], 1),
+            ],
+            budget(1, 8 * GIB, false),
+            FailurePolicy::KeepGoing,
+            |id, _| {
+                ran.lock().unwrap().push(id.to_string());
+                if id == "a-fail" || id == "f-second-failure" {
+                    bail!("expected failure in {id}");
+                }
+                Ok(())
+            },
+        );
+        let report = format!("{:#}", result.unwrap_err());
+        let ran = ran.lock().unwrap();
+        // With one CPU token, fail-fast would have stopped after "a-fail".
+        assert!(ran.contains(&"c-after-independent".to_string()));
+        assert!(!ran.contains(&"d-blocked".to_string()));
+        assert!(!ran.contains(&"e-transitively-blocked".to_string()));
+        assert!(report.starts_with("2 stage(s) failed; 2 stage(s) not built"), "{report}");
+        assert!(report.contains("failed: a-fail: expected failure in a-fail"));
+        assert!(report.contains("failed: f-second-failure"));
+        assert!(report.contains("not built: d-blocked, e-transitively-blocked"));
+    }
+
+    #[test]
+    fn keep_going_succeeds_when_nothing_fails() {
+        execute_with_policy(
+            vec![node("a", &[], 1), node("b", &["a"], 1)],
+            budget(2, 8 * GIB, false),
+            FailurePolicy::KeepGoing,
+            |_, _| Ok(()),
+        )
+        .unwrap();
     }
 
     #[test]

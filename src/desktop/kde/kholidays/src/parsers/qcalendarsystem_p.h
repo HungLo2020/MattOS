@@ -1,4 +1,6 @@
 /*
+    This file is part of the kholidays library.
+
     SPDX-FileCopyrightText: 2014 John Layt <john@layt.net>
 
     SPDX-License-Identifier: LGPL-2.0-or-later

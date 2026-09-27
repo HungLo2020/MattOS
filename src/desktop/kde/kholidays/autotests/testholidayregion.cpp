@@ -2,14 +2,11 @@
     This file is part of the kholidays library.
 
     SPDX-FileCopyrightText: 2010 John Layt <john@layt.net>
-    SPDX-FileCopyrightText: Allen Winter <winter@kde.org>
 
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
 #include "testholidayregion.h"
-
-#include "holidaycategories.h"
 
 #include <QDebug>
 #include <QFile>
@@ -47,16 +44,6 @@ void HolidayRegionTest::printHolidays(const KHolidays::Holiday::List &holidays)
     }
 }
 
-bool HolidayRegionTest::holidayListContains(const KHolidays::Holiday::List &holidays, const QString &holidayName)
-{
-    for (auto const &h : holidays) {
-        if (h.name() == holidayName) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void HolidayRegionTest::parseRegionCalendarYear(const KHolidays::HolidayRegion &region, int year, const QString &calendarType)
 {
     qDebug() << "Parsing region = " << region.regionCode() << " year = " << year << " calendar = " << calendarType;
@@ -87,12 +74,14 @@ void HolidayRegionTest::parseRegionDate(const KHolidays::HolidayRegion &region, 
     qDebug() << "";
 }
 
-void HolidayRegionTest::parseRegionDateRangeCategory(KHolidays::HolidayRegion &region, const QDate &startDate, const QDate &endDate, const QString &category)
+void HolidayRegionTest::parseRegionDateRangeCategory(const KHolidays::HolidayRegion &region,
+                                                     const QDate &startDate,
+                                                     const QDate &endDate,
+                                                     const QString &category)
 {
     qDebug() << "Parsing regionCode = " << region.regionCode() << " start date = " << startDate.toString(Qt::ISODate)
              << " end date = " << endDate.toString(Qt::ISODate) << " category = " << category;
-    region.setCategories({category});
-    printHolidays(region.rawHolidays(startDate, endDate));
+    printHolidays(region.rawHolidays(startDate, endDate, category));
     qDebug() << "";
 }
 
@@ -162,14 +151,6 @@ void HolidayRegionTest::testIsrael()
     parseRegionCalendarYear(region, 2023);
     parseRegionCalendarYear(region, 2024);
     parseRegionCalendarYear(region, 2025);
-    region.setCategories({QLatin1String("religious")});
-    auto holidays = region.rawHolidays(QDate(2026, 1, 1), QDate(2026, 12, 31));
-    QCOMPARE(holidays.size(), 12);
-    QCOMPARE(holidays.first().observedStartDate(), QDate(2026, 2, 2));
-    QCOMPARE(holidays.first().name(), QLatin1String("Tu Bishvat (Fifteenth of Shvat)"));
-    QCOMPARE(holidays.last().observedStartDate(), QDate(2026, 12, 20));
-    QCOMPARE(holidays.last().name(), QLatin1String("Tsom Asarah b-Tevet (Tenth of Tevet Fast)"));
-    QVERIFY(holidayListContains(holidays, QLatin1String("Hanukkah (Feast of Rededication)")));
 }
 
 void HolidayRegionTest::testRegions()
@@ -221,19 +202,15 @@ void HolidayRegionTest::testSolistaleInHolidays()
     QCOMPARE(holidays.first().observedStartDate(), QDate(2021, 1, 1));
     QCOMPARE(holidays.first().name(), QLatin1String("New Years"));
 
-    region.setCategories({QLatin1String("public")});
-    holidays = region.rawHolidays(QDate(2020, 7, 1), QDate(2021, 6, 30));
+    holidays = region.rawHolidays(QDate(2020, 7, 1), QDate(2021, 6, 30), QLatin1String("public"));
     QCOMPARE(holidays.size(), 1);
     QCOMPARE(holidays.first().observedStartDate(), QDate(2021, 1, 1));
     QCOMPARE(holidays.first().name(), QLatin1String("New Years"));
-    region.setCategories(QStringList());
 
-    region.setCategories({QLatin1String("seasonal")});
-    holidays = region.rawHolidaysWithAstroSeasons(QDate(2020, 7, 1), QDate(2021, 6, 30));
+    holidays = region.rawHolidays(QDate(2020, 7, 1), QDate(2021, 6, 30), QLatin1String("seasonal"));
     QCOMPARE(holidays.size(), 4);
     QCOMPARE(holidays.first().observedStartDate(), QDate(2020, 9, 22));
     QCOMPARE(holidays.first().name(), QLatin1String("September Equinox"));
-    region.setCategories(QStringList());
 
     holidays = region.rawHolidaysWithAstroSeasons(2020);
     QCOMPARE(holidays.size(), 5);
@@ -263,32 +240,31 @@ void HolidayRegionTest::testDominicanRepublicDiadelaConstitucion()
 {
     KHolidays::HolidayRegion region(QStringLiteral("do_es"));
     printMetadata(region);
-    region.setCategories({QLatin1String("public")});
     auto holidays = region.rawHolidays(QDate(2020, 10, 20), QDate(2020, 12, 15));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2020, 11, 9));
-    holidays = region.rawHolidays(QDate(2021, 10, 20), QDate(2021, 12, 15));
+    holidays = region.rawHolidays(QDate(2021, 10, 20), QDate(2021, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2021, 11, 6));
-    holidays = region.rawHolidays(QDate(2022, 10, 20), QDate(2022, 12, 15));
+    holidays = region.rawHolidays(QDate(2022, 10, 20), QDate(2022, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2022, 11, 6));
-    holidays = region.rawHolidays(QDate(2023, 10, 20), QDate(2023, 12, 15));
+    holidays = region.rawHolidays(QDate(2023, 10, 20), QDate(2023, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2023, 11, 6));
-    holidays = region.rawHolidays(QDate(2024, 10, 20), QDate(2024, 12, 15));
+    holidays = region.rawHolidays(QDate(2024, 10, 20), QDate(2024, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2024, 11, 4));
-    holidays = region.rawHolidays(QDate(2025, 10, 20), QDate(2025, 12, 15));
+    holidays = region.rawHolidays(QDate(2025, 10, 20), QDate(2025, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2025, 11, 10));
-    holidays = region.rawHolidays(QDate(2026, 10, 20), QDate(2026, 12, 15));
+    holidays = region.rawHolidays(QDate(2026, 10, 20), QDate(2026, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2026, 11, 9));
-    holidays = region.rawHolidays(QDate(2027, 10, 20), QDate(2027, 12, 15));
+    holidays = region.rawHolidays(QDate(2027, 10, 20), QDate(2027, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2027, 11, 6));
-    holidays = region.rawHolidays(QDate(2028, 10, 20), QDate(2028, 12, 15));
+    holidays = region.rawHolidays(QDate(2028, 10, 20), QDate(2028, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2028, 11, 6));
-    holidays = region.rawHolidays(QDate(2029, 10, 20), QDate(2029, 12, 15));
+    holidays = region.rawHolidays(QDate(2029, 10, 20), QDate(2029, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2029, 11, 5));
-    holidays = region.rawHolidays(QDate(2030, 10, 20), QDate(2030, 12, 15));
+    holidays = region.rawHolidays(QDate(2030, 10, 20), QDate(2030, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2030, 11, 4));
-    holidays = region.rawHolidays(QDate(2031, 10, 20), QDate(2031, 12, 15));
+    holidays = region.rawHolidays(QDate(2031, 10, 20), QDate(2031, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2031, 11, 10));
-    holidays = region.rawHolidays(QDate(2035, 10, 20), QDate(2035, 12, 15));
+    holidays = region.rawHolidays(QDate(2035, 10, 20), QDate(2035, 12, 15), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2035, 11, 5));
 }
 
@@ -296,34 +272,14 @@ void HolidayRegionTest::testUsAmericanJuneteenth()
 {
     KHolidays::HolidayRegion region(QStringLiteral("us_en-us"));
     printMetadata(region);
-    region.setCategories({QLatin1String("public")});
-    auto holidays = region.rawHolidaysWithAstroSeasons(QDate(2023, 6, 19), QDate(2023, 6, 19));
+    auto holidays = region.rawHolidays(QDate(2023, 6, 19), QDate(2023, 6, 19));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2023, 6, 19));
-    holidays = region.rawHolidaysWithAstroSeasons(QDate(2024, 6, 1), QDate(2024, 6, 25));
+    holidays = region.rawHolidays(QDate(2024, 6, 1), QDate(2024, 6, 25), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2024, 6, 19));
-    holidays = region.rawHolidaysWithAstroSeasons(QDate(2027, 6, 1), QDate(2027, 6, 25));
+    holidays = region.rawHolidays(QDate(2027, 6, 1), QDate(2027, 6, 25), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2027, 6, 18));
-    holidays = region.rawHolidaysWithAstroSeasons(QDate(2033, 6, 20), QDate(2033, 6, 25));
+    holidays = region.rawHolidays(QDate(2033, 6, 20), QDate(2033, 6, 25), QLatin1String("public"));
     QCOMPARE(holidays.first().observedStartDate(), QDate(2033, 6, 20));
-}
-
-void HolidayRegionTest::testCategoryFiltering()
-{
-    const QStringList categories = {QStringLiteral("public"), QStringLiteral("financial")};
-    KHolidays::HolidayRegion region(QStringLiteral("us_en-us"));
-    auto holidays = region.rawHolidaysWithAstroSeasons(2026);
-    QVERIFY(holidayListContains(holidays, QLatin1String("Good Friday")));
-    region.setCategories(categories);
-    holidays = region.rawHolidaysWithAstroSeasons(QDate(2023, 3, 1), QDate(2023, 5, 1));
-    QVERIFY(!holidayListContains(holidays, QLatin1String("Good Friday")));
-    region.setCategories(QStringList());
-    holidays = region.rawHolidaysWithAstroSeasons(2026);
-    QVERIFY(holidayListContains(holidays, QLatin1String("Good Friday")));
-
-    const QStringList allCategories = KHolidays::allHolidayCategories();
-    region.setCategories(allCategories);
-    holidays = region.rawHolidaysWithAstroSeasons(2026);
-    QVERIFY(holidayListContains(holidays, QLatin1String("Christmas Day")));
 }
 
 #include "moc_testholidayregion.cpp"

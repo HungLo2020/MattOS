@@ -4,6 +4,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, ValueEnum)]
 pub(crate) enum BuildStage {
+    CrossToolchain,
     Kernel,
     Glibc,
     GccRuntime,
@@ -274,6 +275,7 @@ pub(crate) enum BuildStage {
 
 pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
     match stage {
+        BuildStage::CrossToolchain => "cross-toolchain",
         BuildStage::Kernel => "linux",
         BuildStage::Glibc => "glibc",
         BuildStage::GccRuntime => "gcc-runtime",
@@ -545,11 +547,15 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
 
 pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] {
     match stage {
-        BuildStage::Kernel | BuildStage::Glibc | BuildStage::All => &[],
-        BuildStage::GccRuntime => &["glibc", "linux-headers"],
-        BuildStage::Binutils => &["gcc-runtime"],
-        BuildStage::GccToolchain => &["binutils", "gcc-runtime"],
-        BuildStage::Make => &["gcc-compiler", "binutils", "gcc-runtime"],
+        BuildStage::CrossToolchain | BuildStage::All => &[],
+        // Target code is compiled only by MattOS-built GCC: the libc-free
+        // pass 1 for glibc and the kernel, the gcc-runtime compiler after.
+        BuildStage::Glibc => &["cross-toolchain"],
+        BuildStage::GccRuntime => &["glibc", "linux-headers", "cross-toolchain"],
+        BuildStage::Kernel => &["cross-toolchain"],
+        BuildStage::Binutils => &["gcc-runtime", "cross-toolchain"],
+        BuildStage::GccToolchain => &["binutils", "gcc-runtime", "cross-toolchain"],
+        BuildStage::Make => &["gcc-compiler", "binutils", "gcc-runtime", "cross-toolchain"],
         BuildStage::Acl => &["formal-sysroot", "attr"],
         BuildStage::Openssl | BuildStage::Elfutils => &["formal-sysroot", "zlib", "zstd"],
         BuildStage::Selinux => &["formal-sysroot", "pcre2"],
@@ -2607,7 +2613,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         // A standalone, target-owned D-Bus sandbox proxy.  Flatpak consumes
         // its published binary rather than a Meson wrap subproject.
         BuildStage::XdgDbusProxy => &["formal-sysroot", "glib", "libffi", "zlib"],
-        BuildStage::Gstreamer => &["formal-sysroot", "glib", "libffi", "zlib", "pcre2"],
+        BuildStage::Gstreamer => &["formal-sysroot", "glib", "libffi", "zlib", "pcre2", "rust"],
         // gio-2.0's declared pkg-config requirements include zlib, so the
         // plugins-base stage must receive it as a direct target input rather
         // than relying on any host pkg-config search path.
@@ -2764,8 +2770,8 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "ncurses",
             "libffi",
         ],
-        BuildStage::Greetd => &["formal-sysroot", "linux-pam"],
-        BuildStage::Cozy => &["formal-sysroot", "glibc", "gcc-runtime"],
+        BuildStage::Greetd => &["formal-sysroot", "linux-pam", "rust"],
+        BuildStage::Cozy => &["formal-sysroot", "glibc", "gcc-runtime", "rust"],
         BuildStage::Dav1d => &["formal-sysroot"],
         BuildStage::Glib => &["formal-sysroot", "libffi", "pcre2", "zlib"],
         BuildStage::Pipewire => &["formal-sysroot", "systemd", "dbus", "openssl"],
@@ -2780,7 +2786,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "ncurses",
         ],
         BuildStage::Llvm => &["formal-sysroot", "zlib", "zstd"],
-        BuildStage::Rust => &["formal-sysroot", "llvm", "openssl", "zlib"],
+        BuildStage::Rust => &["formal-sysroot", "llvm", "openssl", "zlib", "curl"],
         BuildStage::Procps => &["formal-sysroot", "ncurses"],
         BuildStage::Kmod => &["formal-sysroot", "zstd"],
         BuildStage::Iproute2 => &[
@@ -2794,7 +2800,14 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         ],
         BuildStage::Curl => &["formal-sysroot", "openssl", "zlib", "zstd"],
         BuildStage::Pam => &["formal-sysroot", "libxcrypt"],
-        BuildStage::UtilLinux => &["formal-sysroot", "linux-pam", "selinux", "pcre2", "ncurses"],
+        BuildStage::UtilLinux => &[
+            "formal-sysroot",
+            "linux-pam",
+            "selinux",
+            "pcre2",
+            "ncurses",
+            "libxcrypt",
+        ],
         BuildStage::Shadow => &[
             "formal-sysroot",
             "linux-pam",
@@ -2802,7 +2815,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libmd",
             "libxcrypt",
         ],
-        BuildStage::SudoRs => &["formal-sysroot", "linux-pam"],
+        BuildStage::SudoRs => &["formal-sysroot", "linux-pam", "rust"],
         BuildStage::Systemd => &[
             "formal-sysroot",
             "dbus",
@@ -2814,7 +2827,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "pcre2",
         ],
         BuildStage::Dbus => &["formal-sysroot", "expat"],
-        BuildStage::DbusBroker => &["formal-sysroot", "systemd", "expat"],
+        BuildStage::DbusBroker => &["formal-sysroot", "systemd", "expat", "rust"],
         BuildStage::Dpkg => &[
             "formal-sysroot",
             "zlib",
@@ -2855,7 +2868,9 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "e2fsprogs",
             "zlib",
             "zstd",
+            "libxcrypt",
             "linux",
+            "rust",
         ],
         BuildStage::Rootfs => &[
             "apt",
@@ -2873,15 +2888,24 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::LiveRoot => &["rootfs"],
         BuildStage::Initramfs => &["formal-sysroot", "linux"],
         BuildStage::Iso => &["linux", "live-root", "initramfs", "grub"],
+        // Cargo-built userland: compiled by the MattOS-built rustc.
+        BuildStage::Brush
+        | BuildStage::Coreutils
+        | BuildStage::Grep
+        | BuildStage::Sed
+        | BuildStage::Findutils
+        | BuildStage::Diffutils
+        | BuildStage::Init => &["formal-sysroot", "rust"],
         _ => &["formal-sysroot"],
     }
 }
 
 pub(crate) fn all_build_stages() -> &'static [BuildStage] {
     &[
-        BuildStage::Kernel,
+        BuildStage::CrossToolchain,
         BuildStage::Glibc,
         BuildStage::GccRuntime,
+        BuildStage::Kernel,
         BuildStage::Binutils,
         BuildStage::GccToolchain,
         BuildStage::Make,
@@ -3251,7 +3275,7 @@ mod tests {
     fn greetd_keeps_only_its_real_build_dependencies() {
         assert_eq!(
             direct_dependencies(BuildStage::Greetd),
-            &["formal-sysroot", "linux-pam"]
+            &["formal-sysroot", "linux-pam", "rust"]
         );
     }
 
@@ -3591,7 +3615,8 @@ mod tests {
                 263,
                 &["linux", "glibc", "linux-headers"],
             ),
-            ("zlib shared library", &["zlib"], 185, &["brush", "linux"]),
+            // zlib reaches Cargo-built userland through the MattOS rustc.
+            ("zlib shared library", &["zlib"], 195, &["attr", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",
@@ -3703,7 +3728,7 @@ mod tests {
                 name: "zlib source, changed library",
                 owners: &["zlib"],
                 all_rebuilt_outputs_change: true,
-                unrelated_hits: &["brush", "linux", "glibc"],
+                unrelated_hits: &["attr", "linux", "glibc"],
             },
             Scenario {
                 name: "package metadata, changed package and inventory",

@@ -7,28 +7,17 @@
 */
 
 #include "testlunar.h"
-#include "kholidays/lunarphase.h"
 
 #include <QDebug>
 #include <QTest>
 
 QTEST_MAIN(LunarTest)
 
-static void setTimeZone(const char *zonename)
-{
-    QVERIFY(QTimeZone(zonename).isValid());
-    qputenv("TZ", zonename);
-    const QDateTime currentDateTime = QDateTime::currentDateTime();
-    QVERIFY(currentDateTime.timeZone().isValid());
-    QCOMPARE(currentDateTime.timeZoneAbbreviation(), QString::fromLatin1(zonename));
-}
-
+#include "kholidays/lunarphase.h"
 using namespace KHolidays;
 
 void LunarTest::test2005()
 {
-    setTimeZone("UTC");
-
     QList<QDate> fQ2005;
     QList<QDate> fM2005;
     QList<QDate> lQ2005;
@@ -122,8 +111,6 @@ void LunarTest::test2005()
 
 void LunarTest::test2007()
 {
-    setTimeZone("UTC");
-
     QList<QDate> fQ2007;
     QList<QDate> fM2007;
     QList<QDate> lQ2007;
@@ -217,8 +204,6 @@ void LunarTest::test2007()
 
 void LunarTest::testIntermediatePhases()
 {
-    setTimeZone("UTC");
-
     struct {
         QDate date;
         LunarPhase::Phase phase;

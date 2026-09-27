@@ -2411,6 +2411,14 @@ fn write_regional_identity(plan: &InstallPlan, target: &Path) -> Result<()> {
         target.join("etc/locale.conf"),
         format!("LANG={}\n", plan.locale),
     )?;
+    // Console, su and SSH logins read the locale through pam_env from
+    // /etc/default/locale (Debian's location); keep it the same file.
+    let default_locale = target.join("etc/default/locale");
+    fs::create_dir_all(target.join("etc/default"))?;
+    if fs::read_link(&default_locale).ok().as_deref() != Some(Path::new("../locale.conf")) {
+        let _ = fs::remove_file(&default_locale);
+        std::os::unix::fs::symlink("../locale.conf", &default_locale)?;
+    }
     fs::write(
         target.join("etc/vconsole.conf"),
         format!("KEYMAP={}\n", plan.keyboard_layout),

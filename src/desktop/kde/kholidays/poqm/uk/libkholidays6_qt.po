@@ -4,21 +4,21 @@
 # version 3 or later versions approved by the membership of KDE e.V.
 #
 # Ivan Petrouchtchak <fr.ivan@ukrainian-orthodox.org>, 2005, 2007.
-# Yuri Chornoivan <yurchor@ukr.net>, 2008, 2009, 2010, 2012, 2014, 2015, 2020, 2022, 2026.
+# Yuri Chornoivan <yurchor@ukr.net>, 2008, 2009, 2010, 2012, 2014, 2015, 2020, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: libkholidays5_qt\n"
 "Report-Msgid-Bugs-To: http://bugs.kde.org\n"
 "POT-Creation-Date: 2015-06-13 09:34+0000\n"
-"PO-Revision-Date: 2026-04-11 08:38+0300\n"
+"PO-Revision-Date: 2022-08-29 09:40+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
-"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Qt-Contexts: true\n"
-"X-Generator: Lokalize 23.04.3\n"
+"X-Generator: Lokalize 20.12.0\n"
 "Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Qt-Contexts: true\n"
@@ -58,498 +58,334 @@ msgctxt "HolidayRegionsDeclarativeModel|"
 msgid "Description"
 msgstr "Опис"
 
-#: holidaycategories.cpp:39
-msgctxt "QObject|public holiday type"
-msgid "public"
-msgstr "державне"
-
-#: holidaycategories.cpp:42
-msgctxt "QObject|civil holiday type"
-msgid "civil"
-msgstr "службове"
-
-#: holidaycategories.cpp:45
-msgctxt "QObject|religious holiday type"
-msgid "religious"
-msgstr "релігійне"
-
-#: holidaycategories.cpp:48
-msgctxt "QObject|school holiday type"
-msgid "school"
-msgstr "шкільне"
-
-#: holidaycategories.cpp:51
-msgctxt "QObject|government holiday type"
-msgid "government"
-msgstr "урядове"
-
-#: holidaycategories.cpp:54
-msgctxt "QObject|financial holiday type"
-msgid "financial"
-msgstr "банківське"
-
-#: holidaycategories.cpp:57
-msgctxt "QObject|cultural holiday type"
-msgid "cultural"
-msgstr "культурне"
-
-#: holidaycategories.cpp:60
-msgctxt "QObject|commemorative holiday type"
-msgid "commemorative"
-msgstr "меморіальне"
-
-#: holidaycategories.cpp:63
-msgctxt "QObject|historical holiday type"
-msgid "historical"
-msgstr "історичне"
-
-#: holidaycategories.cpp:66
-msgctxt "QObject|nameday holiday type"
-msgid "nameday"
-msgstr "іменини"
-
-#: holidaycategories.cpp:69
-msgctxt "QObject|seasonal holiday type"
-msgid "seasonal"
-msgstr "сезонне"
-
-#: holidaycategories.cpp:77
-msgctxt "QObject|"
-msgid ""
-"Public Holiday: a day-off from work or school (typically) to commemorate a "
-"historical event, or to honor people.  Public holidays are always bounded to "
-"a political region at national, regional or local level."
-msgstr ""
-"Державне свято: вихідний день з роботи чи навчання (зазвичай) на честь "
-"історичної події або на честь людей. Державні свята завжди пов'язані з "
-"певним політичним регіоном на національному, регіональному або місцевому "
-"рівні."
-
-#: holidaycategories.cpp:82
-msgctxt "QObject|"
-msgid ""
-"Civil Service Holiday: a day-off from work for government workers but not a "
-"day off for private sector workers."
-msgstr ""
-"Свято державної служби: вихідний день для державних службовців, але не для "
-"працівників приватного сектору."
-
-#: holidaycategories.cpp:85
-msgctxt "QObject|"
-msgid ""
-"Religious Holiday: a special day in a religion and not bound to any "
-"political region. Religions can have holidays that range in devotion to "
-"those were work/school are forbidden, days of prayer obligation, to "
-"historical remembrances, etc. Governments often have public holidays for "
-"some religious holidays."
-msgstr ""
-"Релігійне свято: особливий день у релігії, не пов'язаний з жодним політичним "
-"регіоном. Релігії можуть мати свята, які по-різному присвячені тим дням, "
-"коли заборонено працювати/навчатися, дням обов'язкової молитви, історичним "
-"пам'яткам тощо. Уряди часто встановлюють державні вихідні для деяких "
-"релігійних свят."
-
-#: holidaycategories.cpp:91
-msgctxt "QObject|"
-msgid ""
-"School Holiday: a day-off from school, either as a one-off Public Holiday or "
-"extended periods between school terms.  This can vary widely depending on "
-"school level, type, location."
-msgstr ""
-"Шкільне свято: вихідний день, або як одноразове державне свято, або як "
-"тривалі періоди між шкільними семестрами. Ці свята можуть значно "
-"відрізнятися залежно від рівня школи, типу та місця розташування."
-
-#: holidaycategories.cpp:96
-msgctxt "QObject|"
-msgid ""
-"Government Holiday: a special day recognized by a political region but "
-"without a day-off for workers, students, etc."
-msgstr ""
-"Урядове свято: особливий день, визнаний політичним регіоном, але без "
-"вихідного дня для робітників, студентів тощо."
-
-#: holidaycategories.cpp:99
-msgctxt "QObject|"
-msgid "Financial Holiday: banks and markets may close on some public holidays"
-msgstr ""
-"Банківське свято: банки та ринки можуть бути закриті у деякі державні свята."
-
-#: holidaycategories.cpp:102
-msgctxt "QObject|"
-msgid ""
-"Cultural Holiday: a special day in the culture and therefore usually bound "
-"to a political region. A day where people celebrate in some fashion. eg. "
-"Halloween, St. Valentines"
-msgstr ""
-"Культурне свято: особливий день у культурі, який зазвичай пов'язаний з "
-"певним політичним регіоном. День, коли люди святкують певним чином, "
-"наприклад, Гелловін, День святого Валентина."
-
-#: holidaycategories.cpp:107
-msgctxt "QObject|"
-msgid ""
-"Commemorative Holiday: a special day to remember usually bound to a "
-"political region. Not a day-off from work or school; banks are open, etc."
-msgstr ""
-"Пам'ятне свято: особливий день, який слід пам'ятати, зазвичай пов'язаний з "
-"певним політичним регіоном. Не вихідний з роботи чи навчання; банки відкриті "
-"тощо."
-
-#: holidaycategories.cpp:111
-msgctxt "QObject|"
-msgid ""
-"Historical Holiday: similar to a Commemorative Holiday but historical in "
-"nature."
-msgstr ""
-"Історичне свято: подібне до пам'ятного свята, але історичного характеру."
-
-#: holidaycategories.cpp:114
-msgctxt "QObject|"
-msgid ""
-"Name Day Holiday: in some political regions each day is assigned a first "
-"name and persons with that name celebrate that day as their \"Name Day\"."
-msgstr ""
-"Свято іменин: у деяких політичних регіонах кожному дню надають ім'я, і ​​особи "
-"з цим іменем святкують цей день як свої «іменини»."
-
-#: holidaycategories.cpp:119
-msgctxt "QObject|"
-msgid ""
-"Seasonal Days: the day corresponds to a seasonal event like an equinox, "
-"solstice, daylight saving time starts/ends."
-msgstr ""
-"Сезонні дні: день відповідає сезонній події, такій як рівнодення, "
-"сонцестояння, початок/закінчення переходу на літній час."
-
-#: holidayregion.cpp:228
+#: holidayregion.cpp:200
 msgctxt "HolidayRegion|Canadian region"
 msgid "Quebec"
 msgstr "Квебек"
 
-#: holidayregion.cpp:231
+#: holidayregion.cpp:203
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Bavaria"
 msgstr "Німеччина, Баварія"
 
-#: holidayregion.cpp:233
+#: holidayregion.cpp:205
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Brandenburg"
 msgstr "Німеччина, Бранденбург"
 
-#: holidayregion.cpp:235
+#: holidayregion.cpp:207
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Berlin"
 msgstr "Німеччина, Берлін"
 
-#: holidayregion.cpp:237
+#: holidayregion.cpp:209
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Baden-Wuerttemberg"
 msgstr "Німеччина, Баден-Вюртемберг"
 
-#: holidayregion.cpp:239
+#: holidayregion.cpp:211
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Hesse"
 msgstr "Німеччина, Гессен"
 
-#: holidayregion.cpp:241
+#: holidayregion.cpp:213
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Mecklenburg-Hither Pomerania"
 msgstr "Німеччина, Мекленбург-Передня Померанія"
 
-#: holidayregion.cpp:243
+#: holidayregion.cpp:215
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Lower Saxony"
 msgstr "Німеччина, Нижня Саксонія"
 
-#: holidayregion.cpp:245
+#: holidayregion.cpp:217
 msgctxt "HolidayRegion|German region"
 msgid "Germany, North Rhine-Westphalia"
 msgstr "Німеччина, Північна Рейн-Вестфалія"
 
-#: holidayregion.cpp:247
+#: holidayregion.cpp:219
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Rhineland-Palatinate"
 msgstr "Німеччина, Рейнланд-Пфальц"
 
-#: holidayregion.cpp:249
+#: holidayregion.cpp:221
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Schleswig-Holstein"
 msgstr "Німеччина, Шлезвіг-Гольштейн"
 
-#: holidayregion.cpp:251
+#: holidayregion.cpp:223
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Saarland"
 msgstr "Німеччина, Саар"
 
-#: holidayregion.cpp:253
+#: holidayregion.cpp:225
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Saxony"
 msgstr "Німеччина, Саксонія"
 
-#: holidayregion.cpp:255
+#: holidayregion.cpp:227
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Saxony-Anhalt"
 msgstr "Німеччина, Саксонія-Ангальт"
 
-#: holidayregion.cpp:257
+#: holidayregion.cpp:229
 msgctxt "HolidayRegion|German region"
 msgid "Germany, Thuringia"
 msgstr "Німеччина, Тюрінгія"
 
-#: holidayregion.cpp:260
+#: holidayregion.cpp:232
 msgctxt "HolidayRegion|Spanish region"
 msgid "Catalonia"
 msgstr "Каталонія"
 
-#: holidayregion.cpp:262
+#: holidayregion.cpp:234
 msgctxt "HolidayRegion|UK Region"
 msgid "England and Wales"
 msgstr "Англія і Уельс"
 
-#: holidayregion.cpp:264
+#: holidayregion.cpp:236
 msgctxt "HolidayRegion|UK Region"
 msgid "England"
 msgstr "Англія"
 
-#: holidayregion.cpp:266
+#: holidayregion.cpp:238
 msgctxt "HolidayRegion|UK Region"
 msgid "Wales"
 msgstr "Уельс"
 
-#: holidayregion.cpp:268
+#: holidayregion.cpp:240
 msgctxt "HolidayRegion|UK Region"
 msgid "Scotland"
 msgstr "Шотландія"
 
-#: holidayregion.cpp:270
+#: holidayregion.cpp:242
 msgctxt "HolidayRegion|UK Region"
 msgid "Northern Ireland"
 msgstr "Північна Ірландія"
 
-#: holidayregion.cpp:272
+#: holidayregion.cpp:244
 msgctxt "HolidayRegion|Italian Region"
 msgid "South Tyrol"
 msgstr "Південний Тіроль"
 
-#: holidayregion.cpp:274
+#: holidayregion.cpp:246
 msgctxt "HolidayRegion|"
 msgid "New South Wales"
 msgstr "Новий Південний Уельс"
 
-#: holidayregion.cpp:276
+#: holidayregion.cpp:248
 msgctxt "HolidayRegion|Australian Region"
 msgid "Queensland"
 msgstr "Квінсленд"
 
-#: holidayregion.cpp:278
+#: holidayregion.cpp:250
 msgctxt "HolidayRegion|Australian Region"
 msgid "Victoria"
 msgstr "Вікторія"
 
-#: holidayregion.cpp:280
+#: holidayregion.cpp:252
 msgctxt "HolidayRegion|Australian Region"
 msgid "South Australia"
 msgstr "Південна Австралія"
 
-#: holidayregion.cpp:282
+#: holidayregion.cpp:254
 msgctxt "HolidayRegion|Australian Region"
 msgid "Northern Territory"
 msgstr "Північна Територія"
 
-#: holidayregion.cpp:284
+#: holidayregion.cpp:256
 msgctxt "HolidayRegion|Australian Region"
 msgid "Australian Capital Territory"
 msgstr "Австралійська столична територія"
 
-#: holidayregion.cpp:286
+#: holidayregion.cpp:258
 msgctxt "HolidayRegion|Australian Region"
 msgid "Western Australia"
 msgstr "Західна Австралія"
 
-#: holidayregion.cpp:288
+#: holidayregion.cpp:260
 msgctxt "HolidayRegion|Australian Region"
 msgid "Tasmania"
 msgstr "Тасманія"
 
-#: holidayregion.cpp:290
+#: holidayregion.cpp:262
 msgctxt "HolidayRegion|Bosnian and Herzegovinian Region"
 msgid "Republic of Srpska"
 msgstr "Республіка Сербська"
 
-#: holidayregion.cpp:308
+#: holidayregion.cpp:280
 msgctxt "HolidayRegion|Holiday type"
 msgid "Public"
 msgstr "Громадське"
 
-#: holidayregion.cpp:310
+#: holidayregion.cpp:282
 msgctxt "HolidayRegion|Holiday type"
 msgid "Civil"
 msgstr "Цивільне"
 
-#: holidayregion.cpp:312
+#: holidayregion.cpp:284
 msgctxt "HolidayRegion|Holiday type"
 msgid "Religious"
 msgstr "Релігійне"
 
-#: holidayregion.cpp:314
+#: holidayregion.cpp:286
 msgctxt "HolidayRegion|Holiday type"
 msgid "Government"
 msgstr "Урядове"
 
-#: holidayregion.cpp:316
+#: holidayregion.cpp:288
 msgctxt "HolidayRegion|Holiday type"
 msgid "Financial"
 msgstr "Фінансове"
 
-#: holidayregion.cpp:318
+#: holidayregion.cpp:290
 msgctxt "HolidayRegion|Holiday type"
 msgid "Cultural"
 msgstr "Культурне"
 
-#: holidayregion.cpp:320
+#: holidayregion.cpp:292
 msgctxt "HolidayRegion|Holiday type"
 msgid "Commemorative"
 msgstr "Меморіальне"
 
-#: holidayregion.cpp:322
+#: holidayregion.cpp:294
 msgctxt "HolidayRegion|Holiday type"
 msgid "Historical"
 msgstr "Історичне"
 
-#: holidayregion.cpp:324
+#: holidayregion.cpp:296
 msgctxt "HolidayRegion|Holiday type"
 msgid "School"
 msgstr "Шкільне"
 
-#: holidayregion.cpp:326
+#: holidayregion.cpp:298
 msgctxt "HolidayRegion|Holiday type"
 msgid "Seasonal"
 msgstr "Сезонне"
 
-#: holidayregion.cpp:328
+#: holidayregion.cpp:300
 msgctxt "HolidayRegion|Holiday type"
 msgid "Name Days"
 msgstr "Іменини"
 
-#: holidayregion.cpp:330
+#: holidayregion.cpp:302
 msgctxt "HolidayRegion|Holiday type"
 msgid "Personal"
 msgstr "Особисте"
 
-#: holidayregion.cpp:332
+#: holidayregion.cpp:304
 msgctxt "HolidayRegion|Holiday type"
 msgid "Christian"
 msgstr "Християнське"
 
-#: holidayregion.cpp:334
+#: holidayregion.cpp:306
 msgctxt "HolidayRegion|Holiday type"
 msgid "Anglican"
 msgstr "Англіканське"
 
-#: holidayregion.cpp:336
+#: holidayregion.cpp:308
 msgctxt "HolidayRegion|Holiday type"
 msgid "Catholic"
 msgstr "Католицьке"
 
-#: holidayregion.cpp:338
+#: holidayregion.cpp:310
 msgctxt "HolidayRegion|Holiday type"
 msgid "Protestant"
 msgstr "Протестантське"
 
-#: holidayregion.cpp:340
+#: holidayregion.cpp:312
 msgctxt "HolidayRegion|Holiday type"
 msgid "Orthodox"
 msgstr "Православне"
 
-#: holidayregion.cpp:342
+#: holidayregion.cpp:314
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish"
 msgstr "Єврейське"
 
-#: holidayregion.cpp:344
+#: holidayregion.cpp:316
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish Orthodox"
 msgstr "Єврейське (ортодоксальне)"
 
-#: holidayregion.cpp:346
+#: holidayregion.cpp:318
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish Conservative"
 msgstr "Єврейське (традиційне)"
 
-#: holidayregion.cpp:348
+#: holidayregion.cpp:320
 msgctxt "HolidayRegion|Holiday type"
 msgid "Jewish Reform"
 msgstr "Єврейське (реформістське)"
 
-#: holidayregion.cpp:350
+#: holidayregion.cpp:322
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic"
 msgstr "Ісламське"
 
-#: holidayregion.cpp:352
+#: holidayregion.cpp:324
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic Sunni"
 msgstr "Ісламське (сунітське)"
 
-#: holidayregion.cpp:354
+#: holidayregion.cpp:326
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic Shia"
 msgstr "Ісламське (шиїтське)"
 
-#: holidayregion.cpp:356
+#: holidayregion.cpp:328
 msgctxt "HolidayRegion|Holiday type"
 msgid "Islamic Sufi"
 msgstr "Ісламське (суфійське)"
 
-#: holidayregion.cpp:362
+#: holidayregion.cpp:334
 #, qt-format
 msgctxt ""
 "HolidayRegion|Holiday file display name, %1 = region name, %2 = holiday type"
 msgid "%1 - %2"
 msgstr "%1 – %2"
 
-#: holidayregion.cpp:370
+#: holidayregion.cpp:342
 msgctxt "HolidayRegion|Unknown holiday region"
 msgid "Unknown"
 msgstr "Невідомий"
 
-#: lunarphase.cpp:30
+#: lunarphase.cpp:28
 msgctxt "LunarPhase|"
 msgid "New Moon"
 msgstr "Новий місяць"
 
-#: lunarphase.cpp:32
+#: lunarphase.cpp:30
 msgctxt "LunarPhase|"
 msgid "Full Moon"
 msgstr "Повний місяць"
 
-#: lunarphase.cpp:34
+#: lunarphase.cpp:32
 msgctxt "LunarPhase|"
 msgid "First Quarter Moon"
 msgstr "Перша чверть місяця"
 
-#: lunarphase.cpp:36
+#: lunarphase.cpp:34
 msgctxt "LunarPhase|"
 msgid "Last Quarter Moon"
 msgstr "Остання чверть місяця"
 
-#: lunarphase.cpp:40
+#: lunarphase.cpp:38
 msgctxt "LunarPhase|"
 msgid "Waxing Crescent"
 msgstr "Зростаючий півмісяць"
 
-#: lunarphase.cpp:42
+#: lunarphase.cpp:40
 msgctxt "LunarPhase|"
 msgid "Waxing Gibbous"
 msgstr "Зростаючий опуклий місяць"
 
-#: lunarphase.cpp:44
+#: lunarphase.cpp:42
 msgctxt "LunarPhase|"
 msgid "Waning Gibbous"
 msgstr "Спадний опуклий місяць"
 
-#: lunarphase.cpp:46
+#: lunarphase.cpp:44
 msgctxt "LunarPhase|"
 msgid "Waning Crescent"
 msgstr "Спадний півмісяць"

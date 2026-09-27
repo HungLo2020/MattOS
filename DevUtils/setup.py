@@ -58,7 +58,14 @@ REQUIRED_TOOLS = [
     "tar",
     "triehash",
     "magick",
+    # Compiler cache for MattOS target C/C++ compiles (see
+    # docs/BUILD_SYSTEM_ARCHITECTURE.md, "Compiler cache").
+    "ccache",
 ]
+
+# Must match CCACHE_MAXSIZE in mattos-build (stages/image.rs).  mattos-build
+# supplies the remaining settings (cache key, directory) per compile.
+CCACHE_MAX_SIZE = "40G"
 
 # These are pulled in by the existing kernel workflow and WSL bootstrap logic.
 EXTRA_KERNEL_PACKAGES = [
@@ -151,6 +158,7 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "tar": ["tar"],
     "triehash": ["triehash"],
     "magick": ["imagemagick"],
+    "ccache": ["ccache"],
 }
 
 
@@ -242,6 +250,31 @@ def compute_missing_packages(missing_tools: List[str], dry_run: bool) -> List[st
             packages.append(package_name)
 
     return packages
+
+
+def configure_ccache(repo_root: Path, dry_run: bool) -> None:
+    """Initialize the build's compiler cache with its size limit.
+
+    The cache lives in out/cache/ccache so it follows the checkout and never
+    mixes with the user's personal ccache.
+    """
+    if not command_exists("ccache"):
+        print("ccache: not installed; target compiles will not be cached")
+        return
+    cache_dir = repo_root / "out/cache/ccache"
+    command = ["ccache", "--max-size", CCACHE_MAX_SIZE]
+    if dry_run:
+        print(f"ccache: would run CCACHE_DIR={cache_dir} {format_shell_command(command)}")
+        return
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        command,
+        cwd=repo_root,
+        env={**os.environ, "CCACHE_DIR": str(cache_dir)},
+        check=True,
+        stdout=subprocess.DEVNULL,
+    )
+    print(f"ccache: {cache_dir} (max size {CCACHE_MAX_SIZE})")
 
 
 def print_host_summary(os_release: Dict[str, str]) -> None:
@@ -358,6 +391,9 @@ def main() -> int:
 
     if args.check and missing_packages:
         print("Check mode: dependencies are missing; no changes were made.")
+
+    if not args.check:
+        configure_ccache(repo_root, args.dry_run)
 
     doctor_rc = run_doctor(repo_root, args.dry_run)
     if doctor_rc != 0:

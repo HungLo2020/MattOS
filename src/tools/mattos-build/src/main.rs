@@ -18,8 +18,10 @@ mod build_system_tests;
 mod cache_manifest;
 mod elf_cache;
 mod integrity_index;
+mod jobserver;
 mod packaging;
 mod performance;
+mod recipe_projection;
 mod resources;
 mod scheduler;
 mod source_identity;
@@ -698,6 +700,10 @@ enum Commands {
         stage: Option<BuildStage>,
         #[arg(long, value_name = "JOBS", hide = true)]
         experimental_child_jobs: Option<usize>,
+        /// Keep building every stage that does not depend on a failed stage,
+        /// then report all failures (only with `all`).
+        #[arg(long)]
+        keep_going: bool,
     },
     Image,
     Run,
@@ -1013,8 +1019,12 @@ fn main() -> Result<()> {
     if let Commands::Build {
         stage,
         experimental_child_jobs,
+        keep_going,
     } = &cli.command
     {
+        if *keep_going && stage.is_some_and(|stage| stage != BuildStage::All) {
+            bail!("--keep-going applies to scheduled `build all` runs; a single stage has nothing to continue with");
+        }
         validate_experimental_child_jobs(
             stage.unwrap_or(BuildStage::All),
             *experimental_child_jobs,
@@ -1024,6 +1034,7 @@ fn main() -> Result<()> {
         Commands::Build {
             stage,
             experimental_child_jobs,
+            ..
         } => Some(match experimental_child_jobs {
             Some(jobs) => format!(
                 "build {} --experimental-child-jobs {jobs}",
@@ -1059,10 +1070,16 @@ fn main() -> Result<()> {
         Commands::Build {
             stage,
             experimental_child_jobs,
+            keep_going,
         } => build(
             &repo_root,
             stage.unwrap_or(BuildStage::All),
             experimental_child_jobs,
+            if keep_going {
+                scheduler::FailurePolicy::KeepGoing
+            } else {
+                scheduler::FailurePolicy::FailFast
+            },
         ),
         Commands::Image => build_image(&repo_root),
         Commands::Run => run_qemu(&repo_root),
@@ -1311,9 +1328,10 @@ fn build(
     repo_root: &Path,
     stage: BuildStage,
     experimental_child_jobs: Option<usize>,
+    failure_policy: scheduler::FailurePolicy,
 ) -> Result<()> {
     if stage == BuildStage::All {
-        return build_all_scheduled(repo_root);
+        return build_all_scheduled(repo_root, failure_policy);
     }
     build_one_stage(repo_root, stage, None, experimental_child_jobs)
 }
@@ -1332,7 +1350,8 @@ fn validate_experimental_child_jobs_with_budget(
     };
     if !matches!(
         stage,
-        BuildStage::Glibc
+        BuildStage::CrossToolchain
+            | BuildStage::Glibc
             | BuildStage::GccRuntime
             | BuildStage::Binutils
             | BuildStage::GccToolchain
@@ -1340,7 +1359,7 @@ fn validate_experimental_child_jobs_with_budget(
             | BuildStage::Apt
     ) {
         bail!(
-            "--experimental-child-jobs is restricted to isolated glibc, gcc-runtime, binutils, gcc-toolchain, make, or apt builds"
+            "--experimental-child-jobs is restricted to isolated cross-toolchain, glibc, gcc-runtime, binutils, gcc-toolchain, make, or apt builds"
         );
     }
     let normal_jobs = stage_resource_profile(stage).minimum_cpu_grant;
@@ -1355,13 +1374,13 @@ fn validate_experimental_child_jobs_with_budget(
     Ok(())
 }
 
-fn build_all_scheduled(repo_root: &Path) -> Result<()> {
+fn build_all_scheduled(repo_root: &Path, failure_policy: scheduler::FailurePolicy) -> Result<()> {
     prune_derived_source_mirror_artifacts(repo_root)?;
     let stages = build_plan(BuildStage::All);
     let nodes = scheduled_build_nodes(&stages);
     let snapshot = resources::discover();
     let budget = snapshot.budget();
-    scheduler::execute(nodes, budget, |id, context| {
+    scheduler::execute_with_policy(nodes, budget, failure_policy, |id, context| {
         let stage = stages
             .iter()
             .copied()
@@ -1524,6 +1543,8 @@ fn stage_output_file(source: &Path, destination: &Path, mode: u32) -> Result<()>
 
 include!("stages/helpers/cargo.rs");
 include!("stages/runtime_tooling.rs");
+include!("stages/llvm_toolchain.rs");
+include!("stages/rust_toolchain.rs");
 include!("stages/libraries.rs");
 
 fn validate_dependency_resolves_from(
@@ -2061,9 +2082,10 @@ mod tests {
             .iter()
             .map(|node| (node.id.as_str(), node))
             .collect::<BTreeMap<_, _>>();
-        assert!(by_id["linux"].dependencies.is_empty());
-        assert!(by_id["glibc"].dependencies.is_empty());
-        assert_eq!(by_id["gcc-runtime"].dependencies, ["glibc"]);
+        assert!(by_id["cross-toolchain"].dependencies.is_empty());
+        assert_eq!(by_id["glibc"].dependencies, ["cross-toolchain"]);
+        assert_eq!(by_id["gcc-runtime"].dependencies, ["cross-toolchain", "glibc"]);
+        assert_eq!(by_id["linux"].dependencies, ["cross-toolchain"]);
         assert!(by_id["brush"].dependencies.contains(&"make".to_string()));
         assert!(by_id["rootfs"].dependencies.contains(&"apt".to_string()));
         assert!(by_id["rootfs"].dependencies.contains(&"init".to_string()));
@@ -4052,7 +4074,7 @@ mod tests {
 
     #[test]
     fn rust_bootstrap_uses_the_mattos_llvm_install_not_a_second_llvm() {
-        let source = include_str!("stages/runtime_tooling.rs");
+        let source = concat!(include_str!("stages/runtime_tooling.rs"), include_str!("stages/llvm_toolchain.rs"), include_str!("stages/rust_toolchain.rs"));
         let start = source.find("fn build_rust").unwrap();
         let end = source.len();
         let rust = &source[start..end];
@@ -4411,9 +4433,10 @@ mod tests {
     #[test]
     fn build_plan_all_includes_uutils_stages() {
         let plan = build_plan(BuildStage::All);
-        assert_eq!(plan[0], BuildStage::Kernel);
+        assert_eq!(plan[0], BuildStage::CrossToolchain);
         assert_eq!(plan[1], BuildStage::Glibc);
         assert_eq!(plan[2], BuildStage::GccRuntime);
+        assert_eq!(plan[3], BuildStage::Kernel);
         assert!(plan.contains(&BuildStage::Grep));
         assert!(plan.contains(&BuildStage::Sed));
         assert!(plan.contains(&BuildStage::Findutils));
@@ -4779,23 +4802,27 @@ mod tests {
     fn gcc_runtime_configuration_is_target_only_and_sysrooted() {
         let source = include_str!("stages/toolchain.rs");
         let start = source.find("fn build_gcc_runtime").unwrap();
-        let end = source[start..].find("fn build_binutils").unwrap() + start;
+        let end = source[start..].find("\nfn ").unwrap() + start;
         let build = &source[start..end];
         for required in [
             "--with-sysroot=",
             "--with-build-sysroot=",
+            "--with-as=",
+            "--with-ld=",
             "--enable-languages=c,c++",
-            "--disable-multilib",
+            "MATTOS_GCC_DEFAULTS",
             "--disable-analyzer",
             "--disable-libsanitizer",
             "--disable-libquadmath",
             "--disable-libstdcxx-pch",
+            "all-gcc",
             "all-target-libgcc",
             "all-target-libstdc++-v3",
             "install-target-libgcc",
             "install-target-libstdc++-v3",
             "CFLAGS_FOR_TARGET",
             "CXXFLAGS_FOR_TARGET",
+            "TARGET_COMPILER_INSTALL",
         ] {
             assert!(
                 build.contains(required),
@@ -4803,16 +4830,26 @@ mod tests {
             );
         }
         for forbidden in [
-            "install-gcc",
-            "install-g++",
             "-I/usr/include",
             "-L/usr/lib ",
+            "--with-system-zlib",
+            "Path::new(\"g++\")",
         ] {
             assert!(
                 !build.contains(forbidden),
                 "forbidden GCC target install/input {forbidden}"
             );
         }
+        // The shipped runtime tree receives target libraries only; the
+        // compiler is installed solely into the private toolchain prefix.
+        let runtime_start = build.find("DESTDIR={}\", raw_install").unwrap();
+        let runtime_end = build[runtime_start..]
+            .find("GCC runtime install failed")
+            .unwrap()
+            + runtime_start;
+        assert!(!build[runtime_start..runtime_end].contains("install-gcc"));
+        let toolchain_install = build.find("let mut toolchain_targets").unwrap();
+        assert!(build[toolchain_install..].contains("toolchain_destdir.as_str(), \"install-gcc\""));
     }
 
     #[test]
@@ -4958,7 +4995,7 @@ mod tests {
             "/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/15.3.0"
         );
 
-        let source = include_str!("stages/runtime_tooling.rs");
+        let source = concat!(include_str!("stages/runtime_tooling.rs"), include_str!("stages/llvm_toolchain.rs"), include_str!("stages/rust_toolchain.rs"));
         let llvm_start = source.find("fn build_llvm").unwrap();
         let rust_start = source.find("fn build_rust").unwrap();
         let llvm = &source[llvm_start..rust_start];
@@ -4983,8 +5020,7 @@ mod tests {
             "llvm-config",
             "llvm-filecheck",
             "jobs = {}",
-            "tool-wrappers",
-            "MATTOS_GCC_INSTALL_DIR",
+            "require_mattos_target_toolchain",
         ] {
             assert!(
                 rust.contains(required),
@@ -5020,7 +5056,7 @@ mod tests {
         assert!(!normalized.contains(temporary.path().to_str().unwrap()));
         assert!(normalized.contains("#define LLVM_BUILDMODE \"Release\""));
 
-        let source = include_str!("stages/runtime_tooling.rs");
+        let source = concat!(include_str!("stages/runtime_tooling.rs"), include_str!("stages/llvm_toolchain.rs"), include_str!("stages/rust_toolchain.rs"));
         let llvm_start = source.find("fn build_llvm").unwrap();
         let rust_start = source.find("fn build_rust").unwrap();
         let llvm = &source[llvm_start..rust_start];
@@ -5048,7 +5084,7 @@ mod tests {
         let restored = fs::read_to_string(build.join("Makefile")).unwrap();
         assert!(restored.contains("-DVPATH='\"$(VPATH)\"'"));
 
-        let source = include_str!("stages/runtime_tooling.rs");
+        let source = concat!(include_str!("stages/runtime_tooling.rs"), include_str!("stages/llvm_toolchain.rs"), include_str!("stages/rust_toolchain.rs"));
         let python_start = source.find("fn build_cpython").unwrap();
         let llvm_start = source.find("fn build_llvm").unwrap();
         let python = &source[python_start..llvm_start];
@@ -5488,8 +5524,8 @@ mod tests {
             write(&rootfs.join(destination), &body);
         }
         for (stack, body) in [
-            ("login", "session    optional     pam_systemd.so\n"),
-            ("su-l", "session    optional     pam_systemd.so\n"),
+            ("login", "session    required     pam_env.so readenv=1 envfile=/etc/default/locale\nsession    optional     pam_systemd.so\n"),
+            ("su-l", "session    required     pam_env.so readenv=1 envfile=/etc/default/locale\nsession    optional     pam_systemd.so\n"),
             ("su", "session    required     pam_unix.so\n"),
             ("sudo", "session    required     pam_unix.so\n"),
             ("passwd", "password   required     pam_unix.so\n"),
@@ -5499,7 +5535,7 @@ mod tests {
             ),
             (
                 "sshd",
-                "auth       required     pam_unix.so\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n",
+                "auth       required     pam_unix.so\nsession    required     pam_env.so readenv=1 envfile=/etc/default/locale\nsession    required     pam_unix.so\nsession    optional     pam_systemd.so\n",
             ),
             ("plasma-greeter", "session    optional     pam_systemd.so\n"),
             (
@@ -5521,6 +5557,9 @@ mod tests {
             &rootfs.join("usr/share/pam/security/pam_env.conf"),
             "# MattOS source-built PAM environment defaults.\n",
         );
+        fs::create_dir_all(rootfs.join("etc/default")).expect("default dir");
+        std::os::unix::fs::symlink("../locale.conf", rootfs.join("etc/default/locale"))
+            .expect("default locale link");
         for rel in [
             "usr/lib/systemd/system/systemd-logind.service",
             "usr/lib/systemd/system/user@.service",

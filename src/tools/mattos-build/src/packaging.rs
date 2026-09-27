@@ -775,6 +775,97 @@ pub(crate) fn build_all_packages(repo_root: &Path) -> Result<()> {
     )
 }
 
+/// Validates one package's cache entry, staging it again on a miss.
+fn prepare_package(
+    repo_root: &Path,
+    spec: PackageSpec,
+    version: String,
+    staging: PathBuf,
+    artifact: PathBuf,
+    input: PackageCacheInput,
+) -> Result<PreparedPackage> {
+    let reused = performance::measure_package_validation(|| {
+        validate_package_cache(repo_root, &spec, &version, &staging, &artifact, &input)
+    })
+    .ok();
+    if reused.is_some() {
+        performance::timed(
+            &format!("package:{}", spec.name),
+            "hit",
+            "package key, staging inventory, control metadata, and artifact SHA-256 matched",
+            &input.cache_key,
+            || Ok(()),
+        )?;
+        println!("package cache hit: {}", spec.name);
+    } else {
+        performance::invalidate_integrity_paths(repo_root, &[staging.clone(), artifact.clone()]);
+        performance::timed(
+            &format!("package-staging:{}", spec.name),
+            "miss",
+            "package inputs or cached artifact validation changed",
+            &input.cache_key,
+            || stage_package(repo_root, &spec),
+        )?;
+        println!("package cache miss: {}", spec.name);
+    }
+    Ok(PreparedPackage {
+        spec,
+        version,
+        staging,
+        artifact,
+        input,
+        reused,
+    })
+}
+
+/// Maps `items` on up to `workers` threads, returning results in input order
+/// (so inventories stay deterministic) or the first error encountered.
+fn parallel_in_order<T: Send, R: Send>(
+    items: Vec<T>,
+    workers: usize,
+    action: impl Fn(T) -> Result<R> + Sync,
+) -> Result<Vec<R>> {
+    let count = items.len();
+    let queue = std::sync::Mutex::new(items.into_iter().enumerate());
+    let results = std::sync::Mutex::new((0..count).map(|_| None).collect::<Vec<Option<R>>>());
+    let failed = std::sync::atomic::AtomicBool::new(false);
+    let errors = std::thread::scope(|scope| {
+        let handles = (0..workers.clamp(1, count.max(1)))
+            .map(|_| {
+                scope.spawn(|| -> Result<()> {
+                    while !failed.load(std::sync::atomic::Ordering::Relaxed) {
+                        let Some((position, item)) = queue.lock().expect("work queue poisoned").next() else {
+                            break;
+                        };
+                        match action(item) {
+                            Ok(result) => results.lock().expect("results poisoned")[position] = Some(result),
+                            Err(error) => {
+                                failed.store(true, std::sync::atomic::Ordering::Relaxed);
+                                return Err(error);
+                            }
+                        }
+                    }
+                    Ok(())
+                })
+            })
+            .collect::<Vec<_>>();
+        handles
+            .into_iter()
+            .map(|handle| handle.join().expect("package worker panicked"))
+            .filter_map(Result::err)
+            .collect::<Vec<_>>()
+    });
+    if let Some(error) = errors.into_iter().next() {
+        return Err(error);
+    }
+    Ok(results
+        .into_inner()
+        .expect("results poisoned")
+        .into_iter()
+        .map(|result| result.expect("every item produced a result"))
+        .collect())
+}
+
 fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     let specs = package_specs();
     let mut selected = Vec::new();
@@ -791,49 +882,24 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     let artifact_root = repo_root.join("out/packages/amd64");
     fs::create_dir_all(&staging_root)?;
     fs::create_dir_all(&artifact_root)?;
+    // Versions and cache keys share a memo of source digests; compute them
+    // first.  Validating and staging each package is independent and
+    // disk-bound, so those run on parallel workers.
     let mut source_digests = BTreeMap::new();
-    let mut prepared = Vec::new();
+    let mut keyed = Vec::new();
     for spec in &selected {
         let version = package_version(repo_root, spec)?;
         let staging = staging_root.join(spec.name);
         let artifact = artifact_root.join(format!("{}_{}_{}.deb", spec.name, version, ARCH));
         let input = package_cache_input(repo_root, spec, &version, &mut source_digests)?;
-        let reused = performance::measure_package_validation(|| {
-            validate_package_cache(repo_root, spec, &version, &staging, &artifact, &input)
-        })
-        .ok();
-        if reused.is_some() {
-            performance::timed(
-                &format!("package:{}", spec.name),
-                "hit",
-                "package key, staging inventory, control metadata, and artifact SHA-256 matched",
-                &input.cache_key,
-                || Ok(()),
-            )?;
-            println!("package cache hit: {}", spec.name);
-        } else {
-            performance::invalidate_integrity_paths(
-                repo_root,
-                &[staging.clone(), artifact.clone()],
-            );
-            performance::timed(
-                &format!("package-staging:{}", spec.name),
-                "miss",
-                "package inputs or cached artifact validation changed",
-                &input.cache_key,
-                || stage_package(repo_root, spec),
-            )?;
-            println!("package cache miss: {}", spec.name);
-        }
-        prepared.push(PreparedPackage {
-            spec: spec.clone(),
-            version,
-            staging,
-            artifact,
-            input,
-            reused,
-        });
+        keyed.push((spec.clone(), version, staging, artifact, input));
     }
+    let stage_log = performance::current_stage_log();
+    let prepared = parallel_in_order(keyed, package_build_workers(), |(spec, version, staging, artifact, input)| {
+        performance::with_inherited_stage_log(stage_log.clone(), || {
+            prepare_package(repo_root, spec, version, staging, artifact, input)
+        })
+    })?;
     // Check the complete prototype set only for a full package build. A
     // targeted package build must not unexpectedly rescan every existing
     // staging tree merely because those trees happen to be present; the full
@@ -904,71 +970,29 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     let mut inventory = read_inventory(repo_root).unwrap_or(PackageInventory {
         package: Vec::new(),
     });
-    for package in prepared {
-        let entry = if let Some(cached) = package.reused {
-            cached.inventory_entry
+    // Each changed package is independent: stage-normalize, compress with
+    // zstd -19, verify, and record its manifest in parallel.  Results are
+    // merged in the original order so the inventory stays deterministic.
+    let mut entries: Vec<Option<PackageInventoryEntry>> = Vec::with_capacity(prepared.len());
+    let mut pending = Vec::new();
+    for (position, package) in prepared.into_iter().enumerate() {
+        if let Some(cached) = package.reused {
+            entries.push(Some(cached.inventory_entry));
         } else {
-            normalize_tree_timestamps(&package.staging)?;
-            let staging_arg = path_str(&package.staging)?;
-            let artifact_arg = path_str(&package.artifact)?;
-            performance::timed(
-                &format!("deb:{}", package.spec.name),
-                "miss",
-                "package payload changed; creating deterministic zstd level 19 archive",
-                &package.input.cache_key,
-                || {
-                    let status = Command::new("dpkg-deb")
-                        .args([
-                            "--root-owner-group",
-                            "-Zzstd",
-                            "-z19",
-                            "--build",
-                            staging_arg,
-                            artifact_arg,
-                        ])
-                        .env("SOURCE_DATE_EPOCH", SOURCE_DATE_EPOCH.to_string())
-                        .status()
-                        .context("failed to run dpkg-deb")?;
-                    if !status.success() {
-                        bail!("dpkg-deb failed for {} with {status}", package.spec.name)
-                    }
-                    Ok(())
-                },
-            )?;
-            verify_deb(&package.artifact, package.spec.name, &package.version)?;
-            let entry = PackageInventoryEntry {
-                name: package.spec.name.to_string(),
-                version: package.version.clone(),
-                architecture: ARCH.to_string(),
-                artifact_path: relative_display(repo_root, &package.artifact)?,
-                source_component: package.spec.source_component.to_string(),
-                dependencies: package_dependencies(repo_root, &package.spec)?,
-                runtime_libraries: runtime_libraries_for_spec(repo_root, &package.spec)?,
-                file_count: count_package_entries(&package.staging)?,
-                sha256: sha256_file(&package.artifact)?,
-            };
-            let manifest = PackageCacheManifest {
-                schema_version: PACKAGE_CACHE_SCHEMA_VERSION,
-                package: package.spec.name.to_string(),
-                cache_key: package.input.cache_key,
-                definition_digest: package.input.definition_digest,
-                payload_source_digest: package.input.payload_source_digest,
-                payload_configuration_digest: package.input.payload_configuration_digest,
-                dependency_digest: package.input.dependency_digest,
-                payload_inventory_digest: performance::output_path_digest(
-                    repo_root,
-                    &package.staging,
-                )?,
-                artifact_sha256: entry.sha256.clone(),
-                artifact_path: entry.artifact_path.clone(),
-                inventory_entry: entry.clone(),
-            };
-            performance::atomic_write_json(
-                &package_cache_manifest_path(repo_root, package.spec.name),
-                &manifest,
-            )?;
-            entry
-        };
+            entries.push(None);
+            pending.push((position, package));
+        }
+    }
+    let built = parallel_in_order(pending, package_build_workers(), |(position, package)| {
+        performance::with_inherited_stage_log(stage_log.clone(), || {
+            build_package_artifact(repo_root, package).map(|entry| (position, entry))
+        })
+    })?;
+    for (position, entry) in built {
+        entries[position] = Some(entry);
+    }
+    for entry in entries {
+        let entry = entry.expect("every package produced an inventory entry");
         inventory.package.retain(|old| old.name != entry.name);
         inventory.package.push(entry);
     }
@@ -983,7 +1007,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
     match source_component {
         "MattOS" | "ca-certificates" | "test" => &[],
         "mattos-profiles" => &["systemd", "grep", "sed", "findutils", "diffutils", "init"],
-        "mattos-compat" => &["systemd"],
+        "mattos-compat" => &["systemd", "rust"],
         "linux" => &["linux-headers"],
         "kernel-modules" => &["linux"],
         "gcc" => &["gcc-runtime", "gcc-compiler"],
@@ -3069,7 +3093,12 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
             "--log={}",
             rootfs.join("var/log/dpkg.log").display()
         ))
-        .args(["--force-bad-path", "--force-script-chrootless", "--install"]);
+        .args(["--force-bad-path", "--force-script-chrootless"])
+        // The rootfs is a disposable build output that is validated and then
+        // copied into images; per-file fsync (dpkg's default) only adds time
+        // and SSD writes.  Image builders such as mmdebstrap do the same.
+        .arg("--force-unsafe-io")
+        .arg("--install");
     for name in package_install_order()? {
         let entry = inventory
             .package
@@ -3930,6 +3959,42 @@ mod tests {
         validate_repository_packages,
     };
     use super::*;
+
+
+    #[test]
+    fn parallel_package_work_keeps_input_order_and_reports_failures() {
+        let started = std::sync::Mutex::new(Vec::new());
+        let results = parallel_in_order((0..32).collect(), 4, |item: usize| {
+            started.lock().unwrap().push(std::thread::current().id());
+            std::thread::sleep(std::time::Duration::from_millis((32 - item as u64) % 5));
+            Ok(item * 2)
+        })
+        .unwrap();
+        assert_eq!(results, (0..32).map(|item| item * 2).collect::<Vec<_>>());
+        let threads = started.into_inner().unwrap().into_iter().collect::<std::collections::HashSet<_>>();
+        assert!(threads.len() > 1, "work ran on one thread");
+
+        let error = parallel_in_order((0..8).collect(), 3, |item: usize| {
+            if item == 5 { bail!("package {item} failed") } else { Ok(item) }
+        })
+        .unwrap_err();
+        assert_eq!(error.to_string(), "package 5 failed");
+        assert!(parallel_in_order(Vec::<usize>::new(), 4, Ok).unwrap().is_empty());
+    }
+
+    #[test]
+    fn package_workers_inherit_the_stage_log() {
+        let log = PathBuf::from("/nonexistent/packages.log");
+        let seen = std::thread::scope(|scope| {
+            scope
+                .spawn(|| {
+                    performance::with_inherited_stage_log(Some(log.clone()), performance::current_stage_log)
+                })
+                .join()
+                .unwrap()
+        });
+        assert_eq!(seen, Some(log));
+    }
     use std::os::unix::fs::{PermissionsExt, symlink};
 
     #[test]
@@ -6411,5 +6476,111 @@ mod tests {
                 > 1_000,
             "the seeded key must be the decoded full Flathub public key"
         );
+    }
+}
+
+/// Builds, verifies, and records one changed package artifact.
+fn build_package_artifact(repo_root: &Path, package: PreparedPackage) -> Result<PackageInventoryEntry> {
+            normalize_tree_timestamps(&package.staging)?;
+    let staging_arg = path_str(&package.staging)?;
+    let artifact_arg = path_str(&package.artifact)?;
+    performance::timed(
+        &format!("deb:{}", package.spec.name),
+        "miss",
+        "package payload changed; creating deterministic zstd level 19 archive",
+        &package.input.cache_key,
+        || {
+            let status = Command::new("dpkg-deb")
+                .args([
+                    "--root-owner-group",
+                    "-Zzstd",
+                    "-z19",
+                    "--build",
+                    staging_arg,
+                    artifact_arg,
+                ])
+                .env("SOURCE_DATE_EPOCH", SOURCE_DATE_EPOCH.to_string())
+                .status()
+                .context("failed to run dpkg-deb")?;
+            if !status.success() {
+                bail!("dpkg-deb failed for {} with {status}", package.spec.name)
+            }
+            Ok(())
+        },
+    )?;
+    verify_deb(&package.artifact, package.spec.name, &package.version)?;
+    let entry = PackageInventoryEntry {
+        name: package.spec.name.to_string(),
+        version: package.version.clone(),
+        architecture: ARCH.to_string(),
+        artifact_path: relative_display(repo_root, &package.artifact)?,
+        source_component: package.spec.source_component.to_string(),
+        dependencies: package_dependencies(repo_root, &package.spec)?,
+        runtime_libraries: runtime_libraries_for_spec(repo_root, &package.spec)?,
+        file_count: count_package_entries(&package.staging)?,
+        sha256: sha256_file(&package.artifact)?,
+    };
+    let manifest = PackageCacheManifest {
+        schema_version: PACKAGE_CACHE_SCHEMA_VERSION,
+        package: package.spec.name.to_string(),
+        cache_key: package.input.cache_key,
+        definition_digest: package.input.definition_digest,
+        payload_source_digest: package.input.payload_source_digest,
+        payload_configuration_digest: package.input.payload_configuration_digest,
+        dependency_digest: package.input.dependency_digest,
+        payload_inventory_digest: performance::output_path_digest(
+            repo_root,
+            &package.staging,
+        )?,
+        artifact_sha256: entry.sha256.clone(),
+        artifact_path: entry.artifact_path.clone(),
+        inventory_entry: entry.clone(),
+    };
+    performance::atomic_write_json(
+        &package_cache_manifest_path(repo_root, package.spec.name),
+        &manifest,
+    )?;
+    Ok(entry)
+}
+
+/// Parallel `dpkg-deb` workers: one per CPU, but bounded by available memory.
+/// zstd level 19 on the largest packages (LLVM, Qt, kernel modules) peaks at
+/// about 1.3 GiB per multithreaded `dpkg-deb`; unbounded parallelism drove
+/// the host into critical memory pressure.
+fn package_build_workers() -> usize {
+    const MEMORY_PER_WORKER_BYTES: u64 = 1536 * 1024 * 1024;
+    let cpus = std::thread::available_parallelism().map_or(1, usize::from);
+    let available = fs::read_to_string("/proc/meminfo")
+        .ok()
+        .and_then(|meminfo| {
+            meminfo.lines().find_map(|line| {
+                line.strip_prefix("MemAvailable:")?
+                    .split_whitespace()
+                    .next()?
+                    .parse::<u64>()
+                    .ok()
+            })
+        })
+        .map(|kib| kib * 1024);
+    package_workers_for(cpus, available, MEMORY_PER_WORKER_BYTES)
+}
+
+fn package_workers_for(cpus: usize, available_memory: Option<u64>, per_worker: u64) -> usize {
+    let by_memory = available_memory
+        .map_or(cpus, |bytes| usize::try_from(bytes / per_worker.max(1)).unwrap_or(cpus));
+    cpus.min(by_memory).max(1)
+}
+
+#[cfg(test)]
+mod package_worker_tests {
+    use super::*;
+
+    #[test]
+    fn package_workers_are_bounded_by_cpus_and_memory() {
+        const GIB: u64 = 1024 * 1024 * 1024;
+        assert_eq!(package_workers_for(12, Some(64 * GIB), GIB), 12);
+        assert_eq!(package_workers_for(12, Some(6 * GIB), 3 * GIB / 2), 4);
+        assert_eq!(package_workers_for(12, Some(0), GIB), 1);
+        assert_eq!(package_workers_for(4, None, GIB), 4);
     }
 }

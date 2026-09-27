@@ -734,6 +734,71 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             self.assertEqual(launched.call_args.kwargs["env"]["SDL_VIDEODRIVER"], "x11")
 
 
+@unittest.skipUnless(shutil.which("convert") and shutil.which("compare"), "ImageMagick required")
+class PlasmaScreenshotVerificationTests(unittest.TestCase):
+    def _image(self, directory: Path, name: str, *draw: str) -> Path:
+        path = directory / name
+        subprocess.run(
+            ["convert", "-size", "320x200", "xc:#3b4a8c", *draw, str(path)],
+            check=True,
+        )
+        return path
+
+    def test_popup_difference_separates_an_opened_popup_from_a_settled_desktop(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            desktop = self._image(root, "desktop.png")
+            same = self._image(root, "same.png")
+            popup = self._image(root, "popup.png", "-fill", "#f0f0f0", "-draw", "rectangle 10,40 150,190")
+            self.assertLessEqual(
+                run_qemu._screenshot_difference(desktop, same), run_qemu.PLASMA_SETTLED_MAX_DIFFERENCE
+            )
+            self.assertGreaterEqual(
+                run_qemu._screenshot_difference(desktop, popup), run_qemu.PLASMA_POPUP_MIN_DIFFERENCE
+            )
+
+    def test_settled_capture_waits_out_an_animating_splash(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            frames = [
+                self._image(root, f"frame{index}.png", "-fill", "white", "-draw", f"circle {60 + index * 30},100 {70 + index * 30},100")
+                for index in range(3)
+            ] + [self._image(root, "settled-a.png"), self._image(root, "settled-b.png")]
+            captured = iter(frames)
+
+            def capture(_repo: Path, destination: Path, **_kwargs: object) -> tuple[int, int]:
+                shutil.copyfile(next(captured), destination)
+                return (320, 200)
+
+            destination = root / "desktop.png"
+            with mock.patch.object(run_qemu, "_capture_plasma_verification_window", side_effect=capture), \
+                    mock.patch.object(run_qemu.time, "sleep"):
+                size = run_qemu._capture_settled_plasma_desktop(root, destination, qmp_socket=root / "qmp")
+            self.assertEqual(size, (320, 200))
+            self.assertLessEqual(
+                run_qemu._screenshot_difference(destination, frames[-1]), run_qemu.PLASMA_SETTLED_MAX_DIFFERENCE
+            )
+            self.assertFalse((root / "desktop-settle-probe.png").exists())
+
+    def test_settled_capture_fails_when_the_desktop_never_settles(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            frames = [
+                self._image(root, f"frame{index}.png", "-fill", "white", "-draw", f"circle {40 + index * 40},100 {50 + index * 40},100")
+                for index in range(2)
+            ]
+            count = iter(range(1000))
+
+            def capture(_repo: Path, destination: Path, **_kwargs: object) -> tuple[int, int]:
+                shutil.copyfile(frames[next(count) % 2], destination)
+                return (320, 200)
+
+            with mock.patch.object(run_qemu, "_capture_plasma_verification_window", side_effect=capture), \
+                    mock.patch.object(run_qemu.time, "sleep"), \
+                    self.assertRaisesRegex(RepoError, "never settled"):
+                run_qemu._capture_settled_plasma_desktop(root, root / "desktop.png", qmp_socket=root / "qmp", timeout=0)
+
+
 @unittest.skipUnless(
     os.environ.get("MATTOS_RUN_FRESH_PROCESS_CACHE_TESTS") == "1",
     "set MATTOS_RUN_FRESH_PROCESS_CACHE_TESTS=1 for the full cache integration test",

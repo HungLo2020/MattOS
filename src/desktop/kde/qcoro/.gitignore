@@ -1,0 +1,13 @@
+build/
+build-*/
+.*.swp
+.ccls-cache
+.cache
+compile_commands.json
+/.vs
+/.vscode
+/CMakeSettings.json
+
+# Python (from mkdocs)
+__pycache__
+venv

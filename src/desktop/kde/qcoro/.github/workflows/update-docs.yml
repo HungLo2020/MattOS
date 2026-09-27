@@ -1,0 +1,97 @@
+name: Build and Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  detect_run:
+    name: Check changes
+    outputs: { "docs_changed": "${{ steps.docs_changed.outputs.docs_changed}}" }
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+      - id: changed_files
+        uses: tj-actions/changed-files@v47
+        name: Get changed files
+        with:
+          files: |
+            docs/**
+            requirements.txt
+            mkdocs.yml
+            README.md
+            .github/workflows/update-docs.yml
+      - id: docs_changed
+        name: Check for documentatio nchanges
+        if: steps.changed_files.outputs.any_changed == 'true'
+        run: |
+          echo "Detected changed files:"
+          echo "${{ steps.changed_files.outputs.all_changed_files }}"
+          echo "docs_changed=true" >> "$GITHUB_OUTPUT"
+
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: detect_run
+    if: ${{ needs.detect_run.outputs.docs_changed == 'true' }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+      - name: Build
+        run: |
+          echo "{% extends \"base.html\" %}{% block analytics %}<!-- Matomo -->
+            <script type=\"text/javascript\">
+              var _paq = window._paq = window._paq || [];
+              _paq.push(['disableCookies']);
+              _paq.push(['trackPageView']);
+              _paq.push(['enableLinkTracking']);
+              (function() { var u='//analytics.dvratil.cz/';
+                _paq.push(['setTrackerUrl', u+'matomo.php']);
+                _paq.push(['setSiteId', '2']);
+                var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+                g.type='text/javascript'; g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+              })();</script><!-- End Matomo Code -->{% endblock %}" > docs/overrides/main.html
+          mkdocs build --verbose
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: site
+          path: site
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    environment:
+      name: cloudflare-pages
+      url: ${{ steps.deploy.outputs.url }}
+    needs: build
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: site
+          path: site
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/pages-action@1
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ SECRETS.CLOUDFLARE_ACCOUNT_ID }}
+        with:
+          apiToken: ${{ SECRETS.CLOUDFLARE_PAGES_TOKEN }}
+          accountId: ${{ SECRETS.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ vars.CLOUDFLARE_PAGES_NAME }}
+          directory: ./site
+          githubToken: ${{ SECRETS.GITHUB_TOKEN }}
+

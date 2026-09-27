@@ -1,6 +1,6 @@
 # MattOS GCC runtime bootstrap
 
-MattOS builds the target GCC shared runtimes from imported GCC source while retaining a host-provided compiler toolchain as a build input. This closes the executable/runtime-library source boundary in the ISO; it is not a claim that MattOS is self-hosting.
+MattOS builds the target GCC shared runtimes from imported GCC source. The same build also produces the complete MattOS compiler that every later target stage uses. This closes the executable/runtime-library source boundary in the ISO; it is not a claim that MattOS is self-hosting.
 
 ## Source and bootstrap boundary
 
@@ -15,7 +15,7 @@ MattOS builds the target GCC shared runtimes from imported GCC source while reta
 
 The import is ordinary editable source with no nested `.git`. `upstream/sources.toml` and `upstream/state/gcc.toml` pin the repository, release, commit, destination, and copy synchronization policy.
 
-Host GCC/G++, assembler, linker, Make, GMP, MPFR, MPC, and zlib are bootstrap build inputs. They remain outside the target image. GCC's top-level build necessarily creates internal compiler components to build the target libraries, but MattOS selects only `libgcc_s.so.1`, `libstdc++.so.6.0.34`, and the `libstdc++.so.6` SONAME link for runtime packaging. Compiler drivers, internal executables, headers, static archives, development links, libtool files, GDB helpers, and unrelated language runtimes are excluded.
+The host GCC/G++ compiles only the host-running compiler proper. The assembler and linker are the MattOS cross Binutils (`--with-as`, `--with-ld`), and GMP, MPFR, and MPC are the static builds from the `cross-toolchain` stage. The target libraries are compiled by the newly built GCC. The compiler is installed with the target libraries into the private, relocatable prefix `out/build/gcc-runtime/toolchain`, which is never packaged. Later stages reach it through the wrappers described in `NATIVE_TOOLCHAIN.md`. For runtime packaging MattOS selects only `libgcc_s.so.1`, `libstdc++.so.6.0.34`, and the `libstdc++.so.6` SONAME link. Compiler drivers, internal executables, headers, static archives, development links, libtool files, GDB helpers, and unrelated language runtimes are excluded from those packages.
 
 ## Runtime-only build
 
@@ -40,18 +40,23 @@ The important top-level options are:
 --disable-libatomic
 --disable-libvtv
 --disable-libcc1
---disable-lto
+--enable-lto
 --disable-plugin
 --disable-libstdcxx-pch
 --without-isl
---with-system-zlib
+--without-zstd
+--enable-default-pie
+--enable-cet
+--enable-linker-build-id
+--with-linker-hash-style=gnu
 ```
 
-Only these make targets are requested:
+The make targets are:
 
 ```text
-make -j 4 all-target-libgcc all-target-libstdc++-v3
-make DESTDIR=<controlled-install> install-target-libgcc install-target-libstdc++-v3
+make all-gcc all-lto-plugin all-target-libgcc all-target-libstdc++-v3 all-target-libgomp
+make DESTDIR=<controlled-install> install-target-libgcc install-target-libstdc++-v3 install-target-libgomp
+make DESTDIR=out/build/gcc-runtime/toolchain install-gcc install-lto-plugin install-target-libgcc install-target-libstdc++-v3 install-target-libgomp
 ```
 
 The complete generated invocation is recorded in `out/build/gcc-runtime/configure-invocation.txt`. `SOURCE_DATE_EPOCH`, `LC_ALL=C`, `TZ=UTC`, fixed parallelism, prefix maps, and deterministic archive behavior constrain output variation. Although upstream install targets also produce development material, the package selector copies only the validated shared runtimes into `out/build/gcc-runtime/runtime/`.

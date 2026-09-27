@@ -1,0 +1,203 @@
+#!/bin/bash
+# dpkg(1) bash completion
+#
+# Copyright © 2002 Laurent Martelli <laurent@bearteam.org>
+# Copyright © 2002 Chris Lawrence <lawrencc@debian.org>
+# Copyright © 2002-2004 Ian Macdonald <ian@caliban.org>
+# Copyright © 2002 Rafael Sepúlveda <drs@gnulinux.org.mx>
+# Copyright © 2002 Guillaume Rousse <rousse@ccr.jussieu.fr>
+# Copyright © 2004 Philipp Weis <pweis@pweis.com>
+# Copyright © 2004 Itay Ben-Yaacov <nib_maps@yahoo.com>
+# Copyright © 2008-2011 David Paleino <d.paleino@gmail.com>
+# Copyright © 2009-2026 Ville Skyttä <ville.skytta@iki.fi>
+# Copyright © 2013 Igor Murzov <e-mail@date.by>
+# Copyright © 2015 Andrea Dari <andreadari91@gmail.com>
+# Copyright © 2018 Uwe Storbeck <uwe@ibr.ch>
+# Copyright © 2018 Luca Capello <luca@pca.it>
+# Copyright © 2018 Gabriel F. T. Gomes <gabriel@inconstante.eti.br>
+# Copyright © 2021-2023 Koichi Murase <myoga.murase@gmail.com>
+# Copyright © 2024 Arnaud Rebillout <arnaudr@kali.org>
+# Copyright © 2026 Guillem Jover <guillem@debian.org>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# @since bash-completion 2.12
+_comp_xfunc_dpkg_compgen_installed_packages()
+{
+  _comp_compgen_split -- "$(
+    _comp_awk -F '\n' -v RS="" "
+      index(\$1, \"Package: ${cur-}\") == 1 &&
+      \$0 ~! /Status: [a-z-]+ [a-z-]+ (not-installed|config-files)/ {
+        print(substr(\$1, 10));
+      }" /var/lib/dpkg/status 2>/dev/null
+  )"
+}
+
+# @since bash-completion 2.12
+_comp_xfunc_dpkg_compgen_purgeable_packages()
+{
+  _comp_compgen_split -- "$(
+    _comp_awk -F '\n' -v RS="" "
+      index(\$1, \"Package: ${cur-}\") == 1 &&
+      \$0 ~! /Status: [a-z-]+ [a-z-]+ not-installed/ {
+        print(substr(\$1, 10));
+      }" /var/lib/dpkg/status 2>/dev/null
+  )"
+}
+
+# @since bash-completion 2.12
+_comp_xfunc_dpkg_compgen_held_packages()
+{
+  _comp_compgen_split -- "$(
+      dpkg --get-selections ${cur:+"$cur}"} |
+          _comp_awk '{for(i=2;i<=NF;i++){ if($i=="hold"){ print $1;break }}}'
+  )"
+}
+
+# @deprecated bash-completion 2.12
+# Use _comp_xfunc_dpkg_compgen_installed_packages instead.
+_comp_dpkg_installed_packages()
+{
+  local COMPREPLY=() cur="${1-}"
+  # shellcheck disable=SC2119
+  _comp_xfunc_dpkg_compgen_installed_packages
+  printf "%s\n" "${COMPREPLY[@]}"
+}
+# @deprecated bash-completion 2.12
+# Use _comp_xfunc_dpkg_compgen_purgeable_packages instead.
+_comp_dpkg_purgeable_packages()
+{
+  local COMPREPLY=() cur="${1-}"
+  # shellcheck disable=SC2119
+  _comp_xfunc_dpkg_compgen_purgeable_packages
+  printf "%s\n" "${COMPREPLY[@]}"
+}
+
+# dpkg(1) completion
+#
+_comp_cmd_dpkg()
+{
+  # shellcheck disable=SC2034
+  local cur prev words cword was_split comp_args
+  _comp_initialize -s -- "$@" || return
+
+  local i=$cword
+
+  # Find the last option flag.
+  if [[ $cur != -* ]]; then
+    while [[ $prev != -* && $i -ne 1 ]]; do
+      prev=${words[--i - 1]}
+    done
+  fi
+
+  local noargopts='!(-*|*[iArPVsplLSVDaR]*)'
+  # shellcheck disable=SC2254
+  case $prev in
+  --install | \
+  --unpack | \
+  --record-avail | \
+  -${noargopts}[iA])
+    _comp_compgen_filedir '?(u|d)deb'
+    _comp_compgen -a -- -W '--recursive'
+    return
+    ;;
+  --status | \
+  --print-avail | \
+  --list | \
+  --verify | \
+  --audit | \
+  -${noargopts}[splVC])
+    _comp_xfunc_dpkg_compgen_installed_packages
+    return
+    ;;
+  --configure | \
+  --triggers-only | \
+  --remove | \
+  -${noargopts}[r])
+    _comp_xfunc_dpkg_compgen_installed_packages
+    _comp_compgen -a -- -W '--pending'
+    return
+    ;;
+  --listfiles | \
+  -${noargopts}[L])
+    _comp_xfunc_dpkg_compgen_purgeable_packages
+    return
+    ;;
+  --purge | \
+  -${noargopts}[P])
+    _comp_xfunc_dpkg_compgen_purgeable_packages
+    _comp_compgen -a -- -W '--recursive'
+    return
+    ;;
+  --recursive | \
+  -${noargopts}R)
+    _comp_compgen_filedir -d
+    return
+    ;;
+  --search | \
+  -${noargopts}S)
+    _comp_compgen_filedir
+    return
+    ;;
+  --update-avail | \
+  --merge-avail)
+    _comp_compgen_filedir
+    return
+    ;;
+  --ignore-depends)
+    # shellcheck disable=SC2034
+    local packages
+    _comp_compgen -v packages -c "${cur##*,}" -x dpkg installed_packages
+    # shellcheck disable=SC2016
+    _comp_delimited , -W '"${packages[@]}"'
+    return
+    ;;
+  --admindir | \
+  --instdir | \
+  --root)
+    _comp_compgen_filedir -d
+    return
+    ;;
+  --log)
+    _comp_compgen_filedir log
+    return
+    ;;
+  --path-exclude | \
+  --path-include)
+    return
+    ;;
+  --status-logger)
+    _comp_compgen_commands
+    return
+    ;;
+  --verify-format)
+    _comp_compgen -- -W 'rpm'
+    return
+    ;;
+  --debug | \
+  -${noargopts}D)
+    _comp_compgen -- -W 'help'
+    return
+    ;;
+  esac
+
+  [[ $was_split ]] && return
+
+  _comp_compgen_help
+  for i in ${!COMPREPLY[*]}; do
+    # Remove ones ending with a dash (known parse issue, hard to fix).
+    [[ ${COMPREPLY[i]} != *- ]] || unset -v 'COMPREPLY[i]'
+  done
+  [[ ${COMPREPLY-} == *= ]] && compopt -o nospace
+} && complete -F _comp_cmd_dpkg dpkg

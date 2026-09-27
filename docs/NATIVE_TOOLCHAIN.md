@@ -30,17 +30,67 @@ source tree.
 
 ## Bootstrap boundary and triples
 
-The first compiler is bootstrapped on the build host.  The verified primary
-host tools for this build were GCC/G++ 15.2.0, GNU Binutils 2.45, and GNU Make
-4.4.1.  GCC's normal build also uses setup-managed host utilities such as
-POSIX shell tools, Perl, Bison, Flex, M4, and Texinfo; none is installed in the
-guest by this milestone.  These are build inputs only: no host executable or
-runtime-loaded library is copied into the image.
+All MattOS target code (glibc, the kernel, the GCC runtimes, and every
+package) is compiled by GCC and Binutils built from the imported sources.  The
+host compiler is a stage-0 input with exactly three uses, none of which reaches
+the image:
 
-The Binutils bootstrap is a host-running cross build whose output is retained
-only under `out/build/binutils/cross-install`.  That assembler and linker then
-produce the MattOS-native Binutils under `out/build/binutils/install`.  GCC uses
-the following roles:
+1. building the `cross-toolchain` stage below;
+2. building the host-running compiler proper inside the `gcc-runtime` stage;
+3. compiling build-machine helpers that execute during a build
+   (`CC_FOR_BUILD`, glibc `BUILD_CC`, Kbuild `HOSTCC`).
+
+The verified primary host tools were GCC/G++ 15.2.0 and GNU Make 4.4.1.
+GCC's build also uses setup-managed host utilities such as POSIX shell tools,
+Perl, Bison, Flex, M4, and Texinfo.  No host executable or runtime-loaded
+library is copied into the image.
+
+The toolchain is built in this order:
+
+| Stage | Output | Built by | Used for |
+| --- | --- | --- | --- |
+| `cross-toolchain` | `out/build/cross-toolchain/install` | host GCC | MattOS cross Binutils; libc-less pass-1 GCC (`--with-newlib --without-headers`) |
+| `glibc` | `out/build/glibc/install`, `out/sysroot` | pass-1 GCC | runtime C library and development sysroot |
+| `linux` | `out/build/linux` | pass-1 GCC (`CROSS_COMPILE`) | kernel and modules, plus out-of-tree NVIDIA modules |
+| `gcc-runtime` | runtime libraries; `out/build/gcc-runtime/toolchain` | host GCC (compiler proper), new GCC (runtimes) | `libgcc_s`, `libstdc++`, `libgomp`, and the complete MattOS compiler |
+| everything later | package outputs | MattOS GCC via `out/toolchain/bin` | all remaining target code |
+
+The cross tools use these roles:
+
+```text
+pass-1 GCC build/host:  x86_64-build-linux-gnu
+Binutils build/host:    x86_64-pc-linux-gnu (native-mode ld in a sysroot)
+target:                 x86_64-pc-linux-gnu
+tool names:             x86_64-pc-linux-gnu-<tool>
+sysroot:                out/sysroot
+linker search:          =/usr/lib/x86_64-linux-gnu =/lib/x86_64-linux-gnu =/usr/lib =/lib
+```
+
+Binutils are configured with host equal to target so that `ld` behaves like a
+native linker inside the sysroot.  Like the distribution linker MattOS was
+previously built with, it then resolves `DT_NEEDED` dependencies through
+`DT_RUNPATH`/`DT_RPATH`, `LD_LIBRARY_PATH`, and `$sysroot/etc/ld.so.conf`.
+It also emits `DT_RUNPATH` rather than `DT_RPATH` (`--enable-new-dtags`), as
+Debian and Ubuntu binutils do.
+
+`out/toolchain/bin` holds wrappers named `gcc`, `cc`, `g++`, `c++`, `cpp`, and
+their `x86_64-pc-linux-gnu-` forms, plus symlinks to the MattOS cross
+Binutils.  `mattos-build` puts that directory first on `PATH` for every target
+build, so build systems that invoke `cc`, `gcc`, `ld`, or `ar` get MattOS
+tools.  The wrappers add the MattOS sysroot, its multiarch start-file and
+library directory, and `mattos-hardening.specs`.
+
+That specs file reproduces the hardening defaults of the Ubuntu host GCC that
+MattOS was previously built and validated with, because upstream GCC enables
+none of them: `-fstack-protector-strong`, `-fstack-clash-protection`,
+`-fcf-protection`, `-Wformat -Wformat-security`, `-D_FORTIFY_SOURCE=3` when
+optimizing, `--as-needed`, `-z relro`, and `-z now` for PIE executables.  Each
+default yields to an explicit caller option such as `-fno-stack-protector` or
+`-U_FORTIFY_SOURCE`.  Default PIE, CET, GNU build IDs, and the GNU hash style
+are configured into both GCC builds directly.  The kernel uses the raw pass-1
+compiler, because Kbuild selects all of its own code-generation flags.
+
+The native compiler shipped in the guest (`gcc-compiler`) uses these roles:
 
 ```text
 build:  x86_64-build-linux-gnu
@@ -53,11 +103,13 @@ languages: c,c++
 
 The build disables multilib, NLS, sanitizers, OpenMP, libquadmath, libssp,
 libatomic, libvtv, libcc1, plugins, and target LTO.  GMP, MPFR, and MPC are
-obtained through GCC's checksum-pinned `download_prerequisites` mechanism and
-linked statically into build-time compiler components.  Their verified cache is
-kept at `out/cache/gcc-prerequisites`; they are not installed guest runtimes.
-Exact configure commands and deterministic environment settings are written to
-the component `configure-invocation.txt` files under `out/build`.
+obtained through GCC's checksum-pinned `download_prerequisites` mechanism.
+They are linked statically into the compilers: the cross-toolchain builds them
+for the build machine, and the native compiler builds them with the MattOS
+compiler.  Their verified cache is kept at `out/cache/gcc-prerequisites`; they
+are not installed guest runtimes.  Exact configure commands and deterministic
+environment settings are written to the component `configure-invocation.txt`
+files under `out/build`.
 
 ## Development sysroot
 

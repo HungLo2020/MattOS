@@ -1,0 +1,147 @@
+site_name: QCoro
+site_description: QCoro is a C++ framework for using coroutines with Qt
+site_author: Daniel Vrátil
+site_url: https://qcoro.dev/
+copyright: Copyright &copy <a href="https://www.dvratil.cz">Daniel Vrátil</a>, all contents published under <a href="https://www.gnu.org/licenses/fdl-1.3.html">GNU FDL 1.3</a>, unless stated otherwise.
+repo_url: https://github.com/qcoro/qcoro
+repo_name: 'QCoro on GitHub'
+edit_uri: 'https://github.com/qcoro/qcoro/edit/main/docs/'
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  logo: assets/qcoro.svg
+  icon:
+    repo:
+      fontawesome/brands/github
+  features:
+    - navigation.expand
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.indexes
+
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme: normal)"
+      primary: teal
+      accent: green
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: green
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: green
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.extra
+  - admonition
+
+plugins:
+  - search:
+      separator: '[\s\-]+|::'
+  - include-markdown
+  - blogging:
+      dirs:
+        - news
+      sort:
+        from: new
+        by: creation
+      time_format: "%B %d, %Y"
+      meta_time_format: "%Y-%m-%d"
+      locale: en
+      theme:
+        name: button
+        options:
+          plain_button: true
+  - rss:
+      match_path: news/.*
+      date_from_meta:
+        as_creation: date
+      categories:
+        - categories
+        - tags
+
+  - macros:
+      module_name: docs/macros
+  - privacy
+
+extra_css:
+  - stylesheets/doctable.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/danvratil
+    - icon: fontawesome/brands/mastodon
+      link: https://fosstodon.org/@danvratil
+    - icon: fontawesome/brands/github
+      link: https://github.com/danvratil
+
+nav:
+    - Home: index.md
+    - Building and Using QCoro: building-and-using.md
+    - Coroutines:
+      - Qt vs. co_await: coroutines/qt-vs-coawait.md
+      - co_await Explained: coroutines/coawait.md
+      - Further Reading: coroutines/reading.md
+    - News: news.md
+    - Reference:
+      - Coro:
+        - reference/coro/index.md
+        - QCoro::Task&lt;T>: reference/coro/task.md
+        - QCoro::LazyTask&lt;T>: reference/coro/lazytask.md
+        - QCoro::coro(): reference/coro/coro.md
+        - QCoro::Generator&lt;T>: reference/coro/generator.md
+        - QCoro::AsyncGenerator&lt;T>: reference/coro/asyncgenerator.md
+      - Core:
+        - reference/core/index.md
+        - Qt Signals: reference/core/signals.md
+        - QFuture: reference/core/qfuture.md
+        - QIODevice: reference/core/qiodevice.md
+        - QProcess: reference/core/qprocess.md
+        - QThread: reference/core/qthread.md
+        - QTimer: reference/core/qtimer.md
+      - Network:
+        - reference/network/index.md
+        - QAbstractSocket: reference/network/qabstractsocket.md
+        - QLocalSocket: reference/network/qlocalsocket.md
+        - QNetworkReply: reference/network/qnetworkreply.md
+        - QTcpServer: reference/network/qtcpserver.md
+      - DBus:
+        - reference/dbus/index.md
+        - QDBusPendingCall: reference/dbus/qdbuspendingcall.md
+        - QDBusPendingReply: reference/dbus/qdbuspendingreply.md
+      - WebSockets:
+        - reference/websockets/index.md
+        - QWebSocket: reference/websockets/qwebsocket.md
+        - QWebSocketServer: reference/websockets/qwebsocketserver.md
+      - Quick:
+        - reference/quick/index.md
+        - QCoro::ImageProvider: reference/quick/imageprovider.md
+      - Qml:
+        - reference/qml/index.md
+        - QCoro::QmlTask: reference/qml/qmltask.md
+      - Test:
+        - reference/test/index.md
+    - Changelog: changelog.md
+    - About:
+        - License: about/license.md

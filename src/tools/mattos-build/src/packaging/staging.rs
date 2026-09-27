@@ -1674,15 +1674,18 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
 }
 
 fn stage_mattos_compat(repo_root: &Path, staging: &Path) -> Result<()> {
-    let status = Command::new("cargo")
-        .current_dir(repo_root)
-        .args(["build", "--release", "-p", "mattos-compat"])
-        .status()
-        .context("build mattos-compat")?;
-    if !status.success() {
-        bail!("cargo failed while building mattos-compat: {status}");
-    }
-    let binary = repo_root.join("target/release/mattos-compat");
+    // Build like every other target Rust component: through the MattOS
+    // compiler/linker environment and sysroot, into an output-owned target
+    // directory (never the developer's shared `target/` or host linker).
+    let target = repo_root.join("out/build/mattos-compat/cargo-target");
+    run_cmd_with_env_overrides(
+        repo_root,
+        "cargo",
+        &["build", "--locked", "--release", "-p", "mattos-compat"],
+        &[("CARGO_TARGET_DIR", target.display().to_string())],
+    )
+    .context("cargo failed while building mattos-compat")?;
+    let binary = target.join("release/mattos-compat");
     if !binary.is_file() {
         bail!("mattos-compat build did not produce {}", binary.display());
     }
@@ -1752,6 +1755,29 @@ fn stage_libglvnd_dev(repo_root: &Path, staging: &Path) -> Result<()> {
     )
 }
 
+/// Build-time locations whose installed equivalents are fixed: the MattOS
+/// sysroot is the target root, and the MattOS compiler wrappers correspond to
+/// the native compiler in /usr/bin.  CMake/pkg-config discovery records these
+/// absolute paths (e.g. `find_library(m)` resolving libm in the sysroot).
+fn target_equivalent_build_paths(repo_root: &Path) -> [(String, &'static str); 3] {
+    [
+        // A build-time `--sysroot` recorded into Libs/Cflags is meaningless
+        // on the target, where the sysroot is `/`.
+        (
+            format!("--sysroot={}", repo_root.join("out/sysroot").display()),
+            "",
+        ),
+        (
+            format!("{}/", repo_root.join("out/sysroot").display()),
+            "/",
+        ),
+        (
+            repo_root.join(TARGET_TOOL_WRAPPERS).to_string_lossy().into_owned(),
+            "/usr/bin",
+        ),
+    ]
+}
+
 fn normalize_staged_pkgconfig_paths(repo_root: &Path, staging: &Path) -> Result<()> {
     let build_root = repo_root.join("out/build");
     let build_root_text = build_root.to_string_lossy().into_owned();
@@ -1774,7 +1800,12 @@ fn normalize_staged_pkgconfig_paths(repo_root: &Path, staging: &Path) -> Result<
             .fold(original.clone(), |contents, prefix| {
                 contents.replace(prefix, "/usr")
             });
-        if normalized.contains(&build_root_text) {
+        let normalized = target_equivalent_build_paths(repo_root)
+            .iter()
+            .fold(normalized, |contents, (from, to)| contents.replace(from, to));
+        if normalized.contains(&build_root_text)
+            || normalized.contains(repo_root.to_string_lossy().as_ref())
+        {
             bail!(
                 "package pkg-config metadata /{} embeds the host build root",
                 path.strip_prefix(staging)?.display()
@@ -1820,6 +1851,9 @@ fn normalize_staged_cmake_paths(repo_root: &Path, staging: &Path) -> Result<()> 
             .fold(original.clone(), |contents, prefix| {
                 contents.replace(prefix, "/usr")
             });
+        normalized = target_equivalent_build_paths(repo_root)
+            .iter()
+            .fold(normalized, |contents, (from, to)| contents.replace(from, to));
         // LLVM exposes this build-tree helper in LLVMConfig.cmake. It is a
         // development-time convenience, but publishing the disposable host
         // path would make the target package non-reproducible and unusable.
@@ -3864,7 +3898,7 @@ fn stage_mattos_base_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
             "usr/bin/diffutils",
         ),
         (
-            "target/release/mattos-init",
+            "out/build/init/cargo-target/release/mattos-init",
             "usr/libexec/mattos/rescue-init",
         ),
     ] {
@@ -6005,10 +6039,7 @@ pub(crate) fn validate_no_embedded_build_root(repo_root: &Path, staging: &Path) 
     walk_tree(staging, &mut |path, metadata| {
         if metadata.is_file() && !path.starts_with(staging.join("DEBIAN")) {
             let bytes = fs::read(path)?;
-            if bytes
-                .windows(needle.len())
-                .any(|window| window == needle.as_bytes())
-            {
+            if memchr::memmem::find(&bytes, needle.as_bytes()).is_some() {
                 bail!(
                     "package payload /{} embeds the host build root",
                     path.strip_prefix(staging)?.display()
@@ -6020,7 +6051,7 @@ pub(crate) fn validate_no_embedded_build_root(repo_root: &Path, staging: &Path) 
 }
 
 fn strip_staged_debug(repo_root: &Path, staging: &Path) -> Result<()> {
-    let strip = repo_root.join("out/build/binutils/cross-install/usr/bin/strip");
+    let strip = cross_binutil(repo_root, "strip");
     if !strip.is_file() {
         bail!(
             "source-built Binutils strip is required before package staging at {}",

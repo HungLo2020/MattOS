@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2022 Daniel Vrátil <dvratil@kde.org>
+# SPDX-License-Identifier: MIT
+#
+# Docker image for specific versions of gcc and specific version of Qt.
+
+ARG compiler_version
+FROM gcc:${compiler_version}
+ARG qt_version
+ARG qt_modules
+ARG qt_archives
+
+SHELL ["/bin/bash", "-c"]
+
+# Enable backports in older GCC images to get access to newer cmake
+RUN source /etc/os-release && \
+    if [[ "${VERSION_ID}" == "10" ]]; then \
+        echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/backports.list; \
+    fi
+
+# Install build-time and runtime dependencies
+RUN apt-get update \
+    && apt-get upgrade --yes \
+    && apt-get install --yes --no-install-recommends \
+        cmake cmake-data \
+        python3-pip python3-setuptools python3-wheel python3-dev \
+        dbus dbus-x11 \
+        libglib2.0-dev libxkbcommon-dev libfreetype6-dev libfontconfig1-dev \
+        libssl-dev \
+        libegl-dev libgl-dev libegl1 libgl1 libglx0 libglvnd0 \
+        libvulkan-dev \
+    && apt-get clean
+
+# Workaround a bug in CMake (?) which tries to look for OpenGL-related libraries
+# in /usr/lib/x86_64-unknown-linux-gnu instead of /usr/lib/x86_64-linux-gnu
+RUN ln -s x86_64-linux-gnu /usr/lib/x86_64-unknown-linux-gnu
+
+# Install Qt
+WORKDIR /root
+# Necessary to allow using pip on newer images (--break-system-packages doesn't work on older images)
+RUN rm -f /usr/lib/python$(python3 --version | grep -oE "3.[0-9]+")/EXTERNALLY-MANAGED \
+    && pip3 install 'aqtinstall==3.2.0'
+COPY install-qt.sh ./install-qt.sh
+RUN ./install-qt.sh "${qt_version}" "${qt_modules}" "${qt_archives}"
+
+# Set up environment
+ENV QT_BASE_DIR "/opt/qt/${qt_version}/gcc_64"
+ENV PATH "${QT_BASE_DIR}/bin:${PATH}"
+ENV CMAKE_PREFIX_PATH="${QT_BASE_DIR}/lib/cmake"
+ENV LD_LIBRARY_PATH "${QT_BASE_DIR}/lib:${LD_LIBRARY_PATH}"
+ENV XDG_DATA_DIRS "${QT_BASE_DIR}/share:${XDG_DATA_DIRS}"
