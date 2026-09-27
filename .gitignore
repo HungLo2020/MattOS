@@ -30,3 +30,7 @@
 __pycache__/
 *.pyc
 
+
+# Wiki build/local environment
+/site/
+/.venv-wiki/

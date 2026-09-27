@@ -1,0 +1,79 @@
+site_name: MattOS Wiki
+site_description: Version-controlled MattOS wiki and project documentation
+site_url: https://hunglo2020.github.io/MattOS/
+repo_url: https://github.com/HungLo2020/MattOS
+repo_name: HungLo2020/MattOS
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: blue grey
+    accent: light blue
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+
+extra_javascript:
+  - assets/javascripts/random-page.js
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started/home.md
+  - Using MattOS: using/home.md
+  - Development:
+      - development/home.md
+      - Building MattOS: BUILD.md
+      - Build system:
+          - Architecture and invalidation contract: BUILD_SYSTEM_ARCHITECTURE.md
+          - Build performance and cache model: BUILD_PERFORMANCE.md
+          - Build cache audit: BUILD_CACHE_AUDIT.md
+      - Toolchain and bootstrap:
+          - Native C/C++ toolchain: NATIVE_TOOLCHAIN.md
+          - glibc bootstrap: GLIBC_BOOTSTRAP.md
+          - GCC runtime bootstrap: GCC_RUNTIME_BOOTSTRAP.md
+          - Bootstrap runtime audit: BOOTSTRAP_RUNTIME.md
+          - Self-hosting development: SELF_HOSTING_DEVELOPMENT.md
+      - Sources:
+          - Source closure policy: SOURCE_CLOSURE.md
+          - Source ownership: SOURCE_OWNERSHIP.md
+          - Upstream synchronization: UPSTREAM_SYNC.md
+      - Packaging:
+          - Debian packaging: PACKAGING.md
+          - Debian 13 compatibility: DEBIAN_COMPATIBILITY.md
+          - Remote repository: REMOTE_REPOSITORY.md
+      - System:
+          - Live and installed root: LIVE_ROOT_ARCHITECTURE.md
+          - Installer: INSTALLER.md
+          - Systemd boot: SYSTEMD_BOOTSTRAP.md
+          - System D-Bus: DBUS.md
+          - Login sessions: SESSIONS.md
+          - Authentication: AUTHENTICATION.md
+          - Networking: NETWORKING.md
+          - Wi-Fi and GRUB: WIFI_AND_GRUB.md
+          - Userland commands: USERLAND_COMMANDS.md
+          - Base-system administration: BASE_ADMINISTRATION.md
+      - Milestones and audits:
+          - First bootable baseline: MILESTONE_BOOTABLE_BASELINE.md
+          - Project audit: PROJECT_AUDIT.md
+  - Changelog: changelog/CHANGELOG.md

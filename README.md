@@ -2,6 +2,10 @@
 
 MattOS is a Linux-compatible OS project with upstream source imported directly as ordinary tracked files in one repository.
 
+Wiki for this project is available at: https://hunglo2020.github.io/MattOS/
+
+The source for the wiki is in this repo: [Wiki](docs/index.md) (preview locally with `python3 DevUtils/RunWiki.py`).
+
 ## Project Rules / Vision / Goal
 
 - Every executable, script, and runtime-loaded library installed in MattOS must be built from source as part of the MattOS build process.
