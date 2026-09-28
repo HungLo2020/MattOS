@@ -31,7 +31,7 @@ for build temporary files. It is created and write-tested automatically, and
 takes precedence over an inherited `TMPDIR` so a full host `/tmp` cannot break
 the build. `--build-only` runs `doctor` and the same `cargo run -p mattos-build -- build all` command used directly, in separate child processes. Stage keys normalize the build locale/time policy and identify selected tools rather than hashing the caller's raw `PATH`, so unchanged direct and launcher builds share the same cache identity.
 
-This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, glibc/GCC-runtime-bootstrap, and ELF-inspection tools declared by `DevUtils/setup.py`, including GCC/G++, GNU assembler and linker tools, Make, Bison, Meson/Ninja, CMake, Autoconf/Automake/libtool, `gnulib-tool`, GNU awk (`gawk`), `rsync`, `bindgen`, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`. The host compiler only builds the stage-0 cross toolchain, the host-running compiler proper, and build-time helper programs. All target code is compiled by source-built GCC and Binutils (see `docs/NATIVE_TOOLCHAIN.md`). GCC's GMP, MPFR, and MPC prerequisites are built from checksum-pinned sources, not host `-dev` packages. Target runtime development files come from imported source builds and `out/sysroot`, not host distribution `-dev` packages.
+This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, glibc/GCC-runtime-bootstrap, and ELF-inspection tools declared by `DevUtils/setup.py`, including GCC/G++, GNU assembler and linker tools, Make, Bison, Meson/Ninja, CMake, Autoconf/Automake/libtool, `gnulib-tool`, GNU awk (`gawk`), `rsync`, `bindgen`, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`. The host compiler only builds the stage-0 cross toolchain, the host-running compiler proper, and build-time helper programs. All target code is compiled by source-built GCC and Binutils (see [MattOS native C/C++ toolchain](toolchain/native-toolchain.md)). GCC's GMP, MPFR, and MPC prerequisites are built from checksum-pinned sources, not host `-dev` packages. Target runtime development files come from imported source builds and `out/sysroot`, not host distribution `-dev` packages.
 
 ## Upstream source status
 
@@ -163,7 +163,7 @@ Systemd configuration remains intentionally minimal. It enables networkd, resolv
 
 ## Incremental builds
 
-Warm builds are guarded by content-addressed stage manifests rather than timestamps. Repository, live-rootfs, initramfs, and ISO layers now participate in the same dependency model and retain full inventory/corruption validation. See `docs/BUILD_PERFORMANCE.md` for keys, atomic replacement, package/ELF fact reuse, timing reports, quiet native logs, and scoped cache commands.
+Warm builds are guarded by content-addressed stage manifests rather than timestamps. Repository, live-rootfs, initramfs, and ISO layers now participate in the same dependency model and retain full inventory/corruption validation. See [Build performance and cache model](performance.md) for keys, atomic replacement, package/ELF fact reuse, timing reports, quiet native logs, and scoped cache commands.
 
 ```
 cargo run -p mattos-build -- build kernel
@@ -239,7 +239,7 @@ cargo run -p mattos-build -- package status
 cargo run -p mattos-build -- package compatibility-audit
 ```
 
-The complete prototype stack consists of 66 packages. `libc6` and `libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `libgcc-s1` and `libstdc++6` supply the final source-built compiler runtimes. The `udev` package owns systemd's selected vendor hwdb sources, the stock update unit, and a source-generated `/usr/lib/udev/hwdb.bin`. Ten development packages add Linux/glibc/GCC development files, source-built Binutils, GCC C/C++, and GNU Make. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. The compatibility audit also validates all package classifications, versions, protected pins, source scaffolds, and the immutable LinuxScripts publisher. See `docs/GLIBC_BOOTSTRAP.md`, `docs/GCC_RUNTIME_BOOTSTRAP.md`, `docs/NATIVE_TOOLCHAIN.md`, `docs/PACKAGING.md`, `docs/DEBIAN_COMPATIBILITY.md`, `docs/REMOTE_REPOSITORY.md`, and `docs/BOOTSTRAP_RUNTIME.md`.
+The complete prototype stack consists of 66 packages. `libc6` and `libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `libgcc-s1` and `libstdc++6` supply the final source-built compiler runtimes. The `udev` package owns systemd's selected vendor hwdb sources, the stock update unit, and a source-generated `/usr/lib/udev/hwdb.bin`. Ten development packages add Linux/glibc/GCC development files, source-built Binutils, GCC C/C++, and GNU Make. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. The compatibility audit also validates all package classifications, versions, protected pins, source scaffolds, and the immutable LinuxScripts publisher. See [MattOS glibc bootstrap](toolchain/glibc-bootstrap.md), [MattOS GCC runtime bootstrap](toolchain/gcc-runtime-bootstrap.md), [MattOS native C/C++ toolchain](toolchain/native-toolchain.md), [MattOS Debian Packaging](../packaging/debian-packaging.md), [Debian 13 compatibility contract](../packaging/debian-compatibility.md), [MattOS remote repository integration](../packaging/remote-repository.md), and [Bootstrap runtime audit](toolchain/bootstrap-runtime-audit.md).
 
 ## QEMU boot
 
@@ -270,7 +270,7 @@ The archive also carries a dependency-ordered, zstd-compressed generic boot
 module closure sourced from the matching MattOS kernel build. The installed
 initramfs uses the same closure; the remaining modules are supplied by the
 versioned `linux-modules-<release>` package under `/usr/lib/modules`.
-See `docs/LIVE_ROOT_ARCHITECTURE.md`.
+See [Live and Installed Root Architecture](../system/boot/live-root.md).
 
 ## Cleanup
 

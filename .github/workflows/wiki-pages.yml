@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - docs/**
+      - README.md
+      - DevUtils/check_wiki_structure.py
       - mkdocs.yml
       - requirements-docs.txt
       - .github/workflows/wiki-pages.yml
@@ -32,6 +34,7 @@ jobs:
           # The wiki needs only its own sources, not the vendored trees.
           sparse-checkout: |
             docs
+            DevUtils
             mkdocs.yml
             requirements-docs.txt
 
@@ -44,6 +47,9 @@ jobs:
 
       - name: Install wiki dependencies
         run: pip install -r requirements-docs.txt
+
+      - name: Check wiki structure
+        run: python3 DevUtils/check_wiki_structure.py
 
       - name: Build wiki
         run: mkdocs build --strict

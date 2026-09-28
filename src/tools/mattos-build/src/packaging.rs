@@ -44,10 +44,9 @@ mod registry;
 #[cfg(test)]
 pub(crate) use registry::package_install_order_for;
 pub(crate) use registry::{PACKAGE_NAMES, PackageSpec, package_install_order, package_specs};
-pub(crate) use registry::{
-    MATTOS_TOOLCHAIN_META_PACKAGE, MATTOS_TOOLCHAIN_PACKAGES, live_excluded_packages,
-    live_package_install_order, live_package_names,
-};
+pub(crate) use registry::{live_excluded_packages, live_package_install_order, live_package_names};
+#[cfg(test)]
+pub(crate) use registry::{MATTOS_TOOLCHAIN_META_PACKAGE, MATTOS_TOOLCHAIN_PACKAGES};
 
 const ARCH: &str = "amd64";
 const REVISION: &str = "1mattos1";

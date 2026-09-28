@@ -133,7 +133,7 @@ Mutable lists, archives, logs, partial files, and locks are never package payloa
 
 `libgcc-s1` owns only `libgcc_s.so.1` plus license, ABI, and provenance metadata. `libstdc++6` owns only `libstdc++.so.6.0.34`, its SONAME link, license, ABI, and provenance metadata. The latter depends on the former; both depend on `libc6`. GCC headers and static link inputs are separately owned by the honest MattOS-specific `mattos-libgcc-dev` and `mattos-libstdc++-dev` packages because Trixie's corresponding development split is GCC 14.
 
-The former `mattos-bootstrap-runtime` package is absent from the installed set and repository. Its audit interface remains and reports zero host-derived entries and bytes. See `docs/BOOTSTRAP_RUNTIME.md`, `docs/GLIBC_BOOTSTRAP.md`, `docs/GCC_RUNTIME_BOOTSTRAP.md`, and the generated audit.
+The former `mattos-bootstrap-runtime` package is absent from the installed set and repository. Its audit interface remains and reports zero host-derived entries and bytes. See [Bootstrap runtime audit](../build-system/toolchain/bootstrap-runtime-audit.md), [MattOS glibc bootstrap](../build-system/toolchain/glibc-bootstrap.md), [MattOS GCC runtime bootstrap](../build-system/toolchain/gcc-runtime-bootstrap.md), and the generated audit.
 
 `curl` continues to carry its matching source-built `libcurl.so.4` because splitting one small ABI pair would add churn without improving this milestone. It depends on MattOS libc, the CA bundle, zlib, Zstandard, libcrypto, and libssl packages.
 

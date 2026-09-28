@@ -3,7 +3,7 @@
 > Current image architecture: MattOS now carries the complete system in a
 > deterministic SquashFS live root and boots it through a minimal static early
 > initramfs plus tmpfs overlay. Historical measurements below describe older
-> full-root initramfs milestones. See `docs/LIVE_ROOT_ARCHITECTURE.md`.
+> full-root initramfs milestones. See [Live and Installed Root Architecture](../system/boot/live-root.md).
 
 Date: 2026-08-04
 
@@ -15,7 +15,7 @@ The previous GRUB source-of-truth ambiguity has been resolved by keeping only `s
 
 The static Brush prompt source has been replaced. The interactive prompt now comes from MattOS-owned startup configuration using normal Brush/Bash-style prompt semantics.
 
-The two build-performance milestones add content-addressed stage/package/repository/rootfs/initramfs/ISO manifests, package and ELF fact stores, complete content/mode/ownership inventory validation, dependency-digest invalidation, atomic layer replacement, quiet native-stage logs, structured timing, and scoped cache inspection/invalidation. Release validation remains unchanged; details and safety rules are in `docs/BUILD_PERFORMANCE.md`.
+The two build-performance milestones add content-addressed stage/package/repository/rootfs/initramfs/ISO manifests, package and ELF fact stores, complete content/mode/ownership inventory validation, dependency-digest invalidation, atomic layer replacement, quiet native-stage logs, structured timing, and scoped cache inspection/invalidation. Release validation remains unchanged; details and safety rules are in [Build performance and cache model](../build-system/performance.md).
 
 The first performance milestone reduced the audit's 53:00.44 unchanged `build all` to 4:04.45. The second milestone's required second unchanged run completed in 3:50.94 with 116 cache hits, zero misses, and no non-cacheable timing records. A scoped independent layer rebuild reproduced all 65 packages, repository files, rootfs and ELF inventories, initramfs, and ISO byte-for-byte/content-digest-for-content-digest. A subsequent fresh-process defect audit found raw inherited `PATH`/`LC_ALL`, a final logging-only configuration edit, and dependency input identities behind unstable foundational decisions. Schema-3 normalization corrected those causes. Two consecutive ordinary launcher runs now report eight foundational hits and zero misses, and a following direct run reports the same. Normal and no-network boots reached the live prompt, the rescue entry reached rescue-init, and the normal guest passed native C/C++/Make, `.deb`, and Brush `sh`/`bash` checks after the correction.
 

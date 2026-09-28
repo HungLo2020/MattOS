@@ -50,7 +50,7 @@ and atomicwrites—remain normal Cargo dependencies rather than authoritative
 MattOS components.
 
 The repository-wide classification rule is documented in
-[`SOURCE_CLOSURE.md`](SOURCE_CLOSURE.md); future desktop imports must apply its
+[MattOS source-closure policy](../sources/source-closure.md); future desktop imports must apply its
 runtime-artifact/subsystem test before creating first-class source ownership.
 
 The committed frontend `Cargo.lock` pins every Git dependency to an exact

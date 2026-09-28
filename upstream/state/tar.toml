@@ -12,4 +12,4 @@ imported_tree_digest = "694aab748f9c374398cae6ea8d6dce705c6c8f9e932750a8edefb2e2
 intentional_omission_policy = "upstream/policies/gitlinks.toml#tar"
 gitlink_policy = "upstream/policies/gitlinks.toml#tar"
 patch_manifest = "upstream/patches/tar/manifest.toml"
-patch_manifest_sha256 = "8d6aca67c771ad57cecf671510c0c6103b4a650e91aab32564e28b766f7c2b69"
+patch_manifest_sha256 = "84f0a6e48cd1c619d27ce1b31da3eb3c90293aec090f4139e432cc98bb438435"

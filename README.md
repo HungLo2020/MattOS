@@ -2,190 +2,52 @@
 
 MattOS is a Linux-compatible OS project with upstream source imported directly as ordinary tracked files in one repository.
 
-Wiki for this project is available at: https://hunglo2020.github.io/MattOS/
+- **Wiki:** <https://hunglo2020.github.io/MattOS/>
+- **Source:** <https://github.com/HungLo2020/MattOS>
 
-The source for the wiki is in this repo: [Wiki](docs/index.md) (preview locally with `python3 DevUtils/RunWiki.py`).
+## Documentation
 
-## Project Rules / Vision / Goal
+All documentation lives in the wiki under `docs/`, organized as a strict
+hierarchy of systems and subsystems: every directory has an `index.md` that
+links to each note in it and to the index of each subdirectory. The hosted wiki
+above renders the same files for easier reading and navigation; preview it
+locally with `python3 DevUtils/RunWiki.py`.
 
-- Every executable, script, and runtime-loaded library installed in MattOS must be built from source as part of the MattOS build process.
-- Build-only dependencies that are statically linked into a final artifact, used only during compilation, or fetched through a project’s normal dependency system do not need to become separate installed MattOS components or first-class MattOS packages.
-- Every installed file must have a clear source, build path, and package owner. Host binaries and runtime libraries may be used only as explicitly documented temporary bootstrap dependencies.
-- MattOS should eventually be fully self-hosting: a running MattOS system must contain the compilers, linkers, interpreters, package tools, and other development utilities required to rebuild MattOS and generate its packages, repository, and bootable ISO.
-- Self-hosting does not require a completely offline build. MattOS may download pinned source and build dependencies through normal systems such as Cargo or project build tools.
-- Builds should also be possible from an already populated local dependency cache when network access is unavailable.
-- Downloaded build dependencies that do not become separate runtime artifacts do not need to be individually installed or managed through APT.
-- All source code utilized for this OS must be contained in this repo.
-- tentatively planning on using COSMIC desktop stack, login etc
-- compilers and toolchains to build MattOS must also be included in source set
-- MattOS targets binary package compatibility with Debian 13 (Trixie) while retaining a MattOS-built and MattOS-controlled critical base. MattOS packages take precedence over Debian packages, and Debian repositories are used only to supplement optional software without replacing protected system infrastructure.
-- arm64, x86_64, risc-v, and UML are our intended architectures this project supports. 
+- [Wiki home](docs/index.md)
+- [Project](docs/project/index.md): goals, rules, repository layout, licensing, milestones
+- [Guides](docs/guides/index.md): installing and using MattOS
+- [Build System](docs/build-system/index.md): building MattOS, the stage graph and cache, the toolchain bootstrap
+- [Sources](docs/sources/index.md): importing, pinning, owning and syncing upstream source
+- [Packaging](docs/packaging/index.md): Debian packages, the APT repository, Debian 13 compatibility, publishing
+- [System](docs/system/index.md): boot, installer, services, networking, userland
 
-## Repository model
+To build MattOS, start with [Building MattOS](docs/build-system/building.md)
+and the [build commands](docs/build-system/commands.md).
 
-- `src/kernel/linux`: upstream Linux kernel source
-- `src/userland/brush`: upstream Brush shell source
-- `src/userland/coreutils`: upstream uutils/coreutils source
-- `src/system/systemd`: upstream systemd source
-- `src/system/dbus/dbus-broker`: upstream dbus-broker source
-- `src/system/packages/dpkg`: upstream dpkg source
-- `src/system/packages/apt`: upstream APT source plus MattOS vendor policy
-- `src/system/kmod`: upstream kmod source
-- `src/system/terminal/ncurses`: upstream ncurses source
-- `src/userland/procps-ng`: upstream procps-ng source
-- `src/userland/iproute2`: upstream iproute2 source
-- `src/userland/iputils`: upstream iputils source
-- `src/userland/curl`: upstream curl source
-- `src/system/network`: MattOS-owned network, resolver, time, NSS, and CA configuration
-- `src/userland/init`: MattOS-owned Rust PID 1
-- `src/tools/mattos-build`: MattOS-owned Rust orchestrator
+## Agents
 
-No Git submodules are used.
+`AGENTS.md` is a symlink to this README. Agents working in this repository
+follow the guidance below.
 
-## Licensing
-
-MattOS-owned code is licensed under the MIT License (`LICENSE`) unless a
-component declares otherwise. Components derived from upstream projects keep
-their upstream license; for example `src/system/installer` is
-`GPL-3.0-or-later` (see its `PROVENANCE.md`). Vendored upstream trees retain
-their own license files and terms.
-
-## Native Linux quick start
-
-1. First-time machine setup:
-
-```
-python3 DevUtils/setup.py
-```
-
-2. Check prerequisites:
-
-```
-cargo run -p mattos-build -- doctor
-```
-
-3. Inspect imported upstream state:
-
-```
-cargo run -p mattos-build -- upstream status
-```
-
-4. Build all components and ISO:
-
-```
-cargo run -p mattos-build -- build
-```
-
-This includes a minimal systemd build in `out/build/systemd/`.
-
-5. Run in QEMU:
-
-```
-cargo run -p mattos-build -- run
-```
-
-Or use the development launcher:
-
-```
-python3 DevUtils/setup.py --check
-python3 DevUtils/run_qemu.py
-```
-
-Expected ISO artifact:
-
-```
-out/images/mattos-x86_64.iso
-```
-
-## Upstream workflows
-
-```
-cargo run -p mattos-build -- upstream import --all
-cargo run -p mattos-build -- upstream sync --all
-cargo run -p mattos-build -- upstream sync linux
-cargo run -p mattos-build -- upstream import systemd
-cargo run -p mattos-build -- upstream sync systemd
-```
-
-See `docs/UPSTREAM_SYNC.md` for conflict behavior and metadata.
-
-See `docs/AUTHENTICATION.md` for the PAM, account, login, su, and sudo-rs architecture.
-
-See `docs/BASE_ADMINISTRATION.md` for kmod, procps-ng, ncurses, terminfo, and kernel-module status.
-
-See `docs/NETWORKING.md` for the wired/QEMU IPv4, DNS, time-sync, HTTPS, and CA-certificate architecture.
-
-See `docs/DBUS.md` for the dbus-broker system bus, service policy, activation aliases, and non-root client behavior.
-
-See `docs/SESSIONS.md` for pam_systemd, logind sessions, runtime directories, per-user systemd managers, and user D-Bus.
-
-See `docs/PACKAGING.md` for `.deb` construction, the local MattOS APT repository, imported dpkg/APT builds, and hybrid rootfs assembly.
-
-Use `python3 DevUtils/VendoredPackageStatus.py` for a read-only joined report of each vendored component's upstream branch tip, MattOS source pin/provenance state, locally built package versions, and hosted repository versions. Add `--component NAME --verbose` for an individual package-family report.
-
-See `docs/DEBIAN_COMPATIBILITY.md` for the Debian 13 `amd64` contract, package-name mapping, protected-package policy, validation results, and known gaps. See `docs/SELF_HOSTING_DEVELOPMENT.md` for the pinned CPython, LLVM/Clang/LLD, and Rust/Cargo development foundation. See `docs/REMOTE_REPOSITORY.md` for the read-only LinuxScripts publisher integration; the build itself never publishes, while `DevUtils/PublishPackages.py` performs explicit uploads.
-
-## Build stages
-
-```
-cargo run -p mattos-build -- build kernel
-cargo run -p mattos-build -- build brush
-cargo run -p mattos-build -- build coreutils
-cargo run -p mattos-build -- build kmod
-cargo run -p mattos-build -- build ncurses
-cargo run -p mattos-build -- build procps
-cargo run -p mattos-build -- build iproute2
-cargo run -p mattos-build -- build iputils
-cargo run -p mattos-build -- build curl
-cargo run -p mattos-build -- build systemd
-cargo run -p mattos-build -- build dbus-broker
-cargo run -p mattos-build -- build dpkg
-cargo run -p mattos-build -- build apt
-cargo run -p mattos-build -- build pam
-cargo run -p mattos-build -- build util-linux
-cargo run -p mattos-build -- build shadow
-cargo run -p mattos-build -- build sudo-rs
-cargo run -p mattos-build -- build init
-cargo run -p mattos-build -- image
-```
-
-## Package prototype
-
-```
-cargo run -p mattos-build -- package build --all
-cargo run -p mattos-build -- package repo
-cargo run -p mattos-build -- package inspect mattos-brush
-cargo run -p mattos-build -- package status
-cargo run -p mattos-build -- package compatibility-audit
-cargo run -p mattos-build -- package publish-plan out/packages/amd64/<package>.deb
-```
-
-Build and upload every generated package through the vendored repository manager:
-
-```
-python3 DevUtils/PublishPackages.py
-```
-
-Use `--dry-run` to validate the discovered packages and print the upload command
-without changing the remote repository.
-
-The development launcher gives the guest a QEMU user-mode virtio-net interface by default. Use `python3 DevUtils/run_qemu.py --no-network` for an isolated boot.
-
-## Cleanup
-
-```
-cargo run -p mattos-build -- clean artifacts
-cargo run -p mattos-build -- clean logs
-cargo run -p mattos-build -- clean cargo
-cargo run -p mattos-build -- clean all
-```
-
-## Source layout
-
-Project-managed source trees live under `src/`:
-
-- `src/kernel/`
-- `src/userland/`
-- `src/boot/`
-- `src/rootfs/`
-- `src/tools/`
+* Before working on anything, read the documentation for it: start at the [wiki home](docs/index.md), always read the [project rules](docs/project/rules.md) and [goals](docs/project/goals.md), then follow the index pages down to every system and subsystem the task touches and read all of their related notes. Search `docs/` for the components, files and terms involved, and read what you find before changing code.
+* Keep the documentation current: when a change alters documented behavior, update the affected notes in the same change.
+* Keep the wiki's strict hierarchy: put each new note in the directory for its system or subsystem (creating a subdirectory with its own `index.md` when a topic grows), link it from that directory's `index.md`, and link between notes with relative Markdown links. Only top-level sections are linked from this README. `python3 DevUtils/check_wiki_structure.py` checks the hierarchy.
+* MattOS is a monorepo Linux distribution intended to contain editable source for its primary runtime libraries, system components, tools, and first-class programs.
+* Transitive dependencies do not all need vendored source. For example, Rust crates statically linked into a first-class MattOS program may be fetched normally.
+* MattOS should eventually be self-hosting, but rebuilding MattOS may require network access.
+* The installer ISO itself must contain everything needed to install its supported base profiles without internet access.
+* Prefer Rust for new MattOS-owned software where practical, but do not rewrite mature upstream software merely for language purity.
+* Vendored upstream source must be pinned to exact immutable commits and kept as close to upstream as practical.
+* Vendored source may be deliberately pruned during import when MattOS does not support that functionality. Omissions must be explicit, reproducible, provenance-tracked, and must not impair supported builds or future upstream updates.
+* Prefer deterministic import policies over manually deleting files from vendored trees. Unsupported architectures, platforms, tests, tooling, documentation, or other upstream content may be excluded only through documented source-selection policy.
+* Avoid modifying retained vendored source directly. Prefer small, documented patches applied to output-owned source mirrors.
+* Generated files and build outputs must never be written into authoritative vendored source trees.
+* MattOS targets broad binary compatibility with the broader linux ecosystem with mattos-compat. basically allows for hosting other distros userland in /compat. for ease of maintainance howerver the mattos "distro" itself should still try and follow debian.
+* The Rust MattOS build tooling is the canonical build orchestration layer. Reuse it instead of creating parallel ad-hoc build systems.
+* Never solve target dependencies by copying host binaries or runtime libraries into MattOS.
+* Prefer root-cause fixes, preserve reproducibility and source provenance, and add focused regression tests for defects.
+* Do not modify or publish through LinuxScripts unless explicitly instructed.
+* Never stage, commit, stash, reset, clean, merge, rebase, tag, push, publish, or otherwise alter Git history/index unless explicitly instructed in the current session.
+* Leave changes unstaged and uncommitted by default.
+* Do not stop a session merely because a required healthy build or test is still running.
+* Give final session reports directly in chat, not in report files, unless explicitly requested.

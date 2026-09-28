@@ -37,43 +37,6 @@ markdown_extensions:
 extra_javascript:
   - assets/javascripts/random-page.js
 
-nav:
-  - Home: index.md
-  - Getting Started: getting-started/home.md
-  - Using MattOS: using/home.md
-  - Development:
-      - development/home.md
-      - Building MattOS: BUILD.md
-      - Build system:
-          - Architecture and invalidation contract: BUILD_SYSTEM_ARCHITECTURE.md
-          - Build performance and cache model: BUILD_PERFORMANCE.md
-          - Build cache audit: BUILD_CACHE_AUDIT.md
-      - Toolchain and bootstrap:
-          - Native C/C++ toolchain: NATIVE_TOOLCHAIN.md
-          - glibc bootstrap: GLIBC_BOOTSTRAP.md
-          - GCC runtime bootstrap: GCC_RUNTIME_BOOTSTRAP.md
-          - Bootstrap runtime audit: BOOTSTRAP_RUNTIME.md
-          - Self-hosting development: SELF_HOSTING_DEVELOPMENT.md
-      - Sources:
-          - Source closure policy: SOURCE_CLOSURE.md
-          - Source ownership: SOURCE_OWNERSHIP.md
-          - Upstream synchronization: UPSTREAM_SYNC.md
-      - Packaging:
-          - Debian packaging: PACKAGING.md
-          - Debian 13 compatibility: DEBIAN_COMPATIBILITY.md
-          - Remote repository: REMOTE_REPOSITORY.md
-      - System:
-          - Live and installed root: LIVE_ROOT_ARCHITECTURE.md
-          - Installer: INSTALLER.md
-          - Systemd boot: SYSTEMD_BOOTSTRAP.md
-          - System D-Bus: DBUS.md
-          - Login sessions: SESSIONS.md
-          - Authentication: AUTHENTICATION.md
-          - Networking: NETWORKING.md
-          - Wi-Fi and GRUB: WIFI_AND_GRUB.md
-          - Userland commands: USERLAND_COMMANDS.md
-          - Base-system administration: BASE_ADMINISTRATION.md
-      - Milestones and audits:
-          - First bootable baseline: MILESTONE_BOOTABLE_BASELINE.md
-          - Project audit: PROJECT_AUDIT.md
-  - Changelog: changelog/CHANGELOG.md
+# No explicit nav: navigation follows the docs/ directory hierarchy, with
+# each directory's index.md as its section page (navigation.indexes).  The
+# hierarchy is enforced by DevUtils/check_wiki_structure.py.

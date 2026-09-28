@@ -12,4 +12,4 @@ imported_tree_digest = "f449ed5ad379587bb9ba72eb9353552d603969d594bf3aaabd31d2d9
 intentional_omission_policy = "none"
 gitlink_policy = "none"
 patch_manifest = "upstream/patches/apt/manifest.toml"
-patch_manifest_sha256 = "326214de72d7add30beba1f730df8e9d460ce9be2551601f03263f0e3bc15a28"
+patch_manifest_sha256 = "53f533960ca201117bf8f4d4be0160dc3566abd18fce3f12041e94816d517113"

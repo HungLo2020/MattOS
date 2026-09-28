@@ -140,4 +140,4 @@ The current image intentionally does not provide:
 - installed-disk boot/install support
 - package management
 
-The production system bus is the separately built dbus-broker described in `docs/DBUS.md`. `systemd-logind` owns `org.freedesktop.login1`; PAM-registered sessions start UID-generic per-user managers and a separate socket-activated user broker as described in `docs/SESSIONS.md`.
+The production system bus is the separately built dbus-broker described in [MattOS System D-Bus](../services/dbus.md). `systemd-logind` owns `org.freedesktop.login1`; PAM-registered sessions start UID-generic per-user managers and a separate socket-activated user broker as described in [Login Sessions and Per-User Services](../services/sessions.md).

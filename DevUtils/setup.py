@@ -59,7 +59,7 @@ REQUIRED_TOOLS = [
     "triehash",
     "magick",
     # Compiler cache for MattOS target C/C++ compiles (see
-    # docs/BUILD_SYSTEM_ARCHITECTURE.md, "Compiler cache").
+    # docs/build-system/architecture.md, "Compiler cache").
     "ccache",
 ]
 

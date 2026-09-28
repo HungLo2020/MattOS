@@ -62,6 +62,7 @@ def main() -> int:
         ensure_wiki_environment()
         run_checked([str(VENV_PYTHON), "-m", "mkdocs", "serve"])
     else:
+        run_checked([os.environ.get("PYTHON", "python3"), str(REPO_ROOT / "DevUtils" / "check_wiki_structure.py")])
         ensure_wiki_environment()
         run_checked([str(VENV_PYTHON), "-m", "mkdocs", "build", "--strict"])
     return 0

@@ -12,4 +12,4 @@ imported_tree_digest = "75988ef72d0d8279adb77afb92b823239145f4722f1b405c9c9ddda9
 intentional_omission_policy = "none"
 gitlink_policy = "none"
 patch_manifest = "upstream/patches/dbus-broker/manifest.toml"
-patch_manifest_sha256 = "1a9f560b28f6c224e35f623837aa76b0a502dec8fafe89226e633f4b65094fe1"
+patch_manifest_sha256 = "e2cfb93f1f76fb9bac2ba4bc15fa71ec1479f6bb155a28e659ff69ad9ee9f313"
