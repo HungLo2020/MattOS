@@ -8,7 +8,7 @@ compiler and Binutils used to build them: MattOS pass-1 GCC and cross Binutils (
 build-time helper programs (BUILD_CC): host compiler, never installed
 ```
 
-The pass-1 GCC has no C library, so glibc is configured as a cross build (`--build=x86_64-build-linux-gnu`). As a result, `make install` does not run the freshly built `ldconfig` to generate `etc/ld.so.cache`; that file was never packaged. See `NATIVE_TOOLCHAIN.md` for the complete toolchain order.
+The pass-1 GCC has no C library, so glibc is configured as a cross build (`--build=x86_64-build-linux-gnu`). As a result, `make install` does not run the freshly built `ldconfig` to generate `etc/ld.so.cache`; that file was never packaged. See [MattOS native C/C++ toolchain](native-toolchain.md) for the complete toolchain order.
 
 ## Source and kernel ABI
 
@@ -85,7 +85,7 @@ The selected NSS/resolver inventory includes `libnss_files.so.2`, `libnss_dns.so
 
 `libc-bin` depends on `libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. Locale data is not bulk-packaged. `libc6-dev` now owns the glibc headers, crt objects, static archives, and unversioned linker inputs required for native compilation, while `linux-libc-dev` uniquely owns the generated kernel UAPI layer.
 
-`libgcc-s1` depends on `libc6`; `libstdc++6` depends on both. `mattos-bootstrap-runtime` is retired. Every other package receives a direct exact-version dependency on `libc6`, and direct compiler-runtime consumers declare the appropriate GCC runtime package. See `GCC_RUNTIME_BOOTSTRAP.md`.
+`libgcc-s1` depends on `libc6`; `libstdc++6` depends on both. `mattos-bootstrap-runtime` is retired. Every other package receives a direct exact-version dependency on `libc6`, and direct compiler-runtime consumers declare the appropriate GCC runtime package. See [MattOS GCC runtime bootstrap](gcc-runtime-bootstrap.md).
 
 ## Loader migration and validation
 
@@ -105,4 +105,4 @@ Two clean full builds produced byte-identical glibc installation trees, all 54 p
 
 ## Native-toolchain continuation
 
-The GCC runtime step remains the source of the target runtime and development artifacts. The native-toolchain milestone adds source-built Binutils, GCC C/C++, and Make to the guest while retaining a documented host-bootstrap boundary. MattOS does not yet claim compiler self-reproduction or a native full-system rebuild; see `NATIVE_TOOLCHAIN.md`.
+The GCC runtime step remains the source of the target runtime and development artifacts. The native-toolchain milestone adds source-built Binutils, GCC C/C++, and Make to the guest while retaining a documented host-bootstrap boundary. MattOS does not yet claim compiler self-reproduction or a native full-system rebuild; see [MattOS native C/C++ toolchain](native-toolchain.md).

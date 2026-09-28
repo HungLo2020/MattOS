@@ -1,12 +1,19 @@
-# Debian 13 compatibility contract
+# Debian Compatibility (Current State)
 
-MattOS targets best-effort binary package compatibility with Debian 13
-(Trixie) on `amd64` while retaining a MattOS-built and MattOS-controlled
-critical base. MattOS repositories take precedence. Debian is a supplemental
-source for optional software and may not replace protected infrastructure.
-This is a compatibility target, not a promise that every Debian package works.
+!!! warning "Not a guarantee"
+    MattOS is not designed to be binary compatible with Debian 13 (Trixie).
+    It is currently similar to Debian and partly compatible with it, but that
+    is a consequence of shared tooling and conventions, not a promise: MattOS
+    can and will diverge from Debian. Treat everything below as a description
+    of the current state, which may change without a compatibility transition.
 
-The machine-readable contract is
+MattOS uses Debian's package formats and tooling (`.deb`, `dpkg`, APT) on
+`amd64` with a MattOS-built and MattOS-controlled critical base. MattOS
+repositories take precedence. Debian, where configured, is only a
+supplemental source for optional software and may not replace protected
+infrastructure.
+
+The machine-readable mapping of the current state is
 `src/system/packages/debian-compat/trixie.toml`. It maps all 66 installed
 packages to source, representative owned paths, ABI or command surface,
 protection, deterministic version, Debian dependency role, classification, and
@@ -15,13 +22,13 @@ The build rejects an incomplete mapping, invalid classification or version,
 missing protected pin, unsafe source configuration, changed LinuxScripts
 publisher, or nested Git metadata.
 
-## Contracted interfaces
+## Current interfaces
 
-| Interface | MattOS contract |
+| Interface | Current MattOS behavior |
 | --- | --- |
 | package identity | Real Trixie binary names are used only where the current payload is a credible replacement. MattOS-only packages keep `mattos-`. |
 | versions | Debian syntax and `dpkg` comparison; releases use `<upstream>-1mattos<N>`, snapshots `0~git.<12hex>-1mattos<N>`, never timestamps. |
-| architecture | `Architecture: amd64`; no foreign-architecture or multiarch co-install contract yet. |
+| architecture | `Architecture: amd64`; no foreign-architecture or multiarch co-install support. |
 | libraries | Runtime DSOs use `/usr/lib/x86_64-linux-gnu`, with Debian-relevant SONAME and symbol-version checks recorded by the ELF audit. |
 | loader | Dynamic executables use `/lib64/ld-linux-x86-64.so.2`. |
 | filesystem | merged `/usr`: `/bin`, `/sbin`, and `/lib` resolve into `/usr`; package paths and common commands remain conventional. |
@@ -131,4 +138,4 @@ embedded repository without attempting either remote.
 
 Future work—not part of this milestone—includes CPython, Perl, Autotools,
 pkg-config, Meson/Ninja/CMake, Git, Rust/Cargo/rustup, complete native rebuild
-and ISO generation, COSMIC, installer technology, and hosted publication.
+and ISO generation, the desktop stack (now KDE Plasma), installer technology, and hosted publication.

@@ -1,6 +1,6 @@
 # MattOS Wiki
 
-MattOS is a from-source Linux distribution: every executable, library and tool it installs is built by the MattOS build system from source kept in one repository, and it aims for binary package compatibility with Debian 13 (Trixie).
+MattOS is a from-source Linux distribution: every executable, library and tool it installs is built by the MattOS build system from source kept in one repository. It uses Debian's package formats and tooling and is currently similar to, and partly binary-compatible with, Debian 13 (Trixie); that compatibility is not a design goal or a promise, and MattOS can and will diverge from Debian.
 
 Source code: <https://github.com/HungLo2020/MattOS>
 

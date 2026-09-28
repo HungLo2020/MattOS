@@ -1,7 +1,7 @@
 schema_version = 1
 suite = "trixie"
 architecture = "amd64"
-policy = "Best-effort Debian 13 binary compatibility with a MattOS-built protected base"
+policy = "Current, non-guaranteed Debian 13 compatibility of a MattOS-built protected base; MattOS may diverge"
 version_policy = "<upstream>-1mattos<N>; snapshots use 0~git.<commit>-1mattos<N>; no timestamps"
 
 [[package]]

@@ -37,7 +37,7 @@ MattOS installs minimal user units under `/usr/lib/systemd/user`:
 
 The socket unit exports `DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus` to the user-manager environment. `/usr/share/dbus-1/session.conf` is a separate session-bus policy: it permits users to own names on their private bus and loads only session service directories and policy fragments.
 
-This bus is not the system bus. The system broker continues to listen at `/run/dbus/system_bus_socket` with the restrictive policy documented in `DBUS.md`. A user-bus connection does not grant control of PID 1; without Polkit, an unprivileged request such as restarting `systemd-timesyncd.service` on the system bus remains denied.
+This bus is not the system bus. The system broker continues to listen at `/run/dbus/system_bus_socket` with the restrictive policy documented in [MattOS System D-Bus](dbus.md). A user-bus connection does not grant control of PID 1; without Polkit, an unprivileged request such as restarting `systemd-timesyncd.service` on the system bus remains denied.
 
 ## Lifecycle
 

@@ -12,20 +12,17 @@ Exact historical revisions, licenses, and attribution are recorded in
   partition naming, command execution, mount lifetime/cleanup, and the small
   installed-system initramfs.
 - `policy/` defines a MattOS installation: plan schema, target constraints,
-  UEFI/GPT/Btrfs layout, subvolumes, live-source selection and cleanup, Brush
+  UEFI/GPT/Btrfs layout, subvolumes, offline package composition, Brush
   account policy, profile markers, fstab, installed initramfs, and GRUB.
 - `cli/` is the permanent `mattos-install` frontend. It supports guided,
   non-destructive plan display, and acknowledged noninteractive execution.
 - `gui/model.rs` is the toolkit-neutral graphical wizard model. It creates the
   same versioned `InstallPlan` and consumes the same structured policy progress
   events as every other installer interface.
-- `gui/cosmic/` is the one permanent graphical frontend: Rust + libcosmic. It
-  is a presentation/controller over the shared model, policy, and engine while
-  COSMIC remains pinned upstream source under `src/desktop/cosmic/`.
-
-The MattOS graphical installer does not use GTK, Qt, Vala, or a Vala
-toolchain. Those ecosystems may have unrelated future package uses, but they
-are not installer architecture.
+- `calamares/` is the graphical frontend: a pinned, unmodified Calamares 3.4
+  import (`calamares/upstream/`) with MattOS policy and branding in
+  `calamares/mattos/`. See `src/system/installer/calamares/README.md` for its
+  Qt 6 / KDE Frameworks source closure.
 
 System76 distinst informed the engine design. The Pop!/elementary Vala UI is the
 historical interaction-design starting point. Ubuntu package policy, Pop
@@ -33,39 +30,25 @@ repositories and branding, elementary application identity, recovery/refresh
 modes, systemd-boot/kernelstub, `update-initramfs`, OEM behavior, and arbitrary
 distribution extension points are deliberately not retained.
 
-`cosmic-initial-setup` is separate upstream COSMIC source under
-`src/desktop/cosmic/cosmic-initial-setup`. It belongs to the
-future first-login Desktop flow and is not part of disk installation.
-
-The native COSMIC installer is built as an output-owned artifact and packaged
-as `/usr/bin/mattos-install-cosmic`. The graphical boot entry starts this
-native frontend; the CLI entry remains independently usable without COSMIC.
-
-The first-class native frontend source closure pinned in `upstream/sources.toml`
-contains libcosmic, its coordinated exact iced gitlink revision, and COSMIC
-protocols. The installer application itself is MattOS-owned source. Ordinary
-implementation crates—including settings D-Bus bindings, freedesktop icons,
-winit, window clipboard, softbuffer, smithay clipboard, AccessKit, cryoglyph,
-and atomicwrites—remain normal Cargo dependencies rather than authoritative
-MattOS components.
-
 The repository-wide classification rule is documented in
 [MattOS source-closure policy](../sources/source-closure.md); future desktop imports must apply its
 runtime-artifact/subsystem test before creating first-class source ownership.
 
-The committed frontend `Cargo.lock` pins every Git dependency to an exact
-40-hex commit and every registry dependency to its Cargo checksum. The builder
-validates the reviewed Git source set before invoking `cargo build --locked`.
-An online build may populate Cargo's normal cache; after population, the same
-locked build works with `cargo build --locked --offline`. Cargo cache content
-is generated/fetched state and never belongs under authoritative `src/`.
+## Graphical installer (Calamares)
 
-The installer artifact is
-`out/build/installer/cosmic-target/release/mattos-install-cosmic`. Its
-`--contract-proof` mode exercises its shared discovery/model contract without a
-display server. The real window is the authoritative GUI and requires the
-normal COSMIC graphical runtime, while the separate CLI boot entry is the
-supported no-graphics installation path.
+In the live KDE Plasma session, the **Install MattOS (Calamares)** launcher
+starts Calamares. Its pages are welcome, locale, keyboard, partitioning, users,
+the MattOS profile chooser, summary, progress and completion. QML, Kirigami,
+webview, package-manager and desktop-specific Calamares modules are
+deliberately excluded.
+
+Calamares owns the UI, partitioning and mounts; it does not decide the package
+closure. Its profile chooser records `cli` or `plasma`, and the
+`mattos-executor` job runs `mattos-install calamares`, which reuses the Rust
+profile resolver and offline repository transaction against the
+Calamares-mounted target. Guided storage is GPT/UEFI with an EFI system
+partition and a Btrfs root using the MattOS subvolumes; manual ext4 remains
+available through the Calamares partition module.
 
 ## Plan and safety contract
 
@@ -81,6 +64,7 @@ Planning is non-destructive. Execution additionally requires root, an explicit
 whole block device, at least 8 GiB, no mounted target filesystems, and proof that
 the target is not the disk backing the running root. The guided frontend never
 chooses a disk automatically and requires the literal confirmation `ERASE`.
+Unattended CLI plans accept an explicit crypt hash for the account password.
 
 The supported first installation mode is GPT whole-disk with UEFI installed
 boot files. Encryption,
@@ -96,10 +80,12 @@ currently exposed.
 - `@snapshots` mounted at `/.snapshots`
 - `compress=zstd:3,noatime`
 
-The immutable SquashFS lower tree at `/run/mattos/lower` is copied into the
-target, not the mutable live OverlayFS. Live account/autologin/state and the
-live-only installer package are removed. `btrfs-progs` and `dosfstools` remain
-separate normal administration packages.
+The target is composed offline from the package repository on the live medium,
+not copied from the live root: the installer resolves the selected profile's
+meta-package closure plus `mattos-toolchain` (every installed system carries
+the native development toolchain) and installs them with `dpkg`, then copies
+the repository onto the target as its local APT source. `btrfs-progs` and
+`dosfstools` remain separate normal administration packages.
 
 The installed system has its own initramfs. GRUB passes the filesystem UUID;
 early userspace probes sysfs partitions, mounts the Btrfs `@` subvolume, and
@@ -110,50 +96,32 @@ sysfs parent/partition number (covering sd, vd, NVMe, and loop naming), mounts
 never record `/dev/vda*`. UEFI GRUB is installed under the removable-media path
 `EFI/BOOT/BOOTX64.EFI`.
 
-## Frontend/profile independence
+## Boot entries and installed profiles
 
-The same hybrid BIOS/UEFI ISO exposes five intended entry modes:
+The hybrid BIOS/UEFI ISO offers:
 
-1. Start MattOS Live
+1. Start MattOS Live (the KDE Plasma live session, with the graphical installer)
 2. Start MattOS Live (CLI)
-3. Install MattOS
-4. Install MattOS (CLI)
-5. MattOS Rescue
+3. Install MattOS (CLI)
+4. MattOS Rescue
+5. MattOS AMD graphics diagnostics (CLI)
 
-GUI versus CLI selects the live presentation only. Either frontend may select
-either installed profile:
+Either frontend may select either installed profile:
 
-- MattOS Desktop
-- MattOS CLI
+- **Plasma** (`mattos-plasma`): the KDE Plasma Wayland desktop
+- **CLI** (`mattos-cli`): the command-line base system
 
-The CLI profile is the currently complete base installation. Desktop plans are
-recorded explicitly, but the target receives `mattos-desktop-pending` until the
-COSMIC desktop, cosmic-greeter, and separately pinned cosmic-initial-setup are
-integrated.
+Both profiles also receive `mattos-toolchain`.
 
-## Graphical frontend and credential handling
-
-The native Rust/libcosmic installer is a multi-page wizard: welcome;
-currently-supported English (US)/US keyboard disclosure; installed profile;
-explicit target disk; the real GPT/EFI/Btrfs layout; account setup; review; and
-shared-engine execution. It never selects a disk automatically. Optical and
-read-only media are not candidates. The review page makes the destructive
-target, installed profile, hostname/user, UEFI boot mode, partition layout, and
-Btrfs subvolumes explicit before the user can request installation.
-
-Password plaintext stays only in the GUI input buffer. Immediately before the
-shared `InstallPlan → policy validation → engine` execution path begins, it is
-hashed with MattOS libxcrypt SHA-512, the plaintext buffers are cleared, and
-only the crypt hash reaches the in-memory plan. Plaintext is never put in argv,
-logs, or a persistent plan. Unattended CLI plans accept an explicit crypt hash.
-# Validation and initial package discovery
+## Validation and initial package discovery
 
 `DevUtils/run_qemu.py --install` requires the installer and independent disk
 boot to exit successfully. Forced QEMU termination is a failure, even when
 QEMU itself returns zero. Failed test disks are retained without a completion
 marker for diagnosis; a subsequent explicit `--install` replaces the test disk.
-The boot checks include compositor/panel processes; these are not a substitute
-for interactive GUI or application acceptance tests.
+The boot checks include compositor/panel processes and a toolchain
+compile-and-run check; these are not a substitute for interactive GUI or
+application acceptance tests.
 
 Installed systems enable a bounded APT index bootstrap 15 seconds after boot,
 independently of login. Only a fully successful refresh records completion.

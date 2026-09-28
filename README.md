@@ -18,7 +18,7 @@ locally with `python3 DevUtils/RunWiki.py`.
 - [Guides](docs/guides/index.md): installing and using MattOS
 - [Build System](docs/build-system/index.md): building MattOS, the stage graph and cache, the toolchain bootstrap
 - [Sources](docs/sources/index.md): importing, pinning, owning and syncing upstream source
-- [Packaging](docs/packaging/index.md): Debian packages, the APT repository, Debian 13 compatibility, publishing
+- [Packaging](docs/packaging/index.md): Debian-format packages, the APT repository, current Debian compatibility, publishing
 - [System](docs/system/index.md): boot, installer, services, networking, userland
 
 To build MattOS, start with [Building MattOS](docs/build-system/building.md)

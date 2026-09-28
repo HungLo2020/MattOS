@@ -21,7 +21,7 @@ The catalog records:
 - first-class component repository identities and pinned revisions;
 - Cargo packages physically owned by each first-class component;
 - canonical root-package ownership;
-- declared gitlink replacements from `upstream/policies/gitlinks.toml` such as libcosmic's upstream `iced` gitlink being replaced by the first-class `cosmic-iced` component; and
+- declared gitlink replacements from `upstream/policies/gitlinks.toml`, such as OSTree's `bsdiff` and `libglnx` gitlinks being replaced by their separately pinned imports; and
 - output-mirror patch metadata for components that carry MattOS patches.
 
 Catalog generation validates every declared patch chain before any Cargo build starts: `sources.toml` must agree with the component provenance state, the patch-manifest bytes must match their SHA-256, the manifest must name the pinned component/revision and `output-mirror-only` application policy, and every patch payload must match its declared SHA-256.
@@ -46,7 +46,7 @@ Ownership decisions are source-qualified:
 
 Nested crates are not globally claimed merely because a `Cargo.toml` exists somewhere inside a large imported tree. This prevents compiler fixtures, tests, shims, and unrelated same-name packages from becoming accidental project-wide owners.
 
-For COSMIC this means, for example, a Git edge requesting `libcosmic` from the libcosmic repository is rebound to MattOS's libcosmic mirror, while iced-family packages exposed through libcosmic's upstream gitlink are routed through the declared first-class `cosmic-iced` replacement. Conversely, a crate named `cosmic-settings-daemon` coming from `dbus-settings-bindings` remains that external crate; it is not confused with MattOS's separately owned `pop-os/cosmic-settings-daemon` project.
+For example, a Git dependency edge that names the repository of a MattOS-owned project is rebound to MattOS's mirror of that project, while packages exposed through a declared gitlink replacement are routed through the replacement component. Conversely, a crate that merely shares a name with an owned project but comes from an unrelated repository remains that external crate; it is not confused with the owned project.
 
 ## Derived Cargo locks
 
@@ -87,7 +87,7 @@ Ownership-enabled Cargo invocations write detailed traces under `out/source-owne
 
 Native libraries remain source-owned through the MattOS build graph and staged sysroot. Meson, CMake, Autotools, Make, and Rust build scripts that consume native libraries must resolve headers, pkg-config metadata, link libraries, and runtime closure from MattOS-built component outputs rather than matching host development packages or downloading duplicate owned projects.
 
-A runtime relationship is not automatically a rebuild relationship. For example, PipeWire being part of the complete COSMIC desktop runtime does not by itself make PipeWire source or package output a compile-time input to `cosmic-panel`. Stage dependency/cache graphs must model actual build and ABI inputs separately from runtime/image composition dependencies.
+A runtime relationship is not automatically a rebuild relationship. For example, PipeWire being part of the complete KDE Plasma desktop runtime does not by itself make PipeWire source or package output a compile-time input to every Plasma component. Stage dependency/cache graphs must model actual build and ABI inputs separately from runtime/image composition dependencies.
 
 ## Cache identity
 
@@ -109,10 +109,11 @@ MattOS Flatpak and APT policy resources live in
 `src/system/packages/config/{flatpak,apt}`, outside the corresponding imported
 upstream trees. Package configuration inputs own these files.
 
-Initial Setup's saved-connection listing fix is an output-mirror patch; it does
-not grant access to NetworkManager's root-only reload API. COSMIC theme and
-panel defaults remain MattOS resources, covered by
-`DevUtils/tests/test_desktop_policy.py` against the pinned schemas.
+MattOS desktop branding and defaults (`src/system/desktop/branding/MattOS`)
+are MattOS resources kept outside the upstream theme imports under
+`src/desktop/themes`. `DevUtils/tests/test_desktop_policy.py` checks that
+distribution resources such as the APT and Flatpak policy stay out of
+upstream trees.
 
 OSTree's nested ordinary-file bsdiff/libglnx imports are explicitly registered
 gitlink replacements and audited independently, not ignored. The provenance

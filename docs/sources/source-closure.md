@@ -77,7 +77,8 @@ upstream dependency update and never edits the authoritative lock under `src/`.
 After reconciliation, the rewritten graph must be stable under the caller's
 original `--locked`/`--offline`/`--frozen` policy before the build may proceed.
 
-The COSMIC desktop hierarchy therefore contains recognizable platform and
-desktop projects, not every crate in their recursive dependency graph. Future
-COSMIC imports must apply the two-question test before creating a source tree
-or upstream state record.
+The desktop hierarchy (KDE Plasma under `src/desktop/kde`, Qt under
+`src/desktop/qt`) therefore contains recognizable platform and desktop
+projects, not every dependency in their recursive graphs. Future desktop
+imports must apply the two-question test before creating a source tree or
+upstream state record.

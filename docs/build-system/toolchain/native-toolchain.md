@@ -200,8 +200,8 @@ The intended follow-on order is:
 7. Rust, Cargo, the Rust standard library, and rustup.
 8. Native rebuild of all MattOS packages.
 9. Native ISO generation.
-10. The COSMIC desktop stack.
-11. Verified reuse of the installer technology used by Pop!_OS.
+10. The desktop stack (now KDE Plasma; see [System](../../system/index.md)).
+11. The graphical installer (now Calamares; see [MattOS Installer](../../system/installer.md)).
 
 RustPython preference is contingent on compatibility testing.  This milestone
 does not perform a compiler self-rebuild, a complete package rebuild, or native

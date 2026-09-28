@@ -118,4 +118,4 @@ libxcrypt is built with all hash algorithms and glibc-compatible obsolete APIs. 
 
 That pre-glibc bootstrap manifest contained 5 files and 6,518,032 bytes. The glibc milestone moved three files to `libc6`, leaving 2 files and 2,832,624 bytes. The GCC runtime milestone moves those last files to `libgcc-s1` and `libstdc++6`, removes the transitional package, and produces a zero-entry audit.
 
-All dynamically linked target userspace now uses MattOS-built glibc and GCC runtime libraries. Host compiler, assembler, linker, and packaging tools remain bootstrap inputs outside the ISO, so MattOS still does not claim self-hosting. See `GLIBC_BOOTSTRAP.md` and `GCC_RUNTIME_BOOTSTRAP.md` for the exact boundaries.
+All dynamically linked target userspace now uses MattOS-built glibc and GCC runtime libraries. Host compiler, assembler, linker, and packaging tools remain bootstrap inputs outside the ISO, so MattOS still does not claim self-hosting. See [MattOS glibc bootstrap](glibc-bootstrap.md) and [MattOS GCC runtime bootstrap](gcc-runtime-bootstrap.md) for the exact boundaries.

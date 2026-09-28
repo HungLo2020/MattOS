@@ -514,11 +514,13 @@ The remaining module-related boot message is precisely scoped: systemd's real li
 - GCC reuses the pinned 15.3.0 source. Host GCC/Binutils/Make are documented bootstrap inputs only; installed compiler drivers, internal helpers, assembler/linker utilities, and Make are source-built for MattOS.
 - `out/sysroot` is formalized into four development package boundaries covering generated Linux UAPI headers, glibc headers/CRT/linker inputs, libgcc target support, and libstdc++ headers/link inputs.
 - ten new packages bring the dependency graph to 65 with explicit ownership of every compiler driver and internal helper; runtime shared libraries remain in their existing owners.
-- this is a native C/C++ compile-and-package milestone, not compiler self-reproduction or a native MattOS rebuild. Detailed source, configuration, validation, and future milestone boundaries are in `NATIVE_TOOLCHAIN.md`.
+- this is a native C/C++ compile-and-package milestone, not compiler self-reproduction or a native MattOS rebuild. Detailed source, configuration, validation, and future milestone boundaries are in [MattOS native C/C++ toolchain](../build-system/toolchain/native-toolchain.md).
 
-## Debian 13 compatibility policy
+## Debian 13 compatibility (current state, not a guarantee)
 
-- all 65 package definitions are mapped in the machine-readable Trixie `amd64` contract; true equivalents use Debian binary names while eleven MattOS-specific boundaries remain explicitly prefixed
+MattOS is not designed to be binary compatible with Debian 13; the points below record the compatibility observed at the time of this audit, which MattOS may diverge from.
+
+- all 65 package definitions are mapped in the machine-readable Trixie `amd64` mapping; true equivalents use Debian binary names while eleven MattOS-specific boundaries remain explicitly prefixed
 - Brush owns `brush`, `sh`, and `bash` command paths without claiming Debian's `bash` package identity
 - deterministic release versions use `-1mattos1`; unreleased source snapshots use `0~git.<commit>-1mattos1`, with `dpkg` comparison tests covering epochs, prereleases, revisions, and downgrade protection
 - APT priorities are local MattOS `1001`, hosted MattOS `990`, and Debian `500`; Debian-origin protected names are ineligible at `-1`
@@ -529,7 +531,7 @@ The remaining module-related boot message is precisely scoped: systemd's real li
 - the publication integration validates selected inventory artifacts and prints an exact future command only; it never invokes LinuxScripts, accesses credentials, signs, or publishes
 - incomplete `systemd` and `util-linux` package ownership, libcurl/PAM/OpenSSL split differences, terminfo/proc SONAME differences, Trixie's GCC 14 development names, and full maintainer-helper support remain documented gaps
 
-See `DEBIAN_COMPATIBILITY.md` and `REMOTE_REPOSITORY.md` for the complete contract and operational boundary.
+See [Debian Compatibility (Current State)](../packaging/debian-compatibility.md) and [MattOS remote repository integration](../packaging/remote-repository.md) for the current mapping and operational boundary.
 
 ## glibc runtime transition
 

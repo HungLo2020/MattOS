@@ -105,8 +105,8 @@ observation-only groundwork for later empirical memory estimates; one run never
 changes production profiles automatically.
 
 The Make/glibc/GCC runtime/Binutils/GCC compiler j4/j8/j6/j6/j6 results remain
-benchmark calibration metadata in `BUILD_PERFORMANCE.md`; they are not read by
-the production admission algorithm. Future stacks such as COSMIC should select
+benchmark calibration metadata in [Build performance and cache model](performance.md); they are not read by
+the production admission algorithm. New stacks and components (for example further KDE applications) should select
 one of the generic classes (or a measured exceptional override) rather than
 adding machine-specific job values for every new DAG node.
 

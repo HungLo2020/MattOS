@@ -2,10 +2,10 @@
 
 ## Desktop authorization and installed-system diagnostics
 
-NetworkManager and COSMIC OSD must use the packaged
-`/usr/lib/polkit-1/polkit-agent-helper-1`, owned by root with mode `04755`.
-NetworkManager's Meson option and OSD's Just variable explicitly select this
-path, never a helper discovered on the build host. The `libpam-runtime` package
+NetworkManager and the KDE Polkit agent (`polkit-kde-agent-1`) must use the
+packaged `/usr/lib/polkit-1/polkit-agent-helper-1`, owned by root with mode
+`04755`. NetworkManager's Meson option explicitly selects this path, never a
+helper discovered on the build host. The `libpam-runtime` package
 owns `/etc/pam.d/polkit-1`, a self-contained `pam_unix` authentication/account
 stack; Polkit depends on that policy and the PAM modules. MattOS does not ship
 Debian's `common-*` PAM includes. Administrator selection remains Polkit policy
@@ -23,13 +23,6 @@ OpenSSH retains its existing opt-in service policy; `ssh.service` is the unit
 name, and absence of an `sshd.service` alias is not a failure. Starting it does
 not enable it for subsequent boots; administrators can deliberately enable
 `ssh.service` when persistent remote access is wanted.
-
-An inherited `DEBUG=release` previously selected Make's debug target (only
-`DEBUG=0` selects release), causing Workspaces to look for localization in a
-build tree. COSMIC Workspaces is now built in release mode with its localization embedded;
-the installed binary must not depend on the build mirror. COSMIC Idle is a
-separately pinned, source-owned stage included in the desktop aggregate because
-the upstream session starts it unconditionally.
 
 MattOS provides a local, PAM-backed authentication stack for the live image. The normal boot path is:
 
@@ -126,7 +119,7 @@ The authentication binaries and modules use the staged ELF loader plus `libc.so.
 
 Both tty1 and ttyS0 autologin as the non-root `mattos` user with the prompt `mattos@MattOS:~$`, `/home/mattos` as the home and working directory, `/bin/brush` as the shell, and systemd as PID 1. `sudo --version` reports sudo-rs and the live-only `sudo id` succeeds without a password. Exiting Brush causes getty to start a fresh live session.
 
-The session milestone adds the optional `pam_systemd` hook without changing authentication decisions. `loginctl` lists both live consoles: tty1 is associated with `seat0`, while ttyS0 correctly has no seat. Each login receives `/run/user/1000`, a session-bound `user@1000.service`, and a per-user D-Bus connection. See `SESSIONS.md` for lifecycle and bus details.
+The session milestone adds the optional `pam_systemd` hook without changing authentication decisions. `loginctl` lists both live consoles: tty1 is associated with `seat0`, while ttyS0 correctly has no seat. Each login receives `/run/user/1000`, a session-bound `user@1000.service`, and a per-user D-Bus connection. See [Login Sessions and Per-User Services](sessions.md) for lifecycle and bus details.
 
 Runtime validation also confirmed:
 

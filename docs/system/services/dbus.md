@@ -33,7 +33,7 @@ Installed runtime programs are:
 - `/usr/bin/dbus-broker-launch`
 - `/usr/bin/busctl` from the existing systemd build
 
-The optional upstream `dbus-broker-session` wrapper is not staged. The same broker binary serves the user scope through minimal MattOS-owned user units documented in `SESSIONS.md`.
+The optional upstream `dbus-broker-session` wrapper is not staged. The same broker binary serves the user scope through minimal MattOS-owned user units documented in [Login Sessions and Per-User Services](sessions.md).
 
 ## Runtime architecture
 
