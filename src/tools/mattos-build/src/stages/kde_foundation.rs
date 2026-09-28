@@ -576,12 +576,20 @@ fn build_kde_cmake(
     options: &[&str],
     required_output: &str,
 ) -> Result<()> {
+    // KDE Frameworks build Qt Designer plugins by default, which require
+    // qttools' Qt6UiPlugin. MattOS ships no Qt Designer (qttools is built
+    // with FEATURE_designer=OFF), so the plugins are unusable, and enabling
+    // them made these stages depend on qttools without declaring it.
+    let mut options = options.to_vec();
+    if !options.iter().any(|option| option.starts_with("-DBUILD_DESIGNERPLUGIN=")) {
+        options.push("-DBUILD_DESIGNERPLUGIN=OFF");
+    }
     build_cmake_component(
         repo_root,
         component,
         source,
         components,
-        options,
+        &options,
         required_output,
         true,
     )

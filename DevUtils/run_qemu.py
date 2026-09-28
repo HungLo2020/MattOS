@@ -839,6 +839,48 @@ def installed_toolchain_probe() -> str:
     )
 
 
+INSTALLED_HARDENING_PROGRAM = r"""#include <stdio.h>
+#include <string.h>
+int main(int argc, char **argv) {
+    char buffer[64];
+    strcpy(buffer, argc > 1 ? argv[1] : "hardened");
+    puts(buffer);
+    return buffer[0] == 'h' ? 42 : 1;
+}
+"""
+
+# Each marker in `readelf -aW` proves one default of the shipped compiler:
+# PIE, build IDs, CET (IBT and shadow stack), full RELRO with immediate
+# binding, the stack protector, and _FORTIFY_SOURCE (a checked strcpy at -O2).
+INSTALLED_HARDENING_MARKERS = (
+    "Position-Independent Executable",
+    "Build ID",
+    "IBT, SHSTK",
+    "GNU_RELRO",
+    "BIND_NOW",
+    "__stack_chk_fail",
+    "__strcpy_chk",
+)
+
+
+def installed_toolchain_hardening_probe() -> str:
+    """The installed gcc builds hardened programs without any extra flags.
+
+    The serial console drops input beyond roughly 1.3 KiB on one line, so the
+    markers are checked in a loop over a single readelf dump.
+    """
+    encoded = base64.b64encode(INSTALLED_HARDENING_PROGRAM.encode()).decode()
+    binary = "/tmp/mattos-hardening-check"
+    markers = " ".join(f"'{marker}'" for marker in INSTALLED_HARDENING_MARKERS)
+    return (
+        f"( printf '%s' {encoded} | base64 -d > {binary}.c && "
+        f"gcc -O2 {binary}.c -o {binary} && readelf -aW {binary} > {binary}.elf && "
+        f"for marker in {markers}; do grep -q \"$marker\" {binary}.elf || "
+        f"{{ echo \"missing hardening: $marker\"; exit 1; }}; done && "
+        f"{{ {binary}; test $? -eq 42; }} )"
+    )
+
+
 def installed_plasma_logout_command() -> str:
     """Request logout through Plasma's session shutdown service and user bus."""
     return (
@@ -1251,6 +1293,14 @@ def _verify_installed_disk_boot(
         # Every installed system carries the native toolchain (mattos-toolchain),
         # and it must actually compile and run a program.
         ("toolchain", installed_toolchain_probe()),
+        # The shipped compiler hardens what users build, like MattOS's own builds.
+        ("toolchain-hardening", installed_toolchain_hardening_probe()),
+        # The installed policy replaced the live local source rather than
+        # listing the embedded repository twice.
+        (
+            "single-local-source",
+            "test \"$(grep -l 'file:/usr/share/mattos/repository' /etc/apt/sources.list.d/*.sources | wc -l)\" -eq 1",
+        ),
         ("mattos-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/mattos-hosted.sources"),
     )
     result: dict[str, object] = {}

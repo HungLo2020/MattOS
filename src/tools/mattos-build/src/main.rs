@@ -4761,8 +4761,9 @@ mod tests {
             "--with-as=/usr/bin/as",
             "--with-ld=/usr/bin/ld",
             "--enable-languages=c,c++",
-            "--enable-default-pie",
-            "--disable-multilib",
+            // PIE, CET, build IDs, hash style and --disable-multilib come
+            // from the defaults shared with the build compilers.
+            "configure_args.extend_from_slice(MATTOS_GCC_DEFAULTS)",
             "--disable-libsanitizer",
             "--disable-libgomp",
             "--disable-lto",

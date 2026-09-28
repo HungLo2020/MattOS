@@ -29,7 +29,7 @@ Before configuring glibc, the build runs the kernel-supported UAPI export:
 make ARCH=x86 headers_install INSTALL_HDR_PATH=<repo>/out/sysroot/usr
 ```
 
-The source is the imported Linux tree at revision `8ba098e6b6ff0db8edf28528d1552be261af30d4` (pinned in `upstream/sources.toml` and `upstream/state/linux.toml`). The UAPI provenance text that the `glibc` stage writes under `out/build/glibc` still records an older hard-coded revision (`f17f39c…`) from `stages/toolchain.rs`; the pinned revision above is authoritative. Only exported UAPI headers under `out/sysroot/usr/include` are used; raw kernel-internal headers are neither copied into the sysroot nor packaged.
+The source is the imported Linux tree at revision `8ba098e6b6ff0db8edf28528d1552be261af30d4` (pinned in `upstream/sources.toml` and `upstream/state/linux.toml`). The `glibc` stage reads that revision from `upstream/state/linux.toml` and records it in its UAPI provenance files (`out/build/glibc/linux-headers-inventory.txt` and `kernel-headers-source.txt`), so they follow the pin when Linux is re-imported. Only exported UAPI headers under `out/sysroot/usr/include` are used; raw kernel-internal headers are neither copied into the sysroot nor packaged.
 
 ## Build and sysroot
 

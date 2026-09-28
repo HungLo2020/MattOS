@@ -35,7 +35,7 @@ out/packages/inventory.toml
 out/repository/
 ```
 
-Versions use `<upstream-version>-1mattos1`; unreleased snapshots use `0~git.<12-hex commit>-1mattos1`. Where Debian's package carries an epoch, the `debian_epoch` field in `trixie.toml` adds it (for example `libxau6` is `1:1.0.12-1mattos1` and `libx11-6` is `2:1.8.12-1mattos1`). `dpkg` is the one exception to both forms: its version comes from the imported `debian/changelog` plus the short import commit, giving `1.23.8+git.ff7e9d8b-1mattos1`. `out/packages/inventory.toml` records the exact current version of every package. Package modes and timestamps are normalized, directory walks are sorted, `dpkg-deb --root-owner-group` records root ownership, symlinks remain symlinks, and repository gzip headers and Release dates are fixed.
+Versions use `<upstream-version>-1mattos1`; unreleased snapshots use `0~git.<12-hex commit>-1mattos1`. Where Debian's package carries an epoch, the `debian_epoch` field in `trixie.toml` adds it (for example `libxau6` is `1:1.0.12-1mattos1` and `libx11-6` is `2:1.8.12-1mattos1`). `dpkg` is the one exception to both forms: its version comes from the imported `debian/changelog` plus the short import commit, giving `1.23.8+git.ff7e9d8b-1mattos1`. `out/packages/inventory.toml` records the exact current version of every package. Package modes and timestamps are normalized, directory walks are sorted, `dpkg-deb --root-owner-group` records root ownership, symlinks remain symlinks, and repository gzip headers and Release dates are fixed. No package ships the aggregate Info index `/usr/share/info/dir`: `install-info` maintains it on the installed system (Debian Policy 12.2), so `stage_package` removes it from every payload, including indexes carried in by bundled component installs such as flatpak's gpgme.
 
 Most packages have no maintainer scripts. The current exceptions are `mattos-plasma` (a `postinst` that enables the Plasma login manager and sets `graphical.target` as the default) and `linux-modules-nvidia-595-open-<kernel>` (a `postinst` and `postrm` that run `depmod`). All of them exit immediately when `DPKG_ROOT` is set, so offline root assembly does not run them against the build host.
 
@@ -218,7 +218,7 @@ APT owns and marks these as conffiles:
 ```text
 /etc/apt/apt.conf.d/01mattos
 /etc/apt/preferences.d/00mattos-priority
-/etc/apt/sources.list.d/mattos.sources
+/etc/apt/sources.list.d/00-mattos-local.sources
 /etc/apt/sources.list.d/mattos-hosted.sources
 /etc/apt/sources.list.d/debian-trixie.sources
 ```
@@ -249,11 +249,11 @@ The ISO carries the repository beside the SquashFS at `/mattos/repository`. In t
 
 ## APT source and pin policy
 
-The live policy files are `src/system/packages/config/apt/{mattos.sources,mattos-hosted.sources,debian-trixie.sources,00mattos-priority,01mattos}`. The `apt` package installs them under `/etc/apt`, and rootfs assembly re-applies and validates them (`apply_live_apt_policy` and `validate_live_apt_policy` in `staging.rs`). The installed-system templates are in `src/system/packages/config/apt/installed/`, shipped by `apt` as `/usr/share/mattos/apt/installed/*`, and copied into the target by the installer's `configure_installed_apt` (`src/system/installer/policy/mod.rs`).
+The live policy files are `src/system/packages/config/apt/{00-mattos-local.sources,mattos-hosted.sources,debian-trixie.sources,00mattos-priority,01mattos}`. The `apt` package installs them under `/etc/apt`, and rootfs assembly re-applies and validates them (`apply_live_apt_policy` and `validate_live_apt_policy` in `staging.rs`). The installed-system templates are in `src/system/packages/config/apt/installed/`, shipped by `apt` as `/usr/share/mattos/apt/installed/*`, and copied into the target by the installer's `configure_installed_apt` (`src/system/installer/policy/mod.rs`). The live and installed local sources share the file name `00-mattos-local.sources`, so the installer replaces the live source instead of adding a second entry for the same repository; the QEMU install test checks that exactly one source names it.
 
 | Source | Live image | Installed system |
 | --- | --- | --- |
-| local `file:/usr/share/mattos/repository` (`Label: MattOS Local`) | enabled, `Trusted: yes` (`mattos.sources`) | enabled, `Trusted: yes` (`00-mattos-local.sources`) |
+| local `file:/usr/share/mattos/repository` (`Label: MattOS Local`) | enabled, `Trusted: yes` (`00-mattos-local.sources`) | enabled, `Trusted: yes` (same file, replaced by the installed template) |
 | hosted `https://packages.mattsherfey.com` (`Label: MattOS`) | enabled, `Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc` | enabled, same `Signed-By` |
 | Debian `trixie`, `trixie-updates`, `trixie-security` | present but `Enabled: no`, `Signed-By: /usr/share/keyrings/debian-archive-keyring.asc` | present but `Enabled: no` |
 
@@ -262,7 +262,7 @@ Pinning (`00mattos-priority`) is the same shape in both:
 - local MattOS (`o=MattOS,l=MattOS Local,n=trixie`): `990`;
 - hosted MattOS (`o=MattOS,l=MattOS,n=trixie`): `990`, so a newer hosted version is a normal upgrade candidate while the local repository can still satisfy a complete offline closure;
 - Debian (`o=Debian,n=trixie`): `500`;
-- protected MattOS names get `-1` from `o=Debian`. The build checks that every name in `protected.toml` is pinned; the live file additionally pins the APT verification packages (`gpgv`, `libgcrypt20`, and related libraries) and `polkit`, `network-manager`, and `libduktape207`.
+- protected MattOS names get `-1` from `o=Debian`. In both the live and installed files, the set of names pinned away from Debian must equal `protected.toml` exactly, each name listed once in a well-formed record (`validate_protected_pins` in `packaging.rs`); this covers the base system, the APT verification packages (`gpgv`, `libgcrypt20`, and related libraries), and `polkit`, `network-manager`, and `libduktape207`.
 
 A local pin of `1001` is rejected: the build's policy validation and the installer's `configure_installed_apt` both fail if the installed preferences contain `Pin-Priority: 1001`. The installer also requires the installed Debian sources to stay disabled; Debian must not silently become part of installed APT state.
 

@@ -1137,6 +1137,62 @@ fn link_tree_hard_links_files_and_preserves_layout() {
     assert_eq!(fs::read_link(destination.join("alias")).unwrap(), PathBuf::from("dists"));
 }
 
+fn toolchain_recipe(name: &str) -> &'static str {
+    let source = include_str!("stages/toolchain.rs");
+    let production = &source[..source.find("#[cfg(test)]").unwrap()];
+    let start = production.find(&format!("fn {name}(")).unwrap();
+    &production[start..start + production[start..].find("\n}\n").unwrap()]
+}
+
+#[test]
+fn shipped_native_compiler_is_hardened_like_the_build_compilers() {
+    let recipe = toolchain_recipe("build_gcc_toolchain");
+    assert!(recipe.contains("configure_args.extend_from_slice(MATTOS_GCC_DEFAULTS)"));
+    // The defaults are not also listed by hand (duplicates would hide drift).
+    for flag in ["--enable-default-pie", "--enable-cet", "--enable-linker-build-id", "--disable-multilib"] {
+        assert!(!recipe.contains(&format!("\"{flag}\"")), "{flag} listed by hand");
+    }
+    // The MattOS hardening specs are installed as GCC's overlay specs,
+    // `<libdir>/gcc/<target>/specs`, read after the built-in specs. The
+    // versioned `<target>/<version>/specs` would replace the built-in specs
+    // and silently drop --build-id, --eh-frame-hdr and --hash-style=gnu.
+    let specs_path = ".join(\"usr/lib/x86_64-linux-gnu/gcc\")\n        .join(TOOLCHAIN_TARGET)\n        .join(\"specs\")";
+    assert!(recipe.contains(specs_path), "hardening specs are not at the overlay location");
+    assert!(recipe.contains("fs::write(&native_specs, MATTOS_HARDENING_SPECS)"));
+}
+
+#[test]
+fn kernel_header_provenance_records_the_imported_linux_pin() {
+    let source = include_str!("stages/toolchain.rs");
+    let production = &source[..source.find("#[cfg(test)]").unwrap()];
+    assert!(!production.contains("revision=f17f39c"));
+    let recipe = toolchain_recipe("build_glibc");
+    assert!(recipe.contains("read_sync_state(repo_root, \"linux\")"));
+    assert!(recipe.contains("revision={linux_revision}"));
+}
+
+#[test]
+fn toolchain_recipe_changes_do_not_touch_code_shared_by_the_toolchain_stages() {
+    // cross-toolchain hashes toolchain.rs minus other stages' recipes: code
+    // added outside a recipe (helpers, tests) rebuilds the whole toolchain
+    // chain. Keep single-recipe logic inside its recipe function.
+    let source = include_str!("stages/toolchain.rs");
+    for helper in ["fn install_native_hardening_specs", "fn imported_linux_revision", "fn native_gcc_specs_path"] {
+        assert!(!source.contains(helper), "{helper} belongs inside its recipe");
+    }
+}
+
+#[test]
+fn kde_frameworks_never_build_qt_designer_plugins() {
+    // Designer plugins need qttools' Qt6UiPlugin, an undeclared dependency,
+    // and MattOS ships no Qt Designer to load them.
+    let source = include_str!("stages/kde_foundation.rs");
+    let start = source.find("fn build_kde_cmake(").unwrap();
+    let helper = &source[start..start + source[start..].find("\n}\n").unwrap()];
+    assert!(helper.contains("options.push(\"-DBUILD_DESIGNERPLUGIN=OFF\")"));
+    assert!(!source.contains("-DBUILD_DESIGNERPLUGIN=ON"));
+}
+
 #[test]
 fn text_login_pam_stacks_load_the_system_locale() {
     let line = "session    required     pam_env.so readenv=1 envfile=/etc/default/locale";
@@ -1307,4 +1363,36 @@ fn package_cache_key_follows_its_own_producer_stage_install_tree() {
     let after =
         crate::packaging::package_stage_dependency_digest(repo, "unmapped-component").unwrap();
     assert_ne!(before, after, "rebuilt payload must invalidate the package cache");
+}
+
+#[test]
+fn no_package_ships_the_aggregate_info_index() {
+    // install-info owns /usr/share/info/dir on the installed system (Debian
+    // Policy 12.2); flatpak's bundled gpgme install used to leak a partial one.
+    let source = include_str!("packaging/staging.rs");
+    let start = source.find("pub(crate) fn stage_package(").unwrap();
+    let dispatcher = &source[start..start + source[start..].find("\n}\n").unwrap()];
+    let removal = dispatcher
+        .find("remove_path_if_exists(&staging.join(\"usr/share/info/dir\"))?;")
+        .expect("stage_package must drop the aggregate Info index for every package");
+    assert!(removal < dispatcher.find("normalize_package_modes(&staging)").unwrap());
+}
+
+#[test]
+fn kbuild_cppflags_keep_the_scheduler_job_limit() {
+    // The runner strips explicit `-j` arguments in favour of the scheduler's
+    // MAKEFLAGS; adding KBUILD_CPPFLAGS must extend that value, not replace
+    // it, or the kernel build runs serially.
+    let jobserver = "-j12 --jobserver-auth=fifo:/tmp/mattos-jobserver.fifo";
+    let mut command = std::process::Command::new("make");
+    command.env("MAKEFLAGS", jobserver);
+    crate::propagate_kbuild_cppflags(&mut command, &["O=out", "KBUILD_CPPFLAGS=-D__KERNEL__ -I/src"]);
+    let makeflags = command
+        .get_envs()
+        .find(|(key, _)| *key == "MAKEFLAGS")
+        .and_then(|(_, value)| value)
+        .unwrap()
+        .to_string_lossy()
+        .into_owned();
+    assert_eq!(makeflags, format!("{jobserver} KBUILD_CPPFLAGS=-D__KERNEL__\\ -I/src"));
 }

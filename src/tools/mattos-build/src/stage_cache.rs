@@ -118,6 +118,7 @@ where
     });
     let mut output_digest = None;
     if result.is_ok() {
+        remove_generated_info_indexes(repo_root, &spec.outputs)?;
         let inventory = measured("output_inventory_hashing", || {
             output_inventory(repo_root, &spec.outputs)
         })?;
@@ -776,6 +777,43 @@ pub(crate) fn compute_stage_evaluation(
     })
 }
 
+/// GNU install-info rewrites the aggregate Info index, `share/info/dir`, for
+/// each manual a `make install` installs. Parallel installs race on that
+/// read-modify-write, so the index can lose entries between otherwise
+/// identical builds (GCC was seen dropping `gccinstall`). A toolchain stage's
+/// output digest keys every stage it compiles, so one lost line rebuilt the
+/// whole system. MattOS never ships the index (install-info maintains it on
+/// the installed system), so it is removed before outputs are inventoried.
+fn remove_generated_info_indexes(repo_root: &Path, outputs: &[PathBuf]) -> Result<()> {
+    for output in outputs {
+        let root = if output.is_absolute() {
+            output.clone()
+        } else {
+            repo_root.join(output)
+        };
+        remove_info_indexes_under(&root)?;
+    }
+    Ok(())
+}
+
+fn remove_info_indexes_under(path: &Path) -> Result<()> {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => {
+            return Err(error).with_context(|| format!("failed to inspect {}", path.display()));
+        }
+    };
+    if metadata.is_dir() {
+        for entry in fs::read_dir(path).with_context(|| format!("failed to read {}", path.display()))? {
+            remove_info_indexes_under(&entry?.path())?;
+        }
+    } else if path.ends_with("share/info/dir") {
+        fs::remove_file(path).with_context(|| format!("failed to remove {}", path.display()))?;
+    }
+    Ok(())
+}
+
 /// Development cache validity is based on the compatibility of the published
 /// stage artifact, not on the host tool that happened to produce it. Cargo's
 /// own fingerprints remain authoritative when Cargo is invoked. The higher
@@ -1176,6 +1214,33 @@ mod tests {
         publish(&upstream, "changed bytes").unwrap();
         run_consumer().unwrap();
         assert_eq!(consumer_runs.get(), 2);
+    }
+
+    #[test]
+    fn racy_info_indexes_never_reach_the_output_digest() {
+        // Two builds whose parallel installs raced differently on the Info
+        // index must publish the same output digest.
+        let digests = ["* GCC: (gcc).\n* gccinstall: (gccinstall).\n", "* GCC: (gcc).\n"].map(|index| {
+            let root = tempfile::tempdir().unwrap();
+            let spec = fixture_spec("out/build/toolchain");
+            execute_cached_stage(root.path(), &spec, || Ok(()), || {
+                let usr = root.path().join("out/build/toolchain/install/usr");
+                fs::create_dir_all(usr.join("share/info"))?;
+                fs::create_dir_all(usr.join("bin"))?;
+                fs::write(usr.join("share/info/dir"), index)?;
+                fs::write(usr.join("share/info/gcc.info"), "manual")?;
+                fs::write(usr.join("bin/gcc"), "compiler")?;
+                Ok(())
+            })
+            .unwrap();
+            let usr = root.path().join("out/build/toolchain/install/usr");
+            assert!(!usr.join("share/info/dir").exists());
+            assert!(usr.join("share/info/gcc.info").is_file());
+            crate::performance::read_stage_manifest(root.path(), &spec.id)
+                .unwrap()
+                .output_content_digest
+        });
+        assert_eq!(digests[0], digests[1]);
     }
 
     #[test]

@@ -281,6 +281,15 @@ under healthy pressure, one when constrained, and zero when critical. A fixed
 larger `-j` remains an isolated experiment rather than a production scheduler
 change.
 
+The command runner removes a recipe's explicit `-j` arguments and hands each
+child the jobserver through `MAKEFLAGS`, so anything else a command adds to
+`MAKEFLAGS` must extend that value rather than replace it. The kernel recipe's
+`KBUILD_CPPFLAGS` assignment (propagated through `MAKEFLAGS` so Kbuild's
+recursive makes keep it; `propagate_kbuild_cppflags` in
+`stages/helpers/command.rs`) once rebuilt `MAKEFLAGS` without the jobserver,
+leaving the kernel with neither `-j` nor tokens: it compiled one file at a time
+and took up to three hours instead of about five minutes.
+
 ## Remaining work
 
 Validation-only checks remain deliberately executable rather than becoming mutable artifact stages. Debian compatibility validation is always read and checked; rootfs package/ELF validation runs on a rootfs miss and its proven output inventory is revalidated on hits; loader execution remains path-sensitive; QEMU boot validation always boots the selected image. These checks consume cached package/ELF facts where their inputs are path-independent. Canonical tool path identity remains a conservative false-positive risk when identical executable bytes move to a different absolute path. Repeated full-tree output hashing is mitigated by the checksummed persistent integrity index (`integrity_index.rs`), which still falls back to byte hashing whenever a file's fingerprint does not match. An immutable package-installed base rootfs plus explicit installed overlays remains possible future work. The resource-aware DAG scheduler, shared jobserver, and ccache compiler cache are implemented (see [Build-System Architecture](architecture.md)); remote caches, QEMU snapshots, lower compression, and reduced release tests remain out of scope.

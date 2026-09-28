@@ -401,8 +401,13 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     )?;
     let mut uapi_files = Vec::new();
     collect_regular_files(&output.join("linux-headers/usr/include"), &mut uapi_files)?;
-    let mut uapi_inventory = String::from(
-        "revision=f17f39c917cd4aac09db1a6a083ef5ec09b4924d\narchitecture=x86\ncommand=make ARCH=x86 headers_install\n\n",
+    // The Linux commit the UAPI headers are exported from: the imported pin,
+    // never a copy of it that could drift when the kernel is re-imported.
+    let linux_revision = read_sync_state(repo_root, "linux")?
+        .context("upstream/state/linux.toml is missing; import the Linux source first")?
+        .imported_commit;
+    let mut uapi_inventory = format!(
+        "revision={linux_revision}\narchitecture=x86\ncommand=make ARCH=x86 headers_install\n\n"
     );
     for path in uapi_files {
         uapi_inventory.push_str(
@@ -433,7 +438,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     fs::write(output.join("configure-invocation.txt"), &configure_text)?;
     fs::write(
         output.join("kernel-headers-source.txt"),
-        "source=src/kernel/linux\nrevision=f17f39c917cd4aac09db1a6a083ef5ec09b4924d\nmethod=make ARCH=x86 headers_install\n",
+        format!("source=src/kernel/linux\nrevision={linux_revision}\nmethod=make ARCH=x86 headers_install\n"),
     )?;
 
     let configure_program = configure
@@ -1804,7 +1809,7 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     let with_gmp = "--with-gmp=../prerequisite-install".to_string();
     let with_mpfr = "--with-mpfr=../prerequisite-install".to_string();
     let with_mpc = "--with-mpc=../prerequisite-install".to_string();
-    let configure_args = [
+    let mut configure_args = vec![
         "--prefix=/usr",
         "--libdir=/usr/lib/x86_64-linux-gnu",
         "--libexecdir=/usr/libexec",
@@ -1819,14 +1824,8 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         with_gmp.as_str(),
         with_mpfr.as_str(),
         with_mpc.as_str(),
-        "--without-isl",
-        "--without-zstd",
         "--enable-languages=c,c++",
-        "--enable-default-pie",
         "--disable-bootstrap",
-        "--disable-multilib",
-        "--disable-nls",
-        "--disable-werror",
         "--disable-checking",
         "--disable-analyzer",
         "--disable-libsanitizer",
@@ -1840,6 +1839,10 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
         "--disable-plugin",
         "--disable-libstdcxx-pch",
     ];
+    // The compiler installed systems use gets the same code-generation
+    // defaults (PIE, CET, build IDs, GNU hash style) as the compilers that
+    // build MattOS itself; its hardening specs are installed below.
+    configure_args.extend_from_slice(MATTOS_GCC_DEFAULTS);
     let mut gcc_env = env.clone();
     // GCC feeds the selected linker command into `checksum-options`, which is
     // then hashed into cc1/cc1plus for PCH compatibility.  An absolute wrapper
@@ -1878,6 +1881,25 @@ fn build_gcc_toolchain(repo_root: &Path) -> Result<()> {
     let info_dir_index = install.join("usr/share/info/dir");
     log_gcc_info_index_boundary("before-normalization", &install)?;
     remove_path_if_exists(&info_dir_index)?;
+    // After its built-in specs, GCC reads `<libdir>/gcc/<target>/specs` as an
+    // overlay, so installing the MattOS hardening specs there makes the
+    // shipped compiler harden every program it builds, exactly like the
+    // wrappers that build MattOS (`-specs=`). The versioned
+    // `<target>/<version>/specs` must not be used: GCC treats that file as a
+    // complete replacement for its built-in specs and would drop defaults
+    // such as --build-id, --eh-frame-hdr and --hash-style=gnu.
+    let native_specs = install
+        .join("usr/lib/x86_64-linux-gnu/gcc")
+        .join(TOOLCHAIN_TARGET)
+        .join("specs");
+    let native_library = native_specs.parent().context("GCC specs path has no parent")?;
+    if !native_library.join(GCC_TOOLCHAIN_VERSION).is_dir() {
+        bail!(
+            "native GCC library directory {} is missing; cannot install its hardening specs",
+            native_library.join(GCC_TOOLCHAIN_VERSION).display()
+        );
+    }
+    fs::write(&native_specs, MATTOS_HARDENING_SPECS)?;
     log_gcc_info_index_boundary("after-normalization", &install)?;
     for relative in [
         "usr/bin/gcc",

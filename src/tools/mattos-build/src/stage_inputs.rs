@@ -1219,6 +1219,14 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
     match stage {
         BuildStage::All => 0,
         BuildStage::MaterialCursors => 1,
+        // Revision 1 gives the shipped native compiler the build compilers'
+        // code-generation defaults and installs the MattOS hardening specs.
+        // Revision 2 moves those specs to the unversioned overlay location so
+        // they extend, rather than replace, GCC's built-in specs.
+        BuildStage::GccToolchain => 2,
+        // Revision 1 records the imported Linux pin (not a stale literal) in
+        // the kernel-header inventory and source record.
+        BuildStage::Glibc => 1,
         BuildStage::Bzip2 | BuildStage::Xz | BuildStage::Zstd => 2,
         // Revision 2 disables host libseccomp discovery for the target APT
         // build; only target-owned native interfaces may be selected.

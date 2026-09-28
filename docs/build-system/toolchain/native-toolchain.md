@@ -110,12 +110,22 @@ compiler from `gcc-runtime`.  The kernel uses the raw pass-1 compiler, because
 Kbuild selects all of its own code-generation flags.
 
 The third GCC build, the native compiler shipped in the guest
-(`gcc-compiler`), is configured differently: of those defaults it receives only
-`--enable-default-pie`.  It is not configured with CET, linker build-id, or
-hash-style defaults, and no hardening specs file is installed with it, so code
-compiled natively on an installed MattOS system does not get the
-`mattos-hardening.specs` defaults above.  This is a known gap between the
-build-time and installed compilers.
+(`gcc-compiler`), receives the same `MATTOS_GCC_DEFAULTS`, and the recipe
+installs the same hardening specs as its overlay specs file,
+`/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-linux-gnu/specs` (owned by
+`mattos-gcc-common`). GCC reads that unversioned file after its built-in specs
+and applies it on top of them, so programs compiled natively on an installed
+MattOS system get the same hardening as MattOS's own packages without any extra flags. The QEMU
+install test proves it: it compiles a program with the installed `gcc -O2` and
+requires PIE, a GNU build ID, CET (`IBT, SHSTK`), full RELRO with `BIND_NOW`,
+the stack protector (`__stack_chk_fail`), and `_FORTIFY_SOURCE`
+(`__strcpy_chk`) in the result (`installed_toolchain_hardening_probe` in
+`DevUtils/run_qemu.py`).
+
+The versioned `.../15.3.0/specs` location must not be used. GCC treats a
+`specs` file there as a complete replacement for its built-in specs, which
+silently drops defaults added only at startup, such as `--build-id`,
+`--eh-frame-hdr` and `--hash-style=gnu`.
 
 The native compiler shipped in the guest (`gcc-compiler`) uses these roles:
 

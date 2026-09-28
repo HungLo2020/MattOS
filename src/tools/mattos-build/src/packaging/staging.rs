@@ -1634,6 +1634,12 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         strip_staged_debug(repo_root, &staging)?;
     }
 
+    // install-info maintains the aggregate Info index on the installed system
+    // (Debian Policy 12.2). A package that ships it collides with every other
+    // package carrying manuals and publishes a partial, build-order-dependent
+    // index; bundled component installs (flatpak's gpgme) otherwise leak one.
+    remove_path_if_exists(&staging.join("usr/share/info/dir"))?;
+
     // Every ordinary target package must be free of checkout/build-host
     // paths, not only development packages. Runtime code can retain
     // __FILE__-style paths from host-only headers just as easily as a
@@ -4082,8 +4088,8 @@ fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
     }
     let config = repo_root.join("src/system/packages/config/apt");
     copy_preserving(
-        &config.join("mattos.sources"),
-        &staging.join("etc/apt/sources.list.d/mattos.sources"),
+        &config.join("00-mattos-local.sources"),
+        &staging.join("etc/apt/sources.list.d/00-mattos-local.sources"),
     )?;
     copy_preserving(
         &config.join("01mattos"),
@@ -4157,8 +4163,8 @@ pub(crate) fn apply_live_apt_policy(repo_root: &Path, rootfs: &Path) -> Result<(
         &rootfs.join("etc/apt/apt.conf.d/01mattos"),
     )?;
     copy_preserving(
-        &config.join("mattos.sources"),
-        &rootfs.join("etc/apt/sources.list.d/mattos.sources"),
+        &config.join("00-mattos-local.sources"),
+        &rootfs.join("etc/apt/sources.list.d/00-mattos-local.sources"),
     )?;
     for name in ["mattos-hosted.sources", "debian-trixie.sources"] {
         copy_preserving(
@@ -4174,7 +4180,7 @@ pub(crate) fn apply_live_apt_policy(repo_root: &Path, rootfs: &Path) -> Result<(
 }
 
 pub(crate) fn validate_live_apt_policy(rootfs: &Path) -> Result<()> {
-    let local = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/mattos.sources"))?;
+    let local = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/00-mattos-local.sources"))?;
     let hosted = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/mattos-hosted.sources"))?;
     let debian = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/debian-trixie.sources"))?;
     let preferences = fs::read_to_string(rootfs.join("etc/apt/preferences.d/00mattos-priority"))?;

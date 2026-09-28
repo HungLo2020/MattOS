@@ -156,9 +156,12 @@ Both profiles also receive `mattos-toolchain`.
 boot to exit successfully. Forced QEMU termination is a failure, even when
 QEMU itself returns zero. Failed test disks are retained without a completion
 marker for diagnosis; a subsequent explicit `--install` replaces the test disk.
-The boot checks include compositor/panel processes and a toolchain
-compile-and-run check; these are not a substitute for interactive GUI or
-application acceptance tests.
+The boot checks include compositor/panel processes, a toolchain
+compile-and-run check, a check that the installed `gcc` produces hardened
+binaries (PIE, build ID, CET, full RELRO, stack protector, fortified calls)
+without extra flags, and a check that exactly one APT source names the local
+repository; these are not a substitute for interactive GUI or application
+acceptance tests.
 
 Installed systems enable a bounded APT index bootstrap 15 seconds after boot,
 independently of login. Only a fully successful refresh records completion.

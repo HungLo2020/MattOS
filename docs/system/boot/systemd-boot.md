@@ -89,8 +89,12 @@ Install (CLI):         systemd -> mattos-install-cli.target -> mattos-install-cl
                        (`mattos-install guided` on tty1)
 ```
 
-`plasma-greeter.service` has `Conflicts=getty@tty1.service`, so the tty1
-getty only runs in the CLI modes. On the live image, the tty1 and ttyS0
+`plasma-greeter.service` and greetd ship only in the live-only
+`mattos-plasma-live` package; the packaged unit runs
+`greetd --config /etc/greetd/plasma-live.toml`, the configuration shipped
+beside it, and the live drop-in restates that explicitly. Installed systems use
+Plasma Login Manager (`plasmalogin.service`) instead. The unit has
+`Conflicts=getty@tty1.service`, so the tty1 getty only runs in the CLI modes. On the live image, the tty1 and ttyS0
 gettys autologin the `mattos` user.
 
 Rescue flow:

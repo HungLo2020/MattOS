@@ -29,6 +29,41 @@ fn run_cmd_status(cwd: &Path, program: &str, args: &[&str]) -> Result<std::proce
     performance::run_logged_command(&mut command, &display)
 }
 
+/// Some build systems (notably Kbuild) recursively invoke make. When a
+/// caller explicitly supplies KBUILD_CPPFLAGS, propagate that exact
+/// command-line assignment through MAKEFLAGS so recursive sub-makes retain
+/// it as a command-line variable. This keeps source-path normalization
+/// consistent across ordinary C compilation and linker-script preprocessing
+/// without globally enabling make's environment override mode (which would
+/// also override Kbuild's internal srctree variables).
+///
+/// The assignment is appended to the MAKEFLAGS already configured on the
+/// command, which carries the scheduler's jobserver or `-j` limit (explicit
+/// `-j` arguments were removed in its favour). Rebuilding MAKEFLAGS from this
+/// process's own environment dropped that limit and ran the kernel serially.
+fn propagate_kbuild_cppflags(cmd: &mut Command, args: &[&str]) {
+    let Some(cppflags) = args
+        .iter()
+        .find_map(|arg| arg.strip_prefix("KBUILD_CPPFLAGS="))
+    else {
+        return;
+    };
+    let escaped = cppflags.replace(' ', "\\ ");
+    let configured = cmd
+        .get_envs()
+        .find(|(key, _)| *key == "MAKEFLAGS")
+        .and_then(|(_, value)| value.map(|value| value.to_string_lossy().into_owned()));
+    let inherited = configured
+        .or_else(|| std::env::var("MAKEFLAGS").ok())
+        .unwrap_or_default();
+    let makeflags = if inherited.is_empty() {
+        format!("KBUILD_CPPFLAGS={escaped}")
+    } else {
+        format!("{inherited} KBUILD_CPPFLAGS={escaped}")
+    };
+    cmd.env("MAKEFLAGS", makeflags);
+}
+
 fn run_cmd_with_env(
     cwd: &Path,
     program: &str,
@@ -42,26 +77,7 @@ fn run_cmd_with_env(
     apply_mattos_tmp_environment(&mut cmd, cwd)?;
     apply_scheduler_parallelism(&mut cmd);
 
-    // Some build systems (notably Kbuild) recursively invoke make. When a
-    // caller explicitly supplies KBUILD_CPPFLAGS, propagate that exact
-    // command-line assignment through MAKEFLAGS so recursive sub-makes retain
-    // it as a command-line variable. This keeps source-path normalization
-    // consistent across ordinary C compilation and linker-script
-    // preprocessing without globally enabling make's environment override
-    // mode (which would also override Kbuild's internal srctree variables).
-    if let Some(cppflags) = args
-        .iter()
-        .find_map(|arg| arg.strip_prefix("KBUILD_CPPFLAGS="))
-    {
-        let escaped = cppflags.replace(' ', "\\ ");
-        let inherited = std::env::var("MAKEFLAGS").unwrap_or_default();
-        let makeflags = if inherited.is_empty() {
-            format!("KBUILD_CPPFLAGS={escaped}")
-        } else {
-            format!("{inherited} KBUILD_CPPFLAGS={escaped}")
-        };
-        cmd.env("MAKEFLAGS", makeflags);
-    }
+    propagate_kbuild_cppflags(&mut cmd, args);
 
     if let Some(env) = tool_env {
         let current_path = std::env::var("PATH").unwrap_or_default();

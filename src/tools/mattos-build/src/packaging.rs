@@ -118,7 +118,7 @@ const APT_RUNTIME_PATHS: &[&str] = &[
 ];
 const APT_CONFFILES: &[&str] = &[
     "/etc/apt/apt.conf.d/01mattos",
-    "/etc/apt/sources.list.d/mattos.sources",
+    "/etc/apt/sources.list.d/00-mattos-local.sources",
     "/etc/apt/sources.list.d/mattos-hosted.sources",
     "/etc/apt/sources.list.d/debian-trixie.sources",
     "/etc/apt/preferences.d/00mattos-priority",
@@ -526,10 +526,17 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
             bail!("protected-package manifest is missing {required}")
         }
     }
-    for package in manifest.package.iter().filter(|package| package.protected) {
-        if !protected_names.contains(package.mattos_name.as_str()) {
+    for package in &manifest.package {
+        let listed = protected_names.contains(package.mattos_name.as_str());
+        if package.protected && !listed {
             bail!(
                 "protected compatibility package {} is not pinned",
+                package.mattos_name
+            )
+        }
+        if listed && !package.protected {
+            bail!(
+                "compatibility entry {} is not marked protected although protected.toml protects it",
                 package.mattos_name
             )
         }
@@ -546,6 +553,47 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+/// The names an APT preferences file forbids Debian from providing must be
+/// exactly `protected.toml`, each listed once, in well-formed records.  The
+/// live and installed files are both checked so neither can drift.
+fn validate_protected_pins(label: &str, preferences: &str, protected: &[String]) -> Result<()> {
+    let mut pinned = BTreeMap::<&str, usize>::new();
+    // APT separates preference records with blank lines only; comments do
+    // not end a record.
+    for record in preferences.split("\n\n") {
+        let fields = record
+            .lines()
+            .filter(|line| !line.trim_start().starts_with('#') && !line.trim().is_empty())
+            .collect::<Vec<_>>();
+        if fields.is_empty() {
+            continue;
+        }
+        for field in ["Package:", "Pin:", "Pin-Priority:"] {
+            if fields.iter().filter(|line| line.starts_with(field)).count() != 1 {
+                bail!("{label} APT preferences record must contain exactly one {field}: {record:?}");
+            }
+        }
+        let forbids_debian = fields.contains(&"Pin: release o=Debian") && fields.contains(&"Pin-Priority: -1");
+        if forbids_debian {
+            let packages = fields.iter().find_map(|line| line.strip_prefix("Package: ")).unwrap();
+            for name in packages.split_whitespace() {
+                *pinned.entry(name).or_default() += 1;
+            }
+        }
+    }
+    let expected = protected.iter().map(String::as_str).collect::<BTreeSet<_>>();
+    if let Some(missing) = expected.iter().find(|name| !pinned.contains_key(*name)) {
+        bail!("{label} APT protected-package pin is missing {missing}")
+    }
+    if let Some(extra) = pinned.keys().find(|name| !expected.contains(*name)) {
+        bail!("{label} APT preferences pin {extra}, which protected.toml does not protect")
+    }
+    if let Some((name, _)) = pinned.iter().find(|(_, count)| **count > 1) {
+        bail!("{label} APT preferences pin {name} more than once")
+    }
+    Ok(())
+}
+
 fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> Result<()> {
     let config = repo_root.join("src/system/packages/config/apt");
     let preferences = fs::read_to_string(config.join("00mattos-priority"))?;
@@ -559,25 +607,8 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
             bail!("APT preferences lack required policy stanza: {required}")
         }
     }
-    let protected_stanzas = preferences
-        .split("Explanation:")
-        .filter(|stanza| stanza.contains("must never replace"))
-        .collect::<Vec<_>>();
-    if protected_stanzas.is_empty() {
-        bail!("APT preferences lack protected-package stanza");
-    }
-    for name in protected {
-        let mut pinned = protected_stanzas.iter().flat_map(|stanza| {
-            stanza
-                .lines()
-                .filter_map(|line| line.strip_prefix("Package: "))
-                .flat_map(str::split_whitespace)
-        });
-        if !pinned.any(|candidate| candidate == name) {
-            bail!("APT protected-package pin is missing {name}")
-        }
-    }
-    let local = fs::read_to_string(config.join("mattos.sources"))?;
+    validate_protected_pins("live", &preferences, protected)?;
+    let local = fs::read_to_string(config.join("00-mattos-local.sources"))?;
     if !local.contains("URIs: file:/usr/share/mattos/repository")
         || !local.contains("Suites: trixie")
         || !local.contains("Trusted: yes")
@@ -607,6 +638,7 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
     let installed_debian = fs::read_to_string(installed.join("debian-trixie.sources"))?;
     let installed_preferences = fs::read_to_string(installed.join("00mattos-priority"))?;
     let installed_conf = fs::read_to_string(installed.join("01mattos"))?;
+    validate_protected_pins("installed", &installed_preferences, protected)?;
     if !installed_local.contains("Enabled: yes")
         || !installed_local.contains("URIs: file:/usr/share/mattos/repository")
         || !installed_local.contains("Trusted: yes")
@@ -4524,7 +4556,7 @@ mod tests {
     fn apt_live_and_installed_policies_have_opposite_source_authority() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
         let config = root.join("src/system/packages/config/apt");
-        let live = fs::read_to_string(config.join("mattos.sources")).unwrap();
+        let live = fs::read_to_string(config.join("00-mattos-local.sources")).unwrap();
         let installed =
             fs::read_to_string(config.join("installed/00-mattos-local.sources")).unwrap();
         assert!(live.contains("Trusted: yes"));
@@ -4834,8 +4866,9 @@ mod tests {
         assert_eq!(package_recipe_revision("libpam-modules"), 2);
         // Flatpak's package payload includes MattOS's signed Flathub policy,
         // a minimal initialized OSTree layout, and the target-rooted optional
-        // install helper. Keep this expectation aligned with that contract.
-        assert_eq!(package_recipe_revision("flatpak"), 9);
+        // install helper, and no aggregate Info index. Keep this expectation
+        // aligned with that contract.
+        assert_eq!(package_recipe_revision("flatpak"), 10);
         let ssh_service = include_str!("../../../system/network/openssh/ssh.service");
         assert!(ssh_service.contains("\nType=notify\n"));
         assert!(ssh_service.contains("ExecStart=/usr/sbin/sshd -D"));
@@ -5593,7 +5626,7 @@ mod tests {
 
     #[test]
     fn apt_configuration_is_local_only_vendor_scoped_and_reinstall_safe() {
-        let sources = include_str!("../../../system/packages/config/apt/mattos.sources");
+        let sources = include_str!("../../../system/packages/config/apt/00-mattos-local.sources");
         let config = include_str!("../../../system/packages/config/apt/01mattos");
         assert!(sources.contains("file:/usr/share/mattos/repository"));
         assert!(sources.contains("Trusted: yes"));
@@ -5932,14 +5965,65 @@ mod tests {
     }
 
     #[test]
+    fn protected_pins_must_match_the_manifest_exactly_in_well_formed_records() {
+        let protected = ["libc6".to_string(), "gpgv".to_string()];
+        let record = |names: &str| format!("Package: {names}\nPin: release o=Debian\nPin-Priority: -1\n");
+        let good = format!("Package: *\nPin: release o=Debian,n=trixie\nPin-Priority: 500\n\n{}\n{}", record("libc6"), record("gpgv"));
+        validate_protected_pins("test", &good, &protected).unwrap();
+        let missing = record("libc6");
+        assert!(validate_protected_pins("test", &missing, &protected).unwrap_err().to_string().contains("missing gpgv"));
+        let extra = record("libc6 gpgv curl");
+        assert!(validate_protected_pins("test", &extra, &protected).unwrap_err().to_string().contains("curl"));
+        let twice = format!("{}\n{}", record("libc6 gpgv"), record("libc6"));
+        assert!(validate_protected_pins("test", &twice, &protected).unwrap_err().to_string().contains("more than once"));
+        // A comment does not separate records: two stanzas run together.
+        let merged = format!("{}# Explanation: next\n{}", record("libc6"), record("gpgv"));
+        assert!(validate_protected_pins("test", &merged, &protected).unwrap_err().to_string().contains("exactly one"));
+    }
+
+    #[test]
+    fn repository_apt_preferences_protect_exactly_the_manifest() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        let manifest: ProtectedPackageManifest = toml::from_str(
+            &fs::read_to_string(root.join("src/system/packages/debian-compat/protected.toml")).unwrap(),
+        )
+        .unwrap();
+        for file in ["00mattos-priority", "installed/00mattos-priority"] {
+            let preferences =
+                fs::read_to_string(root.join("src/system/packages/config/apt").join(file)).unwrap();
+            validate_protected_pins(file, &preferences, &manifest.packages).unwrap();
+        }
+    }
+
+    #[test]
+    fn live_and_installed_local_repository_sources_share_one_file_name() {
+        // The installer overwrites the live source with the installed policy;
+        // a different name would leave installed APT listing the local
+        // repository twice.
+        let config = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../system/packages/config/apt");
+        assert!(config.join("00-mattos-local.sources").is_file());
+        assert!(config.join("installed/00-mattos-local.sources").is_file());
+        let mut local_sources = Vec::new();
+        for entry in fs::read_dir(&config).unwrap() {
+            let path = entry.unwrap().path();
+            if path.extension().is_some_and(|extension| extension == "sources")
+                && fs::read_to_string(&path).unwrap().contains("file:/usr/share/mattos/repository")
+            {
+                local_sources.push(path.file_name().unwrap().to_string_lossy().into_owned());
+            }
+        }
+        assert_eq!(local_sources, ["00-mattos-local.sources"]);
+    }
+
+    #[test]
     fn permanent_packages_exclude_live_profile_and_foreign_sources() {
         let files = [
             "etc/os-release",
             "etc/profile",
-            "etc/apt/sources.list.d/mattos.sources",
+            "etc/apt/sources.list.d/00-mattos-local.sources",
         ];
         assert!(files.iter().all(|path| !path.contains("live-profile")));
-        let sources = include_str!("../../../system/packages/config/apt/mattos.sources");
+        let sources = include_str!("../../../system/packages/config/apt/00-mattos-local.sources");
         assert!(sources.contains("file:/usr/share/mattos/repository"));
         assert!(
             !sources.contains("debian")

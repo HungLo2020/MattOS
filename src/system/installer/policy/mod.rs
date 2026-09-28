@@ -2171,6 +2171,7 @@ fn configure_installed_profile_values(
         } else {
             remove_optional_file(&autologin)?;
         }
+        // Leftover from the earlier greetd-based installed desktop.
         remove_optional_file(&target.join("etc/greetd/plasma.toml"))?;
         enable_system_unit(target, "graphical.target", "plasmalogin.service")?;
         let display_manager = target.join("etc/systemd/system/display-manager.service");
@@ -2992,7 +2993,7 @@ mod tests {
     }
 
     #[test]
-    fn installed_apt_transition_disables_local_and_debian_but_enables_signed_mattos() {
+    fn installed_apt_keeps_local_and_signed_mattos_enabled_and_debian_disabled() {
         let target = tempfile::tempdir().unwrap();
         let target = target.path();
         let template_root = target.join("usr/share/mattos/apt/installed");
@@ -3028,7 +3029,26 @@ mod tests {
         )
         .unwrap();
 
+        // The `apt` package's live local source is already on the target
+        // (packages are installed before the policy transition).
+        let live_local = repo_root.join("src/system/packages/config/apt/00-mattos-local.sources");
+        let sources_dir = target.join("etc/apt/sources.list.d");
+        fs::create_dir_all(&sources_dir).unwrap();
+        fs::copy(&live_local, sources_dir.join("00-mattos-local.sources")).unwrap();
+
         configure_installed_apt(target).unwrap();
+        // Exactly one source names the local repository: the installed
+        // policy replaced the live file rather than adding a second one.
+        let local_sources = fs::read_dir(&sources_dir)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|path| {
+                fs::read_to_string(path)
+                    .unwrap()
+                    .contains("file:/usr/share/mattos/repository")
+            })
+            .count();
+        assert_eq!(local_sources, 1);
         let local =
             fs::read_to_string(target.join("etc/apt/sources.list.d/00-mattos-local.sources"))
                 .unwrap();
@@ -3628,10 +3648,15 @@ mod tests {
     }
 
     #[test]
-    fn packaged_greetd_unit_uses_installed_config_not_live_config() {
+    fn packaged_greetd_unit_uses_the_live_config_its_package_ships() {
+        // greetd and plasma-greeter.service ship only in the live-only
+        // mattos-plasma-live package; installed systems use Plasma Login
+        // Manager, so the unit's config is the live one it ships beside.
+        // (`/etc/greetd/plasma.toml` belonged to an earlier installed design
+        // and is only removed as leftover state.)
         let unit = include_str!("../../session/plasma/plasma-greeter.service");
-        assert!(unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma.toml"));
-        assert!(!unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml"));
+        assert!(unit.contains("ExecStart=/usr/bin/greetd --config /etc/greetd/plasma-live.toml"));
+        assert!(!unit.contains("/etc/greetd/plasma.toml"));
 
         let live_override = include_str!(
             "../../profiles/live/etc/systemd/system/plasma-greeter.service.d/live.conf"

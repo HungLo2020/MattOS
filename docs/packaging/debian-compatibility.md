@@ -21,10 +21,12 @@ protection, deterministic version, Debian dependency role, classification, and
 known gaps, and may record a Debian epoch. Classifications are
 `debian-compatible`, `mattos-alternative`, `mattos-extension`, and
 `mattos-specific`. `protected.toml` is the authoritative protected-name
-inventory.
+inventory, and each shipped package's `protected` flag in `trixie.toml` must
+agree with it in both directions.
 The build rejects an incomplete mapping, invalid classification or version,
-missing protected pin, unsafe source configuration, changed LinuxScripts
-publisher, or nested Git metadata.
+a protected flag that disagrees with `protected.toml`, a missing or extra
+protected pin in either the live or the installed APT preferences, unsafe
+source configuration, changed LinuxScripts publisher, or nested Git metadata.
 
 ## Current interfaces
 
@@ -94,7 +96,7 @@ installed-system copy under `config/apt/installed/`) is:
 3. Debian Trixie: `500`, matching `o=Debian,n=trixie`.
 
 Every name in `protected.toml` has an additional Debian-origin priority of
-`-1`. Some protected names are reserved before MattOS ships a matching
+`-1`, in both the live and the installed preferences. Some protected names are reserved before MattOS ships a matching
 package: of the current list, `libgcc-14-dev`, `libstdc++-14-dev`,
 `linux-image-amd64`, and `linux-headers-amd64` are not MattOS packages. This
 prevents Debian from silently taking ownership of files already supplied

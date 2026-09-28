@@ -138,6 +138,19 @@ the exact transitive downstream closure in `stage_graph` must miss. Missing or
 corrupted outputs invalidate their owner; downstream work is necessary only if
 the repaired output digest differs.
 
+This makes output reproducibility a cache property: a stage whose rebuild
+publishes different bytes from the same inputs needlessly rebuilds its whole
+downstream closure, and for `cross-toolchain` or `gcc-runtime` that is the
+entire system. After a recipe succeeds, and before its outputs are
+inventoried, the stage runner therefore removes every generated
+`share/info/dir` from the declared outputs (`remove_generated_info_indexes` in
+`stage_cache.rs`). GNU `install-info` rewrites that aggregate index for each
+manual it installs, and parallel `make install` jobs race on it, so it lost
+entries between otherwise identical builds (GCC once dropped `gccinstall`).
+MattOS never ships the index: install-info maintains it on the installed
+system, and package staging drops it too (see
+[Debian packaging](../packaging/debian-packaging.md)).
+
 Target stages also carry a `<target-toolchain-v2>` pseudo-dependency (`TARGET_TOOLCHAIN_CACHE_KEY` in `stages/registry.rs`; the version suffix lets manifests keyed by an older definition migrate): the output
 digests of `cross-toolchain` and `gcc-runtime` plus the compiler wrappers in
 `out/toolchain/bin`. Target code reaches the compiler through PATH rather than

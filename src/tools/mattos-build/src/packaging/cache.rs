@@ -434,8 +434,9 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // Flatpak system-helper authorization instead of the upstream
         // `wheel` default. Revision 9 ships the target-rooted optional
         // install helper, which uses the live libflatpak runtime and writes
-        // only the mounted target installation.
-        "flatpak" => 9,
+        // only the mounted target installation. Revision 10 drops the
+        // aggregate Info index its bundled gpgme install used to leak.
+        "flatpak" => 10,
         // Revision 2 stops copying Flatpak-owned /usr/bin/bwrap into the
         // portal package. The portal depends on Flatpak for that runtime
         // helper, leaving a single package owner for the executable.

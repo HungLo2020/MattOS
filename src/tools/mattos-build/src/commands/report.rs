@@ -115,7 +115,7 @@ fn collect_artifact_records(repo_root: &Path) -> Result<Vec<ArtifactRecord>> {
             repo_root,
             "Live early initramfs",
             INITRAMFS_ARCHIVE_PATH,
-            "XZ newc; minimal /init only",
+            "XZ newc; /init plus the boot-critical kernel module closure",
         )?,
         ArtifactRecord {
             role: "Live early initramfs (uncompressed)",
@@ -134,7 +134,7 @@ fn collect_artifact_records(repo_root: &Path) -> Result<Vec<ArtifactRecord>> {
             repo_root,
             "Installed initramfs",
             INSTALLED_INITRAMFS_PATH,
-            "XZ newc for installed Btrfs root",
+            "XZ newc; mounts the installed Btrfs or ext4 root",
         )?,
     ];
     records.push(extract_efi_image_record(repo_root)?);
