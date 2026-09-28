@@ -7,6 +7,55 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
+/// The build tool's non-test Rust items, indexed by `rust_items`.
+fn tool_sources() -> std::sync::Arc<crate::rust_items::ItemIndex> {
+    crate::rust_items::indexed_files(&Path::new(env!("CARGO_MANIFEST_DIR")).join("src"), &[], crate::rust_items::Tokens::Code).unwrap()
+}
+
+/// The text of the top-level function, constant or static `name`, wherever
+/// it lives.  For the remaining tests that pin a specific recipe choice
+/// rather than observable behavior: unlike slicing a file between two
+/// neighbouring items, it survives code moving between files.
+pub(crate) fn source_item(name: &str) -> String {
+    let texts = tool_sources()
+        .files
+        .values()
+        .flatten()
+        .filter(|chunk| !chunk.test_only && chunk.kind == crate::rust_items::ChunkKind::Named(name.to_string()))
+        .map(|chunk| chunk.text.clone())
+        .collect::<Vec<_>>();
+    assert!(!texts.is_empty(), "no top-level item named {name}");
+    texts.concat()
+}
+
+/// Every non-test item of the build tool, so an absence assertion covers
+/// the whole program rather than whichever file the code used to live in.
+pub(crate) fn tool_source() -> String {
+    tool_sources()
+        .files
+        .values()
+        .flatten()
+        .filter(|chunk| !chunk.test_only)
+        .map(|chunk| chunk.text.as_str())
+        .collect()
+}
+
+/// Every non-test item of the packaging module, whichever file holds it, so
+/// an assertion that something is *absent* cannot pass merely because the
+/// code moved to another file.
+pub(crate) fn packaging_source() -> String {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let packaging = root.join("packaging");
+    tool_sources()
+        .files
+        .iter()
+        .filter(|(path, _)| path.starts_with(&packaging) || *path == &root.join("packaging.rs"))
+        .flat_map(|(_, chunks)| chunks)
+        .filter(|chunk| !chunk.test_only)
+        .map(|chunk| chunk.text.as_str())
+        .collect()
+}
+
 fn write_file(path: &Path, body: &str) {
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, body).unwrap();
@@ -365,21 +414,42 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
 
 #[test]
 fn meson_runtime_reconfigures_disposable_state_before_reuse() {
-    let helper = include_str!("stages/helpers/meson.rs");
-    let reusable_tree = helper
-        .find("if build_dir.join(\"build.ninja\").is_file()")
-        .expect("Meson helper must distinguish an existing disposable build tree");
-    let reconfigure = helper[reusable_tree..]
-        .find("\"--reconfigure\"")
-        .expect("existing Meson trees must be reconfigured before reuse");
-    let compile = helper[reusable_tree..]
-        .find("\"compile\"")
-        .expect("Meson helper must compile after configuring");
-    let install = helper[reusable_tree..]
-        .find("\"install\"")
-        .expect("Meson helper must install after compiling");
-    assert!(reconfigure < compile);
-    assert!(compile < install);
+    use crate::performance::command_recorder::{self, RecordedCommand};
+    let root = tempfile::tempdir().unwrap();
+    write_file(&root.path().join("src/example/meson.build"), "project('example')\n");
+    write_file(&root.path().join("upstream/state/example.toml"), "imported_commit = \"abc\"\n");
+    let out = root.path().join("out/build/example");
+    // Meson setup writes build.ninja; install produces the required output.
+    let effect = {
+        let out = out.clone();
+        move |command: &RecordedCommand| -> Result<()> {
+            match (command.program.as_str(), command.args.first().map(String::as_str)) {
+                ("rsync", _) => command.run_for_real()?,
+                ("meson", Some("setup")) => write_file(&out.join("build/build.ninja"), "rules"),
+                ("meson", Some("install")) => write_file(&out.join("install/usr/lib/libexample.so"), "elf"),
+                _ => {}
+            }
+            Ok(())
+        }
+    };
+    let meson = |options: &'static [&'static str]| {
+        let (result, commands) = command_recorder::record(effect.clone(), || {
+            build_meson_runtime(root.path(), "example", "src/example", &[], options, "usr/lib/libexample.so", &[])
+        });
+        result.unwrap();
+        commands
+            .into_iter()
+            .filter(|command| command.program == "meson")
+            .map(|command| command.args[..2.min(command.args.len())].join(" "))
+            .collect::<Vec<_>>()
+    };
+    let first = meson(&["-Da=1"]);
+    assert!(first[0].starts_with("setup ") && !first[0].contains("--reconfigure"), "{first:?}");
+    let reused = meson(&["-Da=1"]);
+    assert_eq!(reused[0], "setup --reconfigure", "an existing tree is reconfigured: {reused:?}");
+    assert!(reused[1].starts_with("compile") && reused[2].starts_with("install"), "{reused:?}");
+    let changed = meson(&["-Da=2"]);
+    assert!(!changed[0].contains("--reconfigure"), "changed options start from a fresh tree: {changed:?}");
 }
 
 #[test]
@@ -638,40 +708,6 @@ fn plasma_desktop_materializes_xkeyboard_config_before_configure() {
 }
 
 #[test]
-fn tzdata_build_supplies_ignored_license_in_disposable_tree() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging.find("fn stage_tzdata(").unwrap();
-    let end = start + staging[start..].find("\n}\n\n").unwrap() + 2;
-    let body = &staging[start..end];
-    assert!(body.contains("build_source.join(\"LICENSE\")"));
-    assert!(
-        body.contains("fs::copy(source.join(\"README\"), &license)")
-            || body.contains("fs::copy(source.join(\"README\"), &license)?")
-    );
-}
-
-#[test]
-fn linux_firmware_staging_handles_ignored_aggregate_license() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging.find("fn stage_linux_firmware(").unwrap();
-    let end = start + staging[start..].find("\n}\n\n").unwrap() + 2;
-    let body = &staging[start..end];
-    assert!(body.contains("let license = source.join(\"LICENSE\")"));
-    assert!(body.contains("documentation.join(\"LICENSE\")"));
-    assert!(body.contains("source.join(\"README.md\")"));
-}
-
-#[test]
-fn wireless_regdb_staging_handles_ignored_license() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging.find("pub(crate) fn stage_wireless_regdb(").unwrap();
-    let end = start + staging[start..].find("\n}\n\n").unwrap() + 2;
-    let body = &staging[start..end];
-    assert!(body.contains("let license = source.join(\"LICENSE\")"));
-    assert!(body.contains("source.join(\"README\")"));
-}
-
-#[test]
 fn wireless_regdb_keeps_the_upstream_verification_key_in_the_import() {
     let source = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../src/system/data/wireless-regdb/wens.key.pub.pem");
@@ -694,102 +730,51 @@ fn acl_uses_library_path_without_encoding_disposable_attr_runpath() {
 }
 
 #[test]
-fn libffi_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging
-        .find("\"libffi8\" => stage_imported_soname_library")
+fn every_source_path_package_staging_reads_is_tracked() {
+    // MattOS's source tree ignores LICENSE/COPYING files globally, so a
+    // package notice that names one works in a dirty checkout and fails in a
+    // clean clone.  Every `src/...` path the packaging code names (licenses,
+    // notices, payload data) must therefore be a tracked file or directory.
+    // DPKG_MISSING_SOURCE_INPUTS names paths inside dpkg's own source tree,
+    // each pinned by SHA-256 where it is used.
+    let source = packaging_source().replace(&source_item("DPKG_MISSING_SOURCE_INPUTS"), "");
+    let mut paths = source
+        .split('"')
+        .skip(1)
+        .step_by(2)
+        .filter(|literal| literal.starts_with("src/") && !literal.contains(['{', '}', '*', ' ']))
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
+    paths.extend(
+        crate::packaging::imported_soname_library_licenses()
+            .into_iter()
+            .map(str::to_string),
+    );
+    assert!(paths.len() > 100, "the scan must see the staging tables and code");
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let listing = std::process::Command::new("git")
+        .args(["ls-files", "-z", "--", "src"])
+        .current_dir(&repo_root)
+        .output()
         .unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("libffi/libffi/README.md"));
-    assert!(staging.contains("usr/share/doc/libffi-dev/copyright"));
-}
-
-#[test]
-fn highway_package_uses_retained_bsd_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging.find("\"libhwy1\" => stage_multimedia_sdk").unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("highway/LICENSE-BSD3"));
-}
-
-#[test]
-fn pulseaudio_package_uses_retained_lgpl_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging
-        .find("\"libpulse0\" => stage_multimedia_sdk")
-        .unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("pulseaudio/LGPL"));
-}
-
-#[test]
-fn wireplumber_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging
-        .find("\"wireplumber\" => stage_multimedia_sdk")
-        .unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("wireplumber/README.rst"));
-}
-
-#[test]
-fn lcms2_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging
-        .find("\"liblcms2-2\" => stage_imported_soname_library")
-        .unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("lcms2/README.md"));
-}
-
-#[test]
-fn zxing_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging
-        .find("\"libzxing4\" => stage_multimedia_sdk")
-        .unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("zxing-cpp/README.md"));
-}
-
-#[test]
-fn yaml_cpp_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging.find("fn stage_kde_module(").unwrap();
-    let end = start + staging[start..].find("fn stage_multimedia_sdk(").unwrap();
-    assert!(staging[start..end].contains("component == \"yaml-cpp\""));
-    assert!(staging[start..end].contains("README.md"));
-}
-
-#[test]
-fn xkbcommon_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging.find("\"libxkbcommon0\" => {").unwrap();
-    let end = start
-        + staging[start..]
-            .find("\n        }\n        \"libxml2-16\"")
-            .unwrap();
-    assert!(staging[start..end].contains("xkbcommon/README.md"));
-}
-
-#[test]
-fn seatd_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging
-        .find("\"libseat1\" => stage_imported_soname_library")
-        .unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("seatd/README.md"));
-}
-
-#[test]
-fn display_info_package_uses_retained_license_notice() {
-    let staging = include_str!("packaging/staging.rs");
-    let start = staging
-        .find("\"libdisplay-info3\" => stage_imported_soname_library")
-        .unwrap();
-    let end = start + staging[start..].find("\n        )?,").unwrap();
-    assert!(staging[start..end].contains("libdisplay-info/README.md"));
+    assert!(listing.status.success());
+    let tracked = listing
+        .stdout
+        .split(|byte| *byte == 0)
+        .map(|path| String::from_utf8_lossy(path).into_owned())
+        .collect::<BTreeSet<_>>();
+    let untracked = paths
+        .iter()
+        .filter(|path| {
+            // A file, or a directory with at least one tracked file below it.
+            !tracked.contains(*path)
+                && tracked
+                    .range(format!("{path}/")..)
+                    .next()
+                    .is_none_or(|next| !next.starts_with(&format!("{path}/")))
+        })
+        .collect::<Vec<_>>();
+    assert!(untracked.is_empty(), "package staging reads untracked or ignored paths: {untracked:?}");
 }
 
 #[test]
@@ -1137,11 +1122,8 @@ fn link_tree_hard_links_files_and_preserves_layout() {
     assert_eq!(fs::read_link(destination.join("alias")).unwrap(), PathBuf::from("dists"));
 }
 
-fn toolchain_recipe(name: &str) -> &'static str {
-    let source = include_str!("stages/toolchain.rs");
-    let production = &source[..source.find("#[cfg(test)]").unwrap()];
-    let start = production.find(&format!("fn {name}(")).unwrap();
-    &production[start..start + production[start..].find("\n}\n").unwrap()]
+fn toolchain_recipe(name: &str) -> String {
+    source_item(name)
 }
 
 #[test]
@@ -1169,17 +1151,6 @@ fn kernel_header_provenance_records_the_imported_linux_pin() {
     let recipe = toolchain_recipe("build_glibc");
     assert!(recipe.contains("read_sync_state(repo_root, \"linux\")"));
     assert!(recipe.contains("revision={linux_revision}"));
-}
-
-#[test]
-fn toolchain_recipe_changes_do_not_touch_code_shared_by_the_toolchain_stages() {
-    // cross-toolchain hashes toolchain.rs minus other stages' recipes: code
-    // added outside a recipe (helpers, tests) rebuilds the whole toolchain
-    // chain. Keep single-recipe logic inside its recipe function.
-    let source = include_str!("stages/toolchain.rs");
-    for helper in ["fn install_native_hardening_specs", "fn imported_linux_revision", "fn native_gcc_specs_path"] {
-        assert!(!source.contains(helper), "{helper} belongs inside its recipe");
-    }
 }
 
 #[test]
@@ -1369,9 +1340,7 @@ fn package_cache_key_follows_its_own_producer_stage_install_tree() {
 fn no_package_ships_the_aggregate_info_index() {
     // install-info owns /usr/share/info/dir on the installed system (Debian
     // Policy 12.2); flatpak's bundled gpgme install used to leak a partial one.
-    let source = include_str!("packaging/staging.rs");
-    let start = source.find("pub(crate) fn stage_package(").unwrap();
-    let dispatcher = &source[start..start + source[start..].find("\n}\n").unwrap()];
+    let dispatcher = source_item("stage_package");
     let removal = dispatcher
         .find("remove_path_if_exists(&staging.join(\"usr/share/info/dir\"))?;")
         .expect("stage_package must drop the aggregate Info index for every package");
@@ -1379,20 +1348,80 @@ fn no_package_ships_the_aggregate_info_index() {
 }
 
 #[test]
-fn kbuild_cppflags_keep_the_scheduler_job_limit() {
-    // The runner strips explicit `-j` arguments in favour of the scheduler's
-    // MAKEFLAGS; adding KBUILD_CPPFLAGS must extend that value, not replace
-    // it, or the kernel build runs serially.
-    let jobserver = "-j12 --jobserver-auth=fifo:/tmp/mattos-jobserver.fifo";
-    let mut command = std::process::Command::new("make");
-    command.env("MAKEFLAGS", jobserver);
-    crate::propagate_kbuild_cppflags(&mut command, &["O=out", "KBUILD_CPPFLAGS=-D__KERNEL__ -I/src"]);
-    let makeflags = command
-        .get_envs()
-        .find(|(key, _)| *key == "MAKEFLAGS")
-        .and_then(|(_, value)| value)
-        .unwrap()
-        .to_string_lossy()
-        .into_owned();
-    assert_eq!(makeflags, format!("{jobserver} KBUILD_CPPFLAGS=-D__KERNEL__\\ -I/src"));
+fn kernel_make_keeps_the_scheduler_job_limit_alongside_kbuild_cppflags() {
+    // The runner replaces a recipe's `-j` with the scheduler's MAKEFLAGS and
+    // then appends KBUILD_CPPFLAGS for Kbuild's recursive makes; appending
+    // must not drop the job limit, or the kernel compiles one file at a time.
+    let root = tempfile::tempdir().unwrap();
+    crate::scheduler::set_child_jobs_for_test(6, crate::scheduler::ChildJobPolicy::SchedulerGrant);
+    let (result, commands) = crate::performance::command_recorder::record(
+        |_| Ok(()),
+        || {
+            run_cmd_with_env(
+                root.path(),
+                "make",
+                &["O=build", "-j", "4", "KBUILD_CPPFLAGS=-D__KERNEL__ -I/src", "bzImage"],
+                None,
+            )
+        },
+    );
+    result.unwrap();
+    let makeflags = commands[0].env("MAKEFLAGS").unwrap();
+    assert!(makeflags.starts_with("-j6 "), "the scheduler's job limit survives: {makeflags}");
+    assert!(makeflags.ends_with("KBUILD_CPPFLAGS=-D__KERNEL__\\ -I/src"), "{makeflags}");
+}
+
+#[test]
+fn tests_that_read_rust_source_text_do_not_grow() {
+    // A test that searches recipe source text pins how code is written, not
+    // what it does; the kernel MAKEFLAGS regression passed every such test.
+    // New tests should observe behavior (command_recorder, fixture trees,
+    // data tables).  When converting one of these, lower the ceiling.
+    const CEILING: usize = 63;
+    let reads_source = |segment: &str| {
+        segment.contains("source_item(")
+            || segment.contains("packaging_source(")
+            || segment.contains("toolchain_recipe(")
+            || ["include_str!(", "read_to_string("].iter().any(|call| {
+                segment.match_indices(call).any(|(at, _)| {
+                    let rest = &segment[at..];
+                    let end = rest.find(';').unwrap_or(rest.len());
+                    rest[..end].contains(".rs\"")
+                })
+            })
+    };
+    // The source-analysis modules read Rust source as their subject.
+    let analysis = ["rust_items.rs", "recipe_projection.rs", "recipe_digest.rs"];
+    let mut files = Vec::new();
+    let mut pending = vec![Path::new(env!("CARGO_MANIFEST_DIR")).join("src")];
+    while let Some(directory) = pending.pop() {
+        for entry in fs::read_dir(directory).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                pending.push(path);
+            } else if path.extension().is_some_and(|extension| extension == "rs")
+                && !analysis.iter().any(|name| path.ends_with(name))
+            {
+                files.push(path);
+            }
+        }
+    }
+    let count = files
+        .iter()
+        .map(|path| {
+            fs::read_to_string(path)
+                .unwrap()
+                .split("#[test]")
+                .skip(1)
+                .filter(|segment| {
+                    !segment.contains("fn tests_that_read_rust_source_text_do_not_grow()")
+                        && reads_source(segment)
+                })
+                .count()
+        })
+        .sum::<usize>();
+    assert!(
+        count <= CEILING,
+        "{count} tests read Rust source text (ceiling {CEILING}); test the behavior instead"
+    );
 }

@@ -10,13 +10,14 @@ The canonical orchestrator is `src/tools/mattos-build`.
 
 | Module | Responsibility |
 | --- | --- |
-| `main.rs` | CLI definition and dispatch, `build all` node construction for the scheduler, single-stage execution, and the `include!` list for the files below. |
+| `main.rs` | CLI definition and dispatch, `build all` node construction for the scheduler, single-stage execution, and the `include!` list for the files below. Its unit tests live in `main_tests.rs`. |
 | `commands/*.rs` (`include!`d) | `doctor`, `cache`, artifact reports and `image`, and WSL helper commands. |
 | `source/*.rs` (`include!`d) | Upstream import/sync (`import.rs`), with source selection, provenance, Git LFS, and patch application in `selection.rs`, `provenance.rs`, `lfs.rs`, and `patches.rs`. |
 | `stages/*.rs` (`include!`d) | Stage recipes grouped by area (`toolchain.rs`, `libraries.rs`, `qt.rs`, `plasma.rs`, `image.rs`, ...). `stages/registry.rs` builds each stage's `StageSpec` (outputs, tools, virtual `linux-headers`/`formal-sysroot` specs, target-toolchain cache key) and dispatches to recipes; `stages/helpers/` holds the shared Autotools, Meson, Cargo, pkg-config, native-build, and command-runner helpers. |
 | `stage_graph.rs` | `BuildStage` identities, stage IDs, direct dependencies (`direct_dependencies`), deterministic build order, package/repository artifact graph, and graph-level invalidation analysis. |
 | `stage_inputs.rs` | Per-stage source roots, configuration inputs, tool names, and recipe revisions. |
-| `recipe_projection.rs` | Per-stage projection of shared `stages/*.rs` recipe files (see Cache Contract). |
+| `recipe_projection.rs` | Per-stage projection of `stages/*.rs` recipe files: the code each stage's recipe can reach (see Cache Contract). |
+| `rust_items.rs` | Splits the build tool's own Rust sources into top-level items and computes which items an entry point can reach; shared by recipe projections and package staging digests. |
 | `cache_manifest.rs` | Serialized `StageSpec`, input, tool, dependency, and manifest types, and the manifest schema version. |
 | `stage_cache.rs` | Stage input evaluation, cache decisions, cached execution, manifest migration, and explanations. |
 | `performance.rs` | Timing/telemetry, stage logs and logged command execution, integrity-cache coordination, output inventories and digests, and atomic publication helpers. |
@@ -25,7 +26,7 @@ The canonical orchestrator is `src/tools/mattos-build`.
 | `jobserver.rs` | Shared GNU make jobserver for one invocation. |
 | `resources.rs` | Host/cgroup resource discovery, CPU/RAM budgets, and runtime memory-pressure sampling. |
 | `integrity_index.rs` | Checksummed persistent output-file fingerprints and content digests under `out`. |
-| `packaging.rs` and `packaging/*.rs` | Package build, staging (`staging.rs`), package definitions (`registry.rs`), package cache (`cache.rs`), audits (`audit.rs`), and repository generation (`repository.rs`). |
+| `packaging.rs` and `packaging/*.rs` | Package build, staging (`staging.rs`: the `stage_package` dispatcher, the data tables for uniform library packages, and shared copy helpers; `staging/{toolchain,development,desktop,system}.rs` hold the per-family payload functions), package definitions (`registry.rs`), package cache (`cache.rs`), per-package staging-code digests (`recipe_digest.rs`), audits (`audit.rs`), and repository generation (`repository.rs`). Unit tests live in `packaging/tests.rs`. |
 | `elf_cache.rs` | Content-addressed ELF inspection facts. |
 | `source_identity.rs` | Invocation-scoped Git index and working-tree source selection, canonical serialization, and digest generation. |
 | `tool_identity.rs` | Canonical executable resolution and stable version/target probing. |
@@ -164,12 +165,57 @@ workspace guard's marker (`out/state/toolchain-markers/<stage>`) records the
 current toolchain for that stage.
 
 Recipe implementation files under `src/tools/mattos-build/src/stages/` are
-hashed per stage. When a file defines other stages' recipe functions (the
-functions `build_stage_recipe` dispatches to), a stage hashes the file with
-those functions removed, unless its own retained code calls them. Shared
-helpers, constants and imports stay in every projection, so editing them still
-invalidates every stage in the file; editing one recipe invalidates only its
-stage. Files that define no other stage's recipe are hashed whole.
+hashed per stage as the code that stage can execute (`recipe_projection.rs`).
+Starting from the recipe functions `build_stage_recipe` dispatches the stage
+to, a stage's view of a file keeps every top-level function, constant and
+static reachable through identifier references across the whole crate
+(including helpers in unhashed files that call back into the recipe file),
+plus every other top-level item (imports, types, impls, macros).
+`#[cfg(test)]` items and helpers the stage never reaches are excluded, so
+adding a test or a helper for one stage to a shared file such as
+`toolchain.rs` no longer rebuilds the others. Reachability follows the
+identifiers in code: comments and string contents are skipped (a call cannot
+hide there), except identifiers a format string captures (`"{NAME}"` can name
+a constant). It never passes through the stage dispatcher or the CLI entry
+point `main`, which reach every recipe. Name matching over-approximates
+calls, so a misjudgement can only widen a key. Manifests recorded under
+earlier projections migrate without a rebuild when the earlier, wider view is
+unchanged: v2 read every word, comments and strings included, and v1 removed
+only other stages' recipe functions (for v1, migration also requires that
+the current projection reaches none of the functions v1 removed, since those
+were outside v1's view). Helpers in files outside a
+stage's source inputs (`stages/helpers/*.rs`, `main.rs`) remain shared
+infrastructure: a behavior change there needs an explicit
+`recipe_revision` bump for the affected stages.
+
+Package cache keys cover the staging code in the same way
+(`packaging/recipe_digest.rs`): a package's key includes `stage_package` with
+every other package's dispatch arm removed, every packaging-module function,
+constant and static reachable from that view, the module's types, impls and
+macros whose subject that code names (an item without a single subject is
+always included), and every crate-level constant or static it names, each
+followed through what it names in turn. Package-cache bookkeeping types such
+as the cache manifest are therefore outside every package key. Items are hashed by
+name, not by file, so moving code between packaging files changes no key,
+while editing a package's own staging code restages exactly the packages
+that run it. Packages staged from the data tables in `staging.rs`
+(`IMPORTED_SONAME_LIBRARIES`, `LIBRARY_FAMILIES`, `RUNTIME_PATH_PACKAGES`)
+share the dispatcher's fallback arm, so editing one table restages that
+table's packages. `package_recipe_revision` remains for payload changes that
+the staging code cannot show, such as a changed external input.
+
+Host tool identities (compiler, assembler, linker, make) are recorded with
+each stage as build provenance but are not cache keys unless
+`MATTOS_STRICT_REPRODUCIBLE=1`. A cache rekey keeps the recorded identities,
+so they always describe the tools that built the published output. When a
+build reuses a host-built toolchain stage (`cross-toolchain`, `glibc`,
+`gcc-runtime`) whose recorded tools differ from the current host tools, it
+ends with a warning naming each changed tool and explaining that the next
+rebuild of that stage recompiles every target stage, with the command to take
+that rebuild deliberately. Drift recorded by other stages is summarized in one
+line: they are compiled by the MattOS toolchain, so host tools only affect
+their build-machine helpers. A toolchain stage that rebuilds under different
+host tools also warns before it runs.
 
 Cargo-built userland (`brush`, `coreutils`, `grep`, `sed`, `findutils`,
 `diffutils`, `init`, `sudo-rs`, `greetd`, `cozy`, `installer`, and the

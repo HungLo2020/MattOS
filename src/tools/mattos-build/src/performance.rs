@@ -453,6 +453,10 @@ fn run_logged_command_mode(
         .env("TZ", "UTC")
         .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("SOURCE_DATE_EPOCH", NORMALIZED_SOURCE_DATE_EPOCH);
+    #[cfg(test)]
+    if let Some(status) = command_recorder::intercept(command)? {
+        return Ok(status);
+    }
     let active = ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone());
     let Some(log_path) = active else {
         return command
@@ -2924,5 +2928,106 @@ mod tests {
         let (status, usage) = accounted_fixture("idle", 100);
         assert!(status.success());
         assert!((usage.user + usage.system) < Duration::from_millis(100));
+    }
+}
+
+/// Test-only interception of every command a recipe or staging function
+/// runs, so tests can assert what a build *does* (program, arguments,
+/// environment) instead of what its source text says.  Each intercepted
+/// command is recorded and then handed to the test's effect, which can
+/// create the files the real command would have produced; the command
+/// itself never runs.
+///
+/// Scope: only commands run through `run_logged_command` (every
+/// `run_cmd*` helper) on the recording thread are intercepted.  Code that
+/// spawns a `Command` directly, or runs commands on another thread, executes
+/// for real, so exercise such code only with harmless fixtures.
+#[cfg(test)]
+pub(crate) mod command_recorder {
+    use super::*;
+    use std::os::unix::process::ExitStatusExt;
+
+    #[derive(Clone, Debug)]
+    pub(crate) struct RecordedCommand {
+        pub(crate) program: String,
+        pub(crate) args: Vec<String>,
+        pub(crate) cwd: Option<PathBuf>,
+        /// Environment overrides set on the command (`None` removes a variable).
+        pub(crate) env: BTreeMap<String, Option<String>>,
+    }
+
+    impl RecordedCommand {
+        pub(crate) fn env(&self, name: &str) -> Option<&str> {
+            self.env.get(name).and_then(Option::as_deref)
+        }
+
+        pub(crate) fn has_arg(&self, argument: &str) -> bool {
+            self.args.iter().any(|candidate| candidate == argument)
+        }
+
+        /// Runs the recorded command for real, for effects that need a
+        /// command's actual work (a source-tree `rsync`, say).
+        pub(crate) fn run_for_real(&self) -> Result<()> {
+            let mut command = Command::new(&self.program);
+            command.args(&self.args);
+            if let Some(cwd) = &self.cwd {
+                command.current_dir(cwd);
+            }
+            for (name, value) in &self.env {
+                match value {
+                    Some(value) => command.env(name, value),
+                    None => command.env_remove(name),
+                };
+            }
+            let status = command.status().with_context(|| format!("failed to run {}", self.program))?;
+            anyhow::ensure!(status.success(), "{} failed with {status}", self.program);
+            Ok(())
+        }
+    }
+
+    type Effect = Box<dyn FnMut(&RecordedCommand) -> Result<()>>;
+
+    thread_local! {
+        static RECORDER: RefCell<Option<(Vec<RecordedCommand>, Effect)>> = const { RefCell::new(None) };
+    }
+
+    /// Runs `body` with every command intercepted and passed to `effect`.
+    pub(crate) fn record<T>(
+        effect: impl FnMut(&RecordedCommand) -> Result<()> + 'static,
+        body: impl FnOnce() -> T,
+    ) -> (T, Vec<RecordedCommand>) {
+        RECORDER.with(|slot| *slot.borrow_mut() = Some((Vec::new(), Box::new(effect))));
+        let result = body();
+        let (commands, _) = RECORDER.with(|slot| slot.borrow_mut().take()).unwrap();
+        (result, commands)
+    }
+
+    pub(super) fn intercept(command: &Command) -> Result<Option<ExitStatus>> {
+        RECORDER.with(|slot| {
+            let mut slot = slot.borrow_mut();
+            let Some((commands, effect)) = slot.as_mut() else {
+                return Ok(None);
+            };
+            let recorded = RecordedCommand {
+                program: command.get_program().to_string_lossy().into_owned(),
+                args: command
+                    .get_args()
+                    .map(|argument| argument.to_string_lossy().into_owned())
+                    .collect(),
+                cwd: command.get_current_dir().map(Path::to_path_buf),
+                env: command
+                    .get_envs()
+                    .map(|(name, value)| {
+                        (
+                            name.to_string_lossy().into_owned(),
+                            value.map(|value| value.to_string_lossy().into_owned()),
+                        )
+                    })
+                    .collect(),
+            };
+            effect(&recorded)?;
+            commands.push(recorded);
+            Ok(Some(ExitStatus::from_raw(0)))
+        })
     }
 }

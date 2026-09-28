@@ -83,7 +83,7 @@ mod calamares_tests {
         let settings = include_str!(
             "../../../../system/installer/calamares/mattos/settings.conf"
         );
-        let staging = include_str!("../packaging/staging.rs");
+        let staging = crate::build_system_tests::packaging_source();
         assert!(settings.contains("/usr/lib/x86_64-linux-gnu/calamares/modules"));
         assert!(staging.contains("remove_path_if_exists(&staging.join(\"usr/share/applications/calamares.desktop\"))"));
         assert!(staging.contains("let desktop = staging.join(\"usr/share/applications/calamares.desktop\")"));

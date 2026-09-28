@@ -309,31 +309,21 @@ pub(crate) fn package_cache_manifest_path(repo_root: &Path, package: &str) -> Pa
         .join(format!("{package}.json"))
 }
 
-pub(crate) fn package_definition_digest(spec: &PackageSpec) -> Result<String> {
-    let revision = package_recipe_revision(spec.name);
-    if revision == 1 {
-        // Preserve the established revision-1 key exactly. Adding a recipe
-        // discriminator for one package must not create a one-time rebuild of
-        // every unrelated package.
-        performance::digest_value(&(
-            PACKAGE_CACHE_SCHEMA_VERSION,
-            spec,
-            ARCH,
-            REVISION,
-            SOURCE_DATE_EPOCH,
-            "dpkg-deb --root-owner-group -Zzstd -z19",
-        ))
-    } else {
-        performance::digest_value(&(
-            PACKAGE_CACHE_SCHEMA_VERSION,
-            revision,
-            spec,
-            ARCH,
-            REVISION,
-            SOURCE_DATE_EPOCH,
-            "dpkg-deb --root-owner-group -Zzstd -z19",
-        ))
-    }
+/// The package's definition: its registry entry, explicit recipe revision,
+/// packaging constants, and the digest of the staging code it executes (see
+/// `recipe_digest`), so an edit to that code restages exactly the packages
+/// that run it.
+pub(crate) fn package_definition_digest(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
+    performance::digest_value(&(
+        PACKAGE_CACHE_SCHEMA_VERSION,
+        package_recipe_revision(spec.name),
+        spec,
+        ARCH,
+        REVISION,
+        SOURCE_DATE_EPOCH,
+        "dpkg-deb --root-owner-group -Zzstd -z19",
+        super::recipe_digest::package_staging_digest(repo_root, spec.name)?,
+    ))
 }
 
 pub(crate) fn package_recipe_revision(package: &str) -> u32 {
@@ -453,7 +443,7 @@ pub(crate) fn package_cache_input(
     version: &str,
     source_digests: &mut BTreeMap<String, String>,
 ) -> Result<PackageCacheInput> {
-    let definition_digest = package_definition_digest(spec)?;
+    let definition_digest = package_definition_digest(repo_root, spec)?;
     let (payload_source_digest, payload_configuration_digest) =
         package_payload_source_digests(repo_root, spec, source_digests)?;
     let dependency_digest = package_stage_dependency_digest(repo_root, spec.source_component)?;

@@ -105,6 +105,46 @@ python3 DevUtils/check_cache_stability.py --no-establish   # after a build
 
 Run it after changing cache keys, stage inputs, or anything tests execute.
 
+Check that the toolchain stages rebuild byte-for-byte from unchanged inputs.
+Every target stage's key includes their outputs, so a nondeterministic
+toolchain stage recompiles the whole system:
+
+```
+python3 DevUtils/check_stage_reproducibility.py               # cross-toolchain, glibc, gcc-runtime
+python3 DevUtils/check_stage_reproducibility.py --if-changed  # skip stages verified for their current inputs
+python3 DevUtils/check_stage_reproducibility.py zlib          # any stage
+```
+
+Each stage is rebuilt once and its per-file output inventory compared with
+the previous build; differences are listed with small text diffs. Verified
+input/output pairs are recorded under `out/state/reproducibility/`. The
+rebuilt output is kept, so a stage that is not reproducible rebuilds its
+downstream stages on the next build.
+
+### Testing the build tool
+
+`cargo test -p mattos-build` runs the build tool's unit tests. Test what the
+code does rather than how it is written:
+
+- `performance::command_recorder::record` intercepts every command a recipe,
+  helper, or staging function runs, and records its program, arguments,
+  working directory and environment. The test's effect closure can create the
+  files the real command would produce, or run it for real with
+  `RecordedCommand::run_for_real` (for example a source-tree `rsync`). Combined
+  with a temporary fixture tree, this exercises real recipe code without
+  building anything. It intercepts only commands run through the `run_cmd*`
+  helpers on the test's own thread; a direct `Command::output()` or a worker
+  thread still executes for real.
+- Validate data such as the package staging tables directly; for example,
+  `every_source_path_package_staging_reads_is_tracked` checks every `src/...`
+  path packaging code reads against the Git index.
+- A test that searches Rust source text pins how code is written, and passes
+  or fails for layout reasons. `tests_that_read_rust_source_text_do_not_grow`
+  caps how many such tests exist; lower its ceiling when converting one. When a
+  pin is unavoidable, look the code up with `source_item(name)` or
+  `packaging_source()` (in `build_system_tests.rs`), which find it wherever it
+  lives, instead of slicing a file between neighbouring items.
+
 Inspect a stage without building it:
 
 ```text

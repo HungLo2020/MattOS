@@ -66,8 +66,12 @@ where
         if can_migrate_narrowed_manifest(repo_root, &evaluation, &manifest)?
             && cached_output_miss_reason(repo_root, spec, &manifest)?.is_empty()
         {
+            // A rekey does not rebuild anything: the recorded tool identities
+            // still describe the tools that built the published output.
+            let built_with = std::mem::take(&mut manifest.input_details.tools);
             manifest.inputs = inputs.clone();
             manifest.input_details = evaluation.details.clone();
+            manifest.input_details.tools = built_with;
             write_stage_manifest(repo_root, &manifest)?;
         }
         reason = measured("output_inventory_hashing", || {
@@ -84,6 +88,7 @@ where
                 Ok(()) => {
                     reason = "full input digest matched; output inventory and lightweight validation passed"
                         .to_string();
+                    record_tool_drift(&spec.id, &manifest.input_details.tools, &evaluation.details.tools);
                     reused_digest = Some(manifest.output_content_digest);
                 }
                 Err(error) => reason = format!("lightweight reuse validation failed: {error:#}"),
@@ -110,6 +115,9 @@ where
     }
 
     println!("cache miss: {} ({reason})", spec.id);
+    if let Ok(manifest) = read_stage_manifest(repo_root, &spec.id) {
+        warn_host_built_toolchain_drift(&spec.id, &manifest.input_details.tools, &evaluation.details.tools);
+    }
     acquire_resources()?;
     invalidate_integrity_paths(repo_root, &spec.outputs);
     crate::performance::trace_log_context("cached-stage-before-with-stage-log");
@@ -284,16 +292,27 @@ pub(crate) fn can_migrate_narrowed_manifest(
     {
         return Ok(false);
     }
-    // Manifests from before recipe projection recorded whole-file digests;
-    // a byte-identical file proves the projection's recipe is unchanged too.
+    // Manifests from before recipe projection recorded whole-file digests,
+    // and v1 projections hashed a wider view than v2: in both cases an
+    // unchanged wider view proves the narrower current view unchanged too.
     let mut current_source = current.details.source.clone();
     for (path, digest) in current_source.iter_mut() {
         let Some(stored) = manifest.input_details.source.get(path) else {
             continue;
         };
-        if digest.starts_with(crate::recipe_projection::PROJECTION_PREFIX)
-            && !stored.starts_with(crate::recipe_projection::PROJECTION_PREFIX)
-            && digest_source_inputs(repo_root, &[PathBuf::from(path)])? == *stored
+        if digest == stored {
+            continue;
+        }
+        let unchanged_whole_file = !crate::recipe_projection::is_projection_digest(stored)
+            && crate::recipe_projection::is_projection_digest(digest)
+            && digest_source_inputs(repo_root, &[PathBuf::from(path)])? == *stored;
+        if unchanged_whole_file
+            || crate::recipe_projection::legacy_projection_matches(
+                repo_root,
+                &manifest.stage,
+                Path::new(path),
+                stored,
+            )?
         {
             digest.clone_from(stored);
         }
@@ -777,6 +796,121 @@ pub(crate) fn compute_stage_evaluation(
     })
 }
 
+/// Stages whose outputs are compiled by host tools and consumed by every
+/// target stage: a host compiler change alters their bytes on the next
+/// rebuild and so recompiles the whole system.
+const HOST_BUILT_TOOLCHAIN_STAGES: &[&str] = &["cross-toolchain", "glibc", "gcc-runtime"];
+
+/// A host tool whose executable differs from the one a stage recorded.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) struct ToolDrift {
+    pub(crate) tool: String,
+    pub(crate) recorded: String,
+    pub(crate) current: String,
+    pub(crate) stage: String,
+}
+
+static TOOL_DRIFT: std::sync::Mutex<Vec<ToolDrift>> = std::sync::Mutex::new(Vec::new());
+
+/// Host tools present in both identities whose executables differ.  Tool
+/// identity is provenance, not a cache key (outside strict mode), so a host
+/// upgrade silently changes the next rebuild of affected stages.
+pub(crate) fn tool_drift(
+    stage: &str,
+    recorded: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+    current: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+) -> Vec<ToolDrift> {
+    recorded
+        .iter()
+        .filter_map(|(tool, old)| {
+            let now = current.get(tool)?;
+            (!old.executable_sha256.is_empty()
+                && !now.executable_sha256.is_empty()
+                && old.executable_sha256 != now.executable_sha256)
+                .then(|| ToolDrift {
+                    tool: tool.clone(),
+                    recorded: old.version.clone(),
+                    current: now.version.clone(),
+                    stage: stage.to_string(),
+                })
+        })
+        .collect()
+}
+
+fn record_tool_drift(
+    stage: &str,
+    recorded: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+    current: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+) {
+    let drift = tool_drift(stage, recorded, current);
+    if !drift.is_empty() {
+        TOOL_DRIFT.lock().unwrap().extend(drift);
+    }
+}
+
+fn warn_host_built_toolchain_drift(
+    stage: &str,
+    recorded: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+    current: &BTreeMap<String, crate::cache_manifest::ToolIdentity>,
+) {
+    if !HOST_BUILT_TOOLCHAIN_STAGES.contains(&stage) {
+        return;
+    }
+    for drift in tool_drift(stage, recorded, current) {
+        eprintln!(
+            "warning: {stage} is rebuilding with a different host {} than its cached output \
+             (was {:?}, now {:?}); its output will change and every target stage will rebuild",
+            drift.tool, drift.recorded, drift.current
+        );
+    }
+}
+
+/// Drains the drift recorded by reused stages and renders it.  Drift in the
+/// host-built toolchain stages is named per tool, because rebuilding them
+/// recompiles everything; other stages are compiled by the MattOS toolchain
+/// (host tools only build their build-machine helpers) and are summarized in
+/// one line, so a host upgrade does not produce a wall of warnings.
+pub(crate) fn take_tool_drift_report() -> Option<String> {
+    let mut drift = std::mem::take(&mut *TOOL_DRIFT.lock().unwrap());
+    if drift.is_empty() {
+        return None;
+    }
+    drift.sort();
+    drift.dedup();
+    let (toolchain, others): (Vec<_>, Vec<_>) = drift
+        .iter()
+        .partition(|entry| HOST_BUILT_TOOLCHAIN_STAGES.contains(&entry.stage.as_str()));
+    let other_stages = others.iter().map(|entry| entry.stage.as_str()).collect::<BTreeSet<_>>();
+    let mut report = String::new();
+    if !toolchain.is_empty() {
+        report.push_str("warning: host tools changed since the cached toolchain stages were built:\n");
+        let mut groups: BTreeMap<(&str, &str, &str), Vec<&str>> = BTreeMap::new();
+        for entry in &toolchain {
+            groups
+                .entry((&entry.tool, &entry.recorded, &entry.current))
+                .or_default()
+                .push(&entry.stage);
+        }
+        for ((tool, recorded, current), stages) in groups {
+            report.push_str(&format!("  {tool}: {recorded:?} -> {current:?} ({})\n", stages.join(", ")));
+        }
+        report.push_str(
+            "  Their cached outputs stay valid, but the next rebuild of any of them will produce \
+             different compilers and recompile every target stage. To take that rebuild \
+             deliberately now: mattos-build cache invalidate cross-toolchain && mattos-build build. \
+             MATTOS_STRICT_REPRODUCIBLE=1 makes every tool change a cache miss.\n",
+        );
+    }
+    if !other_stages.is_empty() {
+        report.push_str(&format!(
+            "note: {} other cached stage(s) recorded different host tools; they are compiled by the \
+             MattOS toolchain, so only their build-machine helpers would differ on a rebuild.\n",
+            other_stages.len()
+        ));
+    }
+    Some(report)
+}
+
 /// GNU install-info rewrites the aggregate Info index, `share/info/dir`, for
 /// each manual a `make install` installs. Parallel installs race on that
 /// read-modify-write, so the index can lose entries between otherwise
@@ -1214,6 +1348,76 @@ mod tests {
         publish(&upstream, "changed bytes").unwrap();
         run_consumer().unwrap();
         assert_eq!(consumer_runs.get(), 2);
+    }
+
+    /// Serializes the tests that record into and drain the global drift list.
+    static DRIFT_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    fn identity(sha: &str, version: &str) -> ToolIdentity {
+        ToolIdentity {
+            resolved_path: "/usr/bin/gcc".to_string(),
+            executable_sha256: sha.to_string(),
+            version: version.to_string(),
+            target: String::new(),
+        }
+    }
+
+    #[test]
+    fn tool_drift_reports_changed_executables_and_flags_toolchain_stages() {
+        let recorded = BTreeMap::from([
+            ("gcc".to_string(), identity("old", "gcc 15.2.0-4")),
+            ("make".to_string(), identity("same", "make 4.4.1")),
+        ]);
+        let current = BTreeMap::from([
+            ("gcc".to_string(), identity("new", "gcc 15.2.0-16")),
+            ("make".to_string(), identity("same", "make 4.4.1")),
+            ("meson".to_string(), identity("added", "meson 1.9")),
+        ]);
+        let drift = tool_drift("gcc-runtime", &recorded, &current);
+        assert_eq!(drift.len(), 1);
+        assert_eq!((drift[0].tool.as_str(), drift[0].current.as_str()), ("gcc", "gcc 15.2.0-16"));
+        assert!(tool_drift("zlib", &recorded, &recorded).is_empty());
+    }
+
+    #[test]
+    fn a_reused_stage_built_by_an_older_host_compiler_reports_drift_without_rebuilding() {
+        let _serial = DRIFT_TEST_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        let root = tempfile::tempdir().unwrap();
+        let spec = fixture_spec("out/build/gcc-runtime/output");
+        let spec = StageSpec { id: "gcc-runtime".to_string(), tools: vec!["make".to_string()], ..spec };
+        let runs = std::cell::Cell::new(0);
+        let run = || {
+            execute_cached_stage(root.path(), &spec, || Ok(()), || {
+                runs.set(runs.get() + 1);
+                let output = root.path().join(&spec.outputs[0]);
+                fs::create_dir_all(output.parent().unwrap())?;
+                fs::write(output, "compiler")?;
+                Ok(())
+            })
+        };
+        run().unwrap();
+        let mut manifest = read_stage_manifest(root.path(), &spec.id).unwrap();
+        manifest.input_details.tools.get_mut("make").unwrap().executable_sha256 = "older-host-make".to_string();
+        write_stage_manifest(root.path(), &manifest).unwrap();
+        run().unwrap();
+        assert_eq!(runs.get(), 1, "tool identity is provenance, not a cache key");
+        let report = take_tool_drift_report().expect("drift is reported");
+        assert!(report.contains("make:") && report.contains("gcc-runtime"));
+        assert!(report.contains("recompile every target stage"));
+    }
+
+    #[test]
+    fn drift_outside_the_toolchain_stages_is_one_summary_line() {
+        let _serial = DRIFT_TEST_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        TOOL_DRIFT.lock().unwrap().extend((0..200).map(|stage| ToolDrift {
+            tool: "gcc".to_string(),
+            recorded: "old".to_string(),
+            current: "new".to_string(),
+            stage: format!("target-stage-{stage}"),
+        }));
+        let report = take_tool_drift_report().unwrap();
+        assert_eq!(report.lines().count(), 1, "{report}");
+        assert!(report.contains("200 other cached stage(s)"));
     }
 
     #[test]
