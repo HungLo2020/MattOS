@@ -11,11 +11,17 @@ from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from collections import Counter
+from datetime import datetime, timezone
+import json
+import os
+import re
 import subprocess
 import tempfile
 import sys
 from pathlib import Path
+from urllib.parse import quote, urlsplit
 
 import tomllib
 
@@ -83,20 +89,42 @@ def git(
         stderr=subprocess.PIPE,
         check=False,
         timeout=timeout,
+        env={**os.environ, "GIT_OPTIONAL_LOCKS": "0", "GIT_TERMINAL_PROMPT": "0"},
     )
 
 
 def remote_tip(component: Component, timeout: float) -> str:
     completed = git(
-        ["ls-remote", "--exit-code", component.repository, component.ref],
+        ["ls-remote", "--exit-code", component.repository,
+         *ref_patterns(component.ref)],
         timeout=timeout,
     )
     if completed.returncode != 0:
         detail = completed.stderr.strip() or completed.stdout.strip() or "ref not found"
         raise RuntimeError(f"cannot resolve {component.ref!r}: {detail}")
-    matches = [line.split()[0] for line in completed.stdout.splitlines() if line.split()]
-    if not matches:
-        raise RuntimeError(f"no commit returned for ref {component.ref!r}")
+    return resolve_ref(parse_refs(completed.stdout), component.ref)
+
+
+def ref_patterns(ref: str) -> list[str]:
+    if ref.startswith("refs/"):
+        return [ref, ref + "^{}"]
+    return [f"refs/heads/{ref}", f"refs/tags/{ref}", f"refs/tags/{ref}^{{}}"]
+
+
+def parse_refs(output: str) -> dict[str, str]:
+    refs = {}
+    for line in output.splitlines():
+        fields = line.split()
+        if len(fields) == 2 and re.fullmatch(r"[0-9a-fA-F]{40}", fields[0]):
+            refs[fields[1]] = fields[0].lower()
+    return refs
+
+
+def resolve_ref(refs: dict[str, str], ref: str) -> str:
+    names = [ref] if ref.startswith("refs/") else [f"refs/heads/{ref}", f"refs/tags/{ref}"]
+    matches = [refs.get(name + "^{}", refs[name]) for name in names if name in refs]
+    if len(matches) != 1:
+        raise RuntimeError(f"ref {ref!r} is missing or ambiguous; use an explicit refs/heads/ or refs/tags/ name")
     return matches[0]
 
 
@@ -253,7 +281,282 @@ def format_result(result: UpdateResult) -> str:
     else:
         distance = result.status
     suffix = f" ({result.detail})" if result.detail else ""
-    return f"package {component.name}: {distance}, our version is {current}, most up to date version is {latest}{suffix}"
+    return f"package {component.name}: {distance}, selected commit {current}, configured ref {component.ref} resolves to {latest}{suffix}"
+
+
+@dataclass(frozen=True)
+class Release:
+    tag: str
+    commit: str
+    family: str
+    numbers: tuple[int, ...]
+    phase: int  # dev < alpha < beta < pre < rc < final
+    serial: int
+
+    @property
+    def key(self) -> tuple[tuple[int, ...], int, int]:
+        return (self.numbers + (0,) * max(0, 6 - len(self.numbers)), self.phase, self.serial)
+
+
+def parse_release(tag: str, commit: str = "") -> Release | None:
+    """Conservative tag parsing; reject unknown suffixes rather than guess stability.
+
+    Keep the original tag for display, and a family for excluding unrelated tags
+    in monorepos. A tag is evidence of a version, not of support or security status.
+    """
+    match = re.fullmatch(r"([^0-9]*)([0-9]+(?:[._-][0-9]+)*)(.*)", tag)
+    if not match:
+        return None
+    prefix, numeric, suffix = match.groups()
+    numbers = tuple(int(part) for part in re.split(r"[._-]", numeric))
+    phase, serial = 5, 0
+    if suffix.lower() in ("", "-release", "_release", "-final"):
+        pass
+    elif re.fullmatch(r"[_-][pP][0-9]+", suffix):  # OpenSSH portable patches
+        numbers += (int(suffix[2:]),)
+    elif re.fullmatch(r"[a-z]", suffix) and len(numeric) == 4 and numeric.startswith("20"):
+        numbers += (ord(suffix) - ord("a") + 1,)  # tzdata: 2026a, 2026b
+    else:
+        pre = re.fullmatch(r"[-._]?(dev|alpha|beta|pre|rc|a|b)(?:[-._]?([0-9]+))?", suffix, re.I)
+        if not pre:
+            return None
+        phase = {"dev": 0, "alpha": 1, "a": 1, "beta": 2, "b": 2, "pre": 3, "rc": 4}[pre[1].lower()]
+        serial = int(pre[2] or 0)
+    return Release(tag, commit, prefix.lower(), numbers, phase, serial)
+
+
+def release_tags(refs: dict[str, str]) -> list[Release]:
+    releases = []
+    for ref, sha in refs.items():
+        if not ref.startswith("refs/tags/") or ref.endswith("^{}"):
+            continue
+        release = parse_release(ref.removeprefix("refs/tags/"), refs.get(ref + "^{}", sha))
+        if release:
+            releases.append(release)
+    return releases
+
+
+def version_scheme(component: Component, release: Release) -> str:
+    # Repositories can retain older calendar tags after switching to semantic
+    # versions (e.g. SELinux/libva), or KDE Gear tags after joining Plasma/KF.
+    if release.numbers[0] >= 1900:
+        return "calendar"
+    if component.source_path.startswith("src/desktop/kde/") and release.numbers[0] >= 15:
+        return "kde-gear"
+    return "version"
+
+
+def apply_release_policy(component: Component, release: Release) -> Release:
+    """Recognize documented numeric prereleases as well as textual suffixes.
+
+    https://develop.kde.org/docs/getting-started/add-project/release/
+    https://gstreamer.freedesktop.org/documentation/frequently-asked-questions/developing.html
+    https://github.com/flatpak/flatpak-builder#versioning-policy
+    https://lists.x.org/archives/xorg-announce/2026-September/003742.html
+    Other upstream schemes still require the skill's announcement verification.
+    """
+    numbers = release.numbers
+    numeric_pre = (
+        component.source_path.startswith("src/desktop/kde/") and len(numbers) >= 3 and numbers[2] >= 70
+        or component.name in {"flatpak", "gstreamer"} and len(numbers) >= 2 and numbers[1] % 2 == 1
+        or component.name == "xwayland" and len(numbers) >= 3 and numbers[2] >= 99
+    )
+    return replace(release, phase=3) if numeric_pre and release.phase == 5 else release
+
+
+def release_url(repository: str, tag: str) -> str:
+    base = repository.removesuffix(".git").rstrip("/")
+    host = urlsplit(base).hostname or ""
+    if host == "github.com":
+        return f"{base}/releases/tag/{quote(tag, safe='')}"
+    if "gitlab" in host or host == "invent.kde.org":
+        return f"{base}/-/tags/{quote(tag, safe='')}"
+    # The declared upstream repository is always evidence; do not invent a
+    # forge-specific tag URL for cgit, gitweb, or other hosting systems.
+    return repository
+
+
+def release_record(release: Release | None, repository: str) -> dict | None:
+    if release is None:
+        return None
+    return {"tag": release.tag, "commit": release.commit,
+            "prerelease": release.phase < 5, "url": release_url(repository, release.tag)}
+
+
+def metadata_state(root: Path, component: Component) -> dict:
+    """Check recorded metadata only. This is NOT a physical-tree fidelity audit."""
+    try:
+        state = tomllib.loads((root / "upstream/state" / f"{component.name}.toml").read_text())
+        commit = state.get("imported_commit")
+        if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{40}", commit):
+            raise ValueError("missing valid imported_commit")
+        expected = {"component": component.name, "repo": component.repository,
+                    "destination_path": component.source_path, "imported_commit": component.revision}
+        mismatches = [key for key, value in expected.items() if state.get(key) != value]
+        return {"status": "mismatch" if mismatches else "metadata-match",
+                "imported_commit": commit, "detail": ", ".join(mismatches) or None}
+    except (OSError, ValueError) as exc:
+        return {"status": "error", "imported_commit": None, "detail": str(exc)}
+
+
+def declared_source_version(root: Path, component: Component) -> str | None:
+    """Read version declarations without running any vendored build code.
+
+    These are labels only: an untagged development commit can already declare
+    the next release number. Missing files in sparse checkouts stay unknown.
+    """
+    source = root / component.source_path
+    try:
+        if component.name == "linux":
+            makefile = (source / "Makefile").read_text()
+            values = dict(re.findall(r"^(VERSION|PATCHLEVEL|SUBLEVEL|EXTRAVERSION)[ \t]*=[ \t]*([^\n]*)", makefile, re.M))
+            return ".".join(values[k].strip() for k in ("VERSION", "PATCHLEVEL", "SUBLEVEL")) + values.get("EXTRAVERSION", "").strip()
+        cargo = source / "Cargo.toml"
+        if cargo.is_file():
+            document = tomllib.loads(cargo.read_text())
+            version = document.get("package", {}).get("version")
+            if isinstance(version, dict) and version.get("workspace"):
+                version = document.get("workspace", {}).get("package", {}).get("version")
+            if isinstance(version, str):
+                return version
+    except (OSError, ValueError, KeyError):
+        pass
+    return None
+
+
+def select_releases(component: Component, refs: dict[str, str], imported: str | None) -> dict:
+    releases = [apply_release_policy(component, release) for release in release_tags(refs)]
+    # Exact imported commit is authoritative, not the descriptive manifest ref.
+    exact = [release for release in releases if release.commit == imported]
+    declared = component.ref.removeprefix("refs/tags/")
+    current = next((release for release in exact if release.tag == declared), None)
+    families = {release.family for release in exact}
+    if current is None and len(families) == 1:
+        current = max(exact, key=lambda release: release.key)
+    hint = current or parse_release(declared)
+    if hint:
+        releases = [release for release in releases if release.family == hint.family
+                    and version_scheme(component, release) == version_scheme(component, hint)]
+    elif len({release.family for release in releases}) > 1:
+        return {"status": "unknown", "detail": "multiple tag families; upstream release policy needs review",
+                "current_release": None, "latest_release": None, "latest_prerelease": None,
+                "same_series_release": None}
+    stable = [release for release in releases if release.phase == 5]
+    prereleases = [release for release in releases if release.phase < 5]
+    latest = max(stable, key=lambda release: release.key, default=None)
+    prerelease = max(prereleases, key=lambda release: release.key, default=None)
+    # Historical prereleases are not useful in a current-availability report.
+    if prerelease and latest and prerelease.key <= latest.key:
+        prerelease = None
+    same_series = max((release for release in stable if current and
+                       release.numbers[:2] == current.numbers[:2]),
+                      key=lambda release: release.key, default=None)
+    detail = None
+    if latest is None:
+        status, detail = "unknown", "no comparable final-version tags; check official release announcements"
+    elif current is None:
+        status, detail = "unknown", "imported commit has no unambiguous version tag; do not assume it is older than the latest release"
+    elif latest.key > current.key:
+        status = "newer-release"
+    elif latest.key == current.key:
+        status = "current-release"
+    else:
+        status = "ahead-of-release"
+    return {"status": status, "detail": detail,
+            "current_release": release_record(current, component.repository),
+            "latest_release": release_record(latest, component.repository),
+            "latest_prerelease": release_record(prerelease, component.repository),
+            "same_series_release": release_record(same_series, component.repository)}
+
+
+def audit_component(component: Component, *, root: Path, exact: bool, timeout: float) -> dict:
+    state = metadata_state(root, component)
+    row = {"component": component.name, "repository": component.repository, "ref": component.ref,
+           "source_path": component.source_path, "selected_commit": component.revision,
+           "metadata": state, "source_version_label": declared_source_version(root, component),
+           "ref_status": "error", "ref_tip": None, "ref_detail": None,
+           "release_status": "error", "release_detail": None,
+           "current_release": None, "latest_release": None, "latest_prerelease": None,
+           "same_series_release": None}
+    try:
+        remote = git(["ls-remote", component.repository, *ref_patterns(component.ref), "refs/tags/*"], timeout=timeout)
+        if remote.returncode:
+            raise RuntimeError(remote.stderr.strip() or "cannot list upstream refs")
+        refs = parse_refs(remote.stdout)
+        try:
+            tip = resolve_ref(refs, component.ref)
+            row["ref_tip"] = tip
+            if tip == component.revision:
+                row["ref_status"] = "up-to-date"
+            elif exact:
+                row["ref_status"], row["behind"], row["ref_detail"] = commit_distance(component, tip, timeout)
+            else:
+                row["ref_status"] = "ref-differs"
+                row["ref_detail"] = "hash difference only; ancestry not checked"
+        except (RuntimeError, subprocess.TimeoutExpired) as exc:
+            row["ref_detail"] = str(exc)
+        selected = select_releases(component, refs, state["imported_commit"])
+        row["release_status"] = selected.pop("status")
+        row["release_detail"] = selected.pop("detail")
+        row.update(selected)
+    except (OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
+        row["release_detail"] = row["ref_detail"] = str(exc)
+    return row
+
+
+def audit_report(components: list[Component], *, root: Path, exact: bool, timeout: float,
+                 jobs: int, progress: bool = False) -> dict:
+    started = datetime.now(timezone.utc).isoformat()
+    rows = []
+    with ThreadPoolExecutor(max_workers=min(jobs, len(components) or 1)) as executor:
+        futures = [executor.submit(audit_component, component, root=root, exact=exact, timeout=timeout)
+                   for component in components]
+        for done, future in enumerate(as_completed(futures), 1):
+            row = future.result()
+            rows.append(row)
+            if progress:
+                print(f"[{done}/{len(components)}] {row['component']}: {row['release_status']}", file=sys.stderr, flush=True)
+    rows.sort(key=lambda row: row["component"])
+    identity = git(["rev-parse", "HEAD"], cwd=root, timeout=timeout)
+    dirty = git(["status", "--porcelain", "--untracked-files=normal"], cwd=root, timeout=timeout)
+    counts = Counter(row["release_status"] for row in rows)
+    incomplete = sum(row["release_status"] in {"unknown", "error"} or row["ref_status"] == "error"
+                     or row["metadata"]["status"] != "metadata-match" for row in rows)
+    return {"format": 2, "started_at_utc": started, "finished_at_utc": datetime.now(timezone.utc).isoformat(),
+            "repository_commit": identity.stdout.strip() if identity.returncode == 0 else None,
+            "working_tree_dirty": bool(dirty.stdout.strip()) if dirty.returncode == 0 else None,
+            "scope": "vendored source components from upstream/sources.toml; not installed or published packages",
+            "release_evidence": "upstream Git tags; final-version tag naming is not proof of upstream stable/support policy",
+            "source_verification": "manifest/import metadata comparison only; source contents and patch applicability not verified",
+            "summary": {"total": len(rows), "release_statuses": dict(sorted(counts.items())),
+                        "incomplete": incomplete, "complete": len(rows) - incomplete},
+            "components": rows}
+
+
+def render_report(report: dict) -> str:
+    def tag(row: dict, field: str) -> str:
+        return (row.get(field) or {}).get("tag", "unknown")
+
+    lines = ["MattOS upstream release audit", f"Checked: {report['finished_at_utc']}",
+             f"MattOS commit: {report['repository_commit']}; dirty checkout: {report['working_tree_dirty']}",
+             f"Coverage: {report['summary']['complete']}/{report['summary']['total']} complete; "
+             f"{report['summary']['incomplete']} need review", report["release_evidence"], report["source_verification"], ""]
+    for row in report["components"]:
+        current = tag(row, "current_release")
+        if current == "unknown":
+            current = f"untagged/unknown {str(row['metadata']['imported_commit'] or 'unknown')[:12]}"
+            if row["source_version_label"]:
+                current += f" (source label {row['source_version_label']})"
+        lines.append(f"{row['component']}: {current} -> {tag(row, 'latest_release')} [{row['release_status']}]")
+        lines.append(f"  Ref {row['ref']}: {row['ref_status']}; import metadata: {row['metadata']['status']}")
+        for field, label in (("same_series_release", "Same series"), ("latest_prerelease", "Prerelease")):
+            if row[field]:
+                lines.append(f"  {label}: {tag(row, field)}")
+        lines.append(f"  Upstream: {(row['latest_release'] or {}).get('url', row['repository'])}")
+        for detail in (row["release_detail"], row["ref_detail"], row["metadata"]["detail"]):
+            if detail:
+                lines.append(f"  Note: {detail}")
+    return "\n".join(lines)
 
 
 def parse_args() -> argparse.Namespace:
@@ -272,6 +575,8 @@ def parse_args() -> argparse.Namespace:
         help="timeout in seconds for each Git operation (default: 45)",
     )
     parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
+    parser.add_argument("--releases", action="store_true", help="audit version tags and import metadata, independently of the configured ref")
+    parser.add_argument("--progress", action="store_true", help="emit release-audit progress on stderr, keeping JSON valid")
     return parser.parse_args()
 
 
@@ -290,6 +595,12 @@ def main() -> int:
             raise SystemExit(f"unknown component(s): {', '.join(unknown)}")
         components = [component for component in components if component.name in requested]
 
+    if args.releases:
+        report = audit_report(components, root=ROOT, exact=args.exact, timeout=args.timeout,
+                              jobs=args.jobs, progress=args.progress)
+        print(json.dumps(report, indent=2, sort_keys=True) if args.json else render_report(report))
+        return 1 if report["summary"]["incomplete"] else 0
+
     results: list[UpdateResult] = []
     with ThreadPoolExecutor(max_workers=min(args.jobs, len(components) or 1)) as executor:
         futures = [executor.submit(inspect, component, exact=args.exact, timeout=args.timeout) for component in components]
@@ -301,8 +612,6 @@ def main() -> int:
     results.sort(key=lambda result: result.component.name)
 
     if args.json:
-        import json
-
         print(json.dumps([
             {
                 "component": result.component.name,
