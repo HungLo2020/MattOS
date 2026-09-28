@@ -1,10 +1,16 @@
 # MattOS native C/C++ toolchain
 
-This milestone is the first self-hosting capability layer, not a claim that
-MattOS can rebuild itself.  A running guest receives enough source-built tools
-and development files to compile, assemble, link, run, and package small C and
-C++ projects.  Autotools, Python, Perl, Rust, Cargo, and the other general build
-systems remain outside this boundary.
+This page covers the source-built GCC/Binutils/Make toolchain: the first
+self-hosting capability layer, not a claim that MattOS can rebuild itself.  An
+installed MattOS system receives enough source-built tools and development
+files to compile, assemble, link, run, and package small C and C++ projects.
+
+The toolchain packages are not part of the live image.  They are dependencies
+of the `mattos-toolchain` meta package, which the installer adds to every
+installed profile (`MATTOS_TOOLCHAIN_PACKAGES` and `live_excluded_packages` in
+`src/tools/mattos-build/src/packaging/registry.rs`).  The same meta package
+also pulls in the LLVM/Clang/LLD and Rust/Cargo packages described in
+[Self-hosting development foundation](self-hosting.md).
 
 ## Pinned sources
 
@@ -14,8 +20,8 @@ record the canonical source and exact imported commit.
 
 | Component | Canonical repository | MattOS source | Upstream selection | Imported commit |
 | --- | --- | --- | --- | --- |
-| Linux UAPI | `https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git` | `src/kernel/linux` | existing pinned Linux source | `f17f39c917cd4aac09db1a6a083ef5ec09b4924d` |
-| glibc | `https://sourceware.org/git/glibc.git` | `src/system/libc/glibc` | `glibc-2.43` | `f762ccf84f122d1354f103a151cba8bde797d521` |
+| Linux UAPI | `https://github.com/torvalds/linux.git` | `src/kernel/linux` | `master` (existing pinned Linux source) | `8ba098e6b6ff0db8edf28528d1552be261af30d4` |
+| glibc | `git://sourceware.org/git/glibc.git` | `src/system/libc/glibc` | `glibc-2.43` | `f762ccf84f122d1354f103a151cba8bde797d521` |
 | GCC | `https://gcc.gnu.org/git/gcc.git` | `src/toolchain/gcc` | `releases/gcc-15.3.0` | `4db0e8df15bef836558857c291c323add11d035c` |
 | GNU Binutils | `https://sourceware.org/git/binutils-gdb.git` | `src/toolchain/binutils` | `binutils-2_46_1` | `5e56594815854de5eca35c7c04b11705d0f19c02` |
 | GNU Make | `https://git.savannah.gnu.org/git/make.git` | `src/build-tools/make` | `4.4.1` | `d66a65ad5a0e31b287f53930b0f09e31801f1613` |
@@ -45,7 +51,11 @@ GCC's build also uses setup-managed host utilities such as POSIX shell tools,
 Perl, Bison, Flex, M4, and Texinfo.  No host executable or runtime-loaded
 library is copied into the image.
 
-The toolchain is built in this order:
+The toolchain is built in this order.  The table uses stage ids (as used in
+dependency lists, cache manifests, and timing data); two of them differ from
+the `mattos-build` CLI stage names: stage id `linux` is selected on the command
+line as `kernel`, and stage id `gcc-compiler` as `gcc-toolchain` (its build
+output directory is `out/build/gcc-toolchain`).
 
 | Stage | Output | Built by | Used for |
 | --- | --- | --- | --- |
@@ -80,15 +90,32 @@ build, so build systems that invoke `cc`, `gcc`, `ld`, or `ar` get MattOS
 tools.  The wrappers add the MattOS sysroot, its multiarch start-file and
 library directory, and `mattos-hardening.specs`.
 
-That specs file reproduces the hardening defaults of the Ubuntu host GCC that
-MattOS was previously built and validated with, because upstream GCC enables
-none of them: `-fstack-protector-strong`, `-fstack-clash-protection`,
-`-fcf-protection`, `-Wformat -Wformat-security`, `-D_FORTIFY_SOURCE=3` when
-optimizing, `--as-needed`, `-z relro`, and `-z now` for PIE executables.  Each
+That specs file (`MATTOS_HARDENING_SPECS` in
+`src/tools/mattos-build/src/stages/toolchain.rs`) reproduces the hardening
+defaults of the Ubuntu host GCC that MattOS was previously built and validated
+with, because upstream GCC enables none of them.  Compile defaults:
+`-fstack-protector-strong`, `-fstack-clash-protection`, `-fcf-protection`
+(except with `-m16`/`-m32`), `-Wformat -Wformat-security`,
+`-fzero-init-padding-bits=all`, `-Wbidi-chars=any`, and `-D_FORTIFY_SOURCE=3`
+when optimizing.  Link defaults: `--as-needed` (unless sanitizing), `-z relro`,
+and `-z now` except for static, shared, relocatable, or `-no-pie` links.  Each
 default yields to an explicit caller option such as `-fno-stack-protector` or
-`-U_FORTIFY_SOURCE`.  Default PIE, CET, GNU build IDs, and the GNU hash style
-are configured into both GCC builds directly.  The kernel uses the raw pass-1
-compiler, because Kbuild selects all of its own code-generation flags.
+`-U_FORTIFY_SOURCE`.
+
+Default PIE, CET, GNU build IDs, and the GNU hash style (`MATTOS_GCC_DEFAULTS`:
+`--enable-default-pie --enable-cet --enable-linker-build-id
+--with-linker-hash-style=gnu`) are configured directly into the two
+build-machine compilers: pass-1 GCC (`cross-toolchain`) and the complete
+compiler from `gcc-runtime`.  The kernel uses the raw pass-1 compiler, because
+Kbuild selects all of its own code-generation flags.
+
+The third GCC build, the native compiler shipped in the guest
+(`gcc-compiler`), is configured differently: of those defaults it receives only
+`--enable-default-pie`.  It is not configured with CET, linker build-id, or
+hash-style defaults, and no hardening specs file is installed with it, so code
+compiled natively on an installed MattOS system does not get the
+`mattos-hardening.specs` defaults above.  This is a known gap between the
+build-time and installed compilers.
 
 The native compiler shipped in the guest (`gcc-compiler`) uses these roles:
 
@@ -149,8 +176,9 @@ The package graph adds these ten packages:
 | `g++` | C++ compiler driver and `/usr/bin/c++` |
 | `make` | `/usr/bin/make` |
 
-Runtime libraries remain owned only by `libc6`, `libgcc-s1`, and
-`libstdc++6`.  Development packages depend on those runtime owners and
+Runtime libraries remain owned only by `libc6`, `libgcc-s1`, `libstdc++6`,
+and `libgomp1` (the OpenMP runtime `libgomp.so.1`, built by the `gcc-runtime`
+stage).  Development packages depend on those runtime owners and
 do not duplicate their versioned shared objects.  Package staging, repository
 auditing, and rootfs construction reject duplicate paths, unresolved ELF
 dependencies, unowned helpers, host RPATH/RUNPATH, and embedded host paths.
@@ -176,7 +204,18 @@ Validation records and checks `gcc -v`, `g++ -v`, `-print-search-dirs`,
 contain the repository path or select host `/usr/include` or `/usr/lib` as a
 bootstrap search root.
 
-The guest test suite covers direct C at `-O0` and `-O2`, PIE, pthreads, a shared
+### Guest tests
+
+The automated check is the QEMU install test: after installing a profile,
+`installed_toolchain_probe` in `DevUtils/run_qemu.py` verifies that the
+`mattos-toolchain` package is installed, that `gcc`, `g++`, `cpp`, `ld`,
+`make`, `clang`, `lld`, `rustc`, and `cargo` are on `PATH`, and that GCC
+compiles a small C program that then runs with the expected exit status on the
+installed system.
+
+The broader suite is `DevUtils/test_native_toolchain.sh`, run by hand inside an
+installed guest from a MattOS checkout (it writes under `out/tmp`).  Nothing
+invokes it automatically.  It covers direct C at `-O0` and `-O2`, PIE, pthreads, a shared
 library and dynamic loading, C++ containers/strings/exceptions, a two-object
 static archive using `as`, `ar`, `ranlib`, `nm`, `objdump`, `readelf`, and
 `strip`, and a clean/rebuild cycle driven by GNU Make.  It also stages a tiny
@@ -189,20 +228,35 @@ shebang rewriting.
 
 ## Remaining self-hosting work
 
-The intended follow-on order is:
+Since this milestone, the following have been built from pinned source and
+packaged: CPython 3.14 (stage id `cpython`, CLI `python`; packages `python3`,
+`libpython3.14`, `python3-venv`, `python3-dev`), Git (`git`), LLVM/Clang/LLD
+(`llvm`, `llvm-dev`, `clang`, `lld`), and Rust 1.97.1 with Cargo (`rustc`,
+`cargo`).  The LLVM and Rust packages and `python3-dev` are in
+`mattos-toolchain`; `python3` and `git` are part of the base package set.  See
+[Self-hosting development foundation](self-hosting.md).  The KDE Plasma desktop
+([System](../../system/index.md)) and the Calamares graphical installer
+([MattOS Installer](../../system/installer.md)) have also landed.
 
-1. Additional foundational build tools.
-2. Python runtime evaluation, prioritizing RustPython against real workloads.
-3. Perl where required.
-4. Autoconf, Automake, Libtool, and pkg-config.
-5. Meson, Ninja, and CMake.
-6. Git.
-7. Rust, Cargo, the Rust standard library, and rustup.
-8. Native rebuild of all MattOS packages.
-9. Native ISO generation.
-10. The desktop stack (now KDE Plasma; see [System](../../system/index.md)).
-11. The graphical installer (now Calamares; see [MattOS Installer](../../system/installer.md)).
+Still missing:
 
-RustPython preference is contingent on compatibility testing.  This milestone
-does not perform a compiler self-rebuild, a complete package rebuild, or native
-ISO generation.
+1. Perl, which many upstream build systems require.
+2. Autoconf, Automake, Libtool, and pkg-config/pkgconf.
+3. Meson, Ninja, and CMake.
+4. Hardening defaults for the installed native GCC (see above).
+5. Native rebuild of all MattOS packages.
+6. Native ISO generation.
+
+MattOS has not performed a compiler self-rebuild, a complete native package
+rebuild, or native ISO generation.
+
+### History
+
+The follow-on order originally planned for this milestone was: additional
+foundational build tools; a Python runtime evaluation that preferred
+RustPython if it proved compatible with real workloads; Perl; Autotools and
+pkg-config; Meson, Ninja, and CMake; Git; Rust, Cargo, the Rust standard
+library, and rustup; native package rebuild; native ISO generation; the desktop
+stack; and the graphical installer.  CPython was chosen over RustPython, and
+rustup is not packaged; the Rust toolchain is built from the official source
+release instead.

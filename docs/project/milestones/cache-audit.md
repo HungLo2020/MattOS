@@ -1,9 +1,14 @@
 # Build Cache Audit
 
-Date: 2026-07-31
-Scope: read-only audit of current cache and incremental behavior after source layout migration to `src/`.
+!!! warning "Historical snapshot"
+    This page records the build cache as of 2026-07-31. Much of it no longer describes
+    current MattOS; for current behavior, follow the other sections of the
+    wiki. It is kept for its history and the reasoning behind decisions.
 
-## Current Behavior
+Date: 2026-07-31
+Scope: read-only audit of the cache and incremental behavior at that time, after source layout migration to `src/`.
+
+## Behavior at the Time
 
 ### Cargo and Rust
 
@@ -65,7 +70,7 @@ Notes:
 | ISO artifact | `out/images/mattos-x86_64.iso` | boot artifact | Rewritten | every `build iso` / `image` | Correct output location |
 
 Notes:
-- No timestamp/freshness graph exists for rootfs/initramfs/ISO; these layers are rebuilt each image run.
+- At the time of this audit, no timestamp/freshness graph existed for rootfs/initramfs/ISO, and these layers were rebuilt on each image run. The "Content-addressed" entries for the live root and early initramfs in the table above are inconsistent with this; the problems and verdict below assume the always-rebuilt behavior.
 - Staging directories are fully recreated, so stale staging files are unlikely.
 
 ### Upstream import/sync tooling
@@ -86,7 +91,7 @@ Notes:
 
 ## Confirmed Problems
 
-1. No build-graph freshness tracking for `rootfs`, `initramfs`, and `iso`; these are always regenerated when `image` runs.
+1. No build-graph freshness tracking for `rootfs`, `initramfs`, and `iso` (at the time of this audit); these were always regenerated when `image` runs.
 2. Upstream import/update uses fresh shallow clones in `upstream/.tmp/` and does not keep a reusable local mirror cache.
 3. Kernel build is in-tree; build artifacts remain in imported Linux tree and are not isolated in a dedicated out-of-tree output dir.
 4. Rust caches are split between workspace (`target/`) and upstream userland subprojects (`src/userland/brush/target`, `src/userland/coreutils/target`), which is functional but duplicates cache surfaces.
@@ -100,6 +105,6 @@ Notes:
 4. Evaluate optional shared `CARGO_TARGET_DIR` strategy for selected sub-builds if cache duplication becomes a bottleneck.
 5. Evaluate optional `sccache` integration for local developer builds and CI.
 
-## Current Verdict
+## Verdict at the Time
 
-Current cache behavior is consistent and reproducible for a baseline milestone build system. The main tradeoff is predictable full regeneration of post-compile image layers rather than maximal incremental optimization.
+Cache behavior at the time of this audit was consistent and reproducible for a baseline milestone build system. The main tradeoff was predictable full regeneration of post-compile image layers rather than maximal incremental optimization.

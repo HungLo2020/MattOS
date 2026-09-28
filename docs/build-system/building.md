@@ -114,48 +114,71 @@ cargo run -p mattos-build -- cache explain glibc --details
 
 The detailed form compares schema, source/configuration/environment/tool/dependency/full digests and their exact stored/current fields. Schema 3 is a one-time migration from older manifests; after one successful establishing build, identical fresh direct and launcher processes must report foundation hits.
 
-The pipeline stages are:
+## Stage graph overview
 
-0. `cross-toolchain`: host-built stage-0 MattOS cross Binutils and libc-less pass-1 GCC
-1. `kernel`: Linux kernel build using `src/kernel/config/x86_64_mattos.config`, compiled by the pass-1 GCC
-2. `glibc`: controlled Linux UAPI export, out-of-tree GNU libc build by the pass-1 GCC, and initial MattOS development sysroot
-3. `gcc-runtime`: top-level GCC build selecting `libgcc_s.so.1` and `libstdc++.so.6`, and installing the MattOS compiler used by every later stage
-4. `brush`: Brush release build
-5. `coreutils`: uutils/coreutils multicall build
-6. `attr`, `expat`, `libcap`, `acl`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`: focused source-built development/runtime libraries
-7. `openssl`: shared libcrypto/libssl build against the staged zlib and Zstandard ABIs
-8. `elfutils`: focused libelf build against the staged zlib and Zstandard ABIs
-9. `pcre2`, `selinux`, `libxcrypt`: focused PCRE2 8-bit, libselinux compatibility, and password-hashing runtimes; SELinux follows PCRE2
-10. `libmd`, `libbsd`: source-built portability libraries; libmd precedes libbsd
-11. `tar`: GNU tar built with the MattOS ACL ABI and without SELinux
-12. `ncurses`: terminal libraries, tools, and compiled terminfo database
-13. `procps`: process-management tools linked to the local ncurses build
-14. `iproute2`: `ip`, `ss`, `bridge`, and `tc`, rebuilt against staged libelf, SELinux, and PCRE2
-15. `iputils`: unprivileged `ping` and `tracepath`
-16. `curl`: HTTP/HTTPS client using staged OpenSSL and the pinned MattOS CA file
-17. `pam`, `shadow`, `sudo-rs`: authentication stack rebuilt against staged libxcrypt; Shadow also resolves libbsd and libmd from staged builds
-18. `util-linux`: authentication tools plus source-built libblkid/libmount/libsmartcols and mount/umount, with staged SELinux compatibility enabled
-19. `kmod`: module administration tools and libkmod
-20. `systemd`: minimal Meson/Ninja build with staged kmod/libmount, networkd, resolved, timesyncd, timedated, logind, and `pam_systemd`
-21. `dbus-broker`: upstream Meson/Ninja system-bus broker and launcher
-22. `dpkg`: imported dpkg Autotools build against MattOS compression, libmd, SELinux, and PCRE2 libraries
-23. `apt`: imported APT CMake/Ninja build against MattOS compression and libcrypto libraries
-24. `libffi`, `cpython`: CPython runtime, standard library, venv/ensurepip, and development surface against MattOS-owned native libraries
-25. `llvm`: LLVM shared runtime, selected tools, Clang, and LLD with X86, AArch64, and RISC-V backends
-26. `rust`: Rust compiler, native standard library, rustdoc, and Cargo from the checksummed official source release and its explicit stage-0 bootstrap metadata; this MattOS rustc compiles all target Rust code, so the Cargo-built stages (`brush`, `coreutils`, the uutils tools, `init`, `sudo-rs`, ...) follow it
-27. `init`: MattOS rescue init build
-28. `rootfs`, `live-root`, `initramfs`, `iso`: package root assembly,
-    deterministic SquashFS, minimal early userspace, and bootable ISO.
-    The live root installs every package except the development toolchain
-    (`MATTOS_TOOLCHAIN_PACKAGES`: GCC, Binutils, Clang/LLVM tools,
-    rustc/Cargo, and `-dev` packages) and its `mattos-toolchain`
-    metapackage.  Every installed system gets the toolchain: the installer
-    installs `mattos-toolchain` alongside the selected profile.  The offline package repository with
-    all packages, toolchain included, sits on the ISO at `/mattos/repository`
-    rather than inside the SquashFS; the live root's
-    `/usr/share/mattos/repository` links to it on the mounted medium
-    (`/run/mattos/medium`), and the installer copies it onto installed
-    systems so they can install the toolchain offline.
+`build all` runs a dependency graph of a few hundred stages; the
+[architecture page](architecture.md) describes how it is scheduled and cached.
+The groups below are a representative overview, not an exhaustive or strictly
+ordered list. `cargo run -p mattos-build -- build --help` prints every stage
+name, and `src/tools/mattos-build/src/stage_graph.rs` (`direct_dependencies`)
+is the authoritative dependency list.
+
+Stage names below are the CLI names accepted by `build <stage>`. A few differ
+from the internal stage IDs used in cache manifests, logs, and
+`cache explain`: `kernel` is `linux`, `gcc-toolchain` is `gcc-compiler`,
+`python` is `cpython`, `pam` is `linux-pam`, and `procps` is `procps-ng`.
+
+- **Foundational toolchain.** `cross-toolchain` (host-built stage-0 MattOS
+  cross Binutils and libc-less pass-1 GCC) comes first. `kernel` (Linux built
+  from `src/kernel/config/x86_64_mattos.config`) and `glibc` (controlled Linux
+  UAPI export, out-of-tree GNU libc, and the initial development sysroot) are
+  both compiled by the pass-1 GCC and can run in parallel. `gcc-runtime`
+  follows glibc, selects `libgcc_s.so.1` and `libstdc++.so.6`, and installs
+  the MattOS compiler used by every later target stage. `binutils`,
+  `gcc-toolchain`, and `make` then produce the native toolchain, and the
+  virtual `formal-sysroot` node marks the completed `out/sysroot` boundary.
+- **Libraries and base userland.** Almost every other target stage depends on
+  `formal-sysroot` plus the libraries it actually links: for example
+  compression (`zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`), `openssl`,
+  `elfutils`, `pcre2`, `selinux`, `libxcrypt`, `libmd`/`libbsd`, `ncurses`,
+  `tar`, `procps`, `iproute2`, `iputils`, `curl`, the authentication stack
+  (`pam`, `shadow`, `util-linux`), `kmod`, `dbus`, `systemd`, `dpkg`, and
+  `apt`.
+- **Language toolchains.** `python` (CPython with `libffi`), `llvm` (LLVM
+  shared runtime, selected tools, Clang, and LLD with the X86 and AMDGPU
+  backends; AMDGPU is the userspace GPU compiler backend used by Mesa, not a
+  CPU target), and `rust` (rustc, the native standard library, rustdoc, and
+  Cargo, built from the checksummed official source release and depending on
+  `llvm`). This MattOS rustc compiles all target Rust code, so the Cargo-built
+  stages (`brush`, `coreutils`, `grep`, `sed`, `findutils`, `diffutils`,
+  `init`, `sudo-rs`, `greetd`, `cozy`, `installer`) and the Meson builds with
+  Rust components (`dbus-broker`, `mesa`, `gstreamer`) depend on `rust` as
+  well as `formal-sysroot`.
+- **Graphics and desktop.** Wayland, Mesa, Vulkan, fonts, Qt (`qt-base`,
+  `qt-declarative`, ...), KDE Frameworks (`k-core-addons`, `kio`, ...),
+  Plasma (`plasma-k-win`, `plasma-workspace`, `plasma-desktop`, ...),
+  applications, Flatpak, NetworkManager, PipeWire, and the Calamares
+  installer.
+- **Packages and repository.** After every package-producing stage, package
+  staging and `.deb` publication and the offline Debian repository are built
+  inside the `rootfs` stage's scheduled action.
+- **Image.** `rootfs` assembles the package root; `live-root` compresses it
+  into a deterministic zstd SquashFS; `initramfs` builds the small early
+  archive from `formal-sysroot` and `kernel` (it does not consume the
+  rootfs); `iso` combines the kernel, live root, early initramfs, GRUB, and
+  repository into the bootable ISO.
+
+The live root installs every package except the development toolchain
+(`MATTOS_TOOLCHAIN_PACKAGES` in
+`src/tools/mattos-build/src/packaging/registry.rs`: GCC, Binutils, Make,
+Clang/LLD/LLVM, rustc/Cargo, and the `-dev` packages) and its
+`mattos-toolchain` metapackage. Every installed system gets the toolchain:
+the installer installs `mattos-toolchain` alongside the selected profile. The
+offline package repository with all packages, toolchain included, sits on the
+ISO at `/mattos/repository` rather than inside the SquashFS; the live root's
+`/usr/share/mattos/repository` links to it on the mounted medium
+(`/run/mattos/medium`), and the installer copies it onto installed systems so
+they can install the toolchain offline.
 
 Tar's explicit Gnulib replacement is copied into Tar's output-owned source mirror before bootstrap. A checksummed Tar patch adds the gitlink-era `FLEXNSIZEOF` compatibility macro to that mirror because the pinned stable-202301 replacement predates the macro used by Tar 1.35; the authoritative Tar and Gnulib imports remain unchanged.
 
@@ -163,7 +186,7 @@ Systemd configuration remains intentionally minimal. It enables networkd, resolv
 
 ## Incremental builds
 
-Warm builds are guarded by content-addressed stage manifests rather than timestamps. Repository, live-rootfs, initramfs, and ISO layers now participate in the same dependency model and retain full inventory/corruption validation. See [Build performance and cache model](performance.md) for keys, atomic replacement, package/ELF fact reuse, timing reports, quiet native logs, and scoped cache commands.
+Warm builds are guarded by content-addressed stage manifests rather than timestamps. Repository, rootfs, live-root, initramfs, and ISO layers participate in the same dependency model and retain full inventory/corruption validation. See [Build performance and cache model](performance.md) for keys, atomic replacement, package/ELF fact reuse, timing reports, quiet native logs, and scoped cache commands.
 
 ```
 cargo run -p mattos-build -- build kernel
@@ -205,7 +228,7 @@ cargo run -p mattos-build -- build init
 cargo run -p mattos-build -- image
 ```
 
-`image` validates and reuses unchanged rootfs, initramfs, and ISO layers without forcing unrelated recompilation. A changed package cascades through repository and image layers; a GRUB-only change affects only ISO.
+`image` runs the `rootfs`, `live-root`, `initramfs`, and `iso` stages in order, validating and reusing unchanged layers without forcing unrelated recompilation. A changed package cascades through the repository, rootfs, live root, and ISO; a GRUB-configuration-only change affects only the ISO.
 
 The complete `build all` command already ends with a current ISO. The Python QEMU launcher therefore invokes `build all` once and does not call `image` afterward. For build-only automation:
 
@@ -224,9 +247,12 @@ cargo run -p mattos-build -- cache explain rootfs-live
 cargo run -p mattos-build -- cache explain elf-facts
 ```
 
+`rootfs-live` (and `rootfs-base`) are diagnostic aliases that report the
+`rootfs` stage; use `cache explain live-root` for the SquashFS stage.
+
 Native-stage subprocess output is stored in `out/logs/<stage>.log`; failures show a useful tail. Set `MATTOS_VERBOSE_BUILD_OUTPUT=1` to stream full output for diagnosis.
 
-For the first cache milestone, an unchanged complete `build all` measured 4:04.45 with 112 hits, zero misses, and seven intentionally non-cacheable stages, compared with the 53:00.44 audit baseline. The second layer/fact-cache milestone reduced the required second unchanged run to 3:50.94 with 116 hits, zero misses, and no non-cacheable timing entries. A scoped independent repository/rootfs/initramfs/ISO rebuild reproduced every recorded package, repository, rootfs inventory, ELF inventory, initramfs, and ISO digest exactly. These are warm-development measurements; release validation still uses independent rebuilds and byte comparisons as documented in [Build performance and cache model](performance.md).
+Historical measurements (2026-08, when the stage graph was far smaller than it is now): for the first cache milestone, an unchanged complete `build all` measured 4:04.45 with 112 hits, zero misses, and seven intentionally non-cacheable stages, compared with the 53:00.44 audit baseline. The second layer/fact-cache milestone reduced the required second unchanged run to 3:50.94 with 116 hits, zero misses, and no non-cacheable timing entries. A scoped independent repository/rootfs/initramfs/ISO rebuild reproduced every recorded package, repository, rootfs inventory, ELF inventory, initramfs, and ISO digest exactly. These were warm-development measurements on the build graph of that time and are not current performance figures; release validation still uses independent rebuilds and byte comparisons as documented in [Build performance and cache model](performance.md).
 
 Package and repository commands:
 
@@ -239,7 +265,7 @@ cargo run -p mattos-build -- package status
 cargo run -p mattos-build -- package compatibility-audit
 ```
 
-The complete prototype stack consists of 66 packages. `libc6` and `libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `libgcc-s1` and `libstdc++6` supply the final source-built compiler runtimes. The `udev` package owns systemd's selected vendor hwdb sources, the stock update unit, and a source-generated `/usr/lib/udev/hwdb.bin`. Ten development packages add Linux/glibc/GCC development files, source-built Binutils, GCC C/C++, and GNU Make. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. The compatibility audit also validates all package classifications, versions, protected pins, source scaffolds, and the immutable LinuxScripts publisher. See [MattOS glibc bootstrap](toolchain/glibc-bootstrap.md), [MattOS GCC runtime bootstrap](toolchain/gcc-runtime-bootstrap.md), [MattOS native C/C++ toolchain](toolchain/native-toolchain.md), [MattOS Debian Packaging](../packaging/debian-packaging.md), [Debian Compatibility (Current State)](../packaging/debian-compatibility.md), [MattOS remote repository integration](../packaging/remote-repository.md), and [Bootstrap runtime audit](toolchain/bootstrap-runtime-audit.md).
+The package set is defined by `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (several hundred packages). `libc6` and `libc-bin` supply the MattOS-built glibc runtime, loader, NSS/resolver modules, and selected utilities; `libgcc-s1` and `libstdc++6` supply the final source-built compiler runtimes. The `udev` package owns systemd's selected vendor hwdb sources, the stock update unit, and a source-generated `/usr/lib/udev/hwdb.bin`. The development toolchain packages (`MATTOS_TOOLCHAIN_PACKAGES` in the same file, gathered by the `mattos-toolchain` metapackage) add Linux/glibc/GCC development files, source-built Binutils, GCC C/C++, GNU Make, Clang/LLD/LLVM, rustc/Cargo, and further `-dev` packages such as `python3-dev`, `libglvnd-dev`, and `libvulkan-dev`; they are excluded from the live root and installed on every installed system. After glibc and GCC runtime construction, downstream native stages are rebuilt with the controlled sysroot. Repository creation validates the dependency graph, staged ELF ownership, exact interpreter, loader resolution, and GLIBC/GLIBCXX/CXXABI/GCC symbol versions before image embedding. `mattos-bootstrap-runtime` is retired and the final host-derived target-runtime count is zero. The compatibility audit also validates all package classifications, versions, protected pins, source scaffolds, and the immutable LinuxScripts publisher. See [MattOS glibc bootstrap](toolchain/glibc-bootstrap.md), [MattOS GCC runtime bootstrap](toolchain/gcc-runtime-bootstrap.md), [MattOS native C/C++ toolchain](toolchain/native-toolchain.md), [MattOS Debian Packaging](../packaging/debian-packaging.md), [Debian Compatibility (Current State)](../packaging/debian-compatibility.md), [MattOS remote repository integration](../packaging/remote-repository.md), and [Bootstrap runtime audit](toolchain/bootstrap-runtime-audit.md).
 
 ## QEMU boot
 
@@ -258,8 +284,17 @@ python3 DevUtils/run_qemu.py --no-network
 
 `--no-network` omits both the QEMU network backend and NIC. It is the supported negative-test path for confirming that boot and the local authentication/base-administration stack do not depend on connectivity. The embedded package repository is also expected to support `apt-get update` and safe reinstall of `mattos-brush`, `tar`, `libbsd0`, `libzstd1`, and selected leaf-library consumers in this mode. Critical PAM, login, sudo, D-Bus, and systemd-related packages are inspected/extracted in a separate validation root rather than reinstalled underneath the active session.
 
-The default GRUB entry boots `rdinit=/usr/lib/systemd/systemd systemd.unit=mattos.target`.
-A rescue GRUB entry is also provided and boots MattOS Rust rescue init from `/usr/libexec/mattos/rescue-init`.
+Every GRUB entry in `src/boot/grub/grub.cfg` loads `initrd /boot/early-initramfs.cpio.xz` and boots `rdinit=/init`, the static early init built from `src/boot/live-init.c`; no entry passes `systemd.unit=`. The entries select a mode on the kernel command line, and the early init chooses the systemd target after switching to the live root:
+
+| Entry | Kernel argument | Result |
+| --- | --- | --- |
+| Start MattOS Live (default) | `mattos.mode=live` | systemd with `mattos-live-graphical.target` |
+| Start MattOS Live (CLI) | `mattos.mode=live-cli` | systemd with `mattos.target` |
+| Install MattOS (CLI) | `mattos.mode=install-cli` | systemd with `mattos-install-cli.target` |
+| MattOS Rescue | `mattos.rescue=1` | MattOS Rust rescue init at `/usr/libexec/mattos/rescue-init` |
+| MattOS AMD graphics diagnostics (CLI) | `mattos.mode=live-cli` plus DRM/AMDGPU debug options | systemd with `mattos.target` |
+
+Without a recognized mode the early init falls back to `mattos.target`.
 
 Live media no longer unpacks the complete system into initramfs memory. GRUB
 loads a small early archive whose static `/init` mounts the ISO SquashFS and a

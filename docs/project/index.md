@@ -8,7 +8,6 @@ What MattOS is trying to be and the rules every change must follow.
 - [Project Rules](rules.md)
 - [Repository Layout](repository-layout.md)
 - [Licensing](licensing.md)
-- [MattOS Project Audit](project-audit.md)
 - [Changelog](changelog.md)
 
 ## Sections

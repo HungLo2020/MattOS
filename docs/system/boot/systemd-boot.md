@@ -1,6 +1,7 @@
 # Systemd Boot Milestone
 
-Date: 2026-07-31
+The systemd import began as the 2026-07-31 milestone; this page describes
+the current integration.
 
 ## Upstream Source
 
@@ -38,52 +39,97 @@ Build outputs:
 
 The build directory is kept for incremental Ninja rebuilds. Reconfigure is triggered only when the tracked Meson option set changes.
 
-## Minimal Meson Configuration
+## Meson Configuration
 
-The current integrated configuration is intentionally minimal. It enables the base services required by the wired/QEMU and system D-Bus milestones:
+The integrated configuration enables the services MattOS uses and disables
+the rest:
 
-- Enabled services: `systemd-networkd`, `systemd-resolved`, `systemd-timesyncd`, `systemd-timedated`, `systemd-logind`
-- Fixed ephemeral service IDs: `systemd-network` 192, `systemd-resolve` 193, `systemd-timesync` 194
-- Disabled stacks: `homed`, `portabled`, `nspawn`, `oomd`, `remote`, `userdb`, `firstboot`, `bootloader`, `importd`, `vmspawn`, `coredump`, `pstore`, `machined`, `hostnamed`, `localed`, `nsresourced`
-- Enabled base-system integration: locally built kmod 34 from `out/build/kmod/install`
-- Enabled login integration: systemd's PAM support and locally built `pam_systemd.so`
-- Disabled security/optional integrations: `seccomp`, `acl`, `audit`, `blkid`, `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm2`, `qrencode`, `bpf-framework`
-- Disabled extras: docs, man pages, html, translations, tests, kernel-install extras, analyze utility
+- Enabled services and tools: `systemd-networkd` (built but masked in images;
+  see [MattOS Wired/QEMU Networking](../networking.md)), `systemd-resolved`,
+  `systemd-timesyncd`, `systemd-timedated`, `systemd-localed`,
+  `systemd-logind`, and `systemd-nspawn` (used by mattos-compat)
+- Fixed service IDs: `systemd-network` 192, `systemd-resolve` 193,
+  `systemd-timesync` 194
+- Disabled stacks: `homed`, `portabled`, `oomd`, `remote`, `userdb`,
+  `firstboot`, `bootloader`, `repart`, `sysupdate`, `importd`, `vmspawn`,
+  `coredump`, `pstore`, `machined`, `hostnamed`, `nsresourced`
+- Enabled base-system integration: MattOS-built kmod 34, util-linux
+  `libmount`, and `blkid` (so udev creates the `/dev/disk/by-uuid` and
+  `by-partuuid` links used by installed `fstab` entries)
+- Enabled login integration: systemd's PAM support, `libcrypt`, and the
+  MattOS-built `pam_systemd.so`
+- Enabled: `selinux` library support (compatibility only; MattOS ships no SELinux policy)
+- Disabled security/optional integrations: `seccomp`, `acl`, `audit`,
+  `libcryptsetup`, `openssl`, `gnutls`, `libfido2`, `tpm2`, `qrencode`,
+  `bpf-framework`
+- Disabled extras: man pages, HTML, translations, tests, kernel-install,
+  `systemd-analyze`
 - Journal default: volatile (`journal-storage-default=volatile`)
 
-The full option list is defined by `systemd_meson_options()` in `src/tools/mattos-build/src/main.rs`.
+The full option list is defined by `systemd_meson_options()` in
+`src/tools/mattos-build/src/stages/system_runtime.rs`.
 
 ## Rootfs and Boot Flow
 
-Normal boot flow:
+GRUB and the early `/init` are described in
+[Live and Installed Root Architecture](live-root.md). Once systemd is PID 1,
+the flows are:
 
 ```text
-GRUB -> Linux -> systemd (PID 1) -> getty -> login/PAM -> pam_systemd -> logind -> systemd --user -> Brush
+Live (default entry):  systemd -> mattos-live-graphical.target -> graphical.target
+                       -> display-manager.service (= plasma-greeter.service, greetd
+                          with /etc/greetd/plasma-live.toml) -> KDE Plasma (Wayland)
+                          as the live user `mattos`
+Installed Plasma:      systemd -> graphical.target -> plasmalogin.service
+                       -> PAM -> pam_systemd -> logind -> KDE Plasma (Wayland)
+Live CLI / Installed CLI:
+                       systemd -> mattos.target or multi-user.target -> getty
+                       -> login/PAM -> pam_systemd -> logind -> systemd --user -> Brush
+Install (CLI):         systemd -> mattos-install-cli.target -> mattos-install-cli.service
+                       (`mattos-install guided` on tty1)
 ```
+
+`plasma-greeter.service` has `Conflicts=getty@tty1.service`, so the tty1
+getty only runs in the CLI modes. On the live image, the tty1 and ttyS0
+gettys autologin the `mattos` user.
 
 Rescue flow:
 
 ```text
-GRUB rescue entry -> Linux -> /usr/libexec/mattos/rescue-init (Rust init fallback)
+GRUB "MattOS Rescue" (mattos.rescue=1) -> Linux -> early /init (mounts the live root)
+  -> /usr/libexec/mattos/rescue-init (Rust fallback init, not systemd)
 ```
 
-MattOS-owned units are stored in:
+MattOS-owned units are stored in `src/system/units/`:
 
-- `src/system/units/mattos.target`
-- `src/system/units/mattos-shell.service`
+- `mattos.target` (live CLI target; requires `multi-user.target`, wants
+  `getty@tty1.service`)
+- `mattos-live-graphical.target` (requires `graphical.target`)
+- `mattos-install-cli.target` and `mattos-install-cli.service`
+- `mattos-smoke.service` (boot smoke-validation oneshot)
+- `mattos-shell.service` (legacy root Brush shell on tty1; masked to
+  `/dev/null` in the image)
+- `getty@tty1.service.d/` and `serial-getty@ttyS0.service.d/` drop-in
+  directories
 
-Units are installed into:
+The live autologin drop-ins themselves come from the live profile under
+`src/system/profiles/live/etc/systemd/system/`; the installer removes them
+from installed systems.
 
-- `/usr/lib/systemd/system/`
+Units are installed into `/usr/lib/systemd/system/`. The live image's
+`default.target` is `mattos.target`; the early `/init` overrides it with
+`--unit=` on the systemd command line, chosen from `mattos.mode`. The installer points an installed
+system's `default.target` at `graphical.target` (Plasma profile) or
+`multi-user.target` (CLI profile).
 
-Rootfs now sets a merged `/usr` style layout with symlinks:
+The rootfs uses a merged `/usr` layout with symlinks:
 
 - `/bin -> usr/bin`
 - `/sbin -> usr/sbin`
 - `/lib -> usr/lib`
 - `/lib64 -> usr/lib64`
 
-Minimum runtime paths/files created for this milestone include:
+Runtime paths and files include:
 
 - `/etc/systemd/system/`
 - `/usr/lib/systemd/system/`
@@ -91,53 +137,49 @@ Minimum runtime paths/files created for this milestone include:
 - `/var/`
 - `/var/log/`
 - `/var/tmp/`
-- `/etc/machine-id` (empty for ephemeral live image initialization)
-- `/etc/systemd/network/20-mattos-wired.network` (Ethernet IPv4 DHCP)
+- `/etc/machine-id` (empty in the live image, initialized at boot)
 - `/etc/dbus-1/system.conf` and `/etc/dbus-1/system.d/`
 - `/usr/share/dbus-1/system.d/` and `/usr/share/dbus-1/system-services/`
 - `/run/dbus/system_bus_socket` (created by the system `dbus.socket` at runtime)
 - `/run/user/$UID` and `/run/user/$UID/bus` (created only at runtime by systemd/logind and the user socket)
-- `/etc/systemd/resolved.conf`, `/etc/systemd/timesyncd.conf`
+- `/etc/systemd/resolved.conf.d/10-mattos.conf`,
+  `/etc/systemd/timesyncd.conf.d/10-mattos.conf`
 - `/etc/nsswitch.conf`, `/etc/hosts`, `/etc/networks`
 - `/etc/resolv.conf -> /run/systemd/resolve/stub-resolv.conf`
 - `/etc/ssl/certs/ca-certificates.crt` (pinned Mozilla-derived bundle)
+- `/etc/systemd/system/systemd-networkd.service -> /dev/null` (networkd is
+  masked; NetworkManager configures interfaces)
 
 ## Runtime Library Closure
 
-Systemd runtime binaries are staged via Meson install and host dynamic library dependencies are copied into the rootfs using `ldd`-based scanning in the build orchestrator.
-
-This is a bootstrap limitation: runtime libraries currently come from the build host and are copied into the image. They are not yet built from a dedicated MattOS sysroot.
+systemd and its runtime libraries are built from source against the MattOS
+sysroot with the MattOS toolchain; no host libraries are copied into the
+image. The rootfs audit in `src/tools/mattos-build/src/stages/image.rs`
+rejects any ELF file compiled by a non-MattOS compiler, requires every
+executable to use the MattOS dynamic loader, and resolves each one's
+libraries with that loader against the target library directories only.
 
 Useful inspection commands:
 
 ```bash
-ldd out/build/rootfs/usr/lib/systemd/systemd
 readelf -d out/build/rootfs/usr/lib/systemd/systemd
+readelf -l out/build/rootfs/usr/lib/systemd/systemd | grep interpreter
 ```
 
 ## Setup Dependencies
 
-`DevUtils/setup.py` (Debian/Ubuntu family) installs missing packages required by the current MattOS + minimal systemd build workflow, including:
-
-- `meson`, `ninja-build`, `gperf`, `python3-jinja2`, `libmount-dev`
-
-alongside existing kernel/ISO/QEMU prerequisites.
-
-`cargo run -p mattos-build -- doctor` now checks:
-
-- required tools (`meson`, `ninja`, `gperf`, etc.)
-- Python Jinja import (`python3 -c "import jinja2"`)
-- pkg-config module for mount (`pkg-config --exists mount`)
+`DevUtils/setup.py` (Debian/Ubuntu family) installs the host build tools used
+by the systemd stage, including `meson`, `ninja-build`, `gperf` and
+`python3-jinja2`, alongside the kernel/ISO/QEMU prerequisites.
+`cargo run -p mattos-build -- doctor` reports missing host tools and the
+packages that provide them.
 
 ## Known Limitations
 
-The current image intentionally does not provide:
-
-- persistent installed-system users or sessions
-- persistent journal
-- Wi-Fi, SSH, a firewall policy, or physical Ethernet driver expansion beyond the QEMU virtio NIC
-- Polkit or another interactive D-Bus authorization agent; privileged operations require root or sudo
-- installed-disk boot/install support
-- package management
+- The journal is volatile (`journal-storage-default=volatile`), including on
+  installed systems; no `/var/log/journal` is created.
+- No MattOS firewall policy is installed.
+- `systemd-hostnamed`, `machined`, `homed` and the other disabled stacks
+  above are unavailable.
 
 The production system bus is the separately built dbus-broker described in [MattOS System D-Bus](../services/dbus.md). `systemd-logind` owns `org.freedesktop.login1`; PAM-registered sessions start UID-generic per-user managers and a separate socket-activated user broker as described in [Login Sessions and Per-User Services](../services/sessions.md).

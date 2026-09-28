@@ -29,7 +29,7 @@ Before configuring glibc, the build runs the kernel-supported UAPI export:
 make ARCH=x86 headers_install INSTALL_HDR_PATH=<repo>/out/sysroot/usr
 ```
 
-The source is the imported Linux tree at revision `f17f39c917cd4aac09db1a6a083ef5ec09b4924d`. Only exported UAPI headers under `out/sysroot/usr/include` are used; raw kernel-internal headers are neither copied into the sysroot nor packaged.
+The source is the imported Linux tree at revision `8ba098e6b6ff0db8edf28528d1552be261af30d4` (pinned in `upstream/sources.toml` and `upstream/state/linux.toml`). The UAPI provenance text that the `glibc` stage writes under `out/build/glibc` still records an older hard-coded revision (`f17f39c…`) from `stages/toolchain.rs`; the pinned revision above is authoritative. Only exported UAPI headers under `out/sysroot/usr/include` are used; raw kernel-internal headers are neither copied into the sysroot nor packaged.
 
 ## Build and sysroot
 
@@ -83,7 +83,7 @@ It holds Linux UAPI headers, glibc headers, crt objects, linker scripts, runtime
 
 The selected NSS/resolver inventory includes `libnss_files.so.2`, `libnss_dns.so.2`, `libnss_compat.so.2`, `libnss_db.so.2`, `libnss_hesiod.so.2`, and `libresolv.so.2`. systemd continues to provide `libnss_systemd.so.2` and `libnss_resolve.so.2`. This supports MattOS's `files systemd` account databases and `files resolve ... dns` host lookup policy.
 
-`libc-bin` depends on `libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. Locale data is not bulk-packaged. `libc6-dev` now owns the glibc headers, crt objects, static archives, and unversioned linker inputs required for native compilation, while `linux-libc-dev` uniquely owns the generated kernel UAPI layer.
+`libc-bin` depends on `libc6` and owns `getent`, `locale`, `ldd`, and `ldconfig`. The `locales` package ships glibc's `localedef` and the locale source data under `/usr/share/i18n`; compiled locales are not packaged. Image construction generates `en_US.UTF-8` in the rootfs, and the installer generates the locale selected for the installed system. `libc6-dev` now owns the glibc headers, crt objects, static archives, and unversioned linker inputs required for native compilation, while `linux-libc-dev` uniquely owns the generated kernel UAPI layer.
 
 `libgcc-s1` depends on `libc6`; `libstdc++6` depends on both. `mattos-bootstrap-runtime` is retired. Every other package receives a direct exact-version dependency on `libc6`, and direct compiler-runtime consumers declare the appropriate GCC runtime package. See [MattOS GCC runtime bootstrap](gcc-runtime-bootstrap.md).
 
@@ -99,9 +99,13 @@ The assembled rootfs is switched only after the build has validated representati
 
 The validator invokes the assembled MattOS loader with `--list`; `ldd` is not trusted as the final runtime authority. The kernel is not part of this consumer rebuild because it does not link to libc. The Rust rescue init and all dynamically linked Rust userland use the explicit MattOS linker/sysroot settings and are included in the same ELF inventory.
 
-The completed inventory contains 258 ELF objects: 193 dynamic executables with the exact MattOS interpreter and 65 shared objects. Isolated `--list` checks pass for Brush, dpkg, APT, curl, systemd, dbus-broker, login, and sudo. Source and build-log checks reject direct downstream `-I/usr/include` and `-L/usr/lib` use; the only observed host library search during glibc itself is GCC's compiler-internal directory, which is part of the documented bootstrap compiler boundary.
+### History: glibc migration measurements
 
-Two clean full builds produced byte-identical glibc installation trees, all 54 packages, all 57 repository files, the ELF inventory, initramfs, and ISO. Deterministic image construction fixes file timestamps to `SOURCE_DATE_EPOCH`, uses reproducible sorted `cpio` plus headerless gzip output, fixes ISO metadata dates, and emits the supported BIOS GRUB image from the `i386-pc` modules.
+The following figures were recorded when the glibc migration landed and are a dated snapshot, not the current image. At that time the completed inventory contained 258 ELF objects: 193 dynamic executables with the exact MattOS interpreter and 65 shared objects. Isolated `--list` checks pass for Brush, dpkg, APT, curl, systemd, dbus-broker, login, and sudo. Source and build-log checks reject direct downstream `-I/usr/include` and `-L/usr/lib` use; the only observed host library search during glibc itself is GCC's compiler-internal directory, which is part of the documented bootstrap compiler boundary.
+
+At that time, two clean full builds produced byte-identical glibc installation trees, all 54 packages then in the set, all 57 repository files, the ELF inventory, initramfs, and ISO, and the image used a BIOS GRUB image built from the `i386-pc` modules.
+
+Deterministic image construction still fixes file timestamps to `SOURCE_DATE_EPOCH`, uses reproducible sorted `cpio` plus headerless gzip output, and fixes ISO metadata dates. The current image's GRUB boot image is built with `grub-mkimage -O x86_64-efi` (`BOOTX64.EFI`); see `stages/image.rs`.
 
 ## Native-toolchain continuation
 

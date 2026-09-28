@@ -3,38 +3,69 @@
 MattOS boots live media through three deliberately separate layers:
 
 1. GRUB loads the Linux kernel and `early-initramfs.cpio.xz`.
-2. The initramfs contains only a static MattOS-owned `/init`. It mounts
-   devtmpfs, procfs, sysfs, and tmpfs; locates the ISO CD-ROM; attaches
-   `/live/rootfs.squashfs` read-only through a loop device; mounts it as the
-   lower layer of a tmpfs-backed overlay; and switches root.
-3. systemd starts from the complete live root and reaches `mattos.target`.
+2. The early initramfs contains a static MattOS-owned `/init`
+   (`src/boot/live-init.c`), a boot-critical kernel-module closure and any
+   firmware those modules need. `/init` mounts devtmpfs, procfs and sysfs,
+   loads the boot-critical modules, and mounts a tmpfs on `/run`. It then scans
+   every block device in `/sys/class/block` (CD-ROM, USB or other storage) for
+   an ISO9660 filesystem labelled `MATTOS_LIVE`, waiting up to 60 seconds, and
+   mounts it read-only at `/run/mattos/medium`. It attaches
+   `/live/rootfs.squashfs` from the medium read-only through a loop device,
+   mounts it at `/run/mattos/lower` as the lower layer of an OverlayFS whose
+   upper and work directories live on a tmpfs at `/run/mattos/writable`, and
+   switches root.
+3. `/init` picks the next step from the kernel command line:
 
-The writable upper and work directories live in RAM under `/run/mattos`.
-Changes made during a live session disappear at reboot. The immutable lower
-filesystem remains suitable as the package/root payload source for a future
-installer, but an installed MattOS system will unpack/install that payload to
-a writable target filesystem and use an installed-system initramfs rather
-than booting permanently from SquashFS.
+   | Command line | Started as PID 1 |
+   | --- | --- |
+   | `mattos.mode=live` | systemd, `mattos-live-graphical.target` (KDE Plasma live session) |
+   | `mattos.mode=install-cli` | systemd, `mattos-install-cli.target` |
+   | `mattos.mode=live-cli` or anything else | systemd, `mattos.target` |
+   | `mattos.rescue=1` | `/usr/libexec/mattos/rescue-init` instead of systemd |
+
+Changes made during a live session live in RAM and disappear at reboot.
+
+Installed systems do not boot from the SquashFS image. The installer
+(see [MattOS Installer](../installer.md)) composes the target with `dpkg` from
+the offline package repository on the ISO, not by copying the live root. The
+repository sits on the medium at `/mattos/repository`; in the live root,
+`/usr/share/mattos/repository` is a symbolic link to
+`/run/mattos/medium/mattos/repository`. Installed systems use their own
+installed-system initramfs. The live root does not include the
+`mattos-toolchain` development packages (GCC, Clang/LLVM, Rust), which every
+installed system receives.
 
 ## Filesystem choice
 
-SquashFS with XZ is used because it is mature, directly supported by the
-MattOS kernel, simple to mount from ISO media, reproducible with the pinned
-build epoch, and already available in the build environment. EROFS is also a
-sound read-only filesystem, but adopting it here would add a new host tool and
-does not provide a required capability that SquashFS lacks for this image.
+The live root is SquashFS, compressed with zstd at level 12 and a 1 MiB block
+size (`LIVE_ROOT_SQUASHFS_COMPRESSION` and `LIVE_ROOT_SQUASHFS_LEVEL` in
+`src/tools/mattos-build/src/main.rs`, the `-b 1M` argument in
+`stages/image.rs`), built with `-all-root`. SquashFS is mature, simple to mount
+from ISO media, and reproducible with the pinned build epoch. zstd decompresses
+much faster than XZ, which matters for a desktop live session read from
+removable media. EROFS is also a sound read-only filesystem, but adopting it
+would add a new host tool without providing a capability that SquashFS lacks
+for this image.
+
+The MattOS kernel is modular (`CONFIG_MODULES=y`), but the filesystems needed
+before any module can be loaded from the live root are built in: ISO9660,
+SquashFS (with zstd and XZ), OverlayFS, devtmpfs and the loop driver. The build
+refuses to create the early initramfs if any of them is not `=y`.
 
 ## Ownership and separation
 
 `src/boot/live-init.c` is first-party source and is statically compiled using
 the MattOS GCC, glibc, and libgcc formal sysroot. The early archive is
-allowlist/role driven: it contains only `/init`. Python, LLVM, Clang, LLD,
-rustc, Cargo, Git, Brush, systemd, package payloads, and future desktop
-components belong exclusively to the SquashFS live root.
+allowlist/role driven. `stage_boot_module_closure` in `stages/image.rs`
+resolves the boot-critical modules and their `modules.dep` dependencies
+(currently 40 modules) and copies only the firmware those modules declare.
+Shells, language runtimes, systemd, package payloads and the desktop belong
+exclusively to the SquashFS live root.
 
 The build emits:
 
-- `out/reports/early-initramfs-inventory.tsv`
+- `out/reports/early-initramfs-inventory.tsv` (`/init`, the module closure,
+  the firmware and the compressed archive size)
 - `out/reports/live-root-inventory.tsv`
 - `out/reports/live-image-inventory.tsv` (layer sizes, top-level totals, and
   the 25 largest root payload files)
@@ -49,6 +80,7 @@ full-root-in-initramfs architecture. They are not valid MattOS build outputs;
 the artifact reporter fails closed if one coexists with the current layers.
 
 The cache chain is `repository -> rootfs -> live-root -> ISO`. The early
-initramfs instead depends on its source and the formal sysroot. A GRUB-only
-change invalidates only the ISO, and an early-init change does not rebuild or
-recompress the complete live root.
+initramfs depends on its sources, `formal-sysroot` and `linux` (for the kernel
+modules). The ISO depends on `linux`, `live-root`, `initramfs`, `grub` and
+`repository`. A GRUB-configuration-only change invalidates only the ISO, and
+an early-init change does not rebuild or recompress the complete live root.

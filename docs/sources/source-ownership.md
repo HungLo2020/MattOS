@@ -99,11 +99,11 @@ Run:
 
 ```text
 python3 DevUtils/generate_source_overrides.py
-python3 DevUtils/test_source_ownership_overrides.py
+python3 DevUtils/tests/test_source_ownership_overrides.py
 ```
 
 The first command validates source/patch provenance and regenerates the derived ownership catalog. The second exercises source-qualified resolution, canonical/private mirror separation, Git-format output-patch application, idempotent consumer patching, build-mirror patch ordering, lock-derived transitive owned-source closure, derived-lock reconciliation, Cargo metadata resolution-policy propagation, gitlink replacement behavior, metadata fail-closed checks, provenance agreement, and preservation of pristine imported manifests.
-# Desktop integration provenance
+## Desktop integration provenance
 
 MattOS Flatpak and APT policy resources live in
 `src/system/packages/config/{flatpak,apt}`, outside the corresponding imported

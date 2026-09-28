@@ -12,5 +12,5 @@ The wiki is organized as a strict hierarchy: every directory has an index page l
 - [Guides](guides/index.md): Using MattOS: installing it and working with an installed system.
 - [Build System](build-system/index.md): Building MattOS with the Rust `mattos-build` orchestrator: commands, the stage graph and cache contract, and performance.
 - [Sources](sources/index.md): How upstream source is imported, pinned, owned and kept in sync.
-- [Packaging](packaging/index.md): Debian packages, the MattOS APT repository, Debian 13 compatibility, and publishing.
+- [Packaging](packaging/index.md): Debian-format packages, the MattOS APT repository, current (not guaranteed) Debian 13 compatibility, and publishing.
 - [System](system/index.md): The components of a running MattOS system.

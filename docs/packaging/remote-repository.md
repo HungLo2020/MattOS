@@ -38,17 +38,28 @@ After a successful build, upload every generated `amd64` binary package with:
 python3 DevUtils/PublishPackages.py
 ```
 
-The script reuses `run_qemu.py`'s doctor and `build all` path, recursively
-reads the authoritative artifact list from `out/packages/inventory.toml`, and
-passes exactly that set to the vendored `ManageMattOSRepository.py --repo mattos upload`
-command. Stale `.deb` files left in `out/packages/amd64` are ignored. Package
-names are not maintained in the script. `--no-build` uses existing artifacts
-and `--dry-run` validates and prints the manager invocation without uploading.
+The script first reuses `run_qemu.py`'s `build_if_needed` path (`mattos-build
+doctor`, then `build all`) unless `--no-build` is given; `--clean` runs
+`mattos-build clean artifacts` before that build. It then reads
+`out/packages/inventory.toml` with `tomllib` and takes the `artifact_path` of
+each top-level `[[package]]` entry. Every artifact must resolve inside
+`out/packages/amd64`, be a regular (non-symlink) `.deb`, and appear only once;
+a duplicate or malformed entry is an error. Stale `.deb` files left in
+`out/packages/amd64` but absent from the inventory are ignored, and package
+names are not maintained in the script. It passes exactly that sorted set to
+the vendored publisher as
+`ManageMattOSRepository.py --non-interactive --repo mattos upload ...`.
+
+`--dry-run` still builds (unless `--no-build` is also given) and still runs the
+publisher, now with `--non-interactive --dry-run`. The publisher validates each
+package with `dpkg-deb --show`, checks its architecture, rejects duplicate
+name/version/architecture entries, prints
+`Dry run: upload N validated package(s)`, and exits without uploading.
 
 ## Manual validation handoff
 
-To validate approved build outputs and print—without executing—the future
-publisher command:
+To validate approved build outputs and print—without executing—the publisher
+command:
 
 ```text
 cargo run -p mattos-build -- package publish-plan \
@@ -58,8 +69,9 @@ cargo run -p mattos-build -- package publish-plan \
 Every selected file must exist, end in `.deb`, resolve beneath the canonical
 `out/packages/` directory, and exactly match the path and SHA-256 in
 `out/packages/inventory.toml`. Symlink escapes, missing files, directories,
-non-package files, and unrecorded or changed artifacts are rejected. Duplicates
-are removed deterministically. A successful command only prints the exact
+non-package files, and unrecorded or changed artifacts are rejected. Naming
+the same artifact more than once is an error ("duplicate publication artifacts
+are not allowed"). A successful command only prints the exact
 `python3 .../ManageMattOSRepository.py --repo mattos upload ...` invocation; it does not run
 the script, access credentials, or mutate the imported source. Use
 `DevUtils/PublishPackages.py` for the actual build-and-upload workflow.
@@ -68,7 +80,12 @@ the script, access credentials, or mutate the imported source. Use
 administration commands such as `init`, `remove`, and `publish` remain manual
 operations.
 
-The hosted deb822 APT source is an intentionally disabled, signed scaffold at
-`https://packages.mattsherfey.com`. Its published Release metadata must use
-`Origin: MattOS`, `Label: MattOS`, `Suite: trixie`, and `Codename: trixie`;
-local media retains the distinct `Label: MattOS Local` identity and higher pin.
+The hosted deb822 APT source at `https://packages.mattsherfey.com` is enabled
+on both the live image and installed systems and is verified with
+`Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc`. Its published
+Release metadata must use `Origin: MattOS`, `Label: MattOS`, `Suite: trixie`,
+and `Codename: trixie`; the local repository keeps the distinct
+`Label: MattOS Local` identity. Both are pinned at `990`, so a newer hosted
+version is a normal upgrade candidate while the local repository still
+provides a complete offline closure. See
+[APT source and pin policy](debian-packaging.md#apt-source-and-pin-policy).

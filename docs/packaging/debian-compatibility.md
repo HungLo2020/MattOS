@@ -9,15 +9,19 @@
 
 MattOS uses Debian's package formats and tooling (`.deb`, `dpkg`, APT) on
 `amd64` with a MattOS-built and MattOS-controlled critical base. MattOS
-repositories take precedence. Debian, where configured, is only a
-supplemental source for optional software and may not replace protected
-infrastructure.
+repositories take precedence. Debian sources are shipped but disabled; if an
+administrator enables them, Debian is only a supplemental source for optional
+software and may not replace protected infrastructure.
 
 The machine-readable mapping of the current state is
-`src/system/packages/debian-compat/trixie.toml`. It maps all 66 installed
-packages to source, representative owned paths, ABI or command surface,
+`src/system/packages/debian-compat/trixie.toml`. It maps every package in
+`PACKAGE_NAMES` (`src/tools/mattos-build/src/packaging/registry.rs`; 332 at the
+time of writing) to source, representative owned paths, ABI or command surface,
 protection, deterministic version, Debian dependency role, classification, and
-known gaps. `protected.toml` is the authoritative protected-name inventory.
+known gaps, and may record a Debian epoch. Classifications are
+`debian-compatible`, `mattos-alternative`, `mattos-extension`, and
+`mattos-specific`. `protected.toml` is the authoritative protected-name
+inventory.
 The build rejects an incomplete mapping, invalid classification or version,
 missing protected pin, unsafe source configuration, changed LinuxScripts
 publisher, or nested Git metadata.
@@ -27,15 +31,15 @@ publisher, or nested Git metadata.
 | Interface | Current MattOS behavior |
 | --- | --- |
 | package identity | Real Trixie binary names are used only where the current payload is a credible replacement. MattOS-only packages keep `mattos-`. |
-| versions | Debian syntax and `dpkg` comparison; releases use `<upstream>-1mattos<N>`, snapshots `0~git.<12hex>-1mattos<N>`, never timestamps. |
+| versions | Debian syntax and `dpkg` comparison; releases use `<upstream>-1mattos<N>`, snapshots `0~git.<12hex>-1mattos<N>`, with a Debian epoch where `trixie.toml` records one; `dpkg` itself uses `<changelog version>+git.<8hex>-1mattos<N>`; never timestamps. |
 | architecture | `Architecture: amd64`; no foreign-architecture or multiarch co-install support. |
 | libraries | Runtime DSOs use `/usr/lib/x86_64-linux-gnu`, with Debian-relevant SONAME and symbol-version checks recorded by the ELF audit. |
 | loader | Dynamic executables use `/lib64/ld-linux-x86-64.so.2`. |
 | filesystem | merged `/usr`: `/bin`, `/sbin`, and `/lib` resolve into `/usr`; package paths and common commands remain conventional. |
 | package state | `/var/lib/dpkg` is initialized as mutable state and populated through real `dpkg`; packages never ship its status, locks, or generated `info` data. |
-| APT | deb822 sources, `/etc/apt/preferences.d`, conventional cache/list/log directories, and the embedded `file:` repository are present. |
-| maintainer scripts | `dpkg` supplies Brush through both `/bin/sh` and `/bin/bash`; basic pre/post install/remove scripts are supported. Perl-based helpers are not. |
-| systemd | PID 1, system units, enablement links, D-Bus, logind, and `pam_systemd` work, but the systemd executable tree is not yet owned by a `systemd` package. |
+| APT | deb822 sources, `/etc/apt/preferences.d`, conventional cache/list/log directories, the local `file:` repository, and the signed hosted MattOS repository are present. |
+| maintainer scripts | Brush is available as both `/bin/sh` and `/bin/bash`; basic pre/post install/remove scripts are supported. Perl-based helpers are not. |
+| systemd | The `systemd` package owns PID 1, `systemctl`, the udev executables, and the unit tree; it is `Essential: yes` and `Provides: systemd-sysv`. D-Bus, logind, and `pam_systemd` work. |
 | metadata | conffiles are honored; the alternatives database and `update-alternatives` exist; full Debian trigger/helper coverage is not claimed. |
 | dependencies | Build-time graph checks require every named dependency to resolve and ABI-coupled MattOS dependencies use exact versions. |
 
@@ -60,11 +64,19 @@ names. These include `libc6`, `libc-bin`, `libc6-dev`, `linux-libc-dev`,
 `libxxhash0`, `tar`, `dbus-broker`, `libpam0g`, `libpam-modules`,
 `libpam-runtime`, `passwd`, `login`, `iproute2`, and `iputils-ping`.
 
-MattOS-specific packages are `mattos-filesystem`, `mattos-base-files`,
-`mattos-brush`, `mattos-gcc-common`, `mattos-libgcc-dev`,
-`mattos-libstdc++-dev`, `mattos-libcrypto3`, `mattos-libtinfow6`,
-`mattos-libproc2`, `mattos-libpam-misc0`, and `mattos-sudo-rs`. The GCC 15
-development packages deliberately do not claim Trixie's GCC 14 identities.
+The list above is representative; many more packages (for example `systemd`,
+`util-linux`, `gpgv`, `python3`, `git`, `rustc`, `cargo`, and the Qt, KDE, Mesa,
+and X11 libraries) also use Debian names. `trixie.toml` is the complete record.
+
+Packages classified `mattos-specific` in `trixie.toml` currently are
+`mattos-filesystem`, `mattos-compat`, `mattos-base-files`,
+`mattos-base-runtime`, `mattos-base`, `mattos-cli`, `mattos-plasma`,
+`mattos-plasma-live`, `mattos-plasma-theme`, `mattos-toolchain`,
+`mattos-installer`, `mattos-cozy`, `mattos-brush`, `mattos-gcc-common`,
+`mattos-libgcc-dev`, `mattos-libstdc++-dev`, `mattos-libcrypto3`,
+`mattos-libtinfow6`, `mattos-libproc2`, `mattos-libpam-misc0`, and
+`mattos-sudo-rs`. The GCC 15 development packages deliberately do not claim
+Trixie's GCC 14 identities.
 
 ## Versions and protected transactions
 
@@ -74,27 +86,37 @@ branch that cannot supply a release version sorts conservatively as a
 high version. Tests exercise Debian 13 versions, epochs, `~` prereleases,
 MattOS revisions, and downgrade ordering with `dpkg --compare-versions`.
 
-APT priority is:
+APT priority (`src/system/packages/config/apt/00mattos-priority`, and the
+installed-system copy under `config/apt/installed/`) is:
 
-1. embedded local MattOS: `1001`, matching `o=MattOS,l=MattOS Local,n=trixie`;
+1. local MattOS: `990`, matching `o=MattOS,l=MattOS Local,n=trixie`;
 2. hosted MattOS: `990`, matching `o=MattOS,l=MattOS,n=trixie`;
 3. Debian Trixie: `500`, matching `o=Debian,n=trixie`.
 
 Every name in `protected.toml` has an additional Debian-origin priority of
-`-1`. Reserved gap names such as `systemd`, `util-linux`, Debian's GCC 14
-development packages, and kernel metapackages are protected even before MattOS
-ships a matching package. This prevents Debian from silently taking ownership
-of files already supplied through another MattOS boundary.
+`-1`. Some protected names are reserved before MattOS ships a matching
+package: of the current list, `libgcc-14-dev`, `libstdc++-14-dev`,
+`linux-image-amd64`, and `linux-headers-amd64` are not MattOS packages. This
+prevents Debian from silently taking ownership of files already supplied
+through another MattOS boundary.
 
 The local repository publishes `Origin: MattOS`, `Label: MattOS Local`,
 `Suite: trixie`, and `Codename: trixie`. Its unsigned `file:` source alone uses
-the temporary `Trusted: yes` bootstrap exception. Hosted MattOS and Debian
-deb822 sources are shipped disabled so offline live boot never contacts them;
-they use `Signed-By` paths and never use `Trusted: yes`. Enabling them is a
-future administrative action after their keyrings and APT remote methods are
-installed.
+the `Trusted: yes` local exception. The hosted MattOS source is enabled on both
+the live image and installed systems and uses `Signed-By:
+/usr/share/keyrings/mattos-archive-keyring.asc`. Only the Debian sources are
+shipped disabled; they use `Signed-By:
+/usr/share/keyrings/debian-archive-keyring.asc` and never `Trusted: yes`, and
+the installer refuses to produce an installed system with them enabled.
+Enabling Debian is an explicit administrative action. See
+[APT source and pin policy](debian-packaging.md#apt-source-and-pin-policy) for
+the full live and installed policy.
 
-## Controlled Debian test
+## Controlled Debian test (historical)
+
+This is a dated record of an earlier experiment, run when the package set was
+much smaller and every remote source, including hosted MattOS, was shipped
+disabled. Its results describe that earlier state, not the current policy.
 
 The Trixie `amd64` Packages metadata and Debian archive signatures were checked
 in an isolated APT root. The resolver selected MattOS candidates for protected
@@ -113,14 +135,18 @@ and removed. No protected package was installed, removed, downgraded, or
 replaced. In the regular and disconnected guests, local `apt-get update`,
 `apt-get -s upgrade`, and `apt-get -s full-upgrade` completed with zero
 transactions. The disconnected guest also reinstalled `iputils-ping` from the
-embedded repository without attempting either remote.
+embedded repository without attempting either remote, which reflects the
+all-remotes-disabled policy of that time.
 
 ## Known gaps
 
-- The systemd executable/unit tree is assembled directly and is not yet owned
-  by a `systemd` binary package. Debian `systemd` remains blocked.
-- MattOS has no accurate `util-linux` aggregate package; `login` currently owns
-  `login`, `su`, and `agetty`, while `mount` owns mount commands.
+- Debian's `systemd` remains blocked by the `-1` pin even though MattOS now
+  ships its own `systemd` package.
+- MattOS `util-linux` ships only a subset of administration commands (for
+  example `lsblk`, `fdisk`, `wipefs`, `findmnt`); nonessential and legacy
+  commands are deliberately omitted. `login` owns `login`, `su`, `agetty`, and
+  `sulogin`, some of which Debian places in `util-linux`, and `mount` owns the
+  mount commands.
 - `curl` still owns `libcurl.so.4`; a separate Trixie `libcurl4t64` package is
   not claimed.
 - Debian `libssl3t64` also owns `libcrypto.so.3`; MattOS keeps crypto in
@@ -133,9 +159,12 @@ embedded repository without attempting either remote.
   remain MattOS-specific, so packages with exact `libgcc-14-dev` or
   `libstdc++-14-dev` dependencies are unsupported.
 - Locale breadth, documentation, optional plugins, Perl maintainer tooling,
-  complete triggers/alternatives helpers, foreign architectures, repository
-  signing, and arbitrary maintainer-script behavior remain incomplete.
+  complete triggers/alternatives helpers, foreign architectures, and arbitrary
+  maintainer-script behavior remain incomplete. The local `file:` repository
+  is unsigned and relies on `Trusted: yes`; the hosted repository is signed
+  and verified with the packaged `gpgv`, and installed systems set
+  `Acquire::AllowInsecureRepositories "false"`.
 
-Future work—not part of this milestone—includes CPython, Perl, Autotools,
-pkg-config, Meson/Ninja/CMake, Git, Rust/Cargo/rustup, complete native rebuild
-and ISO generation, the desktop stack (now KDE Plasma), installer technology, and hosted publication.
+CPython, Git, Rust (`rustc`, `cargo`), KDE Plasma, the installer, and hosted
+publication (`DevUtils/PublishPackages.py`) now exist. Still absent are Perl,
+Autotools, pkg-config/pkgconf, Meson, Ninja, and CMake as MattOS packages.

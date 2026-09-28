@@ -4,29 +4,38 @@
 
 The canonical orchestrator is `src/tools/mattos-build`.
 
+`src/tools/mattos-build/src` contains a set of Rust modules declared from
+`main.rs`, plus recipe and command files that `main.rs` pulls in with
+`include!` and that therefore share its namespace.
+
 | Module | Responsibility |
 | --- | --- |
-| `main.rs` | CLI, stage execution dispatch, build recipes, source import/sync, rootfs and image assembly. |
-| `stage_graph.rs` | Stage identity, deterministic build order, direct output dependencies, package/repository artifact graph, and graph-level invalidation analysis. |
-| `performance.rs` | Invocation telemetry and integrity-cache coordination, configuration hashing, output inventories, diagnostics, logged commands, and atomic publication helpers. |
-| `stage_cache.rs` | Stage input evaluation, manifests, cache decisions, execution, migration, and explanations. |
+| `main.rs` | CLI definition and dispatch, `build all` node construction for the scheduler, single-stage execution, and the `include!` list for the files below. |
+| `commands/*.rs` (`include!`d) | `doctor`, `cache`, artifact reports and `image`, and WSL helper commands. |
+| `source/*.rs` (`include!`d) | Upstream import/sync (`import.rs`), with source selection, provenance, Git LFS, and patch application in `selection.rs`, `provenance.rs`, `lfs.rs`, and `patches.rs`. |
+| `stages/*.rs` (`include!`d) | Stage recipes grouped by area (`toolchain.rs`, `libraries.rs`, `qt.rs`, `plasma.rs`, `image.rs`, ...). `stages/registry.rs` builds each stage's `StageSpec` (outputs, tools, virtual `linux-headers`/`formal-sysroot` specs, target-toolchain cache key) and dispatches to recipes; `stages/helpers/` holds the shared Autotools, Meson, Cargo, pkg-config, native-build, and command-runner helpers. |
+| `stage_graph.rs` | `BuildStage` identities, stage IDs, direct dependencies (`direct_dependencies`), deterministic build order, package/repository artifact graph, and graph-level invalidation analysis. |
+| `stage_inputs.rs` | Per-stage source roots, configuration inputs, tool names, and recipe revisions. |
+| `recipe_projection.rs` | Per-stage projection of shared `stages/*.rs` recipe files (see Cache Contract). |
+| `cache_manifest.rs` | Serialized `StageSpec`, input, tool, dependency, and manifest types, and the manifest schema version. |
+| `stage_cache.rs` | Stage input evaluation, cache decisions, cached execution, manifest migration, and explanations. |
+| `performance.rs` | Timing/telemetry, stage logs and logged command execution, integrity-cache coordination, output inventories and digests, and atomic publication helpers. |
+| `timing.rs` | Timing report record types. |
+| `scheduler.rs` | Resource-aware DAG executor for `build all`, admission, child-job policy, failure policy, and scheduler trace. |
+| `jobserver.rs` | Shared GNU make jobserver for one invocation. |
+| `resources.rs` | Host/cgroup resource discovery, CPU/RAM budgets, and runtime memory-pressure sampling. |
 | `integrity_index.rs` | Checksummed persistent output-file fingerprints and content digests under `out`. |
-| `packaging.rs` | Package definitions, package cache keys, staging, Debian artifacts, package facts, repository generation, and package installation. |
+| `packaging.rs` and `packaging/*.rs` | Package build, staging (`staging.rs`), package definitions (`registry.rs`), package cache (`cache.rs`), audits (`audit.rs`), and repository generation (`repository.rs`). |
 | `elf_cache.rs` | Content-addressed ELF inspection facts. |
 | `source_identity.rs` | Invocation-scoped Git index and working-tree source selection, canonical serialization, and digest generation. |
 | `tool_identity.rs` | Canonical executable resolution and stable version/target probing. |
-| `resources.rs` | Startup host/cgroup resource discovery and deterministic CPU/RAM build budgets. |
 
-The next safe decomposition steps are mechanical extractions behind existing APIs:
-
-1. `stage_specs`: output declarations and recipe revisions, completing the existing `stage_inputs` extraction.
-2. `timing`: reports, diagnostics, and logged command execution.
-3. `toolchain`: Linux, glibc, GCC runtime/compiler, Binutils, Make, and sysroot recipes.
-4. `source`: import, projection, provenance, and upstream synchronization.
-5. `image`: rootfs, initramfs, ISO assembly, and semantic validators.
-6. `packages`: package policy/cache, payload staging, repository, and installation submodules.
-
-These boundaries must be introduced incrementally. Moving a function is not sufficient: its inputs and outputs must become explicit, and stage IDs, recipe strings, normalized environment, and manifest schemas must remain stable unless a deliberate migration is supplied.
+Further decomposition (for example turning the `include!`d files into real
+modules) must be introduced incrementally. Moving a function is not
+sufficient: its inputs and outputs must become explicit, and stage IDs, recipe
+strings, normalized environment, and manifest schemas must remain stable unless
+a deliberate migration is supplied. Because recipe files are cache inputs,
+moving code between them also changes the affected stages' identities.
 
 ## Resource-aware scheduler foundation
 
@@ -63,9 +72,11 @@ reclaimed as they are returned. The pool is also memory-aware: it never
 exceeds the tokens already held by running jobs plus the measured build-memory
 headroom divided by the largest per-job memory estimate among the building
 stages (at least 512 MiB). The pool grows by at most one token per pass and
-shrinks immediately. Sustained swap-in counts as memory pressure (4 MiB/s
-constrained, 32 MiB/s critical), since pages faulting back from swap mean the
-working set no longer fits. Serial and capped stages keep fixed limits.
+shrinks immediately. Sustained swap-in counts as memory pressure (1,024
+pages/s, 4 MiB/s with 4 KiB pages, is constrained; 8,192 pages/s, 32 MiB/s, is
+critical), since pages faulting back from swap mean the working set no longer
+fits. Sustained swap-out also counts (256 pages/s constrained, 4,096 pages/s
+critical). Serial and capped stages keep fixed limits.
 Single-stage `build <stage>` runs do not use the jobserver.
 
 ### Compiler cache
@@ -81,10 +92,11 @@ reuses objects. Hits are byte-identical objects, so ccache accelerates rebuilds
 without affecting outputs. It does not cache Rust (rustc).
 
 Admission is deterministic for a fixed snapshot and ready-set order. It always
-requires a profile's minimum CPU and memory estimate, reserves minimum CPU for
-already-ready peers before lending idle capacity, and prevents a new action
-from crossing the memory budget. Existing swap use reduces memory-heavy
-concurrency to one and disables borrowed CPU grants. Without the shared
+requires a profile's minimum CPU and memory estimate, sets aside the minimum
+grants of ready peers that could run (capped at half of the idle CPUs) before
+lending idle capacity, and prevents a new action from crossing the memory
+budget. Borrowing idle CPU beyond a profile's preferred baseline is allowed
+only while pressure is healthy. Without the shared
 jobserver (single-stage builds) a grant is chosen only at launch; with it,
 running stages grow and shrink through jobserver tokens instead of any
 mid-command resizing.
@@ -92,11 +104,14 @@ mid-command resizing.
 The scheduler also samples the resource envelope before each launch decision.
 It refreshes effective available/cgroup memory, `pswpin`/`pswpout`, and Linux
 memory PSI `some avg10` when available. Existing swap occupancy is telemetry,
-not pressure: only counter deltas/rates, PSI, or low headroom can raise the
-pressure level. Levels are `healthy`, `constrained`, and `critical`. Worsening
-is immediate; recovery requires two lower-pressure samples. Healthy stages may
-borrow idle CPU, constrained stages use only their safe grants and allow one
-memory-heavy action, and critical pressure admits no new memory-heavy action.
+not pressure: no scheduler decision reads it. Only swap-in/swap-out rates, PSI
+(`some avg10` of 5% or more is constrained), or low build-memory headroom can
+raise the pressure level. Levels are `healthy`, `constrained`, and `critical`.
+Worsening is immediate; recovery requires two lower-pressure samples. Healthy
+pressure allows as many concurrent memory-heavy actions as there are CPU
+tokens (memory admission remains the real limit) and lets stages borrow idle
+CPU; constrained pressure uses only preferred baseline grants and allows one
+memory-heavy action; critical pressure admits no new memory-heavy action.
 Running child processes are never killed or resized.
 
 Each stage trace record includes its profile estimate, start/end available RAM,
@@ -123,13 +138,14 @@ the exact transitive downstream closure in `stage_graph` must miss. Missing or
 corrupted outputs invalidate their owner; downstream work is necessary only if
 the repaired output digest differs.
 
-Target stages also carry a `<target-toolchain>` pseudo-dependency: the output
+Target stages also carry a `<target-toolchain-v2>` pseudo-dependency (`TARGET_TOOLCHAIN_CACHE_KEY` in `stages/registry.rs`; the version suffix lets manifests keyed by an older definition migrate): the output
 digests of `cross-toolchain` and `gcc-runtime` plus the compiler wrappers in
 `out/toolchain/bin`. Target code reaches the compiler through PATH rather than
 through a published dependency, so without it a toolchain change that leaves
 the sysroot bytes unchanged would not invalidate them. The toolchain stages
-themselves, `linux` (built by the pass-1 compiler, a direct dependency),
-`formal-sysroot`, `packages` and `repository` do not carry it. A manifest
+themselves (`cross-toolchain`, `glibc`, `gcc-runtime`), `linux` (built by the
+pass-1 compiler, a direct dependency), the virtual `linux-headers` and
+`formal-sysroot` nodes, `packages` and `repository` do not carry it. A manifest
 written before the key existed adopts it without a rebuild only when the
 workspace guard's marker (`out/state/toolchain-markers/<stage>`) records the
 current toolchain for that stage.
@@ -144,39 +160,49 @@ stage. Files that define no other stage's recipe are hashed whole.
 
 Cargo-built userland (`brush`, `coreutils`, `grep`, `sed`, `findutils`,
 `diffutils`, `init`, `sudo-rs`, `greetd`, `cozy`, `installer`, and the
-`mattos-compat` package) and Meson's Rust support (`mesa`) are compiled by the
-MattOS rustc from the `rust` stage, which is their declared dependency. The
+`mattos-compat` package) and Meson builds with Rust components (`dbus-broker`,
+`mesa`, `gstreamer`) are compiled by the MattOS rustc from the `rust` stage,
+which is their declared dependency. The
 rootfs audit rejects any ELF whose `.comment` names a GCC, rustc or Clang other
 than the MattOS-built ones.
 
 The package layer is an explicit artifact node. Package producer output or
 package metadata changes invalidate `packages`; changed package inventory or
 artifacts invalidate `repository` and `rootfs`; changed rootfs bytes invalidate
-`initramfs`; changed initramfs bytes invalidate `iso`.
+`live-root`; changed live-root, repository, initramfs, GRUB, or Linux bytes
+invalidate `iso`. The early `initramfs` does not consume the rootfs: it
+depends on `formal-sysroot` and `linux`, so changed Linux bytes invalidate
+`initramfs` and `installer` as well as `iso`.
 
 ## Stage Contracts
 
 `configuration` below lists inputs beyond source roots. All ordinary native
 stages also include normalized host-tool identities. Rust stages additionally
-include workspace `Cargo.toml` and `Cargo.lock`.
+include their Cargo manifest inputs. Recipe files under `stages/` are source
+inputs through the per-stage projection described above. Every target stage
+not in the exempt list above also carries the `<target-toolchain-v2>` key.
+
+The table covers the foundational, base-system, and image stages. It is not
+exhaustive: the graph also contains the language toolchains, graphics, Qt,
+KDE, Plasma, and application stages. The dependency column is derived from
+`direct_dependencies` in `stage_graph.rs` (virtual `linux-headers` and
+`formal-sysroot` from their specs in `stages/registry.rs`), which is the
+authority when this table and the code disagree.
 
 | Stage | Source roots | Configuration | Direct dependency outputs | Produced outputs |
 | --- | --- | --- | --- | --- |
-| `linux` | Linux tree and x86_64 MattOS config | none | none | x86_64 `bzImage` |
-| `glibc` | glibc plus selected Linux x86 UAPI | none | none | glibc install, Linux headers, sysroot libc/loader |
-| `linux-headers` | selected Linux x86 UAPI | none | `glibc` publication | installed headers and inventory |
-| `gcc-runtime` | GCC | none | `glibc`, `linux-headers` | runtime install, ABI report, sysroot libgcc/libstdc++ |
-| `binutils` | Binutils | none | `gcc-runtime` | cross/native installs and configure record |
-| `gcc-compiler` | GCC | none | `binutils`, `gcc-runtime` | native compiler install and configure record |
-| `make` | Make and gnulib | none | compiler, Binutils, GCC runtime | native Make install |
-| `formal-sysroot` | none | none | headers, glibc, GCC runtime | declared sysroot boundary files |
-| `brush` | Brush and patches | Cargo workspace | formal sysroot, MattOS rustc | release binary |
-| `coreutils` | uutils coreutils | Cargo workspace | formal sysroot, MattOS rustc | release multicall binary |
-| `grep` | uutils grep | Cargo workspace | formal sysroot, MattOS rustc | release binary |
-| `sed` | uutils sed | Cargo workspace | formal sysroot, MattOS rustc | release binary |
-| `findutils` | uutils findutils | Cargo workspace | formal sysroot, MattOS rustc | release binary |
-| `diffutils` | uutils diffutils | Cargo workspace | formal sysroot, MattOS rustc | release multicall binary |
-| `expat`, `libcap`, `attr`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`, `pcre2`, `libxcrypt`, `libmd`, `ncurses`, `iputils`, `kmod`, `init` | named component tree | Cargo workspace for `init`; otherwise none | formal sysroot | component install (or `mattos-init` binary) |
+| `cross-toolchain` | Binutils, GCC, glibc version header | none | none | stage-0 cross Binutils/pass-1 GCC install, prerequisite install, hardening specs, configure record |
+| `linux` | Linux tree and x86_64 MattOS config/policy | none | `cross-toolchain` | x86_64 `bzImage`, module tree, kernel release |
+| `glibc` | glibc plus selected Linux x86 UAPI | none | `cross-toolchain` | glibc install, Linux headers, sysroot libc/loader |
+| `linux-headers` (virtual) | selected Linux x86 UAPI | none | `glibc` publication | installed headers and inventory |
+| `gcc-runtime` | GCC | none | `glibc`, `linux-headers`, `cross-toolchain` | runtime install, ABI report, sysroot libgcc/libstdc++ |
+| `binutils` | Binutils | none | `gcc-runtime`, `cross-toolchain` | cross/native installs and configure record |
+| `gcc-compiler` | GCC | none | `binutils`, `gcc-runtime`, `cross-toolchain` | native compiler install and configure record |
+| `make` | Make and gnulib | none | `gcc-compiler`, `binutils`, `gcc-runtime`, `cross-toolchain` | native Make install |
+| `formal-sysroot` (virtual) | none | none | `linux-headers`, `glibc`, `gcc-runtime` | declared sysroot boundary files |
+| `brush`, `coreutils`, `grep`, `sed`, `findutils`, `diffutils`, `init` | named component tree (Brush also its patches) | component `Cargo.toml`/`Cargo.lock` and Cargo ownership contract (`init`: `Cargo.toml` only) | formal sysroot, `rust` | release binary (`coreutils` and `diffutils` multicall; `init` the `mattos-init` binary) |
+| `expat`, `libcap`, `attr`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`, `pcre2`, `libxcrypt`, `libmd`, `ncurses`, `iputils`, `libffi` | named component tree | none | formal sysroot | component install |
+| `kmod` | kmod | none | formal sysroot, zstd | kmod install |
 | `acl` | ACL | none | formal sysroot, Attr | ACL install |
 | `openssl` | OpenSSL | none | formal sysroot, zlib, zstd | OpenSSL install |
 | `elfutils` | elfutils | none | formal sysroot, zlib, zstd | elfutils install |
@@ -187,18 +213,24 @@ include workspace `Cargo.toml` and `Cargo.lock`.
 | `iproute2` | iproute2 | none | formal sysroot, libcap, zlib, zstd, elfutils, PCRE2, SELinux | iproute2 install |
 | `curl` | curl | none | formal sysroot, OpenSSL, zlib, zstd | curl install |
 | `linux-pam` | Linux-PAM | none | formal sysroot, libxcrypt | PAM install |
-| `util-linux` | util-linux | none | formal sysroot, PAM, SELinux, PCRE2 | util-linux install |
+| `util-linux` | util-linux and patches | none | formal sysroot, PAM, SELinux, PCRE2, ncurses, libxcrypt | util-linux install |
 | `shadow` | shadow | none | formal sysroot, PAM, libbsd, libmd, libxcrypt | shadow install |
-| `sudo-rs` | sudo-rs | Cargo workspace | formal sysroot, PAM, MattOS rustc | release binary |
-| `systemd` | systemd | none | formal sysroot, kmod, util-linux, PAM, libcap, OpenSSL, PCRE2 | systemd install |
-| `dbus-broker` | dbus-broker and patches | none | formal sysroot, systemd, Expat | dbus-broker install |
+| `sudo-rs` | sudo-rs | component `Cargo.toml`/`Cargo.lock` and Cargo ownership contract | formal sysroot, PAM, `rust` | release binary |
+| `llvm` | LLVM project | none | formal sysroot, zlib, zstd | LLVM/Clang/LLD install |
+| `rust` | Rust source release and release-archive policy | none | formal sysroot, `llvm`, OpenSSL, zlib, curl | rustc, standard library, rustdoc, and Cargo install |
+| `dbus` | D-Bus | none | formal sysroot, Expat | D-Bus install |
+| `systemd` | systemd | none | formal sysroot, D-Bus, kmod, util-linux, PAM, libcap, OpenSSL, PCRE2 | systemd install |
+| `dbus-broker` | dbus-broker and patches | none | formal sysroot, systemd, Expat, `rust` | dbus-broker install |
 | `dpkg` | dpkg | none | formal sysroot, zlib, bzip2, xz, zstd, libmd, SELinux, PCRE2 | dpkg install |
 | `apt` | APT and patches | none | formal sysroot, dpkg, OpenSSL, zlib, bzip2, xz, zstd, systemd | APT install |
+| `grub` | GRUB, its gnulib, autoconf-archive, font | none | formal sysroot, zlib, xz, FreeType | GRUB install |
+| `installer` | installer, storage tools, firmware, `image.rs` | installer `Cargo.toml`, storage-tool ownership contracts | GRUB, formal sysroot, util-linux, e2fsprogs, zlib, zstd, libxcrypt, `linux`, `rust` | installer install, installed-system initramfs, storage tools, `BOOTX64.EFI` |
 | `packages` | package definitions and payload configuration | package metadata/policy | package-producer outputs | staging trees, `.deb` files, inventory and facts |
 | `repository` | none | package inventory and repository policy | package artifacts | Debian repository tree |
-| `rootfs` | none | skeleton, live profile, units, network/session configuration, package inventory | APT, dpkg, systemd, dbus-broker, text tools, init, packages, repository | root filesystem tree |
-| `initramfs` | none | recipe revision | rootfs | reproducible gzip-compressed cpio archive |
-| `iso` | GRUB configuration | recipe revision | Linux image, initramfs | ISO staging tree and bootable ISO |
+| `rootfs` | `image.rs` | skeleton, live profile, units, network/session configuration, package inventory | APT, dpkg, systemd, dbus-broker, grep, sed, findutils, diffutils, init, installer, repository | root filesystem tree |
+| `live-root` | `image.rs` | recipe revision | `rootfs` | zstd (level 12) SquashFS `out/build/live-root.squashfs` and inventory report |
+| `initramfs` | `live-init.c`, module loader, firmware, `image.rs` | recipe revision | formal sysroot, `linux` | static early `/init` plus boot module closure as reproducible xz-compressed cpio `out/build/early-initramfs.cpio.xz` |
+| `iso` | GRUB configuration, `image.rs` | recipe revision | `linux`, `live-root`, `initramfs`, `grub`, `repository` | ISO staging tree, bootable ISO, and reports |
 
 ## Invalidation Rules
 
@@ -207,10 +239,11 @@ include workspace `Cargo.toml` and `Cargo.lock`.
 - Missing/corrupt output: owner misses and republishes.
 - Dependency input change with byte-identical output: consumers remain hits.
 - Dependency output change: exact transitive consumers miss.
-- Linux x86_64 config: `linux`, then `iso` only if kernel bytes change.
+- Linux x86_64 config: `linux`, then `initramfs`, `installer`, and `iso` only if Linux output bytes change (and the rootfs, live root, and ISO further downstream only if those outputs change).
 - Linux UAPI change: `linux`, `glibc`, and `linux-headers`; consumers follow only changed published outputs.
-- Rootfs configuration: `rootfs`, then initramfs/ISO only when bytes change.
-- Initramfs recipe/configuration: `initramfs`, then ISO only when bytes change.
+- Rootfs configuration: `rootfs`, then `live-root` and ISO only when bytes change.
+- Initramfs source/recipe: `initramfs`, then ISO only when bytes change.
+- GRUB configuration (`src/boot/grub/grub.cfg`): `iso` only.
 
 No stage may depend on another stage merely because it ran earlier. A direct
 edge is valid only when the consumer reads that producer's published bytes.
@@ -306,10 +339,11 @@ assert both the candidate closure and the output-sensitive required rebuild
 set; real-spec tests separately prove the source/configuration owners.
 
 No representative dependency edge was removable in the 2026-08-08 audit.
-Linux and initramfs feed ISO, package producers feed individual package
-artifacts and the ordered inventory, repository consumes those artifacts, and
-rootfs consumes repository bytes plus selected direct install trees. Two
-conservative boundaries remain explicit:
+In the current graph Linux feeds the initramfs, installer, and ISO; package
+producers feed individual package artifacts and the ordered inventory;
+repository consumes those artifacts; rootfs consumes repository bytes plus
+selected direct install trees; and the live root, initramfs, GRUB, and
+repository feed the ISO. Two conservative boundaries remain explicit:
 
 - Dependency identity is stage-wide. A consumer of one output subset can
   become a candidate when another output in the same producer changes. The
@@ -321,65 +355,84 @@ conservative boundaries remain explicit:
   rebuild unrelated packages merely because `packages` appears in the graph
   closure.
 
-The authoritative cold DAG baseline is the successful isolated build captured
+### Historical cold-build baseline (2026-08-08)
+
+The figures in this subsection describe the build graph and scheduler as they
+were on 2026-08-08, when the graph had roughly 50 build nodes and the
+executor used a fixed token budget. They are retained as a dated reference,
+not as a description of current behavior or performance.
+
+The cold DAG baseline of that time is the successful isolated build captured
 at `cold-dag-20260808T174207Z`. It completed in 2,912.818 scheduler seconds
 (48:32.98 wall), produced ISO SHA-256
 `f43630631d8daca8e74d474235b8664e682075a7bb412633e4ff0acfa7b1aa84`, and
 booted to an interactive MattOS shell in QEMU. This is 25.59% faster than the
-65.25-minute serialized baseline. Linux is independent and can run beside glibc.
-After GCC runtime publishes the formal sysroot, Binutils/GCC compiler can run
-beside the broad fan-out of Rust userland and libraries. Shared sysroot writers
-must remain ordered (`glibc -> gcc-runtime`), and package inventory publication,
-repository, rootfs, initramfs, and ISO remain barriers.
+65.25-minute serialized baseline. The checked simulation used that
+baseline's `build-start` to `stage-end` action spans for all 48 real build
+nodes of the time. Their serial total was 4,883.713 seconds (81.395 minutes),
+the dependency-only critical path was 2,666.283 seconds (44.438 minutes), and
+the then-implemented graph and weights produced a 2,987.354-second
+(49.789-minute) simulated schedule. Cache evaluation, resource-request arrival
+timing, and orchestration were outside that action-only model.
 
-`build all` now uses a deterministic bounded DAG executor rather than the old
-serial stage loop:
+### DAG executor
+
+`build all` uses a deterministic, resource-bounded DAG executor
+(`scheduler.rs`). Linux is independent of glibc and can run beside it. After
+GCC runtime publishes the formal sysroot, Binutils/GCC compiler can run beside
+the broad fan-out of libraries, and the Rust userland follows the `rust`
+stage. Shared sysroot writers remain ordered (`glibc -> gcc-runtime`), and
+package inventory publication, repository, rootfs, live root, and ISO remain
+barriers.
 
 1. Construct nodes from stage specs. Map virtual `linux-headers` and
 	`formal-sysroot` dependencies to their atomic glibc and Make publishers.
-	Keep package publication and repository generation inside the existing
-	Rootfs transaction, after every package-producing stage.
+	Package publication and repository generation run inside the `rootfs`
+	stage's scheduled action, which depends on every package-producing stage;
+	a `packages` or `repository` dependency maps to `rootfs`.
 2. Validate acyclicity, known dependencies, and overlapping output ownership
 	before executing anything.
 3. Maintain a stable ready queue ordered by stage identifier, but dispatch
-	any ready node whose CPU and memory weights fit the global budget.
-4. Use a 12-token budget. Linux, glibc, GCC runtime/compiler, Binutils, and the
-	Rust/Cargo stages receive four tokens and a memory-heavy slot. Make, systemd,
-	dbus-broker, util-linux, and the image tail receive four tokens. Other
-	libraries receive two. At most two memory-heavy jobs run concurrently.
-	Child-process parallelism is a separate per-stage contract: `SchedulerGrant`
-	uses the granted token count, `Capped(n)` uses the lower of the grant and the
-	explicit cap, and `Serial` uses one job. Explicit lower `-j`/`--parallel`
-	limits are preserved, while higher limits and the Make, Cargo, CMake, Meson,
-	and Ninja environment limits are reduced to the policy limit. Libcap is
-	explicitly `Serial` because its upstream Makefile omits the generated
-	`cap_names.h` dependency needed by `cap_magic.o`; all other audited stages use
-	`SchedulerGrant`.
-5. Publish each stage atomically as today, compute its output digest, and wake
+	any ready node whose resource profile fits the budget, as described in
+	[Resource-aware scheduler foundation](#resource-aware-scheduler-foundation).
+4. The CPU-token and memory budget come from the startup host/cgroup snapshot
+	(`resources.rs`), not a fixed constant. Under healthy pressure the number of
+	concurrent memory-heavy jobs is bounded only by the CPU-token count
+	(`heavy_limit` in `scheduler.rs`), so memory admission is the effective
+	limit; constrained pressure allows one and critical pressure none.
+	Child-process parallelism is a separate per-stage contract:
+	`SchedulerGrant` uses the scheduler's grant, `Capped(n)` uses the lower of
+	the grant and the explicit cap, and `Serial` uses one job. Under the shared
+	jobserver, `SchedulerGrant` stages have explicit `-jN`/`--jobs`/`--parallel`
+	counts removed from their commands (explicit `-j1` is kept) and take
+	parallelism from the token pool (`stages/helpers/command.rs`). Without
+	the jobserver (single-stage builds), explicit counts are reduced to the
+	child-job limit. Libcap is explicitly `Serial` because its upstream
+	Makefile omits the generated `cap_names.h` dependency needed by
+	`cap_magic.o`.
+5. Publish each stage atomically, compute its output digest, and wake
 	consumers only after successful validation. Cache hits consume a small
 	evaluation token and do not block unrelated actions.
-6. On failure, stop dispatching new nodes, wait for active jobs, preserve their
-	logs, and publish no partial output or manifest.
+6. On failure, the default policy stops dispatching new nodes, waits for
+	active jobs, preserves their logs, and publishes no partial output or
+	manifest. With `build all --keep-going` (`FailurePolicy::KeepGoing`),
+	every stage that does not depend on a failed stage still builds, and the
+	run ends by reporting each failure and the stages it blocked.
 
 The scheduler starts ready nodes with one evaluation token. A cache miss
 releases that token while waiting in the stable resource queue, then acquires
 its full stage weight immediately before its action. Cache hits never acquire
 the larger allocation.
 
-The checked simulation uses the successful baseline's `build-start` to
-`stage-end` action spans for all 48 real build nodes. Their serial total is
-4,883.713 seconds (81.395 minutes), the dependency-only critical path is
-2,666.283 seconds (44.438 minutes), and the implemented graph and weights
-produce a 2,987.354-second (49.789-minute) simulated schedule. Cache evaluation,
-resource-request arrival timing, and orchestration are intentionally outside
-this action-only model, so the successful trace remains the performance
-baseline rather than treating the simulation as an exact replay.
-
 Set `MATTOS_SCHEDULER_TRACE` to retain scheduler telemetry. Each completed node
 emits `stage-metrics` with whether a build action executed, its resource weight,
 effective child-job limit, resource-wait and action wall seconds, and the
-average and minimum globally unused tokens during its action. Process CPU time
-is explicitly reported as unavailable because overlapping child trees cannot
-be attributed from process-wide counters. Stage command logs include a
+average and minimum globally unused tokens during its action, and CPU use
+(`cpu_user_seconds`, `cpu_system_seconds`, `cpu_seconds`, `cpu_cores_avg`)
+read from the `stage-cpu-accounting` record in the stage's log. Each logged
+command's CPU time comes from `wait4` on that command's own child, so it
+includes its waited-for descendants without attributing other stages'
+concurrent process trees. The CPU fields read `unavailable` only when the log
+holds no complete accounting record. Stage command logs include a
 `mattos-command` record containing the effective child-job limit and normalized
-argv actually executed after scheduler capping.
+argv actually executed after scheduler normalization.

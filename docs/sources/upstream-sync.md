@@ -26,6 +26,10 @@ Synchronization state uses schema version 2 in
 - intentional omission and gitlink/submodule policy
 - an output-mirror-only MattOS patch manifest and its SHA-256, or the explicit
   value `none` for both fields
+- a Git LFS hydration policy (`lfs_policy`) and its SHA-256
+  (`lfs_policy_sha256`), or `none` for both. The values come from the
+  component's entry in `upstream/sources.toml`; a declared policy must match
+  its pinned checksum and the component's exact `revision`.
 
 Gitlink replacements and exclusions are recorded in
 `upstream/policies/gitlinks.toml`. Official release archives used only to supply
@@ -48,10 +52,10 @@ Run commands that may invoke component build systems through the imported-source
 hygiene guard:
 
 ```
-python3 DevUtils/test_imported_source_immutability.py -- <command> [arguments...]
+python3 DevUtils/audits/test_imported_source_immutability.py -- <command> [arguments...]
 ```
 
-The guard snapshots every configured component and separately inventories
+A command after `--` is required. The guard snapshots every configured component and separately inventories
 ignored, untracked paths. It rejects source changes and newly generated ignored
 artifacts in any authoritative vendored tree. Existing ignored paths form the
 comparison baseline, while upstream files tracked by MattOS are never classified
@@ -65,12 +69,20 @@ Show configured and imported state:
 cargo run -p mattos-build -- upstream status
 ```
 
-Initial import (empty/scaffold destination only):
+Initial import of a new component (empty/scaffold destination only; a
+destination containing anything other than the allowed placeholder files is
+refused, so use `sync` for components that are already imported):
 
 ```
 cargo run -p mattos-build -- upstream import --all
 cargo run -p mattos-build -- upstream import linux
 ```
+
+`import --all` therefore succeeds only when every configured destination is
+still empty or scaffold-only, as in a fresh tree; with any component already
+imported it stops with an `initial import refused` error. `sync` on a
+component that has no state file but an empty/scaffold destination performs
+the initial import.
 
 Synchronize after deliberately changing a component's exact `revision`:
 
@@ -85,24 +97,32 @@ For Linux kernel fidelity, run synchronization in a Linux filesystem path (for e
 
 ## Safety and merge behavior
 
-- Dirty-tree protection: upstream import/sync aborts when the repository has uncommitted changes.
+- No dirty-tree check: import and sync do not inspect the outer repository's
+  Git status, so uncommitted changes elsewhere (including in other components)
+  do not block them. The only overwrite protection is that initial import
+  refuses a destination containing non-placeholder files. Commit or otherwise
+  preserve local edits in a component before syncing it.
 - Path safety: component paths are validated as repository-relative and cannot escape repo root.
 - Update strategy: updates use a three-way Git merge between:
 	- prior imported upstream commit,
 	- current MattOS destination tree,
-	- latest upstream branch head.
+	- the new pinned `revision` from `upstream/sources.toml` (the importer runs
+	  `git checkout --detach <revision>`; the branch name is never followed).
 - Conflict behavior: if both MattOS and upstream changed the same content, conflict markers are written and sync exits non-zero.
 - Metadata behavior: sync state is only advanced to the new upstream commit when merge finishes without conflicts.
 - Projection behavior: synchronization reconstructs retained files from the
   pinned commit and reapplies source selection even when the commit is
   unchanged. Missing retained paths are restored, while stale paths excluded by
   policy are removed.
-- Import fidelity: the importer force-records only the selected source path and
-  state record so upstream-tracked files remain present even when the component's
-  own `.gitignore` matches them. This intentionally updates the outer index when
-  an import/sync command succeeds; ordinary builds never update the index.
-  Repository maintenance that must leave the index untouched can set
-  `MATTOS_IMPORT_NO_INDEX=1`; the reconstructed source and state remain unstaged.
+- Import fidelity: the importer materializes files from Git blobs, so
+  upstream-tracked files are written even when the component's own `.gitignore`
+  matches them. Import and sync never touch the outer repository's index; the
+  only `git add` runs inside the temporary merge repository under
+  `upstream/.tmp`. The reconstructed source and state file are left unstaged.
+  Because build mirrors copy
+  `git ls-files --cached --others --exclude-standard` (see below), a new
+  upstream file matched by a component `.gitignore` is not copied into build
+  mirrors until it is tracked; commit such files with `git add -f`.
 - File-type fidelity: regular executable modes and symlink objects are copied as
   upstream records them. Upstream gitlinks are never initialized as nested Git
   repositories; explicit policy selects separately pinned ordinary-file
@@ -116,7 +136,7 @@ For Linux kernel fidelity, run synchronization in a Linux filesystem path (for e
 Run the network-backed audit from the repository root:
 
 ```
-python3 -B DevUtils/test_vendored_source_provenance.py
+python3 -B DevUtils/audits/test_vendored_source_provenance.py
 ```
 
 It fetches each immutable commit (using declared identity-preserving verification

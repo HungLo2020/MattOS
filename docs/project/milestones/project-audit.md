@@ -1,21 +1,26 @@
 # MattOS Project Audit
 
+!!! warning "Historical snapshot"
+    This page records a project-wide audit as of 2026-08-04. Much of it no longer describes
+    current MattOS; for current behavior, follow the other sections of the
+    wiki. It is kept for its history and the reasoning behind decisions.
+
 > Current image architecture: MattOS now carries the complete system in a
 > deterministic SquashFS live root and boots it through a minimal static early
 > initramfs plus tmpfs overlay. Historical measurements below describe older
-> full-root initramfs milestones. See [Live and Installed Root Architecture](../system/boot/live-root.md).
+> full-root initramfs milestones. See [Live and Installed Root Architecture](../../system/boot/live-root.md).
 
 Date: 2026-08-04
 
 ## 1. Executive Summary
 
-MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. Sixty-six MattOS packages are installed through a real dpkg database from an embedded local repository. GNU glibc, the GCC shared runtimes, native C/C++ development toolchain, PCRE2, SELinux userspace compatibility, libxcrypt, the udev vendor hardware database, and the util-linux mount closure are source-built and package-owned. MattOS-built dpkg and APT work from the embedded repository with or without the QEMU NIC. The final ISO contains no host-derived executable or runtime-library payloads. Persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop remain intentionally absent.
+MattOS is a coherent Linux-native bootstrap system with systemd PID 1, separate system and per-user dbus-broker buses, registered logind console sessions, session-bound per-user managers, non-root live autologin, PAM/Shadow/sudo-rs authentication and account tools, Brush, a rescue-init path, and a reproducible build pipeline. Sixty-six MattOS packages are installed through a real dpkg database from an embedded local repository (the dated baseline and toolchain sections below record 65; the 66th, the `udev` hwdb package, was added afterward, as noted under the cache-stability audit). GNU glibc, the GCC shared runtimes, native C/C++ development toolchain, PCRE2, SELinux userspace compatibility, libxcrypt, the udev vendor hardware database, and the util-linux mount closure are source-built and package-owned. MattOS-built dpkg and APT work from the embedded repository with or without the QEMU NIC. The final ISO contains no host-derived executable or runtime-library payloads. At the time of this audit, persistent installation, an online repository, Polkit, SSH, Wi-Fi, firewall policy, firmware packaging, and a graphical desktop were intentionally absent.
 
 The previous GRUB source-of-truth ambiguity has been resolved by keeping only `src/boot/grub/grub.cfg` as tracked source and validating that path in `mattos-build`. Runtime libc, GCC runtimes, and native consumers use the controlled MattOS sysroot. Host compiler, assembler, linker, and package-construction tools remain explicit build-time bootstrap inputs; MattOS is not yet self-hosting.
 
 The static Brush prompt source has been replaced. The interactive prompt now comes from MattOS-owned startup configuration using normal Brush/Bash-style prompt semantics.
 
-The two build-performance milestones add content-addressed stage/package/repository/rootfs/initramfs/ISO manifests, package and ELF fact stores, complete content/mode/ownership inventory validation, dependency-digest invalidation, atomic layer replacement, quiet native-stage logs, structured timing, and scoped cache inspection/invalidation. Release validation remains unchanged; details and safety rules are in [Build performance and cache model](../build-system/performance.md).
+The two build-performance milestones add content-addressed stage/package/repository/rootfs/initramfs/ISO manifests, package and ELF fact stores, complete content/mode/ownership inventory validation, dependency-digest invalidation, atomic layer replacement, quiet native-stage logs, structured timing, and scoped cache inspection/invalidation. Release validation remains unchanged; details and safety rules are in [Build performance and cache model](../../build-system/performance.md).
 
 The first performance milestone reduced the audit's 53:00.44 unchanged `build all` to 4:04.45. The second milestone's required second unchanged run completed in 3:50.94 with 116 cache hits, zero misses, and no non-cacheable timing records. A scoped independent layer rebuild reproduced all 65 packages, repository files, rootfs and ELF inventories, initramfs, and ISO byte-for-byte/content-digest-for-content-digest. A subsequent fresh-process defect audit found raw inherited `PATH`/`LC_ALL`, a final logging-only configuration edit, and dependency input identities behind unstable foundational decisions. Schema-3 normalization corrected those causes. Two consecutive ordinary launcher runs now report eight foundational hits and zero misses, and a following direct run reports the same. Normal and no-network boots reached the live prompt, the rescue entry reached rescue-init, and the normal guest passed native C/C++/Make, `.deb`, and Brush `sh`/`bash` checks after the correction.
 
@@ -136,7 +141,7 @@ Current limitations:
 
 - Repository, live-rootfs, initramfs, and ISO outputs are reused only after content and policy validation. A separate immutable base-rootfs materialization remains future work.
 - Parallel stage scheduling, compiler caches, remote caches, and QEMU snapshots remain future performance work.
-- The two remaining host GCC runtime libraries are copied through a narrow, checksum-recorded bootstrap manifest; final ELF resolution uses the MattOS loader rather than `ldd`.
+- The two remaining host GCC runtime libraries are copied through a narrow, checksum-recorded bootstrap manifest; final ELF resolution uses the MattOS loader rather than `ldd`. (Superseded within this audit: the GCC runtime source closure below source-builds both libraries and removes `mattos-bootstrap-runtime`.)
 - Kernel is built in-tree.
 - The orchestrator is large enough that stage-specific logic should eventually be split into modules.
 - Host dpkg/APT utilities still bootstrap archive creation and indexing.
@@ -145,7 +150,7 @@ Current limitations:
 
 ## 6. Runtime and Rootfs Assessment
 
-The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Sixty-six packages own the initial base and selected source-built payloads, including glibc, libgcc, libstdc++, the native C/C++ development toolchain, PCRE2, libselinux, libxcrypt, the udev vendor hardware database, and the util-linux mount closure. They are installed with real dpkg semantics, and `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
+The assembled rootfs is a merged `/usr` layout with `/bin`, `/sbin`, `/lib`, and `/lib64` symlinked into the `/usr` tree. Sixty-six packages (65 before the later `udev` hwdb package) own the initial base and selected source-built payloads, including glibc, libgcc, libstdc++, the native C/C++ development toolchain, PCRE2, libselinux, libxcrypt, the udev vendor hardware database, and the util-linux mount closure. They are installed with real dpkg semantics, and `/var/lib/dpkg` contains normal status, conffile, md5sum, file-list, and ownership data. The local repository is embedded at `/usr/share/mattos/repository`, APT is configured only for that `file:` source, and no Debian or Ubuntu source is configured.
 
 APT mutable lists and archive cache are initialized as writable live state rather than shipped package content. Its selected commands, private library, local methods, helpers, configuration, CA trust, source-built `libapt-pkg`, and exact ELF closure all have package ownership. The retired bootstrap-runtime audit records zero installed host-derived entries.
 
@@ -296,7 +301,7 @@ shutdown
 
 `/bin` and `/sbin` are merged symlinks into `/usr/bin` and `/usr/sbin`.
 
-The generated inventory at `/usr/share/mattos/userland-commands.txt` is authoritative. It includes grep, sed, findutils, the PAM/Shadow/sudo-rs administration commands, kmod tools, procps-ng tools, ncurses terminal tools, iproute2, iputils, curl, and systemd's network control commands. Package and installation tools remain absent by design.
+The generated inventory at `/usr/share/mattos/userland-commands.txt` is authoritative. It includes grep, sed, findutils, the PAM/Shadow/sudo-rs administration commands, kmod tools, procps-ng tools, ncurses terminal tools, iproute2, iputils, curl, and systemd's network control commands. Beyond the dpkg/APT runtime described in section 6, installer and persistent-installation tools were absent by design at the time of this audit.
 
 ## 9. Cache Assessment
 
@@ -353,7 +358,7 @@ Detailed classification:
 | Finding | Type | Severity |
 | --- | --- | --- |
 | Duplicate GRUB configuration paths were resolved by removing `boot/grub/grub.cfg` and validating only `src/boot/grub/grub.cfg` | resolved defect | Informational |
-| Host-derived runtime closure via `ldd` copy strategy | known bootstrap limitation | Medium |
+| Host-derived runtime closure via `ldd` copy strategy (later resolved by the glibc and GCC runtime source closures below) | known bootstrap limitation | Medium |
 | Large monolithic build orchestrator (`src/tools/mattos-build/src/main.rs`) | architectural risk | Medium |
 | Legacy `etc/inittab` present while systemd is active init | future enhancement | Low |
 | Placeholder `.gitkeep` files included in command dirs in image | future enhancement | Low |
@@ -371,7 +376,7 @@ Detailed classification:
 
 ## 11. Risks and Technical Debt
 
-- Host-linked runtime libraries are the biggest long-term portability risk.
+- Host-linked runtime libraries were the biggest long-term portability risk (later resolved by the glibc and GCC runtime source closures below; host build tooling remains a bootstrap input).
 - The current login model is an ephemeral live-user policy; it is not a persistent installed-system account model.
 - There is no persistent installation flow yet.
 - There is no automated in-guest command runner for boot smoke validation.
@@ -394,7 +399,7 @@ Detailed classification:
 - persistent filesystem support and installer flow
 - persistent installed-system package and upgrade policy
 - persistent networking policy beyond the ephemeral wired/QEMU DHCP baseline
-- glibc built from source
+- glibc built from source (completed later in this audit; see glibc runtime transition)
 - firmware packaging strategy
 
 ### Needed before physical hardware
@@ -419,7 +424,7 @@ Detailed classification:
 3. Add persistent account and home/rootfs handling when an installed-system milestone begins.
 4. Build persistent installation and package management.
 5. Preserve the completed wired/QEMU networking, DNS, certificates, and time-sync baseline while later adding installed-system policy.
-6. Move more runtime libraries and core utilities from host copies to owned source or a sysroot.
+6. Move more runtime libraries and core utilities from host copies to owned source or a sysroot (runtime libraries completed later in this audit by the glibc and GCC runtime source closures).
 7. Expand hardware support for physical machines.
 
 ## 14. Do Not Reinvent
@@ -447,7 +452,7 @@ MattOS should integrate upstream projects rather than rewriting these:
 ## 15. Prioritized Next Actions
 
 1. Add an automated boot smoke test that checks prompt behavior and a few core commands.
-2. Reduce host-library dependency by planning a real sysroot/runtime closure.
+2. Reduce host-library dependency by planning a real sysroot/runtime closure (completed later in this audit; see glibc runtime transition and GCC runtime source closure).
 3. Split `mattos-build` into smaller modules when the next feature round starts.
 4. Preserve the validated authentication stack when future persistent-install work begins.
 5. Expand in-guest validation coverage for getty/session checks without relying on serial prompt parsing.
@@ -514,7 +519,7 @@ The remaining module-related boot message is precisely scoped: systemd's real li
 - GCC reuses the pinned 15.3.0 source. Host GCC/Binutils/Make are documented bootstrap inputs only; installed compiler drivers, internal helpers, assembler/linker utilities, and Make are source-built for MattOS.
 - `out/sysroot` is formalized into four development package boundaries covering generated Linux UAPI headers, glibc headers/CRT/linker inputs, libgcc target support, and libstdc++ headers/link inputs.
 - ten new packages bring the dependency graph to 65 with explicit ownership of every compiler driver and internal helper; runtime shared libraries remain in their existing owners.
-- this is a native C/C++ compile-and-package milestone, not compiler self-reproduction or a native MattOS rebuild. Detailed source, configuration, validation, and future milestone boundaries are in [MattOS native C/C++ toolchain](../build-system/toolchain/native-toolchain.md).
+- this is a native C/C++ compile-and-package milestone, not compiler self-reproduction or a native MattOS rebuild. Detailed source, configuration, validation, and future milestone boundaries are in [MattOS native C/C++ toolchain](../../build-system/toolchain/native-toolchain.md).
 
 ## Debian 13 compatibility (current state, not a guarantee)
 
@@ -531,7 +536,7 @@ MattOS is not designed to be binary compatible with Debian 13; the points below 
 - the publication integration validates selected inventory artifacts and prints an exact future command only; it never invokes LinuxScripts, accesses credentials, signs, or publishes
 - incomplete `systemd` and `util-linux` package ownership, libcurl/PAM/OpenSSL split differences, terminfo/proc SONAME differences, Trixie's GCC 14 development names, and full maintainer-helper support remain documented gaps
 
-See [Debian Compatibility (Current State)](../packaging/debian-compatibility.md) and [MattOS remote repository integration](../packaging/remote-repository.md) for the current mapping and operational boundary.
+See [Debian Compatibility (Current State)](../../packaging/debian-compatibility.md) and [MattOS remote repository integration](../../packaging/remote-repository.md) for the current mapping and operational boundary.
 
 ## glibc runtime transition
 

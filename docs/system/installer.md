@@ -43,12 +43,24 @@ webview, package-manager and desktop-specific Calamares modules are
 deliberately excluded.
 
 Calamares owns the UI, partitioning and mounts; it does not decide the package
-closure. Its profile chooser records `cli` or `plasma`, and the
-`mattos-executor` job runs `mattos-install calamares`, which reuses the Rust
-profile resolver and offline repository transaction against the
-Calamares-mounted target. Guided storage is GPT/UEFI with an EFI system
-partition and a Btrfs root using the MattOS subvolumes; manual ext4 remains
-available through the Calamares partition module.
+closure. Its profile chooser records `cli` or `plasma`. Two `shellprocess`
+jobs then hand the Calamares-mounted target to the Rust installer through
+`/usr/libexec/mattos/calamares-target-executor`, which execs
+`mattos-install calamares --phase <phase> --profile <profile> --target <root>`:
+
+- `mattos-executor` runs `--phase compose` after Calamares mounts the target,
+  reusing the Rust profile resolver and offline repository transaction.
+- `mattos-finalize` runs `--phase finalize` after Calamares' `users`, `locale`
+  and `keyboard` jobs. It writes `/etc/mattos-storage.conf`, the
+  subvolume-aware `/etc/fstab`, the installed initramfs and GRUB boot files,
+  and the installed-profile marker. Calamares' generic `fstab` module is
+  deliberately not in the exec sequence.
+
+The Calamares partition module (`calamares/mattos/modules/partition.conf`)
+defaults to erasing a disk with a GPT table, an ESP at `/boot/efi`, a Btrfs
+root and no swap; its manual partitioning page remains available, and the
+finalizer accepts a Btrfs or ext4 root. Calamares requires 15 GiB of storage
+(`requiredStorage: 15GiB`).
 
 ## Plan and safety contract
 
@@ -61,15 +73,24 @@ mattos-install install /path/to/plan.toml --yes-really-erase
 ```
 
 Planning is non-destructive. Execution additionally requires root, an explicit
-whole block device, at least 8 GiB, no mounted target filesystems, and proof that
-the target is not the disk backing the running root. The guided frontend never
-chooses a disk automatically and requires the literal confirmation `ERASE`.
-Unattended CLI plans accept an explicit crypt hash for the account password.
+whole block device, at least 8 GiB (the Rust policy's `MINIMUM_DISK_BYTES`; the
+Calamares frontend separately asks for 15 GiB), no mounted target filesystems,
+and proof that the target is not the disk backing the running root. The guided
+frontend never chooses a disk automatically and requires the literal
+confirmation `ERASE`. Unattended CLI plans accept an explicit crypt hash for the
+account password.
 
-The supported first installation mode is GPT whole-disk with UEFI installed
-boot files. Encryption,
-dual-boot, resize, BIOS installation, and recovery/refresh installation are not
-currently exposed.
+`mattos-install guided` offers two storage modes:
+
+- **guided** (default): the whole disk with a Btrfs (default) or ext4 root,
+  and either a newly created ESP or an existing EFI system partition reused
+  with or without formatting.
+- **manual**: one explicit operation per partition (`create`, `delete`,
+  `preserve`, `reuse` or `format`), with Btrfs, ext4 or FAT32 filesystems and
+  unique mount roles; `/` and `/boot/efi` are required, `/home` is optional.
+
+Installed boot files are always UEFI/GPT. The CLI does not offer encryption;
+BIOS installation, resize and recovery/refresh installation are not exposed.
 
 ## MattOS disk and boot policy
 
@@ -80,20 +101,34 @@ currently exposed.
 - `@snapshots` mounted at `/.snapshots`
 - `compress=zstd:3,noatime`
 
+This is the default guided layout; an ext4 root uses a single filesystem
+without subvolumes (manual mode can add a separate `/home` partition).
+
 The target is composed offline from the package repository on the live medium,
 not copied from the live root: the installer resolves the selected profile's
 meta-package closure plus `mattos-toolchain` (every installed system carries
 the native development toolchain) and installs them with `dpkg`, then copies
-the repository onto the target as its local APT source. `btrfs-progs` and
-`dosfstools` remain separate normal administration packages.
+the repository onto the target as its local APT source. `btrfs-progs`,
+`dosfstools` and `e2fsprogs` are ordinary packages that `mattos-base` depends
+on, so every installed system has them.
 
-The installed system has its own initramfs. GRUB passes the filesystem UUID;
-early userspace probes sysfs partitions, mounts the Btrfs `@` subvolume, and
-requires the root's recorded UUID to match. It then locates the sibling ESP by
-sysfs parent/partition number (covering sd, vd, NVMe, and loop naming), mounts
-`@home`, `@snapshots`, and the ESP, and switches to the normal writable root.
-`/etc/fstab` and `/etc/mattos-storage.conf` retain UUID/PARTUUID identities and
-never record `/dev/vda*`. UEFI GRUB is installed under the removable-media path
+The guided CLI also offers optional applications installed through Flatpak.
+These need Internet access; a failure to install them does not stop the MattOS
+installation.
+
+The installed system has its own initramfs, built from
+`src/system/installer/engine/installed-init.c`. GRUB passes
+`mattos.root_uuid` and `mattos.root_fstype` (`btrfs` or `ext4`). Early
+userspace loads the boot-critical kernel modules, then tries each partition
+listed in `/sys/class/block`: Btrfs candidates are mounted with
+`subvol=@,compress=zstd:3`, ext4 candidates directly. A candidate is accepted
+only if it has `/usr/lib/systemd/systemd`, `/etc/mattos-installed-profile`,
+and a `root_uuid=` line in `/etc/mattos-storage.conf` matching the command
+line; otherwise it is unmounted and the scan continues (retrying for about ten
+seconds). The initramfs then switches root and execs systemd. It mounts only
+the root: the ESP, `@home` and `@snapshots` are mounted afterwards by systemd
+from `/etc/fstab`. `/etc/fstab` and `/etc/mattos-storage.conf` retain
+UUID/PARTUUID identities and never record `/dev/vda*`. UEFI GRUB is installed under the removable-media path
 `EFI/BOOT/BOOTX64.EFI`.
 
 ## Boot entries and installed profiles
@@ -105,6 +140,8 @@ The hybrid BIOS/UEFI ISO offers:
 3. Install MattOS (CLI)
 4. MattOS Rescue
 5. MattOS AMD graphics diagnostics (CLI)
+6. UEFI Firmware Settings (only when booted through UEFI and GRUB's
+   `fwsetup --is-supported` succeeds)
 
 Either frontend may select either installed profile:
 

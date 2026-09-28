@@ -1,6 +1,7 @@
 # Base-System Administration Milestone
 
-Date: 2026-08-01
+kmod, procps-ng and ncurses were introduced by the 2026-08-01 base-administration
+milestone; this page describes their current integration.
 
 MattOS imports kmod, procps-ng, and ncurses as editable source trees through the same copy-based upstream synchronization workflow as the existing kernel and userland components. They are ordinary repository files, not submodules.
 
@@ -19,7 +20,7 @@ Exact import timestamps and sync methods are recorded in `upstream/state/{kmod,p
 - kmod uses Meson/Ninja in `out/build/kmod/build`. Tools and shared libkmod are enabled. Tests, manuals, documentation, module compression integrations, and signature-library integrations are disabled. Its deterministic install tree is `out/build/kmod/install`.
 - ncurses uses its Autoconf/Make build in `out/build/ncurses/build`, with shared wide-character ncurses and a separate terminfo library. Static, debug, C++, Ada, tests, manuals, and stripping are disabled. Its install tree is `out/build/ncurses/install`.
 - procps-ng uses Autoconf/Automake/Make in `out/build/procps-ng/build`, linked against the MattOS-built ncurses install tree. NLS, systemd/elogind, NUMA, `kill`, `pidwait`, examples, and static libraries are disabled. Its install tree is `out/build/procps-ng/install`.
-- systemd now enables its kmod integration and resolves kmod version 34 from `out/build/kmod/install`; networking and the other previously excluded systemd subsystems remain disabled.
+- systemd enables its kmod integration and resolves kmod version 34 from `out/build/kmod/install`. The systemd build also enables networkd (built but masked in the image, because NetworkManager configures interfaces), resolved and timesyncd (both enabled at boot), localed, timedated, logind and nspawn; see [Systemd Boot Milestone](../boot/systemd-boot.md) for the full option set.
 
 Configuration stamps preserve incremental object builds and trigger reconfiguration when options or dependency paths change. Install staging directories are recreated on each install pass.
 
@@ -39,7 +40,7 @@ cargo run -p mattos-build -- build procps
 - procps-ng: `ps`, `top`, `free`, `uptime`, `pgrep`, `pkill`, `pidof`, `watch`, `sysctl`, `vmstat`, `w`, `pmap`, `pwdx`, `tload`, `slabtop`, and `hugetop`, plus `libproc2.so.1` and `/etc/sysctl.conf`.
 - ncurses: `clear`, `tput`, `tic`, `toe`, and `infocmp`, plus the required ncurses/terminfo shared libraries.
 
-The rootfs assembler owns centralized component install manifests. Every manifest executable is inspected with `file -L`, `readelf -d`, and `ldd`; unresolved libraries fail assembly. Dependencies resolving inside component install trees are mapped back to their merged-`/usr` runtime paths rather than copied under their host build paths.
+The rootfs assembler owns centralized component install manifests. Every manifest executable is inspected with `file -L`, `readelf -d`, and `ldd` against the MattOS component library directories; unresolved libraries fail assembly. The final rootfs audit then resolves every executable with the MattOS dynamic loader inside the image and rejects code built by a non-MattOS compiler. Dependencies resolving inside component install trees are mapped back to their merged-`/usr` runtime paths rather than copied under their host build paths.
 
 uutils also implements `uptime`; that applet is intentionally not linked into the image so procps-ng is the only installed provider.
 
@@ -60,23 +61,32 @@ The live login environment defaults to `TERM=linux`. `clear` and `tput` use this
 
 ## Kernel module status
 
-MattOS uses a generic modular x86_64 kernel. Fundamental CPU, platform, ACPI, EFI, PCI, VFS, console, devtmpfs, initramfs, and current live-root ISO9660/SquashFS/OverlayFS support remain built in. Hardware, storage, filesystems, graphics, networking, input, audio, cameras, laptop support, and hypervisor guest drivers are modules. The versioned `linux-modules-<release>` package owns `/usr/lib/modules/<release>`, including zstd-compressed modules and depmod indexes.
+MattOS uses a generic modular x86_64 kernel. Fundamental CPU, platform, ACPI, EFI, PCI, VFS, console, devtmpfs, initramfs, loop, and live-root ISO9660/SquashFS/OverlayFS support are built in. Hardware, storage, filesystems, graphics, networking, input, audio, cameras, laptop support, and hypervisor guest drivers are modules. The versioned `linux-modules-<release>` package owns `/usr/lib/modules/<release>`, including zstd-compressed modules and depmod indexes.
 
-The early live and installed initramfs archives include the dependency-ordered generic boot closure for NVMe, AHCI/SATA, SCSI, VirtIO, USB storage, Btrfs, and ext4. Their static loader inserts compressed modules before root discovery. After `switch_root`, udev and kmod use the standard `modules.alias` and `modules.dep` lifecycle from the installed module package.
+The early live and installed initramfs archives include the dependency-ordered generic boot closure (currently 40 modules, listed in `out/reports/early-initramfs-inventory.tsv`) for NVMe (including Intel VMD), AHCI/SATA, SCSI and CD-ROM, VirtIO, USB and MMC storage, Btrfs, and ext4, plus any firmware those modules declare. Their static loader inserts compressed modules before root discovery. After `switch_root`, udev and kmod use the standard `modules.alias` and `modules.dep` lifecycle from the installed module package.
 
-## In-guest validation
+## Scope
 
-The current ISO was launched with the graphical QEMU path and validated directly on tty1:
+This page covers kmod, procps-ng and ncurses only. Networking, SSH, package
+management, the installer, persistent disks, firmware and the desktop are
+documented elsewhere in [System](../index.md). The rootfs, including glibc and
+every runtime library, is built from source against the MattOS sysroot; no
+host-built libraries are copied into it.
+
+## History (2026-08-01 milestone)
+
+At the milestone the ISO was launched with the graphical QEMU path and
+validated directly on tty1:
 
 - the live session logged in as `mattos`, `/proc/1/comm` returned `systemd`, and `sudo id` returned UID/GID 0;
 - all kmod, procps-ng, and ncurses commands listed above resolved through the live user's merged-`/usr` PATH;
 - `ps`, `ps aux`, and `free` reported live process and memory state, `uptime` reported the running system, `pgrep systemd` found PID 1 and systemd helpers, and `sysctl kernel.hostname` returned `MattOS`;
-- `modprobe --version` reported kmod 34; current modular-media validation additionally checks loaded boot modules in `/proc/modules`;
+- `modprobe --version` reported kmod 34; later modular-media validation additionally checks loaded boot modules in `/proc/modules`;
 - `tput colors` returned `8`, `infocmp linux` read the compiled database, and `clear` visibly cleared tty1;
 - `top` rendered its full-screen process display and exited normally with `q`;
 - Brush completion expanded `tpu` to `tput`, autosuggestions remained visible, cursor editing produced the intended command text, and exiting Brush caused getty to create a fresh live session;
 - the alternate GRUB entry booted `/usr/libexec/mattos/rescue-init`; `/proc/1/comm` returned `rescue-init` and the rescue root prompt remained usable.
 
-## Scope and limitations
-
-This milestone does not add networking, SSH, package management, an installer, persistent disks, firmware, a desktop, or changes to PAM, accounts, the live user, or sudo policy. The rootfs still relies on host-built glibc and selected pre-existing bootstrap libraries; the three new upstream libraries are staged from their MattOS component builds.
+The milestone itself did not change PAM, accounts, the live user, or sudo
+policy. At that time the rootfs still used host-built glibc and some bootstrap
+libraries; that is no longer the case.

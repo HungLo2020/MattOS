@@ -4,9 +4,13 @@ This document tracks command provenance for the MattOS base userland.
 
 ## Build Snapshot
 
-- Date: 2026-08-01
+Sizes and counts below are from the build output of 2026-09-27; they change
+with every build. `out/reports/artifacts.tsv` (from `mattos-build artifacts`)
+is the authoritative size record for a given build.
+
 - ISO: `out/images/mattos-x86_64.iso`
-- ISO size: `74,125,312` bytes (about `71M`)
+- ISO size: `3,773,081,600` bytes (about 3.5 GiB; the KDE Plasma live root
+  and the offline package repository dominate it)
 
 ## Upstream Commits
 
@@ -46,11 +50,11 @@ That file contains five sections:
 
 Entries use `provider:command` format.
 
-Measured counts from this build:
+Counts from the 2026-09-27 build:
 
-- `implemented_upstream`: `181`
-- `compiled`: `179`
-- `installed`: `181`
+- `implemented_upstream`: `236`
+- `compiled`: `234`
+- `installed`: `237`
 - `intentionally_excluded`: `3`
 - `failed_compatibility`: `2`
 
@@ -130,7 +134,7 @@ vendored source is never regenerated or modified.
 - Normal local repository operations and the `git-remote-http(s)` helpers are
   included.
 - Perl, Python, Tcl/Tk, gettext, and Rust-dependent optional Git features are
-  deliberately omitted from this base milestone. Upstream's explicit
+  deliberately omitted from the base Git package. Upstream's explicit
   unsupported-command stubs may remain in Git's private exec path; they do not
   imply those optional runtimes are available.
 
@@ -168,9 +172,10 @@ vendored source is never regenerated or modified.
 - `curl`: `curl`
 - `systemd`: `busctl`, `loginctl`, `networkctl`, `resolvectl`, `timedatectl`
 - `dbus-broker`: `dbus-broker`, `dbus-broker-launch`
-- `ping` uses Linux ICMP datagram sockets allowed by `/etc/sysctl.d/99-mattos-network.conf`; the initramfs format does not preserve file capabilities, so MattOS does not make `ping` setuid or depend on `setcap`.
+- `ping` uses Linux ICMP datagram sockets allowed by `/etc/sysctl.d/99-mattos-network.conf` (`net.ipv4.ping_group_range`), so it needs neither a setuid bit nor a file capability.
 - curl is intentionally limited to HTTP and HTTPS, uses OpenSSL, and defaults to `/etc/ssl/certs/ca-certificates.crt`.
-- These systemd clients connect to the dbus-broker system bus as the non-root live user. Read-only inspection works; administrative calls remain policy-controlled and may require root because MattOS does not include Polkit.
+- These systemd clients connect to the dbus-broker system bus as the non-root live user. Read-only inspection works; administrative calls are authorized by Polkit policy.
+- NetworkManager's `nmcli` and wpa_supplicant's `wpa_cli` are also installed; they come from system packages outside this base-userland inventory (see [MattOS Wired/QEMU Networking](../networking.md)).
 - `systemctl --user` and `busctl --user` instead connect to the current UID's per-user manager and broker through `/run/user/$UID`; they do not grant system-service privileges.
 
 ### Brush shell and built-ins
@@ -198,8 +203,8 @@ vendored source is never regenerated or modified.
 - util-linux programs outside the selected base set remain available for later
   package expansion; hardware/destructive and specialized helpers are not
   installed merely because upstream built them.
-- Git's Perl/Python/Tcl/Tk/gettext optional tooling is deferred until those
-  language/runtime stacks are themselves MattOS-owned.
+- Git's Perl/Python/Tcl/Tk/gettext optional tooling is not built into the
+  base Git package.
 - OpenSSH security-key middleware and optional platform integrations require
   their respective future MattOS packages; core client/server and PAM paths do
   not depend on them.
@@ -210,7 +215,7 @@ vendored source is never regenerated or modified.
 
 ## Installed command snapshot
 
-The generated inventory is the exact full list. This build records 181 installed provider/command pairs. The networking and system-bus portion is:
+The generated inventory is the exact full list. The 2026-09-27 build records 237 installed provider/command pairs. The networking, system-bus and process portion is:
 
 ```text
 curl: curl
@@ -220,7 +225,7 @@ iputils: ping tracepath
 kmod: depmod insmod kmod lsmod modinfo modprobe rmmod
 ncurses: clear infocmp tic toe tput
 procps-ng: free hugetop pgrep pidof pkill pmap ps pwdx slabtop sysctl tload top uptime vmstat w watch
-systemd: busctl networkctl resolvectl timedatectl
+systemd: busctl loginctl networkctl resolvectl timedatectl
 ```
 
-The existing Brush, Linux-PAM, Shadow, sudo-rs, util-linux, uutils/coreutils, grep, sed, findutils, and diffutils entries remain in the machine-readable file. `uutils/coreutils:uptime` moved to `intentionally_excluded`; `procps-ng:uptime` is installed.
+The Brush, Linux-PAM, Shadow, sudo-rs, util-linux, OpenSSH, Git, compression-tool, uutils/coreutils, grep, sed, findutils, and diffutils entries are in the machine-readable file. `uutils/coreutils:uptime` moved to `intentionally_excluded`; `procps-ng:uptime` is installed.

@@ -18,9 +18,11 @@ CPython 3.14 is built against MattOS-owned OpenSSL, zlib, bzip2, xz, Expat,
 ncurses, and libffi. The install is split into runtime, shared-library, virtual
 environment/ensurepip, and development ownership boundaries.
 
-LLVM builds Clang and LLD with X86, AArch64, and RISC-V backends. Only X86_64 is
-an executable MattOS target in this milestone; retaining the other backend
-descriptions avoids baking the current architecture into the stage model.
+LLVM builds Clang and LLD with the X86 and AMDGPU backends
+(`LLVM_TARGETS_TO_BUILD=X86;AMDGPU` in `stages/llvm_toolchain.rs`). X86_64 is the
+only MattOS CPU target; AMDGPU is a userspace compiler backend required by the
+Mesa radeonsi and RADV drivers. AArch64 or RISC-V backends are to be added only
+when MattOS supports those architectures.
 
 Rust is built from the checksummed official source release, whose vendored
 Cargo dependency closure and stage-0 metadata are part of the release. The
