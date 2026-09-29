@@ -178,13 +178,6 @@ unsigned long long _set_ctrl(pam_handle_t *pamh, int flags, int *remember,
 		}
 	}
 
-	if (UNIX_DES_CRYPT(ctrl)
-	    && pass_min_len && *pass_min_len > 8)
-	  {
-	    pam_syslog (pamh, LOG_NOTICE, "Password minlen reset to 8 characters");
-	    *pass_min_len = 8;
-	  }
-
 	if (flags & PAM_DISALLOW_NULL_AUTHTOK) {
 		D(("DISALLOW_NULL_AUTHTOK"));
 		set(UNIX__NONULL, ctrl);

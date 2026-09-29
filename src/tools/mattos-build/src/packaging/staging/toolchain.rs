@@ -624,7 +624,7 @@ pub(super) fn stage_linux_libc_dev(repo_root: &Path, staging: &Path) -> Result<(
         &|relative, _| !path_entry_exists(&glibc_headers.join(relative)),
     )?;
     copy_preserving(
-        &repo_root.join("src/kernel/linux/COPYING"),
+        &repo_root.join("src/kernel/linux-uapi/COPYING"),
         &staging.join("usr/share/doc/linux-libc-dev/copyright"),
     )?;
     copy_preserving(

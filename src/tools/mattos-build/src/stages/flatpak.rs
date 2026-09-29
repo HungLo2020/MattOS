@@ -468,7 +468,7 @@ fn build_duktape(repo_root: &Path) -> Result<()> {
     let source = out_root.join("source");
     let install = out_root.join("install/usr");
     sync_build_source(&repo_root.join("src/system/security/duktape"), &source)?;
-    remove_path_if_exists(&install)?;
+    remove_path_if_exists(&out_root.join("install"))?;
     let configure = source.join("tools/configure.py");
     let configure_body = fs::read_to_string(&configure)?
         .replace("open(apiheader_filename, 'rb')", "open(apiheader_filename, 'r')")

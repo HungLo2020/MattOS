@@ -144,13 +144,31 @@ publishes different bytes from the same inputs needlessly rebuilds its whole
 downstream closure, and for `cross-toolchain` or `gcc-runtime` that is the
 entire system. After a recipe succeeds, and before its outputs are
 inventoried, the stage runner therefore removes every generated
-`share/info/dir` from the declared outputs (`remove_generated_info_indexes` in
+`share/info/dir` from the declared outputs (`finalize_stage_outputs` in
 `stage_cache.rs`). GNU `install-info` rewrites that aggregate index for each
 manual it installs, and parallel `make install` jobs race on it, so it lost
 entries between otherwise identical builds (GCC once dropped `gccinstall`).
 MattOS never ships the index: install-info maintains it on the installed
 system, and package staging drops it too (see
 [Debian packaging](../packaging/debian-packaging.md)).
+
+Two more properties keep outputs independent of how a build is invoked.
+mattos-build sets its file-creation mask to `022` before anything else
+(`BUILD_UMASK`); output inventories record modes, and a caller's umask of
+`002` once made gcc-runtime's directories group-writable, changing its digest
+and rebuilding the whole system from byte-identical files. The build umask
+does not cover modes copied from vendored source: Git records only the
+executable bit, so a checkout made under umask `002` has group-writable files
+and directories that `cmake --install` or a copy carries into outputs (qtbase
+and vulkan-headers did). Source mirrors are therefore synced with
+`--chmod=go-w`, and `finalize_stage_outputs` strips group and other write from
+every declared output, keeping sticky and setgid modes such as rootfs `/tmp`. And the shared
+`out/sysroot` is never wiped by one stage: glibc, its base layer, removes only
+the files its previous output installed there (while they are still its
+copies) before reinstalling, and exports the kernel UAPI headers into its own
+output tree and configures against that tree. Wiping the whole sysroot used to
+delete the runtime libraries gcc-runtime publishes there, forcing gcc-runtime
+to rebuild even when glibc's output was unchanged.
 
 Target stages also carry a `<target-toolchain-v2>` pseudo-dependency (`TARGET_TOOLCHAIN_CACHE_KEY` in `stages/registry.rs`; the version suffix lets manifests keyed by an older definition migrate): the output
 digests of `cross-toolchain` and `gcc-runtime` plus the compiler wrappers in
@@ -159,7 +177,14 @@ through a published dependency, so without it a toolchain change that leaves
 the sysroot bytes unchanged would not invalidate them. The toolchain stages
 themselves (`cross-toolchain`, `glibc`, `gcc-runtime`), `linux` (built by the
 pass-1 compiler, a direct dependency), the virtual `linux-headers` and
-`formal-sysroot` nodes, `packages` and `repository` do not carry it. A manifest
+`formal-sysroot` nodes, `packages` and `repository` do not carry it, and
+neither do the data-only stages `pop-fonts` and `material-cursors`, which never
+invoke the target compiler. One predicate, `stage_uses_target_toolchain`,
+decides both the key and the workspace discard below, and a test requires every
+stage it selects to reach `gcc-runtime` and `cross-toolchain` through its
+scheduled dependencies: the pseudo-dependency is not a scheduling edge, so a
+keyed stage without that path could build before the toolchain existed and
+rebuild once it did. A manifest
 written before the key existed adopts it without a rebuild only when the
 workspace guard's marker (`out/state/toolchain-markers/<stage>`) records the
 current toolchain for that stage.

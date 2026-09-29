@@ -414,6 +414,18 @@ static char **read_namespace_dir(struct instance_data *idata)
 }
 
 /*
+ * Frees a NULL-terminated file list as returned by read_namespace_dir().
+ */
+static void free_namespace_dir_list(char **filename_list)
+{
+	if (filename_list != NULL) {
+		for (size_t i = 0; filename_list[i] != NULL; i++)
+			free(filename_list[i]);
+		free(filename_list);
+	}
+}
+
+/*
  * Adds an entry for a polyinstantiated directory to the linked list of
  * polyinstantiated directories. It is called from process_line() while
  * parsing the namespace configuration file.
@@ -895,7 +907,7 @@ static int process_line(char *line, const char *home, const char *rhome,
      */
     if (uids) {
         uid_t *uidptr;
-        const char *ustr, *sstr;
+        char *ustr, *sstr;
         size_t count, i;
 
 	if (*uids == '~') {
@@ -1035,6 +1047,7 @@ static int parse_config_file(struct instance_data *idata)
 	if (fil == NULL) {
 	    pam_syslog(idata->pamh, LOG_ERR, "Error opening config file %s",
 		confname);
+	    free_namespace_dir_list(filename_list);
 	    free(rhome);
 	    free(home);
 	    return PAM_SERVICE_ERR;
@@ -1052,6 +1065,7 @@ static int parse_config_file(struct instance_data *idata)
 		"Error processing conf file %s line %s", confname, line);
 	        fclose(fil);
 	        free(line);
+	        free_namespace_dir_list(filename_list);
 	        free(rhome);
 	        free(home);
 	        return PAM_SERVICE_ERR;
@@ -1066,11 +1080,7 @@ static int parse_config_file(struct instance_data *idata)
 	confname = filename_list[n++];
     }
 
-    if (filename_list != NULL) {
-	for (size_t i = 0; filename_list[i] != NULL; i++)
-	    free(filename_list[i]);
-	free(filename_list);
-    }
+    free_namespace_dir_list(filename_list);
 
     free(rhome);
     free(home);
@@ -2498,7 +2508,6 @@ static int get_user_data(struct instance_data *idata)
     /* Fill in RUSER too */
     retval = pam_get_item(idata->pamh, PAM_RUSER, (void*) &user_name );
     if ( user_name != NULL && retval == PAM_SUCCESS && user_name[0] != '\0' ) {
-	strncat(idata->ruser, user_name, sizeof(idata->ruser) - 1);
 	pwd = pam_modutil_getpwnam(idata->pamh, user_name);
     } else {
 	pwd = pam_modutil_getpwuid(idata->pamh, getuid());

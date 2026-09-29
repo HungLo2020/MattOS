@@ -688,10 +688,8 @@ process_limit (const pam_handle_t *pamh, int source, const char *lim_type,
 #endif
     else if (strcmp(lim_item, "maxlogins") == 0) {
 	limit_item = LIMIT_LOGIN;
-	pl->flag_numsyslogins = 0;
     } else if (strcmp(lim_item, "maxsyslogins") == 0) {
 	limit_item = LIMIT_NUMSYSLOGINS;
-	pl->flag_numsyslogins = 1;
     } else if (strcmp(lim_item, "priority") == 0) {
 	limit_item = LIMIT_PRI;
     } else if (strcmp(lim_item, "nonewprivs") == 0) {
@@ -853,6 +851,7 @@ process_limit (const pam_handle_t *pamh, int source, const char *lim_type,
 	    if (pl->login_limit_def < source) {
 		return;
 	    } else {
+		pl->flag_numsyslogins = (int)(limit_item == LIMIT_NUMSYSLOGINS);
 		pl->login_limit = int_value;
 		pl->login_limit_def = source;
 	    }
@@ -865,7 +864,7 @@ parse_uid_range(pam_handle_t *pamh, const char *domain,
 		uid_t *min_uid, uid_t *max_uid)
 {
     const char *range = domain;
-    char *pmax;
+    const char *pmax;
     char *endptr;
     int rv = LIMIT_RANGE_MM;
 
@@ -1051,7 +1050,7 @@ parse_config_file(pam_handle_t *pamh, const char *uname, uid_t uid, gid_t gid,
 		    case LIMIT_RANGE_MM:
 			if (gid > (gid_t)max_uid)
 			    break;
-			/* fallthrough */
+			PAM_FALLTHROUGH;
 		    case LIMIT_RANGE_MIN:
 			if (gid >= (gid_t)min_uid)
 			    process_limit(pamh, LIMITS_DEF_GROUP, ltype, item, value, ctrl,
@@ -1099,11 +1098,11 @@ parse_config_file(pam_handle_t *pamh, const char *uname, uid_t uid, gid_t gid,
 		    case LIMIT_RANGE_ONE:
 			if (uid != max_uid)
 			    break;
-			/* fallthrough */
+			PAM_FALLTHROUGH;
 		    case LIMIT_RANGE_MM:
 			if (uid > max_uid)
 			    break;
-			/* fallthrough */
+			PAM_FALLTHROUGH;
 		    case LIMIT_RANGE_MIN:
 			if (uid >= min_uid)
 			    process_limit(pamh, LIMITS_DEF_USER, ltype, item, value, ctrl, pl);
@@ -1127,7 +1126,7 @@ parse_config_file(pam_handle_t *pamh, const char *uname, uid_t uid, gid_t gid,
 		    case LIMIT_RANGE_MM:
 			if (gid > (gid_t)max_uid)
 			    continue;  /* next line */
-			/* fallthrough */
+			PAM_FALLTHROUGH;
 		    case LIMIT_RANGE_MIN:
 			if (gid < (gid_t)min_uid)
 			    continue;  /* next line */
@@ -1148,7 +1147,7 @@ parse_config_file(pam_handle_t *pamh, const char *uname, uid_t uid, gid_t gid,
 		    case LIMIT_RANGE_MM:
 			if (uid > max_uid)
 			    continue;  /* next line */
-			/* fallthrough */
+			PAM_FALLTHROUGH;
 		    case LIMIT_RANGE_MIN:
 			if (uid >= min_uid)
 			    break;
@@ -1343,6 +1342,7 @@ pam_sm_open_session (pam_handle_t *pamh, int flags UNUSED,
     struct pam_limit_s plstruct;
     struct pam_limit_s *pl = &plstruct;
     char *free_filename = NULL;
+    char **filename_list;
 
     D(("called."));
 
@@ -1395,7 +1395,7 @@ pam_sm_open_session (pam_handle_t *pamh, int flags UNUSED,
 	goto out;
 
     /* Read subsequent *.conf files, if they exist. */
-    char **filename_list = read_limits_dir(pamh);
+    filename_list = read_limits_dir(pamh);
     if (filename_list != NULL) {
         for (i = 0; filename_list[i] != NULL; i++) {
             pl->conf_file = filename_list[i];

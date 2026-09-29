@@ -20,7 +20,7 @@ cargo run -p mattos-build -- upstream sync systemd
 cargo run -p mattos-build -- upstream sync --all
 ```
 
-Sync uses the existing MattOS three-way merge workflow that preserves local edits and emits conflict markers when local and upstream touch the same lines.
+Sync verifies the vendored tree against its last import and replaces it with the new pinned commit; it refuses a tree with local edits (MattOS changes belong in `upstream/patches/`). See [Upstream synchronization model](../../sources/upstream-sync.md).
 
 ## Build Integration
 

@@ -120,3 +120,52 @@ fn prune_source_selection_tree(
     }
     Ok(())
 }
+
+/// The component's standalone intentional-omission policy, validated as the
+/// provenance audit validates it.  Gitlink omission fragments
+/// (`gitlinks.toml#name`) belong to the gitlink machinery and are not
+/// standalone projections.
+fn load_intentional_omission_policy(
+    repo_root: &Path,
+    comp: &ComponentDef,
+    policy_name: &str,
+) -> Result<Option<OmissionPolicy>> {
+    if policy_name == "none" || policy_name.contains('#') {
+        return Ok(None);
+    }
+    let path = resolve_component_destination(repo_root, policy_name)?;
+    let text = fs::read_to_string(&path)
+        .with_context(|| format!("failed to read intentional-omission policy {}", path.display()))?;
+    let policy: OmissionPolicy = toml::from_str(&text)
+        .with_context(|| format!("failed to parse {}", path.display()))?;
+    let name = &comp.name;
+    if policy.schema_version != 1 || policy.component != *name {
+        bail!("{name} intentional-omission policy schema or component does not match");
+    }
+    if comp.revision.as_deref() != Some(policy.upstream_commit.as_str()) {
+        bail!("{name} intentional-omission policy commit does not match the pinned revision");
+    }
+    if policy.reason.trim().is_empty() {
+        bail!("{name} intentional-omission policy lacks a reason");
+    }
+    let safe = |value: &str| {
+        !value.is_empty()
+            && !value.starts_with('/')
+            && !value.contains('\\')
+            && value.split('/').all(|part| !matches!(part, "" | "." | ".."))
+    };
+    match (&policy.upstream_subtree, &policy.retained_paths) {
+        (Some(subtree), None) if safe(subtree.trim_end_matches('/')) => {}
+        (None, Some(retained))
+            if !retained.is_empty()
+                && retained.iter().all(|path| safe(path.trim_end_matches('/')))
+                && retained.iter().collect::<BTreeSet<_>>().len() == retained.len() => {}
+        _ => bail!(
+            "{name} intentional-omission policy must declare exactly one safe upstream_subtree or a non-empty list of unique safe retained_paths"
+        ),
+    }
+    if policy.expected_runtime_files.is_some() && policy.upstream_subtree.is_none() {
+        bail!("{name} expected_runtime_files requires upstream_subtree");
+    }
+    Ok(Some(policy))
+}

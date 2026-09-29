@@ -603,7 +603,7 @@ _strbuf_add_string(struct string_buffer *buffer, const char *str)
 static int
 _expand_arg(pam_handle_t *pamh, char **value)
 {
-  const char *orig=*value;
+  char *orig=*value;
   struct string_buffer buf;
 
   /*

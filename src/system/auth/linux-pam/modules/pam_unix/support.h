@@ -83,29 +83,38 @@ typedef struct {
 #define UNIX_DEBUG               15	/* send more info to syslog(3) */
 #define UNIX_NODELAY             16	/* admin does not want a fail-delay */
 #define UNIX_NIS                 17	/* wish to use NIS for pwd */
-#define UNIX_BIGCRYPT            18	/* use DEC-C2 crypt()^x function */
-#define UNIX_LIKE_AUTH           19	/* need to auth for setcred to work */
-#define UNIX_REMEMBER_PASSWD     20	/* Remember N previous passwords */
-#define UNIX_NOREAP              21     /* don't reap child process */
-#define UNIX_BROKEN_SHADOW       22     /* ignore errors reading password aging
+#define UNIX_LIKE_AUTH           18	/* need to auth for setcred to work */
+#define UNIX_REMEMBER_PASSWD     19	/* Remember N previous passwords */
+#define UNIX_NOREAP              20     /* don't reap child process */
+#define UNIX_BROKEN_SHADOW       21     /* ignore errors reading password aging
 					 * information during acct management */
-#define UNIX_SHA256_PASS         23	/* new password hashes will use SHA256 */
-#define UNIX_SHA512_PASS         24	/* new password hashes will use SHA512 */
-#define UNIX_ALGO_ROUNDS         25	/* optional number of rounds for new
+#define UNIX_SHA256_PASS         22	/* new password hashes will use SHA256 */
+#define UNIX_SHA512_PASS         23	/* new password hashes will use SHA512 */
+#define UNIX_ALGO_ROUNDS         24	/* optional number of rounds for new
 					   password hash algorithms */
-#define UNIX_BLOWFISH_PASS       26	/* new password hashes will use blowfish */
-#define UNIX_MIN_PASS_LEN        27	/* min length for password */
-#define UNIX_QUIET		 28	/* Don't print informational messages */
-#define UNIX_NO_PASS_EXPIRY      29     /* Don't check for password expiration if not used for authentication */
-#define UNIX_DES                 30     /* DES, deprecated */
-#define UNIX_GOST_YESCRYPT_PASS  31     /* new password hashes will use gost-yescrypt */
-#define UNIX_YESCRYPT_PASS       32     /* new password hashes will use yescrypt */
-#define UNIX_NULLRESETOK         33     /* allow empty password if password reset is enforced */
-#define UNIX_EXPIRED_ONLY        34	/* only allow setting if password expired */
+#define UNIX_BLOWFISH_PASS       25	/* new password hashes will use blowfish */
+#define UNIX_MIN_PASS_LEN        26	/* min length for password */
+#define UNIX_QUIET		 27	/* Don't print informational messages */
+#define UNIX_NO_PASS_EXPIRY      28     /* Don't check for password expiration if not used for authentication */
+#define UNIX_GOST_YESCRYPT_PASS  29     /* new password hashes will use gost-yescrypt */
+#define UNIX_YESCRYPT_PASS       30     /* new password hashes will use yescrypt */
+#define UNIX_NULLRESETOK         31     /* allow empty password if password reset is enforced */
+#define UNIX_EXPIRED_ONLY        32	/* only allow setting if password expired */
 /* -------------- */
-#define UNIX_CTRLS_              35	/* number of ctrl arguments defined */
+#define UNIX_CTRLS_              33	/* number of ctrl arguments defined */
 
-#define UNIX_DES_CRYPT(ctrl)	(off(UNIX_MD5_PASS,ctrl)&&off(UNIX_BIGCRYPT,ctrl)&&off(UNIX_SHA256_PASS,ctrl)&&off(UNIX_SHA512_PASS,ctrl)&&off(UNIX_BLOWFISH_PASS,ctrl)&&off(UNIX_GOST_YESCRYPT_PASS,ctrl)&&off(UNIX_YESCRYPT_PASS,ctrl))
+/*
+ * Mask of all hash algorithm flags, used for mutual exclusion:
+ * selecting one hash algorithm clears all others.
+ */
+#define UNIX_HASH_ALGO_FLAGS \
+	( 020000ULL         /* UNIX_MD5_PASS */                 \
+	| 020000000ULL      /* UNIX_SHA256_PASS */              \
+	| 040000000ULL      /* UNIX_SHA512_PASS */              \
+	| 0200000000ULL     /* UNIX_BLOWFISH_PASS */            \
+	| 04000000000ULL    /* UNIX_GOST_YESCRYPT_PASS */       \
+	| 010000000000ULL   /* UNIX_YESCRYPT_PASS */            \
+	)
 
 static const UNIX_Ctrls unix_args[UNIX_CTRLS_] =
 {
@@ -125,26 +134,24 @@ static const UNIX_Ctrls unix_args[UNIX_CTRLS_] =
 /* UNIX__QUIET */              {NULL,               _ALL_ON_,                           02000, 0},
 /* UNIX_USE_AUTHTOK */         {"use_authtok",      _ALL_ON_,                           04000, 0},
 /* UNIX_SHADOW */              {"shadow",           _ALL_ON_,                          010000, 0},
-/* UNIX_MD5_PASS */            {"md5",              _ALL_ON_^(015660420000ULL),        020000, 1},
+/* UNIX_MD5_PASS */            {"md5",              _ALL_ON_^UNIX_HASH_ALGO_FLAGS,     020000, 1},
 /* UNIX__NULLOK */             {"nullok",           _ALL_ON_^(01000ULL),                    0, 0},
 /* UNIX_DEBUG */               {"debug",            _ALL_ON_,                          040000, 0},
 /* UNIX_NODELAY */             {"nodelay",          _ALL_ON_,                         0100000, 0},
 /* UNIX_NIS */                 {"nis",              _ALL_ON_,                         0200000, 0},
-/* UNIX_BIGCRYPT */            {"bigcrypt",         _ALL_ON_^(015660420000ULL),       0400000, 1},
 /* UNIX_LIKE_AUTH */           {"likeauth",         _ALL_ON_,                        01000000, 0},
 /* UNIX_REMEMBER_PASSWD */     {"remember=",        _ALL_ON_,                        02000000, 0},
 /* UNIX_NOREAP */              {"noreap",           _ALL_ON_,                        04000000, 0},
 /* UNIX_BROKEN_SHADOW */       {"broken_shadow",    _ALL_ON_,                       010000000, 0},
-/* UNIX_SHA256_PASS */         {"sha256",           _ALL_ON_^(015660420000ULL),     020000000, 1},
-/* UNIX_SHA512_PASS */         {"sha512",           _ALL_ON_^(015660420000ULL),     040000000, 1},
+/* UNIX_SHA256_PASS */         {"sha256",           _ALL_ON_^UNIX_HASH_ALGO_FLAGS,  020000000, 1},
+/* UNIX_SHA512_PASS */         {"sha512",           _ALL_ON_^UNIX_HASH_ALGO_FLAGS,  040000000, 1},
 /* UNIX_ALGO_ROUNDS */         {"rounds=",          _ALL_ON_,                      0100000000, 0},
-/* UNIX_BLOWFISH_PASS */       {"blowfish",         _ALL_ON_^(015660420000ULL),    0200000000, 1},
+/* UNIX_BLOWFISH_PASS */       {"blowfish",         _ALL_ON_^UNIX_HASH_ALGO_FLAGS, 0200000000, 1},
 /* UNIX_MIN_PASS_LEN */        {"minlen=",          _ALL_ON_,                      0400000000, 0},
 /* UNIX_QUIET */               {"quiet",            _ALL_ON_,                     01000000000, 0},
 /* UNIX_NO_PASS_EXPIRY */      {"no_pass_expiry",   _ALL_ON_,                     02000000000, 0},
-/* UNIX_DES */                 {"des",              _ALL_ON_^(015660420000ULL),             0, 1},
-/* UNIX_GOST_YESCRYPT_PASS */  {"gost_yescrypt",    _ALL_ON_^(015660420000ULL),   04000000000, 1},
-/* UNIX_YESCRYPT_PASS */       {"yescrypt",         _ALL_ON_^(015660420000ULL),  010000000000, 1},
+/* UNIX_GOST_YESCRYPT_PASS */  {"gost_yescrypt",    _ALL_ON_^UNIX_HASH_ALGO_FLAGS,04000000000, 1},
+/* UNIX_YESCRYPT_PASS */       {"yescrypt",         _ALL_ON_^UNIX_HASH_ALGO_FLAGS,010000000000, 1},
 /* UNIX_NULLRESETOK */         {"nullresetok",      _ALL_ON_,                    020000000000, 0},
 /* UNIX_EXPIRED_ONLY */        {NULL,               _ALL_ON_,                    040000000000, 0},
 };

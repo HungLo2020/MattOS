@@ -664,7 +664,7 @@ fn nvidia_stack_is_version_locked_and_coinstallable_with_mesa() {
     let specs = package_specs();
     let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
     for name in [
-        "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+        NVIDIA_OPEN_MODULES_PACKAGE,
         "nvidia-firmware-595",
         "libnvidia-gl-595",
         "libnvidia-compute-595",
@@ -682,7 +682,7 @@ fn nvidia_stack_is_version_locked_and_coinstallable_with_mesa() {
     assert!(
         driver
             .depends
-            .contains(&"linux-modules-nvidia-595-open-7.2.0-rc5-mattos")
+            .contains(&NVIDIA_OPEN_MODULES_PACKAGE)
     );
     assert!(spec("libnvidia-gl-595").depends.contains(&"libegl1"));
     assert_eq!(spec("libegl1").source_component, "libglvnd");
@@ -2621,4 +2621,100 @@ fn signed_flatpak_policy_seeds_a_minimal_readable_system_remote() {
             > 1_000,
         "the seeded key must be the decoded full Flathub public key"
     );
+}
+
+#[test]
+fn release_tags_of_every_style_name_their_upstream_version() {
+    for (tag, version) in [
+        ("openssl-3.5.8", "3.5.8"),
+        ("v6.26.0", "6.26.0"),
+        ("releases/gcc-15.3.0", "15.3.0"),
+        ("binutils-2_46_1", "2.46.1"),
+        ("curl-8_22_0", "8.22.0"),
+        ("R_2_8_5", "2.8.5"),
+        ("FILE5_48", "5.48"),
+        ("libnl3_12_0", "3.12.0"),
+        ("hostap_2_12", "2.12"),
+        ("lcms2.16", "2.16"),
+        ("libXfont2-2.0.9", "2.0.9"),
+        ("xcb-util-renderutil-0.3.10", "0.3.10"),
+        ("VER-2-14-3", "2.14.3"),
+        ("V3-6-2", "3.6.2"),
+        ("n8.1.2", "8.1.2"),
+        ("release-78.3", "78.3"),
+        ("popt-1.19-release", "1.19"),
+        ("json-c-0.19-20260627", "0.19"),
+        ("V_10_5_P1", "10.5p1"),
+        ("2026d", "2026d"),
+        ("20260916", "20260916"),
+        ("238", "238"),
+        ("v704", "704"),
+        ("master-2026-09-03", "2026.09.03"),
+        ("v7.2-rc5", "7.2~rc5"),
+        ("v7.2.8", "7.2.8"),
+    ] {
+        assert_eq!(release_version_from_branch(tag).as_deref(), Some(version), "{tag}");
+    }
+    for moving in ["main", "master", "trunk"] {
+        assert_eq!(release_version_from_branch(moving), None);
+    }
+}
+
+#[test]
+fn every_release_tag_in_the_source_manifest_yields_a_version() {
+    // A tag that parses to no version silently becomes a snapshot version
+    // (`0~git.<commit>`), whose order follows the commit hash: an update
+    // could look like a downgrade to apt on installed systems.
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let sources: toml::Value =
+        toml::from_str(&fs::read_to_string(root.join("upstream/sources.toml")).unwrap()).unwrap();
+    let unparsed = sources["component"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|component| {
+            let branch = component["branch"].as_str()?;
+            let moving = matches!(branch, "main" | "master" | "trunk" | "develop" | "next")
+                || branch.starts_with("stable-");
+            (!moving && release_version_from_branch(branch).is_none())
+                .then(|| format!("{} ({branch})", component["name"].as_str().unwrap_or("?")))
+        })
+        .collect::<Vec<_>>();
+    assert!(unparsed.is_empty(), "release tags without a version: {unparsed:?}");
+}
+
+#[test]
+fn builds_report_compatibility_entries_whose_recorded_version_drifted() {
+    let root = tempfile::tempdir().unwrap();
+    let entry = |name: &str, version: &str| {
+        format!(
+            "[[package]]\ndebian_name = \"{name}\"\nmattos_name = \"{name}\"\nsource_component = \"x\"\nowned_paths = [\"/x\"]\nprovided_abi_or_commands = [\"x\"]\nprotected = false\ncurrent_mattos_version = \"{version}\"\nexpected_debian_role = \"x\"\nclassification = \"debian-compatible\"\nknown_gaps = [\"x\"]\n"
+        )
+    };
+    let manifest = format!(
+        "schema_version = 1\nsuite = \"trixie\"\narchitecture = \"amd64\"\npolicy = \"p\"\nversion_policy = \"v\"\n\n{}\n{}",
+        entry("tzdata", "2026a-1mattos1"),
+        entry("zlib1g", "1.3.2-1mattos1")
+    );
+    let path = root.path().join("src/system/packages/debian-compat/trixie.toml");
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    fs::write(&path, manifest).unwrap();
+    let built = |name: &str, version: &str| PackageInventoryEntry {
+        name: name.to_string(),
+        version: version.to_string(),
+        architecture: ARCH.to_string(),
+        artifact_path: String::new(),
+        source_component: "x".to_string(),
+        dependencies: Vec::new(),
+        runtime_libraries: Vec::new(),
+        file_count: 0,
+        sha256: String::new(),
+    };
+    let inventory = PackageInventory {
+        package: vec![built("tzdata", "2026d-1mattos1"), built("zlib1g", "1.3.2-1mattos1")],
+    };
+    let warning = stale_compatibility_versions(root.path(), &inventory).unwrap().unwrap();
+    assert!(warning.contains("1 entry"), "{warning}");
+    assert!(warning.contains("tzdata: records 2026a-1mattos1, built 2026d-1mattos1"), "{warning}");
+    assert!(!warning.contains("zlib1g"));
 }

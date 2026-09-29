@@ -47,6 +47,7 @@ permissions:
 jobs:
   checks:
     name: Perform checks
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +91,9 @@ jobs:
       CFLAGS: -g3 -pipe
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        persist-credentials: false
+
     - name: Install build dependencies (MinGW)
       if: "${{ contains(matrix.FLAT_ENV, 'mingw') }}"
       run: |-
@@ -98,27 +102,29 @@ jobs:
         # Install 32bit Wine
         sudo dpkg --add-architecture i386  # for wine32
         sudo apt-get update  # due to new architecture
-        sudo apt-get install --yes --no-install-recommends -V \
+        sudo timeout 10m apt-get install --yes --no-install-recommends -V \
             mingw-w64 \
             retry \
             wine-stable \
             wine32:i386
+
     - name: Install build dependencies (Non-MinGW)
       if: "${{ ! contains(matrix.FLAT_ENV, 'mingw') }}"
       run: |-
         set -x
         source /etc/os-release
         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository "deb https://apt.llvm.org/${UBUNTU_CODENAME}/ llvm-toolchain-${UBUNTU_CODENAME}-21 main"
+        sudo add-apt-repository "deb https://apt.llvm.org/${UBUNTU_CODENAME}/ llvm-toolchain-${UBUNTU_CODENAME}-23 main"
         sudo apt-get update  # due to new repository
-        # NOTE: Please note the version-specific ${PATH} extension for Clang adding /usr/lib/llvm-21/bin in .ci.sh
-        sudo apt-get install --yes --no-install-recommends -V \
-            clang-21 \
-            libclang-rt-21-dev \
-            llvm-21
+        # NOTE: Please note the version-specific ${PATH} extension for Clang adding /usr/lib/llvm-23/bin in .ci.sh
+        sudo timeout 10m apt-get install --yes --no-install-recommends -V \
+            clang-23 \
+            libclang-rt-23-dev \
+            llvm-23
+
     - name: Install build dependencies (common)
       run: |-
-        sudo apt-get install --yes --no-install-recommends -V \
+        sudo timeout 10m apt-get install --yes --no-install-recommends -V \
             cmake \
             docbook2x \
             gcc-multilib \
@@ -126,6 +132,7 @@ jobs:
             lcov \
             lzip \
             moreutils
+
     - name: Perform check "${{ matrix.MODE }}"
       env:
         MODE: ${{ matrix.MODE }}

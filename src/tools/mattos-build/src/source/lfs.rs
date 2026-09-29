@@ -63,23 +63,6 @@ fn lfs_pointer(object: &LfsHydrationObject) -> String {
     )
 }
 
-fn restore_lfs_pointers_for_merge(
-    merge_tree: &Path,
-    policy: Option<&LfsHydrationPolicy>,
-) -> Result<()> {
-    let Some(policy) = policy else {
-        return Ok(());
-    };
-    for object in &policy.object {
-        let object_name = format!("HEAD:{}", object.path);
-        if run_cmd_status(merge_tree, "git", &["cat-file", "-e", &object_name])?.success() {
-            run_cmd(merge_tree, "git", &["checkout", "HEAD", "--", &object.path])?;
-        } else {
-            remove_path_if_exists(&merge_tree.join(&object.path))?;
-        }
-    }
-    Ok(())
-}
 
 fn hydrate_lfs_objects(
     repo_root: &Path,

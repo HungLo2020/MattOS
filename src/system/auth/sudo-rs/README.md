@@ -124,6 +124,11 @@ To install the `sudo-rs` version of `su`, which is packaged separately, run:
 apk add sudo-rs-su
 ```
 
+#### postmarketOS
+
+On postmarketOS, sudo-rs is installed and enabled by default on all new installs.
+
+
 ### Installing our pre-compiled x86-64 binaries
 
 You can also switch to sudo-rs manually by using our pre-compiled tarballs.
@@ -133,13 +138,13 @@ We recommend installing sudo-rs and su-rs in your `/usr/local` hierarchy so it d
 manager of your Linux distribution. You can achieve this using the commands:
 
 ```sh
-sudo tar -C /usr/local -xvf sudo-0.2.14.tar.gz
+sudo tar -C /usr/local -xvf sudo-0.2.15.tar.gz
 ```
 
 and for su-rs:
 
 ```sh
-sudo tar -C /usr/local -xvf su-0.2.14.tar.gz
+sudo tar -C /usr/local -xvf su-0.2.15.tar.gz
 ```
 
 This will install sudo-rs and su-rs in `/usr/local/bin` using the usual commands `sudo`, `visudo`, `sudoedit` and `su`. Please double check

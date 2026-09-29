@@ -1,0 +1,91 @@
+--- a/brush-parser/src/parser/peg.rs
++++ b/brush-parser/src/parser/peg.rs
+@@ -112,7 +112,7 @@
+             expected!("compound command")
+ 
+         pub(crate) rule arithmetic_command() -> ast::ArithmeticCommand =
+-            start:specific_operator("(") specific_operator("(") expr:arithmetic_expression() specific_operator(")") end:specific_operator(")") {
++            start:specific_operator("(") adjacent_operator(start, "(") expr:arithmetic_expression() specific_operator(")") end:specific_operator(")") {
+                 let loc = SourceSpan::within(
+                     start.location(),
+                     end.location()
+@@ -709,6 +709,13 @@
+         rule specific_operator(expected: &str) -> &'input Token =
+             [Token::Operator(w, _) if w.as_str() == expected]
+ 
++        // Bash reads `((` as an arithmetic command only when the parentheses are adjacent;
++        // `( (` always opens nested subshells.
++        rule adjacent_operator(previous: &Token, expected: &str) -> &'input Token =
++            t:specific_operator(expected) {?
++                if t.location().start.index == previous.location().end.index { Ok(t) } else { Err("adjacent operator") }
++            }
++
+         rule specific_word(expected: &str) -> &'input Token =
+             [Token::Word(w, _) if w.as_str() == expected]
+ 
+--- a/brush-parser/src/parser/tests/compound_commands.rs
++++ b/brush-parser/src/parser/tests/compound_commands.rs
+@@ -315,3 +315,18 @@
+     });
+     Ok(())
+ }
++
++#[test]
++fn spaced_double_paren_is_nested_subshells() -> Result<()> {
++    for config in super::parser_configs() {
++        for input in ["( ( echo nested ) )", "( ( a=1 && echo x ) )"] {
++            let program = super::parse_with_config(input, &config)?;
++            let debug = format!("{program:?}");
++            assert!(debug.contains("Subshell"), "{}: {input}: {debug}", config.name);
++            assert!(!debug.contains("Arithmetic"), "{}: {input}: {debug}", config.name);
++        }
++        let program = super::parse_with_config("((1 + 2))", &config)?;
++        assert!(format!("{program:?}").contains("Arithmetic"), "{}", config.name);
++    }
++    Ok(())
++}
+--- a/brush-parser/src/parser/tests/snapshots/brush_parser__parser__tests__compound_commands__parse_nested_subshell.snap
++++ b/brush-parser/src/parser/tests/snapshots/brush_parser__parser__tests__compound_commands__parse_nested_subshell.snap
+@@ -10,10 +10,38 @@
+         CompoundListItem(AndOrList(
+           first: Pipeline(
+             seq: [
+-              Compound(Arithmetic(ArithmeticCommand(
+-                expr: UnexpandedArithmeticExpr(
+-                  value: "echo nested",
+-                ),
++              Compound(Subshell(SubshellCommand(
++                list: CompoundList([
++                  CompoundListItem(AndOrList(
++                    first: Pipeline(
++                      seq: [
++                        Compound(Subshell(SubshellCommand(
++                          list: CompoundList([
++                            CompoundListItem(AndOrList(
++                              first: Pipeline(
++                                seq: [
++                                  Simple(SimpleCommand(
++                                    word_or_name: Some(Word(
++                                      value: "echo",
++                                      loc: "[location]",
++                                    )),
++                                    suffix: Some(CommandSuffix([
++                                      Word(Word(
++                                        value: "nested",
++                                        loc: "[location]",
++                                      )),
++                                    ])),
++                                  )),
++                                ],
++                              ),
++                            ), Sequence),
++                          ]),
++                          loc: "[location]",
++                        )), None),
++                      ],
++                    ),
++                  ), Sequence),
++                ]),
+                 loc: "[location]",
+               )), None),
+             ],

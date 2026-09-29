@@ -13,7 +13,7 @@ use crate::sudoers::{
     AuthenticatingUser, Authentication, AuthenticationScope, Authorization, Judgement, Logging,
     Sudoers,
 };
-use crate::system::term::current_tty_name;
+use crate::system::term::{current_tty_name, lock_tty};
 use crate::system::timestamp::{RecordScope, SessionRecordFile, TouchResult};
 use crate::system::{Process, escape_os_str_lossy};
 
@@ -167,11 +167,18 @@ fn auth_and_update_record_file(
         }
     };
 
+    // To prevent two sudo-rs instances asking for a password at the same time,
+    // we try to obtain a file lock on the TTY in certain cases.
+    let _guard = if context.non_interactive || context.stdin || context.askpass {
+        None
+    } else {
+        lock_tty()
+    };
+
     let scope = match scope {
         AuthenticationScope::Tty => RecordScope::for_tty(&Process::new()),
         AuthenticationScope::PPid => RecordScope::for_ppid(&Process::new()),
     };
-
     let mut auth_status = determine_auth_status(
         must_authenticate,
         context.use_session_records,

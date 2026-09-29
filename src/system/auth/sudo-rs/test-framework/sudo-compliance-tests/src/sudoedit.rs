@@ -268,7 +268,10 @@ rm $1",
     if sudo_test::is_original_sudo() {
         assert_contains!(stderr, format!("sudoedit: {ETC_SUDOERS} left unmodified"));
     } else {
-        assert_contains!(stderr, format!("sudo: failed to read from temporary file"));
+        assert_contains!(
+            stderr,
+            "sudo: failed to read from temporary file".to_string()
+        );
     }
 }
 

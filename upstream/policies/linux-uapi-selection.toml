@@ -1,0 +1,16 @@
+schema_version = 1
+component = "linux-uapi"
+upstream_commit = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
+retained_paths = [
+	"Makefile",
+	"Kbuild",
+	"scripts",
+	"include/uapi",
+	"include/asm-generic",
+	"arch/x86/Makefile",
+	"arch/x86/include/uapi",
+	"arch/x86/entry/syscalls",
+	"COPYING",
+	"LICENSES",
+]
+reason = "Userland kernel headers (linux-libc-dev) are pinned independently of the kernel MattOS boots, as Debian does: a kernel update must not rebuild the userland. Retain exactly what `make ARCH=x86 headers_install` reads, plus the license texts; verified byte-identical to headers exported from the complete tree."

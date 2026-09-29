@@ -362,7 +362,7 @@ create_homedir(struct dir_spec *parent, const struct passwd *pwd,
 
 static int
 create_homedir_helper(const struct passwd *_pwd, mode_t home_mode,
-		      const char *_skeldir, const char *_homedir,
+		      const char *_skeldir, char *_homedir,
 		      const char *_vendordir)
 {
    int retval = PAM_SESSION_ERR;

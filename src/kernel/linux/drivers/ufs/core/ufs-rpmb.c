@@ -69,6 +69,10 @@ static int ufs_rpmb_route_frames(struct device *dev, u8 *req, unsigned int req_l
 
 	hba = ufs_rpmb->hba;
 
+	/* req_resp is at the end of an RPMB frame. */
+	if (req_len < sizeof(*frm_out))
+		return -EINVAL;
+
 	req_type = be16_to_cpu(frm_out->req_resp);
 
 	switch (req_type) {
@@ -151,8 +155,6 @@ int ufs_rpmb_probe(struct ufs_hba *hba)
 		dev_err(hba->dev, "UFS Device ID not available\n");
 		return -EINVAL;
 	}
-
-	INIT_LIST_HEAD(&hba->rpmbs);
 
 	struct rpmb_descr descr = {
 		.type = RPMB_TYPE_UFS,

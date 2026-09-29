@@ -174,6 +174,11 @@ a multi handle is destroyed. This implicitly triggers for easy handles
 that are run via easy_perform. The value of the environment variable
 gives the shutdown timeout in milliseconds.
 
+## `CURL_DBG_HE_AAAA_AWAIT_MS`
+
+Overrides the time delaying a connect for AAAA resolve results to arrive
+before continuing with Happy Eyeballing.
+
 ## `CURL_DBG_RESOLV_MAX_THREADS`
 
 Overrides the maximum number of threads for resolver.
@@ -215,3 +220,7 @@ answer to arrive before starting any connect attempt.
 
 When passing `--ssl-reqd`, clear it for the first URL in a curl command.
 This allows testing of connection reuse in mixed `STARTTLS` needs.
+
+## `CURL_DBG_SUPPRESS_CONNECT_HDS`
+
+Existence of this variable suppresses the collection of CONNECT headers.

@@ -1193,6 +1193,9 @@ fn procps_configure_options() -> Vec<&'static str> {
 
 const SOURCE_MIRROR_RSYNC_FLAGS: &[&str] = &[
     "-a",
+    // Git tracks only the executable bit; the rest of a checkout's modes come
+    // from the host's umask. Mirror sources as a umask-022 checkout would.
+    "--chmod=go-w",
     "--delete",
     "--delete-excluded",
     "--exclude=.git/",

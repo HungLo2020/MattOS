@@ -112,6 +112,30 @@ fn source_mirror_sync_excludes_and_deletes_derived_cargo_outputs() {
 }
 
 #[test]
+fn source_mirrors_have_the_modes_of_a_umask_022_checkout() -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    let temp = tempfile::tempdir()?;
+    let source = temp.path().join("source");
+    let mirror = temp.path().join("mirror");
+    fs::create_dir_all(source.join("dir"))?;
+    fs::write(source.join("dir/script"), "#!/bin/sh\n")?;
+    fs::write(source.join("dir/data"), "data")?;
+    for (path, mode) in [("dir", 0o775), ("dir/script", 0o775), ("dir/data", 0o664)] {
+        fs::set_permissions(source.join(path), fs::Permissions::from_mode(mode))?;
+    }
+    let source_arg = format!("{}/", source.display());
+    let mirror_arg = format!("{}/", mirror.display());
+    let mut args = SOURCE_MIRROR_RSYNC_FLAGS.to_vec();
+    args.extend([source_arg.as_str(), mirror_arg.as_str()]);
+    assert!(Command::new("rsync").args(&args).status()?.success());
+    for (path, mode) in [("dir", 0o755), ("dir/script", 0o755), ("dir/data", 0o644)] {
+        let actual = fs::metadata(mirror.join(path))?.permissions().mode() & 0o7777;
+        assert_eq!(actual, mode, "{path}");
+    }
+    Ok(())
+}
+
+#[test]
 fn nvidia_selector_routes_turing_to_official_and_pascal_to_nouveau() {
     let ids = BTreeSet::from([0x1e04, 0x2684]);
     let (config, selector) = render_nvidia_driver_selection(&ids);
@@ -940,6 +964,7 @@ fn metadata_roundtrip_written_to_state_file() {
         patch_manifest_sha256: "none".to_string(),
         lfs_policy: "none".to_string(),
         lfs_policy_sha256: "none".to_string(),
+        upstream_committed_at_utc: Some("2026-01-01T00:00:00Z".to_string()),
     };
 
     write_sync_state(root, "linux", &state).expect("write state");
@@ -949,10 +974,11 @@ fn metadata_roundtrip_written_to_state_file() {
     assert_eq!(loaded.repo, state.repo);
     assert_eq!(loaded.branch, state.branch);
     assert_eq!(loaded.imported_commit, state.imported_commit);
+    assert_eq!(loaded.upstream_committed_at_utc, state.upstream_committed_at_utc);
 }
 
 #[test]
-fn sync_update_produces_conflict_markers() {
+fn sync_refuses_an_edited_vendored_file_and_names_it() {
     let upstream = tempfile::tempdir().expect("upstream tempdir");
     let upstream_root = upstream.path();
     run_ok(upstream_root, "git", &["init", "-b", "main"]);
@@ -1003,13 +1029,13 @@ fn sync_update_produces_conflict_markers() {
     run_ok(upstream_root, "git", &["add", "README"]);
     run_ok(upstream_root, "git", &["commit", "-m", "upstream edit"]);
 
-    let result = import_component(root, &comp, true);
-    assert!(result.is_err());
-
-    let merged =
-        fs::read_to_string(root.join("src/kernel/linux/README")).expect("read merged file");
-    assert!(merged.contains("<<<<<<<"));
-    assert!(merged.contains(">>>>>>>"));
+    let imported = read_sync_state(root, "linux").unwrap().unwrap().imported_commit;
+    let error = import_component(root, &comp, true).unwrap_err().to_string();
+    assert!(error.contains("no longer matches its import"), "{error}");
+    assert!(error.contains("modified README"), "the edited file is named: {error}");
+    let local = fs::read_to_string(root.join("src/kernel/linux/README")).expect("read file");
+    assert_eq!(local, "local\n", "a refused sync leaves the tree untouched");
+    assert_eq!(read_sync_state(root, "linux").unwrap().unwrap().imported_commit, imported);
 }
 
 #[test]
@@ -1295,7 +1321,7 @@ fn failed_sync_conflict_does_not_advance_state_commit() {
 }
 
 #[test]
-fn sync_preserves_uncommitted_local_component_changes() {
+fn sync_refuses_an_untracked_file_added_to_a_vendored_tree() {
     let upstream = tempfile::tempdir().expect("upstream tempdir");
     let upstream_root = upstream.path();
     init_git_repo(upstream_root);
@@ -1331,16 +1357,13 @@ fn sync_preserves_uncommitted_local_component_changes() {
         &root.join("src/userland/grep/local-only.txt"),
         "local edit\n",
     );
-    import_component(root, &comp, true).expect("update should include local edits");
-
+    let error = import_component(root, &comp, true).unwrap_err().to_string();
+    assert!(error.contains("added local-only.txt"), "{error}");
     assert_eq!(
         fs::read_to_string(root.join("src/userland/grep/local-only.txt")).expect("read local file"),
         "local edit\n"
     );
-    assert_eq!(
-        fs::read_to_string(root.join("src/userland/grep/NEWS")).expect("read upstream news"),
-        "upstream change\n"
-    );
+    assert!(!root.join("src/userland/grep/NEWS").exists(), "the update was not applied");
 }
 
 #[test]
@@ -1389,7 +1412,7 @@ fn clear_directory_keeps_git_dir() {
     let root = tmp.path();
     fs::create_dir_all(root.join(".git")).expect("create .git dir");
     write(&root.join("file.txt"), "x");
-    clear_directory_contents(root).expect("clear");
+    clear_directory_contents_except(root, &[]).expect("clear");
     assert!(root.join(".git").exists());
     assert!(!root.join("file.txt").exists());
 }
@@ -1831,7 +1854,7 @@ fn path_safety_rejects_parent_in_middle() {
 fn clear_directory_on_missing_dir_is_ok() {
     let tmp = tempfile::tempdir().expect("tempdir");
     let path = tmp.path().join("missing");
-    clear_directory_contents(&path).expect("clear missing");
+    clear_directory_contents_except(&path, &[]).expect("clear missing");
 }
 
 #[test]
@@ -2141,6 +2164,7 @@ fn write_sync_state_creates_directory() {
         patch_manifest_sha256: "none".to_string(),
         lfs_policy: "none".to_string(),
         lfs_policy_sha256: "none".to_string(),
+        upstream_committed_at_utc: Some("2026-01-01T00:00:00Z".to_string()),
     };
     write_sync_state(root, "brush", &state).expect("write state");
     assert!(root.join("upstream/state/brush.toml").exists());
@@ -2660,7 +2684,7 @@ fn systemd_initial_import_writes_state() {
 }
 
 #[test]
-fn systemd_sync_preserves_local_modifications() {
+fn sync_refuses_local_edits_even_where_upstream_did_not_change() {
     let upstream = tempfile::tempdir().expect("upstream tempdir");
     let upstream_root = upstream.path();
     run_ok(upstream_root, "git", &["init", "-b", "main"]);
@@ -2714,14 +2738,16 @@ fn systemd_sync_preserves_local_modifications() {
     run_ok(upstream_root, "git", &["add", "README"]);
     run_ok(upstream_root, "git", &["commit", "-m", "upstream"]);
 
-    import_component(root, &comp, true).expect("update without conflict");
+    let error = import_component(root, &comp, true).unwrap_err().to_string();
+    assert!(error.contains("modified meson.build"), "{error}");
     let local =
         fs::read_to_string(root.join("src/system/systemd/meson.build")).expect("read local file");
     assert_eq!(local, "local change\n");
+    assert!(!root.join("src/system/systemd/README").exists());
 }
 
 #[test]
-fn systemd_sync_conflict_behavior_surfaces_markers() {
+fn a_refused_sync_never_writes_conflict_markers_or_advances_state() {
     let upstream = tempfile::tempdir().expect("upstream tempdir");
     let upstream_root = upstream.path();
     run_ok(upstream_root, "git", &["init", "-b", "main"]);
@@ -2772,12 +2798,12 @@ fn systemd_sync_conflict_behavior_surfaces_markers() {
     run_ok(upstream_root, "git", &["add", "meson.build"]);
     run_ok(upstream_root, "git", &["commit", "-m", "upstream"]);
 
-    let result = import_component(root, &comp, true);
-    assert!(result.is_err());
-    let merged =
-        fs::read_to_string(root.join("src/system/systemd/meson.build")).expect("read merged");
-    assert!(merged.contains("<<<<<<<"));
-    assert!(merged.contains(">>>>>>>"));
+    let imported = read_sync_state(root, "systemd").unwrap().unwrap().imported_commit;
+    assert!(import_component(root, &comp, true).is_err());
+    let content = fs::read_to_string(root.join("src/system/systemd/meson.build")).expect("read");
+    assert_eq!(content, "local\n");
+    assert!(!content.contains("<<<<<<<"));
+    assert_eq!(read_sync_state(root, "systemd").unwrap().unwrap().imported_commit, imported);
 }
 
 #[test]
@@ -4716,4 +4742,163 @@ fn plasma_wayland_build_keeps_the_real_pager_without_x11_headers() {
     }
     assert!(packaging::PACKAGE_NAMES.contains(&"libice6"));
     assert!(packaging::PACKAGE_NAMES.contains(&"libsm6"));
+}
+
+/// An upstream repository with one commit holding `files`; returns its commit.
+fn upstream_with(root: &Path, files: &[(&str, &str)]) -> String {
+    init_git_repo(root);
+    for (path, body) in files {
+        write(&root.join(path), body);
+    }
+    run_ok(root, "git", &["add", "-A"]);
+    run_ok(root, "git", &["commit", "-q", "-m", "upstream"]);
+    run_cmd_capture(root, "git", &["rev-parse", "HEAD"]).unwrap().trim().to_string()
+}
+
+fn workspace_with_sources(root: &Path, sources: &str) {
+    init_git_repo(root);
+    let sources = if sources.is_empty() {
+        "[[component]]\nname = \"unrelated\"\nrepo = \"x\"\nbranch = \"main\"\npath = \"src/unrelated\"\nsync = \"copy\"\n"
+    } else {
+        sources
+    };
+    write(&root.join("upstream/sources.toml"), sources);
+    run_ok(root, "git", &["add", "-A"]);
+    run_ok(root, "git", &["commit", "-q", "-m", "workspace"]);
+}
+
+fn component(name: &str, repo: &Path, revision: &str, path: &str) -> ComponentDef {
+    ComponentDef {
+        name: name.to_string(),
+        repo: repo.to_string_lossy().to_string(),
+        branch: "main".to_string(),
+        revision: Some(revision.to_string()),
+        path: path.to_string(),
+        sync: "copy".to_string(),
+    }
+}
+
+#[test]
+fn an_update_needs_no_shared_history_even_across_a_repository_move() {
+    // The old importer merged the prior and new commits, which required their
+    // common history.  A verified, unedited tree is simply replaced, so the
+    // new pin may even come from a different repository.
+    let old = tempfile::tempdir().unwrap();
+    let old_commit = upstream_with(old.path(), &[("Makefile", "VERSION = 1\n")]);
+    let new = tempfile::tempdir().unwrap();
+    let new_commit = upstream_with(new.path(), &[("Makefile", "VERSION = 2\n"), ("NEWS", "two\n")]);
+    let workspace = tempfile::tempdir().unwrap();
+    let root = workspace.path();
+    workspace_with_sources(root, "");
+    import_component(root, &component("kernel", old.path(), &old_commit, "src/kernel"), false).unwrap();
+    run_ok(root, "git", &["add", "-A"]);
+    run_ok(root, "git", &["commit", "-q", "-m", "import"]);
+
+    import_component(root, &component("kernel", new.path(), &new_commit, "src/kernel"), true).unwrap();
+    assert_eq!(fs::read_to_string(root.join("src/kernel/Makefile")).unwrap(), "VERSION = 2\n");
+    let state = read_sync_state(root, "kernel").unwrap().unwrap();
+    assert_eq!(state.imported_commit, new_commit);
+    assert_eq!(state.repo, new.path().to_string_lossy());
+}
+
+#[test]
+fn syncing_a_parent_preserves_components_nested_inside_it() {
+    let parent = tempfile::tempdir().unwrap();
+    let first = upstream_with(parent.path(), &[("meson.build", "one\n")]);
+    let workspace = tempfile::tempdir().unwrap();
+    let root = workspace.path();
+    workspace_with_sources(
+        root,
+        "[[component]]\nname = \"ostree\"\nrepo = \"x\"\nbranch = \"main\"\npath = \"src/ostree\"\nsync = \"copy\"\n\n[[component]]\nname = \"gvdb\"\nrepo = \"x\"\nbranch = \"main\"\npath = \"src/ostree/subprojects/gvdb\"\nsync = \"copy\"\n",
+    );
+    import_component(root, &component("ostree", parent.path(), &first, "src/ostree"), false).unwrap();
+    write(&root.join("src/ostree/subprojects/gvdb/gvdb.c"), "nested component\n");
+    run_ok(root, "git", &["add", "-A"]);
+    run_ok(root, "git", &["commit", "-q", "-m", "import"]);
+
+    write(&parent.path().join("meson.build"), "two\n");
+    run_ok(parent.path(), "git", &["commit", "-q", "-am", "two"]);
+    let second = run_cmd_capture(parent.path(), "git", &["rev-parse", "HEAD"]).unwrap().trim().to_string();
+    import_component(root, &component("ostree", parent.path(), &second, "src/ostree"), true).unwrap();
+    assert_eq!(fs::read_to_string(root.join("src/ostree/meson.build")).unwrap(), "two\n");
+    assert_eq!(
+        fs::read_to_string(root.join("src/ostree/subprojects/gvdb/gvdb.c")).unwrap(),
+        "nested component\n",
+        "the nested component is neither verified nor cleared"
+    );
+}
+
+#[test]
+fn ignored_residue_is_removed_but_ignored_upstream_files_are_verified_and_kept() {
+    let upstream = tempfile::tempdir().unwrap();
+    let first = upstream_with(upstream.path(), &[("configure", "#!/bin/sh\n"), ("LICENSE", "terms\n")]);
+    let workspace = tempfile::tempdir().unwrap();
+    let root = workspace.path();
+    workspace_with_sources(root, "");
+    write(&root.join(".gitignore"), "LICENSE\n*.o\n");
+    import_component(root, &component("zlib", upstream.path(), &first, "src/zlib"), false).unwrap();
+    run_ok(root, "git", &["add", "-A"]);
+    run_ok(root, "git", &["commit", "-q", "-m", "import"]);
+    // A build left an object file behind in the vendored tree.
+    write(&root.join("src/zlib/adler32.o"), "object\n");
+
+    write(&upstream.path().join("configure"), "#!/bin/sh\nexit 0\n");
+    run_ok(upstream.path(), "git", &["commit", "-q", "-am", "two"]);
+    let second = run_cmd_capture(upstream.path(), "git", &["rev-parse", "HEAD"]).unwrap().trim().to_string();
+    import_component(root, &component("zlib", upstream.path(), &second, "src/zlib"), true).unwrap();
+    assert!(!root.join("src/zlib/adler32.o").exists(), "residue is removed");
+    assert_eq!(fs::read_to_string(root.join("src/zlib/LICENSE")).unwrap(), "terms\n");
+
+    // An edit to the ignored upstream file is still a local modification.
+    write(&root.join("src/zlib/LICENSE"), "edited\n");
+    let error = import_component(root, &component("zlib", upstream.path(), &second, "src/zlib"), true)
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("modified LICENSE"), "{error}");
+}
+
+#[test]
+fn retained_paths_policies_are_applied_on_import_and_sync() {
+    let upstream = tempfile::tempdir().unwrap();
+    let revision = upstream_with(
+        upstream.path(),
+        &[("fonts/ttf/Sans.ttf", "font\n"), ("OFL.txt", "license\n"), ("sources/Sans.glyphs", "design\n")],
+    );
+    let workspace = tempfile::tempdir().unwrap();
+    let root = workspace.path();
+    let policy = format!(
+        "schema_version = 1\ncomponent = \"open-sans\"\nupstream_commit = \"{revision}\"\nretained_paths = [\"fonts/ttf\", \"OFL.txt\"]\nreason = \"Runtime fonts and license only.\"\n"
+    );
+    workspace_with_sources(
+        root,
+        "[[component]]\nname = \"open-sans\"\nrepo = \"x\"\nbranch = \"main\"\npath = \"src/fonts/open-sans\"\nsync = \"copy\"\nintentional_omission_policy = \"upstream/policies/open-sans.toml\"\n",
+    );
+    write(&root.join("upstream/policies/open-sans.toml"), &policy);
+    let comp = component("open-sans", upstream.path(), &revision, "src/fonts/open-sans");
+    import_component(root, &comp, false).unwrap();
+    let imported = root.join("src/fonts/open-sans");
+    assert!(imported.join("fonts/ttf/Sans.ttf").is_file() && imported.join("OFL.txt").is_file());
+    assert!(!imported.join("sources").exists(), "omitted upstream paths are not imported");
+    let state = read_sync_state(root, "open-sans").unwrap().unwrap();
+    assert_eq!(state.imported_tree_digest_algorithm, SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM);
+    // The digest is the provenance audit's: selected ls-tree records.
+    let expected = {
+        let listing = run_cmd_capture(upstream.path(), "git", &["ls-tree", "-r", "HEAD"]).unwrap();
+        let mut digest = Sha256Hasher::new();
+        for line in listing.lines().filter(|line| !line.ends_with("sources/Sans.glyphs")) {
+            digest.update(line.as_bytes());
+            digest.update([0]);
+        }
+        format!("{:x}", digest.finalize())
+    };
+    assert_eq!(state.imported_tree_digest, expected);
+    run_ok(root, "git", &["add", "-A"]);
+    run_ok(root, "git", &["commit", "-q", "-m", "import"]);
+    import_component(root, &comp, true).expect("an unedited selected tree re-syncs");
+
+    // A retained path that disappears upstream is an error, not a silent shrink.
+    let renamed = policy.replace("\"OFL.txt\"", "\"LICENSE.txt\"");
+    write(&root.join("upstream/policies/open-sans.toml"), &renamed);
+    let error = import_component(root, &comp, true).unwrap_err().to_string();
+    assert!(error.contains("retained path does not exist upstream: LICENSE.txt"), "{error}");
 }

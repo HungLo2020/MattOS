@@ -20,9 +20,9 @@ on:
         - distcheck
         - coverage
   push:
-    branches: [ master, "release/**" ]
+    branches: [ main, "release/**" ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -45,7 +45,7 @@ jobs:
           sudo apt-get -qq install zlib1g-dev libbz2-dev
 
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -56,7 +56,7 @@ jobs:
         run: ./configure CFLAGS="$CFLAGS_GCC_STYLE" --enable-jit --enable-pcre2-16 --enable-pcre2-32 --enable-pcre2grep-libz --enable-pcre2grep-libbz2 --enable-Werror
 
       - name: Build
-        run: make -j3
+        run: make -j$(nproc)
 
       - name: Test (main test script)
         run: ./RunTest
@@ -86,7 +86,7 @@ jobs:
         run: apk add --no-cache automake autoconf gcc libtool make musl-dev git zlib zlib-dev bzip2 bzip2-dev
 
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -97,7 +97,7 @@ jobs:
         run: ./configure CFLAGS="$CFLAGS_GCC_STYLE" --enable-jit --enable-pcre2-16 --enable-pcre2-32 --enable-pcre2grep-libz --enable-pcre2grep-libbz2 --enable-Werror
 
       - name: Build
-        run: make -j3
+        run: make -j$(nproc)
 
       - name: Test (main test script)
         run: ./RunTest
@@ -123,7 +123,7 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || (inputs.job_id == 'all' || inputs.job_id == 'macos')
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -131,10 +131,10 @@ jobs:
         run: cmake $CMAKE_FLAGS -DPCRE2_SUPPORT_JIT=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DPCRE2_SUPPORT_LIBZ=ON -DPCRE2_SUPPORT_LIBBZ2=ON -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DCMAKE_OSX_ARCHITECTURES='arm64;x86_64' -DCMAKE_C_FLAGS="$CFLAGS_GCC_STYLE" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_BUILD_TYPE=Release -B build
 
       - name: Build
-        run: cd build && make -j3
+        run: cd build && make -j$(sysctl -n hw.ncpu)
 
       - name: Test
-        run: cd build && ctest -j3 --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
+        run: cd build && ctest -j$(sysctl -n hw.ncpu) --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
 
       - name: Install
         run: |
@@ -210,7 +210,7 @@ jobs:
           echo "PATH=$PATCHED_PATH" >> "$env:GITHUB_ENV"
 
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -223,7 +223,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Test
-        run: cd build && ctest -C Release -j3 --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
+        run: cd build && ctest -C Release -j $env:NUMBER_OF_PROCESSORS --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
 
       - name: Install
         run: |
@@ -300,7 +300,7 @@ jobs:
       github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -308,7 +308,7 @@ jobs:
         run: ./autogen.sh
 
       - name: Build & test
-        uses: vmactions/freebsd-vm@487ce35b96fae3e60d45b521735f5aa436ecfade # v1.2.4
+        uses: vmactions/freebsd-vm@77ed28d336d03fe19a3f4f7266c1d2c4714dd79d # v1.5.2
         with:
           envs: 'CFLAGS_GCC_STYLE CMAKE_FLAGS'
           usesh: true
@@ -319,6 +319,8 @@ jobs:
           run: |
             set -e
 
+            NPROC=`sysctl -n hw.ncpu`
+
             cp -rp . ../build-autoconf
             cp -rp . ../build-cmake
 
@@ -326,7 +328,7 @@ jobs:
             cd ../build-autoconf
 
             ./configure CFLAGS="$CFLAGS_GCC_STYLE" --enable-jit --enable-pcre2-16 --enable-pcre2-32 --enable-Werror
-            make -j3
+            make -j$NPROC
             (make check; rc=$?; for i in test-suite.log Run*Test.log pcre2*_test.log; do echo "== $i =="; cat $i; done; exit $rc)
 
             make install "DESTDIR=`pwd`/install-dir"
@@ -338,8 +340,8 @@ jobs:
 
             cmake $CMAKE_FLAGS -DPCRE2_SUPPORT_JIT=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DPCRE2_DEBUG=ON -DCMAKE_C_FLAGS="$CFLAGS_GCC_STYLE" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_BUILD_TYPE=Release -B build
             cd build
-            make -j3
-            ctest -j3 --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
+            make -j$NPROC
+            ctest -j$NPROC --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
             cmake --install . --prefix install-dir
             ../maint/RunManifestTest install-dir ../maint/manifest-cmakeinstall-freebsd
             ../maint/RunSymbolTest install-dir/lib/ ../maint/
@@ -352,7 +354,7 @@ jobs:
       github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -360,7 +362,7 @@ jobs:
         run: ./autogen.sh
 
       - name: Build & test
-        uses: vmactions/openbsd-vm@1e7cc4fa7727646d3cf5921289b1f5c9d1a88f3c # v1.2.0
+        uses: vmactions/openbsd-vm@c941015845c0f0c429676840963dc63b226d4f69 # v1.4.5
         with:
           envs: 'CFLAGS_GCC_STYLE CMAKE_FLAGS'
           usesh: true
@@ -373,6 +375,7 @@ jobs:
 
             export MALLOC_OPTIONS="USRJGFC>>"
             EXTRA_CFLAGS="-DSLJIT_WX_EXECUTABLE_ALLOCATOR"
+            NPROC=`sysctl -n hw.ncpu`
 
             cp -rp . ../build-autoconf
             cp -rp . ../build-cmake
@@ -381,7 +384,7 @@ jobs:
             cd ../build-autoconf
 
             ./configure CFLAGS="$CFLAGS_GCC_STYLE $EXTRA_CFLAGS" --enable-jit --enable-pcre2-16 --enable-pcre2-32 --enable-Werror
-            make -j3
+            make -j$NPROC
             (make check; rc=$?; for i in test-suite.log Run*Test.log pcre2*_test.log; do echo "== $i =="; cat $i; done; exit $rc)
 
             make install "DESTDIR=`pwd`/install-dir"
@@ -395,8 +398,8 @@ jobs:
 
             cmake $CMAKE_FLAGS -DPCRE2_SUPPORT_JIT=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DPCRE2_DEBUG=ON -DCMAKE_C_FLAGS="$CFLAGS_GCC_STYLE $EXTRA_CFLAGS" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_BUILD_TYPE=Release -B build
             cd build
-            make -j3
-            ctest -j3 --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
+            make -j$NPROC
+            ctest -j$NPROC --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
             cmake --install . --prefix install-dir
             # ../maint/RunManifestTest install-dir ../maint/manifest-cmakeinstall-openbsd
             # ../maint/RunSymbolTest install-dir/lib/ ../maint/
@@ -409,7 +412,7 @@ jobs:
       github.event_name == 'push'
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -425,7 +428,7 @@ jobs:
         run: ./autogen.sh
 
       - name: Build & test
-        uses: vmactions/solaris-vm@58cbd70c6e051860f9b8f65908cc582938fbbdba # v1.1.5
+        uses: vmactions/solaris-vm@315163f088b66e55bbcc45928bd224d4973b2312 # v1.3.8
         with:
           envs: 'CFLAGS_SOLARIS_CC CMAKE_FLAGS'
           usesh: true
@@ -448,6 +451,8 @@ jobs:
             set -e
             PATH=/opt/developerstudio12.6/bin:"$PATH"
             export PATH
+
+            NPROC=`nproc 2>/dev/null || echo 2`
 
             cp -rp . ../build-autoconf-32
             cp -rp . ../build-autoconf-64
@@ -481,7 +486,7 @@ jobs:
             CC="cc -m64" cmake $CMAKE_FLAGS -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=ON -DPCRE2_DEBUG=ON -DCMAKE_C_FLAGS="$CFLAGS_SOLARIS_CC" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_BUILD_TYPE=Release -B build
             cd build
             make
-            ctest -j3 --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
+            ctest -j$NPROC --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
             cmake --install . --prefix install-dir
             ../maint/RunManifestTest install-dir ../maint/manifest-cmakeinstall-solaris
             ../maint/RunSymbolTest install-dir/lib/ ../maint/
@@ -489,14 +494,14 @@ jobs:
   zos:
     name: z/OS
     runs-on: ubuntu-latest
+    # No longer running on push events, due to flaky z/OS runner
     if: |
-      (github.event_name == 'workflow_dispatch' && (inputs.job_id == 'all' || inputs.job_id == 'zos')) ||
-      github.event_name == 'push'
+      (github.event_name == 'workflow_dispatch' && (inputs.job_id == 'all' || inputs.job_id == 'zos'))
     concurrency:
       group: zos-ssh-build
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -550,7 +555,7 @@ jobs:
             cmake $CMAKE_FLAGS -G Ninja -DPCRE2_EBCDIC=ON -DPCRE2_SUPPORT_UNICODE=OFF -DCMAKE_C_COMPILER=ibm-clang -DCMAKE_C_FLAGS="-m64 $CFLAGS_GCC_STYLE" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_BUILD_TYPE=Release -B build
             cd build;
             ninja;
-            ctest -j3 --output-on-failure; && (cat ./Testing/Temporary/LastTest.log || true)
+            ctest -j3 --output-on-failure && (cat ./Testing/Temporary/LastTest.log || true)
             '
 
   distcheck:
@@ -560,10 +565,11 @@ jobs:
     permissions:
       id-token: write # Needed to make calls to the Sigstore service
       attestations: write # Needed to write the attestation to GitHub's database
+      artifact-metadata: write # As detailed in the action documentation
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -580,7 +586,7 @@ jobs:
         run: ./configure
 
       - name: Distcheck
-        run: make distcheck -j3
+        run: make distcheck -j$(nproc)
 
       - name: Manifest
         run: |
@@ -592,7 +598,7 @@ jobs:
           maint/RunManifestTest tarball-dir maint/manifest-tarball
 
       - name: Upload to GitHub artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: "Distribution release"
           path: |
@@ -602,7 +608,7 @@ jobs:
           if-no-files-found: error
 
       - name: Attest
-        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
+        uses: actions/attest@508db95dd578ae2727ebd6217d5ba78e4fbda05d # v4.2.1
         if: |
           github.event_name != 'pull_request' &&
           (startsWith(github.ref, 'refs/heads/release/') ||
@@ -621,7 +627,7 @@ jobs:
           sudo apt-get -qq install zlib1g-dev libbz2-dev libedit-dev lcov
 
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: true
 
@@ -631,7 +637,7 @@ jobs:
         run: CC="clang -fprofile-instr-generate -fcoverage-mapping" cmake $CMAKE_FLAGS -DCMAKE_BUILD_TYPE=Debug -DPCRE2_DEBUG=OFF -DPCRE2_SUPPORT_JIT=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DPCRE2_SUPPORT_LIBZ=ON -DPCRE2_SUPPORT_LIBBZ2=ON -DPCRE2_SUPPORT_LIBEDIT=ON -DPCRE2_SUPPORT_LIBREADLINE=OFF -B build
 
       - name: Build
-        run: cd build && make -j3
+        run: cd build && make -j$(nproc)
 
       - name: Test
         run: |
@@ -639,14 +645,14 @@ jobs:
           ../maint/RunCoverage
 
       - name: Upload report to GitHub artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: "Coverage report"
           path: './build/coverage-html'
           if-no-files-found: error
 
       - name: Upload report to Codecov
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true

@@ -12,7 +12,7 @@ MattOS uses `dbus-broker` as its production system message bus. The imported sou
 - Imported commit: `2956b5d381deeea709c53d02f10e799e50e44f4b`
 - Destination: `src/system/dbus/dbus-broker/`
 - State: `upstream/state/dbus-broker.toml`
-- Import method: component-scoped copy with the existing three-way sync workflow
+- Import method: component-scoped copy with the standard verify-and-replace sync workflow ([Upstream synchronization model](../../sources/upstream-sync.md))
 
 A Rust D-Bus broker can be reconsidered later if an implementation reaches the compatibility and maturity required for a system bus. The experimental Rust `busd` is not the default broker.
 

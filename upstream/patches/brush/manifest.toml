@@ -21,3 +21,9 @@ path = "upstream/patches/brush/0003-preserve-standard-descriptor-redirections.pa
 sha256 = "e2c4e6b8a855f5f7a4d2102f3336fbadaf50e2588c6b5af364a882dd26747cf1"
 purpose = "Duplicate the source standard descriptor when spawning children; inherit() loses cross-descriptor redirections and pollutes generated GRUB configuration."
 documentation = "docs/system/services/authentication.md"
+
+[[patch]]
+path = "upstream/patches/brush/0004-parse-spaced-double-parens-as-subshells.patch"
+sha256 = "2efb1af25c014ba44530e072f92f7746265983fed3bc8453ad7265b06d020fbd"
+purpose = "Parse `( (` as nested subshells, as Bash does; only adjacent `((` opens an arithmetic command."
+documentation = "docs/system/userland/commands.md"

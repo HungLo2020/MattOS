@@ -1,0 +1,37 @@
+# SPDX-License-Identifier: 0BSD
+
+name: Haiku
+
+on:
+  push:
+    branches: [ master, ci_run ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  Haiku:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: Haiku
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Test in Haiku
+        id: test
+        uses: vmactions/haiku-vm@v1
+        with:
+          usesh: true
+          prepare: >
+            pkgman install -y
+            autoconf
+            automake
+            gettext
+            libtool
+            m4
+          run: |
+            set -e
+            ./autogen.sh --no-po4a
+            ./configure --disable-static --enable-debug --enable-werror
+            make -j4 check

@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import sys
+import re
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -864,6 +865,19 @@ class FreshProcessCacheIntegrationTests(unittest.TestCase):
         self.assert_foundational_hits(launcher_one)
         self.assert_foundational_hits(launcher_two)
         self.assert_foundational_hits(direct_two)
+
+
+
+
+class InstalledRuntimeVersionProbeTests(unittest.TestCase):
+    def test_probe_derives_versions_from_dpkg_and_fits_the_serial_line(self) -> None:
+        probe = run_qemu.installed_runtime_versions_probe()
+        # The serial console drops input beyond roughly 1.3 KiB on one line.
+        self.assertLess(len(probe), 1200)
+        # Versions come from dpkg-query on the guest, never from this file.
+        self.assertIsNone(re.search(r"\d+\.\d+", probe))
+        self.assertIn("uname -r", probe)
+        self.assertIn('"linux-modules-$r"', probe)
 
 
 if __name__ == "__main__":

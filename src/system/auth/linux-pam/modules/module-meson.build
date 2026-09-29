@@ -452,11 +452,6 @@ if module == 'pam_unix'
       install_dir: sbindir,
     )
   endif
-  executable(
-    'bigcrypt',
-    sources: ['bigcrypt.c', 'bigcrypt_main.c'],
-    dependencies: [libpam_internal_dep, libpam_dep, libcrypt],
-  )
 endif
 
 

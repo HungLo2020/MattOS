@@ -184,6 +184,9 @@ vendored source is never regenerated or modified.
 - Package-owned compatibility entry points: `/usr/bin/sh -> brush` and `/usr/bin/bash -> brush`; the merged `/bin` layout therefore also provides `/bin/sh` and `/bin/bash`.
 - MattOS applies a checksummed output-mirror patch so Brush selects POSIX mode
   when invoked as `sh`; `bash` and `brush` retain Bash-compatible behavior.
+- A second output-mirror patch fixes an upstream parser bug that read nested
+  subshells written `( ( ... ) )` as an arithmetic command. As in Bash, only
+  adjacent `((` opens an arithmetic command.
 - Provider label in inventory for shell binary: `brush`
 - Built-ins are internal to Brush and are not listed as standalone ELF binaries.
 

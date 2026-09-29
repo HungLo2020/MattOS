@@ -572,20 +572,13 @@ fn prepare_stage_workspace_for_toolchain(
     repo_root: &Path,
     stage: BuildStage,
 ) -> Result<Option<(PathBuf, String)>> {
-    if matches!(
-        stage,
-        BuildStage::CrossToolchain
-            | BuildStage::Glibc
-            | BuildStage::GccRuntime
-            | BuildStage::Kernel
-            | BuildStage::All
-    ) {
+    let stage_id = build_stage_id(stage);
+    if !stage_uses_target_toolchain(stage_id) {
         return Ok(None);
     }
     let Some(identity) = target_toolchain_identity(repo_root)? else {
         return Ok(None);
     };
-    let stage_id = build_stage_id(stage);
     let workspace = repo_root.join("out/build").join(stage_id);
     let marker = repo_root.join(STAGE_TOOLCHAIN_MARKER_DIR).join(stage_id);
     let legacy_marker = workspace.join(LEGACY_STAGE_TOOLCHAIN_MARKER);
@@ -626,6 +619,24 @@ fn stage_precedes_target_toolchain(stage_id: &str) -> bool {
     )
 }
 
+/// Stages that never invoke the target toolchain: they only copy or render
+/// data (pop-fonts copies font files; material-cursors renders images with a
+/// host-built xcursorgen).  They have no dependency path to the toolchain, so
+/// keying them on it would let them build before it exists and then rebuild
+/// once it does.
+fn stage_independent_of_target_toolchain(stage_id: &str) -> bool {
+    matches!(stage_id, "pop-fonts" | "material-cursors")
+}
+
+/// Whether `stage_id` is compiled by the target toolchain, and so is keyed on
+/// it (`target_toolchain_cache_identity`) and has its workspace discarded when
+/// it changes (`prepare_stage_workspace_for_toolchain`).  Every such stage
+/// must reach `gcc-runtime` through its scheduled dependencies; a test checks
+/// the graph.
+pub(crate) fn stage_uses_target_toolchain(stage_id: &str) -> bool {
+    !stage_precedes_target_toolchain(stage_id) && !stage_independent_of_target_toolchain(stage_id)
+}
+
 /// Every name the target toolchain places in `out/toolchain/bin`.
 fn target_tool_wrapper_names() -> Vec<String> {
     let mut names = ["gcc", "cc", "g++", "c++", "cpp"]
@@ -650,7 +661,7 @@ fn target_tool_wrapper_names() -> Vec<String> {
 /// read, with the checkout location normalized, so unrelated files in the
 /// directory or a relocated checkout do not change the identity.
 pub(crate) fn target_toolchain_cache_identity(repo_root: &Path, stage_id: &str) -> Result<Option<String>> {
-    if stage_precedes_target_toolchain(stage_id) || target_toolchain_identity(repo_root)?.is_none() {
+    if !stage_uses_target_toolchain(stage_id) || target_toolchain_identity(repo_root)?.is_none() {
         return Ok(None);
     }
     let mut digest = Sha256Hasher::new();

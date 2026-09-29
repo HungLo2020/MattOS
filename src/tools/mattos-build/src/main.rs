@@ -1,3 +1,15 @@
+/// The release of the kernel MattOS boots: the vendored Linux Makefile's
+/// `VERSION.PATCHLEVEL.SUBLEVEL` and `EXTRAVERSION` plus the configured
+/// `CONFIG_LOCALVERSION`.  Debian-style kernel packages embed it in their
+/// names (`linux-modules-<release>`), so every such name and path is derived
+/// from this one macro; `kernel_release_matches_the_vendored_kernel_and_data`
+/// checks it against the kernel source and the package metadata files.
+macro_rules! mattos_kernel_release {
+    () => {
+        "7.2.8-mattos"
+    };
+}
+
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
@@ -28,6 +40,7 @@ mod scheduler;
 mod source_identity;
 mod stage_cache;
 mod stage_graph;
+mod stage_memory;
 mod stage_inputs;
 mod timing;
 mod tool_identity;
@@ -71,6 +84,10 @@ const LEGACY_SKELETON_FILES: &[&str] = &[
     "usr/libexec/mattos/brush-login",
     "usr/libexec/mattos/validate-shell-env",
 ];
+const MATTOS_KERNEL_RELEASE: &str = mattos_kernel_release!();
+const LINUX_MODULES_PACKAGE: &str = concat!("linux-modules-", mattos_kernel_release!());
+const NVIDIA_OPEN_MODULES_PACKAGE: &str =
+    concat!("linux-modules-nvidia-595-open-", mattos_kernel_release!());
 const IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-git-ls-tree-no-gitlinks-v1";
 const SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM: &str = "sha256-selected-git-ls-tree-no-gitlinks-v1";
 const USERLAND_INVENTORY_PATH: &str = "usr/share/mattos/userland-commands.txt";
@@ -846,6 +863,46 @@ struct SourceSelectionPolicy {
     x86_excluded_paths: BTreeSet<String>,
 }
 
+/// A standalone intentional-omission policy: a component imports either the
+/// listed upstream paths (`retained_paths`) or one upstream subtree whose
+/// prefix is stripped (`upstream_subtree`).  The provenance audit
+/// (`DevUtils/audits/test_vendored_source_provenance.py`) applies the same
+/// rules.
+#[derive(Debug, Deserialize, Clone)]
+struct OmissionPolicy {
+    schema_version: u32,
+    component: String,
+    upstream_commit: String,
+    reason: String,
+    #[serde(default)]
+    upstream_subtree: Option<String>,
+    #[serde(default)]
+    retained_paths: Option<Vec<String>>,
+    #[serde(default)]
+    expected_runtime_files: Option<Vec<String>>,
+}
+
+impl OmissionPolicy {
+    /// The imported path of `upstream_path`, or `None` when it is omitted.
+    fn map(&self, upstream_path: &str) -> Option<String> {
+        if let Some(subtree) = &self.upstream_subtree {
+            let prefix = format!("{}/", subtree.trim_end_matches('/'));
+            return upstream_path
+                .strip_prefix(&prefix)
+                .filter(|relative| !relative.is_empty())
+                .map(str::to_string);
+        }
+        self.retained_paths
+            .iter()
+            .flatten()
+            .any(|selector| {
+                let selector = selector.trim_end_matches('/');
+                upstream_path == selector || upstream_path.starts_with(&format!("{selector}/"))
+            })
+            .then(|| upstream_path.to_string())
+    }
+}
+
 #[derive(Debug, Deserialize, Clone)]
 struct LfsHydrationPolicy {
     schema_version: u32,
@@ -914,6 +971,11 @@ struct SyncState {
     lfs_policy: String,
     #[serde(default = "none_policy")]
     lfs_policy_sha256: String,
+    /// Committer time of `imported_commit`, which orders snapshot package
+    /// versions (`component_snapshot_version`).  Absent in state written
+    /// before it was recorded; a re-sync at the same pin records it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    upstream_committed_at_utc: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1011,7 +1073,22 @@ fn prepare_source_ownership_tool_environment(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
+/// The file-creation mask every build step runs under.  Stage outputs
+/// record file and directory modes, so without a fixed mask they depended on
+/// the invoking shell: a caller with umask 002 produced group-writable
+/// directories, changing gcc-runtime's output digest and rebuilding the
+/// whole system from byte-identical files.
+const BUILD_UMASK: libc::mode_t = 0o022;
+
+/// Sets `BUILD_UMASK` for this process and every command it runs.
+fn apply_build_umask() {
+    // SAFETY: umask only sets this process's file-creation mask; child
+    // processes (compilers, make, install) inherit it.
+    unsafe { libc::umask(BUILD_UMASK) };
+}
+
 fn main() -> Result<()> {
+    apply_build_umask();
     let cli = Cli::parse();
     let repo_root = std::env::current_dir().context("unable to determine current directory")?;
     ensure_private_cache_root(&repo_root)?;

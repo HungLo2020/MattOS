@@ -471,20 +471,10 @@ PAMH_ARG_DECL(char * create_password_hash,
 		algoid = "$5$";
 	} else if (on(UNIX_SHA512_PASS, ctrl)) {
 		algoid = "$6$";
-	} else { /* must be crypt/bigcrypt */
-		char tmppass[9];
-		char *hashed;
-
-		crypt_make_salt(salt, 2);
-		if (off(UNIX_BIGCRYPT, ctrl) && strlen(password) > 8) {
-			strncpy(tmppass, password, sizeof(tmppass)-1);
-			tmppass[sizeof(tmppass)-1] = '\0';
-			password = tmppass;
-		}
-		hashed = bigcrypt(password, salt);
-		pam_overwrite_array(tmppass);
-		password = NULL;
-		return hashed;
+	} else {
+		pam_syslog(pamh, LOG_ERR, "%s",
+			   "No supported password hash algorithm selected.");
+		return NULL;
 	}
 
 #if defined(CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY) && CRYPT_GENSALT_IMPLEMENTS_AUTO_ENTROPY

@@ -9,6 +9,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/kernel/linux",
             "src/kernel/config/x86_64_mattos.config",
             "src/kernel/config/x86_64_mattos.policy.toml",
+            "src/kernel/config/module-signing-key.pem",
             "src/tools/mattos-build/src/stages/toolchain.rs",
         ],
         BuildStage::CrossToolchain => &[
@@ -607,6 +608,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/graphics/nvidia-open-gpu-kernel-modules",
             "src/system/graphics/nvidia-driver",
             "upstream/patches/nvidia-open-gpu-kernel-modules",
+            "src/kernel/config/module-signing-key.pem",
         ],
         BuildStage::Polkit => &[
             "src/system/security/polkit",
@@ -1327,16 +1329,19 @@ pub(crate) fn is_rust_stage(stage: BuildStage) -> bool {
     )
 }
 
+/// The Linux UAPI header sources `make ARCH=x86 headers_install` reads.  They
+/// come from the separately pinned `linux-uapi` import, not from the kernel
+/// MattOS boots, so a kernel update never changes the userland's headers.
 pub(crate) fn linux_x86_uapi_inputs() -> Vec<&'static str> {
     vec![
-        "src/kernel/linux/Makefile",
-        "src/kernel/linux/Kbuild",
-        "src/kernel/linux/scripts",
-        "src/kernel/linux/include/uapi",
-        "src/kernel/linux/include/asm-generic",
-        "src/kernel/linux/arch/x86/Makefile",
-        "src/kernel/linux/arch/x86/include/uapi",
-        "src/kernel/linux/arch/x86/entry/syscalls",
+        "src/kernel/linux-uapi/Makefile",
+        "src/kernel/linux-uapi/Kbuild",
+        "src/kernel/linux-uapi/scripts",
+        "src/kernel/linux-uapi/include/uapi",
+        "src/kernel/linux-uapi/include/asm-generic",
+        "src/kernel/linux-uapi/arch/x86/Makefile",
+        "src/kernel/linux-uapi/arch/x86/include/uapi",
+        "src/kernel/linux-uapi/arch/x86/entry/syscalls",
     ]
 }
 

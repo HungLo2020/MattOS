@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use sudo_test::{Command, Env, User};
 
-use crate::{PASSWORD, USERNAME};
+use crate::{GROUPNAME, PASSWORD, USERNAME};
 
 #[cfg(target_os = "linux")]
 mod env;
@@ -445,4 +445,95 @@ cat {PAM_ENV_VALUE} >&3"#
 
     let (expected, pam_env) = parse_expected_tty_and_pam_env(&stdout);
     assert_pam_tty_matches_expected(&expected, &pam_env);
+}
+
+#[test]
+fn empty_password_nullok() {
+    let env = Env(format!("{USERNAME} ALL=(ALL:ALL) ALL"))
+        .user(User(USERNAME).password(PASSWORD))
+        .file(
+            "/etc/pam.d/sudo",
+            "auth sufficient pam_unix.so nullok
+auth requisite pam_deny.so
+",
+        )
+        .build();
+
+    Command::new("passwd")
+        .args(["-d", USERNAME])
+        .output(&env)
+        .assert_success();
+
+    Command::new("sudo")
+        .args(["-S", "true"])
+        .as_user(USERNAME)
+        .stdin("")
+        .output(&env)
+        .assert_success();
+}
+
+#[test]
+#[cfg_attr(
+    target_os = "freebsd",
+    ignore = "FreeBSD doesn't support /etc/security"
+)]
+fn pam_groups_recognized() {
+    // because sudo-rs doesn't load the groups (see gh #1665), we need to use other tools
+    // to load the pam_group.so ones.
+    let env = Env(format!("%{GROUPNAME} ALL=(ALL:ALL) ALL"))
+        .group(GROUPNAME)
+        .user(User(USERNAME).password(PASSWORD))
+        .file(
+            "/etc/pam.d/runuser",
+            "auth optional pam_group.so
+auth sufficient pam_unix.so nullok
+auth requisite pam_deny.so
+        ",
+        )
+        .file(
+            "/etc/security/group.conf",
+            format!(
+                "*;*;*;Al0000-2400;{GROUPNAME}
+"
+            ),
+        )
+        .build();
+
+    Command::new("runuser")
+        .args(["-u", USERNAME, "--", "sudo", "-S", "true"])
+        .stdin(PASSWORD)
+        .output(&env)
+        .assert_success();
+}
+
+#[test]
+#[ignore = "gh1665"]
+fn loads_pam_groups() {
+    let env = Env("ALL ALL=(ALL:ALL) ALL".to_string())
+        .group(GROUPNAME)
+        .user(User(USERNAME).password(PASSWORD))
+        .file(
+            "/etc/pam.d/sudo",
+            "auth optional pam_group.so
+auth sufficient pam_unix.so nullok
+auth requisite pam_deny.so
+        ",
+        )
+        .file(
+            "/etc/security/group.conf",
+            format!(
+                "*;*;*;Al0000-2400;{GROUPNAME}
+"
+            ),
+        )
+        .build();
+
+    let output = Command::new("sudo")
+        .args(["-u", USERNAME, "--", "groups"])
+        .stdin(PASSWORD)
+        .output(&env);
+
+    output.assert_success();
+
+    assert_contains!(output.stdout(), GROUPNAME);
 }

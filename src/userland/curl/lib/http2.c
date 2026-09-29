@@ -46,6 +46,7 @@
 #include "bufref.h"
 #include "curlx/dynbuf.h"
 #include "headers.h"
+#include "curl_share.h"
 
 #if NGHTTP2_VERSION_NUM < 0x010f00
 #error "nghttp2 1.15.0 or greater required"
@@ -178,7 +179,7 @@ static void cf_h2_ctx_init(struct cf_h2_ctx *ctx, bool via_h1_upgrade)
   Curl_bufq_initp(&ctx->outbufq, &ctx->stream_bufcp, H2_NW_SEND_CHUNKS, 0);
   curlx_dyn_init(&ctx->scratch, CURL_MAX_HTTP_HEADER);
   Curl_uint32_hash_init(&ctx->streams, 63, h2_stream_hash_free);
-  ctx->remote_max_sid = 2147483647;
+  ctx->remote_max_sid = INT32_MAX;
   ctx->via_h1_upgrade = via_h1_upgrade;
   ctx->initialized = TRUE;
 }
@@ -699,11 +700,13 @@ char *curl_pushheader_byname(struct curl_pushheaders *h, const char *name)
 static struct Curl_easy *h2_duphandle(struct Curl_cfilter *cf,
                                       struct Curl_easy *data)
 {
-  struct Curl_easy *second = curl_easy_duphandle(data);
+  struct Curl_easy *second = curl_easy_init();
   if(second) {
     struct h2_stream_ctx *second_stream;
     http2_data_setup(cf, second, &second_stream);
-    second->state.priority.weight = data->state.priority.weight;
+    second->state.weight = data->state.weight;
+    if(data->share)
+      (void)Curl_share_easy_link(second, data->share);
   }
   return second;
 }
@@ -1754,15 +1757,15 @@ out:
 static int sweight_wanted(const struct Curl_easy *data)
 {
   /* 0 weight is not set by user and we take the nghttp2 default one */
-  return data->set.priority.weight ?
-    data->set.priority.weight : NGHTTP2_DEFAULT_WEIGHT;
+  return data->set.weight ?
+    data->set.weight : NGHTTP2_DEFAULT_WEIGHT;
 }
 
 static int sweight_in_effect(const struct Curl_easy *data)
 {
   /* 0 weight is not set by user and we take the nghttp2 default one */
-  return data->state.priority.weight ?
-    data->state.priority.weight : NGHTTP2_DEFAULT_WEIGHT;
+  return data->state.weight ?
+    data->state.weight : NGHTTP2_DEFAULT_WEIGHT;
 }
 
 /*
@@ -1774,10 +1777,9 @@ static int sweight_in_effect(const struct Curl_easy *data)
 static void h2_pri_spec(struct Curl_easy *data,
                         nghttp2_priority_spec *pri_spec)
 {
-  struct Curl_data_priority *prio = &data->set.priority;
-  nghttp2_priority_spec_init(pri_spec, 0,
-                             sweight_wanted(data), FALSE);
-  data->state.priority = *prio;
+  int prio = data->set.weight;
+  nghttp2_priority_spec_init(pri_spec, 0, sweight_wanted(data), FALSE);
+  data->state.weight = prio;
 }
 
 /*
@@ -1897,10 +1899,6 @@ static CURLcode h2_progress_ingress(struct Curl_cfilter *cf,
        * underlying buffers that will not be consumed. */
       if(!cf->next || !cf->next->cft->has_data_pending(cf->next, data))
         Curl_multi_mark_dirty(data);
-      break;
-    }
-    else if(!stream) {
-      DEBUGASSERT(0);
       break;
     }
 
@@ -2086,10 +2084,11 @@ static CURLcode h2_submit(struct h2_stream_ctx **pstream,
   if(result)
     goto out;
 
-  result = Curl_h1_req_parse_read(&stream->h1, buf, len, NULL,
-                                  !data->state.http_ignorecustom ?
-                                  data->set.str[STRING_CUSTOMREQUEST] : NULL,
-                                  0, &nwritten);
+  result = Curl_h1_req_parse_read(
+    &stream->h1, buf, len, NULL,
+    !data->state.http_ignorecustom ?
+    CURL_EASY_STR(data, STRING_CUSTOMREQUEST) : NULL,
+    0, &nwritten);
   if(result)
     goto out;
   *pnwritten = nwritten;
@@ -2782,7 +2781,7 @@ struct Curl_cftype Curl_cft_nghttp2 = {
 static CURLcode http2_cfilter_add(struct Curl_cfilter **pcf,
                                   struct Curl_easy *data,
                                   struct connectdata *conn,
-                                  int sockindex,
+                                  int8_t sockindex,
                                   bool via_h1_upgrade)
 {
   struct Curl_cfilter *cf = NULL;
@@ -2892,7 +2891,7 @@ CURLcode Curl_http2_switch_at(struct Curl_cfilter *cf, struct Curl_easy *data)
 }
 
 CURLcode Curl_http2_upgrade(struct Curl_easy *data,
-                            struct connectdata *conn, int sockindex,
+                            struct connectdata *conn, int8_t sockindex,
                             const char *mem, size_t nread)
 {
   struct Curl_cfilter *cf;

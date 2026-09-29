@@ -93,8 +93,8 @@
     </para>
 
     <para>
-      The session component of this module logs when a user logins
-      or leave the system.
+      The session component of this module logs when a user logs in
+      or leaves the system.
     </para>
 
     <para>
@@ -289,17 +289,6 @@
       </varlistentry>
       <varlistentry>
         <term>
-          bigcrypt
-        </term>
-        <listitem>
-          <para>
-            When a user changes their password next,
-            encrypt it with the DEC C2 algorithm.
-          </para>
-        </listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>
           sha256
         </term>
         <listitem>
@@ -399,7 +388,6 @@
         <listitem>
           <para>
             Set a minimum password length of <replaceable>n</replaceable>
-            characters. The max. for DES crypt based passwords is 8
             characters.
           </para>
         </listitem>

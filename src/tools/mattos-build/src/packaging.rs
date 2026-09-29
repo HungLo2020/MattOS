@@ -22,6 +22,7 @@ pub(crate) use audit::{
 };
 
 mod recipe_digest;
+mod snapshot_version;
 mod staging;
 #[cfg(test)]
 pub(crate) use cache::{
@@ -1036,7 +1037,43 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     write_inventory(repo_root, &inventory)?;
     ensure_package_facts(repo_root, &inventory)?;
     print_inventory(repo_root)?;
+    if let Some(warning) = stale_compatibility_versions(repo_root, &inventory)? {
+        eprint!("{warning}");
+    }
     write_package_set_manifest(repo_root)
+}
+
+/// Compatibility entries whose recorded `current_mattos_version` differs from
+/// the version just built.  The field documents what MattOS ships and is
+/// maintained by hand, so report drift on every build instead of letting it
+/// rot silently.
+fn stale_compatibility_versions(repo_root: &Path, inventory: &PackageInventory) -> Result<Option<String>> {
+    let manifest_path = repo_root.join("src/system/packages/debian-compat/trixie.toml");
+    let manifest: DebianCompatibilityManifest = toml::from_str(&fs::read_to_string(&manifest_path)?)
+        .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
+    let built = inventory
+        .package
+        .iter()
+        .map(|entry| (entry.name.as_str(), entry.version.as_str()))
+        .collect::<BTreeMap<_, _>>();
+    let stale = manifest
+        .package
+        .iter()
+        .filter_map(|package| {
+            let version = *built.get(package.mattos_name.as_str())?;
+            (package.current_mattos_version != version).then(|| {
+                format!("  {}: records {}, built {version}", package.mattos_name, package.current_mattos_version)
+            })
+        })
+        .collect::<Vec<_>>();
+    Ok((!stale.is_empty()).then(|| {
+        format!(
+            "warning: {} entr{} in src/system/packages/debian-compat/trixie.toml record an outdated current_mattos_version:\n{}\n",
+            stale.len(),
+            if stale.len() == 1 { "y" } else { "ies" },
+            stale.join("\n")
+        )
+    }))
 }
 
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
@@ -1044,7 +1081,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         "MattOS" | "ca-certificates" | "test" => &[],
         "mattos-profiles" => &["systemd", "grep", "sed", "findutils", "diffutils", "init"],
         "mattos-compat" => &["systemd", "rust"],
-        "linux" => &["linux-headers"],
+        "linux-uapi" => &["linux-headers"],
         "kernel-modules" => &["linux"],
         "gcc" => &["gcc-runtime", "gcc-compiler"],
         "glibc" => &["glibc", "formal-sysroot"],
@@ -1330,7 +1367,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/packages/config",
         ],
         "ca-certificates" => &["src/system/network"],
-        "linux" => &["src/kernel/linux"],
+        "linux-uapi" => &["src/kernel/linux-uapi"],
         "kernel-modules" => &["src/kernel/linux", "src/kernel/config"],
         "glibc" => &["src/system/libc/glibc"],
         "gcc" => &["src/toolchain/gcc"],
@@ -1955,9 +1992,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libc6" | "libc6-dev" | "libc-bin" | "locales" => {
             component_snapshot_version(repo_root, "glibc")?
         }
-        "linux-libc-dev" | "linux-modules-7.2.0-rc5-mattos" => {
-            component_snapshot_version(repo_root, "linux")?
-        }
+        "linux-libc-dev" => component_snapshot_version(repo_root, "linux-uapi")?,
+        LINUX_MODULES_PACKAGE => component_snapshot_version(repo_root, "linux")?,
         "libgcc-s1"
         | "libgomp1"
         | "libstdc++6"
@@ -2141,7 +2177,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
             component_snapshot_version(repo_root, "mesa")?
         }
         "libvulkan1" | "libvulkan-dev" | "vulkan-tools" => "1.4.357".to_string(),
-        "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
+        NVIDIA_OPEN_MODULES_PACKAGE
         | "nvidia-firmware-595"
         | "libnvidia-gl-595"
         | "libnvidia-compute-595"
@@ -2285,66 +2321,92 @@ fn component_snapshot_version(repo_root: &Path, component: &str) -> Result<Strin
     if let Some(version) = release_version_from_branch(&state.branch) {
         return Ok(version);
     }
-    let short = state
-        .imported_commit
-        .get(..12)
-        .unwrap_or(&state.imported_commit);
-    Ok(format!("0~git.{short}"))
+    snapshot_version::snapshot_upstream_version(
+        component,
+        &repo_root.join(&state.destination_path),
+        state.imported_commit.trim(),
+        state.upstream_committed_at_utc.as_deref(),
+    )
 }
 
+/// The Debian upstream version named by a release tag (`branch` in
+/// `upstream/sources.toml`), or `None` for a moving branch such as `main`.
+///
+/// Tags name versions in many styles: `openssl-3.5.8`, `v6.26.0`,
+/// `curl-8_22_0`, `R_2_8_5`, `FILE5_48`, `libXfont2-2.0.9`, `VER-2-14-3`,
+/// `V_10_5_P1` (OpenSSH), `2026d` (tzdata), `20260916` and
+/// `master-2026-09-03` (dated data releases), `v7.2-rc5`.  The version is
+/// the last `-`-separated field that holds a dotted or underscored number,
+/// else the trailing run of numeric fields, with any project-name letters
+/// stripped and `_` read as `.`.  A tag that yields no version falls back to
+/// a snapshot version, which sorts below every release.
 fn release_version_from_branch(branch: &str) -> Option<String> {
-    let normalized = branch.replace('_', ".");
-    let mut candidate = normalized.rsplit('/').next()?;
-    let candidate_lower = candidate.to_ascii_lowercase();
-    for prefix in [
-        "binutils-",
-        "bzip2-",
-        "dbus-",
-        "elfutils-",
-        "gcc-",
-        "glibc-",
-        "gnupg-",
-        "libx11-",
-        "libxau-",
-        "libxcb-",
-        "libxdmcp-",
-        "libice-",
-        "libsm-",
-        "libxi-",
-        "libxrender-",
-        "libxext-",
-        "libxfixes-",
-        "libxtst-",
-        "libxcursor-",
-        "libxft-",
-        "llvmorg-",
-        "openssl-",
-        "pcre2-",
-        "readline-",
-        "util-macros-",
-        "xcb-proto-",
-        "xkbcommon-",
-        "xwayland-",
-        "xkeyboard-config-",
-        "xorgproto-",
-        "xtrans-",
-    ] {
-        if candidate_lower.starts_with(prefix) {
-            candidate = &candidate[prefix.len()..];
-            break;
-        }
+    let mut tag = branch.rsplit('/').next()?;
+    if let Some(version) = openssh_release_version(tag) {
+        return Some(version);
     }
-    candidate = candidate.strip_prefix('v').unwrap_or(candidate);
-    let version = candidate
-        .trim_end_matches(|ch: char| !(ch.is_ascii_alphanumeric() || ch == '.' || ch == '~'))
-        .replace("-rc", "~rc");
-    if version.chars().next().is_some_and(|ch| ch.is_ascii_digit())
-        && version.chars().any(|ch| ch == '.')
+    // tzdata releases: a year and a letter.
+    if tag.len() == 5
+        && tag[..4].bytes().all(|byte| byte.is_ascii_digit())
+        && tag.as_bytes()[4].is_ascii_lowercase()
     {
-        Some(version)
-    } else {
-        None
+        return Some(tag.to_string());
     }
+    let mut release_candidate = None;
+    if let Some(at) = tag.rfind("-rc")
+        && !tag[at + 3..].is_empty()
+        && tag[at + 3..].bytes().all(|byte| byte.is_ascii_digit())
+    {
+        release_candidate = Some(&tag[at + 3..]);
+        tag = &tag[..at];
+    }
+    let fields = tag.split('-').collect::<Vec<_>>();
+    let is_number_list = |field: &str| {
+        field.bytes().enumerate().any(|(at, byte)| {
+            matches!(byte, b'.' | b'_')
+                && at > 0
+                && field.as_bytes()[at - 1].is_ascii_digit()
+                && field.as_bytes().get(at + 1).is_some_and(u8::is_ascii_digit)
+        })
+    };
+    let strip_name = |field: &str| field.trim_start_matches(|ch: char| ch.is_ascii_alphabetic()).to_string();
+    let core = if let Some(field) = fields.iter().rev().find(|field| is_number_list(field)) {
+        strip_name(field)
+    } else {
+        let mut trailing = Vec::new();
+        for field in fields.iter().rev() {
+            let digits = strip_name(field);
+            if digits.is_empty() || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
+                break;
+            }
+            trailing.insert(0, digits.clone());
+            if digits != *field {
+                break;
+            }
+        }
+        trailing.join(".")
+    };
+    let core = core.trim_matches(['.', '_']).replace('_', ".");
+    if !core.starts_with(|ch: char| ch.is_ascii_digit())
+        || !core.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '.' | '~' | '+'))
+    {
+        return None;
+    }
+    Some(match release_candidate {
+        Some(number) => format!("{core}~rc{number}"),
+        None => core,
+    })
+}
+
+/// OpenSSH portable tags: `V_10_5_P1` is release 10.5p1.
+fn openssh_release_version(tag: &str) -> Option<String> {
+    let rest = tag.strip_prefix(['V', 'v'])?.strip_prefix('_')?;
+    let mut parts = rest.split('_');
+    let (major, minor, portable) = (parts.next()?, parts.next()?, parts.next()?);
+    let portable = portable.strip_prefix(['P', 'p'])?;
+    let numeric = |value: &str| !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit());
+    (parts.next().is_none() && numeric(major) && numeric(minor) && numeric(portable))
+        .then(|| format!("{major}.{minor}p{portable}"))
 }
 
 fn apt_version(repo_root: &Path) -> Result<String> {
@@ -2572,9 +2634,9 @@ fn write_provenance(
                 configuration,
             )
         }
-        "linux" => {
-            let state = read_sync_state(repo_root, "linux")?
-                .ok_or_else(|| anyhow!("upstream state missing for linux"))?;
+        "linux-uapi" => {
+            let state = read_sync_state(repo_root, "linux-uapi")?
+                .ok_or_else(|| anyhow!("upstream state missing for linux-uapi"))?;
             let configuration =
                 fs::read_to_string(repo_root.join("out/build/glibc/kernel-headers-source.txt"))?
                     .trim()
@@ -2622,7 +2684,7 @@ fn write_provenance(
                 "src/system/graphics/nvidia-driver/manifest.toml + src/system/graphics/nvidia-open-gpu-kernel-modules".to_string(),
                 "https://download.nvidia.com/XFree86/Linux-x86_64/595.84/ + https://github.com/NVIDIA/open-gpu-kernel-modules".to_string(),
                 format!("runfile-sha256:9e4f5d56e74e1ec12a05b2b0afda893c3187da71cbd8fb14c1a394bbeeeb4148; open:{}", open.imported_commit),
-                "NVIDIA 595.84 production stack; proprietary files extracted verbatim without stripping; open modules built for 7.2.0-rc5-mattos".to_string(),
+                concat!("NVIDIA 595.84 production stack; proprietary files extracted verbatim without stripping; open modules built for ", mattos_kernel_release!()).to_string(),
             )
         }
         "mattos-plasma-theme" => {

@@ -3189,16 +3189,16 @@ mod tests {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("vmlinuz");
         std::os::unix::fs::symlink("old-kernel", &path).unwrap();
-        replace_expected_symlink(&path, "vmlinuz-7.2.0-rc5-mattos").unwrap();
+        replace_expected_symlink(&path, "vmlinuz-7.2.8-mattos").unwrap();
         assert_eq!(
             fs::read_link(&path).unwrap(),
-            PathBuf::from("vmlinuz-7.2.0-rc5-mattos")
+            PathBuf::from("vmlinuz-7.2.8-mattos")
         );
 
         fs::write(directory.path().join("initrd.img"), b"not a link").unwrap();
         let error = replace_expected_symlink(
             &directory.path().join("initrd.img"),
-            "initrd.img-7.2.0-rc5-mattos",
+            "initrd.img-7.2.8-mattos",
         )
         .unwrap_err();
         assert!(
@@ -3249,8 +3249,8 @@ mod tests {
         assert!(source.contains("--removable"));
         assert!(source.contains("--no-nvram"));
         assert_eq!(
-            validate_kernel_release("7.2.0-rc5-mattos\n").unwrap(),
-            "7.2.0-rc5-mattos"
+            validate_kernel_release("7.2.8-mattos\n").unwrap(),
+            "7.2.8-mattos"
         );
         for invalid in ["", "../x", "kernel;reboot", "a b", "a\nb"] {
             assert!(validate_kernel_release(invalid).is_err());

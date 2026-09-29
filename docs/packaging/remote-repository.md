@@ -46,8 +46,11 @@ each top-level `[[package]]` entry. Every artifact must resolve inside
 `out/packages/amd64`, be a regular (non-symlink) `.deb`, and appear only once;
 a duplicate or malformed entry is an error. Stale `.deb` files left in
 `out/packages/amd64` but absent from the inventory are ignored, and package
-names are not maintained in the script. It passes exactly that sorted set to
-the vendored publisher as
+names are not maintained in the script. It then compares that set with the
+hosted repository's `Packages` index: packages identical to the published
+ones are skipped, and packages older than a published version are refused (see
+[Publishing Packages](publishing.md#what-gets-uploaded)). It passes the new,
+newer and rebuilt packages, sorted, to the vendored publisher as
 `ManageMattOSRepository.py --non-interactive --repo mattos upload ...`.
 
 `--dry-run` still builds (unless `--no-build` is also given) and still runs the

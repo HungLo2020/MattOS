@@ -116,6 +116,7 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         fs::write(&source_identity_path, &source_identity)?;
     }
     fs::create_dir_all(&build).with_context(|| format!("failed to create {}", build.display()))?;
+    install_module_signing_key(repo_root, &build)?;
 
     let config_text = fs::read_to_string(&config)
         .with_context(|| format!("failed to read {}", config.display()))?;
@@ -174,7 +175,9 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     olddefconfig_args.push(kernel_cppflags_map.as_str());
     olddefconfig_args.push(kernel_cflags_map.as_str());
     run_cmd_with_env(&source, "make", &olddefconfig_args, env.as_ref())?;
-    validate_kernel_config_policy(&fs::read_to_string(build.join(".config"))?, &policy)?;
+    let resolved_config = fs::read_to_string(build.join(".config"))?;
+    validate_kernel_config_policy(&resolved_config, &policy)?;
+    validate_module_signing_config(&resolved_config)?;
     let mut build_args = vec![output_arg.as_str(), cross_compile.as_str(), "-j", "4"];
     build_args.extend(kernel_reproducible_args);
     build_args.push(kernel_cppflags_map.as_str());
@@ -207,6 +210,8 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         remove_path_if_exists(&module_dir.join(link))?;
     }
     normalize_kernel_module_paths(repo_root, &modules)?;
+    // After normalization, which rewrites module bytes a signature covers.
+    sign_kernel_modules(repo_root, &build, &modules)?;
     run_cmd(
         repo_root,
         "depmod",
@@ -243,6 +248,112 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
 /// instrumentation and ELF layout. The replacement is deliberately the same
 /// byte length as the checkout prefix, so offsets, relocations, and module
 /// behavior are unchanged; the extra slashes are harmless in diagnostic paths.
+/// The committed module-signing key: a private key and its certificate in one
+/// PEM, deliberately public.  A fixed key keeps the kernel reproducible (with
+/// no key supplied, Kbuild generates a random one and embeds its certificate
+/// in the kernel image) and lets every module, including out-of-tree ones,
+/// carry a valid signature, so loading one does not taint the kernel.  Being
+/// public, a signature proves nothing about who built a module; signatures
+/// are not enforced (`CONFIG_MODULE_SIG_FORCE` is off).
+const MODULE_SIGNING_KEY: &str = "src/kernel/config/module-signing-key.pem";
+/// Where the key is staged in the kernel build tree, as the config names it.
+/// Not Kbuild's default `certs/signing_key.pem`, which Kbuild would replace
+/// with a generated key.
+const KERNEL_MODULE_SIGNING_KEY: &str = "certs/mattos-module-signing-key.pem";
+const MODULE_SIGNATURE_MAGIC: &[u8] = b"~Module signature appended~\n";
+
+fn install_module_signing_key(repo_root: &Path, kernel_build: &Path) -> Result<()> {
+    let key = fs::read(repo_root.join(MODULE_SIGNING_KEY))
+        .with_context(|| format!("read the module signing key {MODULE_SIGNING_KEY}"))?;
+    let staged = kernel_build.join(KERNEL_MODULE_SIGNING_KEY);
+    // Rewriting an unchanged key would make Kbuild relink the kernel.
+    if fs::read(&staged).ok().as_deref() != Some(key.as_slice()) {
+        fs::create_dir_all(staged.parent().expect("the key path has a parent"))?;
+        fs::write(&staged, key)?;
+    }
+    Ok(())
+}
+
+fn validate_module_signing_config(config: &str) -> Result<()> {
+    let key = format!("CONFIG_MODULE_SIG_KEY=\"{KERNEL_MODULE_SIGNING_KEY}\"");
+    for required in ["CONFIG_MODULE_SIG=y", key.as_str()] {
+        if !config.lines().any(|line| line == required) {
+            bail!("kernel configuration must set {required} to sign modules with {MODULE_SIGNING_KEY}");
+        }
+    }
+    if config.lines().any(|line| line == "CONFIG_MODULE_SIG_ALL=y") {
+        bail!("CONFIG_MODULE_SIG_ALL must stay off: modules are signed after path normalization");
+    }
+    Ok(())
+}
+
+/// Appends a signature, made with the kernel build's `sign-file` and the
+/// committed key, to every unsigned `.ko` or `.ko.zst` module under `root`.
+/// Compressed modules are decompressed, signed and recompressed as Kbuild
+/// compresses them.
+fn sign_kernel_modules(repo_root: &Path, kernel_build: &Path, root: &Path) -> Result<()> {
+    let sign_file = kernel_build.join("scripts/sign-file");
+    let key = kernel_build.join(KERNEL_MODULE_SIGNING_KEY);
+    let certificate = kernel_build.join("certs/signing_key.x509");
+    for required in [&sign_file, &key, &certificate] {
+        if !required.is_file() {
+            bail!("module signing needs {}; build the kernel first", required.display());
+        }
+    }
+    let scratch = repo_root.join("out/tmp");
+    fs::create_dir_all(&scratch)?;
+    let raw = scratch.join(format!(".mattos-module-sign-{}.ko", std::process::id()));
+    let mut files = Vec::new();
+    collect_regular_files(root, &mut files)?;
+    let mut signed = 0usize;
+    for path in files {
+        let name = path.file_name().and_then(OsStr::to_str).unwrap_or_default();
+        let compressed = name.ends_with(".ko.zst");
+        if !compressed && !name.ends_with(".ko") {
+            continue;
+        }
+        let payload = if compressed {
+            let output = Command::new("zstd")
+                .args(["--quiet", "--decompress", "--stdout"])
+                .arg(&path)
+                .output()
+                .with_context(|| format!("decompress kernel module {}", path.display()))?;
+            if !output.status.success() {
+                bail!("could not decompress kernel module {}", path.display());
+            }
+            output.stdout
+        } else {
+            fs::read(&path)?
+        };
+        if payload.ends_with(MODULE_SIGNATURE_MAGIC) {
+            continue;
+        }
+        fs::write(&raw, &payload)?;
+        run_cmd(
+            repo_root,
+            path_str(&sign_file)?,
+            &["sha512", path_str(&key)?, path_str(&certificate)?, path_str(&raw)?],
+        )?;
+        if compressed {
+            let output = Command::new("zstd")
+                .args(["--quiet", "--compress", "--stdout"])
+                .arg(&raw)
+                .output()
+                .with_context(|| format!("recompress kernel module {}", path.display()))?;
+            if !output.status.success() {
+                bail!("could not recompress kernel module {}", path.display());
+            }
+            fs::write(&path, output.stdout)?;
+        } else {
+            fs::copy(&raw, &path)?;
+        }
+        signed += 1;
+    }
+    remove_path_if_exists(&raw)?;
+    println!("signed {signed} kernel module(s) under {}", root.display());
+    Ok(())
+}
+
 fn normalize_kernel_module_paths(repo_root: &Path, modules: &Path) -> Result<()> {
     let checkout_prefix = repo_root.to_string_lossy().into_owned();
     let stable_prefix = "/usr/src/mattos";
@@ -330,16 +441,21 @@ const GLIBC_MINIMUM_KERNEL: &str = "5.10.0";
 const MATTOS_SOURCE_DATE_EPOCH: &str = "1767225600";
 
 fn build_glibc(repo_root: &Path) -> Result<()> {
-    let linux = repo_root.join("src/kernel/linux");
+    // Userland kernel headers come from the separately pinned `linux-uapi`
+    // import, never from the kernel MattOS boots (see `linux_x86_uapi_inputs`).
+    let linux = repo_root.join("src/kernel/linux-uapi");
     let source = repo_root.join("src/system/libc/glibc");
     let output = repo_root.join("out/build/glibc");
     let build = output.join("build");
     let install = output.join("install");
     let sysroot = repo_root.join("out/sysroot");
-    let headers_root = sysroot.join("usr");
+    // The kernel UAPI headers are exported into glibc's own output, and glibc
+    // is configured against exactly that tree: the shared sysroot also holds
+    // other stages' headers (libstdc++, hydrated development files).
+    let headers_root = output.join("linux-headers/usr");
     if !linux.join("Makefile").is_file() {
         bail!(
-            "Linux source not found at {}; import it first",
+            "Linux UAPI source not found at {}; run `mattos-build upstream import linux-uapi`",
             linux.display()
         )
     }
@@ -356,8 +472,13 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     {
         bail!("glibc requires the MattOS pass-1 cross compiler; build cross-toolchain first")
     }
+    // The sysroot is shared: gcc-runtime installs its runtime libraries and
+    // C++ headers there, and later stages hydrate development files into it.
+    // Replace only glibc's own previous contribution, never the whole
+    // directory, which would destroy other stages' published outputs and
+    // force them to rebuild even when glibc's output is unchanged.
+    remove_previous_sysroot_contribution(&sysroot, &[install.clone(), output.join("linux-headers")])?;
     remove_path_if_exists(&output)?;
-    remove_path_if_exists(&sysroot)?;
     fs::create_dir_all(&build)?;
     fs::create_dir_all(&install)?;
     fs::create_dir_all(&headers_root)?;
@@ -375,7 +496,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
 
     let linux_source = output.join("linux-source");
     let linux_build = output.join("linux-build");
-    copy_imported_working_tree(repo_root, Path::new("src/kernel/linux"), &linux_source)?;
+    copy_imported_working_tree(repo_root, Path::new("src/kernel/linux-uapi"), &linux_source)?;
     fs::create_dir_all(&linux_build)?;
     let output_arg = format!("O={}", linux_build.display());
     let headers_arg = format!("INSTALL_HDR_PATH={}", headers_root.display());
@@ -390,21 +511,18 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
         ],
     )
     .context("Linux UAPI header generation failed")?;
-    if !sysroot.join("usr/include/linux/version.h").is_file()
-        || !sysroot.join("usr/include/asm/unistd.h").is_file()
+    if !headers_root.join("include/linux/version.h").is_file()
+        || !headers_root.join("include/asm/unistd.h").is_file()
     {
         bail!("Linux headers_install did not create the required UAPI header tree")
     }
-    copy_tree_contents(
-        &sysroot.join("usr/include"),
-        &output.join("linux-headers/usr/include"),
-    )?;
+    copy_tree_contents(&headers_root, &sysroot.join("usr"))?;
     let mut uapi_files = Vec::new();
     collect_regular_files(&output.join("linux-headers/usr/include"), &mut uapi_files)?;
     // The Linux commit the UAPI headers are exported from: the imported pin,
     // never a copy of it that could drift when the kernel is re-imported.
-    let linux_revision = read_sync_state(repo_root, "linux")?
-        .context("upstream/state/linux.toml is missing; import the Linux source first")?
+    let linux_revision = read_sync_state(repo_root, "linux-uapi")?
+        .context("upstream/state/linux-uapi.toml is missing; import the Linux UAPI source first")?
         .imported_commit;
     let mut uapi_inventory = format!(
         "revision={linux_revision}\narchitecture=x86\ncommand=make ARCH=x86 headers_install\n\n"
@@ -420,7 +538,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     fs::write(output.join("linux-headers-inventory.txt"), uapi_inventory)?;
 
     let configure = source.join("configure");
-    let headers = sysroot.join("usr/include");
+    let headers = headers_root.join("include");
     let glibc_cflags = format!(
         "-O2 -g0 -ffile-prefix-map={}=/usr/src/mattos/glibc -fdebug-prefix-map={}=/usr/src/mattos/glibc",
         repo_root.display(),
@@ -438,7 +556,7 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
     fs::write(output.join("configure-invocation.txt"), &configure_text)?;
     fs::write(
         output.join("kernel-headers-source.txt"),
-        format!("source=src/kernel/linux\nrevision={linux_revision}\nmethod=make ARCH=x86 headers_install\n"),
+        format!("source=src/kernel/linux-uapi\nrevision={linux_revision}\nmethod=make ARCH=x86 headers_install\n"),
     )?;
 
     let configure_program = configure
@@ -529,6 +647,45 @@ fn build_glibc(repo_root: &Path) -> Result<()> {
         "glibc runtime and development sysroot installed in {}",
         sysroot.display()
     );
+    Ok(())
+}
+
+/// Removes from the shared `sysroot` the files a stage installed there last
+/// time, as recorded by its previous output trees (each laid out relative to
+/// the sysroot).  A sysroot entry is removed only while it is still that
+/// stage's copy: another stage's replacement at the same path is kept.
+fn remove_previous_sysroot_contribution(sysroot: &Path, previous_trees: &[PathBuf]) -> Result<()> {
+    fn walk(tree: &Path, relative: &Path, sysroot: &Path) -> Result<()> {
+        let Ok(entries) = fs::read_dir(tree.join(relative)) else {
+            return Ok(());
+        };
+        for entry in entries {
+            let child = relative.join(entry?.file_name());
+            let ours = tree.join(&child);
+            let installed = sysroot.join(&child);
+            let (Ok(ours_meta), Ok(installed_meta)) =
+                (fs::symlink_metadata(&ours), fs::symlink_metadata(&installed))
+            else {
+                continue;
+            };
+            if ours_meta.is_dir() && !ours_meta.file_type().is_symlink() {
+                walk(tree, &child, sysroot)?;
+            } else if ours_meta.file_type().is_symlink() {
+                if installed_meta.file_type().is_symlink() && fs::read_link(&ours)? == fs::read_link(&installed)? {
+                    fs::remove_file(&installed)?;
+                }
+            } else if installed_meta.is_file()
+                && installed_meta.len() == ours_meta.len()
+                && fs::read(&ours)? == fs::read(&installed)?
+            {
+                fs::remove_file(&installed)?;
+            }
+        }
+        Ok(())
+    }
+    for tree in previous_trees {
+        walk(tree, Path::new(""), sysroot)?;
+    }
     Ok(())
 }
 

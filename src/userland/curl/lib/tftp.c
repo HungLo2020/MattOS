@@ -957,7 +957,7 @@ static CURLcode tftp_connect(struct Curl_easy *data, bool *done)
     return CURLE_FAILED_INIT;
 
   ((struct sockaddr *)&state->local_addr)->sa_family =
-    (CURL_SA_FAMILY_T)(remote_addr->family);
+    (CURL_SA_FAMILY_T)remote_addr->family;
 
   result = tftp_set_timeouts(state);
   if(result)
@@ -987,8 +987,6 @@ static CURLcode tftp_connect(struct Curl_easy *data, bool *done)
     }
     conn->bits.bound = TRUE;
   }
-
-  Curl_pgrsStartNow(data);
 
   *done = TRUE;
 

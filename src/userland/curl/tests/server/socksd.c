@@ -57,7 +57,7 @@
 /* based on sockfilt.c */
 
 static const char *backendaddr = "127.0.0.1";
-static unsigned short backendport = 0; /* default is use client's */
+static uint16_t backendport = 0; /* default is use client's */
 
 struct socksd_configurable {
   unsigned char version; /* initial version byte in the request must match
@@ -68,7 +68,7 @@ struct socksd_configurable {
   unsigned char responsemethod;
   unsigned char reqcmd;
   unsigned char connectrep;
-  unsigned short port; /* backend port */
+  uint16_t port; /* backend port */
   char addr[32]; /* backend IPv4 numerical */
   char user[256];
   char password[256];
@@ -149,7 +149,7 @@ static void socksd_getconfig(void)
         else if(!strcmp(key, "backendport")) {
           pval = value;
           if(!curlx_str_number(&pval, &num, 0xffff)) {
-            s_config.port = (unsigned short)num;
+            s_config.port = (uint16_t)num;
             logmsg("backendport [%d] set", s_config.port);
           }
         }
@@ -210,7 +210,7 @@ static void socksd_getconfig(void)
 #define SOCKS4_DSTPORT 2
 
 /* connect to a given IPv4 address, not the one asked for */
-static curl_socket_t socksconnect(unsigned short connectport,
+static curl_socket_t socksconnect(uint16_t connectport,
                                   const char *connectaddr)
 {
   srvr_sockaddr_union_t me;
@@ -241,7 +241,7 @@ static curl_socket_t socks4(curl_socket_t fd,
   unsigned char response[256 + 16];
   curl_socket_t connfd;
   unsigned char cd;
-  unsigned short s4port;
+  uint16_t s4port;
 
   if(buffer[SOCKS4_CD] != 1) {
     logmsg("SOCKS4 CD is not 1: %d", buffer[SOCKS4_CD]);
@@ -252,8 +252,8 @@ static curl_socket_t socks4(curl_socket_t fd,
     return CURL_SOCKET_BAD;
   }
   if(!s_config.port)
-    s4port = (unsigned short)((buffer[SOCKS4_DSTPORT] << 8) |
-                              (buffer[SOCKS4_DSTPORT + 1]));
+    s4port = (uint16_t)((buffer[SOCKS4_DSTPORT] << 8) |
+                         buffer[SOCKS4_DSTPORT + 1]);
   else
     s4port = s_config.port;
 
@@ -297,9 +297,9 @@ static curl_socket_t sockit(curl_socket_t fd)
   unsigned char type;
   unsigned char rep = 0;
   const unsigned char *address;
-  unsigned short socksport;
+  uint16_t socksport;
   curl_socket_t connfd = CURL_SOCKET_BAD;
-  unsigned short s5port;
+  uint16_t s5port;
 
   socksd_getconfig();
 
@@ -500,7 +500,7 @@ static curl_socket_t sockit(curl_socket_t fd)
 
   if(!s_config.port) {
     const unsigned char *portp = &buffer[SOCKS5_DSTADDR + len];
-    s5port = (unsigned short)((portp[0] << 8) | (portp[1]));
+    s5port = (uint16_t)((portp[0] << 8) | portp[1]);
   }
   else
     s5port = s_config.port;
@@ -728,8 +728,6 @@ static int test_socksd(int argc, const char *argv[])
   bool juggle_again;
   char errbuf[STRERROR_LEN];
   int arg = 1;
-
-  const char *unix_socket = NULL;
 #ifdef USE_UNIX_SOCKETS
   bool unlink_socket = FALSE;
 #endif
@@ -777,7 +775,7 @@ static int test_socksd(int argc, const char *argv[])
       if(argc > arg) {
         opt = argv[arg];
         if(!curlx_str_number(&opt, &num, 0xffff))
-          backendport = (unsigned short)num;
+          backendport = (uint16_t)num;
         arg++;
       }
     }
@@ -793,16 +791,14 @@ static int test_socksd(int argc, const char *argv[])
     }
     else if(!strcmp("--ipv6", argv[arg])) {
 #ifdef USE_IPV6
-      socket_domain = AF_INET6;
       socket_type = "IPv6";
+      socket_domain = AF_INET6;
 #endif
       arg++;
     }
     else if(!strcmp("--ipv4", argv[arg])) {
-      /* for completeness, we support this option as well */
-#ifdef USE_IPV6
       socket_type = "IPv4";
-#endif
+      socket_domain = AF_INET;
       arg++;
     }
     else if(!strcmp("--unix-socket", argv[arg])) {
@@ -810,15 +806,15 @@ static int test_socksd(int argc, const char *argv[])
       if(argc > arg) {
 #ifdef USE_UNIX_SOCKETS
         struct sockaddr_un sau;
-        unix_socket = argv[arg];
-        if(strlen(unix_socket) >= sizeof(sau.sun_path)) {
+        server_unix_socket = argv[arg];
+        if(strlen(server_unix_socket) >= sizeof(sau.sun_path)) {
           fprintf(stderr,
                   "socksd: socket path must be shorter than %u chars: %s\n",
-                  (unsigned int)sizeof(sau.sun_path), unix_socket);
+                  (unsigned int)sizeof(sau.sun_path), server_unix_socket);
           return 0;
         }
-        socket_domain = AF_UNIX;
         socket_type = "unix";
+        socket_domain = AF_UNIX;
 #endif
         arg++;
       }
@@ -828,7 +824,7 @@ static int test_socksd(int argc, const char *argv[])
       if(argc > arg) {
         opt = argv[arg];
         if(!curlx_str_number(&opt, &num, 0xffff))
-          server_port = (unsigned short)num;
+          server_port = (uint16_t)num;
         arg++;
       }
     }
@@ -867,7 +863,7 @@ static int test_socksd(int argc, const char *argv[])
 
   {
     /* passive daemon style */
-    sock = sockdaemon(sock, &server_port, unix_socket, FALSE);
+    sock = sockdaemon(sock, &server_port, server_unix_socket, FALSE);
     if(sock == CURL_SOCKET_BAD) {
       goto socks5_cleanup;
     }
@@ -881,7 +877,7 @@ static int test_socksd(int argc, const char *argv[])
 
 #ifdef USE_UNIX_SOCKETS
   if(socket_domain == AF_UNIX)
-    logmsg("Listening on Unix socket %s", unix_socket);
+    logmsg("Listening on Unix socket %s", server_unix_socket);
   else
 #endif
   logmsg("Listening on port %hu", server_port);
@@ -911,9 +907,9 @@ socks5_cleanup:
     sclose(sock);
 
 #ifdef USE_UNIX_SOCKETS
-  if(unlink_socket && socket_domain == AF_UNIX && unix_socket &&
-     unlink(unix_socket))
-    logmsg("unlink(%s): %d (%s)", unix_socket,
+  if(unlink_socket && socket_domain == AF_UNIX && server_unix_socket &&
+     unlink(server_unix_socket))
+    logmsg("unlink(%s): %d (%s)", server_unix_socket,
            errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 #endif
 
@@ -924,16 +920,5 @@ socks5_cleanup:
 
   restore_signal_handlers(FALSE);
 
-  if(got_exit_signal) {
-    logmsg("============> socksd exits with signal (%d)", exit_signal);
-    /*
-     * To properly set the return status of the process we
-     * must raise the same signal SIGINT or SIGTERM that we
-     * caught and let the old handler take care of it.
-     */
-    raise(exit_signal);
-  }
-
-  logmsg("============> socksd quits");
   return 0;
 }

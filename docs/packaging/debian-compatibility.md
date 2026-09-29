@@ -22,7 +22,10 @@ known gaps, and may record a Debian epoch. Classifications are
 `debian-compatible`, `mattos-alternative`, `mattos-extension`, and
 `mattos-specific`. `protected.toml` is the authoritative protected-name
 inventory, and each shipped package's `protected` flag in `trixie.toml` must
-agree with it in both directions.
+agree with it in both directions. Each entry's `current_mattos_version`
+records the version MattOS ships; it is maintained by hand, so every package
+build warns about entries whose recorded version differs from the version just
+built.
 The build rejects an incomplete mapping, invalid classification or version,
 a protected flag that disagrees with `protected.toml`, a missing or extra
 protected pin in either the live or the installed APT preferences, unsafe
@@ -33,7 +36,7 @@ source configuration, changed LinuxScripts publisher, or nested Git metadata.
 | Interface | Current MattOS behavior |
 | --- | --- |
 | package identity | Real Trixie binary names are used only where the current payload is a credible replacement. MattOS-only packages keep `mattos-`. |
-| versions | Debian syntax and `dpkg` comparison; releases use `<upstream>-1mattos<N>`, snapshots `0~git.<12hex>-1mattos<N>`, with a Debian epoch where `trixie.toml` records one; `dpkg` itself uses `<changelog version>+git.<8hex>-1mattos<N>`; never timestamps. |
+| versions | Debian syntax and `dpkg` comparison; releases use `<upstream>-1mattos<N>`, snapshots `<declared>+git<YYYYMMDD>.<HHMMSS>.<12hex>-1mattos<N>`, with a Debian epoch where `trixie.toml` records one; `dpkg` itself uses `<changelog version>+git.<8hex>-1mattos<N>`; never timestamps. |
 | architecture | `Architecture: amd64`; no foreign-architecture or multiarch co-install support. |
 | libraries | Runtime DSOs use `/usr/lib/x86_64-linux-gnu`, with Debian-relevant SONAME and symbol-version checks recorded by the ELF audit. |
 | loader | Dynamic executables use `/lib64/ld-linux-x86-64.so.2`. |
@@ -83,9 +86,9 @@ Trixie's GCC 14 identities.
 ## Versions and protected transactions
 
 Release branches are converted to deterministic upstream versions. A moving
-branch that cannot supply a release version sorts conservatively as a
-`0~git...` snapshot and relies on repository policy rather than an artificially
-high version. Tests exercise Debian 13 versions, epochs, `~` prereleases,
+branch gives an ordered snapshot version built from the version its tree
+declares and the pinned commit's committer time (see
+[Package versions from pins](../sources/upstream-sync.md#package-versions-from-pins)). Tests exercise Debian 13 versions, epochs, `~` prereleases,
 MattOS revisions, and downgrade ordering with `dpkg --compare-versions`.
 
 APT priority (`src/system/packages/config/apt/00mattos-priority`, and the

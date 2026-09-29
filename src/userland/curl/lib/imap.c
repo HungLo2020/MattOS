@@ -57,7 +57,6 @@
 #include "curlx/dynbuf.h"
 #include "sendf.h"
 #include "curl_trc.h"
-#include "hostip.h"
 #include "progress.h"
 #include "transfer.h"
 #include "escape.h"
@@ -887,7 +886,6 @@ static CURLcode imap_perform_append(struct Curl_easy *data,
       result = Curl_creader_set_mime(data, postp);
     if(result)
       return result;
-    data->state.infilesize = Curl_creader_client_length(data);
   }
   else
 #endif
@@ -897,9 +895,15 @@ static CURLcode imap_perform_append(struct Curl_easy *data,
       return result;
   }
 
-  /* Check we know the size of the upload */
+  /* Check we know the size of the upload. This takes all readers
+   * into account. Especially crlf conversions which make the size
+   * unpredictable, e.g. -1. */
+  data->state.infilesize = Curl_creader_total_length(data);
   if(data->state.infilesize < 0) {
-    failf(data, "Cannot APPEND with unknown input file size");
+    if(data->set.crlf)
+      failf(data, "Cannot APPEND with CRLF conversion making size unknown");
+    else
+      failf(data, "Cannot APPEND with unknown input file size");
     return CURLE_UPLOAD_FAILED;
   }
 
@@ -1924,7 +1928,7 @@ static CURLcode imap_parse_custom_request(struct Curl_easy *data,
                                           struct IMAP *imap)
 {
   CURLcode result = CURLE_OK;
-  const char *custom = data->set.str[STRING_CUSTOMREQUEST];
+  const char *custom = CURL_EASY_STR(data, STRING_CUSTOMREQUEST);
 
   if(custom) {
     /* URL decode the custom request */

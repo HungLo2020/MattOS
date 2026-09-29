@@ -72,7 +72,6 @@
 #include "md5.h"
 #include "support.h"
 #include "passverify.h"
-#include "bigcrypt.h"
 
 #ifdef HAVE_NIS
 # include <rpc/rpc.h>

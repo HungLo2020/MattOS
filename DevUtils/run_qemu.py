@@ -839,6 +839,18 @@ def installed_toolchain_probe() -> str:
     )
 
 
+def installed_runtime_versions_probe() -> str:
+    """Running kernel, OpenSSH, OpenSSL and sudo-rs match their installed packages."""
+    return (
+        "r=$(uname -r) && dpkg-query -W -f='${Status}' \"linux-modules-$r\" | grep -q 'ok installed' && "
+        "s=$(ssh -V 2>&1) && o=$(dpkg-query -W -f='${Version}' openssh-client) && "
+        "l=$(dpkg-query -W -f='${Version}' libssl3t64) && u=$(dpkg-query -W -f='${Version}' mattos-sudo-rs) && "
+        "o=${o#*:} && l=${l#*:} && u=${u#*:} && "
+        "echo \"$s\" | grep -q \"OpenSSH_${o%%-*}\" && echo \"$s\" | grep -q \"OpenSSL ${l%%-*}\" && "
+        "sudo --version 2>&1 | grep -q \"${u%%-*}\""
+    )
+
+
 INSTALLED_HARDENING_PROGRAM = r"""#include <stdio.h>
 #include <string.h>
 int main(int argc, char **argv) {
@@ -1295,6 +1307,20 @@ def _verify_installed_disk_boot(
         ("toolchain", installed_toolchain_probe()),
         # The shipped compiler hardens what users build, like MattOS's own builds.
         ("toolchain-hardening", installed_toolchain_hardening_probe()),
+        # What runs is what dpkg says is installed: the booted kernel has its
+        # modules package, and OpenSSH, its linked OpenSSL and sudo-rs report
+        # the installed package versions (no version is hard-coded here).
+        ("runtime-matches-packages", installed_runtime_versions_probe()),
+        # Modules carry signatures the kernel accepts: a loaded module has a
+        # signature (MattOS kmod has no OpenSSL, so modinfo detects it but
+        # cannot name the signer), and the kernel, which trusts only the
+        # MattOS certificate, recorded no unsigned-module taint (bit 13).
+        # modinfo is in /usr/sbin, which a user's PATH does not include.
+        ("no-unsigned-module-taint", "test $(( $(cat /proc/sys/kernel/tainted) & 8192 )) -eq 0"),
+        (
+            "kernel-modules-signed",
+            "grep -q '^btrfs ' /proc/modules && test -n \"$(/usr/sbin/modinfo -F sig_hashalgo btrfs)\"",
+        ),
         # The installed policy replaced the live local source rather than
         # listing the embedded repository twice.
         (

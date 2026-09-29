@@ -1,3 +1,4 @@
+use crate::{LINUX_MODULES_PACKAGE, NVIDIA_OPEN_MODULES_PACKAGE};
 use anyhow::{Result, bail};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
@@ -179,7 +180,7 @@ mod wifi_grub_tests {
         let cli = closure("mattos-cli");
         for required in [
             "systemd",
-            "linux-modules-7.2.0-rc5-mattos",
+            LINUX_MODULES_PACKAGE,
             "linux-firmware",
             "network-manager",
             "apt",
@@ -282,7 +283,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "libgomp1",
     "libstdc++6",
     "linux-libc-dev",
-    "linux-modules-7.2.0-rc5-mattos",
+    LINUX_MODULES_PACKAGE,
     "libc6-dev",
     "mattos-libgcc-dev",
     "mattos-libstdc++-dev",
@@ -558,7 +559,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "libvulkan-dev",
     "mesa-vulkan-drivers",
     "vulkan-tools",
-    "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+    NVIDIA_OPEN_MODULES_PACKAGE,
     "nvidia-firmware-595",
     "libnvidia-gl-595",
     "libnvidia-compute-595",
@@ -633,7 +634,7 @@ const MATTOS_BASE_DEPENDS: &[&str] = &[
     "locales",
     "iso-codes",
     "tzdata",
-    "linux-modules-7.2.0-rc5-mattos",
+    LINUX_MODULES_PACKAGE,
     "linux-firmware",
     "wireless-regdb",
     "ca-certificates",
@@ -890,7 +891,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
         PackageSpec {
             name: "linux-libc-dev",
             description: "Linux userspace API headers for MattOS native development",
-            source_component: "linux",
+            source_component: "linux-uapi",
             depends: &["mattos-filesystem"],
             provides: &["linux-libc-dev"],
             conflicts: &[],
@@ -899,7 +900,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "linux-modules-7.2.0-rc5-mattos",
+            name: LINUX_MODULES_PACKAGE,
             description: "MattOS generic x86_64 kernel modules and depmod metadata",
             source_component: "kernel-modules",
             depends: &["kmod"],
@@ -2085,7 +2086,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
                 "dosfstools",
                 "e2fsprogs",
                 "libcrypt1",
-                "linux-modules-7.2.0-rc5-mattos",
+                LINUX_MODULES_PACKAGE,
                 "linux-firmware",
                 "wireless-regdb",
                 "grub-efi-amd64",
@@ -3814,11 +3815,11 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+            name: NVIDIA_OPEN_MODULES_PACKAGE,
             description: "NVIDIA 595.84 open GPU kernel modules for the exact MattOS kernel",
             source_component: "nvidia-driver",
             depends: &[
-                "linux-modules-7.2.0-rc5-mattos",
+                LINUX_MODULES_PACKAGE,
                 "nvidia-firmware-595",
                 "kmod",
             ],
@@ -3910,7 +3911,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             depends: &[
                 "libc6",
                 "libnvidia-compute-595",
-                "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+                NVIDIA_OPEN_MODULES_PACKAGE,
             ],
             provides: &["nvidia-smi"],
             conflicts: &[],
@@ -3923,7 +3924,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             description: "Complete official NVIDIA 595.84 open-kernel Wayland graphics stack",
             source_component: "nvidia-driver",
             depends: &[
-                "linux-modules-nvidia-595-open-7.2.0-rc5-mattos",
+                NVIDIA_OPEN_MODULES_PACKAGE,
                 "libnvidia-gl-595",
                 "libnvidia-compute-595",
                 "libnvidia-encode-595",

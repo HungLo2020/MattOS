@@ -167,15 +167,15 @@ reason = "The compiler performance benchmark suite is not an installed toolchain
 
 [[component]]
 name = "pcre2"
-upstream_commit = "f454e231fe5006dd7ff8f4693fd2b8eb94333429"
+upstream_commit = "6f9d7c1373262c541324a16a358785b33ef116cf"
 
 [[component.gitlink]]
 path = "deps/sljit"
-upstream_commit = "45f910b78c6605ebf5b53d3ec7cb00f2312fe417"
+upstream_commit = "de0259c7aaf36aa40cba8014f3fad3edde9307f9"
 action = "replacement"
 replacement_component = "sljit"
 replacement_path = "src/build-support/sljit"
-replacement_commit = "45f910b78c6605ebf5b53d3ec7cb00f2312fe417"
+replacement_commit = "de0259c7aaf36aa40cba8014f3fad3edde9307f9"
 exact_gitlink_match = true
 reason = "PCRE2 JIT receives the exact gitlink revision from the separately pinned ordinary-file SLJIT import."
 
@@ -205,7 +205,7 @@ reason = "The GStreamer integration-test media corpus is not a build or runtime 
 
 [[component]]
 name = "openssl"
-upstream_commit = "8cf17aaeb4599f8af87fefd810b5b5fee90fe69e"
+upstream_commit = "f4dc4d58b48d346a8270183f89acf826d459b0ca"
 
 [[component.gitlink]]
 path = "cloudflare-quiche"
@@ -239,7 +239,7 @@ reason = "The optional OQS provider is not enabled in MattOS."
 
 [[component.gitlink]]
 path = "pkcs11-provider"
-upstream_commit = "663dea335c80bec7fd96d544ff875af08d6461a9"
+upstream_commit = "64fc325ac0f91d03d76b3546df2998d3a38c525b"
 action = "exclude"
 reason = "The optional PKCS#11 provider is not enabled in MattOS."
 

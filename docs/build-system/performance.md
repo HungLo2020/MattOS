@@ -15,6 +15,7 @@ out/state/elf/<elf-sha256>.json
 out/logs/<stage>.log
 out/reports/build-timings.json
 out/reports/build-timings.txt
+out/reports/stage-memory.json
 ```
 
 Stage manifests use schema version 3. They contain the stage identifier; source, configuration, tool, normalized environment, and dependency-output digests; the full input digest; the exact field identities used for diagnostics; a deterministic expected-output inventory; and the output-content digest. Output inventory entries include normalized path, kind, mode, owner UID/GID, size, file SHA-256 or symlink target. Maps use canonical key ordering. Wall-clock timestamps exist only in timing reports.
@@ -289,6 +290,42 @@ recursive makes keep it; `propagate_kbuild_cppflags` in
 `stages/helpers/command.rs`) once rebuilt `MAKEFLAGS` without the jobserver,
 leaving the kernel with neither `-j` nor tokens: it compiled one file at a time
 and took up to three hours instead of about five minutes.
+
+## Per-stage memory containment
+
+Each stage that runs its recipe gets its own transient systemd user scope
+(`stage_memory.rs`). Its `memory.high` is the memory available when the stage
+starts, at least 1 GiB, and every command the stage runs moves itself into
+the scope before `exec`. A stage that outgrows the memory it started with is
+then reclaimed and throttled by the kernel inside its own cgroup, instead of
+pushing other processes (the user's desktop, the editor) into swap: during
+the 7.2.8 rebuild LLVM ran with 18 GiB of the host in swap because nothing
+bounded it below the whole session.
+
+`memory.high` alone would only move the excess from other programs into the
+stage's own swap, so the scheduler also reads each running stage's cgroup
+(`stage_pressure`). A stage within 10% of its `memory.high` counts as
+constrained memory pressure, which halves the jobserver tokens before reclaim
+starts; a stage the kernel throttled at `memory.high` since the last sample
+counts as critical, so no new compile job starts until its memory falls. The
+same two-sample recovery applies as for host-wide pressure.
+
+The scope's `memory.peak` is the stage's true aggregate peak, page cache
+included; a successful stage records it in `out/reports/stage-memory.json`
+for diagnosis. It is not turned into a per-job reservation: under the shared
+jobserver a stage's parallelism varies while it runs and only the pool's
+ceiling is known, so the peak cannot be divided into a per-job cost. The live
+`stage_pressure` feedback acts on the stage's actual memory instead.
+
+Scopes need a systemd user manager with the memory controller delegated, as
+in a normal desktop session. Without one (CI, containers, root builds) the
+build prints one notice and runs stages uncontained, as before;
+`MATTOS_STAGE_CGROUPS=0` opts out explicitly. The scope's holder process dies
+with the build, so an interrupted build leaves no scope behind.
+
+LLVM's Ninja link pool (`LLVM_PARALLEL_LINK_JOBS`) is one link per 6 GiB of
+the memory the build may use (host memory or its cgroup limit), from 1 to 4.
+It is fixed per host because it is baked into the configured build.
 
 ## Remaining work
 

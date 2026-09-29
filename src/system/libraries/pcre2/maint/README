@@ -9,6 +9,7 @@ and also contains some notes for maintainers. Its contents are:
   Files in the maint directory
   Updating to a new Unicode release
   Preparing for a PCRE2 release
+  Managing backports to old releases
   Updating version info for libtool
   Long-term ideas (wish list)
 
@@ -59,6 +60,10 @@ GenerateUcpTables.py
   A Python script that generates the file pcre2_ucptables_inc.h from
   GenerateCommon.py and Unicode data files. The generated file contains tables
   for looking up Unicode property names.
+
+FetchUcd.sh
+  A shell script to download the UCD data from the Unicode website into
+  the Unicode.tables directory.
 
 FilterCoverage.py
   A small helper used by the RunCoverage script.
@@ -141,10 +146,11 @@ Updating to a new Unicode release
 =================================
 
 When there is a new release of Unicode, the files in Unicode.tables must be
-refreshed from the Unicode web site. Once that is done, the four Python scripts
-that generate files from the Unicode data can be run from within the "maint"
-directory. Note that the format used for those files is not stable, and
-therefore changes to the scripts might be needed to support new versions.
+refreshed from the Unicode web site, which can be done with the script
+FetchUcd.sh. Once that is done, the four Python scripts that generate files from
+the Unicode data can be run from within the "maint" directory. Note that the
+format used for those files is not stable, and therefore changes to the scripts
+might be needed to support new versions.
 
 Note: Previously, it was necessary to update lists of scripts and their
 abbreviations by hand before running the Python scripts. This is no longer
@@ -206,7 +212,7 @@ Preparing for a PCRE2 release
 This section contains a checklist of things that I (NCW) do before building a
 new release.
 
-* First of all, make sure that the master branch is in good condition.
+* First of all, make sure that the main branch is in good condition.
 
   - Basically, test it. The CI jobs should all be passing. This ensures that
     pcre2tests are passing, that the build is warning-free, and that all our
@@ -255,18 +261,24 @@ new release.
     -- ':!doc/*.txt' ':!doc/html'
   ```
 
+* Review the ChangeLog and Git log for security fixes, crashes, memory errors,
+  and serious match-correctness errors that should be backported. Update the
+  old release branches, canonical patch dumps, `Makefile.am`, and
+  `SUPPORT-LIFECYCLE.md` as described in "Managing backports to old releases"
+  below.
+
 * Update the library version numbers in configure.ac according to the rules
   given below.
 
-* Add the new library version to the src/libpcre2-*.sym files (even if no new
+* Add the new library version to the src/libpcre2-*.sym.in files (even if no new
   symbols have been added since the last release).
 
-* Push all these changes to master.
+* Push all these changes to main.
 
-* Take a branch off master, named "release/pcre2-10.XX-RC1" or
+* Take a branch off main, named "release/pcre2-10.XX-RC1" or
   "release/pcre2-10.XX".
 
-  All releases should come from master. The final release isn't branched off
+  All releases should come from main. The final release isn't branched off
   from the RC branch; the RC branch is a "throwaway" release which can be pruned
   from the linear history of the trunk of PCRE2's tree.
 
@@ -341,9 +353,9 @@ new release.
 
 * Announce the release on the mailing list.
 
-* Bump the version number on master to the next release, plus -DEV.
+* Bump the version number on main to the next release, plus -DEV.
 
-* After issuing a final release, merge the release tag back to master with:
+* After issuing a final release, merge the release tag back to main with:
 
   ```
   git merge -s ours release/pcre2-10.XX
@@ -354,8 +366,65 @@ new release.
 
   We want users with forks of PCRE2 to be able to update from release to the
   next by simply doing a `git merge` in their fork. If the release tag is not
-  merged back to master, then users will see unnecessary Git conflicts when
+  merged back to main, then users will see unnecessary Git conflicts when
   trying to fast-forward from one release to the next.
+
+
+Managing backports to old releases
+==================================
+
+`SUPPORT-LIFECYCLE.md` describes the public backports. This section describes
+how to maintain them. Do not rebase or reset a published release branch; add
+further backport commits to it.
+
+Read the existing entry for each target release before changing it. An explicit
+"do not use" or "not recommending patches" instruction takes precedence: do not
+add a "Backports to apply" recommendation merely because a fix can be ported.
+
+First determine which releases contain the bug. Start with the newest affected
+release and continue backwards. Inspect the older code and run the regression
+case when the boundary is uncertain: a failed cherry-pick does not prove that a
+release is unaffected. Stop when the relevant feature or faulty code is absent,
+or when the older code already gives the correct result. Justify and verify the
+recorded 'versions affected' list in the `SUPPORT-LIFECYCLE.md` documentation.
+
+The release brances `release/pcre2-10.XX` will always be ahead of the release
+tags `pcre2-10.XX`. The additional commits represent each backported fix.
+
+Cherry-pick fixes in upstream commit order, using `-x` to keep a record of
+the origin of each commit.
+
+The filename in "Patches introduced" names a canonical flat dump of the source
+commit. Generate it on `main` with `git log -p`; do not adapt this file for an
+old release:
+
+```sh
+git log -p -1 COMMIT > patches/pcre2-10.YY-Fix-name.patch
+```
+
+For a single fix made from several commits, name each commit explicitly and
+write them to one file:
+
+```sh
+git log -p --no-walk=unsorted COMMIT1 COMMIT2 \
+  > patches/pcre2-10.YY-Fix-name.patch
+```
+
+Resolve conflicts by adapting the same change and its tests to the older file
+layout, then continue the cherry-pick. Do not apply patch files separately or
+recreate the change as an unrelated commit. If the fix is already present,
+verify it and do not add a duplicate.
+
+Build and test after every commit. Testing each step makes a bad conflict
+resolution easy to identify. Ideally, where a test is present, apply the
+hunks for the test first (without the fix); build and reproduce the failure;
+then apply the fix and build and verify the change.
+
+On `main`, ensure the backport is recorded in `SUPPORT-LIFECYCLE.md` under
+"Patches introduced" for the first release incorporating the fix, with a
+list of versions affected. In each one of those versions, it is to be listed
+under "Backports to apply". Also list each patch file in `Makefile.am` for
+tarball users, and `maint/manifest-tarball`.
 
 
 Updating version info for libtool

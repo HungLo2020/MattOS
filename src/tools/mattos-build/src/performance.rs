@@ -457,6 +457,7 @@ fn run_logged_command_mode(
     if let Some(status) = command_recorder::intercept(command)? {
         return Ok(status);
     }
+    crate::stage_memory::attach_command(command);
     let active = ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone());
     let Some(log_path) = active else {
         return command

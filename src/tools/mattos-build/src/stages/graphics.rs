@@ -1101,6 +1101,7 @@ fn build_nvidia_driver(repo_root: &Path) -> Result<()> {
     for link in ["build", "source"] {
         remove_path_if_exists(&module_root.join(link))?;
     }
+    sign_kernel_modules(repo_root, &kernel_output, &module_root)?;
     let mut module_files = Vec::new();
     collect_regular_files(&module_root, &mut module_files)?;
     let mut module_count = 0usize;

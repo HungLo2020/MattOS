@@ -46,7 +46,7 @@ For the full list of CMake build configuration variables see
 ### Build system generator selection
 
 You can override CMake's default by using `-G <generator-name>`. For example
-on Windows with multiple build systems if you have MinGW-w64 then you could use
+on Windows with multiple build systems if you have mingw-w64 then you could use
 `-G "MinGW Makefiles"`.
 [List of generator names](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html).
 
@@ -221,11 +221,13 @@ target_link_libraries(my_target PRIVATE CURL::libcurl)
 - `CURL_TARGET_WINDOWS_VERSION`:            Minimum target Windows version as hex string, e.g. `0x0a00` for Windows 10.
 - `CURL_WERROR`:                            Turn compiler warnings into errors. Default: `OFF`
 - `ENABLE_CURL_MANUAL`:                     Build the man page for curl and enable its `-M`/`--manual` option. Default: `ON`
-- `ENABLE_DEBUG`:                           Enable curl debug features (for developing curl itself). Default: `OFF`
+- `ENABLE_DEBUG`:                           Enable curl debug features (for developing curl). Default: `OFF`
+                                            This also requires Debug configuration enabled/selected at the same time,
+                                            via `CMAKE_BUILD_TYPE=Debug`, or `--config Debug` for multi-config generators.
 - `IMPORT_LIB_SUFFIX`:                      Import library suffix. Default: `_imp` for MSVC-like toolchains, otherwise empty.
 - `LIBCURL_OUTPUT_NAME`:                    Basename of the curl library. Default: `libcurl`
 - `PICKY_COMPILER`:                         Enable picky compiler options. Default: `ON`
-- `SHARE_LIB_OBJECT`:                       Build shared and static libcurl in a single pass (requires CMake 3.12 or newer). Default: `ON` for Windows
+- `SHARE_LIB_OBJECT`:                       Build shared and static libcurl in a single pass. Default: `ON` for Windows
 - `STATIC_LIB_SUFFIX`:                      Static library suffix. Default: (empty)
 
 ## Root CA options
@@ -385,7 +387,7 @@ Details via CMake
 - `ZLIB_INCLUDE_DIR`:                       Absolute path to zlib include directory.
 - `ZLIB_LIBRARY`:                           Absolute path to `zlib` library.
 - `ZLIB_ROOT`:                              Absolute path to the installation root of zlib.
-- `ZLIB_USE_STATIC_LIBS`:                   Look for static `zlib` library (requires CMake v3.24).
+- `ZLIB_USE_STATIC_LIBS`:                   Look for static `zlib` library (requires CMake 3.24+).
 - `<PackageName>_DIR`:                      Absolute path to `<PackageName>` CMake Config directory where `*.cmake` files reside.
                                             Used when `CURL_USE_CMAKECONFIG` is enabled.
                                             `<PackageName>` may be:
@@ -456,6 +458,7 @@ Details via CMake
 - `NGTCP2_CRYPTO_WOLFSSL_LIBRARY`:          Absolute path to `ngtcp2_crypto_wolfssl` library.
 - `NGTCP2_USE_STATIC_LIBS`:                 Configure for static ngtcp2 libraries. (experimental)
 - `NETTLE_INCLUDE_DIR`:                     Absolute path to nettle include directory.
+- `NETTLE_HOGWEED_LIBRARY`:                 Absolute path to `hogweed` library.
 - `NETTLE_LIBRARY`:                         Absolute path to `nettle` library.
 - `PTHREAD_LIBRARY`:                        Absolute path to `pthread` library. (for Rustls)
 - `QUICHE_INCLUDE_DIR`:                     Absolute path to quiche include directory.
@@ -587,7 +590,7 @@ We recommend using CMake to build curl with MSVC.
 The project build files reside in project/Windows/VC\* for VS2010, VS2012 and
 VS2013.
 
-These CMake Visual Studio generators require CMake v3.24 or older. You can
+These CMake Visual Studio generators require CMake 3.24 or older. You can
 download them from <https://cmake.org/files/v3.24/>.
 
 You can also use `-G "NMake Makefiles"`, which is supported by all CMake

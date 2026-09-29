@@ -1290,7 +1290,7 @@ pub(super) fn stage_iproute2(repo_root: &Path, staging: &Path) -> Result<()> {
 pub(super) fn stage_linux_modules(repo_root: &Path, staging: &Path) -> Result<()> {
     let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?;
     let release = release.trim();
-    if release != "7.2.0-rc5-mattos" {
+    if release != MATTOS_KERNEL_RELEASE {
         bail!("kernel module package name does not match built release {release}");
     }
     let source = repo_root

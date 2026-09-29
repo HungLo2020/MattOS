@@ -1584,10 +1584,10 @@ pub(super) fn stage_nvidia_package(repo_root: &Path, staging: &Path, package: &s
         Ok(())
     };
     match package {
-        "linux-modules-nvidia-595-open-7.2.0-rc5-mattos" => {
+        NVIDIA_OPEN_MODULES_PACKAGE => {
             copy_tree_preserving(
-                &install.join("usr/lib/modules/7.2.0-rc5-mattos/updates/nvidia"),
-                &staging.join("usr/lib/modules/7.2.0-rc5-mattos/updates/nvidia"),
+                &install.join(concat!("usr/lib/modules/", mattos_kernel_release!(), "/updates/nvidia")),
+                &staging.join(concat!("usr/lib/modules/", mattos_kernel_release!(), "/updates/nvidia")),
             )?;
             copy_preserving(
                 &repo_root.join("src/system/graphics/nvidia-driver/nvidia-modprobe.conf"),
@@ -1607,12 +1607,12 @@ pub(super) fn stage_nvidia_package(repo_root: &Path, staging: &Path, package: &s
             )?;
             fs::write(
                 staging.join("DEBIAN/postinst"),
-                "#!/bin/sh\nset -e\n# Offline image assembly runs depmod after all module packages are unpacked.\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v depmod >/dev/null 2>&1; then depmod 7.2.0-rc5-mattos; fi\n",
+                concat!("#!/bin/sh\nset -e\n# Offline image assembly runs depmod after all module packages are unpacked.\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v depmod >/dev/null 2>&1; then depmod ", mattos_kernel_release!(), "; fi\n"),
             )?;
             set_mode(staging.join("DEBIAN/postinst"), 0o755)?;
             fs::write(
                 staging.join("DEBIAN/postrm"),
-                "#!/bin/sh\nset -e\n# Do not modify the build host while assembling an offline root.\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v depmod >/dev/null 2>&1; then depmod 7.2.0-rc5-mattos; fi\n",
+                concat!("#!/bin/sh\nset -e\n# Do not modify the build host while assembling an offline root.\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v depmod >/dev/null 2>&1; then depmod ", mattos_kernel_release!(), "; fi\n"),
             )?;
             set_mode(staging.join("DEBIAN/postrm"), 0o755)?;
         }

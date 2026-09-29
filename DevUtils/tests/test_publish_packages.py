@@ -70,5 +70,119 @@ class PublishPackagesTests(unittest.TestCase):
         )
 
 
+def _package(name: str, version: str, sha: str = "a" * 64, dependencies: tuple[str, ...] = ()):
+    return PublishPackages.InventoryPackage(
+        name=name,
+        version=version,
+        architecture="amd64",
+        sha256=sha,
+        artifact=Path(f"/repo/out/packages/amd64/{name}_{version}_amd64.deb"),
+        dependencies=dependencies,
+    )
+
+
+class PublicationGuardTests(unittest.TestCase):
+    INDEX = (
+        "Package: libc6\nVersion: 2.43-1mattos1\nArchitecture: amd64\nSHA256: " + "a" * 64 + "\n"
+        "Description: C library\n continued description line: not a field\n\n"
+        "Package: bash\nVersion: 5.3-1mattos1\nArchitecture: amd64\nSHA256: " + "b" * 64 + "\n\n"
+        "Package: linux-libc-dev\nVersion: 0~git.f17f39c917cd-1mattos1\nArchitecture: amd64\nSHA256: "
+        + "c" * 64 + "\n"
+    )
+
+    def test_index_parsing_keeps_versions_and_hashes(self) -> None:
+        index = PublishPackages.parse_packages_index(self.INDEX)
+        self.assertEqual(
+            index[("libc6", "amd64")], [PublishPackages.PublishedPackage("2.43-1mattos1", "a" * 64)]
+        )
+        self.assertEqual(len(index), 3)
+
+    def test_plan_skips_identical_replaces_rebuilt_and_refuses_older(self) -> None:
+        published = PublishPackages.parse_packages_index(self.INDEX)
+        plan = PublishPackages.plan_publication(
+            [
+                _package("libc6", "2.43-1mattos1"),  # identical: skipped
+                _package("bash", "5.3-1mattos1", sha="d" * 64),  # rebuilt: replaced
+                _package("linux-libc-dev", "0~git.8ba098e6b6ff-1mattos1"),  # sorts lower
+                _package("zlib1g", "1.3.2-1mattos1"),  # not published yet
+                _package("bash-doc", "5.4-1mattos1"),  # not published yet
+            ],
+            published,
+        )
+        self.assertEqual([p.name for p in plan.unchanged], ["libc6"])
+        self.assertEqual([p.name for p in plan.rebuilt], ["bash"])
+        self.assertEqual(
+            [(p.name, newest) for p, newest in plan.older_than_published],
+            [("linux-libc-dev", "0~git.f17f39c917cd-1mattos1")],
+        )
+        self.assertEqual([p.name for p in plan.new], ["zlib1g", "bash-doc"])
+        self.assertEqual([p.name for p in plan.upload], ["zlib1g", "bash-doc", "bash"])
+
+    def test_a_newer_version_is_uploaded(self) -> None:
+        published = PublishPackages.parse_packages_index(self.INDEX)
+        plan = PublishPackages.plan_publication([_package("bash", "5.4-1mattos1", sha="d" * 64)], published)
+        self.assertEqual([p.name for p in plan.new], ["bash"])
+        self.assertEqual(plan.rebuilt, [])
+
+    def test_a_snapshot_version_upgrades_the_retired_hash_form(self) -> None:
+        published = PublishPackages.parse_packages_index(self.INDEX)
+        plan = PublishPackages.plan_publication(
+            [_package("linux-libc-dev", "7.2.0~rc5+git20260801.101500.8ba098e6b6ff-1mattos1")], published
+        )
+        self.assertEqual(plan.older_than_published, [])
+        self.assertEqual(len(plan.upload), 1)
+
+    def test_main_uploads_only_new_and_rebuilt_packages(self) -> None:
+        packages = [
+            _package("libc6", "2.43-1mattos1"),
+            _package("bash", "5.3-1mattos1", sha="d" * 64),
+            _package("zlib1g", "1.3.2-1mattos1"),
+        ]
+        with (
+            mock.patch.object(PublishPackages, "parse_args", return_value=mock.Mock(clean=False, no_build=True, dry_run=True)),
+            mock.patch.object(PublishPackages, "find_repo_root", return_value=Path("/repo")),
+            mock.patch.object(PublishPackages, "discover_packages", return_value=[]),
+            mock.patch.object(PublishPackages, "inventory_packages", return_value=packages),
+            mock.patch.object(PublishPackages, "published_index_url", return_value="https://x/Packages.gz"),
+            mock.patch.object(PublishPackages, "fetch_published_index", return_value=self.INDEX),
+            mock.patch.object(PublishPackages, "upload_packages") as upload,
+        ):
+            self.assertEqual(PublishPackages.main(), 0)
+        uploaded = upload.call_args.args[1]
+        self.assertEqual(sorted(path.name for path in uploaded), ["bash_5.3-1mattos1_amd64.deb", "zlib1g_1.3.2-1mattos1_amd64.deb"])
+        self.assertTrue(upload.call_args.kwargs["dry_run"])
+
+    def test_main_refuses_older_versions_without_uploading(self) -> None:
+        with (
+            mock.patch.object(PublishPackages, "parse_args", return_value=mock.Mock(clean=False, no_build=True, dry_run=False)),
+            mock.patch.object(PublishPackages, "find_repo_root", return_value=Path("/repo")),
+            mock.patch.object(PublishPackages, "discover_packages", return_value=[]),
+            mock.patch.object(
+                PublishPackages, "inventory_packages", return_value=[_package("linux-libc-dev", "0~git.0-1mattos1")]
+            ),
+            mock.patch.object(PublishPackages, "published_index_url", return_value="https://x/Packages.gz"),
+            mock.patch.object(PublishPackages, "fetch_published_index", return_value=self.INDEX),
+            mock.patch.object(PublishPackages, "upload_packages") as upload,
+        ):
+            with self.assertRaises(RepoError):
+                PublishPackages.main()
+        upload.assert_not_called()
+
+    def test_index_url_comes_from_the_installed_hosted_source(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sources = root / PublishPackages.REPOSITORY_SOURCES_RELATIVE
+            sources.parent.mkdir(parents=True)
+            sources.write_text(
+                "Types: deb\nURIs: https://packages.example.com/\nSuites: trixie\n"
+                "Components: main\nArchitectures: amd64\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                PublishPackages.published_index_url(root),
+                "https://packages.example.com/dists/trixie/main/binary-amd64/Packages.gz",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

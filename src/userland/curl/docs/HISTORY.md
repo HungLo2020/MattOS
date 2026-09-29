@@ -85,6 +85,8 @@ May: first Debian package.
 August: `ldap://` and `file://` support added. The curl website gets 1300
 visits weekly. Moved site to curl.haxx.nu.
 
+September: started using CVS for source code version control.
+
 September: Released curl 6.0. 15000 lines of code.
 
 December 28: added the project on Sourceforge and started using its services
@@ -314,6 +316,8 @@ August: support for HTTP/2 server push
 September: started "everything curl". A separate stand-alone book documenting
 curl and related info in perhaps a more tutorial style rather than a
 reference,
+
+September: initial support for the Public Suffix List for cookies.
 
 December: Public Suffix List
 

@@ -43,6 +43,7 @@ NATIVE_LANG_SUPPORT="y"
 SMALL="n"
 CLMUL="y"
 SANDBOX="y"
+DOXYGEN="y"
 SRC_DIR="$ABS_DIR/../"
 DEST_DIR="$SRC_DIR/../xz_build"
 PHASE="all"
@@ -91,6 +92,7 @@ while getopts a:b:c:d:l:m:n:s:p:f:w:h opt; do
 		small) SMALL="y";;
 		clmul) CLMUL="n";;
 		sandbox) SANDBOX="n";;
+		doxygen) DOXYGEN="n";;
 		*) echo "Invalid disable value: $disable_arg"; exit 1 ;;
 		esac
 	done
@@ -112,6 +114,10 @@ while getopts a:b:c:d:l:m:n:s:p:f:w:h opt; do
 		export CFLAGS
 	;;
 	w) WRAPPER="$OPTARG"
+	;;
+	*)
+		echo "Unsupported option: $opt"
+		exit 1
 	;;
 	esac
 done
@@ -207,7 +213,8 @@ then
 		add_extra_option "$NATIVE_LANG_SUPPORT" "" "--disable-nls"
 		add_extra_option "$SMALL" "--enable-small" ""
 		add_extra_option "$CLMUL" "" "--disable-clmul-crc"
-		add_extra_option "$SANDBOX" "" "--enable-sandbox=no"
+		add_extra_option "$SANDBOX" "" "--disable-sandbox"
+		add_extra_option "$DOXYGEN" "--enable-doxygen" ""
 
 		# Workaround a bug in too old config.guess. Version with
 		# timestamp='2022-05-08' would be needed but the autotools-dev
@@ -241,7 +248,9 @@ then
 		# CMake disables the shared library by default.
 		add_extra_option "$SHARED" "-DBUILD_SHARED_LIBS=ON" ""
 
+		add_extra_option "$NATIVE_LANG_SUPPORT" "" "-DXZ_NLS=OFF"
 		add_extra_option "$SMALL" "-DXZ_SMALL=ON" ""
+		add_extra_option "$DOXYGEN" "-DXZ_DOXYGEN=ON" ""
 
 		# Remove old cache file to clear previous settings.
 		rm -f "CMakeCache.txt"

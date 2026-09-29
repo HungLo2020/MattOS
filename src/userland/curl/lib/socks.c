@@ -38,9 +38,9 @@
 #include "curl_trc.h"
 #include "select.h"
 #include "cfilters.h"
-#include "cf-dns.h"
 #include "connect.h"
 #include "socks.h"
+#include "vdns/cf-dns.h"
 #include "curlx/inet_pton.h"
 
 /* for the (SOCKS) connect state machine */
@@ -1196,7 +1196,7 @@ static CURLcode socks_proxy_cf_connect(struct Curl_cfilter *cf,
 
   if(pxresult) {
     result = CURLE_PROXY;
-    data->info.pxcode = pxresult;
+    data->info.pxcode = (uint8_t)pxresult;
     goto out;
   }
   else if(ctx->state != SOCKS_ST_SUCCESS)

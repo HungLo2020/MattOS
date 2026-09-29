@@ -25,7 +25,6 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             stage_gcc_runtime_library(repo_root, &staging, "libstdc++.so.6", "libstdc++6")?
         }
         "linux-libc-dev" => stage_linux_libc_dev(repo_root, &staging)?,
-        "linux-modules-7.2.0-rc5-mattos" => stage_linux_modules(repo_root, &staging)?,
         "libc6-dev" => stage_glibc_development(repo_root, &staging)?,
         "mattos-libgcc-dev" => stage_gcc_development(repo_root, &staging, false)?,
         "mattos-libstdc++-dev" => stage_gcc_development(repo_root, &staging, true)?,
@@ -762,8 +761,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "libvulkan-dev" => stage_vulkan_development(repo_root, &staging)?,
         "mesa-vulkan-drivers" => stage_mesa_vulkan_runtime(repo_root, &staging)?,
         "vulkan-tools" => stage_vulkan_tools(repo_root, &staging)?,
-        "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
-        | "nvidia-firmware-595"
+        "nvidia-firmware-595"
         | "libnvidia-gl-595"
         | "libnvidia-compute-595"
         | "libnvidia-encode-595"
@@ -994,7 +992,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             | "libgcc-s1"
             | "libgomp1"
             | "libstdc++6"
-            | "linux-modules-nvidia-595-open-7.2.0-rc5-mattos"
+            | NVIDIA_OPEN_MODULES_PACKAGE
             | "nvidia-firmware-595"
             | "libnvidia-gl-595"
             | "libnvidia-compute-595"
@@ -1556,6 +1554,7 @@ pub(crate) fn table_packages() -> Vec<&'static str> {
         .map(|row| row.0)
         .chain(LIBRARY_FAMILIES.iter().map(|row| row.0))
         .chain(RUNTIME_PATH_PACKAGES.iter().map(|row| row.0))
+        .chain(KERNEL_RELEASE_PACKAGES.iter().map(|row| row.0))
         .collect()
 }
 
@@ -1565,8 +1564,20 @@ pub(crate) fn imported_soname_library_licenses() -> Vec<&'static str> {
     IMPORTED_SONAME_LIBRARIES.iter().map(|row| row.3).collect()
 }
 
+/// Packages named after the kernel release (`mattos_kernel_release!`): their
+/// names change with every kernel update, so no dispatcher arm names them.
+const KERNEL_RELEASE_PACKAGES: &[(&str, fn(&Path, &Path) -> Result<()>)] = &[
+    (LINUX_MODULES_PACKAGE, stage_linux_modules),
+    (NVIDIA_OPEN_MODULES_PACKAGE, |repo_root, staging| {
+        stage_nvidia_package(repo_root, staging, NVIDIA_OPEN_MODULES_PACKAGE)
+    }),
+];
+
 /// Stages a package described by one of the tables above.
 fn stage_table_package(repo_root: &Path, staging: &Path, package: &str) -> Result<()> {
+    if let Some((_, stage)) = KERNEL_RELEASE_PACKAGES.iter().find(|row| row.0 == package) {
+        return stage(repo_root, staging);
+    }
     if let Some((_, component, soname, license)) = IMPORTED_SONAME_LIBRARIES
         .iter()
         .find(|row| row.0 == package)

@@ -77,6 +77,7 @@ def main():
     known_files = set(name for name in whence_list if not name.endswith("/")) | set(
         [
             "AGENTS.md",
+            "LICENSE-CRITERIA.md",
             ".codespell.cfg",
             ".editorconfig",
             ".gitignore",
@@ -90,6 +91,8 @@ def main():
             "build_packages.py",
             "check_whence.py",
             "contrib/process_linux_firmware.py",
+            "contrib/get_amdgpu_fw_version.py",
+            "contrib/amdgpu_fw_version_diff.py",
             "contrib/templates/debian.changelog",
             "contrib/templates/debian.control",
             "contrib/templates/debian.copyright",
@@ -107,6 +110,8 @@ def main():
             "carl9170fw/autogen.sh",
             "check_whence.py",
             "contrib/process_linux_firmware.py",
+            "contrib/get_amdgpu_fw_version.py",
+            "contrib/amdgpu_fw_version_diff.py",
             "copy-firmware.sh",
             "dedup-firmware.sh",
         ]

@@ -1,6 +1,6 @@
 schema_version = 1
 component = "linux"
-upstream_commit = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
+upstream_commit = "9a66fdc0d7fd55f54235524a73435af99051e46f"
 scope = "arch"
 retain_arch_root_files = true
 retained_architectures = ["x86", "arm64", "riscv", "um"]

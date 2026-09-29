@@ -301,6 +301,21 @@ write_tally(pam_handle_t *pamh, struct options *opts, struct tally_data *tallies
 
 	if (*fd == -1) {
 		*fd = open_tally(dir, opts->user, opts->uid, 1);
+		if (*fd != -1) {
+			/*
+			 * Re-read the tally now that we hold the lock:
+			 * a concurrent process may have written records
+			 * between our earlier failed open and this one.
+			 */
+			free(tallies->records);
+			memset(tallies, 0, sizeof(*tallies));
+			if (read_tally(*fd, tallies) != 0) {
+				pam_syslog(pamh, LOG_ERR,
+					   "Error reading the tally file for %s: %m",
+					   opts->user);
+				return PAM_SYSTEM_ERR;
+			}
+		}
 	}
 	if (*fd == -1) {
 		if (errno == EACCES) {
@@ -489,8 +504,16 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		switch (opts.action) {
 			case FAILLOCK_ACTION_PREAUTH:
 				rv = check_tally(pamh, &opts, &tallies, &fd);
-				if (rv == PAM_AUTH_ERR && !(opts.flags & FAILLOCK_FLAG_SILENT)) {
-					faillock_message(pamh, &opts);
+				if (rv == PAM_AUTH_ERR) {
+					if (!(opts.flags & FAILLOCK_FLAG_NO_LOG_INFO)) {
+						pam_syslog(pamh, LOG_INFO,
+							   "User %s is temporarily locked out due to"
+							   " %u consecutive failed login attempts",
+							   opts.user, (unsigned int) opts.failures);
+					}
+					if (!(opts.flags & FAILLOCK_FLAG_SILENT)) {
+						faillock_message(pamh, &opts);
+					}
 				}
 				break;
 

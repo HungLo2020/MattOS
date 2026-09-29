@@ -53,21 +53,12 @@ fn import_component(repo_root: &Path, comp: &ComponentDef, update: bool) -> Resu
 
     if update {
         if let Some(prior_state) = read_sync_state(repo_root, &comp.name)? {
-            // `branch` is descriptive selection provenance, while the pinned
-            // immutable revision is the actual import identity.  A component
-            // commonly moves from one release tag to the next (for example
-            // KF 6.5 to KF 6.21) in the same upstream repository.  Rejecting
-            // that transition made the supported three-way update path
-            // unusable and encouraged manual state edits.  Repository
-            // identity remains a hard boundary; the new branch and revision
-            // are recorded atomically in the updated state on success.
-            if prior_state.repo != comp.repo {
-                bail!(
-                    "state mismatch for {} (repository changed); inspect upstream/state/{}.toml",
-                    comp.name,
-                    comp.name
-                )
-            }
+            // `branch` and `repo` describe where the pinned immutable
+            // revision comes from.  An update verifies the tree against the
+            // digest recorded at its last import and replaces it, so it needs
+            // no history shared with the previous pin: a component may move
+            // to the next release tag or to another repository (such as the
+            // Linux stable tree).  The new repository is recorded in state.
             update_component(repo_root, comp, &destination, &prior_state)
         } else if is_scaffold_directory(&destination)? {
             println!(
@@ -127,25 +118,15 @@ fn initial_import_component(
 
     let tmp = prepare_tmp_clone(repo_root, comp)?;
     let commit = run_cmd_capture(&tmp, "git", &["rev-parse", "HEAD"])?;
-    let (source_selection, source_selection_policy, source_selection_policy_sha256) =
-        load_source_selection_policy(repo_root, comp)?;
-    let (upstream_tree, imported_tree_digest) =
-        imported_tree_identity(&tmp, source_selection.as_ref())?;
-    let (
-        intentional_omission_policy,
-        gitlink_policy,
-        patch_manifest,
-        patch_manifest_sha256,
-        lfs_policy_name,
-        lfs_policy_sha256,
-    ) = component_provenance_policy(repo_root, &comp.name)?;
-    let lfs_policy =
-        load_lfs_hydration_policy(repo_root, comp, &lfs_policy_name, &lfs_policy_sha256)?;
+    let committed_at = upstream_commit_time(&tmp)?;
+    let policies = ComponentPolicies::load(repo_root, comp)?;
+    let projection = policies.projection();
+    let (upstream_tree, imported_tree_digest) = imported_tree_identity(&tmp, projection)?;
 
-    clear_directory_contents(destination)?;
-    materialize_git_tree_exact(&tmp, "HEAD", destination, source_selection.as_ref())?;
-    apply_source_selection(destination, source_selection.as_ref())?;
-    hydrate_lfs_objects(repo_root, comp, destination, lfs_policy.as_ref())?;
+    clear_directory_contents_except(destination, &nested_component_paths(repo_root, comp)?)?;
+    materialize_git_tree_exact(&tmp, "HEAD", destination, projection)?;
+    apply_source_selection(destination, policies.source_selection.as_ref())?;
+    hydrate_lfs_objects(repo_root, comp, destination, policies.lfs.as_ref())?;
 
     let state = SyncState {
         schema_version: 2,
@@ -153,25 +134,7 @@ fn initial_import_component(
         repo: comp.repo.clone(),
         branch: comp.branch.clone(),
         imported_commit: commit.trim().to_owned(),
-        imported_at_utc: Utc::now().to_rfc3339(),
-        sync_method: comp.sync.clone(),
-        destination_path: comp.path.clone(),
-        upstream_tree,
-        imported_tree_digest_algorithm: if source_selection.is_some() {
-            SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM
-        } else {
-            IMPORTED_TREE_DIGEST_ALGORITHM
-        }
-        .to_string(),
-        imported_tree_digest,
-        source_selection_policy,
-        source_selection_policy_sha256,
-        intentional_omission_policy,
-        gitlink_policy,
-        patch_manifest,
-        patch_manifest_sha256,
-        lfs_policy: lfs_policy_name,
-        lfs_policy_sha256,
+        ..policies.state(comp, upstream_tree, imported_tree_digest, committed_at)
     };
     write_sync_state(repo_root, &comp.name, &state)?;
 
@@ -210,220 +173,436 @@ fn assert_initial_destination_safe(destination: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Updates an imported component to its pinned revision.
+///
+/// Vendored trees are never edited in place (MattOS changes are patches
+/// applied to build mirrors), so an update needs no upstream history: the
+/// tree is verified against the digest recorded at its last import and then
+/// replaced by the new commit's projected tree.  A tree that no longer
+/// matches its import is refused with the modified paths listed, never
+/// merged, so no conflict markers can reach an authoritative source tree.
 fn update_component(
     repo_root: &Path,
     comp: &ComponentDef,
     destination: &Path,
     prior_state: &SyncState,
 ) -> Result<()> {
+    let nested = nested_component_paths(repo_root, comp)?;
+    let policies = ComponentPolicies::load(repo_root, comp)?;
+    let projection = policies.projection();
+    // Resolve the new pin first: its identity also validates the policies
+    // against the new upstream tree, so a stale policy reports itself.
     let tmp_upstream = prepare_tmp_clone(repo_root, comp)?;
-    // The three-way sync below needs the prior imported commit as well as the
-    // new branch head. Hydrate a genuinely shallow clone before constructing
-    // the merge. Local fixture repositories ignore --depth during clone, so
-    // asking Git to unshallow them is an error rather than a harmless no-op.
-    let shallow = run_cmd_capture(
-        &tmp_upstream,
-        "git",
-        &["rev-parse", "--is-shallow-repository"],
+    let new_commit = run_cmd_capture(&tmp_upstream, "git", &["rev-parse", "HEAD"])?
+        .trim()
+        .to_owned();
+    let committed_at = upstream_commit_time(&tmp_upstream)?;
+    let (upstream_tree, imported_tree_digest) = imported_tree_identity(&tmp_upstream, projection)?;
+    ensure_unmodified_since_import(
+        repo_root,
+        comp,
+        destination,
+        prior_state,
+        projection,
+        policies.lfs.as_ref(),
+        &nested,
     )?;
-    if shallow.trim() == "true" {
-        run_cmd(&tmp_upstream, "git", &["fetch", "--unshallow", "origin"])?;
+    if prior_state.repo != comp.repo {
+        println!(
+            "{}: upstream repository changes from {} to {}",
+            comp.name, prior_state.repo, comp.repo
+        );
     }
-    let new_commit = run_cmd_capture(&tmp_upstream, "git", &["rev-parse", "HEAD"])?;
-    let (source_selection, source_selection_policy, source_selection_policy_sha256) =
-        load_source_selection_policy(repo_root, comp)?;
-    let (upstream_tree, imported_tree_digest) =
-        imported_tree_identity(&tmp_upstream, source_selection.as_ref())?;
-    let (
-        intentional_omission_policy,
-        gitlink_policy,
-        patch_manifest,
-        patch_manifest_sha256,
-        lfs_policy_name,
-        lfs_policy_sha256,
-    ) = component_provenance_policy(repo_root, &comp.name)?;
-    let lfs_policy =
-        load_lfs_hydration_policy(repo_root, comp, &lfs_policy_name, &lfs_policy_sha256)?;
 
-    let old_commit = prior_state.imported_commit.trim();
-    if new_commit.trim() == old_commit {
-        clear_directory_contents(destination)?;
-        materialize_git_tree_exact(
-            &tmp_upstream,
-            "HEAD",
-            destination,
-            source_selection.as_ref(),
-        )?;
-        apply_source_selection(destination, source_selection.as_ref())?;
-        hydrate_lfs_objects(repo_root, comp, destination, lfs_policy.as_ref())?;
-        let state = SyncState {
+    clear_directory_contents_except(destination, &nested)?;
+    materialize_git_tree_exact(&tmp_upstream, "HEAD", destination, projection)?;
+    apply_source_selection(destination, policies.source_selection.as_ref())?;
+    hydrate_lfs_objects(repo_root, comp, destination, policies.lfs.as_ref())?;
+    fs::remove_dir_all(&tmp_upstream)
+        .with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
+
+    let unchanged = new_commit == prior_state.imported_commit.trim();
+    let mut state = SyncState {
+        schema_version: 2,
+        component: comp.name.clone(),
+        repo: comp.repo.clone(),
+        branch: comp.branch.clone(),
+        imported_commit: new_commit,
+        ..policies.state(comp, upstream_tree, imported_tree_digest, committed_at)
+    };
+    // Re-synchronizing an unchanged import is not a new import: keep its
+    // timestamp so the state file does not churn.
+    if unchanged && state.imported_tree_digest == prior_state.imported_tree_digest {
+        state.imported_at_utc.clone_from(&prior_state.imported_at_utc);
+    }
+    write_sync_state(repo_root, &comp.name, &state)?;
+    if unchanged {
+        println!("Synchronized {} at unchanged commit {}", comp.name, state.imported_commit);
+    } else {
+        println!("Updated {} to commit {}", comp.name, state.imported_commit);
+    }
+    Ok(())
+}
+
+/// A component's source-selection, intentional-omission, gitlink, patch and
+/// LFS policies, as recorded in its sync state.
+struct ComponentPolicies {
+    source_selection: Option<SourceSelectionPolicy>,
+    source_selection_policy: String,
+    source_selection_policy_sha256: String,
+    omission: Option<OmissionPolicy>,
+    intentional_omission_policy: String,
+    gitlink_policy: String,
+    patch_manifest: String,
+    patch_manifest_sha256: String,
+    lfs: Option<LfsHydrationPolicy>,
+    lfs_policy: String,
+    lfs_policy_sha256: String,
+}
+
+impl ComponentPolicies {
+    fn load(repo_root: &Path, comp: &ComponentDef) -> Result<Self> {
+        let (source_selection, source_selection_policy, source_selection_policy_sha256) =
+            load_source_selection_policy(repo_root, comp)?;
+        let (
+            intentional_omission_policy,
+            gitlink_policy,
+            patch_manifest,
+            patch_manifest_sha256,
+            lfs_policy,
+            lfs_policy_sha256,
+        ) = component_provenance_policy(repo_root, &comp.name)?;
+        let omission = load_intentional_omission_policy(repo_root, comp, &intentional_omission_policy)?;
+        let lfs = load_lfs_hydration_policy(repo_root, comp, &lfs_policy, &lfs_policy_sha256)?;
+        Ok(Self {
+            source_selection,
+            source_selection_policy,
+            source_selection_policy_sha256,
+            omission,
+            intentional_omission_policy,
+            gitlink_policy,
+            patch_manifest,
+            patch_manifest_sha256,
+            lfs,
+            lfs_policy,
+            lfs_policy_sha256,
+        })
+    }
+
+    fn projection(&self) -> TreeProjection<'_> {
+        TreeProjection {
+            selection: self.source_selection.as_ref(),
+            omission: self.omission.as_ref(),
+        }
+    }
+
+    /// Every state field except the component identity and commit.
+    fn state(
+        &self,
+        comp: &ComponentDef,
+        upstream_tree: String,
+        imported_tree_digest: String,
+        upstream_committed_at_utc: String,
+    ) -> SyncState {
+        SyncState {
             schema_version: 2,
             component: comp.name.clone(),
             repo: comp.repo.clone(),
             branch: comp.branch.clone(),
-            imported_commit: new_commit.trim().to_owned(),
+            imported_commit: String::new(),
             imported_at_utc: Utc::now().to_rfc3339(),
             sync_method: comp.sync.clone(),
             destination_path: comp.path.clone(),
             upstream_tree,
-            imported_tree_digest_algorithm: if source_selection.is_some() {
+            imported_tree_digest_algorithm: if self.projection().is_selected() {
                 SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM
             } else {
                 IMPORTED_TREE_DIGEST_ALGORITHM
             }
             .to_string(),
             imported_tree_digest,
-            source_selection_policy,
-            source_selection_policy_sha256,
-            intentional_omission_policy,
-            gitlink_policy,
-            patch_manifest,
-            patch_manifest_sha256,
-            lfs_policy: lfs_policy_name,
-            lfs_policy_sha256,
+            source_selection_policy: self.source_selection_policy.clone(),
+            source_selection_policy_sha256: self.source_selection_policy_sha256.clone(),
+            intentional_omission_policy: self.intentional_omission_policy.clone(),
+            gitlink_policy: self.gitlink_policy.clone(),
+            patch_manifest: self.patch_manifest.clone(),
+            patch_manifest_sha256: self.patch_manifest_sha256.clone(),
+            lfs_policy: self.lfs_policy.clone(),
+            lfs_policy_sha256: self.lfs_policy_sha256.clone(),
+            upstream_committed_at_utc: Some(upstream_committed_at_utc),
+        }
+    }
+}
+
+/// Committer time of `HEAD` in an upstream clone, as UTC RFC 3339.  A shallow
+/// clone still has the commit object, so no history is needed.
+fn upstream_commit_time(clone: &Path) -> Result<String> {
+    let seconds = run_cmd_capture(clone, "git", &["show", "-s", "--format=%ct", "HEAD"])?;
+    let seconds: i64 = seconds
+        .trim()
+        .parse()
+        .with_context(|| format!("git reported an invalid commit time {seconds:?}"))?;
+    let time = chrono::DateTime::from_timestamp(seconds, 0)
+        .ok_or_else(|| anyhow!("commit time {seconds} is out of range"))?;
+    Ok(time.format("%Y-%m-%dT%H:%M:%SZ").to_string())
+}
+
+/// How an upstream tree maps onto a component's imported tree.
+#[derive(Clone, Copy)]
+struct TreeProjection<'a> {
+    selection: Option<&'a SourceSelectionPolicy>,
+    omission: Option<&'a OmissionPolicy>,
+}
+
+impl TreeProjection<'_> {
+    fn is_selected(&self) -> bool {
+        self.selection.is_some() || self.omission.is_some()
+    }
+
+    /// The imported path of `upstream_path`, or `None` when it is not imported.
+    fn map(&self, upstream_path: &str) -> Option<String> {
+        let path = match self.omission {
+            Some(policy) => policy.map(upstream_path)?,
+            None => upstream_path.to_string(),
         };
-        write_sync_state(repo_root, &comp.name, &state)?;
-        fs::remove_dir_all(&tmp_upstream)
-            .with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
-        println!(
-            "Synchronized {} at unchanged commit {}",
-            comp.name, state.imported_commit
-        );
+        self.selection.is_none_or(|policy| policy.retains(&path)).then_some(path)
+    }
+
+    /// Whether a path in the imported tree lies where this projection imports
+    /// nothing (a stale leftover of an earlier, wider projection).
+    fn excludes_imported_path(&self, path: &str) -> bool {
+        let upstream = match self.omission.and_then(|policy| policy.upstream_subtree.as_deref()) {
+            Some(subtree) => format!("{}/{path}", subtree.trim_end_matches('/')),
+            None => path.to_string(),
+        };
+        self.map(&upstream).is_none()
+    }
+}
+
+/// Destinations of other components nested inside `comp` (for example a
+/// gitlink replacement imported inside its parent).  They belong to their
+/// own components and are never cleared, verified or replaced here.
+fn nested_component_paths(repo_root: &Path, comp: &ComponentDef) -> Result<Vec<PathBuf>> {
+    let Ok(sources) = read_sources(repo_root) else {
+        return Ok(Vec::new());
+    };
+    let prefix = format!("{}/", comp.path.trim_end_matches('/'));
+    Ok(sources
+        .component
+        .iter()
+        .filter(|other| other.name != comp.name && other.path.starts_with(&prefix))
+        .map(|other| PathBuf::from(&other.path[prefix.len()..]))
+        .collect())
+}
+
+/// Git's blob identity of a file's bytes (or a symlink's target).
+fn git_blob_id(payload: &[u8]) -> String {
+    use sha1::{Digest as _, Sha1};
+    let mut hasher = Sha1::new();
+    hasher.update(format!("blob {}\0", payload.len()).as_bytes());
+    hasher.update(payload);
+    format!("{:x}", hasher.finalize())
+}
+
+/// `git ls-tree` records of the files under `directory` (relative paths,
+/// sorted as Git sorts them), skipping `.git` and the `skipped` subtrees.
+fn working_tree_records(directory: &Path, skipped: &[PathBuf]) -> Result<BTreeMap<String, (String, String)>> {
+    let mut records = BTreeMap::new();
+    let mut pending = vec![PathBuf::new()];
+    while let Some(relative) = pending.pop() {
+        for entry in fs::read_dir(directory.join(&relative))? {
+            let entry = entry?;
+            let child = relative.join(entry.file_name());
+            if entry.file_name() == ".git" || skipped.contains(&child) {
+                continue;
+            }
+            let path = directory.join(&child);
+            let metadata = fs::symlink_metadata(&path)?;
+            let name = child.to_string_lossy().into_owned();
+            if metadata.file_type().is_symlink() {
+                use std::os::unix::ffi::OsStrExt;
+                let target = fs::read_link(&path)?;
+                records.insert(name, ("120000".to_string(), git_blob_id(target.as_os_str().as_bytes())));
+            } else if metadata.is_dir() {
+                pending.push(child);
+            } else {
+                use std::os::unix::fs::PermissionsExt;
+                let mode = if metadata.permissions().mode() & 0o100 != 0 { "100755" } else { "100644" };
+                records.insert(name, (mode.to_string(), git_blob_id(&fs::read(&path)?)));
+            }
+        }
+    }
+    Ok(records)
+}
+
+fn records_digest<'a>(records: impl IntoIterator<Item = (&'a String, &'a (String, String))>) -> String {
+    let mut digest = Sha256Hasher::new();
+    for (path, (mode, blob)) in records {
+        digest.update(format!("{mode} blob {blob}\t{path}").as_bytes());
+        digest.update([0]);
+    }
+    format!("{:x}", digest.finalize())
+}
+
+/// Refuses an update when the vendored tree no longer matches the digest
+/// recorded at its last import.  Besides the imported files, the tree may
+/// hold only untracked, Git-ignored build residue and leftovers at paths
+/// the projection now excludes; both are removed by the update.
+fn ensure_unmodified_since_import(
+    repo_root: &Path,
+    comp: &ComponentDef,
+    destination: &Path,
+    prior_state: &SyncState,
+    projection: TreeProjection<'_>,
+    lfs: Option<&LfsHydrationPolicy>,
+    nested: &[PathBuf],
+) -> Result<()> {
+    let mut records = working_tree_records(destination, nested)?;
+    // Hydrated LFS files stand in for the pointer blobs the import recorded:
+    // one whose content matches its prior pointer counts as that pointer.
+    let lfs_paths = lfs
+        .map(|policy| {
+            policy
+                .object
+                .iter()
+                .map(|object| object.path.clone())
+                .filter(|path| records.contains_key(path))
+                .collect::<BTreeSet<_>>()
+        })
+        .unwrap_or_default();
+    if !lfs_paths.is_empty() {
+        let (prior, pointers) = prior_upstream_tree(repo_root, comp, prior_state, projection, &lfs_paths)?;
+        for path in &lfs_paths {
+            let (Some(record), Some(pointer)) = (prior.get(path), pointers.get(path)) else {
+                continue;
+            };
+            let oid = pointer
+                .lines()
+                .find_map(|line| line.strip_prefix("oid sha256:"))
+                .unwrap_or_default();
+            let content = format!("{:x}", Sha256Hasher::digest(fs::read(destination.join(path))?));
+            if oid == content {
+                records.insert(path.clone(), record.clone());
+            }
+        }
+    }
+    let ignored = outer_repository_paths(repo_root, &comp.path, &["--others", "--ignored", "--exclude-standard"])?;
+    // Ignored, untracked files are residue unless they are upstream files the
+    // outer repository happens to ignore; only the prior commit knows which.
+    let ignored_present = records.keys().filter(|path| ignored.contains(*path)).cloned().collect::<Vec<_>>();
+    let mut prior_tree = None;
+    if !ignored_present.is_empty() {
+        let tree = prior_upstream_records(repo_root, comp, prior_state, projection)?;
+        records.retain(|path, _| !ignored.contains(path) || tree.contains_key(path));
+        prior_tree = Some(tree);
+    }
+    if records_digest(&records) == prior_state.imported_tree_digest {
         return Ok(());
     }
-    run_cmd(
-        &tmp_upstream,
-        "git",
-        &["fetch", "--depth", "1", "origin", old_commit],
-    )?;
-
-    let tmp_root = repo_root.join("upstream/.tmp");
-    let tmp_merge = tmp_root.join(format!("{}-merge", comp.name));
-    if tmp_merge.exists() {
-        fs::remove_dir_all(&tmp_merge)
-            .with_context(|| format!("failed to clean {}", tmp_merge.display()))?;
+    // Leftovers at paths the projection now excludes (from an earlier, wider
+    // projection) are not edits; they are removed by the update.
+    let without_stale = records
+        .iter()
+        .filter(|(path, _)| !projection.excludes_imported_path(path))
+        .map(|(path, record)| (path.clone(), record.clone()))
+        .collect::<BTreeMap<_, _>>();
+    if records_digest(&without_stale) == prior_state.imported_tree_digest {
+        return Ok(());
     }
-    fs::create_dir_all(&tmp_merge)
-        .with_context(|| format!("failed to create {}", tmp_merge.display()))?;
-
-    run_cmd(&tmp_merge, "git", &["init"])?;
-    run_cmd(
-        &tmp_merge,
-        "git",
-        &[
-            "remote",
-            "add",
-            "upstream",
-            tmp_upstream
-                .to_str()
-                .ok_or_else(|| anyhow!("invalid path: {}", tmp_upstream.display()))?,
-        ],
-    )?;
-    run_cmd(&tmp_merge, "git", &["fetch", "upstream", old_commit])?;
-    run_cmd(&tmp_merge, "git", &["fetch", "upstream", new_commit.trim()])?;
-    run_cmd(
-        &tmp_merge,
-        "git",
-        &["checkout", "-q", "-b", "local", old_commit],
-    )?;
-
-    clear_directory_contents(&tmp_merge)?;
-    copy_tree_excluding_dotgit(destination, &tmp_merge)?;
-    restore_lfs_pointers_for_merge(&tmp_merge, lfs_policy.as_ref())?;
-    run_cmd(&tmp_merge, "git", &["add", "-A"])?;
-    let local_status = run_cmd_capture(&tmp_merge, "git", &["status", "--porcelain"])?;
-    if !local_status.is_empty() {
-        run_cmd(
-            &tmp_merge,
-            "git",
-            &[
-                "-c",
-                "user.name=MattOS Sync Bot",
-                "-c",
-                "user.email=syncbot@example.invalid",
-                "commit",
-                "-m",
-                "MattOS local snapshot before upstream sync",
-            ],
-        )?;
-    }
-
-    let merge_status = run_cmd_status(
-        &tmp_merge,
-        "git",
-        &["merge", "--no-commit", "--no-ff", new_commit.trim()],
-    )?;
-    let has_conflicts = merge_status.code() == Some(1);
-    if !merge_status.success() && !has_conflicts {
-        bail!(
-            "sync merge failed unexpectedly with status {}",
-            merge_status
-                .code()
-                .map(|c| c.to_string())
-                .unwrap_or_else(|| "unknown".to_string())
-        );
-    }
-
-    clear_directory_contents(destination)?;
-    if has_conflicts {
-        copy_tree_excluding_dotgit(&tmp_merge, destination)?;
-    } else {
-        let merged_tree = run_cmd_capture(&tmp_merge, "git", &["write-tree"])?;
-        materialize_git_tree_exact(
-            &tmp_merge,
-            merged_tree.trim(),
-            destination,
-            source_selection.as_ref(),
-        )?;
-    }
-    apply_source_selection(destination, source_selection.as_ref())?;
-    if !has_conflicts {
-        hydrate_lfs_objects(repo_root, comp, destination, lfs_policy.as_ref())?;
-    }
-
-    fs::remove_dir_all(&tmp_upstream)
-        .with_context(|| format!("failed to remove {}", tmp_upstream.display()))?;
-    fs::remove_dir_all(&tmp_merge)
-        .with_context(|| format!("failed to remove {}", tmp_merge.display()))?;
-
-    if has_conflicts {
-        bail!(
-            "upstream sync for {} produced merge conflicts under {}; resolve conflicts and rerun --update",
-            comp.name,
-            comp.path
-        );
-    }
-
-    let state = SyncState {
-        schema_version: 2,
-        component: comp.name.clone(),
-        repo: comp.repo.clone(),
-        branch: comp.branch.clone(),
-        imported_commit: new_commit.trim().to_owned(),
-        imported_at_utc: Utc::now().to_rfc3339(),
-        sync_method: comp.sync.clone(),
-        destination_path: comp.path.clone(),
-        upstream_tree,
-        imported_tree_digest_algorithm: if source_selection.is_some() {
-            SELECTED_IMPORTED_TREE_DIGEST_ALGORITHM
-        } else {
-            IMPORTED_TREE_DIGEST_ALGORITHM
-        }
-        .to_string(),
-        imported_tree_digest,
-        source_selection_policy,
-        source_selection_policy_sha256,
-        intentional_omission_policy,
-        gitlink_policy,
-        patch_manifest,
-        patch_manifest_sha256,
-        lfs_policy: lfs_policy_name,
-        lfs_policy_sha256,
+    let prior = match prior_tree {
+        Some(tree) => Some(tree),
+        None => prior_upstream_records(repo_root, comp, prior_state, projection).ok(),
     };
-    write_sync_state(repo_root, &comp.name, &state)?;
+    let mut details = Vec::new();
+    if let Some(prior) = prior {
+        for (path, record) in &records {
+            match prior.get(path) {
+                Some(expected) if expected == record => {}
+                Some(_) => details.push(format!("modified {path}")),
+                None => details.push(format!("added {path}")),
+            }
+        }
+        details.extend(prior.keys().filter(|path| !records.contains_key(*path)).map(|path| format!("missing {path}")));
+    }
+    let shown = details.iter().take(20).cloned().collect::<Vec<_>>().join("\n  ");
+    bail!(
+        "{} no longer matches its import of {} (vendored trees must not be edited; MattOS changes belong in upstream/patches). \
+         Restore the tree (for example `git checkout -- {}` and remove added files) and retry.{}{}",
+        comp.name,
+        prior_state.imported_commit,
+        comp.path,
+        if shown.is_empty() { String::new() } else { format!("\n  {shown}") },
+        if details.len() > 20 { format!("\n  ... and {} more", details.len() - 20) } else { String::new() }
+    )
+}
 
-    println!("Updated {} to commit {}", comp.name, state.imported_commit);
-    Ok(())
+/// Paths under `component_path` that `git ls-files <args>` lists in the
+/// outer repository, relative to the component.
+fn outer_repository_paths(repo_root: &Path, component_path: &str, args: &[&str]) -> Result<BTreeSet<String>> {
+    let mut arguments = vec!["ls-files", "-z"];
+    arguments.extend_from_slice(args);
+    arguments.extend(["--", component_path]);
+    let output = run_cmd_output(repo_root, "git", &arguments)?;
+    if !output.status.success() {
+        return Ok(BTreeSet::new());
+    }
+    let prefix = format!("{}/", component_path.trim_end_matches('/'));
+    Ok(output
+        .stdout
+        .split(|byte| *byte == 0)
+        .filter_map(|path| std::str::from_utf8(path).ok()?.strip_prefix(&prefix).map(str::to_string))
+        .collect())
+}
+
+/// The projected records of the previously imported commit, fetched alone
+/// (depth 1) from the repository it was imported from.
+fn prior_upstream_records(
+    repo_root: &Path,
+    comp: &ComponentDef,
+    prior_state: &SyncState,
+    projection: TreeProjection<'_>,
+) -> Result<BTreeMap<String, (String, String)>> {
+    Ok(prior_upstream_tree(repo_root, comp, prior_state, projection, &BTreeSet::new())?.0)
+}
+
+/// The projected records of the previously imported commit, plus the text
+/// of the blobs at `blob_paths` (imported paths).
+fn prior_upstream_tree(
+    repo_root: &Path,
+    comp: &ComponentDef,
+    prior_state: &SyncState,
+    projection: TreeProjection<'_>,
+    blob_paths: &BTreeSet<String>,
+) -> Result<(BTreeMap<String, (String, String)>, BTreeMap<String, String>)> {
+    let scratch = repo_root.join("upstream/.tmp").join(format!("{}-prior", comp.name));
+    remove_path_if_exists(&scratch)?;
+    fs::create_dir_all(&scratch)?;
+    run_cmd(&scratch, "git", &["init", "-q", "--bare"])?;
+    let commit = prior_state.imported_commit.trim();
+    run_cmd(&scratch, "git", &["fetch", "-q", "--depth", "1", &prior_state.repo, commit])?;
+    let listing = run_cmd_output(&scratch, "git", &["ls-tree", "-rz", commit])?;
+    if !listing.status.success() {
+        remove_path_if_exists(&scratch)?;
+        bail!("failed to list prior import {commit} of {}", comp.name);
+    }
+    let mut records = BTreeMap::new();
+    let mut blobs = BTreeMap::new();
+    for record in listing.stdout.split(|byte| *byte == 0).filter(|record| !record.is_empty()) {
+        let text = String::from_utf8_lossy(record);
+        let Some((header, path)) = text.split_once('\t') else { continue };
+        let fields = header.split_whitespace().collect::<Vec<_>>();
+        if fields.len() != 3 || fields[0] == "160000" {
+            continue;
+        }
+        if let Some(imported) = projection.map(path) {
+            if blob_paths.contains(&imported) {
+                blobs.insert(imported.clone(), run_cmd_capture(&scratch, "git", &["cat-file", "blob", fields[2]])?);
+            }
+            records.insert(imported, (fields[0].to_string(), fields[2].to_string()));
+        }
+    }
+    remove_path_if_exists(&scratch)?;
+    Ok((records, blobs))
 }
 
 /// Returns the immutable upstream Git tree object and a SHA-256 over the
@@ -432,7 +611,7 @@ fn update_component(
 /// are instead required to have an explicit replacement/exclusion policy.
 fn imported_tree_identity(
     source_git: &Path,
-    source_selection: Option<&SourceSelectionPolicy>,
+    projection: TreeProjection<'_>,
 ) -> Result<(String, String)> {
     let upstream_tree = run_cmd_capture(source_git, "git", &["rev-parse", "HEAD^{tree}"])?
         .trim()
@@ -445,6 +624,7 @@ fn imported_tree_identity(
         );
     }
     let mut digest = Sha256Hasher::new();
+    let mut imported = BTreeSet::new();
     for record in output
         .stdout
         .split(|byte| *byte == 0)
@@ -457,13 +637,45 @@ fn imported_tree_identity(
             bail!("malformed git ls-tree record in {}", source_git.display());
         };
         let path = String::from_utf8_lossy(&record[tab + 1..]);
-        if source_selection.is_some_and(|policy| !policy.retains(&path)) {
+        let Some(mapped) = projection.map(&path) else {
             continue;
-        }
-        digest.update(record);
+        };
+        digest.update(&record[..=tab]);
+        digest.update(mapped.as_bytes());
         digest.update([0]);
+        imported.insert(path.into_owned());
+    }
+    if let Some(policy) = projection.omission {
+        validate_omission_selection(policy, &imported)?;
     }
     Ok((upstream_tree, format!("{:x}", digest.finalize())))
+}
+
+/// Checks that an intentional-omission policy still describes the upstream
+/// tree: every retained path exists and a subtree still has its expected
+/// files, so an upstream rename cannot silently shrink the import.
+fn validate_omission_selection(policy: &OmissionPolicy, imported: &BTreeSet<String>) -> Result<()> {
+    if imported.is_empty() {
+        bail!("{} intentional-omission policy selects no upstream files", policy.component);
+    }
+    for selector in policy.retained_paths.iter().flatten() {
+        let selector = selector.trim_end_matches('/');
+        if !imported.iter().any(|path| path == selector || path.starts_with(&format!("{selector}/"))) {
+            bail!("{} retained path does not exist upstream: {selector}", policy.component);
+        }
+    }
+    if let (Some(expected), Some(subtree)) = (&policy.expected_runtime_files, &policy.upstream_subtree) {
+        let prefix = format!("{}/", subtree.trim_end_matches('/'));
+        let actual = imported
+            .iter()
+            .filter_map(|path| path.strip_prefix(&prefix))
+            .map(str::to_string)
+            .collect::<BTreeSet<_>>();
+        if actual != expected.iter().cloned().collect() {
+            bail!("{} expected_runtime_files no longer matches the upstream subtree", policy.component);
+        }
+    }
+    Ok(())
 }
 
 include!("selection.rs");
@@ -558,7 +770,9 @@ fn prepare_tmp_clone(repo_root: &Path, comp: &ComponentDef) -> Result<PathBuf> {
     Ok(tmp)
 }
 
-fn clear_directory_contents(dir: &Path) -> Result<()> {
+/// Removes everything in `dir` except `.git` and the `preserved` subtrees
+/// (relative paths, possibly nested several levels deep).
+fn clear_directory_contents_except(dir: &Path, preserved: &[PathBuf]) -> Result<()> {
     if !dir.exists() {
         return Ok(());
     }
@@ -567,15 +781,63 @@ fn clear_directory_contents(dir: &Path) -> Result<()> {
     {
         let entry = entry?;
         let p = entry.path();
-        if p.file_name() == Some(OsStr::new(".git")) {
+        let name = PathBuf::from(entry.file_name());
+        if name == Path::new(".git") || preserved.contains(&name) {
             continue;
         }
-        if p.is_dir() {
+        let deeper = preserved
+            .iter()
+            .filter_map(|path| path.strip_prefix(&name).ok())
+            .filter(|rest| !rest.as_os_str().is_empty())
+            .map(Path::to_path_buf)
+            .collect::<Vec<_>>();
+        let metadata = fs::symlink_metadata(&p)?;
+        if metadata.is_dir() && !deeper.is_empty() {
+            clear_directory_contents_except(&p, &deeper)?;
+        } else if metadata.is_dir() {
             fs::remove_dir_all(&p)
                 .with_context(|| format!("failed to remove directory: {}", p.display()))?;
         } else {
             fs::remove_file(&p)
                 .with_context(|| format!("failed to remove file: {}", p.display()))?;
+        }
+    }
+    Ok(())
+}
+
+fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
+    fs::create_dir_all(dst)
+        .with_context(|| format!("failed to create copy destination: {}", dst.display()))?;
+    for entry in fs::read_dir(src)
+        .with_context(|| format!("failed to read source dir: {}", src.display()))?
+    {
+        let entry = entry?;
+        let from = entry.path();
+        let name = entry.file_name();
+        let metadata = fs::symlink_metadata(&from)
+            .with_context(|| format!("failed to read metadata: {}", from.display()))?;
+
+        if name == OsStr::new(".git") {
+            continue;
+        }
+
+        let to = dst.join(&name);
+        if metadata.file_type().is_symlink() {
+            remove_path_if_exists(&to)?;
+            copy_symlink(&from, &to)?;
+        } else if metadata.is_dir() {
+            if to.symlink_metadata().is_ok() && !to.is_dir() {
+                remove_path_if_exists(&to)?;
+            }
+            copy_tree_excluding_dotgit(&from, &to)?;
+        } else {
+            if to.symlink_metadata().is_ok() && !to.is_file() {
+                remove_path_if_exists(&to)?;
+            }
+            fs::copy(&from, &to).with_context(|| {
+                format!("failed to copy {} to {}", from.display(), to.display())
+            })?;
+            preserve_permissions(&metadata, &to)?;
         }
     }
     Ok(())
@@ -589,7 +851,7 @@ fn materialize_git_tree_exact(
     source_git: &Path,
     treeish: &str,
     destination: &Path,
-    source_selection: Option<&SourceSelectionPolicy>,
+    projection: TreeProjection<'_>,
 ) -> Result<()> {
     fs::create_dir_all(destination)?;
     let tree = run_cmd_output(source_git, "git", &["ls-tree", "-rz", treeish])?;
@@ -622,9 +884,10 @@ fn materialize_git_tree_exact(
         if mode == "160000" || kind == "commit" {
             continue;
         }
-        if source_selection.is_some_and(|policy| !policy.retains(path)) {
+        let Some(path) = projection.map(path) else {
             continue;
-        }
+        };
+        let path = path.as_str();
         if Path::new(path).is_absolute()
             || Path::new(path)
                 .components()
@@ -695,43 +958,6 @@ fn materialize_git_tree_exact(
     Ok(())
 }
 
-fn copy_tree_excluding_dotgit(src: &Path, dst: &Path) -> Result<()> {
-    fs::create_dir_all(dst)
-        .with_context(|| format!("failed to create copy destination: {}", dst.display()))?;
-    for entry in fs::read_dir(src)
-        .with_context(|| format!("failed to read source dir: {}", src.display()))?
-    {
-        let entry = entry?;
-        let from = entry.path();
-        let name = entry.file_name();
-        let metadata = fs::symlink_metadata(&from)
-            .with_context(|| format!("failed to read metadata: {}", from.display()))?;
-
-        if name == OsStr::new(".git") {
-            continue;
-        }
-
-        let to = dst.join(&name);
-        if metadata.file_type().is_symlink() {
-            remove_path_if_exists(&to)?;
-            copy_symlink(&from, &to)?;
-        } else if metadata.is_dir() {
-            if to.symlink_metadata().is_ok() && !to.is_dir() {
-                remove_path_if_exists(&to)?;
-            }
-            copy_tree_excluding_dotgit(&from, &to)?;
-        } else {
-            if to.symlink_metadata().is_ok() && !to.is_file() {
-                remove_path_if_exists(&to)?;
-            }
-            fs::copy(&from, &to).with_context(|| {
-                format!("failed to copy {} to {}", from.display(), to.display())
-            })?;
-            preserve_permissions(&metadata, &to)?;
-        }
-    }
-    Ok(())
-}
 
 /// Copies the authoritative working-tree inputs for an imported component into
 /// an output-owned source mirror. Tracked modifications and non-ignored

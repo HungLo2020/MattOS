@@ -32,7 +32,7 @@
  * Prototypes for library-wide functions
  */
 
-CURLcode Curl_init_do(struct Curl_easy *data, struct connectdata *conn);
+CURLcode Curl_init_transfer(struct Curl_easy *data, struct connectdata *conn);
 CURLcode Curl_open(struct Curl_easy **curl);
 void Curl_init_userdefined(struct Curl_easy *data);
 
@@ -66,6 +66,12 @@ CURLcode Curl_conn_meta_set(struct connectdata *conn, const char *key,
                             void *meta_data, Curl_meta_dtor *meta_dtor);
 void Curl_conn_meta_remove(struct connectdata *conn, const char *key);
 void *Curl_conn_meta_get(struct connectdata *conn, const char *key);
+
+/* Get an admin handle for internal operations from the given
+ * easy handle, if possible. The admin handle inherits certain
+ * properties from `data`. If no admin handle is available (not multi
+ * or share attached), the easy handle itself is returned. */
+struct Curl_easy *Curl_get_admin(struct Curl_easy *data);
 
 #define CURL_DEFAULT_PROXY_PORT 1080 /* default proxy port unless specified */
 #define CURL_DEFAULT_HTTPS_PROXY_PORT 443 /* default https proxy port unless

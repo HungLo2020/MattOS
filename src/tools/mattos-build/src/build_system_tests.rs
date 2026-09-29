@@ -111,6 +111,7 @@ fn real_stage_specs_invalidate_only_representative_input_owners() {
         ("src/system/libc/glibc/test.c", "glibc one\n"),
         ("src/kernel/linux/kernel/test.c", "linux one\n"),
         ("src/kernel/linux/include/uapi/linux/test.h", "uapi one\n"),
+        ("src/kernel/linux-uapi/include/uapi/linux/test.h", "userland uapi one\n"),
         ("src/kernel/config/x86_64_mattos.config", "CONFIG_TEST=y\n"),
         ("src/toolchain/gcc/gcc/test.c", "gcc one\n"),
         ("src/system/libraries/zlib/test.c", "zlib one\n"),
@@ -176,7 +177,16 @@ fn real_stage_specs_invalidate_only_representative_input_owners() {
         &root.join("src/kernel/linux/include/uapi/linux/test.h"),
         "uapi two\n",
     );
-    let before = assert_change(&before, &["glibc", "linux", "linux-headers"]);
+    // The kernel's own headers belong to the kernel alone: a kernel update
+    // never rebuilds the userland.
+    let before = assert_change(&before, &["linux"]);
+    write_file(
+        &root.join("src/kernel/linux-uapi/include/uapi/linux/test.h"),
+        "userland uapi two\n",
+    );
+    // The separately pinned userland headers belong to glibc and the header
+    // stage, never to the kernel.
+    let before = assert_change(&before, &["glibc", "linux-headers"]);
     write_file(&root.join("src/toolchain/gcc/gcc/test.c"), "gcc two\n");
     let before = assert_change(&before, &["gcc-runtime", "gcc-toolchain"]);
     write_file(&root.join("src/system/libraries/zlib/test.c"), "zlib two\n");
@@ -758,9 +768,18 @@ fn every_source_path_package_staging_reads_is_tracked() {
         .output()
         .unwrap();
     assert!(listing.status.success());
+    // New files not yet committed count too: the hazard is a file Git
+    // ignores, which a clean clone never has.
+    let untracked = std::process::Command::new("git")
+        .args(["ls-files", "-z", "--others", "--exclude-standard", "--", "src"])
+        .current_dir(&repo_root)
+        .output()
+        .unwrap();
+    assert!(untracked.status.success());
     let tracked = listing
         .stdout
         .split(|byte| *byte == 0)
+        .chain(untracked.stdout.split(|byte| *byte == 0))
         .map(|path| String::from_utf8_lossy(path).into_owned())
         .collect::<BTreeSet<_>>();
     let untracked = paths
@@ -974,6 +993,10 @@ fn target_toolchain_is_part_of_target_stage_cache_keys() {
     for stage in ["formal-sysroot", "packages", "repository"] {
         assert_eq!(crate::target_toolchain_cache_identity(repo, stage).unwrap(), None);
     }
+    // Data-only stages never invoke it.
+    for stage in ["pop-fonts", "material-cursors"] {
+        assert_eq!(crate::target_toolchain_cache_identity(repo, stage).unwrap(), None);
+    }
     // A wrapper change alone (sysroot bytes untouched) changes the key.
     fs::write(repo.join("out/toolchain/bin/gcc"), "#!/bin/sh\nexec real-gcc -O3 \"$@\"\n").unwrap();
     let wrapper_changed = crate::target_toolchain_cache_identity(repo, "zlib").unwrap().unwrap();
@@ -1149,7 +1172,7 @@ fn kernel_header_provenance_records_the_imported_linux_pin() {
     let production = &source[..source.find("#[cfg(test)]").unwrap()];
     assert!(!production.contains("revision=f17f39c"));
     let recipe = toolchain_recipe("build_glibc");
-    assert!(recipe.contains("read_sync_state(repo_root, \"linux\")"));
+    assert!(recipe.contains("read_sync_state(repo_root, \"linux-uapi\")"));
     assert!(recipe.contains("revision={linux_revision}"));
 }
 
@@ -1424,4 +1447,232 @@ fn tests_that_read_rust_source_text_do_not_grow() {
         count <= CEILING,
         "{count} tests read Rust source text (ceiling {CEILING}); test the behavior instead"
     );
+}
+
+#[test]
+fn kernel_release_matches_the_vendored_kernel_and_data() {
+    // `mattos_kernel_release!` names the kernel packages; it must be the
+    // release the vendored kernel actually builds, and the package metadata
+    // files (which cannot use the macro) must name the same packages.
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let makefile = fs::read_to_string(root.join("src/kernel/linux/Makefile")).unwrap();
+    let field = |name: &str| {
+        makefile
+            .lines()
+            .find_map(|line| line.strip_prefix(name)?.trim_start().strip_prefix('='))
+            .unwrap_or_default()
+            .trim()
+            .to_string()
+    };
+    let config = fs::read_to_string(root.join("src/kernel/config/x86_64_mattos.config")).unwrap();
+    let local = config
+        .lines()
+        .find_map(|line| line.strip_prefix("CONFIG_LOCALVERSION="))
+        .unwrap()
+        .trim_matches('"')
+        .to_string();
+    let release = format!(
+        "{}.{}.{}{}{local}",
+        field("VERSION"),
+        field("PATCHLEVEL"),
+        field("SUBLEVEL"),
+        field("EXTRAVERSION")
+    );
+    assert_eq!(release, MATTOS_KERNEL_RELEASE, "update mattos_kernel_release! with the kernel");
+    for data in [
+        "src/system/packages/debian-compat/trixie.toml",
+        "src/system/packages/debian-compat/protected.toml",
+        "src/system/packages/config/apt/00mattos-priority",
+        "src/system/packages/config/apt/installed/00mattos-priority",
+    ] {
+        let text = fs::read_to_string(root.join(data)).unwrap();
+        let names = text
+            .split(|ch: char| !(ch.is_ascii_alphanumeric() || matches!(ch, '-' | '.')))
+            .filter(|word| word.starts_with("linux-modules-"))
+            .collect::<BTreeSet<_>>();
+        assert!(names.contains(LINUX_MODULES_PACKAGE), "{data} lacks {LINUX_MODULES_PACKAGE}");
+        for name in names {
+            assert!(
+                name == LINUX_MODULES_PACKAGE || name == NVIDIA_OPEN_MODULES_PACKAGE,
+                "{data} names {name}, not a package of kernel {MATTOS_KERNEL_RELEASE}"
+            );
+        }
+    }
+}
+
+#[test]
+fn glibc_replaces_only_its_own_previous_sysroot_files() {
+    // glibc used to delete the whole shared sysroot, destroying the runtime
+    // libraries gcc-runtime publishes there and forcing it to rebuild even
+    // when glibc's own output was unchanged.
+    let root = tempfile::tempdir().unwrap();
+    let sysroot = root.path().join("sysroot");
+    let previous = root.path().join("glibc-install");
+    for (tree, path, body) in [
+        (&previous, "usr/lib/x86_64-linux-gnu/libc.so.6", "glibc"),
+        (&sysroot, "usr/lib/x86_64-linux-gnu/libc.so.6", "glibc"),
+        (&previous, "usr/include/stdio.h", "glibc header"),
+        (&sysroot, "usr/include/stdio.h", "another stage's replacement"),
+        (&sysroot, "usr/lib/x86_64-linux-gnu/libgcc_s.so.1", "gcc-runtime"),
+    ] {
+        write_file(&tree.join(path), body);
+    }
+    std::os::unix::fs::symlink("libc.so.6", previous.join("usr/lib/x86_64-linux-gnu/libc.so")).unwrap();
+    std::os::unix::fs::symlink("libc.so.6", sysroot.join("usr/lib/x86_64-linux-gnu/libc.so")).unwrap();
+
+    remove_previous_sysroot_contribution(&sysroot, &[previous, root.path().join("missing-tree")]).unwrap();
+    let lib = sysroot.join("usr/lib/x86_64-linux-gnu");
+    assert!(!lib.join("libc.so.6").exists(), "glibc's unchanged file is replaced");
+    assert!(fs::symlink_metadata(lib.join("libc.so")).is_err(), "glibc's symlink is replaced");
+    assert_eq!(fs::read_to_string(lib.join("libgcc_s.so.1")).unwrap(), "gcc-runtime");
+    assert_eq!(
+        fs::read_to_string(sysroot.join("usr/include/stdio.h")).unwrap(),
+        "another stage's replacement"
+    );
+}
+
+#[test]
+fn every_build_step_runs_under_a_fixed_umask() {
+    // Output digests include modes, so the build must not inherit the
+    // caller's umask: whatever the caller's mask, commands see 022.
+    let caller = unsafe { libc::umask(0o077) };
+    crate::apply_build_umask();
+    let output = std::process::Command::new("sh").args(["-c", "umask"]).output().unwrap();
+    unsafe { libc::umask(caller) };
+    assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "0022");
+}
+
+/// A stage keyed on the target toolchain must be scheduled after it.
+/// Otherwise the scheduler may build it before the toolchain exists (an
+/// unkeyed manifest) and the next build rebuilds it once the key appears.
+#[test]
+fn every_stage_keyed_on_the_target_toolchain_is_scheduled_after_it() {
+    let nodes = crate::scheduled_build_nodes(crate::stage_graph::all_build_stages());
+    let graph = nodes
+        .iter()
+        .map(|node| (node.id.as_str(), node.dependencies.clone()))
+        .collect::<BTreeMap<_, _>>();
+    let mut unordered = Vec::new();
+    for node in &nodes {
+        if !crate::stage_uses_target_toolchain(&node.id) {
+            continue;
+        }
+        let mut reached = BTreeSet::new();
+        let mut pending = node.dependencies.clone();
+        while let Some(dependency) = pending.pop() {
+            if reached.insert(dependency.clone()) {
+                pending.extend(graph.get(dependency.as_str()).cloned().unwrap_or_default());
+            }
+        }
+        if !reached.contains("gcc-runtime") || !reached.contains("cross-toolchain") {
+            unordered.push(node.id.clone());
+        }
+    }
+    assert!(unordered.is_empty(), "keyed on the target toolchain but not scheduled after it: {unordered:?}");
+}
+
+#[test]
+fn llvm_link_pool_scales_with_the_memory_the_build_may_use() {
+    const GIB: u64 = 1024 * 1024 * 1024;
+    let host = |physical: u64, cgroup_limit: Option<u64>| crate::resources::ResourceSnapshot {
+        physical_memory_bytes: physical,
+        cgroup_memory_limit_bytes: cgroup_limit,
+        ..crate::resources::discover()
+    };
+    // This workstation class keeps the long-standing pool of two.
+    assert_eq!(crate::llvm_parallel_link_jobs(&host(15 * GIB + GIB / 2, None)), 2);
+    assert_eq!(crate::llvm_parallel_link_jobs(&host(8 * GIB, None)), 1);
+    assert_eq!(crate::llvm_parallel_link_jobs(&host(4 * GIB, None)), 1);
+    assert_eq!(crate::llvm_parallel_link_jobs(&host(128 * GIB, None)), 4);
+    // A container limit bounds it, not the host's memory.
+    assert_eq!(crate::llvm_parallel_link_jobs(&host(128 * GIB, Some(8 * GIB))), 1);
+}
+
+/// A kernel build tree whose `sign-file` appends a recognizable signature.
+fn fake_signing_kernel_build(root: &Path) -> PathBuf {
+    let build = root.join("kernel-build");
+    fs::create_dir_all(build.join("scripts")).unwrap();
+    fs::create_dir_all(build.join("certs")).unwrap();
+    fs::write(build.join(crate::KERNEL_MODULE_SIGNING_KEY), "key").unwrap();
+    fs::write(build.join("certs/signing_key.x509"), "certificate").unwrap();
+    let sign_file = build.join("scripts/sign-file");
+    fs::write(&sign_file, "#!/bin/sh\nprintf 'SIG:%s~Module signature appended~\\n' \"$1\" >> \"$4\"\n").unwrap();
+    fs::set_permissions(&sign_file, fs::Permissions::from_mode(0o755)).unwrap();
+    build
+}
+
+#[test]
+fn every_module_is_signed_once_after_normalization() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path();
+    let build = fake_signing_kernel_build(repo);
+    let modules = repo.join("modules/lib/modules/7.2.8-mattos");
+    fs::create_dir_all(modules.join("kernel")).unwrap();
+    fs::write(modules.join("kernel/plain.ko"), "plain-module").unwrap();
+    fs::write(modules.join("kernel/raw"), "compressed-module").unwrap();
+    assert!(Command::new("zstd")
+        .args(["-q", "--rm", "-o"])
+        .arg(modules.join("kernel/compressed.ko.zst"))
+        .arg(modules.join("kernel/raw"))
+        .status()
+        .unwrap()
+        .success());
+    fs::write(modules.join("modules.dep"), "metadata").unwrap();
+
+    crate::sign_kernel_modules(repo, &build, &repo.join("modules")).unwrap();
+    // Signing again changes nothing: already signed modules are skipped.
+    crate::sign_kernel_modules(repo, &build, &repo.join("modules")).unwrap();
+
+    let decompress = |path: &Path| {
+        String::from_utf8(Command::new("zstd").args(["-q", "-d", "-c"]).arg(path).output().unwrap().stdout).unwrap()
+    };
+    assert_eq!(
+        fs::read_to_string(modules.join("kernel/plain.ko")).unwrap(),
+        "plain-moduleSIG:sha512~Module signature appended~\n"
+    );
+    assert_eq!(
+        decompress(&modules.join("kernel/compressed.ko.zst")),
+        "compressed-moduleSIG:sha512~Module signature appended~\n"
+    );
+    assert_eq!(fs::read_to_string(modules.join("modules.dep")).unwrap(), "metadata");
+    assert!(!repo.join(format!("out/tmp/.mattos-module-sign-{}.ko", std::process::id())).exists());
+}
+
+#[test]
+fn module_signing_uses_the_committed_key() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let seed = fs::read_to_string(repo.join("src/kernel/config/x86_64_mattos.config")).unwrap();
+    crate::validate_module_signing_config(&seed).unwrap();
+    let key = fs::read_to_string(repo.join(crate::MODULE_SIGNING_KEY)).unwrap();
+    assert!(key.contains("-----BEGIN PRIVATE KEY-----") && key.contains("-----BEGIN CERTIFICATE-----"));
+    assert!(crate::stage_inputs::source_inputs(BuildStage::Kernel)
+        .contains(&PathBuf::from(crate::MODULE_SIGNING_KEY)));
+    assert!(crate::stage_inputs::source_inputs(BuildStage::NvidiaDriver)
+        .contains(&PathBuf::from(crate::MODULE_SIGNING_KEY)));
+
+    // Kbuild's default key path would be replaced by a generated key, and
+    // signing inside modules_install would be undone by path normalization.
+    let generated = seed.replace(
+        &format!("CONFIG_MODULE_SIG_KEY=\"{}\"", crate::KERNEL_MODULE_SIGNING_KEY),
+        "CONFIG_MODULE_SIG_KEY=\"certs/signing_key.pem\"",
+    );
+    assert!(crate::validate_module_signing_config(&generated).is_err());
+    let unsigned = seed.replace("CONFIG_MODULE_SIG=y", "# CONFIG_MODULE_SIG is not set");
+    assert!(crate::validate_module_signing_config(&unsigned).is_err());
+    let at_install = seed.replace("# CONFIG_MODULE_SIG_ALL is not set", "CONFIG_MODULE_SIG_ALL=y");
+    assert!(crate::validate_module_signing_config(&at_install).is_err());
+
+    // Staging the unchanged key again leaves the file alone, so Kbuild does
+    // not relink the kernel.
+    let temp = tempfile::tempdir().unwrap();
+    fs::create_dir_all(temp.path().join("src/kernel/config")).unwrap();
+    fs::write(temp.path().join(crate::MODULE_SIGNING_KEY), &key).unwrap();
+    let build = temp.path().join("build");
+    crate::install_module_signing_key(temp.path(), &build).unwrap();
+    let staged = build.join(crate::KERNEL_MODULE_SIGNING_KEY);
+    let old = std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_000_000);
+    filetime::set_file_mtime(&staged, filetime::FileTime::from_system_time(old)).unwrap();
+    crate::install_module_signing_key(temp.path(), &build).unwrap();
+    assert_eq!(fs::metadata(&staged).unwrap().modified().unwrap(), old);
+    assert_eq!(fs::read_to_string(&staged).unwrap(), key);
 }

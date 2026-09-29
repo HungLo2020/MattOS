@@ -65,7 +65,6 @@
 #include "url.h"
 #include "urlapi-int.h"
 #include "curl_share.h"
-#include "hostip.h"
 #include "dynhds.h"
 #include "http.h"
 #include "headers.h"
@@ -201,7 +200,7 @@ static bool http_header_is_empty(const char *header)
  */
 static CURLcode copy_custom_value(const char *header, char **valp)
 {
-  struct Curl_str out;
+  struct Curl_str out = { 0 };
 
   /* find the end of the header name */
   if(header_has_value(&header, &out)) {
@@ -525,7 +524,7 @@ static bool http_should_fail(struct Curl_easy *data, int httpcode)
   /*
    * Examine the current authentication state to see if this is an error. The
    * idea is for this function to get called after processing all the headers
-   * in a response message. If we have been to asked to authenticate
+   * in a response message. If we have been asked to authenticate at
    * a particular stage, and we have done it, we are OK. If we are already
    * completely authenticated, it is not OK to get another 401 or 407.
    *
@@ -688,10 +687,19 @@ static CURLcode output_auth_headers(struct Curl_easy *data,
 #endif
 #ifdef USE_SPNEGO
   if(authstatus->picked == CURLAUTH_NEGOTIATE) {
-    auth = "Negotiate";
-    result = Curl_output_negotiate(data, conn, proxy);
-    if(result)
-      return result;
+    if(
+#ifndef CURL_DISABLE_PROXY
+      (proxy && !Curl_checkProxyheaders(data, conn,
+                                        STRCONST("Proxy-authorization"))) ||
+#endif
+      (!proxy && !Curl_checkheaders(data, STRCONST("Authorization")))) {
+      auth = "Negotiate";
+      result = Curl_output_negotiate(data, conn, proxy);
+      if(result)
+        return result;
+    }
+    else
+      authstatus->done = TRUE;
   }
   else
 #endif
@@ -1145,7 +1153,7 @@ CURLcode Curl_http_input_auth(struct Curl_easy *data, bool proxy,
 
 static void http_switch_to_get(struct Curl_easy *data, int code)
 {
-  const char *req = data->set.str[STRING_CUSTOMREQUEST];
+  const char *req = CURL_EASY_STR(data, STRING_CUSTOMREQUEST);
 
   if((req || data->state.httpreq != HTTPREQ_GET) &&
      (data->set.http_follow_mode == CURLFOLLOW_OBEYCODE)) {
@@ -1298,8 +1306,8 @@ CURLcode Curl_http_follow(struct Curl_easy *data, const char *newurl,
   rewind_result = Curl_req_soft_reset(&data->req, data);
   infof(data, "Issue another request to this URL: '%s'", follow_url);
   if((data->set.http_follow_mode == CURLFOLLOW_FIRSTONLY) &&
-     data->set.str[STRING_CUSTOMREQUEST] &&
-     !data->state.http_ignorecustom) {
+     !data->state.http_ignorecustom &&
+     CURL_EASY_STR(data, STRING_CUSTOMREQUEST)) {
     data->state.http_ignorecustom = TRUE;
     infof(data, "Drop custom request method for next request");
   }
@@ -1487,7 +1495,7 @@ static void http_exp100_continue(struct Curl_easy *data,
   struct cr_exp100_ctx *ctx = reader->ctx;
   if(ctx->state > EXP100_SEND_DATA) {
     ctx->state = EXP100_SEND_DATA;
-    Curl_expire_done(data, EXPIRE_100_TIMEOUT);
+    Curl_expire_clear(data, EXPIRE_100_TIMEOUT);
   }
 }
 
@@ -1515,7 +1523,8 @@ static CURLcode cr_exp100_read(struct Curl_easy *data,
                  "timeout %dms", data->set.expect_100_timeout));
     ctx->state = EXP100_AWAITING_CONTINUE;
     ctx->start = *Curl_pgrs_now(data);
-    Curl_expire(data, data->set.expect_100_timeout, EXPIRE_100_TIMEOUT);
+    Curl_expire_set(data, EXPIRE_100_TIMEOUT,
+                    data->set.expect_100_timeout, &ctx->start);
     *nread = 0;
     *eos = FALSE;
     return CURLE_OK;
@@ -1547,7 +1556,7 @@ static void cr_exp100_done(struct Curl_easy *data,
 {
   struct cr_exp100_ctx *ctx = reader->ctx;
   ctx->state = premature ? EXP100_FAILED : EXP100_SEND_DATA;
-  Curl_expire_done(data, EXPIRE_100_TIMEOUT);
+  Curl_expire_clear(data, EXPIRE_100_TIMEOUT);
 }
 
 static const struct Curl_crtype cr_exp100 = {
@@ -1722,7 +1731,7 @@ static bool http_may_use_1_1(const struct Curl_easy *data)
     return FALSE;
   /* We want 1.0 and have seen no previous response on *this* connection
      with a higher version (maybe no response at all yet). */
-  if((data->state.http_neg.only_10) &&
+  if(data->state.http_neg.only_10 &&
      (!conn || conn->httpversion_seen <= 10))
     return FALSE;
   /* We are not restricted to use 1.0 only. */
@@ -1841,7 +1850,7 @@ CURLcode Curl_add_custom_headers(struct Curl_easy *data,
 
       /* only send this if the contents was non-blank or done special */
 
-      if(data->state.aptr.host &&
+      if(data->state.http_host &&
          /* a Host: header was sent already, do not pass on any custom
             Host: header as that will produce *two* in the same
             request! */
@@ -1983,9 +1992,9 @@ void Curl_http_method(struct Curl_easy *data,
     httpreq = HTTPREQ_PUT;
 
   /* Now set the 'request' pointer to the proper request string */
-  if(data->set.str[STRING_CUSTOMREQUEST] &&
-     !data->state.http_ignorecustom) {
-    request = data->set.str[STRING_CUSTOMREQUEST];
+  if(!data->state.http_ignorecustom &&
+     CURL_EASY_STR(data, STRING_CUSTOMREQUEST)) {
+    request = CURL_EASY_STR(data, STRING_CUSTOMREQUEST);
   }
   else {
     if(data->req.no_body)
@@ -2015,24 +2024,12 @@ void Curl_http_method(struct Curl_easy *data,
   *reqp = httpreq;
 }
 
-static CURLcode http_useragent(struct Curl_easy *data)
-{
-  /* The User-Agent string might have been allocated already, because
-     it might have been used in the proxy connect, but if we have got a header
-     with the user-agent string specified, we erase the previously made string
-     here. */
-  if(Curl_checkheaders(data, STRCONST("User-Agent")))
-    curlx_safefree(data->state.aptr.uagent);
-  return CURLE_OK;
-}
-
 static CURLcode http_set_aptr_host(struct Curl_easy *data)
 {
   struct connectdata *conn = data->conn;
-  struct dynamically_allocated_data *aptr = &data->state.aptr;
   const char *ptr = NULL;
 
-  curlx_safefree(aptr->host);
+  curlx_safefree(data->state.http_host);
 #ifndef CURL_DISABLE_COOKIES
   curlx_safefree(data->req.cookiehost);
 #endif
@@ -2077,8 +2074,8 @@ static CURLcode http_set_aptr_host(struct Curl_easy *data)
 #endif
 
     if(!curl_strequal("Host:", ptr)) {
-      aptr->host = curl_maprintf("Host:%s", &ptr[5]);
-      if(!aptr->host)
+      data->state.http_host = curl_maprintf("Host:%s", &ptr[5]);
+      if(!data->state.http_host)
         return CURLE_OUT_OF_MEMORY;
     }
   }
@@ -2108,7 +2105,7 @@ static CURLcode http_set_aptr_host(struct Curl_easy *data)
       result = curlx_dyn_addf(&tmp, ":%u", data->state.origin->port);
     }
 
-    aptr->host = result ? NULL : curlx_dyn_take(&tmp, &hlen);
+    data->state.http_host = result ? NULL : curlx_dyn_take(&tmp, &hlen);
     curlx_dyn_free(&tmp);
     return result;
   }
@@ -2128,8 +2125,8 @@ static CURLcode http_target(struct Curl_easy *data,
   struct connectdata *conn = data->conn;
 #endif
 
-  if(data->set.str[STRING_TARGET]) {
-    path = data->set.str[STRING_TARGET];
+  if(CURL_EASY_STR(data, STRING_TARGET)) {
+    path = CURL_EASY_STR(data, STRING_TARGET);
     query = NULL;
   }
 
@@ -2198,8 +2195,8 @@ static CURLcode http_target(struct Curl_easy *data,
     curl_url_cleanup(h);
 
     /* target or URL */
-    result = curlx_dyn_add(r, data->set.str[STRING_TARGET] ?
-      data->set.str[STRING_TARGET] : url);
+    result = curlx_dyn_add(r, CURL_EASY_STR(data, STRING_TARGET) ?
+      CURL_EASY_STR(data, STRING_TARGET) : url);
     curlx_free(url);
     if(result)
       return result;
@@ -2580,12 +2577,12 @@ static CURLcode http_cookies(struct Curl_easy *data,
                              struct dynbuf *r)
 {
   CURLcode result = CURLE_OK;
-  char *addcookies = NULL;
+  const char *addcookies = NULL;
   bool linecap = FALSE;
-  if(data->set.str[STRING_COOKIE] &&
+  if(CURL_EASY_STR(data, STRING_COOKIE) &&
      !Curl_checkheaders(data, STRCONST("Cookie")) &&
      Curl_auth_allowed_to_host(data))
-    addcookies = data->set.str[STRING_COOKIE];
+    addcookies = CURL_EASY_STR(data, STRING_COOKIE);
 
   if(data->cookies || addcookies) {
     struct Curl_llist list;
@@ -2662,23 +2659,23 @@ static CURLcode http_range(struct Curl_easy *data,
     if(((httpreq == HTTPREQ_GET) || (httpreq == HTTPREQ_HEAD)) &&
        !Curl_checkheaders(data, STRCONST("Range"))) {
       /* if a line like this was already allocated, free the previous one */
-      curlx_free(data->state.aptr.rangeline);
-      data->state.aptr.rangeline = curl_maprintf("Range: bytes=%s\r\n",
+      curlx_free(data->state.rangeline);
+      data->state.rangeline = curl_maprintf("Range: bytes=%s\r\n",
                                                  data->state.range);
-      if(!data->state.aptr.rangeline)
+      if(!data->state.rangeline)
         return CURLE_OUT_OF_MEMORY;
     }
     else if((httpreq == HTTPREQ_POST || httpreq == HTTPREQ_PUT) &&
             !Curl_checkheaders(data, STRCONST("Content-Range"))) {
       curl_off_t req_clen = Curl_creader_total_length(data);
       /* if a line like this was already allocated, free the previous one */
-      curlx_free(data->state.aptr.rangeline);
+      curlx_free(data->state.rangeline);
 
       if(data->set.set_resume_from < 0) {
         /* Upload resume was asked for, but we do not know the size of the
            remote part so we tell the server (and act accordingly) that we
            upload the whole file (again) */
-        data->state.aptr.rangeline =
+        data->state.rangeline =
           curl_maprintf("Content-Range: bytes 0-%" FMT_OFF_T "/"
                         "%" FMT_OFF_T "\r\n", req_clen - 1, req_clen);
       }
@@ -2690,7 +2687,7 @@ static CURLcode http_range(struct Curl_easy *data,
         curl_off_t total_len = data->req.authneg ?
                                data->state.infilesize :
                                (data->state.resume_from + req_clen);
-        data->state.aptr.rangeline =
+        data->state.rangeline =
           curl_maprintf("Content-Range: bytes %s%" FMT_OFF_T "/"
                         "%" FMT_OFF_T "\r\n",
                         data->state.range, total_len - 1, total_len);
@@ -2698,11 +2695,11 @@ static CURLcode http_range(struct Curl_easy *data,
       else {
         /* Range was selected and then we pass the incoming range and append
            total size */
-        data->state.aptr.rangeline =
+        data->state.rangeline =
           curl_maprintf("Content-Range: bytes %s/%" FMT_OFF_T "\r\n",
                         data->state.range, req_clen);
       }
-      if(!data->state.aptr.rangeline)
+      if(!data->state.rangeline)
         return CURLE_OUT_OF_MEMORY;
     }
   }
@@ -2937,8 +2934,8 @@ static CURLcode http_add_hd(struct Curl_easy *data,
     break;
 
   case H1_HD_HOST:
-    if(data->state.aptr.host) {
-      result = curlx_dyn_add(req, data->state.aptr.host);
+    if(data->state.http_host) {
+      result = curlx_dyn_add(req, data->state.http_host);
       if(!result)
         result = curlx_dyn_addn(req, STRCONST("\r\n"));
     }
@@ -2957,16 +2954,16 @@ static CURLcode http_add_hd(struct Curl_easy *data,
     break;
 
   case H1_HD_RANGE:
-    if(data->state.use_range && data->state.aptr.rangeline)
-      result = curlx_dyn_add(req, data->state.aptr.rangeline);
+    if(data->state.use_range && data->state.rangeline)
+      result = curlx_dyn_add(req, data->state.rangeline);
     break;
 
-  case H1_HD_USER_AGENT:
-    if(data->set.str[STRING_USERAGENT] && /* User-Agent: */
-       *data->set.str[STRING_USERAGENT] &&
-       data->state.aptr.uagent)
-      result = curlx_dyn_add(req, data->state.aptr.uagent);
+  case H1_HD_USER_AGENT: {
+    const char *ua = CURL_EASY_STR(data, STRING_USERAGENT);
+    if(ua && *ua && !Curl_checkheaders(data, STRCONST("User-Agent")))
+      result = curlx_dyn_addf(req, "User-Agent: %s\r\n", ua);
     break;
+  }
 
   case H1_HD_ACCEPT:
     if(!Curl_checkheaders(data, STRCONST("Accept")))
@@ -2983,16 +2980,14 @@ static CURLcode http_add_hd(struct Curl_easy *data,
 #endif
     break;
 
-  case H1_HD_ACCEPT_ENCODING:
-    curlx_safefree(data->state.aptr.accept_encoding);
-    if(!Curl_checkheaders(data, STRCONST("Accept-Encoding")) &&
-       data->set.str[STRING_ENCODING])
-      result = curlx_dyn_addf(req, "Accept-Encoding: %s\r\n",
-                              data->set.str[STRING_ENCODING]);
+  case H1_HD_ACCEPT_ENCODING: {
+    const char *enc = CURL_EASY_STR(data, STRING_ENCODING);
+    if(enc && !Curl_checkheaders(data, STRCONST("Accept-Encoding")))
+      result = curlx_dyn_addf(req, "Accept-Encoding: %s\r\n", enc);
     break;
+  }
 
   case H1_HD_REFERER:
-    curlx_safefree(data->state.aptr.ref);
     if(Curl_bufref_ptr(&data->state.referer) &&
        !Curl_checkheaders(data, STRCONST("Referer")))
       result = curlx_dyn_addf(req, "Referer: %s\r\n",
@@ -3115,8 +3110,6 @@ CURLcode Curl_http(struct Curl_easy *data, bool *done)
     result = Curl_http_output_auth(data, data->conn, method, httpreq,
                                    data->state.up.path,
                                    data->state.up.query, FALSE);
-  if(!result)
-    result = http_useragent(data);
   /* Setup input reader, resume information and ranges */
   if(!result)
     result = set_reader(data, httpreq);
@@ -3187,7 +3180,7 @@ static statusline checkhttpprefix(struct Curl_easy *data,
     head = head->next;
   }
 
-  if((rc != STATUS_DONE) && (checkprefixmax("HTTP/", s, len)))
+  if((rc != STATUS_DONE) && checkprefixmax("HTTP/", s, len))
     rc = onmatch;
 
   return rc;
@@ -3323,7 +3316,7 @@ static CURLcode http_header_c(struct Curl_easy *data,
       }
     } while(1);
   }
-  v = (!k->http_bodyless && data->set.str[STRING_ENCODING]) ?
+  v = (!k->http_bodyless && CURL_EASY_STR(data, STRING_ENCODING)) ?
     HD_VAL(hd, hdlen, "Content-Encoding:") : NULL;
   if(v) {
     /*
@@ -3585,11 +3578,13 @@ static CURLcode http_header_s(struct Curl_easy *data,
      * real peer hostname. */
     const char *host = data->req.cookiehost ?
       data->req.cookiehost : data->state.origin->hostname;
-    const bool secure_context = Curl_secure_context(data, host);
+    const unsigned char secure_context = Curl_secure_context(data, host) ?
+      COOKIE_SECURE : 0;
     CURLcode result;
     Curl_share_lock(data, CURL_LOCK_DATA_COOKIE, CURL_LOCK_ACCESS_SINGLE);
-    result = Curl_cookie_add(data, data->cookies, TRUE, FALSE, v, host,
-                             data->state.up.path, secure_context);
+    result = Curl_cookie_add(data, data->cookies, v, host,
+                             data->state.up.path,
+                             COOKIE_HTTPHEADER | secure_context);
     Curl_share_unlock(data, CURL_LOCK_DATA_COOKIE);
     return result;
   }

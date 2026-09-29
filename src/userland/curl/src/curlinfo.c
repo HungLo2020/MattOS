@@ -34,7 +34,7 @@
 #include "multihandle.h" /* for ENABLE_WAKEUP */
 #include "tool_xattr.h" /* for USE_XATTR */
 #include "curl_sha512_256.h" /* for CURL_HAVE_SHA512_256 */
-#include "asyn.h" /* for USE_RESOLV_ARES, USE_RESOLV_THREADED */
+#include "vdns/asyn.h" /* for USE_RESOLV_ARES, USE_RESOLV_THREADED */
 #include "fake_addrinfo.h" /* for USE_FAKE_GETADDRINFO */
 
 #include <stdio.h>
@@ -270,12 +270,9 @@ static const char * const disabled[] = {
 #endif
 };
 
-int main(int argc, const char **argv)
+int main(void)
 {
   size_t i;
-
-  (void)argc;
-  (void)argv;
 
   for(i = 0; i < CURL_ARRAYSIZE(disabled); i++)
     puts(disabled[i]);

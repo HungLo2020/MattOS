@@ -65,7 +65,7 @@
 #ifdef HAVE_LIBZ
 
 #if !defined(ZLIB_VERNUM) || (ZLIB_VERNUM < 0x1252)
-#error "requires zlib 1.2.5.2 or newer"
+#error "zlib 1.2.5.2 or greater required"
 #endif
 
 typedef enum {
@@ -783,7 +783,8 @@ CURLcode Curl_build_unencoding_stack(struct Curl_easy *data,
        * Exception is "chunked" transfer-encoding which always must happen */
       if((is_transfer && !data->set.http_transfer_encoding && !is_chunked) ||
          (!is_transfer && data->set.http_ce_skip)) {
-        bool is_identity = curl_strnequal(name, "identity", 8);
+        bool is_identity = (namelen == 8) &&
+                           curl_strnequal(name, "identity", 8);
         /* not requested, ignore */
         CURL_TRC_WRITE(data, "decoder not requested, ignored: %.*s",
                        (int)namelen, name);

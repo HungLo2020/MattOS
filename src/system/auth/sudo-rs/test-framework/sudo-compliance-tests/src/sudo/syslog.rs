@@ -35,7 +35,7 @@ fn sudo_respects_log_allowed() {
         .assert_success();
 
     let auth_log = rsyslog.auth_log();
-    assert_not_contains!(auth_log, format!("COMMAND="));
+    assert_not_contains!(auth_log, "COMMAND=".to_string());
 }
 
 #[test]

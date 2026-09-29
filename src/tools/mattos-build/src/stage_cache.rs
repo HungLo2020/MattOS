@@ -3,6 +3,7 @@ use chrono::Utc;
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -121,12 +122,27 @@ where
     acquire_resources()?;
     invalidate_integrity_paths(repo_root, &spec.outputs);
     crate::performance::trace_log_context("cached-stage-before-with-stage-log");
+    let child_jobs = crate::scheduler::child_job_limit();
+    let cgroup = crate::stage_memory::StageCgroup::create(
+        &spec.id,
+        crate::resources::discover().effective_available_memory_bytes(),
+    );
     let result = measured("stage_actions", || {
-        with_stage_log(repo_root, &spec.id, action)
+        crate::stage_memory::StageCgroup::enter(cgroup.as_ref(), || with_stage_log(repo_root, &spec.id, action))
     });
+    if let Some(peak_bytes) = cgroup.as_ref().and_then(crate::stage_memory::StageCgroup::peak_bytes)
+        && result.is_ok()
+    {
+        crate::stage_memory::record(
+            repo_root,
+            &spec.id,
+            crate::stage_memory::StageMemoryRecord { peak_bytes, child_jobs },
+        )?;
+    }
+    drop(cgroup);
     let mut output_digest = None;
     if result.is_ok() {
-        remove_generated_info_indexes(repo_root, &spec.outputs)?;
+        finalize_stage_outputs(repo_root, &spec.outputs)?;
         let inventory = measured("output_inventory_hashing", || {
             output_inventory(repo_root, &spec.outputs)
         })?;
@@ -918,19 +934,22 @@ pub(crate) fn take_tool_drift_report() -> Option<String> {
 /// output digest keys every stage it compiles, so one lost line rebuilt the
 /// whole system. MattOS never ships the index (install-info maintains it on
 /// the installed system), so it is removed before outputs are inventoried.
-fn remove_generated_info_indexes(repo_root: &Path, outputs: &[PathBuf]) -> Result<()> {
+/// Normalizes a successful stage's declared outputs before they are
+/// inventoried: removes generated `share/info/dir` indexes and strips group
+/// and other write permission (see `normalized_output_mode`).
+fn finalize_stage_outputs(repo_root: &Path, outputs: &[PathBuf]) -> Result<()> {
     for output in outputs {
         let root = if output.is_absolute() {
             output.clone()
         } else {
             repo_root.join(output)
         };
-        remove_info_indexes_under(&root)?;
+        finalize_outputs_under(&root)?;
     }
     Ok(())
 }
 
-fn remove_info_indexes_under(path: &Path) -> Result<()> {
+fn finalize_outputs_under(path: &Path) -> Result<()> {
     let metadata = match fs::symlink_metadata(path) {
         Ok(metadata) => metadata,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
@@ -938,14 +957,34 @@ fn remove_info_indexes_under(path: &Path) -> Result<()> {
             return Err(error).with_context(|| format!("failed to inspect {}", path.display()));
         }
     };
+    if metadata.file_type().is_symlink() {
+        return Ok(());
+    }
+    if !metadata.is_dir() && path.ends_with("share/info/dir") {
+        fs::remove_file(path).with_context(|| format!("failed to remove {}", path.display()))?;
+        return Ok(());
+    }
+    let mode = metadata.permissions().mode() & 0o7777;
+    let normalized = normalized_output_mode(mode);
+    if normalized != mode {
+        fs::set_permissions(path, fs::Permissions::from_mode(normalized))
+            .with_context(|| format!("failed to normalize the mode of {}", path.display()))?;
+    }
     if metadata.is_dir() {
         for entry in fs::read_dir(path).with_context(|| format!("failed to read {}", path.display()))? {
-            remove_info_indexes_under(&entry?.path())?;
+            finalize_outputs_under(&entry?.path())?;
         }
-    } else if path.ends_with("share/info/dir") {
-        fs::remove_file(path).with_context(|| format!("failed to remove {}", path.display()))?;
     }
     Ok(())
+}
+
+/// Git records only a file's executable bit, so group write on output copied
+/// from a vendored tree comes from the checkout's umask, not from the source.
+/// Stripping group and other write makes such outputs, and their digests,
+/// independent of the host that checked the repository out. Sticky and
+/// setgid modes (`/tmp`, shared group directories) are deliberate and kept.
+fn normalized_output_mode(mode: u32) -> u32 {
+    if mode & 0o3000 != 0 { mode } else { mode & !0o022 }
 }
 
 /// Development cache validity is based on the compatibility of the published
@@ -1178,6 +1217,52 @@ mod tests {
     use super::*;
     use crate::cache_manifest::ToolIdentity;
     use std::cell::{Cell, RefCell};
+
+    #[test]
+    fn finalized_outputs_do_not_depend_on_the_checkout_umask() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let out = temp.path().join("out");
+        let mode = |path: &Path| -> Result<u32> {
+            Ok(fs::symlink_metadata(path)?.permissions().mode() & 0o7777)
+        };
+        for (path, mode) in [
+            ("usr", 0o775),
+            ("usr/bin", 0o775),
+            ("tmp", 0o1777),
+            ("var/mail", 0o2775),
+        ] {
+            fs::create_dir_all(out.join(path))?;
+            fs::set_permissions(out.join(path), fs::Permissions::from_mode(mode))?;
+        }
+        for (path, mode) in [
+            ("usr/bin/tool", 0o775),
+            ("usr/data", 0o664),
+            ("usr/world", 0o666),
+            ("usr/share/info/dir", 0o644),
+        ] {
+            fs::create_dir_all(out.join(path).parent().unwrap())?;
+            fs::write(out.join(path), path)?;
+            fs::set_permissions(out.join(path), fs::Permissions::from_mode(mode))?;
+        }
+        std::os::unix::fs::symlink("tool", out.join("usr/bin/link"))?;
+
+        finalize_stage_outputs(temp.path(), &[PathBuf::from("out")])?;
+
+        for (path, expected) in [
+            ("usr", 0o755),
+            ("usr/bin", 0o755),
+            ("usr/bin/tool", 0o755),
+            ("usr/data", 0o644),
+            ("usr/world", 0o644),
+            ("tmp", 0o1777),
+            ("var/mail", 0o2775),
+        ] {
+            assert_eq!(mode(&out.join(path))?, expected, "{path}");
+        }
+        assert!(!out.join("usr/share/info/dir").exists());
+        assert_eq!(fs::read_link(out.join("usr/bin/link"))?, PathBuf::from("tool"));
+        Ok(())
+    }
 
     fn fixture_spec(output: &str) -> StageSpec {
         StageSpec {

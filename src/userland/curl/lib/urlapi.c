@@ -467,7 +467,7 @@ UNITTEST CURLUcode ipv6_parse(struct Curl_URL *u, char *hostname,
     hostname[hlen] = 0; /* end the address there */
     if(curlx_inet_pton(AF_INET6, hostname, dest) != 1)
       return CURLUE_BAD_IPV6;
-    if(curlx_inet_ntop(AF_INET6, dest, hostname, hlen + 1)) {
+    if(!curlx_inet_ntop(AF_INET6, dest, hostname, hlen + 1)) {
       hlen = strlen(hostname); /* might be shorter now */
       hostname[hlen + 1] = 0;
     }
@@ -750,6 +750,29 @@ static bool is_dot(const char **str, size_t *clen)
 
 #define ISSLASH(x) ((x) == '/')
 
+/* prescan the string to see if it needs work */
+static bool needs_dedotdot(const char *p, size_t pn)
+{
+  /* a single byte path cannot be cleaned up */
+  if(pn < 2)
+    return FALSE;
+  while(pn) {
+    if(is_dot(&p, &pn)) {
+      /* "./" or dot before end of string */
+      if(!pn || ISSLASH(*p))
+        return TRUE;
+      /* "../" or ".." before end of string */
+      else if(is_dot(&p, &pn) && (!pn || ISSLASH(*p)))
+        return TRUE;
+    }
+    else {
+      p++;
+      pn--;
+    }
+  }
+  return FALSE;
+}
+
 /*
  * dedotdotify()
  *
@@ -761,7 +784,8 @@ static bool is_dot(const char **str, size_t *clen)
  *
  * RETURNS
  *
- * Zero for success and 'out' set to an allocated dedotdotified string.
+ * Zero for success and 'out' set to an allocated string (or NULL if there's
+ * nothing to do).
  *
  * @unittest 1395
  */
@@ -776,8 +800,7 @@ UNITTEST int dedotdotify(const char *input, size_t clen, char **outp)
   size_t dlen = clen;
 
   *outp = NULL;
-  /* a single byte path cannot be cleaned up */
-  if(clen < 2)
+  if(!needs_dedotdot(input, clen))
     return 0;
 
   curlx_dyn_init(&out, clen + 1);
@@ -1676,7 +1699,7 @@ CURLUcode curl_url_get(const CURLU *u, CURLUPart what,
     ifmissing = CURLUE_NO_QUERY;
     plusdecode = flags & CURLU_URLDECODE;
     if(ptr && !ptr[0] && !(flags & CURLU_GET_EMPTY))
-      /* there was a blank query and the user do not ask for it */
+      /* there was a blank query and the user does not ask for it */
       ptr = NULL;
     break;
   case CURLUPART_FRAGMENT:

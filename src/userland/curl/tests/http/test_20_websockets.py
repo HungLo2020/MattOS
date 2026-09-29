@@ -296,7 +296,10 @@ class TestWebsockets:
             except OSError as e:
                 st["err"] = e
 
-        curl = CurlClient(env=env)
+        run_env = os.environ.copy()
+        if 'CURL_DEBUG' in run_env:
+            del run_env['CURL_DEBUG']
+        curl = CurlClient(env=env, run_env=run_env)
         send_rounds = 2
         threading.Thread(target=srv, daemon=True).start()
         while "p" not in st and "err" not in st:
@@ -308,7 +311,7 @@ class TestWebsockets:
                                with_profile=True)
         assert r.exit_code in [55, 56], f'{r.dump_logs()}'  # SEND/RECV_ERROR
         assert r.profile, f'{r}'
-        rss1 = r.profile.stats['rss'] / (1024 * 1024)
+        rss1 = r.profile.stats['rss-max'] / (1024 * 1024)
 
         st.clear()
         send_rounds = 10
@@ -322,8 +325,8 @@ class TestWebsockets:
                                with_profile=True)
         assert r.exit_code in [55, 56], f'{r.dump_logs()}'  # SEND/RECV_ERROR
         assert r.profile, f'{r}'
-        rss2 = r.profile.stats['rss'] / (1024 * 1024)
-        assert (rss1 * 1.1) >= rss2, 'bad memory increase'
+        rss2 = r.profile.stats['rss-max'] / (1024 * 1024)
+        assert (rss1 * 1.2) > rss2, 'bad memory increase'
 
     # test small frames delivery when pausing
     def test_20_12_pause_frames_small(self, env: Env, ws_4frames):
@@ -342,5 +345,15 @@ class TestWebsockets:
         if not client.exists():
             pytest.skip(f'example client not built: {client.name}')
         url = f'ws://localhost:{ws_4frames.port}/large'
+        r = client.run(args=[url, payload])
+        r.check_exit_code(0)
+
+    # test handling of write callback errors
+    def test_20_14_write_err(self, env: Env, ws_4frames):
+        payload = 127 * "x"
+        client = LocalClient(env=env, name='cli_ws_write_err')
+        if not client.exists():
+            pytest.skip(f'example client not built: {client.name}')
+        url = f'ws://localhost:{ws_4frames.port}/small'
         r = client.run(args=[url, payload])
         r.check_exit_code(0)

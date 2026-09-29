@@ -161,6 +161,11 @@ fn prompt_password(
             }
         }
 
+        // If there was a prompt, write a new line to move the cursor to the start
+        if !prompt.is_empty() {
+            let _ = write_unbuffered(sink, b"\n");
+        }
+
         return res;
     }
 }
@@ -222,7 +227,6 @@ fn read_unbuffered(
     impl Drop for Bullets<'_> {
         fn drop(&mut self) {
             self.clear();
-            let _ = self.sink.write(b"\n");
         }
     }
 
@@ -509,6 +513,30 @@ mod test {
         let mut data = vec![0; "hello world".len()];
         rx.read_exact(&mut data).unwrap();
         assert_eq!(data, b"hello world");
+    }
+
+    #[test]
+    fn empty_prompt_does_not_write_to_sink() {
+        let mut sink = Vec::new();
+        let (rx, mut tx) = make_pipe();
+        tx.write_all(b"password123\n").unwrap();
+        drop(tx);
+
+        prompt_password(rx.as_fd(), &mut sink, "", None, Hidden::No).unwrap();
+
+        assert!(sink.is_empty());
+    }
+
+    #[test]
+    fn displayed_prompt_ends_with_newline() {
+        let mut sink = Vec::new();
+        let (rx, mut tx) = make_pipe();
+        tx.write_all(b"password123\n").unwrap();
+        drop(tx);
+
+        prompt_password(rx.as_fd(), &mut sink, "Password: ", None, Hidden::No).unwrap();
+
+        assert_eq!(sink, b"Password: \n");
     }
 
     #[test]

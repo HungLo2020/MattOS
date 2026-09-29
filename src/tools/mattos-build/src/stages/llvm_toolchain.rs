@@ -1,6 +1,19 @@
 // LLVM, Clang and LLD.  Kept separate from the Rust and CPython recipes so a
 // change to one does not invalidate the others' stage caches.
 
+/// Concurrent LLVM links this host can afford: one per 6 GiB of the memory
+/// the build may use (the host's, or its cgroup limit), from 1 to 4.  It is
+/// sized from total memory rather than what is free now because it is baked
+/// into the configured build; momentary pressure is handled by the jobserver
+/// and the stage's `memory.high`.
+fn llvm_parallel_link_jobs(snapshot: &resources::ResourceSnapshot) -> u64 {
+    const PER_LINK_BYTES: u64 = 6 * 1024 * 1024 * 1024;
+    let memory = snapshot
+        .cgroup_memory_limit_bytes
+        .map_or(snapshot.physical_memory_bytes, |limit| limit.min(snapshot.physical_memory_bytes));
+    (memory / PER_LINK_BYTES).clamp(1, 4)
+}
+
 fn build_llvm(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/toolchain/llvm-project/llvm");
     let out_root = repo_root.join("out/build/llvm");
@@ -47,7 +60,7 @@ fn build_llvm(repo_root: &Path) -> Result<()> {
         // Linking libLLVM, libclang-cpp and the tools with GNU ld takes several
         // GB each; unbounded concurrent links are the build's largest memory
         // peak.  A Ninja link pool keeps compile parallelism while capping it.
-        "-DLLVM_PARALLEL_LINK_JOBS=2".to_string(),
+        format!("-DLLVM_PARALLEL_LINK_JOBS={}", llvm_parallel_link_jobs(&resources::discover())),
     ];
     let stamp = format!("{state}\n{}\n", options.join("\n"));
     let stamp_path = out_root.join("build-stamp.txt");

@@ -1841,7 +1841,7 @@ dnl **********************************************************************
 
 AC_MSG_CHECKING([if argv can be written to])
 CURL_RUN_IFELSE([[
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 #ifdef _WIN32
   /* on Windows, writing to the argv does not hide the argument in
@@ -2495,7 +2495,7 @@ if test "x$OPT_LIBSSH2" != "xno"; then
   CPPFLAGS="$CPPFLAGS $CPP_SSH2"
   LIBS="$LIB_SSH2 $LIBS"
 
-  dnl check for function added in libssh2 v1.9.0
+  dnl check for function added in libssh2 1.9.0
   AC_CHECK_LIB(ssh2, libssh2_agent_get_identity_path)
 
   AC_CHECK_HEADER(libssh2.h,
@@ -2814,7 +2814,7 @@ AS_HELP_STRING([--disable-versioned-symbols], [Disable versioned symbols in shar
   *)
     AC_MSG_RESULT(yes)
     AC_MSG_CHECKING([if libraries can be versioned])
-    GLD=`$LD --help < /dev/null 2>/dev/null | grep version-script`
+    GLD=`$LD --help < /dev/null 2>/dev/null | $GREP version-script`
     if test -z "$GLD"; then
       AC_MSG_RESULT(no)
       AC_MSG_WARN([You need an ld version supporting the --version-script option])
@@ -4035,6 +4035,7 @@ AC_CHECK_HEADERS(
   linux/tcp.h \
   netinet/tcp.h \
   netinet/udp.h \
+  netinet/ip.h \
   netdb.h \
   sys/sockio.h \
   sys/param.h \
@@ -4226,7 +4227,6 @@ AC_CHECK_FUNCS([\
   getpwuid \
   getpwuid_r \
   getrlimit \
-  gettimeofday \
   mach_absolute_time \
   pipe \
   poll \
@@ -4249,6 +4249,7 @@ fi
 
 if test "$curl_cv_native_windows" != "yes"; then
   AC_CHECK_FUNCS([\
+    gettimeofday \
     if_nametoindex \
     realpath \
     sched_yield \
@@ -4380,11 +4381,13 @@ elif test "$USE_ARES" = "1"; then
   curl_res_msg="c-ares"
 fi
 
-AC_CHECK_HEADER(dirent.h,
-  [ AC_DEFINE(HAVE_DIRENT_H, 1, [if you have <dirent.h>])
-    AC_CHECK_FUNC(opendir, AC_DEFINE(HAVE_OPENDIR, 1, [if you have opendir]) )
-  ]
-)
+if test "$curl_cv_native_windows" != "yes"; then
+  AC_CHECK_HEADER(dirent.h,
+    [ AC_DEFINE(HAVE_DIRENT_H, 1, [if you have <dirent.h>])
+      AC_CHECK_FUNC(opendir, AC_DEFINE(HAVE_OPENDIR, 1, [if you have opendir]) )
+    ]
+  )
+fi
 
 CURL_CONVERT_INCLUDE_TO_ISYSTEM
 
@@ -4608,8 +4611,8 @@ AS_HELP_STRING([--disable-httpsig],[Disable HTTP Message Signatures support (exp
     want_httpsig="no"
 )
 
-if test "$want_httpsig" = "yes" && test "$OPENSSL_ENABLED" != "1" && test "$WOLFSSL_ENABLED" != "1"; then
-  AC_MSG_WARN([HTTPSIG requires OpenSSL or wolfSSL. HTTPSIG support disabled.])
+if test "$want_httpsig" = "yes" && test "$GNUTLS_ENABLED" != "1" && test "$OPENSSL_ENABLED" != "1" && test "$WOLFSSL_ENABLED" != "1"; then
+  AC_MSG_WARN([HTTPSIG requires GnuTLS, OpenSSL or wolfSSL. HTTPSIG support disabled.])
   want_httpsig="no"
 fi
 if test "$want_httpsig" != "yes"; then
@@ -5209,12 +5212,18 @@ dnl Merge pkg-config private fields into public ones when static-only
 if test "$enable_shared" = "no"; then
   LIBCURL_PC_REQUIRES=$LIBCURL_PC_REQUIRES_PRIVATE
   LIBCURL_PC_LIBS=$LIBCURL_PC_LIBS_PRIVATE
+  LIBCURL_PC_REQUIRES_PRIVATE=
 else
   LIBCURL_PC_REQUIRES=
   LIBCURL_PC_LIBS=
 fi
 AC_SUBST(LIBCURL_PC_REQUIRES)
 AC_SUBST(LIBCURL_PC_LIBS)
+
+if test -n "$CURL_CI"; then
+  CURL_PACKAGE_MAINTAINER=https://curl.se/
+  AC_SUBST(CURL_PACKAGE_MAINTAINER)
+fi
 
 rm "$compilersh"
 
@@ -5548,17 +5557,21 @@ AC_CONFIG_FILES([\
   tests/configurehelp.pm \
   tests/certs/Makefile \
   tests/data/Makefile \
-  tests/server/Makefile \
-  tests/libtest/Makefile \
-  tests/unit/Makefile \
-  tests/tunit/Makefile \
   tests/http/config.ini \
   tests/http/Makefile \
+  tests/libtest/Makefile \
+  tests/perf/Makefile \
+  tests/server/Makefile \
+  tests/tunit/Makefile \
+  tests/unit/Makefile \
   projects/Makefile \
-  projects/vms/Makefile \
-  libcurl.pc
+  projects/vms/Makefile
 ])
 AC_CONFIG_FILES([curl-config], [chmod +x curl-config])
+AC_CONFIG_FILES([libcurl.pc], [
+  dnl strip trailing spaces, duplicate spaces after colon, empty properties
+  "$SED" -e 's/ *$//g' -e 's/^Libs\.private:  */Libs.private: /' -e '/^@<:@A-Za-z.@:>@*:$/d' libcurl.pc > libcurl.pc.tmp && mv libcurl.pc.tmp libcurl.pc
+], [SED="$SED"])
 AC_OUTPUT
 
 SUPPORT_PROTOCOLS_LOWER=`echo "$SUPPORT_PROTOCOLS" | tr A-Z a-z`
@@ -5618,6 +5631,10 @@ AC_MSG_NOTICE([Configured to build curl/libcurl:
   Protocols:        ${SUPPORT_PROTOCOLS_LOWER}
   Features:         ${SUPPORT_FEATURES}
 ])
+
+if test "$want_debug" = "yes"; then
+  AC_MSG_WARN([This curl build is Debug-enabled and insecure, do not use in production.])
+fi
 
 if test -n "$experimental"; then
   for a in $experimental; do

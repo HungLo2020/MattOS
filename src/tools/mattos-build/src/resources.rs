@@ -89,6 +89,19 @@ impl PressureTracker {
         snapshot: ResourceSnapshot,
         elapsed: Duration,
     ) -> ResourceEnvelope {
+        self.observe_with_stage_pressure(snapshot, elapsed, PressureLevel::Healthy)
+    }
+
+    /// `observe`, also counting pressure reported by the running stages' own
+    /// cgroups (`stage_memory::stage_pressure`): a stage throttled at its
+    /// `memory.high` must shed jobs before its pages reach swap, which the
+    /// host-wide rates only show once they already have.
+    pub(crate) fn observe_with_stage_pressure(
+        &mut self,
+        snapshot: ResourceSnapshot,
+        elapsed: Duration,
+        stage_pressure: PressureLevel,
+    ) -> ResourceEnvelope {
         let seconds = elapsed.as_secs_f64().max(0.001);
         let (swap_in_pages_per_second, swap_out_pages_per_second) =
             self.previous.as_ref().map_or((0.0, 0.0), |previous| {
@@ -110,7 +123,8 @@ impl PressureTracker {
             swap_in_pages_per_second,
             swap_out_pages_per_second,
             psi_memory_some_avg10,
-        );
+        )
+        .max(stage_pressure);
         if candidate > self.level {
             self.level = candidate;
             self.recovery_samples = 0;
@@ -202,7 +216,8 @@ impl RuntimeResourceSampler for HostResourceSampler {
         let now = Instant::now();
         let elapsed = now.duration_since(self.last_sample);
         self.last_sample = now;
-        self.tracker.observe(discover(), elapsed)
+        self.tracker
+            .observe_with_stage_pressure(discover(), elapsed, crate::stage_memory::stage_pressure())
     }
 }
 

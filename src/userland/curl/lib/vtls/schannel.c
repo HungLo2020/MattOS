@@ -48,7 +48,6 @@
 #include "curlx/fopen.h"
 #include "curlx/multibyte.h"
 #include "vtls/x509asn1.h"
-#include "system_win32.h"
 #include "curlx/version_win32.h"
 #include "curlx/winapi.h"
 #include "curlx/strparse.h"
@@ -84,7 +83,7 @@
 #ifndef SP_PROT_TLS1_3_CLIENT
 #define SP_PROT_TLS1_3_CLIENT           0x00002000
 #endif
-/* Offered by mingw-w64 v8+, MS SDK 8.1/~VS2013+ */
+/* Offered by mingw-w64 v8+, MS SDK 8.1/VS2013+ */
 #ifndef SCH_USE_STRONG_CRYPTO
 #define SCH_USE_STRONG_CRYPTO           0x00400000
 #endif
@@ -119,14 +118,32 @@
 /* key to use at `multi->proto_hash` */
 #define MPROTO_SCHANNEL_CERT_SHARE_KEY   "tls:schannel:cert:share"
 
-/* ALPN requires version 8.1 of the Windows SDK, which was
-   shipped with Visual Studio 2013, aka _MSC_VER 1800:
-     https://learn.microsoft.com/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/hh831771
-   Or mingw-w64 9.0 or upper. */
-#if (defined(__MINGW64_VERSION_MAJOR) && __MINGW64_VERSION_MAJOR >= 9) || \
-  (defined(_MSC_VER) && (_MSC_VER >= 1800) && !defined(_USING_V110_SDK71_))
-#define HAS_ALPN_SCHANNEL
 static bool s_win_has_alpn;
+
+/* Offered by mingw-w64 v9+, MS SDK 8.1/VS2013+ */
+#ifndef SECBUFFER_APPLICATION_PROTOCOLS
+#define SECBUFFER_APPLICATION_PROTOCOLS 18
+#define SECPKG_ATTR_APPLICATION_PROTOCOL 35
+
+typedef enum {
+  SecApplicationProtocolNegotiationExt_None,
+  SecApplicationProtocolNegotiationExt_NPN,
+  SecApplicationProtocolNegotiationExt_ALPN
+} SEC_APPLICATION_PROTOCOL_NEGOTIATION_EXT;
+
+typedef enum {
+  SecApplicationProtocolNegotiationStatus_None,
+  SecApplicationProtocolNegotiationStatus_Success,
+  SecApplicationProtocolNegotiationStatus_SelectedClientOnly
+} SEC_APPLICATION_PROTOCOL_NEGOTIATION_STATUS;
+
+/* !checksrc! disable TYPEDEFSTRUCT 1 */
+typedef struct {
+  SEC_APPLICATION_PROTOCOL_NEGOTIATION_STATUS ProtoNegoStatus;
+  SEC_APPLICATION_PROTOCOL_NEGOTIATION_EXT ProtoNegoExt;
+  unsigned char ProtocolIdSize;
+  unsigned char ProtocolId[0xff];
+} SecPkgContext_ApplicationProtocol;
 #endif
 
 static void InitSecBuffer(SecBuffer *buffer, unsigned long BufType,
@@ -184,7 +201,7 @@ static CURLcode schannel_set_ssl_version_min_max(DWORD *enabled_protocols,
       break;
     case CURL_SSLVERSION_TLSv1_3:
 
-      /* Windows Server 2022 and newer */
+      /* Windows Server 2022 or newer */
       if(curlx_verify_windows_version(10, 0, 20348, PLATFORM_WINNT,
                                       VERSION_GREATER_THAN_EQUAL)) {
         *enabled_protocols |= SP_PROT_TLS1_3_CLIENT;
@@ -484,6 +501,7 @@ static CURLcode get_client_cert(struct Curl_cfilter *cf,
 
         cert_store = PFXImportCertStore(&datablob, pszPassword,
                                         PKCS12_NO_PERSIST_KEY);
+        curlx_memzero(pszPassword, sizeof(WCHAR) * (pwd_len + 1));
         curlx_free(pszPassword);
       }
       if(!blob)
@@ -502,7 +520,7 @@ static CURLcode get_client_cert(struct Curl_cfilter *cf,
       }
 
       /* CERT_FIND_HAS_PRIVATE_KEY is only available in Windows 8 / Server
-         2012, (NT v6.2). For earlier versions we use CURL_FIND_ANY. */
+         2012, (NT 6.2). For older versions we use CURL_FIND_ANY. */
       if(curlx_verify_windows_version(6, 2, 0, PLATFORM_WINNT,
                                       VERSION_GREATER_THAN_EQUAL))
         cert_find_flags = CERT_FIND_HAS_PRIVATE_KEY;
@@ -627,8 +645,7 @@ static CURLcode acquire_sspi_handle(struct Curl_cfilter *cf,
     }
 
     sspi_status =
-      Curl_pSecFn->AcquireCredentialsHandle(NULL,
-                                            (TCHAR *)CURL_UNCONST(UNISP_NAME),
+      Curl_pSecFn->AcquireCredentialsHandle(NULL, CURL_UNCONST(UNISP_NAME),
                                             SECPKG_CRED_OUTBOUND, NULL,
                                             &credentials, NULL, NULL,
                                             &backend->cred->cred_handle, NULL);
@@ -677,8 +694,7 @@ static CURLcode acquire_sspi_handle(struct Curl_cfilter *cf,
     }
 
     sspi_status =
-      Curl_pSecFn->AcquireCredentialsHandle(NULL,
-                                            (TCHAR *)CURL_UNCONST(UNISP_NAME),
+      Curl_pSecFn->AcquireCredentialsHandle(NULL, CURL_UNCONST(UNISP_NAME),
                                             SECPKG_CRED_OUTBOUND, NULL,
                                             &schannel_cred, NULL, NULL,
                                             &backend->cred->cred_handle, NULL);
@@ -720,7 +736,7 @@ static CURLcode schannel_acquire_credential_handle(struct Curl_cfilter *cf,
   DWORD enabled_protocols = 0;
 
   struct schannel_ssl_backend_data *backend =
-    (struct schannel_ssl_backend_data *)(connssl->backend);
+    (struct schannel_ssl_backend_data *)connssl->backend;
 
   DEBUGASSERT(backend);
 
@@ -839,9 +855,7 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
   SecBufferDesc outbuf_desc;
   SecBuffer inbuf;
   SecBufferDesc inbuf_desc;
-#ifdef HAS_ALPN_SCHANNEL
   unsigned char alpn_buffer[128];
-#endif
   SECURITY_STATUS sspi_status = SEC_E_OK;
   CURLcode result;
 
@@ -849,11 +863,7 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
   DEBUGF(infof(data, "schannel: SSL/TLS connection with %s port %d (step 1/3)",
                connssl->peer.origin->hostname, connssl->peer.origin->port));
 
-#ifdef HAS_ALPN_SCHANNEL
   backend->use_alpn = connssl->alpn && s_win_has_alpn;
-#else
-  backend->use_alpn = FALSE;
-#endif
 
   if(conn_config->CAfile || conn_config->ca_info_blob) {
     if(curlx_verify_windows_version(6, 1, 0, PLATFORM_WINNT,
@@ -911,7 +921,6 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
     infof(data, "schannel: using IP address, SNI is not supported by OS.");
   }
 
-#ifdef HAS_ALPN_SCHANNEL
   if(backend->use_alpn) {
     int cur = 0;
     int list_start_index = 0;
@@ -959,10 +968,6 @@ static CURLcode schannel_connect_step1(struct Curl_cfilter *cf,
     InitSecBuffer(&inbuf, SECBUFFER_EMPTY, NULL, 0);
     InitSecBufferDesc(&inbuf_desc, &inbuf, 1);
   }
-#else /* HAS_ALPN_SCHANNEL */
-  InitSecBuffer(&inbuf, SECBUFFER_EMPTY, NULL, 0);
-  InitSecBufferDesc(&inbuf_desc, &inbuf, 1);
-#endif
 
   /* setup output buffer */
   InitSecBuffer(&outbuf, SECBUFFER_EMPTY, NULL, 0);
@@ -1420,7 +1425,7 @@ static CURLcode schannel_connect_step2(struct Curl_cfilter *cf,
                     inbuf[1].cbBuffer));
       /* There are two cases where we could be getting extra data here:
          1. If we are renegotiating a connection and the handshake is already
-            complete (from the server perspective), it can encrypted app data
+            complete (from the server perspective), it can encrypt app data
             (not handshake data) in an extra buffer at this point.
          2. (sspi_status == SEC_I_CONTINUE_NEEDED) We are negotiating a
             connection and this extra data is part of the handshake.
@@ -1460,10 +1465,10 @@ static CURLcode schannel_connect_step2(struct Curl_cfilter *cf,
 
 #ifndef CURL_DISABLE_PROXY
   pubkey_ptr = Curl_ssl_cf_is_proxy(cf) ?
-    data->set.str[STRING_SSL_PINNEDPUBLICKEY_PROXY] :
-    data->set.str[STRING_SSL_PINNEDPUBLICKEY];
+    CURL_EASY_STR(data, STRING_SSL_PINNEDPUBLICKEY_PROXY) :
+    CURL_EASY_STR(data, STRING_SSL_PINNEDPUBLICKEY);
 #else
-  pubkey_ptr = data->set.str[STRING_SSL_PINNEDPUBLICKEY];
+  pubkey_ptr = CURL_EASY_STR(data, STRING_SSL_PINNEDPUBLICKEY);
 #endif
   if(pubkey_ptr) {
     result = schannel_pkp_pin_peer_pubkey(cf, data, pubkey_ptr);
@@ -1587,9 +1592,7 @@ static CURLcode schannel_connect_step3(struct Curl_cfilter *cf,
   CURLcode result = CURLE_OK;
   SECURITY_STATUS sspi_status = SEC_E_OK;
   CERT_CONTEXT *ccert_context = NULL;
-#ifdef HAS_ALPN_SCHANNEL
   SecPkgContext_ApplicationProtocol alpn_result;
-#endif
 
   DEBUGASSERT(connssl->connecting_state == ssl_connect_3);
   DEBUGASSERT(backend);
@@ -1615,7 +1618,6 @@ static CURLcode schannel_connect_step3(struct Curl_cfilter *cf,
     return CURLE_SSL_CONNECT_ERROR;
   }
 
-#ifdef HAS_ALPN_SCHANNEL
   if(backend->use_alpn) {
     sspi_status =
       Curl_pSecFn->QueryContextAttributes(&backend->ctxt->ctxt_handle,
@@ -1647,7 +1649,6 @@ static CURLcode schannel_connect_step3(struct Curl_cfilter *cf,
         Curl_alpn_set_negotiated(cf, data, connssl, NULL, 0);
     }
   }
-#endif
 
   /* save the current session data for possible reuse */
   if(Curl_ssl_scache_use(cf, data)) {
@@ -1735,21 +1736,26 @@ static CURLcode schannel_connect(struct Curl_cfilter *cf,
   }
 
   if(connssl->connecting_state == ssl_connect_done) {
+    struct schannel_ssl_backend_data *backend =
+      (struct schannel_ssl_backend_data *)connssl->backend;
+    DEBUGASSERT(backend);
+
+    if(Curl_pSecFn->QueryContextAttributes(
+         &backend->ctxt->ctxt_handle,
+         SECPKG_ATTR_STREAM_SIZES,
+         &backend->stream_sizes)) {
+      failf(data, "schannel: failed getting stream sizes");
+      return CURLE_SSL_CONNECT_ERROR;
+    }
+
     connssl->state = ssl_connection_complete;
 
-#ifdef SECPKG_ATTR_ENDPOINT_BINDINGS  /* mingw-w64 v9+, MS SDK 7.0A/VS2010+ */
     /* When SSPI is used in combination with Schannel
      * we need the Schannel context to create the Schannel
      * binding to pass the IIS extended protection checks.
      * Available on Windows 7 or later.
      */
-    {
-      struct schannel_ssl_backend_data *backend =
-        (struct schannel_ssl_backend_data *)connssl->backend;
-      DEBUGASSERT(backend);
-      cf->conn->sslContext = &backend->ctxt->ctxt_handle;
-    }
-#endif
+    cf->conn->sslContext = &backend->ctxt->ctxt_handle;
 
     *done = TRUE;
   }
@@ -1980,29 +1986,23 @@ static CURLcode schannel_send(struct Curl_cfilter *cf, struct Curl_easy *data,
       return result;
   }
 
-  /* check if the maximum stream sizes were queried */
-  if(backend->stream_sizes.cbMaximumMessage == 0) {
-    sspi_status = Curl_pSecFn->QueryContextAttributes(
-      &backend->ctxt->ctxt_handle,
-      SECPKG_ATTR_STREAM_SIZES,
-      &backend->stream_sizes);
-    if(sspi_status != SEC_E_OK) {
-      return CURLE_SEND_ERROR;
-    }
-  }
-
   /* check if the buffer is longer than the maximum message length */
   if(len > backend->stream_sizes.cbMaximumMessage) {
     len = backend->stream_sizes.cbMaximumMessage;
   }
 
-  /* calculate the complete message length and allocate a buffer for it */
+  /* calculate the complete message length and prepare the send buffer */
   data_len = backend->stream_sizes.cbHeader + len +
     backend->stream_sizes.cbTrailer;
-  ptr = curlx_malloc(data_len);
-  if(!ptr) {
-    return CURLE_OUT_OF_MEMORY;
+  if(data_len > backend->send_buffer_len) {
+    ptr = curlx_realloc(backend->send_buffer, data_len);
+    if(!ptr)
+      return CURLE_OUT_OF_MEMORY;
+    backend->send_buffer = ptr;
+    backend->send_buffer_len = data_len;
   }
+  else
+    ptr = backend->send_buffer;
 
   /* setup output buffers (header, data, trailer, empty) */
   InitSecBuffer(&outbuf[0], SECBUFFER_STREAM_HEADER,
@@ -2090,8 +2090,6 @@ static CURLcode schannel_send(struct Curl_cfilter *cf, struct Curl_easy *data,
   else {
     result = CURLE_SEND_ERROR;
   }
-
-  curlx_safefree(ptr);
 
   if(len == *pnwritten)
     /* Encrypted message including header, data and trailer entirely sent.
@@ -2567,6 +2565,10 @@ static void schannel_close(struct Curl_cfilter *cf, struct Curl_easy *data)
     backend->cred = NULL;
   }
 
+  /* free the buffer used to encrypt outgoing data */
+  curlx_safefree(backend->send_buffer);
+  backend->send_buffer_len = 0;
+
   /* free internal buffer for received encrypted data */
   if(backend->encdata.buffer) {
     curlx_safefree(backend->encdata.buffer);
@@ -2585,7 +2587,6 @@ static void schannel_close(struct Curl_cfilter *cf, struct Curl_easy *data)
 
 static int schannel_init(void)
 {
-#ifdef HAS_ALPN_SCHANNEL
   typedef const char *(APIENTRY *WINE_GET_VERSION_FN)(void);
 #if defined(__clang__) && __clang_major__ >= 16
 #pragma clang diagnostic push
@@ -2600,17 +2601,16 @@ static int schannel_init(void)
   if(p_wine_get_version) {  /* WINE detected */
     curl_off_t ver = 0;
     const char *wine_version = p_wine_get_version();  /* e.g. "6.0.2" */
-    /* Assume ALPN support with WINE 6.0 or upper */
+    /* Assume ALPN support with WINE 6.0 or greater */
     if(wine_version)
       curlx_str_number(&wine_version, &ver, 20);
     s_win_has_alpn = (ver >= 6);
   }
   else {
-    /* ALPN is supported on Windows 8.1 / Server 2012 R2 and above. */
+    /* ALPN is supported on Windows 8.1 / Server 2012 R2 or newer. */
     s_win_has_alpn = curlx_verify_windows_version(6, 3, 0, PLATFORM_WINNT,
                                                   VERSION_GREATER_THAN_EQUAL);
   }
-#endif /* HAS_ALPN_SCHANNEL */
 
   return Curl_sspi_global_init() == CURLE_OK ? 1 : 0;
 }

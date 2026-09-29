@@ -230,7 +230,7 @@ fn when_only_groupname_is_given_user_arg_fails() {
     } else {
         assert_contains!(
             stderr,
-            format!("I'm sorry ferris. I'm afraid I can't do that")
+            "I'm sorry ferris. I'm afraid I can't do that".to_string()
         );
     }
 }
@@ -267,7 +267,7 @@ fn when_only_username_is_given_group_arg_fails() {
     } else {
         assert_contains!(
             stderr,
-            format!("I'm sorry ferris. I'm afraid I can't do that")
+            "I'm sorry ferris. I'm afraid I can't do that".to_string()
         );
     }
 }

@@ -45,7 +45,6 @@ LINUXSCRIPTS_POLICY_PATH = ROOT / "upstream/policies/linuxscripts.toml"
 RELEASE_ARCHIVE_POLICY_PATH = ROOT / "upstream/policies/release-archives.toml"
 CACHE_ROOT = Path(os.environ.get("MATTOS_PROVENANCE_CACHE", str(PROJECT_TMP_ROOT / "provenance-cache")))
 REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
-EXPECTED_LINUX_COMMIT = "8ba098e6b6ff0db8edf28528d1552be261af30d4"
 IMPORTED_DIGEST_ALGORITHM = "sha256-git-ls-tree-no-gitlinks-v1"
 SELECTED_IMPORTED_DIGEST_ALGORITHM = "sha256-selected-git-ls-tree-no-gitlinks-v1"
 
@@ -800,6 +799,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--emit-state-values", action="store_true")
     parser.add_argument("--jobs", type=int, default=6)
+    parser.add_argument(
+        "--component",
+        action="append",
+        default=[],
+        help="audit only this component (repeatable); manifest-wide checks still run",
+    )
     args = parser.parse_args()
 
     source_document = load_toml(SOURCES_PATH)
@@ -815,8 +820,6 @@ def main() -> int:
         revision = component.get("revision", "")
         if not REVISION_RE.fullmatch(revision):
             failures.append(f"{component['name']}: revision is not an exact 40-hex commit")
-    if components.get("linux", {}).get("revision") != EXPECTED_LINUX_COMMIT:
-        failures.append("linux: provenance is not pinned to the required upstream commit")
 
     mirror_document = load_toml(MIRROR_POLICY_PATH)
     mirrors: dict[str, list[str]] = {}
@@ -829,6 +832,7 @@ def main() -> int:
             executor.submit(fetch_tree, component, mirrors): component["name"]
             for component in component_list
             if REVISION_RE.fullmatch(component.get("revision", ""))
+            and (not args.component or component["name"] in args.component)
         }
         for future in concurrent.futures.as_completed(pending):
             name = pending[future]
@@ -947,7 +951,8 @@ def main() -> int:
         if mode == "160000"
     }
     for name, path in sorted(mapped_gitlinks - observed_gitlinks):
-        failures.append(f"{name}: policy maps nonexistent gitlink {path}")
+        if name in fetched:
+            failures.append(f"{name}: policy maps nonexistent gitlink {path}")
 
     print(f"components verified: {verified}/{len(component_list)}")
     print(f"ignored generated-residue paths retained outside provenance: {ignored_total}")

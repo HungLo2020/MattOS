@@ -14,14 +14,17 @@ Synchronization state uses schema version 2 in
 - upstream repository
 - upstream branch
 - imported commit
+- the imported commit's committer time (`upstream_committed_at_utc`), which
+  orders snapshot package versions
 - import timestamp
 - synchronization method
 - destination path
 - exact upstream Git tree object
 - canonical imported-tree SHA-256 (paths, blob identities, modes, and symlinks;
   documented gitlinks are excluded from this physical-tree digest)
-- an optional source-selection policy path and SHA-256. Selected components use
-  a selected-tree digest over the declared projection rather than the complete
+- an optional source-selection policy path and SHA-256, and an optional
+  standalone intentional-omission policy. Selected components use a
+  selected-tree digest over the declared projection rather than the complete
   upstream tree.
 - intentional omission and gitlink/submodule policy
 - an output-mirror-only MattOS patch manifest and its SHA-256, or the explicit
@@ -47,6 +50,10 @@ implementation source from those architectures is retained by that exception.
 MattOS-specific changes do not live in authoritative imported source trees.
 Checksummed patch files and manifests live under `upstream/patches/` and the
 builder applies them only after copying source into `out/build/*/source`.
+When adding or changing a patch, record its SHA-256 in the component's
+`manifest.toml`, then record the manifest's new SHA-256 as
+`patch_manifest_sha256` in both `upstream/sources.toml` and
+`upstream/state/<component>.toml`; the build refuses a mismatch.
 
 Run commands that may invoke component build systems through the imported-source
 hygiene guard:
@@ -95,30 +102,48 @@ cargo run -p mattos-build -- upstream sync linux
 
 For Linux kernel fidelity, run synchronization in a Linux filesystem path (for example `~/src/MattOS` in WSL), not from `/mnt/c`.
 
-## Safety and merge behavior
+## Safety and update behavior
 
-- No dirty-tree check: import and sync do not inspect the outer repository's
-  Git status, so uncommitted changes elsewhere (including in other components)
-  do not block them. The only overwrite protection is that initial import
-  refuses a destination containing non-placeholder files. Commit or otherwise
-  preserve local edits in a component before syncing it.
-- Path safety: component paths are validated as repository-relative and cannot escape repo root.
-- Update strategy: updates use a three-way Git merge between:
-	- prior imported upstream commit,
-	- current MattOS destination tree,
-	- the new pinned `revision` from `upstream/sources.toml` (the importer runs
-	  `git checkout --detach <revision>`; the branch name is never followed).
-- Conflict behavior: if both MattOS and upstream changed the same content, conflict markers are written and sync exits non-zero.
-- Metadata behavior: sync state is only advanced to the new upstream commit when merge finishes without conflicts.
-- Projection behavior: synchronization reconstructs retained files from the
-  pinned commit and reapplies source selection even when the commit is
-  unchanged. Missing retained paths are restored, while stale paths excluded by
-  policy are removed.
+- Vendored trees are never edited in place: MattOS changes live in
+  `upstream/patches/` and are applied to build mirrors. An update therefore
+  needs no upstream history. It clones only the new pinned commit (depth 1),
+  verifies the vendored tree against the `imported_tree_digest` recorded at
+  its last import, and replaces the tree with the new commit's files.
+- Verification treats three kinds of extra file as harmless and removes
+  them: untracked, Git-ignored build residue that is not an upstream file;
+  leftovers at paths the current source-selection or omission policy
+  excludes; and nothing else. A changed, missing or added file, including a
+  new untracked file that is not ignored, is a local modification: sync
+  refuses, names the paths (from the prior commit, fetched alone), and
+  leaves both the tree and its state untouched. Nothing is merged, so no
+  conflict markers can reach an authoritative source tree. Restore the tree
+  (or move the change into a patch) and retry.
+- Upstream files that the outer repository ignores are still verified: the
+  prior commit's file list tells them apart from residue.
+- Components nested inside another component's path (for example
+  `ostree/libglnx`, `ostree/bsdiff`, `glib/subprojects/gvdb`) belong to their
+  own component: a parent sync neither verifies nor clears them.
+- Because no shared history is needed, `branch` may move to another tag and
+  `repo` to another repository (the Linux kernel moved from the mainline to
+  the stable tree this way). Sync announces a repository change and records
+  the new repository in state.
+- No dirty-tree check applies to the rest of the repository: uncommitted
+  changes elsewhere do not block a sync.
+- Path safety: component paths are validated as repository-relative and
+  cannot escape the repository root.
+- Metadata behavior: state is only written after the new tree is in place.
+  Re-synchronizing an unchanged commit keeps its `imported_at_utc`.
+- Projection behavior: `source_selection_policy` (architecture pruning of
+  `arch/`) and standalone `intentional_omission_policy` files (a list of
+  `retained_paths`, or one `upstream_subtree` whose prefix is stripped) are
+  applied when materializing the tree and when computing its digest, exactly
+  as the provenance audit applies them. A retained path that no longer exists
+  upstream is an error, so an upstream rename cannot silently shrink an
+  import.
 - Import fidelity: the importer materializes files from Git blobs, so
   upstream-tracked files are written even when the component's own `.gitignore`
-  matches them. Import and sync never touch the outer repository's index; the
-  only `git add` runs inside the temporary merge repository under
-  `upstream/.tmp`. The reconstructed source and state file are left unstaged.
+  matches them. Import and sync never touch the outer repository's index.
+  The reconstructed source and state file are left unstaged.
   Because build mirrors copy
   `git ls-files --cached --others --exclude-standard` (see below), a new
   upstream file matched by a component `.gitignore` is not copied into build
@@ -130,6 +155,38 @@ For Linux kernel fidelity, run synchronization in a Linux filesystem path (for e
 - Generated residue is not provenance. Build mirrors enumerate outer-Git tracked
   files plus non-ignored local inputs, so ignored generated output cannot replace
   or hide a pinned source input.
+
+## Package versions from pins
+
+A component whose `branch` is a release tag gives its packages that release
+as their upstream version (`openssl-3.5.8` → `3.5.8`, `V_10_5_P1` → `10.5p1`,
+`curl-8_22_0` → `8.22.0`, `2026d`, `master-2026-09-03` → `2026.09.03`); a
+moving branch (`main`, `master`) gives a snapshot version,
+`<declared>+git<YYYYMMDD>.<HHMMSS>.<commit>`
+(`packaging/snapshot_version.rs`). `<declared>` is the version the tree itself
+declares: meson.build's `project(version:)`, configure.ac's `AC_INIT` (with
+simple `m4_define` macros resolved), or a component-specific file such as the
+kernel Makefile, `gmp-h.in` or `NEWS`, with a pre-release marker such as
+`-dev` or `-rc5` turned into `~dev` or `~rc5`. The date and time are the pinned
+commit's committer time, which sync records in the component's state as
+`upstream_committed_at_utc`. Snapshots therefore sort by upstream release
+first and commit time within one, and every snapshot sorts after the earlier
+`0~git.<commit>` form. Packaging refuses a snapshot whose state lacks the
+commit time, naming the `upstream sync` that records it. Unit tests fail when a
+release tag in `upstream/sources.toml` yields no version, or when a packaged
+snapshot component's tree declares none this parser can read.
+
+## Kernel and userland kernel headers
+
+`linux` is the kernel MattOS boots (from the stable tree); `linux-uapi` is a
+separately pinned, selected import of the same project that supplies only the
+userland kernel headers (`linux-libc-dev`, glibc's `--with-headers`). As in
+Debian, a kernel update rebuilds only the kernel, its modules, the initramfs
+and the image; updating the userland headers is a deliberate, separate change
+to `linux-uapi` that rebuilds the userland. `mattos_kernel_release!` in the
+build tool names the kernel packages (`linux-modules-<release>`); a unit test
+checks it against the vendored kernel Makefile and configuration and against
+the package metadata files.
 
 ## Full fidelity audit
 
@@ -149,5 +206,9 @@ accepted, but missing retained paths and stale excluded paths both fail the audi
 
 ## Recovery notes
 
-- If synchronization is interrupted, metadata is not advanced to a false success state.
-- If a sync reports conflicts, resolve the files in the imported tree and commit normally.
+- If synchronization is interrupted, metadata is not advanced to a false success state;
+  rerun the sync (an interrupted replacement leaves a tree that no longer
+  matches its import only if files were already replaced, in which case
+  restore the component directory from Git first).
+- If a sync refuses a modified tree, restore the listed paths (or move the
+  change into `upstream/patches/`) and rerun it.

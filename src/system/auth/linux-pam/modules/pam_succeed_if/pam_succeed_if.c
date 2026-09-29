@@ -185,7 +185,7 @@ evaluate_noglob(const char *left, const char *right)
 static int
 evaluate_inlist(const char *left, const char *right)
 {
-	char *p;
+	const char *p;
 	/* Don't care about left containing ':'. */
 	while ((p=strstr(right, left)) != NULL) {
 		if (p == right || *(p-1) == ':') { /* ':' is a list separator */
@@ -337,6 +337,7 @@ evaluate(pam_handle_t *pamh, int debug,
 			ruser == NULL)
 			ruser = "";
 		left = (const char *)ruser;
+		user = left;
 	} else if (strcasecmp(left, "rhost") == 0) {
 		const void *rhost;
 		if (pam_get_item(pamh, PAM_RHOST, &rhost) != PAM_SUCCESS ||
