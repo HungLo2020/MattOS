@@ -389,12 +389,14 @@ def apply_release_policy(component: Component, release: Release) -> Release:
     https://gstreamer.freedesktop.org/documentation/frequently-asked-questions/developing.html
     https://github.com/flatpak/flatpak-builder#versioning-policy
     https://lists.x.org/archives/xorg-announce/2026-September/003742.html
+    https://sourceware.org/glibc/manual/2.40/html_node/Dynamic-Linker-Diagnostics-Values.html
     Other upstream schemes still require the skill's announcement verification.
     """
     numbers = release.numbers
     numeric_pre = (
         component.source_path.startswith("src/desktop/kde/") and len(numbers) >= 3 and numbers[2] >= 70
         or component.name in {"flatpak", "gstreamer"} and len(numbers) >= 2 and numbers[1] % 2 == 1
+        or component.name == "glibc" and len(numbers) >= 3 and numbers[2] == 9000
         or component.name == "xwayland" and len(numbers) >= 3 and numbers[2] >= 99
     )
     return replace(release, phase=3) if numeric_pre and release.phase == 5 else release
