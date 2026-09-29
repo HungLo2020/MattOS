@@ -64,6 +64,50 @@ it may fetch substantial history into temporary bare repositories.
   build compatibility, security fixes, or runtime behavior. Never relabel it
   "provenance verified." Do not run the full fidelity/build audit automatically.
 
+## Release preference and prioritization
+
+Prefer actual upstream releases, and verified stable releases wherever upstream
+has a stable channel. Show development snapshots and prereleases separately;
+never rank them as routine upgrade targets above an available stable release.
+For projects without releases, report revision tracking with that limitation.
+Use official release notes, announcements, and release history to enrich the
+checker output: the script alone does not supply release counts, age, feature
+impact, or critical-fix applicability. Mark missing evidence unknown rather
+than inventing a value or silently treating it as zero.
+
+Prioritize the report using these signals:
+
+- **Most releases behind:** Count distinct applicable final/stable releases
+  newer than the imported release through the verified latest release. Count
+  release history, not numeric version subtraction or Git commits. Deduplicate
+  tag aliases and exclude prereleases, unrelated products, and releases on
+  parallel maintenance lines that are not on the stated comparison path. State
+  that path; distinguish same-series maintenance lag from newer release-series
+  availability. For untagged or diverged imports, give a proven bound with its
+  basis, or unknown; do not invent an exact release count from a source label.
+- **Oldest sources / longest since update:** Show the imported upstream release
+  date (or commit date for snapshots) and elapsed age, plus MattOS's recorded
+  import date and time since import as a separate measure. Label each date and
+  its evidence. Reimporting the same revision does not make its source newer.
+  Explain when an old source is still the latest upstream release or its project
+  is inactive; age alone does not prove an available update.
+- **Major feature improvements:** Highlight substantial new functionality,
+  performance, hardware support, or compatibility relevant to MattOS. Cite
+  upstream release notes and identify the release introducing the improvement.
+  Distinguish upstream claims from improvements measured in MattOS.
+- **Highly critical fixes:** Highlight consequential bug fixes and critical
+  security fixes with the affected/fixed versions, evidence, and applicability
+  to the imported revision. State uncertainty when applicability is unproven.
+  Do not give security extra weight by default, prioritize a package merely
+  because it is security-sensitive, or turn this into a security-first audit.
+
+Lead with the largest release gaps and oldest imports, then explain feature
+improvements or highly critical fixes that warrant elevating an item. Make the
+reason for each priority explicit; avoid an opaque combined score. Group
+coordinated families such as KDE/Qt for recommendations while preserving each
+component's metrics and status. Do not interpret availability or priority as
+authorization to upgrade, or as proof of build compatibility.
+
 ## Cloud and scheduled runs
 
 Resolve the requested GitHub branch to a commit at the start of each run. Read
@@ -81,11 +125,16 @@ did not happen. Report blocked components and partial findings rather than
 silently omitting them.
 
 Start the report with the audit time, MattOS commit, total components, resolved
-comparisons, unknowns/errors, and metadata problems. Then provide a compact
-table: component, our version/commit, newest verified release (or explicitly
-unverified tag candidate), same-series update when relevant, status, evidence
-link. Include prereleases separately and explain consequential uncertainty.
-Make the full component results available in the report or an attachment.
+comparisons, unknowns/errors, and metadata problems. Follow with a prioritized
+shortlist explaining release lag, age, major features, and highly critical fixes.
+Then provide a full table covering every component in the inventory, including
+current, revision-only, diverged, unknown, and failed checks. Include component,
+our version/commit, newest verified stable/final release (or explicitly unverified
+tag candidate), same-series update, releases behind, source age, time since
+import, status, and evidence. Use explicit unknown values where necessary.
+Include prereleases separately and explain consequential uncertainty. Keep the
+full table in the report or an attachment; never replace it with only the
+shortlist or omit components that have no available update.
 
 When a user has explicitly authorized email delivery, send this report to their
 specified recipient using the authorized mail integration and sender. Keep
