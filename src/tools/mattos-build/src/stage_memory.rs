@@ -105,19 +105,20 @@ impl StageCgroup {
         // `systemd-run --scope` moves itself into the new scope and then
         // execs the holder, so the holder's own cgroup is the scope.  The
         // parent-death signal survives that exec, so a crashed build cannot
-        // leave the holder (and its scope) behind.
+        // leave the holder, its scope or the stage's commands behind (see
+        // `SCOPE_HOLDER_SCRIPT`).
         let mut command = Command::new("systemd-run");
         command
             .args(["--user", "--scope", "--quiet", "--collect", "--unit", &unit])
             .arg(format!("--property=MemoryHigh={memory_high}"))
-            .args(["sleep", "infinity"])
+            .args(["sh", "-c", SCOPE_HOLDER_SCRIPT])
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null());
         // SAFETY: prctl is async-signal-safe.
         unsafe {
             command.pre_exec(|| {
-                libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL);
+                libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGTERM);
                 Ok(())
             });
         }
@@ -170,6 +171,13 @@ impl Drop for StageCgroup {
         let _ = self.holder.wait();
     }
 }
+
+/// The scope's holder process.  When the build dies, the parent-death
+/// signal (SIGTERM) makes it kill the whole scope through `cgroup.kill`, so a
+/// crashed or killed build cannot leave its `make` and compiler jobs running.
+/// Normal teardown kills the holder with SIGKILL after the stage's commands
+/// have exited.
+const SCOPE_HOLDER_SCRIPT: &str = "trap 'echo 1 > \"/sys/fs/cgroup$(cut -d: -f3 /proc/self/cgroup)/cgroup.kill\"' TERM; sleep infinity & wait";
 
 /// How many times the kernel has throttled the cgroup at its `memory.high`.
 fn throttle_count(directory: &Path) -> Option<u64> {

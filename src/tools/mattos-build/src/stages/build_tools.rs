@@ -136,6 +136,30 @@ fn build_perl(repo_root: &Path) -> Result<()> {
     ];
     let option_refs = options.iter().map(String::as_str).collect::<Vec<_>>();
     run_cmd_with_env_overrides(&source, "sh", &[&["Configure"], option_refs.as_slice()].concat(), &[])?;
+    // Configure records the wall-clock time whatever -Dcf_time says, and
+    // perlbug embeds patchlevel.h's modification time: pin both, then let
+    // `Configure -S` regenerate the files derived from config.sh.
+    let config_sh = source.join("config.sh");
+    let fixed_time = "cf_time='Thu Jan  1 00:00:00 UTC 1970'";
+    let config = fs::read_to_string(&config_sh)?
+        .lines()
+        .map(|line| {
+            if line.starts_with("cf_time=") {
+                fixed_time
+            } else if line.starts_with("# Configuration time:") {
+                "# Configuration time: Thu Jan  1 00:00:00 UTC 1970"
+            } else {
+                line
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    fs::write(&config_sh, format!("{config}\n"))?;
+    run_cmd_with_env_overrides(&source, "sh", &["Configure", "-S"], &[])?;
+    filetime::set_file_mtime(
+        source.join("patchlevel.h"),
+        filetime::FileTime::from_unix_time(MATTOS_SOURCE_DATE_EPOCH.parse()?, 0),
+    )?;
     run_cmd_with_env_overrides(&source, "make", &["-j", "4"], &[])?;
     remove_path_if_exists(&install)?;
     run_cmd_with_env_overrides(

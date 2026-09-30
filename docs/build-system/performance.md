@@ -322,6 +322,11 @@ starts; a stage the kernel throttled at `memory.high` since the last sample
 counts as critical, so no new compile job starts until its memory falls. The
 same two-sample recovery applies as for host-wide pressure.
 
+The scope's holder process receives SIGTERM when the build process dies
+(its parent-death signal) and then kills the whole scope through
+`cgroup.kill`, so a crashed or killed build does not leave its `make` and
+compiler jobs running.
+
 The scope's `memory.peak` is the stage's true aggregate peak, page cache
 included; a successful stage records it in `out/reports/stage-memory.json`
 for diagnosis. It is not turned into a per-job reservation: under the shared
