@@ -153,7 +153,9 @@ For Linux kernel fidelity, run synchronization in a Linux filesystem path (for e
   (the root `.gitignore` and `.git/info/exclude`), never a vendored
   component's `.gitignore`. A newly imported upstream file therefore has the
   same digest and reaches the same mirror whether or not it has been
-  force-added yet, and committing it does not rebuild anything.
+  force-added yet, and committing it does not rebuild anything. Likewise a
+  deleted tracked file is simply absent from the digest, exactly as it is
+  once the deletion is committed.
 - Byte fidelity: upstream `.gitattributes` files are never imported. A
   nested one outranks the MattOS root `.gitattributes` and would let Git
   rewrite line endings (`text`, `eol`, `crlf`) or run filters on vendored

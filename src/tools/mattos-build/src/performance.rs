@@ -952,8 +952,6 @@ fn populate_git_source_values<'a>(
             let absolute = repo_root.join(&path_buf);
             if absolute.symlink_metadata().is_ok() {
                 values.insert(path, format!("index:{}", reference_working_value(repo_root, &absolute)?));
-            } else {
-                values.insert(path, "index:<deleted>".to_string());
             }
         } else {
             values.insert(path, format!("index:{header}"));

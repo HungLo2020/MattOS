@@ -312,12 +312,16 @@ impl GitSourceSnapshot {
                     continue;
                 }
                 if self.modified.contains(path) {
-                    entries.push(SourceEntry {
-                        path: path.clone(),
-                        prefix: "index:".to_string(),
-                        value: working_digest(&repo_root.join(path))?
-                            .unwrap_or_else(|| "<deleted>".to_string()),
-                    });
+                    // A deleted file is simply absent, exactly as it is once
+                    // the deletion is committed; a placeholder would make
+                    // committing the deletion change the digest.
+                    if let Some(value) = working_digest(&repo_root.join(path))? {
+                        entries.push(SourceEntry {
+                            path: path.clone(),
+                            prefix: "index:".to_string(),
+                            value,
+                        });
+                    }
                 } else {
                     entries.push(SourceEntry {
                         path: path.clone(),
@@ -589,6 +593,13 @@ mod tests {
         assert_ne!(modified, untracked, "a content edit must change the digest");
         std::fs::write(repo.join("component/recipe.rs"), "fn build() {}\n").unwrap();
         assert_eq!(digest(), untracked, "restoring the content must restore the digest");
+        // A deletion changes the digest once, not again when committed.
+        std::fs::remove_file(repo.join("component/run.sh")).unwrap();
+        let deleted = digest();
+        assert_ne!(deleted, untracked, "a deletion must change the digest");
+        git(&["add", "-A"]);
+        git(&["commit", "-q", "-m", "delete"]);
+        assert_eq!(digest(), deleted, "committing a deletion changed the digest");
     }
 
     #[test]
