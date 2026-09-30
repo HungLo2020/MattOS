@@ -202,6 +202,66 @@ path = "src/build-tools/cmake"
 sync = "copy"
 
 [[component]]
+name = "perl"
+repo = "https://github.com/Perl/perl5.git"
+branch = "v5.44.0"
+revision = "e634cc838fb1785dfafb5d13b52807ea16b5c52c"
+path = "src/development/perl"
+sync = "copy"
+
+[[component]]
+name = "m4"
+repo = "https://git.savannah.gnu.org/git/m4.git"
+branch = "v1.4.21"
+revision = "fe2f13ab9ab9b3e712c6529f0b2a49a81feb6ce2"
+path = "src/build-tools/m4"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#m4"
+gitlink_policy = "upstream/policies/gitlinks.toml#m4"
+
+[[component]]
+name = "autoconf"
+repo = "https://git.savannah.gnu.org/git/autoconf.git"
+branch = "v2.73"
+revision = "44d712a26b0e14931bf2df57e2c9b80a2747dfce"
+path = "src/build-tools/autoconf"
+sync = "copy"
+
+[[component]]
+name = "automake"
+repo = "https://git.savannah.gnu.org/git/automake.git"
+branch = "v1.19"
+revision = "e82d2d34d4626445565bc131f6580b59597d0c62"
+path = "src/build-tools/automake"
+sync = "copy"
+
+[[component]]
+name = "libtool"
+repo = "https://git.savannah.gnu.org/git/libtool.git"
+branch = "v2.6.2"
+revision = "309bb53a8adfb22c6e5869cc8da049bf123e5438"
+path = "src/build-tools/libtool"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#libtool"
+gitlink_policy = "upstream/policies/gitlinks.toml#libtool"
+
+[[component]]
+name = "meson"
+repo = "https://github.com/mesonbuild/meson.git"
+branch = "1.12.1"
+revision = "70598bb7825f0f804fb31ec2795de5e79e7692a0"
+path = "src/build-tools/meson"
+sync = "copy"
+
+[[component]]
+name = "ninja"
+repo = "https://github.com/ninja-build/ninja.git"
+branch = "v1.13.2"
+revision = "3441b633c2fe2c494e958780ba0f4227b1327634"
+path = "src/build-tools/ninja"
+sync = "copy"
+
+[[component]]
 name = "findutils"
 repo = "https://github.com/uutils/findutils.git"
 branch = "main"

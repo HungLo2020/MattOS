@@ -357,38 +357,11 @@ pub(super) fn stage_systemd_runtime(repo_root: &Path, staging: &Path) -> Result<
 }
 
 pub(super) fn stage_mattos_base_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
-    for (source, destination) in [
-        ("out/build/grep/cargo-target/release/grep", "usr/bin/grep"),
-        (
-            "out/build/findutils/cargo-target/release/find",
-            "usr/bin/find",
-        ),
-        (
-            "out/build/findutils/cargo-target/release/xargs",
-            "usr/bin/xargs",
-        ),
-        (
-            "out/build/findutils/cargo-target/release/locate",
-            "usr/bin/locate",
-        ),
-        (
-            "out/build/findutils/cargo-target/release/updatedb",
-            "usr/bin/updatedb",
-        ),
-        (
-            "out/build/diffutils/cargo-target/release/diffutils",
-            "usr/bin/diffutils",
-        ),
-        (
-            "out/build/init/cargo-target/release/mattos-init",
-            "usr/libexec/mattos/rescue-init",
-        ),
-    ] {
-        stage_executable(&repo_root.join(source), &staging.join(destination), 0o755)?;
-    }
-    for alias in ["diff", "cmp"] {
-        std::os::unix::fs::symlink("diffutils", staging.join("usr/bin").join(alias))?;
-    }
+    stage_executable(
+        &repo_root.join("out/build/init/cargo-target/release/mattos-init"),
+        &staging.join("usr/libexec/mattos/rescue-init"),
+        0o755,
+    )?;
     for relative in [
         "usr/libexec/mattos/brush-login",
         "usr/libexec/mattos/validate-shell-env",
@@ -428,6 +401,37 @@ pub(super) fn stage_mattos_base_runtime(repo_root: &Path, staging: &Path) -> Res
     ] {
         copy_preserving(&repo_root.join(source), &staging.join(destination))?;
     }
+    Ok(())
+}
+
+/// A uutils command package: release binaries from the component's cargo
+/// target, `(alias, target)` symlinks beside them, and its license files as
+/// the package copyright.
+pub(super) fn stage_uutils_commands(
+    repo_root: &Path,
+    staging: &Path,
+    component: &str,
+    binaries: &[(&str, &str)],
+    aliases: &[(&str, &str)],
+    licenses: &[&str],
+) -> Result<()> {
+    let release = repo_root.join("out/build").join(component).join("cargo-target/release");
+    let bin_dir = staging.join("usr/bin");
+    for (source, destination) in binaries {
+        stage_executable(&release.join(source), &bin_dir.join(destination), 0o755)?;
+    }
+    for (alias, target) in aliases {
+        std::os::unix::fs::symlink(target, bin_dir.join(alias))?;
+    }
+    let doc = staging.join("usr/share/doc").join(component);
+    fs::create_dir_all(&doc)?;
+    let mut copyright = String::new();
+    for license in licenses {
+        copyright.push_str(&fs::read_to_string(
+            repo_root.join("src/userland").join(component).join(license),
+        )?);
+    }
+    fs::write(doc.join("copyright"), copyright)?;
     Ok(())
 }
 

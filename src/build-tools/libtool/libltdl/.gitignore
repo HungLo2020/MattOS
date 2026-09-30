@@ -1,0 +1,6 @@
+/COPYING.LIB
+/Makefile.am
+/libltdl/lt__argz.h
+/libgnu
+/dummy.c
+/gnulib.mk

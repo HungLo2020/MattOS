@@ -1651,6 +1651,18 @@ fn importer_preserves_ignored_tracked_files_modes_and_symlinks() {
         fs::read(imported.join("windows.bat")).expect("attributed source"),
         b"first\nsecond\n"
     );
+    // Upstream's attributes are not imported, so MattOS's Git neither
+    // converts the attributed file on commit nor on checkout.
+    assert!(!imported.join(".gitattributes").exists());
+    write(&root.join(".gitattributes"), "* -text\n");
+    run_ok(root, "git", &["add", "-A"]);
+    run_ok(root, "git", &["commit", "-m", "vendor"]);
+    fs::remove_file(imported.join("windows.bat")).expect("remove checked-out file");
+    run_ok(root, "git", &["checkout", "--", "src/imported/example/windows.bat"]);
+    assert_eq!(
+        fs::read(imported.join("windows.bat")).expect("checked-out source"),
+        b"first\nsecond\n"
+    );
     let state = read_sync_state(root, "example")
         .expect("read state")
         .expect("state exists");
@@ -2486,7 +2498,7 @@ fn imported_build_outputs_are_all_under_out() {
 }
 
 #[test]
-fn imported_source_mirror_excludes_ignored_residue_and_preserves_source() {
+fn imported_source_mirror_follows_mattos_ignore_rules_and_preserves_source() {
     let tmp = tempfile::tempdir().expect("tempdir");
     let root = tmp.path();
     init_git_repo(root);
@@ -2523,6 +2535,13 @@ fn imported_source_mirror_excludes_ignored_residue_and_preserves_source() {
         fs::read_to_string(mirror.join("ignored-source.txt")).unwrap(),
         "upstream tracks this release input\n"
     );
+    // Upstream's nested ignore rules do not hide files from the mirror, just
+    // as they do not hide them from the source digest; only MattOS's root
+    // rules exclude residue.  (The tracking audit rejects such residue.)
+    assert!(mirror.join("target/generated.o").exists());
+    write(&root.join(".gitignore"), "/src/imported/example/target/\n");
+    copy_imported_working_tree(root, Path::new("src/imported/example"), &mirror)
+        .expect("recreate source mirror");
     assert!(!mirror.join("target/generated.o").exists());
     write(&mirror.join("generated/config.h"), "generated in output\n");
 
@@ -3354,6 +3373,34 @@ fn base_userland_release_archives_are_exact_and_output_owned() {
             RSYNC_RELEASE_ARCHIVE_URL,
             RSYNC_RELEASE_ARCHIVE_SHA256,
         ),
+        (
+            "m4",
+            "1.4.21",
+            "fe2f13ab9ab9b3e712c6529f0b2a49a81feb6ce2",
+            M4_RELEASE_ARCHIVE_URL,
+            M4_RELEASE_ARCHIVE_SHA256,
+        ),
+        (
+            "autoconf",
+            "2.73",
+            "44d712a26b0e14931bf2df57e2c9b80a2747dfce",
+            AUTOCONF_RELEASE_ARCHIVE_URL,
+            AUTOCONF_RELEASE_ARCHIVE_SHA256,
+        ),
+        (
+            "automake",
+            "1.19",
+            "e82d2d34d4626445565bc131f6580b59597d0c62",
+            AUTOMAKE_RELEASE_ARCHIVE_URL,
+            AUTOMAKE_RELEASE_ARCHIVE_SHA256,
+        ),
+        (
+            "libtool",
+            "2.6.2",
+            "309bb53a8adfb22c6e5869cc8da049bf123e5438",
+            LIBTOOL_RELEASE_ARCHIVE_URL,
+            LIBTOOL_RELEASE_ARCHIVE_SHA256,
+        ),
     ] {
         let state = read_sync_state(&root, component).unwrap().unwrap();
         assert_eq!(state.imported_commit, commit);
@@ -3367,7 +3414,7 @@ fn base_userland_release_archives_are_exact_and_output_owned() {
         policy
             .matches("staging_policy = \"output-mirror-only\"")
             .count(),
-        11
+        15
     );
     let source = include_str!("stages/helpers/native.rs");
     let start = source.find("fn build_release_autotools_program").unwrap();

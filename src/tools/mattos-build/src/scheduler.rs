@@ -136,6 +136,16 @@ impl StageResourceProfile {
             child_jobs: ChildJobPolicy::SchedulerGrant,
         }
     }
+
+    /// LLVM's C++ translation units peak at 0.5-1.3 GiB each (measured on
+    /// the 7.2.8 rebuild), well above the generic 768 MiB per job: at that
+    /// estimate a 16-thread host ran a dozen at once and exhausted 15 GiB.
+    pub(crate) fn llvm() -> Self {
+        Self {
+            memory_per_child_job_bytes: 1280 * Self::MIB,
+            ..Self::high_memory_parallel()
+        }
+    }
 }
 pub(crate) fn configure_child_jobs(granted_tokens: usize, policy: ChildJobPolicy) {
     GRANTED_TOKENS.with(|granted| granted.set(granted_tokens));

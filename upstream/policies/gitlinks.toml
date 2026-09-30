@@ -396,3 +396,35 @@ replacement_path = "src/system/graphics/xcb-util-m4"
 replacement_commit = "c617eee22ae5c285e79e81ec39ce96862fd3262f"
 exact_gitlink_match = true
 reason = "The shared xcb-util autotools macros are imported once as xcb-util-m4 at the exact gitlink commit."
+
+[[component]]
+name = "m4"
+upstream_commit = "fe2f13ab9ab9b3e712c6529f0b2a49a81feb6ce2"
+
+[[component.gitlink]]
+path = "gl-mod/bootstrap"
+upstream_commit = "a42785aaa63db8a824292f87bc1a3f8863942601"
+action = "exclude"
+reason = "The gl-mod/bootstrap submodule only regenerates the build system from Git; MattOS builds m4 from the checksum-verified official m4-1.4.21 release archive, which already carries the generated build system."
+
+[[component.gitlink]]
+path = "gnulib"
+upstream_commit = "c6842ec25c6d5b1596da4eb6b68603f9578b23e9"
+action = "exclude"
+reason = "MattOS stages the checksum-verified official m4-1.4.21 release archive in an output-owned mirror; that release contains the generated Gnulib closure required to build m4, so the development-only Git submodule is neither an authoritative vendored-tree member nor a runtime input."
+
+[[component]]
+name = "libtool"
+upstream_commit = "309bb53a8adfb22c6e5869cc8da049bf123e5438"
+
+[[component.gitlink]]
+path = "gl-mod/bootstrap"
+upstream_commit = "bfdcc277cd237fde115d3aa972add7608d348b90"
+action = "exclude"
+reason = "The gl-mod/bootstrap submodule only regenerates the build system from Git; MattOS builds libtool from the checksum-verified official libtool-2.6.2 release archive, which already carries the generated build system."
+
+[[component.gitlink]]
+path = "gnulib"
+upstream_commit = "491f1bb7d3049f3ab7825f3ee665c209658e9965"
+action = "exclude"
+reason = "MattOS stages the checksum-verified official libtool-2.6.2 release archive in an output-owned mirror; that release contains the generated Gnulib closure required to build libtool, so the development-only Git submodule is neither an authoritative vendored-tree member nor a runtime input."

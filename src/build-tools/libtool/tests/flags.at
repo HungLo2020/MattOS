@@ -1,0 +1,183 @@
+# flags.at -- libtool passing of flags             -*- Autotest -*-
+#
+#   Copyright (C) 2009-2019, 2021-2026 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool.  If not, see <https://www.gnu.org/licenses/>.
+####
+
+m4_foreach([lt_tag], [CC, CXX, OBJC, OBJCXX, F77, FC, GCJ, ML64],
+[AT_SETUP([passing lt_tag flags through libtool])
+AT_KEYWORDS([libtool])
+LT_AT_TAG(m4_defn([lt_tag]))
+
+LDFLAGS="$LDFLAGS -no-undefined"
+eval "`$LIBTOOL --config | $EGREP '^(FGREP)='`"
+
+m4_case(lt_tag,
+[CC], [AT_DATA([a.c],
+[[int main () { return 0; }
+]])
+compile="$CC $CPPFLAGS $CFLAGS" link="$CC $CFLAGS $LDFLAGS" source=a.c
+],
+[CXX], [AT_DATA([a.cpp],
+[[int main () { return 0; }
+]])
+compile="$CXX $CPPFLAGS $CXXFLAGS" link="$CXX $CXXFLAGS $LDFLAGS" source=a.cpp
+],
+[OBJC], [AT_DATA([a.m],
+[[#import <Foundation/Foundation.h>
+
+@interface Addition : NSObject
+- (int)this:(int)a that:(int)b;
+@end
+
+@implementation Addition
+- (int)this:(int)a that:(int)b
+{
+  return a + b;
+}
+@end
+
+int main() {
+    Addition *add = [[Addition alloc] init];
+    int result = [add this:10 that:20];
+    printf("add this:10 that:20 = %d", result);
+    return 0;
+}
+]])
+compile="$OBJC $OBJCFLAGS" link="$OBJC $OBJCFLAGS $LDFLAGS" source=a.m
+],
+[OBJCXX], [AT_DATA([a.mm],
+[[#import <Foundation/Foundation.h>
+
+@interface Addition : NSObject
+- (int)this:(int)a that:(int)b;
+@end
+
+@implementation Addition
+- (int)this:(int)a that:(int)b
+{
+  return a + b;
+}
+@end
+
+int main() {
+    Addition *add = [[Addition alloc] init];
+    int result = [add this:10 that:20];
+    printf("add this:10 that:20 = %d", result);
+    return 0;
+}
+]])
+compile="$OBJCXX $OBJCXXFLAGS" link="$OBJCXX $OBJCXXFLAGS $LDFLAGS" source="a.mm -o a.o"
+],
+[F77], [AT_DATA([a.f],
+[[      program main
+      end
+]])
+compile="$F77 $FFLAGS" link="$F77 $FFLAGS $LDFLAGS" source=a.f
+],
+[FC], [AT_DATA([a.f90],
+[[      program main
+      end
+]])
+compile="$FC $FCFLAGS" link="$FC $FCFLAGS $LDFLAGS" source=a.f90
+],
+[GCJ], [AT_DATA([a.java],
+[[class a {}
+]])
+compile="$GCJ $GCJFLAGS" link="$GCJ $GCJFLAGS $LDFLAGS" source=a.java
+],
+[ML64], [AT_DATA([a.asm],
+[[
+.data
+value QWORD 5 ; Define variable named value = 5.
+
+.code
+main PROC
+  mov rax, value ; :Load value into memory
+  inc rax ; Increment value by one
+  mov value, rax ; Store the incrememnted result back into 'value'
+  mov eax, dword ptr value ; Load the lower 32 bits of 'value' into EAX to use as the return code
+  ret
+main ENDP
+END
+]])
+compile="$ML64 $ML64FLAGS" link="$ML64 $ML64FLAGS $LDFLAGS" source=a.asm
+])
+
+
+# Linker flags are not passed to the archiver, so don't test static libraries.
+if $LIBTOOL --features | $GREP 'enable shared libraries'; then
+  library_and_module='library.la "module.la -module -avoid-version"'
+else
+  library_and_module=
+fi
+
+eval "`$LIBTOOL --tag=lt_tag --config | $EGREP '^(wl|archive_cmds)='`"
+
+if test OBJC = lt_tag; then
+  AT_CHECK([$LIBTOOL --config | $EGREP '^objc_compiles="no"' && (exit 77)], 1)
+elif test OBJCXX = lt_tag; then
+  AT_CHECK([$LIBTOOL --config | $EGREP '^objcxx_compiles="no"' && (exit 77)], 1)
+fi
+
+AT_CHECK([$LIBTOOL --tag=lt_tag --mode=compile $compile -c $source],
+	 [], [ignore], [ignore])
+
+# Linker flags are prefixed with $wl iff they are passed to the
+# compiler driver, instead of directly to the linker.
+case $archive_cmds in
+*\$LD*\$linker_flags*) maybe_wl= compiler_flags_in_liblink=false ;;
+*) maybe_wl=$wl compiler_flags_in_liblink=: ;;
+esac
+
+for flag in -Wc, -Wl, '-Xcompiler ' '-Xlinker '; do
+  case $flag in
+  -Wc, | -Xcompiler\ )
+    AT_CHECK([$LIBTOOL -n --tag=lt_tag --mode=compile $compile ]dnl
+	     [$flag-foo -c $source], [], [stdout], [ignore])
+    AT_CHECK([$GREP -- " -foo" stdout], [], [ignore])
+    flag_prefix_prog=
+    flag_prefix_lib=
+    flags_in_liblink=$compiler_flags_in_liblink
+    ;;
+  -Wl, | -Xlinker\ )
+    flag_prefix_prog=$wl
+    flag_prefix_lib=$maybe_wl
+    flags_in_liblink=:
+    ;;
+  esac
+
+  AT_CHECK([$LIBTOOL -n --tag=lt_tag --mode=link $link ]dnl
+	   [-o program$EXEEXT a.lo $flag-foo], [], [stdout], [ignore])
+  AT_CHECK([$GREP -- "$flag_prefix_prog-foo" stdout], [], [ignore])
+
+  eval set x "$library_and_module"
+  for output
+  do
+    test x = "$output" && continue
+    AT_CHECK([$LIBTOOL -n --tag=lt_tag --mode=link $link ]dnl
+	     [-o $output a.lo -rpath /nowhere $flag-foo], [], [stdout], [ignore])
+    if $flags_in_liblink; then
+      AT_CHECK([$GREP -- "$flag_prefix_lib-foo" stdout], [], [ignore])
+    else
+      AT_CHECK([$GREP -- " $flag_prefix_lib-foo" stdout], [1])
+    fi
+  done
+done
+
+AT_CLEANUP
+])dnl m4_foreach(tag)

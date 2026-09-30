@@ -769,7 +769,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 346);
+    assert_eq!(PACKAGE_NAMES.len(), 356);
 }
 
 #[test]
@@ -818,10 +818,23 @@ fn base_userland_package_families_and_command_set_are_complete() {
         "sed",
         "mawk",
         "rsync",
+        "grep",
+        "findutils",
+        "diffutils",
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 346);
+    assert_eq!(PACKAGE_NAMES.len(), 356);
+    // The uutils search and comparison commands left mattos-base-runtime for
+    // their Debian package names; the base profile still installs them.
+    let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
+    for name in ["grep", "findutils", "diffutils"] {
+        let spec = specs.iter().find(|spec| spec.name == name).unwrap();
+        assert!(spec.essential, "{name} is essential");
+        assert_eq!(spec.replaces, &["mattos-base-runtime"], "{name} takes over its files");
+        assert!(base.depends.contains(&name), "mattos-base lacks {name}");
+    }
+    assert_eq!(package_stage_dependencies("mattos-profiles"), &["systemd", "init"]);
     assert_eq!(
         UTIL_LINUX_BASE_PATHS,
         &[
@@ -915,7 +928,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 346);
+    assert_eq!(PACKAGE_NAMES.len(), 356);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",
@@ -946,7 +959,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     assert!(
         !specs
             .iter()
-            .any(|spec| matches!(spec.name, "perl" | "tcl" | "bash"))
+            .any(|spec| matches!(spec.name, "tcl" | "bash"))
     );
 }
 

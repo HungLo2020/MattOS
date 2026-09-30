@@ -171,5 +171,6 @@ all-remotes-disabled policy of that time.
   `Acquire::AllowInsecureRepositories "false"`.
 
 CPython, Git, Rust (`rustc`, `cargo`), KDE Plasma, the installer, and hosted
-publication (`DevUtils/PublishPackages.py`) now exist. Still absent are Perl,
-Autotools, pkg-config/pkgconf, Meson, Ninja, and CMake as MattOS packages.
+publication (`DevUtils/PublishPackages.py`) now exist, as do the native build
+tools `perl`, `m4`, `autoconf`, `automake`, `libtool`, `pkgconf`, `meson`,
+`ninja-build` and `cmake`.

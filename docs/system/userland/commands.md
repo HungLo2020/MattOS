@@ -73,7 +73,7 @@ Counts from the 2026-09-27 build:
 
 ### uutils/grep
 
-- Binary: `grep`
+- Binary: `grep`, from the `grep` package (Essential, as in Debian)
 - Installed path: `/usr/bin/grep`
 - Provider label: `uutils/grep`
 
@@ -114,13 +114,15 @@ Counts from the 2026-09-27 build:
 
 ### uutils/findutils
 
-- Binaries: `find`, `xargs`, `locate`, `updatedb`
+- Binaries: `find`, `xargs`, `locate`, `updatedb`, from the `findutils`
+  package (Essential, as in Debian)
 - Installed path prefix: `/usr/bin/`
 - Provider label: `uutils/findutils`
 
 ### uutils/diffutils
 
-- Upstream binary currently built: `diffutils` (multicall style)
+- Upstream binary currently built: `diffutils` (multicall style), from the
+  `diffutils` package (Essential, as in Debian)
 - Installed path: `/usr/bin/diffutils`
 - Exposed aliases: `diff`, `cmp`
 - Provider label: `uutils/diffutils`
@@ -129,6 +131,11 @@ Counts from the 2026-09-27 build:
 	- `diffutils diff ...` dispatches to `diff`.
 	- Symlink argv0 dispatch works (`/tmp/mattos-diff` invokes `diff` mode).
 - Compatibility gap (tracked): `diff3`, `sdiff` (not implemented in this revision)
+
+The `grep`, `findutils` and `diffutils` packages were split out of
+`mattos-base-runtime`, which used to ship these commands; each
+`Replaces: mattos-base-runtime`, so installing them takes the files over on an
+existing system. `mattos-base` depends on all three.
 
 ### util-linux (traditional C implementation)
 

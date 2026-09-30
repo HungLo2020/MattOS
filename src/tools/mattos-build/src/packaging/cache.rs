@@ -399,7 +399,8 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         "systemd" => 3,
         // Revision 2 installs MattOS resolver/time policy as systemd drop-ins,
         // leaving the upstream primary configuration files owned by systemd.
-        "mattos-base-runtime" => 2,
+        // Revision 3 moves grep, findutils and diffutils to their own packages.
+        "mattos-base-runtime" => 3,
         // Revision 2 gives the embedded installed-system repository a
         // lexically earlier source filename than the hosted repository. At
         // equal pin priority and package version, APT must select the

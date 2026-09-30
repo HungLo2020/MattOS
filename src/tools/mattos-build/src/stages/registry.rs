@@ -2,10 +2,12 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
     if stage == BuildStage::Libcap {
         return scheduler::StageResourceProfile::serial();
     }
+    if stage == BuildStage::Llvm {
+        return scheduler::StageResourceProfile::llvm();
+    }
     if matches!(
         stage,
-        BuildStage::Llvm
-            | BuildStage::Mesa
+        BuildStage::Mesa
             | BuildStage::QtBase
             | BuildStage::QtSvg
             | BuildStage::QtWayland
@@ -739,6 +741,12 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Rsync => build_rsync(repo_root),
         BuildStage::Pkgconf => build_pkgconf(repo_root),
         BuildStage::Cmake => build_cmake(repo_root),
+        BuildStage::Perl => build_perl(repo_root),
+        BuildStage::M4 => build_m4(repo_root),
+        BuildStage::Autoconf => build_autoconf(repo_root),
+        BuildStage::Automake => build_automake(repo_root),
+        BuildStage::Libtool => build_libtool(repo_root),
+        BuildStage::Ninja => build_ninja(repo_root),
         BuildStage::Findutils => build_findutils(repo_root),
         BuildStage::Diffutils => build_diffutils(repo_root),
         BuildStage::Gzip => build_gzip(repo_root),

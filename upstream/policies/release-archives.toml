@@ -99,3 +99,39 @@ source_commit = "04355d27b7386d7de0e6bd5e79c556223210f700"
 url = "https://download.samba.org/pub/rsync/src/rsync-3.5.1.tar.gz"
 sha256 = "c55f9c9dc10fb8bec397b399a0fdded53cc9a2d8e30891bb0d63724d25c37bef"
 staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "m4"
+version = "1.4.21"
+source_tag = "v1.4.21"
+source_commit = "fe2f13ab9ab9b3e712c6529f0b2a49a81feb6ce2"
+url = "https://ftp.gnu.org/gnu/m4/m4-1.4.21.tar.xz"
+sha256 = "f25c6ab51548a73a75558742fb031e0625d6485fe5f9155949d6486a2408ab66"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "autoconf"
+version = "2.73"
+source_tag = "v2.73"
+source_commit = "44d712a26b0e14931bf2df57e2c9b80a2747dfce"
+url = "https://ftp.gnu.org/gnu/autoconf/autoconf-2.73.tar.xz"
+sha256 = "9fd672b1c8425fac2fa67fa0477b990987268b90ff36d5f016dae57be0d6b52e"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "automake"
+version = "1.19"
+source_tag = "v1.19"
+source_commit = "e82d2d34d4626445565bc131f6580b59597d0c62"
+url = "https://ftp.gnu.org/gnu/automake/automake-1.19.tar.xz"
+sha256 = "e3e2c2e3abf37898138db5b6c1d1dc35c9160c5978be7947d2c741705251d445"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "libtool"
+version = "2.6.2"
+source_tag = "v2.6.2"
+source_commit = "309bb53a8adfb22c6e5869cc8da049bf123e5438"
+url = "https://ftp.gnu.org/gnu/libtool/libtool-2.6.2.tar.xz"
+sha256 = "2ef1067c16c97db930fd740cc9bc3d3ba9a583804ae5ac42cc3e8719e49e191e"
+staging_policy = "output-mirror-only"

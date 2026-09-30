@@ -14,6 +14,17 @@ fn llvm_parallel_link_jobs(snapshot: &resources::ResourceSnapshot) -> u64 {
     (memory / PER_LINK_BYTES).clamp(1, 4)
 }
 
+/// Concurrent `llvm-tblgen` runs.  The X86 and AMDGPU tables each take up to
+/// about 1.5 GB, and Ninja otherwise starts a dozen at once: a 17 GB burst
+/// that a memory-limited, swap-free stage scope can only throttle to a halt.
+fn llvm_parallel_tablegen_jobs(snapshot: &resources::ResourceSnapshot) -> u64 {
+    const PER_TABLEGEN_BYTES: u64 = 2 * 1024 * 1024 * 1024;
+    let memory = snapshot
+        .cgroup_memory_limit_bytes
+        .map_or(snapshot.physical_memory_bytes, |limit| limit.min(snapshot.physical_memory_bytes));
+    (memory / 2 / PER_TABLEGEN_BYTES).clamp(1, 4)
+}
+
 fn build_llvm(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/toolchain/llvm-project/llvm");
     let out_root = repo_root.join("out/build/llvm");
@@ -61,6 +72,10 @@ fn build_llvm(repo_root: &Path) -> Result<()> {
         // GB each; unbounded concurrent links are the build's largest memory
         // peak.  A Ninja link pool keeps compile parallelism while capping it.
         format!("-DLLVM_PARALLEL_LINK_JOBS={}", llvm_parallel_link_jobs(&resources::discover())),
+        format!(
+            "-DLLVM_PARALLEL_TABLEGEN_JOBS={}",
+            llvm_parallel_tablegen_jobs(&resources::discover())
+        ),
     ];
     let stamp = format!("{state}\n{}\n", options.join("\n"));
     let stamp_path = out_root.join("build-stamp.txt");

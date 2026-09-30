@@ -1,0 +1,16 @@
+{
+  "matrix": {
+    "options": {
+      "method": [
+        { "val": "config-tool" },
+        { "val": "qmake" },
+        { "val": "pkg-config" }
+      ],
+      "debug": [
+        { "val": "true" },
+        { "val": "false" }
+      ]
+    }
+  },
+  "expect_skip_on_jobname": ["cygwin", "msys2", "azure", "windows"]
+}

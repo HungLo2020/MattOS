@@ -1,3 +1,7 @@
+# Store and check out every file byte for byte: no line-ending conversion,
+# whatever core.autocrlf says.  Vendored trees carry no upstream
+# .gitattributes (the importer omits them), so this governs them too.
+* -text
 * linguist-vendored=false
 * linguist-generated=false
 # Preserve the pinned upstream blob, including its whitespace-only line.

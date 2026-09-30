@@ -1081,7 +1081,7 @@ fn stale_compatibility_versions(repo_root: &Path, inventory: &PackageInventory) 
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
     match source_component {
         "MattOS" | "ca-certificates" | "test" => &[],
-        "mattos-profiles" => &["systemd", "grep", "findutils", "diffutils", "init"],
+        "mattos-profiles" => &["systemd", "init"],
         "mattos-compat" => &["systemd", "rust"],
         "linux-uapi" => &["linux-headers"],
         "kernel-modules" => &["linux"],
@@ -1106,6 +1106,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         other => match other {
             "brush" => &["brush"],
             "coreutils" => &["coreutils"],
+            "grep" => &["grep"],
+            "findutils" => &["findutils"],
+            "diffutils" => &["diffutils"],
             "binutils" => &["binutils"],
             "apt" => &["apt"],
             "dpkg" => &["dpkg"],
@@ -1135,6 +1138,14 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "rsync" => &["rsync"],
             "pkgconf" => &["pkgconf"],
             "cmake" => &["cmake"],
+            "perl" => &["perl"],
+            "m4" => &["m4"],
+            "autoconf" => &["autoconf"],
+            "automake" => &["automake"],
+            "libtool" => &["libtool"],
+            "ninja" => &["ninja"],
+            // Meson is staged straight from its vendored Python source.
+            "meson" => &[],
             "file" => &["file"],
             "less" => &["less"],
             "git" => &["git"],
@@ -1342,9 +1353,6 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/network",
             "src/rootfs/skeleton",
             "src/userland/init",
-            "src/userland/grep",
-            "src/userland/findutils",
-            "src/userland/diffutils",
         ],
         "mattos-plasma-live" => &[
             "src/system/session/plasma",
@@ -1410,6 +1418,9 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "power-profiles-daemon" => &["src/system/services/power-profiles-daemon"],
         "brush" => &["src/userland/brush"],
         "coreutils" => &["src/userland/coreutils"],
+        "grep" => &["src/userland/grep"],
+        "findutils" => &["src/userland/findutils"],
+        "diffutils" => &["src/userland/diffutils"],
         "curl" => &["src/userland/curl"],
         "libmd" => &["src/system/libraries/libmd"],
         "libbsd" => &["src/system/libraries/libbsd"],
@@ -1466,6 +1477,13 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "rsync" => &["src/userland/rsync", "upstream/policies/release-archives.toml"],
         "pkgconf" => &["src/build-tools/pkgconf"],
         "cmake" => &["src/build-tools/cmake"],
+        "perl" => &["src/development/perl"],
+        "m4" => &["src/build-tools/m4", "upstream/policies/release-archives.toml"],
+        "autoconf" => &["src/build-tools/autoconf", "upstream/policies/release-archives.toml"],
+        "automake" => &["src/build-tools/automake", "upstream/policies/release-archives.toml"],
+        "libtool" => &["src/build-tools/libtool", "upstream/policies/release-archives.toml"],
+        "meson" => &["src/build-tools/meson"],
+        "ninja" => &["src/build-tools/ninja"],
         "file" => &["src/userland/file"],
         "less" => &["src/userland/less"],
         "git" => &["src/userland/git"],
@@ -2026,6 +2044,9 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "coreutils" => {
             cargo_workspace_version(&repo_root.join("src/userland/coreutils/Cargo.toml"))?
         }
+        name @ ("grep" | "findutils" | "diffutils") => {
+            cargo_package_version(&repo_root.join("src/userland").join(name).join("Cargo.toml"))?
+        }
         "curl" => curl_version(&repo_root.join("src/userland/curl/include/curl/curlver.h"))?,
         "dpkg" => fs::read_to_string(repo_root.join("out/build/dpkg/source/.dist-version"))?
             .trim()
@@ -2087,6 +2108,10 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "rsync" => component_snapshot_version(repo_root, "rsync")?,
         "pkgconf" => component_snapshot_version(repo_root, "pkgconf")?,
         "cmake" => component_snapshot_version(repo_root, "cmake")?,
+        name @ ("perl" | "m4" | "autoconf" | "automake" | "libtool" | "meson") => {
+            component_snapshot_version(repo_root, name)?
+        }
+        "ninja-build" => component_snapshot_version(repo_root, "ninja")?,
         "libmagic1" | "file" => component_snapshot_version(repo_root, "file")?,
         "less" => component_snapshot_version(repo_root, "less")?,
         "git" => component_snapshot_version(repo_root, "git")?,
@@ -2621,6 +2646,12 @@ fn write_provenance(
             "src/userland/coreutils",
             "cargo build --release",
         )?,
+        component @ ("grep" | "findutils" | "diffutils") => component_provenance(
+            repo_root,
+            component,
+            &format!("src/userland/{component}"),
+            "cargo build --release",
+        )?,
         "curl" => component_provenance(
             repo_root,
             "curl",
@@ -2763,7 +2794,8 @@ fn write_provenance(
         | "gnupg" | "less" | "git" | "openssh" | "libffi" | "wayland"
         | "xkbcommon" | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm"
         | "rust" | "libnl" | "wpa-supplicant" | "grub" | "greetd" | "sed" | "dash"
-        | "mawk" | "rsync" | "pkgconf" | "cmake" | "attr") => {
+        | "mawk" | "rsync" | "pkgconf" | "cmake" | "attr" | "perl" | "m4" | "autoconf"
+        | "automake" | "libtool" | "meson" | "ninja") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -3242,6 +3274,10 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
         ("/usr/bin/sh", "dash"),
         ("/usr/bin/dash", "dash"),
         ("/usr/bin/sed", "sed"),
+        ("/usr/bin/grep", "grep"),
+        ("/usr/bin/find", "findutils"),
+        ("/usr/bin/diff", "diffutils"),
+        ("/usr/libexec/mattos/rescue-init", "mattos-base-runtime"),
         ("/usr/bin/awk", "mawk"),
         ("/usr/bin/rsync", "rsync"),
         ("/usr/bin/bash", "mattos-brush"),

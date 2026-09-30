@@ -294,13 +294,25 @@ and took up to three hours instead of about five minutes.
 ## Per-stage memory containment
 
 Each stage that runs its recipe gets its own transient systemd user scope
-(`stage_memory.rs`). Its `memory.high` is the memory available when the stage
-starts, at least 1 GiB, and every command the stage runs moves itself into
+(`stage_memory.rs`). Its `memory.high` is three quarters of the memory
+available when the stage starts, at least 1 GiB (the remaining quarter is
+headroom for the desktop and the other running stages), and every command the stage runs moves itself into
 the scope before `exec`. A stage that outgrows the memory it started with is
 then reclaimed and throttled by the kernel inside its own cgroup, instead of
 pushing other processes (the user's desktop, the editor) into swap: during
 the 7.2.8 rebuild LLVM ran with 18 GiB of the host in swap because nothing
 bounded it below the whole session.
+
+Swap is not forbidden inside a scope (`MemorySwapMax=0`): once a stage's
+anonymous memory is above `memory.high`, a swap-free scope has nothing left to
+reclaim and the kernel throttles its processes indefinitely. That stalled LLVM
+with eleven compilers in uninterruptible sleep for 13 minutes. Keeping a stage
+below its limit is the scheduler's job instead: LLVM has its own profile
+(`StageResourceProfile::llvm`, 1.25 GiB per compile job, since its C++
+translation units peak at 0.5-1.3 GiB against the generic 768 MiB estimate),
+and its configuration caps concurrent `llvm-tblgen` runs
+(`LLVM_PARALLEL_TABLEGEN_JOBS`, half the memory at 2 GiB each), whose burst of
+about a dozen 0.7-1.4 GiB processes otherwise filled the scope.
 
 `memory.high` alone would only move the excess from other programs into the
 stage's own swap, so the scheduler also reads each running stage's cgroup

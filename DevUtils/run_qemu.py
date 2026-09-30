@@ -1324,6 +1324,20 @@ def _verify_installed_disk_boot(
             "test \"$(echo 2 3 | awk '{print $1 * $2}')\" = 6 && rsync --version >/dev/null && "
             "cmake --version | grep -q 'cmake version 4' && pkg-config --modversion ncursesw >/dev/null",
         ),
+        # Autotools (with Libtool), Meson and Ninja build real projects, and
+        # Perl describes the installed toolchain rather than the build tree.
+        (
+            "autotools-meson-ninja",
+            "test \"$(perl -MConfig -e 'print $Config{cc}')\" = gcc && d=$(mktemp -d) && cd \"$d\" && "
+            "printf 'AC_INIT([t],[1])\\nAM_INIT_AUTOMAKE([foreign])\\nLT_INIT\\nAC_PROG_CC\\n"
+            "AC_CONFIG_FILES([Makefile])\\nAC_OUTPUT\\n' > configure.ac && "
+            "printf 'lib_LTLIBRARIES = libt.la\\nlibt_la_SOURCES = t.c\\n' > Makefile.am && "
+            "echo 'int t(void) { return 1; }' > t.c && autoreconf -fi >/dev/null 2>&1 && "
+            "./configure -q && make -s >/dev/null 2>&1 && test -f .libs/libt.so && "
+            "mkdir m && cd m && printf \"project('m', 'c')\\nexecutable('m', 'm.c')\\n\" > meson.build && "
+            "echo 'int main(void) { return 0; }' > m.c && meson setup b >/dev/null && "
+            "ninja -C b >/dev/null && ./b/m",
+        ),
         ("no-unsigned-module-taint", "test $(( $(cat /proc/sys/kernel/tainted) & 8192 )) -eq 0"),
         (
             "kernel-modules-signed",

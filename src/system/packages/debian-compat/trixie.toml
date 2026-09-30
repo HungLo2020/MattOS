@@ -377,6 +377,127 @@ classification = "debian-compatible"
 known_gaps = ["Not every GNU extension is guaranteed"]
 
 [[package]]
+debian_name = "grep"
+mattos_name = "grep"
+source_component = "grep"
+owned_paths = ["/usr/bin/grep"]
+provided_abi_or_commands = ["GNU-compatible grep command"]
+protected = true
+current_mattos_version = "0.1.0-1mattos1"
+expected_debian_role = "pattern search command"
+classification = "debian-compatible"
+known_gaps = ["uutils implementation: not every GNU extension is guaranteed; egrep, fgrep and rgrep wrappers are not shipped"]
+
+[[package]]
+debian_name = "findutils"
+mattos_name = "findutils"
+source_component = "findutils"
+owned_paths = ["/usr/bin/find", "/usr/bin/xargs"]
+provided_abi_or_commands = ["GNU-compatible find and xargs commands", "locate and updatedb"]
+protected = true
+current_mattos_version = "0.9.2-1mattos1"
+expected_debian_role = "file search commands"
+classification = "debian-compatible"
+known_gaps = ["uutils implementation: not every GNU extension is guaranteed; Debian ships locate separately (plocate)"]
+
+[[package]]
+debian_name = "diffutils"
+mattos_name = "diffutils"
+source_component = "diffutils"
+owned_paths = ["/usr/bin/diff", "/usr/bin/cmp"]
+provided_abi_or_commands = ["GNU-compatible diff and cmp commands"]
+protected = true
+current_mattos_version = "0.5.0-1mattos1"
+expected_debian_role = "file comparison commands"
+classification = "debian-compatible"
+known_gaps = ["uutils implementation: diff3 and sdiff are not provided; Debian's diffutils carries epoch 1"]
+
+[[package]]
+debian_name = "perl"
+mattos_name = "perl"
+source_component = "perl"
+owned_paths = ["/usr/bin/perl"]
+provided_abi_or_commands = ["Perl 5 interpreter and core library"]
+protected = true
+current_mattos_version = "5.44.0-1mattos1"
+expected_debian_role = "Perl interpreter"
+classification = "debian-compatible"
+known_gaps = ["One package replaces Debian's perl, perl-base, perl-modules and libperl split; libperl is static; DBM extensions (DB_File, GDBM_File, NDBM_File, ODBM_File) are not built; man3 pages are not shipped"]
+
+[[package]]
+debian_name = "m4"
+mattos_name = "m4"
+source_component = "m4"
+owned_paths = ["/usr/bin/m4"]
+provided_abi_or_commands = ["GNU m4 macro processor"]
+protected = true
+current_mattos_version = "1.4.21-1mattos1"
+expected_debian_role = "macro processor"
+classification = "debian-compatible"
+known_gaps = ["Localization is disabled"]
+
+[[package]]
+debian_name = "autoconf"
+mattos_name = "autoconf"
+source_component = "autoconf"
+owned_paths = ["/usr/bin/autoconf", "/usr/share/autoconf"]
+provided_abi_or_commands = ["autoconf, autoheader, autoreconf, autom4te, autoscan, autoupdate, ifnames"]
+protected = true
+current_mattos_version = "2.73-1mattos1"
+expected_debian_role = "configure script generator"
+classification = "debian-compatible"
+known_gaps = ["Documentation and localization are reduced"]
+
+[[package]]
+debian_name = "automake"
+mattos_name = "automake"
+debian_epoch = 1
+source_component = "automake"
+owned_paths = ["/usr/bin/automake", "/usr/bin/aclocal"]
+provided_abi_or_commands = ["automake and aclocal"]
+protected = true
+current_mattos_version = "1:1.19-1mattos1"
+expected_debian_role = "Makefile.in generator"
+classification = "debian-compatible"
+known_gaps = ["Only the current Automake series is installed (no automake-1.xx alternatives)"]
+
+[[package]]
+debian_name = "libtool"
+mattos_name = "libtool"
+source_component = "libtool"
+owned_paths = ["/usr/bin/libtool", "/usr/bin/libtoolize"]
+provided_abi_or_commands = ["libtool, libtoolize and the libtool Autoconf macros"]
+protected = true
+current_mattos_version = "2.6.2-1mattos1"
+expected_debian_role = "shared library build support"
+classification = "debian-compatible"
+known_gaps = ["libtool-bin is merged into libtool; libltdl is not shipped"]
+
+[[package]]
+debian_name = "meson"
+mattos_name = "meson"
+source_component = "meson"
+owned_paths = ["/usr/bin/meson", "/usr/lib/python3.14/site-packages/mesonbuild"]
+provided_abi_or_commands = ["Meson build system"]
+protected = true
+current_mattos_version = "1.12.1-1mattos1"
+expected_debian_role = "build system"
+classification = "debian-compatible"
+known_gaps = ["Installed for the MattOS Python's site-packages rather than /usr/lib/python3/dist-packages"]
+
+[[package]]
+debian_name = "ninja-build"
+mattos_name = "ninja-build"
+source_component = "ninja"
+owned_paths = ["/usr/bin/ninja"]
+provided_abi_or_commands = ["Ninja build tool"]
+protected = true
+current_mattos_version = "1.13.2-1mattos1"
+expected_debian_role = "small build system"
+classification = "debian-compatible"
+known_gaps = ["The ninja shell completions and manual are not shipped"]
+
+[[package]]
 debian_name = "curl"
 mattos_name = "curl"
 source_component = "curl"
@@ -704,8 +825,8 @@ known_gaps = ["Development libraries remain in libsystemd0/libudev1 package boun
 debian_name = "mattos-base-runtime"
 mattos_name = "mattos-base-runtime"
 source_component = "mattos-profiles"
-owned_paths = ["/usr/bin/grep", "/usr/lib/systemd/system/mattos.target"]
-provided_abi_or_commands = ["MattOS base runtime policy and required userland commands"]
+owned_paths = ["/usr/libexec/mattos/rescue-init", "/usr/lib/systemd/system/mattos.target"]
+provided_abi_or_commands = ["MattOS base runtime policy and service configuration"]
 protected = false
 current_mattos_version = "0.1-1mattos1"
 expected_debian_role = "MattOS base runtime integration"

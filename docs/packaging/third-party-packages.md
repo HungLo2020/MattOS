@@ -51,8 +51,10 @@ archives.
 Recipes build inside `localhost/mattos-builder:<tag>`, an OCI image made from
 the built MattOS packages by `mattos-build builder-image`
 (`packaging/builder_image.rs`). It installs `mattos-build-essential` (GCC,
-G++, Make, Binutils, pkgconf, CMake, dash, GNU sed, mawk), the MattOS
-`-dev` packages recipes need, Python and the fetch and archive tools, with the
+G++, Make, Binutils, pkgconf, CMake, dash, GNU sed, mawk), grep, findutils
+and diffutils, Perl, m4, Autoconf, Automake, Libtool, Meson and Ninja, the
+MattOS `-dev` packages recipes need, Python and the fetch and archive tools
+(but not the service policy of `mattos-base-runtime`), with the
 same chrootless dpkg install as the root filesystem. The image is one
 deterministic layer written as `out/images/mattos-builder.oci.tar`; its tag is
 its manifest digest, and an unchanged package set reuses the archive.

@@ -144,10 +144,27 @@ For Linux kernel fidelity, run synchronization in a Linux filesystem path (for e
   upstream-tracked files are written even when the component's own `.gitignore`
   matches them. Import and sync never touch the outer repository's index.
   The reconstructed source and state file are left unstaged.
-  Because build mirrors copy
-  `git ls-files --cached --others --exclude-standard` (see below), a new
-  upstream file matched by a component `.gitignore` is not copied into build
-  mirrors until it is tracked; commit such files with `git add -f`.
+  Commit upstream files that a component `.gitignore` matches with
+  `git add -f`; the tracking audit
+  (`DevUtils/audits/test_vendored_source_tracking.py`) lists any that are
+  still untracked.
+- Nested ignore rules do not change what a build reads. Source digests and
+  build mirrors take untracked files through MattOS's own ignore rules only
+  (the root `.gitignore` and `.git/info/exclude`), never a vendored
+  component's `.gitignore`. A newly imported upstream file therefore has the
+  same digest and reaches the same mirror whether or not it has been
+  force-added yet, and committing it does not rebuild anything.
+- Byte fidelity: upstream `.gitattributes` files are never imported. A
+  nested one outranks the MattOS root `.gitattributes` and would let Git
+  rewrite line endings (`text`, `eol`, `crlf`) or run filters on vendored
+  files when they are committed or checked out, so a clone could hold bytes
+  that differ from upstream's blobs. The root `.gitattributes` sets
+  `* -text`, so every file is stored and checked out byte for byte whatever
+  `core.autocrlf` says. The importer's tree projection and the provenance
+  audit both omit `.gitattributes`, so the recorded `imported_tree_digest`
+  covers every other upstream file. Source digests detect modified files
+  with no attributes at all (`git --attr-source=<empty tree>`), so no
+  attribute can hide a byte change from the cache.
 - File-type fidelity: regular executable modes and symlink objects are copied as
   upstream records them. Upstream gitlinks are never initialized as nested Git
   repositories; explicit policy selects separately pinned ordinary-file

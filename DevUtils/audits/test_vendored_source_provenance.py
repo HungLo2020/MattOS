@@ -128,6 +128,10 @@ def fetch_tree(component: dict, mirrors: dict[str, list[str]]) -> tuple[str, lis
             continue
         metadata, raw_path = record.split(b"\t", 1)
         mode, object_type, oid = metadata.decode("ascii").split(" ")
+        # Upstream .gitattributes are never imported (they would outrank the
+        # MattOS root attributes and convert vendored bytes).
+        if raw_path.rsplit(b"/", 1)[-1] == b".gitattributes":
+            continue
         entries.append((mode, object_type, oid, raw_path.decode("utf-8", "surrogateescape")))
     return tree, entries
 

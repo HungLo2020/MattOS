@@ -1589,6 +1589,22 @@ fn llvm_link_pool_scales_with_the_memory_the_build_may_use() {
     assert_eq!(crate::llvm_parallel_link_jobs(&host(128 * GIB, None)), 4);
     // A container limit bounds it, not the host's memory.
     assert_eq!(crate::llvm_parallel_link_jobs(&host(128 * GIB, Some(8 * GIB))), 1);
+    // Tablegen runs (up to ~1.5 GB each) get half the memory, 2 GiB apiece.
+    assert_eq!(crate::llvm_parallel_tablegen_jobs(&host(15 * GIB + GIB / 2, None)), 3);
+    assert_eq!(crate::llvm_parallel_tablegen_jobs(&host(4 * GIB, None)), 1);
+    assert_eq!(crate::llvm_parallel_tablegen_jobs(&host(128 * GIB, None)), 4);
+    assert_eq!(crate::llvm_parallel_tablegen_jobs(&host(128 * GIB, Some(8 * GIB))), 2);
+}
+
+#[test]
+fn llvm_admission_reserves_its_measured_per_compiler_memory() {
+    let llvm = crate::stage_resource_profile(BuildStage::Llvm);
+    assert_eq!(llvm.memory_per_child_job_bytes, 1280 * 1024 * 1024);
+    assert!(llvm.memory_heavy);
+    assert!(
+        crate::stage_resource_profile(BuildStage::Mesa).memory_per_child_job_bytes
+            < llvm.memory_per_child_job_bytes
+    );
 }
 
 /// A kernel build tree whose `sign-file` appends a recognizable signature.

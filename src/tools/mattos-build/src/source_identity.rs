@@ -7,6 +7,33 @@ use std::process::Command;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
+/// A Git option that reads no `.gitattributes` at all (the empty tree is the
+/// attribute source), so no eol or filter attribute can make Git report a
+/// file unchanged whose bytes differ from its blob.
+pub(crate) const NO_ATTRIBUTES: &str = "--attr-source=4b825dc642cb6eb9a060e54bf8d69288fbee4904";
+
+/// `git ls-files` exclude options for untracked source inputs: MattOS's own
+/// ignore rules (the root `.gitignore` and `info/exclude`) only.  Vendored
+/// trees keep upstream's nested `.gitignore` files, which ignore some of
+/// upstream's own tracked sources; honoring them would leave such a file out
+/// of source digests and build mirrors until it is force-added, so merely
+/// committing it would change what a build reads.
+pub(crate) fn mattos_exclude_arguments(repo_root: &Path) -> Result<Vec<String>> {
+    let output = Command::new("git")
+        .args(["rev-parse", "--git-path", "info/exclude"])
+        .current_dir(repo_root)
+        .output()?;
+    if !output.status.success() {
+        bail!("git could not locate info/exclude in {}", repo_root.display());
+    }
+    let info_exclude = repo_root.join(String::from_utf8_lossy(&output.stdout).trim());
+    Ok([repo_root.join(".gitignore"), info_exclude]
+        .into_iter()
+        .filter(|exclude| exclude.is_file())
+        .map(|exclude| format!("--exclude-from={}", exclude.display()))
+        .collect())
+}
+
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub(crate) struct SourceQuery {
     pub(crate) roots: Vec<PathBuf>,
@@ -74,7 +101,11 @@ impl GitSourceSnapshot {
                 .current_dir(repo_root)
                 .output()?;
             record_command(
-                arguments.first().copied().unwrap_or("unknown"),
+                arguments
+                    .iter()
+                    .copied()
+                    .find(|argument| !argument.starts_with("--"))
+                    .unwrap_or("unknown"),
                 timer.elapsed(),
             );
             if !output.status.success() {
@@ -83,8 +114,20 @@ impl GitSourceSnapshot {
             Ok(output.stdout)
         };
         let index = git_output(&["ls-files", "--stage", "-z"])?;
-        let modified = git_output(&["diff", "--name-only", "-z"])?;
-        let untracked = git_output(&["ls-files", "--others", "--exclude-standard", "-z"])?;
+        // Modified files are digested from their raw bytes, so they are
+        // detected with no attributes at all (the empty tree as attribute
+        // source): an eol or filter attribute cannot make Git call a file
+        // unchanged whose bytes differ from its blob.
+        let modified = git_output(&[
+            NO_ATTRIBUTES,
+            "diff",
+            "--name-only",
+            "-z",
+        ])?;
+        let excludes = mattos_exclude_arguments(repo_root)?;
+        let mut untracked_arguments = vec!["ls-files", "--others", "-z"];
+        untracked_arguments.extend(excludes.iter().map(String::as_str));
+        let untracked = git_output(&untracked_arguments)?;
         let timer = Instant::now();
         let snapshot = Self::from_git_output(&index, &modified, &untracked)?;
         record_command("snapshot-map-construction", timer.elapsed());
@@ -532,8 +575,12 @@ mod tests {
                 .digest_query(repo, &query, |path| git_index_value(path), |_, _| {})
                 .unwrap()
         };
+        // Upstream ignore rules inside a vendored tree do not hide its files.
+        std::fs::write(repo.join("component/.gitignore"), "generated.c\n").unwrap();
+        std::fs::write(repo.join("component/generated.c"), "int x;\n").unwrap();
         let untracked = digest();
         git(&["add", "-A"]);
+        git(&["add", "-f", "component/generated.c"]);
         assert_eq!(digest(), untracked, "staging changed the digest");
         git(&["commit", "-q", "-m", "c"]);
         assert_eq!(digest(), untracked, "committing changed the digest");
@@ -542,6 +589,41 @@ mod tests {
         assert_ne!(modified, untracked, "a content edit must change the digest");
         std::fs::write(repo.join("component/recipe.rs"), "fn build() {}\n").unwrap();
         assert_eq!(digest(), untracked, "restoring the content must restore the digest");
+    }
+
+    #[test]
+    fn an_eol_attribute_cannot_hide_a_line_ending_change() {
+        let temporary = tempfile::tempdir().unwrap();
+        let repo = temporary.path();
+        let git = |args: &[&str]| {
+            let status = std::process::Command::new("git")
+                .args(["-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false"])
+                .args(args)
+                .current_dir(repo)
+                .output()
+                .unwrap();
+            assert!(status.status.success(), "{args:?}: {}", String::from_utf8_lossy(&status.stderr));
+        };
+        git(&["init", "-q"]);
+        std::fs::create_dir_all(repo.join("component")).unwrap();
+        std::fs::write(repo.join(".gitattributes"), "*.txt text\n").unwrap();
+        std::fs::write(repo.join("component/dos.txt"), "a\nb\n").unwrap();
+        git(&["add", "-A"]);
+        git(&["commit", "-q", "-m", "c"]);
+        let digest = || {
+            let snapshot = GitSourceSnapshot::capture(repo, |_, _| {}).unwrap();
+            let query = SourceQuery::new(&[PathBuf::from("component")], false);
+            snapshot
+                .digest_query(repo, &query, |path| git_index_value(path), |_, _| {})
+                .unwrap()
+        };
+        let lf = digest();
+        // Git's `text` normalization calls this file unchanged; its bytes
+        // (what the build reads) are not.
+        std::fs::write(repo.join("component/dos.txt"), "a\r\nb\r\n").unwrap();
+        assert_ne!(digest(), lf, "a line-ending change must change the digest");
+        std::fs::write(repo.join("component/dos.txt"), "a\nb\n").unwrap();
+        assert_eq!(digest(), lf);
     }
 
     #[test]

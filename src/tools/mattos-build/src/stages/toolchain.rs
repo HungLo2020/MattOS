@@ -46,21 +46,16 @@ fn read_kernel_config_policy(repo_root: &Path) -> Result<KernelConfigPolicy> {
 fn kernel_source_worktree_identity(repo_root: &Path) -> Result<String> {
     let relative = "src/kernel/linux";
     let diff = Command::new("git")
-        .args(["diff", "--binary", "HEAD", "--", relative])
+        .args([source_identity::NO_ATTRIBUTES, "diff", "--binary", "HEAD", "--", relative])
         .current_dir(repo_root)
         .output()?;
     if !diff.status.success() {
         bail!("git could not inspect the Linux working tree");
     }
     let untracked = Command::new("git")
-        .args([
-            "ls-files",
-            "-z",
-            "--others",
-            "--exclude-standard",
-            "--",
-            relative,
-        ])
+        .args(["ls-files", "-z", "--others"])
+        .args(source_identity::mattos_exclude_arguments(repo_root)?)
+        .args(["--", relative])
         .current_dir(repo_root)
         .output()?;
     if !untracked.status.success() {

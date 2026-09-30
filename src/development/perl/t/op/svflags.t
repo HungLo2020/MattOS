@@ -1,0 +1,124 @@
+#!./perl
+
+BEGIN {
+    chdir 't' if -d 't';
+    require './test.pl';
+    set_up_inc('../lib');
+    skip_all("need B, need full perl") if is_miniperl();
+}
+
+# Tests the new documented mechanism for determining the original type
+# of an SV.
+
+plan tests => 23;
+use strict;
+use B qw(svref_2object SVf_IOK SVf_NOK SVf_POK);
+
+my $x = 10;
+my $xobj = svref_2object(\$x);
+is($xobj->FLAGS & (SVf_IOK | SVf_POK), SVf_IOK, "correct base flags on IV");
+
+my $y = $x . "";
+
+is($xobj->FLAGS & (SVf_IOK | SVf_POK), SVf_IOK, "POK not set on IV used as string");
+
+$x = 1.0;
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "correct base flags on NV");
+
+$y = $x . "";
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on NV used as string");
+
+my $z = $x;
+$x = $z;
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on copy of NV used as string");
+
+$x = "Inf" + 0;
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "correct base flags on Inf NV");
+
+$y = $x . "";
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on Inf NV used as string");
+
+$z = $x;
+$x = $z;
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on copy of Inf NV used as string");
+
+$x = "-Inf" + 0;
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "correct base flags on -Inf NV");
+
+$y = $x . "";
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on -Inf NV used as string");
+
+$z = $x;
+$x = $z;
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on copy of -Inf NV used as string");
+
+{
+    local $^W = 0;
+    $x  = "NaN" + 0;
+}
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "correct base flags on NaN NV");
+
+$y = $x . "";
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on NaN NV used as string");
+
+$z = $x;
+$x = $z;
+
+is($xobj->FLAGS & (SVf_NOK | SVf_POK), SVf_NOK, "POK not set on copy of NaN NV used as string");
+
+$x = "10";
+is($xobj->FLAGS & (SVf_IOK | SVf_POK), SVf_POK, "correct base flags on PV");
+
+$y = $x + 10;
+
+is($xobj->FLAGS & (SVf_IOK | SVf_POK), (SVf_IOK | SVf_POK), "POK still set on PV used as number");
+
+
+# GH #23637, GH #23646 - newSVsv_flags_NN erroneously copied WEAKREF in *some* code paths
+
+my $ref = [];
+my ($wref, $cref);
+
+# Weakened reference SV is an SVt_IV
+$wref = $ref;
+builtin::weaken($wref);
+ok(builtin::is_weak($wref), 'a weakened SVt_IV ref has WEAKREF set');
+$cref = [ $wref ];
+ok(!builtin::is_weak( $cref->[0] ), 'SVt_IV copies do NOT have WEAKREF set');
+
+# Weakened reference SV is an SVt_PV
+$wref = 'blip';
+$wref = $ref;
+builtin::weaken($wref);
+ok(builtin::is_weak($wref), 'a weakened SVt_PV ref has WEAKREF set');
+$cref = [ $wref ];
+ok(!builtin::is_weak( $cref->[0] ), 'SVt_PV copies do NOT have WEAKREF set');
+
+# Weakened reference SV is an SVt_PVIV
+$wref = 1;
+$wref = $ref;
+builtin::weaken($wref);
+ok(builtin::is_weak($wref), 'a weakened SVt_PVIV ref has WEAKREF set');
+$cref = [ $wref ];
+ok(!builtin::is_weak( $cref->[0] ), 'SVt_PVIV copies do NOT have WEAKREF set');
+
+# GH #24242 - S_newSVsv_flags_PVxx must initialize IV & NV in PVIV/PVNV/PVMG
+#             even when the source SV is not IOK or NOK. Some code may
+#             nonetheless read the IV or NV value. This is only likely
+#             to be detectable when using valgrind or a similar tool.
+my $got = fresh_perl(<<'CODE', { switches => [ '-c' ] });
+s'foo'bar'
+CODE
+unlike($got, qr/Conditional jump or move depends on uninitialised value/,
+        'All fields initialized in SVt_PV[IV|NV|MG] copies');

@@ -259,15 +259,35 @@ them.  The `gcc`, `g++`, `cpp` and `binutils` packages also provide the
 `x86_64-pc-linux-gnu-` prefixed names (`gcc -dumpmachine`) that Autotools
 `--host` builds and some Makefiles (btop's) invoke, as Debian's packages do.
 
+Perl 5.44, GNU m4, Autoconf, Automake, Libtool, Meson and Ninja followed, all
+in `mattos-toolchain` and the builder container, so Git snapshots that need
+`autoreconf`, and Meson projects, also build natively:
+
+- `perl` is one package (Debian's `perl`, `perl-base`, `perl-modules` and
+  `libperl` together; `Provides: perl-base`) with a static libperl and
+  threads.  Configure is given every installed-system path and identity, so
+  `Config.pm` names `gcc`, `/usr/bin/ar` and `/usr/lib/x86_64-linux-gnu`
+  rather than the build tree; the DBM extensions are not built because MattOS
+  ships no Berkeley DB or GDBM.
+- m4, Autoconf, Automake and Libtool build from their checksum-verified GNU
+  release archives (their Git trees need a bootstrap).  Their build runs the
+  build host's m4 and perl; the installed scripts name `/usr/bin/m4` and
+  `/usr/bin/perl`.  Autoconf builds in its source tree so its frozen `.m4f`
+  files record relative macro locations.  The generated `libtool` script is
+  relocated from the build toolchain to the installed one (`gcc`,
+  `/usr/bin/ld`, system library paths), and its runtime search path is fixed
+  rather than read from the build host's `/etc/ld.so.conf`.  `libtool` also
+  provides Debian's `libtool-bin`; libltdl is not shipped.  `automake` carries
+  Debian's epoch (`1:1.19`).
+- `meson` installs its pure-Python `mesonbuild` package into the MattOS
+  Python's `site-packages` with the entry-point launcher `/usr/bin/meson`;
+  `ninja-build` is built with CMake.
+
 Still missing:
 
-1. Perl, which many upstream build systems require.
-2. Autoconf, Automake and Libtool (release archives with a generated
-   `configure` build without them).
-3. Meson and Ninja.
-4. Hardening defaults for the installed native GCC (see above).
-5. Native rebuild of all MattOS packages.
-6. Native ISO generation.
+1. Hardening defaults for the installed native GCC (see above).
+2. Native rebuild of all MattOS packages.
+3. Native ISO generation.
 
 MattOS has not performed a compiler self-rebuild, a complete native package
 rebuild, or native ISO generation.

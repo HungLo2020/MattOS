@@ -160,6 +160,18 @@ const DASH_RELEASE_ARCHIVE_SHA256: &str =
 const RSYNC_RELEASE_ARCHIVE_URL: &str = "https://download.samba.org/pub/rsync/src/rsync-3.5.1.tar.gz";
 const RSYNC_RELEASE_ARCHIVE_SHA256: &str =
     "c55f9c9dc10fb8bec397b399a0fdded53cc9a2d8e30891bb0d63724d25c37bef";
+const M4_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/m4/m4-1.4.21.tar.xz";
+const M4_RELEASE_ARCHIVE_SHA256: &str =
+    "f25c6ab51548a73a75558742fb031e0625d6485fe5f9155949d6486a2408ab66";
+const AUTOCONF_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/autoconf/autoconf-2.73.tar.xz";
+const AUTOCONF_RELEASE_ARCHIVE_SHA256: &str =
+    "9fd672b1c8425fac2fa67fa0477b990987268b90ff36d5f016dae57be0d6b52e";
+const AUTOMAKE_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/automake/automake-1.19.tar.xz";
+const AUTOMAKE_RELEASE_ARCHIVE_SHA256: &str =
+    "e3e2c2e3abf37898138db5b6c1d1dc35c9160c5978be7947d2c741705251d445";
+const LIBTOOL_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/libtool/libtool-2.6.2.tar.xz";
+const LIBTOOL_RELEASE_ARCHIVE_SHA256: &str =
+    "2ef1067c16c97db930fd740cc9bc3d3ba9a583804ae5ac42cc3e8719e49e191e";
 const RUST_RELEASE_ARCHIVE_URL: &str = "https://static.rust-lang.org/dist/rustc-1.97.1-src.tar.xz";
 const RUST_RELEASE_ARCHIVE_SHA256: &str =
     "0ed06fdaffd4722a7702e0b4eebfafc897ab8f513e8e1b247cdd7e5c6df6ded2";

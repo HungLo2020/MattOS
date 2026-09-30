@@ -298,6 +298,9 @@ authority when this table and the code disagree.
 | `rsync` | rsync and its verified release archive | none | formal sysroot, ACL, Attr, popt, zlib, zstd, lz4, xxhash, OpenSSL | rsync install |
 | `pkgconf` | pkgconf (Meson, static libpkgconf) | none | formal sysroot | pkgconf install |
 | `cmake` | CMake with its bundled third-party libraries | none | formal sysroot, OpenSSL | CMake install; library and header searches confined to the MattOS sysroot |
+| `perl` | Perl 5 (built in an output-owned mirror; Configure given installed-system paths) | none | formal sysroot, libxcrypt | Perl install with relocated Config |
+| `m4`, `autoconf`, `automake`, `libtool` | GNU m4, Autoconf, Automake, Libtool, each with its verified release archive | none | formal sysroot | install tree; libtool script relocated to the installed toolchain |
+| `ninja` | Ninja (CMake) | none | formal sysroot | ninja install |
 | `procps-ng` | procps-ng | none | formal sysroot, ncurses | procps install |
 | `iproute2` | iproute2 | none | formal sysroot, libcap, zlib, zstd, elfutils, PCRE2, SELinux | iproute2 install |
 | `curl` | curl | none | formal sysroot, OpenSSL, zlib, zstd | curl install |

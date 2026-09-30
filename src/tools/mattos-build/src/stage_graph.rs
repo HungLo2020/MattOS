@@ -20,6 +20,12 @@ pub(crate) enum BuildStage {
     Rsync,
     Pkgconf,
     Cmake,
+    Perl,
+    M4,
+    Autoconf,
+    Automake,
+    Libtool,
+    Ninja,
     Findutils,
     Diffutils,
     Gzip,
@@ -296,6 +302,12 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Rsync => "rsync",
         BuildStage::Pkgconf => "pkgconf",
         BuildStage::Cmake => "cmake",
+        BuildStage::Perl => "perl",
+        BuildStage::M4 => "m4",
+        BuildStage::Autoconf => "autoconf",
+        BuildStage::Automake => "automake",
+        BuildStage::Libtool => "libtool",
+        BuildStage::Ninja => "ninja",
         BuildStage::Findutils => "findutils",
         BuildStage::Diffutils => "diffutils",
         BuildStage::Gzip => "gzip",
@@ -2911,6 +2923,8 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "openssl",
         ],
         BuildStage::Cmake => &["formal-sysroot", "openssl"],
+        // Perl links libcrypt from libxcrypt.
+        BuildStage::Perl => &["formal-sysroot", "libxcrypt"],
         // Cargo-built userland: compiled by the MattOS-built rustc.
         BuildStage::Brush
         | BuildStage::Coreutils
@@ -2940,6 +2954,12 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Rsync,
         BuildStage::Pkgconf,
         BuildStage::Cmake,
+        BuildStage::Perl,
+        BuildStage::M4,
+        BuildStage::Autoconf,
+        BuildStage::Automake,
+        BuildStage::Libtool,
+        BuildStage::Ninja,
         BuildStage::Findutils,
         BuildStage::Diffutils,
         BuildStage::Gzip,
@@ -3628,18 +3648,18 @@ mod tests {
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // Fontconfig and the Plasma closure are first-class consumers of
             // glibc through their source-owned runtime dependencies.
-            ("glibc source", &["glibc"], 270, &["linux"]),
+            ("glibc source", &["glibc"], 276, &["linux"]),
             ("Linux x86_64 config", &["linux"], 14, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                271,
+                277,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                268,
+                274,
                 &["linux", "glibc", "linux-headers"],
             ),
             // zlib reaches Cargo-built userland through the MattOS rustc.

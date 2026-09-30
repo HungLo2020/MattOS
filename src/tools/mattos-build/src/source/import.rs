@@ -360,7 +360,15 @@ impl TreeProjection<'_> {
     }
 
     /// The imported path of `upstream_path`, or `None` when it is not imported.
+    ///
+    /// Upstream `.gitattributes` files are never imported.  Nested ones would
+    /// outrank MattOS's root `.gitattributes` and let Git rewrite line endings
+    /// or run filters on vendored files, so the bytes committed or checked
+    /// out here could differ from upstream's blobs.
     fn map(&self, upstream_path: &str) -> Option<String> {
+        if upstream_path.rsplit('/').next() == Some(".gitattributes") {
+            return None;
+        }
         let path = match self.omission {
             Some(policy) => policy.map(upstream_path)?,
             None => upstream_path.to_string(),
@@ -983,14 +991,9 @@ fn copy_imported_working_tree(
     }
 
     let output = Command::new("git")
-        .args([
-            "ls-files",
-            "-z",
-            "--cached",
-            "--others",
-            "--exclude-standard",
-            "--",
-        ])
+        .args(["ls-files", "-z", "--cached", "--others"])
+        .args(source_identity::mattos_exclude_arguments(repo_root)?)
+        .arg("--")
         .arg(source_relative)
         .current_dir(repo_root)
         .output()

@@ -12,7 +12,9 @@ use super::*;
 /// What the image installs, plus the dependency closure of each.
 pub(crate) const BUILDER_IMAGE_PACKAGES: &[&str] = &[
     "mattos-build-essential",
-    "mattos-base-runtime",
+    "grep",
+    "findutils",
+    "diffutils",
     // ldd, used to derive a package's library dependencies.
     "libc-bin",
     "coreutils",
@@ -35,6 +37,13 @@ pub(crate) const BUILDER_IMAGE_PACKAGES: &[&str] = &[
     "libsystemd-dev",
     "libacl1-dev",
     "libattr1-dev",
+    "perl",
+    "m4",
+    "autoconf",
+    "automake",
+    "libtool",
+    "meson",
+    "ninja-build",
 ];
 
 const IMAGE_NAME: &str = "localhost/mattos-builder";
@@ -42,7 +51,7 @@ const IMAGE_ARCHIVE: &str = "out/images/mattos-builder.oci.tar";
 const IMAGE_METADATA: &str = "out/images/mattos-builder.json";
 const IMAGE_WORK: &str = "out/build/builder-image";
 /// Bumped when the image assembly (not its packages) changes.
-const IMAGE_FORMAT: &str = "mattos-builder-image-v1";
+const IMAGE_FORMAT: &str = "mattos-builder-image-v2";
 
 #[derive(Serialize, Deserialize)]
 struct BuilderImageMetadata {
@@ -110,6 +119,13 @@ pub(crate) fn build_builder_image(repo_root: &Path) -> Result<()> {
         fs::create_dir_all(root.join(directory))?;
     }
     set_mode(root.join("tmp"), 0o1777)?;
+    // The image's LANG: glibc has no built-in C.UTF-8, so compile it as the
+    // root filesystem compiles en_US.UTF-8 (otherwise perl and every other
+    // locale user warns and falls back to plain C).
+    crate::compile_locale(repo_root, &root, "C", "UTF-8", "C.UTF-8")?;
+    if !root.join("usr/lib/x86_64-linux-gnu/locale/C.utf8").is_dir() {
+        bail!("builder image C.UTF-8 locale generation produced no compiled locale");
+    }
 
     let layer = work.join("layer.tar");
     deterministic_tar(&root, &layer)?;
@@ -216,7 +232,10 @@ mod tests {
     #[test]
     fn builder_image_closure_is_ordered_and_holds_the_build_environment() {
         let order = package_closure(BUILDER_IMAGE_PACKAGES).unwrap();
-        for required in ["gcc", "g++", "make", "cmake", "pkgconf", "dash", "sed", "mawk", "python3", "dpkg", "libc6-dev"] {
+        for required in [
+            "gcc", "g++", "make", "cmake", "pkgconf", "dash", "sed", "mawk", "grep", "findutils", "diffutils",
+            "python3", "dpkg", "libc6-dev",
+        ] {
             assert!(order.contains(&required), "builder image lacks {required}");
         }
         // Every package follows its dependencies.
@@ -228,8 +247,11 @@ mod tests {
                 assert!(at < position, "{name} precedes its dependency {dependency}");
             }
         }
-        // The desktop is not part of a build container.
+        // Neither the desktop nor the service policy (NetworkManager, the
+        // MattOS units) is part of a build container.
         assert!(!order.contains(&"mattos-plasma"));
+        assert!(!order.contains(&"mattos-base-runtime"));
+        assert!(!order.contains(&"network-manager"));
     }
 
     #[test]

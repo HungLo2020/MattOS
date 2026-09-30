@@ -1,2 +1,0 @@
-# Do not apply a size limit to suppression files.
-*.valgrind.supp  -hooks-max-size

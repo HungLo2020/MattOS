@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT. Its local repository (carried on the installer medium and copied onto installed systems) supplies every MattOS package, and the signed hosted MattOS repository at `https://packages.mattsherfey.com` is an enabled source at equal priority. Signed Debian 13 (Trixie) sources are shipped but disabled. See [APT source and pin policy](#apt-source-and-pin-policy). Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (346 packages at the time of writing; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the kernel modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
+This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (356 packages at the time of writing; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the kernel modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
 
 ## Imported package-manager sources
 
@@ -51,7 +51,7 @@ The table below covers representative core packages only; it is not the complete
 | `libc6` | required, Essential | source-built glibc loader, runtime, and NSS modules |
 | `libc-bin` | required | selected glibc runtime utilities |
 | `systemd` | required, Essential | source-built systemd service manager and runtime, including `udevadm` and `systemd-udevd`; `Provides: systemd-sysv` |
-| `mattos-base-runtime` | required, Essential | MattOS base runtime policy and required userland command dependencies |
+| `mattos-base-runtime` | required, Essential | MattOS base runtime policy: rescue init, login helpers, MattOS units, resolver/time/network configuration |
 | `mattos-base` | required | base profile metapackage (filesystem, base files and runtime, systemd, locales, kernel modules) |
 | `mattos-cli`, `mattos-plasma` | optional | installed-system profile metapackages built on `mattos-base` |
 | `mattos-toolchain` | optional | native development toolchain metapackage installed on every installed system |
@@ -63,6 +63,7 @@ The table below covers representative core packages only; it is not the complete
 | `ca-certificates` | important | pinned Mozilla-derived CA bundle and update provenance |
 | `mattos-brush` | required | `/usr/bin/brush` |
 | `coreutils` | required | uutils multicall binary and non-conflicting applet symlinks |
+| `grep`, `findutils`, `diffutils` | required, Essential | uutils `grep`; `find`, `xargs`, `locate`, `updatedb`; `diff`, `cmp` |
 | `curl` | optional | curl CLI and its source-built matching `libcurl.so.4` ABI |
 | `libmd0`, `libbsd0` | important | source-built message-digest and BSD portability ABIs and SONAME links |
 | `libzstd1` | important | source-built Zstandard runtime ABI and SONAME links |
@@ -207,7 +208,7 @@ mount -> libblkid1, libmount1,
                 libsmartcols1, libselinux1 (= exact)
 ```
 
-`Essential: yes` is set on exactly four packages (the `essential: true` entries in `registry.rs`): `mattos-filesystem`, because removing the merged-`/usr` structure makes all packages unsafe; `libc6`; `systemd`; and `mattos-base-runtime`. Other core packages such as `mattos-base-files`, `dpkg`, `util-linux`, and `login` are Priority `required` but deliberately non-Essential so the Essential set does not grow ahead of a mature recovery policy. Removal of core packages is not tested in the primary image.
+`Essential: yes` is set on exactly nine packages (the `essential: true` entries in `registry.rs`): `mattos-filesystem`, because removing the merged-`/usr` structure makes all packages unsafe; `libc6`; `systemd`; `mattos-base-runtime`; and, as in Debian, `dash` (`/bin/sh`), `sed`, `grep`, `findutils` and `diffutils`. Other core packages such as `mattos-base-files`, `dpkg`, `util-linux`, and `login` are Priority `required` but deliberately non-Essential so the Essential set does not grow ahead of a mature recovery policy. Removal of core packages is not tested in the primary image.
 
 Repository generation parses its finished `Packages` index and fails if a package is absent, an architecture is not `amd64`, an exact version does not resolve, a dependency or `Provides` target is missing, or a package/version/architecture key is duplicated. The builder also computes a deterministic topological install order, rejects cycles, and verifies every staged ELF SONAME is owned by itself or a declared dependency. This validation occurs before the repository is placed on the ISO.
 

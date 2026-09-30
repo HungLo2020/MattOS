@@ -497,3 +497,53 @@ fn normalize_checkout_paths(repo_root: &Path, directory: &Path) -> Result<()> {
     }
     Ok(())
 }
+
+/// A package holding a component's whole `make install` tree, with the
+/// named upstream license files as its copyright.  The shared GNU Info
+/// directory index is left out: every GNU package would claim it.
+pub(super) fn stage_install_tree(
+    repo_root: &Path,
+    staging: &Path,
+    component: &str,
+    package: &str,
+    source: &str,
+    licenses: &[&str],
+) -> Result<()> {
+    let install = component_install(repo_root, component);
+    copy_tree_filtered(&install, staging, &|relative, _| {
+        relative != Path::new("usr/share/info/dir")
+    })?;
+    let doc = staging.join("usr/share/doc").join(package);
+    fs::create_dir_all(&doc)?;
+    let mut copyright = String::new();
+    for license in licenses {
+        copyright.push_str(&fs::read_to_string(repo_root.join(source).join(license))?);
+    }
+    fs::write(doc.join("copyright"), copyright)
+        .with_context(|| format!("write {package} copyright"))
+}
+
+pub(crate) const MESON_LAUNCHER: &str =
+    "#!/usr/bin/python3\nimport sys\nfrom mesonbuild.mesonmain import main\nsys.exit(main())\n";
+
+/// Meson is pure Python: its `mesonbuild` package goes into the MattOS
+/// Python's site-packages, with the launcher its entry point describes.
+pub(super) fn stage_meson(repo_root: &Path, staging: &Path) -> Result<()> {
+    let source = repo_root.join("src/build-tools/meson");
+    copy_tree_filtered(
+        &source.join("mesonbuild"),
+        &staging.join("usr/lib/python3.14/site-packages/mesonbuild"),
+        &|relative, _| {
+            !relative.components().any(|part| {
+                part.as_os_str() == OsStr::new("__pycache__")
+                    || part.as_os_str().to_string_lossy().ends_with(".pyc")
+            })
+        },
+    )?;
+    let launcher = staging.join("usr/bin/meson");
+    fs::create_dir_all(launcher.parent().expect("launcher has a parent"))?;
+    fs::write(&launcher, MESON_LAUNCHER)?;
+    set_mode(launcher.clone(), 0o755)?;
+    copy_preserving(&source.join("man/meson.1"), &staging.join("usr/share/man/man1/meson.1"))?;
+    copy_preserving(&source.join("COPYING"), &staging.join("usr/share/doc/meson/copyright"))
+}

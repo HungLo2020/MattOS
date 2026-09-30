@@ -36,6 +36,34 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/build-tools/cmake",
             "src/tools/mattos-build/src/stages/build_tools.rs",
         ],
+        BuildStage::Perl => &[
+            "src/development/perl",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
+        BuildStage::M4 => &[
+            "src/build-tools/m4",
+            "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
+        BuildStage::Autoconf => &[
+            "src/build-tools/autoconf",
+            "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
+        BuildStage::Automake => &[
+            "src/build-tools/automake",
+            "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
+        BuildStage::Libtool => &[
+            "src/build-tools/libtool",
+            "upstream/policies/release-archives.toml",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
+        BuildStage::Ninja => &[
+            "src/build-tools/ninja",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
         BuildStage::Findutils => &["src/userland/findutils"],
         BuildStage::Diffutils => &["src/userland/diffutils"],
         BuildStage::Gzip => &[
@@ -1100,6 +1128,11 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         BuildStage::Duktape => &["gcc", "python3"],
         BuildStage::Pkgconf => &["gcc", "ld", "meson", "ninja"],
         BuildStage::Cmake => &["gcc", "g++", "ld", "cmake", "ninja"],
+        BuildStage::Perl => &["gcc", "ld", "make"],
+        BuildStage::M4 => &["gcc", "ld", "make"],
+        BuildStage::Autoconf | BuildStage::Automake => &["make", "m4", "perl"],
+        BuildStage::Libtool => &["gcc", "ld", "make", "m4", "perl"],
+        BuildStage::Ninja => &["gcc", "g++", "ld", "cmake", "ninja"],
         BuildStage::Initramfs => &["gcc", "cpio", "xz", "modinfo"],
         BuildStage::MaterialCursors => &[
             "bash",
@@ -1636,6 +1669,10 @@ mod tests {
             BuildStage::Sed,
             BuildStage::Dash,
             BuildStage::Rsync,
+            BuildStage::M4,
+            BuildStage::Autoconf,
+            BuildStage::Automake,
+            BuildStage::Libtool,
             BuildStage::Less,
             BuildStage::Rust,
             BuildStage::SndFile,

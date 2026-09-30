@@ -2638,19 +2638,21 @@ fn validate_locale_service(rootfs: &Path) -> Result<()> {
     Ok(())
 }
 
-fn generate_baseline_locale(repo_root: &Path, rootfs: &Path) -> Result<()> {
+/// Compiles one locale into `root` with the MattOS-built glibc `localedef`
+/// (run through its own loader), unpacked rather than in an archive.
+fn compile_locale(repo_root: &Path, root: &Path, source: &str, charset: &str, name: &str) -> Result<()> {
     let glibc_install = repo_root.join("out/build/glibc/install");
     let loader = glibc_install.join("lib64/ld-linux-x86-64.so.2");
     let localedef = glibc_install.join("usr/bin/localedef");
     if !loader.is_file() || !localedef.is_file() {
-        bail!("glibc localedef runtime is missing; cannot generate baseline locale");
+        bail!("glibc localedef runtime is missing; cannot generate the {name} locale");
     }
-    fs::create_dir_all(rootfs.join("usr/lib/x86_64-linux-gnu/locale"))?;
+    fs::create_dir_all(root.join("usr/lib/x86_64-linux-gnu/locale"))?;
     let library_path = std::env::join_paths([
         glibc_install.join("usr/lib/x86_64-linux-gnu"),
         glibc_install.join("lib64"),
     ])?;
-    let prefix = format!("--prefix={}", rootfs.display());
+    let prefix = format!("--prefix={}", root.display());
     let library_path = library_path
         .to_str()
         .ok_or_else(|| anyhow!("glibc locale library path is not valid UTF-8"))?;
@@ -2667,14 +2669,18 @@ fn generate_baseline_locale(repo_root: &Path, rootfs: &Path) -> Result<()> {
             path_str(&localedef)?,
             &prefix,
             "-i",
-            "en_US",
+            source,
             "-f",
-            "UTF-8",
+            charset,
             "--no-archive",
-            "en_US.UTF-8",
+            name,
         ],
         &[("I18NPATH", i18n_path.to_string())],
-    )?;
+    )
+}
+
+fn generate_baseline_locale(repo_root: &Path, rootfs: &Path) -> Result<()> {
+    compile_locale(repo_root, rootfs, "en_US", "UTF-8", "en_US.UTF-8")?;
     let locale_dir = rootfs.join("usr/lib/x86_64-linux-gnu/locale");
     if !locale_dir.join("en_US.utf8").exists() {
         bail!("baseline en_US.UTF-8 generation produced no compiled en_US.utf8 locale");

@@ -56,12 +56,51 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "mawk" => stage_base_command(repo_root, &staging, "mawk", "mawk", &["awk"], "src/userland/mawk/COPYING")?,
         "rsync" => stage_base_command(repo_root, &staging, "rsync", "rsync", &[], "src/userland/rsync/COPYING")?,
         "pkgconf" => stage_pkgconf(repo_root, &staging)?,
+        "perl" => stage_install_tree(repo_root, &staging, "perl", "perl", "src/development/perl", &["Copying", "Artistic"])?,
+        "m4" => stage_install_tree(repo_root, &staging, "m4", "m4", "src/build-tools/m4", &["COPYING"])?,
+        "autoconf" => stage_install_tree(
+            repo_root,
+            &staging,
+            "autoconf",
+            "autoconf",
+            "src/build-tools/autoconf",
+            &["COPYING", "COPYING.EXCEPTION"],
+        )?,
+        "automake" => stage_install_tree(repo_root, &staging, "automake", "automake", "src/build-tools/automake", &["COPYING"])?,
+        // Libtool's Git tree has no license file; its verified release does.
+        "libtool" => stage_install_tree(repo_root, &staging, "libtool", "libtool", "out/build/libtool/source", &["COPYING"])?,
+        "ninja-build" => stage_install_tree(repo_root, &staging, "ninja", "ninja-build", "src/build-tools/ninja", &["COPYING"])?,
+        "meson" => stage_meson(repo_root, &staging)?,
         "cmake" => stage_cmake(repo_root, &staging)?,
         name @ ("libncurses-dev" | "libcap-dev" | "libnl-3-dev" | "libnl-genl-3-dev"
         | "libsystemd-dev" | "libacl1-dev" | "libattr1-dev") => {
             stage_development_package(repo_root, &staging, name)?
         }
         "coreutils" => stage_coreutils(repo_root, &staging)?,
+        "grep" => stage_uutils_commands(
+            repo_root,
+            &staging,
+            "grep",
+            &[("grep", "grep")],
+            &[],
+            &["LICENSE"],
+        )?,
+        "findutils" => stage_uutils_commands(
+            repo_root,
+            &staging,
+            "findutils",
+            &[("find", "find"), ("xargs", "xargs"), ("locate", "locate"), ("updatedb", "updatedb")],
+            &[],
+            &["LICENSE"],
+        )?,
+        "diffutils" => stage_uutils_commands(
+            repo_root,
+            &staging,
+            "diffutils",
+            &[("diffutils", "diffutils")],
+            &[("diff", "diffutils"), ("cmp", "diffutils")],
+            &["LICENSE-MIT", "LICENSE-APACHE"],
+        )?,
         "curl" => {
             let source = repo_root.join("out/build/curl/install/usr/bin/curl");
             stage_executable(&source, &staging.join("usr/bin/curl"), 0o755)?;
@@ -1049,6 +1088,13 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             | "rsync"
             | "pkgconf"
             | "cmake"
+            | "perl"
+            | "m4"
+            | "autoconf"
+            | "automake"
+            | "libtool"
+            | "ninja-build"
+            | "meson"
             | "libncurses-dev"
             | "libcap-dev"
             | "libnl-3-dev"

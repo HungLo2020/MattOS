@@ -1,0 +1,39 @@
+[
+  {
+    "type": "kwargs",
+    "function": "project",
+    "id": "/",
+    "operation": "set",
+    "kwargs": {
+      "license": "GPL",
+      "license_files": "GPL.txt"
+    }
+  },
+  {
+    "type": "kwargs",
+    "function": "project",
+    "id": "/",
+    "operation": "add",
+    "kwargs": {
+      "license": ["MIT"]
+    }
+  },
+  {
+    "type": "kwargs",
+    "function": "project",
+    "id": "/",
+    "operation": "add",
+    "kwargs": {
+      "license": "BSD"
+    }
+  },
+  {
+    "type": "kwargs",
+    "function": "project",
+    "id": "//",
+    "operation": "add",
+    "kwargs": {
+      "license": "Boost"
+    }
+  }
+]

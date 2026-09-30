@@ -36,6 +36,14 @@ const GIB: u64 = 1024 * 1024 * 1024;
 /// when it started; the scheduler's admission remains the primary control.
 const MINIMUM_MEMORY_HIGH_BYTES: u64 = GIB;
 
+/// The stage's `memory.high`: three quarters of the memory available when it
+/// started.  The remaining quarter is headroom for the desktop and the other
+/// running stages; a limit of everything available let a stage at its limit
+/// (LLVM) push idle desktop memory into swap through global reclaim.
+pub(crate) fn stage_memory_high(available_memory_bytes: u64) -> u64 {
+    (available_memory_bytes / 4 * 3).max(MINIMUM_MEMORY_HIGH_BYTES)
+}
+
 thread_local! {
     /// `cgroup.procs` of the running stage's cgroup, for `attach_command`.
     static ACTIVE_STAGE_CGROUP: RefCell<Option<CString>> = const { RefCell::new(None) };
@@ -67,12 +75,13 @@ pub(crate) struct StageCgroup {
 
 impl StageCgroup {
     /// Creates a scope for `stage` limited (`memory.high`) to
-    /// `available_memory_bytes`, or `None` when this host cannot provide one.
+    /// [`stage_memory_high`] of `available_memory_bytes`, or `None` when this
+    /// host cannot provide one.
     pub(crate) fn create(stage: &str, available_memory_bytes: u64) -> Option<Self> {
         if cfg!(test) || std::env::var_os("MATTOS_STAGE_CGROUPS").is_some_and(|value| value == "0") {
             return None;
         }
-        match Self::try_create(stage, available_memory_bytes.max(MINIMUM_MEMORY_HIGH_BYTES)) {
+        match Self::try_create(stage, stage_memory_high(available_memory_bytes)) {
             Ok(cgroup) => Some(cgroup),
             Err(error) => {
                 if !UNAVAILABLE_REPORTED.swap(true, Ordering::Relaxed) {
@@ -241,6 +250,12 @@ pub(crate) fn record(repo_root: &Path, stage: &str, record: StageMemoryRecord) -
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stage_memory_high_leaves_a_quarter_of_available_memory_as_headroom() {
+        assert_eq!(stage_memory_high(8 * GIB), 6 * GIB);
+        assert_eq!(stage_memory_high(GIB / 2), MINIMUM_MEMORY_HIGH_BYTES);
+    }
 
     #[test]
     fn stage_cgroups_shed_jobs_before_and_while_they_are_throttled() {
