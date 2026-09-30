@@ -1,0 +1,43 @@
+/* Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+   file LICENSE.rst or https://cmake.org/licensing for details.  */
+#include "cmReturnCommand.h"
+
+#include <cm/string_view>
+#include <cmext/string_view>
+
+#include "cmExecutionStatus.h"
+#include "cmMakefile.h"
+#include "cmPolicies.h"
+#include "cmStringAlgorithms.h"
+#include "cmSystemTools.h"
+
+// cmReturnCommand
+bool cmReturnCommand(std::vector<std::string> const& args,
+                     cmExecutionStatus& status)
+{
+  if (!args.empty()) {
+    switch (status.GetMakefile().GetPolicyStatus(cmPolicies::CMP0140)) {
+      case cmPolicies::WARN:
+        status.GetMakefile().IssuePolicyWarning(
+          cmPolicies::CMP0140, {},
+          "return() checks its arguments when the policy is set to NEW. "
+          "Since the policy is not set the OLD behavior will be used so "
+          "the arguments will be ignored."_s);
+        CM_FALLTHROUGH;
+      case cmPolicies::OLD:
+        return true;
+      default:
+        break;
+    }
+    if (args[0] != "PROPAGATE"_s) {
+      status.SetError(
+        cmStrCat("called with unsupported argument \"", args[0], '"'));
+      cmSystemTools::SetFatalErrorOccurred();
+      return false;
+    }
+    status.SetReturnInvoked({ args.begin() + 1, args.end() });
+  } else {
+    status.SetReturnInvoked();
+  }
+  return true;
+}

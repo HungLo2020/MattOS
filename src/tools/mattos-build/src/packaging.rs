@@ -21,6 +21,7 @@ pub(crate) use audit::{
     validate_no_mutable_package_state, validate_staged_runtime_ownership,
 };
 
+mod builder_image;
 mod recipe_digest;
 mod snapshot_version;
 mod staging;
@@ -43,6 +44,7 @@ pub(crate) use staging::{
 };
 
 mod registry;
+pub(crate) use builder_image::build_builder_image;
 #[cfg(test)]
 pub(crate) use registry::package_install_order_for;
 pub(crate) use registry::{PACKAGE_NAMES, PackageSpec, package_install_order, package_specs};
@@ -1079,7 +1081,7 @@ fn stale_compatibility_versions(repo_root: &Path, inventory: &PackageInventory) 
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
     match source_component {
         "MattOS" | "ca-certificates" | "test" => &[],
-        "mattos-profiles" => &["systemd", "grep", "sed", "findutils", "diffutils", "init"],
+        "mattos-profiles" => &["systemd", "grep", "findutils", "diffutils", "init"],
         "mattos-compat" => &["systemd", "rust"],
         "linux-uapi" => &["linux-headers"],
         "kernel-modules" => &["linux"],
@@ -1127,6 +1129,12 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "iputils" => &["iputils"],
             "gzip" => &["gzip"],
             "patch" => &["patch"],
+            "sed" => &["sed"],
+            "dash" => &["dash"],
+            "mawk" => &["mawk"],
+            "rsync" => &["rsync"],
+            "pkgconf" => &["pkgconf"],
+            "cmake" => &["cmake"],
             "file" => &["file"],
             "less" => &["less"],
             "git" => &["git"],
@@ -1335,7 +1343,6 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/rootfs/skeleton",
             "src/userland/init",
             "src/userland/grep",
-            "src/userland/sed",
             "src/userland/findutils",
             "src/userland/diffutils",
         ],
@@ -1453,6 +1460,12 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "iputils" => &["src/userland/iputils"],
         "gzip" => &["src/userland/gzip"],
         "patch" => &["src/userland/patch"],
+        "sed" => &["src/userland/sed", "upstream/policies/release-archives.toml"],
+        "dash" => &["src/userland/dash", "upstream/policies/release-archives.toml"],
+        "mawk" => &["src/userland/mawk"],
+        "rsync" => &["src/userland/rsync", "upstream/policies/release-archives.toml"],
+        "pkgconf" => &["src/build-tools/pkgconf"],
+        "cmake" => &["src/build-tools/cmake"],
         "file" => &["src/userland/file"],
         "less" => &["src/userland/less"],
         "git" => &["src/userland/git"],
@@ -2024,21 +2037,24 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libnpth0" => component_snapshot_version(repo_root, "npth")?,
         "gpgv" | "gnupg" => component_snapshot_version(repo_root, "gnupg")?,
         "libapt-pkg7.0" | "apt" => apt_version(repo_root)?,
-        "mattos-libtinfow6" | "libncursesw6" | "ncurses-base" | "ncurses-bin" => {
+        "mattos-libtinfow6" | "libncursesw6" | "ncurses-base" | "ncurses-bin"
+        | "libncurses-dev" => {
             component_snapshot_version(repo_root, "ncurses")?
         }
         "libreadline8" => component_snapshot_version(repo_root, "readline")?,
         "libndp0" => component_snapshot_version(repo_root, "libndp")?,
         "libkmod2" | "kmod" => component_snapshot_version(repo_root, "kmod")?,
         "mattos-libproc2" | "procps" => component_snapshot_version(repo_root, "procps-ng")?,
-        "libsystemd0" | "libudev1" | "udev" => component_snapshot_version(repo_root, "systemd")?,
+        "libsystemd0" | "libudev1" | "udev" | "libsystemd-dev" => {
+            component_snapshot_version(repo_root, "systemd")?
+        }
         "libexpat1" => component_snapshot_version(repo_root, "expat")?,
         "libfreetype6" => component_snapshot_version(repo_root, "freetype")?,
         "libfontconfig1" | "fontconfig" => component_snapshot_version(repo_root, "fontconfig")?,
         "fonts-fira" => component_snapshot_version(repo_root, "pop-fonts")?,
-        "libcap2" => component_snapshot_version(repo_root, "libcap")?,
-        "libattr1" => component_snapshot_version(repo_root, "attr")?,
-        "libacl1" => component_snapshot_version(repo_root, "acl")?,
+        "libcap2" | "libcap-dev" => component_snapshot_version(repo_root, "libcap")?,
+        "libattr1" | "libattr1-dev" => component_snapshot_version(repo_root, "attr")?,
+        "libacl1" | "libacl1-dev" => component_snapshot_version(repo_root, "acl")?,
         "zlib1g" => component_snapshot_version(repo_root, "zlib")?,
         "libbz2-1.0" | "bzip2" => component_snapshot_version(repo_root, "bzip2")?,
         "liblz4-1" => component_snapshot_version(repo_root, "lz4")?,
@@ -2065,6 +2081,12 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "util-linux" | "login" => component_snapshot_version(repo_root, "util-linux")?,
         "gzip" => component_snapshot_version(repo_root, "gzip")?,
         "patch" => component_snapshot_version(repo_root, "patch")?,
+        "sed" => component_snapshot_version(repo_root, "sed")?,
+        "dash" => component_snapshot_version(repo_root, "dash")?,
+        "mawk" => mawk_version(repo_root)?,
+        "rsync" => component_snapshot_version(repo_root, "rsync")?,
+        "pkgconf" => component_snapshot_version(repo_root, "pkgconf")?,
+        "cmake" => component_snapshot_version(repo_root, "cmake")?,
         "libmagic1" | "file" => component_snapshot_version(repo_root, "file")?,
         "less" => component_snapshot_version(repo_root, "less")?,
         "git" => component_snapshot_version(repo_root, "git")?,
@@ -2191,7 +2213,8 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libduktape207" => component_snapshot_version(repo_root, "duktape")?,
         "polkit" => component_snapshot_version(repo_root, "polkit")?,
         "network-manager" => component_snapshot_version(repo_root, "networkmanager")?,
-        "libnl-3-200" | "libnl-genl-3-200" | "libnl-route-3-200" => {
+        "libnl-3-200" | "libnl-genl-3-200" | "libnl-route-3-200" | "libnl-3-dev"
+        | "libnl-genl-3-dev" => {
             component_snapshot_version(repo_root, "libnl")?
         }
         "wpasupplicant" => component_snapshot_version(repo_root, "wpa-supplicant")?,
@@ -2289,6 +2312,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "mattos-base-runtime"
         | "mattos-base"
         | "mattos-cli"
+        | "mattos-build-essential"
         | "mattos-plasma"
         | "mattos-toolchain"
         | "mattos-plasma-live"
@@ -2447,6 +2471,26 @@ fn cargo_workspace_version(path: &Path) -> Result<String> {
         .and_then(toml::Value::as_str)
         .map(ToOwned::to_owned)
         .ok_or_else(|| anyhow!("workspace.package.version missing from {}", path.display()))
+}
+
+/// mawk versions its snapshots by date on top of 1.3.4, as Debian does:
+/// `1.3.4.<YYYYMMDD>` from the tree's `patchlev.h`.
+fn mawk_version(repo_root: &Path) -> Result<String> {
+    let path = repo_root.join("src/userland/mawk/patchlev.h");
+    let body = fs::read_to_string(&path).with_context(|| format!("failed to read {}", path.display()))?;
+    let define = |name: &str| {
+        body.lines().find_map(|line| {
+            let mut words = line.split_whitespace();
+            (words.next() == Some("#define") && words.next() == Some(name))
+                .then(|| words.next().map(|value| value.trim_matches('"').to_string()))?
+        })
+    };
+    match (define("PATCH_BASE"), define("PATCH_LEVEL"), define("PATCH_STRING"), define("DATE_STRING")) {
+        (Some(base), Some(level), Some(patch), Some(date)) => {
+            Ok(format!("{base}.{level}{patch}.{date}"))
+        }
+        _ => bail!("{} lacks the mawk version defines", path.display()),
+    }
 }
 
 fn curl_version(path: &Path) -> Result<String> {
@@ -2718,7 +2762,8 @@ fn write_provenance(
         | "libgpg-error" | "libgcrypt" | "libassuan" | "libksba" | "npth"
         | "gnupg" | "less" | "git" | "openssh" | "libffi" | "wayland"
         | "xkbcommon" | "libglvnd" | "xkeyboard-config" | "cpython" | "llvm"
-        | "rust" | "libnl" | "wpa-supplicant" | "grub" | "greetd") => {
+        | "rust" | "libnl" | "wpa-supplicant" | "grub" | "greetd" | "sed" | "dash"
+        | "mawk" | "rsync" | "pkgconf" | "cmake" | "attr") => {
             let state = read_sync_state(repo_root, component)?
                 .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
             (
@@ -3100,6 +3145,19 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
         &repo_root.join("out/repository"),
         &inventory,
     )?;
+    install_package_set(repo_root, rootfs, &inventory, &live_package_install_order()?)?;
+    validate_dpkg_database(rootfs)?;
+    remove_dpkg_transaction_locks(rootfs)
+}
+
+/// Installs `order` (dependencies first) into the empty root `rootfs` with
+/// the build host's dpkg, chrootless, as an unprivileged user.
+fn install_package_set(
+    repo_root: &Path,
+    rootfs: &Path,
+    inventory: &PackageInventory,
+    order: &[&str],
+) -> Result<()> {
     let admindir = rootfs.join("var/lib/dpkg");
     for rel in ["info", "updates", "triggers", "parts"] {
         fs::create_dir_all(admindir.join(rel))?;
@@ -3124,19 +3182,22 @@ pub(crate) fn install_prototype_packages(repo_root: &Path, rootfs: &Path) -> Res
         // and SSD writes.  Image builders such as mmdebstrap do the same.
         .arg("--force-unsafe-io")
         .arg("--install");
-    for name in live_package_install_order()? {
+    for name in order {
         let entry = inventory
             .package
             .iter()
             .find(|entry| entry.name == *name)
-            .unwrap();
+            .ok_or_else(|| anyhow!("package {name} is not in the package inventory"))?;
         command.arg(repo_root.join(&entry.artifact_path));
     }
-    let status = command.status().context("failed to run dpkg for rootfs")?;
+    let status = command.status().context("failed to run dpkg")?;
     if !status.success() {
-        bail!("dpkg package installation into rootfs failed with {status}");
+        bail!("dpkg package installation into {} failed with {status}", rootfs.display());
     }
-    validate_dpkg_database(rootfs)?;
+    Ok(())
+}
+
+fn remove_dpkg_transaction_locks(rootfs: &Path) -> Result<()> {
     // dpkg creates empty advisory lock files even for an offline target root.
     // They are transaction state, not image payload, and a cached rootfs must
     // never retain them.
@@ -3178,7 +3239,11 @@ pub(crate) fn validate_dpkg_database(rootfs: &Path) -> Result<()> {
     }
     for (path, owner) in [
         ("/usr/bin/brush", "mattos-brush"),
-        ("/usr/bin/sh", "mattos-brush"),
+        ("/usr/bin/sh", "dash"),
+        ("/usr/bin/dash", "dash"),
+        ("/usr/bin/sed", "sed"),
+        ("/usr/bin/awk", "mawk"),
+        ("/usr/bin/rsync", "rsync"),
         ("/usr/bin/bash", "mattos-brush"),
         ("/usr/bin/curl", "curl"),
         ("/usr/bin/ls", "coreutils"),

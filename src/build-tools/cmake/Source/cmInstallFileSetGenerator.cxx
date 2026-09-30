@@ -1,0 +1,149 @@
+/* Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+   file LICENSE.rst or https://cmake.org/licensing for details.  */
+#include "cmInstallFileSetGenerator.h"
+
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <cm/string_view>
+
+#include "cmDiagnosticContext.h"
+#include "cmFileSetMetadata.h"
+#include "cmGenExContext.h"
+#include "cmGeneratorExpression.h"
+#include "cmGeneratorFileSet.h"
+#include "cmGeneratorTarget.h"
+#include "cmGlobalGenerator.h"
+#include "cmInstallDirs.h"
+#include "cmInstallType.h"
+#include "cmList.h"
+#include "cmLocalGenerator.h"
+#include "cmMakefile.h"
+#include "cmMessageType.h"
+#include "cmStringAlgorithms.h"
+#include "cmTarget.h"
+
+cmInstallFileSetGenerator::cmInstallFileSetGenerator(
+  std::string targetName, std::string fileSetName, std::string destination,
+  std::string filePermissions, std::vector<std::string> const& configurations,
+  std::string const& component, MessageLevel message, bool excludeFromAll,
+  bool optional, cmDiagnosticContext context)
+  : cmInstallGenerator(std::move(destination), configurations, component,
+                       message, excludeFromAll, false, std::move(context))
+  , TargetName(std::move(targetName))
+  , FileSetName(std::move(fileSetName))
+  , FilePermissions(std::move(filePermissions))
+  , Optional(optional)
+{
+  this->ActionsPerConfig = true;
+}
+
+cmInstallFileSetGenerator::~cmInstallFileSetGenerator() = default;
+
+bool cmInstallFileSetGenerator::Compute(cmLocalGenerator* lg)
+{
+  this->LocalGenerator = lg;
+
+  // Lookup this target in the current directory.
+  this->Target = lg->FindLocalNonAliasGeneratorTarget(this->TargetName);
+  if (!this->Target) {
+    // If no local target has been found, find it in the global scope.
+    this->Target =
+      lg->GetGlobalGenerator()->FindGeneratorTarget(this->TargetName);
+  }
+
+  this->FileSet = this->Target->GetFileSet(this->FileSetName);
+
+  if (!this->FileSet) {
+    // No file set of the given name was ever provided for this target, nothing
+    // for this generator to do
+    return true;
+  }
+
+  auto const& target = *this->Target->Target;
+  cmList interfaceFileSetEntries{ target.GetSafeProperty(
+    target.GetInterfaceFileSetsPropertyName(this->FileSet->GetType())) };
+
+  if (std::find(interfaceFileSetEntries.begin(), interfaceFileSetEntries.end(),
+                this->FileSetName) != interfaceFileSetEntries.end()) {
+    if (this->FileSet->GetType() == cm::FileSetMetadata::HEADERS) {
+      if (this->Destination.empty()) {
+        this->Destination =
+          cm::InstallDirs::GetIncludeDirectory(lg->GetMakefile());
+      }
+    }
+  } else {
+    // File set of the given name was provided but it's private, so give up
+    this->FileSet = nullptr;
+    return true;
+  }
+
+  if (this->Destination.empty()) {
+    lg->IssueMessage(MessageType::FATAL_ERROR,
+                     cmStrCat("File set \"", this->FileSetName,
+                              "\" installed by target \"", this->TargetName,
+                              "\" has no destination."));
+    return false;
+  }
+
+  return true;
+}
+
+std::string cmInstallFileSetGenerator::GetDestination() const
+{
+  this->CheckAbsoluteDestination(this->Destination, this->LocalGenerator);
+  return this->Destination;
+}
+
+std::string cmInstallFileSetGenerator::GetDestination(
+  std::string const& config) const
+{
+  return this->GetDestination(this->Target, config).UnescapedDestination;
+}
+
+cmInstallFileSetGenerator::DestinationContext
+cmInstallFileSetGenerator::GetDestination(cmGeneratorTarget* gte,
+                                          std::string const& config) const
+{
+  cmGeneratorExpression ge(*gte->Makefile->GetCMakeInstance());
+  std::unique_ptr<cmCompiledGeneratorExpression> cge =
+    ge.Parse(this->Destination);
+
+  std::string const dest = cge->Evaluate(gte->LocalGenerator, config, gte);
+  this->CheckAbsoluteDestination(dest, gte->LocalGenerator);
+
+  return { dest, cge->GetHadContextSensitiveCondition() };
+}
+
+void cmInstallFileSetGenerator::GenerateScriptForConfig(
+  std::ostream& os, std::string const& config, Indent indent)
+{
+
+  if (!this->FileSet) {
+    return;
+  }
+
+  for (auto const& dirEntry : this->CalculateFilesPerDir(config)) {
+    std::string destSub;
+    if (!dirEntry.first.empty()) {
+      destSub = cmStrCat('/', dirEntry.first);
+    }
+    this->AddInstallRule(os, cmStrCat(this->GetDestination(config), destSub),
+                         cmInstallType_FILES, dirEntry.second,
+                         this->GetOptional(), this->FilePermissions.c_str(),
+                         nullptr, nullptr, nullptr, indent);
+  }
+}
+
+std::map<std::string, std::vector<std::string>>
+cmInstallFileSetGenerator::CalculateFilesPerDir(
+  std::string const& config) const
+{
+  cm::GenEx::Context context(this->LocalGenerator, config);
+
+  return this->FileSet->GetFiles(context, this->Target).first;
+}

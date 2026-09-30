@@ -1,0 +1,67 @@
+/* Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+   file LICENSE.rst or https://cmake.org/licensing for details.  */
+#include "cmFunctionBlocker.h"
+
+#include <cassert>
+#include <memory> // IWYU pragma: keep
+#include <sstream>
+#include <string> // IWYU pragma: keep
+#include <utility>
+
+#include "cmDiagnostics.h"
+#include "cmExecutionStatus.h"
+#include "cmMakefile.h"
+#include "cmake.h"
+
+bool cmFunctionBlocker::IsFunctionBlocked(cmListFileFunction const& lff,
+                                          cmExecutionStatus& status)
+{
+  if (lff.LowerCaseName() == this->StartCommandName()) {
+    this->ScopeDepth++;
+  } else if (lff.LowerCaseName() == this->EndCommandName()) {
+    this->ScopeDepth--;
+    if (this->ScopeDepth == 0U) {
+      cmMakefile& mf = status.GetMakefile();
+      auto self = mf.RemoveFunctionBlocker();
+      assert(self.get() == this);
+
+      cmListFileContext const& lfc = this->GetStartingContext();
+      cmListFileContext closingContext =
+        cmListFileContext::FromListFileFunction(lff, lfc.FilePath);
+      if (this->EndCommandSupportsArguments() &&
+          !this->ArgumentsMatch(lff, mf)) {
+        std::ostringstream e;
+        /* clang-format off */
+        e << "A logical block opening on the line\n"
+          << "  " << lfc << "\n"
+          << "closes on the line\n"
+          << "  " << closingContext << "\n"
+          << "with mis-matching arguments.";  // noqa: spellcheck disable-line
+        /* clang-format on */
+        mf.IssueDiagnostic(cmDiagnostics::CMD_AUTHOR, e.str());
+      } else if (!this->EndCommandSupportsArguments() &&
+                 !lff.Arguments().empty()) {
+        std::ostringstream e;
+        /* clang-format off */
+        e << "A logical block closing on the line\n"
+          "  " << closingContext << "\n"
+          "has unexpected arguments.";
+        /* clang-format on */
+        mf.IssueDiagnostic(cmDiagnostics::CMD_AUTHOR, e.str());
+      }
+
+      bool replayResult = this->Replay(std::move(this->Functions), status);
+      cmListFileBacktrace endCommandBT =
+        mf.GetBacktrace().Push(closingContext);
+      // if trace is enabled, print a (trivially) evaluated "end" statement
+      if (mf.GetCMakeInstance()->GetTrace()) {
+        mf.PrintCommandTrace(lff, endCommandBT,
+                             cmMakefile::CommandMissingFromStack::Yes);
+      }
+      return replayResult;
+    }
+  }
+
+  this->Functions.push_back(lff);
+  return true;
+}

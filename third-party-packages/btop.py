@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and publish the current btop release as a native MattOS .deb."""
+"""Build btop's selected release as a native MattOS .deb."""
 
 from __future__ import annotations
 
@@ -7,34 +7,19 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import (
-    BuildResult, PackageRecipe, RecipeError, cmake_build_install, download,
-    extract_archive, finalize_package, github_latest_release,
-    github_source_archive, run_recipe, sha256_file,
-)
+from common import RecipeError, SourceReleaseRecipe, run_recipe
 
 
-class BtopRecipe(PackageRecipe):
+class BtopRecipe(SourceReleaseRecipe):
     name = "btop"
     repository = "mattos"
     description = "Resource monitor with a modern terminal interface"
-    depends = ("libc6", "libgcc-s1", "libncursesw6", "libstdc++6")
-
-    def discover_version(self) -> tuple[str, dict[str, str]]:
-        version, provenance = github_latest_release("aristocratos", "btop")
-        if not all(part.isdigit() for part in version.split(".")):
-            raise RecipeError("btop release API returned an invalid stable tag")
-        return version, provenance
-
-    def build(self, workspace: Path, version: str, provenance: dict[str, str]) -> BuildResult:
-        archive = workspace / f"btop-{version}.tar.gz"
-        url = github_source_archive("aristocratos", "btop", provenance["release_tag"])
-        download(url, archive)
-        source = extract_archive(archive, workspace / "source")
-        staging = workspace / "package"
-        cmake_build_install(source, workspace / "build", staging, options=["-DBUILD_TESTING=OFF"])
-        provenance = {**provenance, "source_url": url, "source_sha256": sha256_file(archive)}
-        return finalize_package(self, staging, workspace, version, provenance)
+    depends = ("libc6", "libgcc-s1", "libstdc++6")
+    github = ("aristocratos", "btop")
+    source_url = "https://github.com/aristocratos/btop/archive/refs/tags/{tag}.tar.gz"
+    # btop's own Makefile needs only a C++20 compiler.
+    build_system = "make"
+    install_options = ("PREFIX=/usr",)
 
 
 if __name__ == "__main__":

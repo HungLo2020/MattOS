@@ -21,7 +21,8 @@ REQUIRED_COMMANDS = (
     "blockdev flock lscpu lslocks lsns nsenter unshare taskset chrt ionice "
     "prlimit uuidgen gzip gunzip zcat bzip2 bunzip2 bzcat bzip2recover xz "
     "unxz xzcat lzma unlzma lzcat zstd unzstd zstdcat patch file less lesskey "
-    "git scalar ssh scp sftp ssh-add ssh-agent ssh-keygen ssh-keyscan sshd"
+    "git scalar ssh scp sftp ssh-add ssh-agent ssh-keygen ssh-keyscan sshd "
+    "sh dash sed awk mawk rsync"
 ).split()
 
 
@@ -139,6 +140,18 @@ for command in lsblk dmesg fdisk cfdisk sfdisk wipefs blkid findmnt losetup \
 done
 
 /bin/sh -c 'value=posix; case "$value" in posix) exit 0;; *) exit 1;; esac'
+test "$(readlink /usr/bin/sh)" = dash
+sed --version | head -n 1 | grep -q 'GNU sed'
+printf 'one\ntwo\n' | sed -n '/two/{s/two/2/;p;}' | grep -qx 2
+printf 'a b\n' | sed 'N;s/\n/ /' >/dev/null
+test "$(printf '3 4\n5 6\n' | awk '{ total += $1 * $2 } END { print total }')" = 42
+test "$(printf 'x:y:z\n' | awk -F: '{ print $NF }')" = z
+mkdir -p /tmp/rsync-src/nested
+printf 'synced\n' >/tmp/rsync-src/nested/file
+chmod 0640 /tmp/rsync-src/nested/file
+rsync -a /tmp/rsync-src/ /tmp/rsync-dst/
+cmp /tmp/rsync-src/nested/file /tmp/rsync-dst/nested/file
+test "$(stat -c %a /tmp/rsync-dst/nested/file)" = 640
 if /bin/sh -c 'items=(one two)' >/dev/null 2>&1; then
     echo '/bin/sh incorrectly accepted Bash array syntax' >&2
     exit 1

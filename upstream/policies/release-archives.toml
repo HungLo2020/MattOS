@@ -72,3 +72,30 @@ source_commit = "1ed9bae3b1e5fc57e31a14a2ea12810fdf423473"
 url = "https://github.com/pantoniou/libfyaml/releases/download/v0.9.6/libfyaml-0.9.6.tar.gz"
 sha256 = "a59cc3331e2eb903ec36933ad52a45888041cac31e44f553a00511131242c483"
 staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "sed"
+version = "4.10"
+source_tag = "v4.10"
+source_commit = "89b7a2224d4faa9d8baf76094b1232ad1477ef3e"
+url = "https://ftp.gnu.org/gnu/sed/sed-4.10.tar.xz"
+sha256 = "b8e72182b2ec96a3574e2998c47b7aaa64cc20ce000d8e9ac313cc07cecf28c7"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "dash"
+version = "0.5.13.5"
+source_tag = "v0.5.13.5"
+source_commit = "037bbdfd330017c368caf6242f977974123239b5"
+url = "http://gondor.apana.org.au/~herbert/dash/files/dash-0.5.13.5.tar.gz"
+sha256 = "40090101a2a491f13e901d3d48e90414f26634628b9bfff35ff540363c227a7d"
+staging_policy = "output-mirror-only"
+
+[[archive]]
+component = "rsync"
+version = "3.5.1"
+source_tag = "v3.5.1"
+source_commit = "04355d27b7386d7de0e6bd5e79c556223210f700"
+url = "https://download.samba.org/pub/rsync/src/rsync-3.5.1.tar.gz"
+sha256 = "c55f9c9dc10fb8bec397b399a0fdded53cc9a2d8e30891bb0d63724d25c37bef"
+staging_policy = "output-mirror-only"

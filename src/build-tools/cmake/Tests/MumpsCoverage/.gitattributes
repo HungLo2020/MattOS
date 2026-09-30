@@ -1,0 +1,2 @@
+*.cmcov  eol=crlf
+*.m      tab-indent

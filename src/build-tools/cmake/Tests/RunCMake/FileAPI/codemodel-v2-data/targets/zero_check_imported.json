@@ -1,0 +1,90 @@
+{
+    "name": "ZERO_CHECK",
+    "id": "^ZERO_CHECK::@ba7eb709d0b48779c6c8$",
+    "directorySource": "^imported$",
+    "projectName": "Imported",
+    "type": "UTILITY",
+    "imported": null,
+    "local": null,
+    "abstract": null,
+    "symbolic": null,
+    "isGeneratorProvided": true,
+    "fileSets": null,
+    "sources": [
+        {
+            "path": "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ZERO_CHECK$",
+            "isGenerated": true,
+            "fileSetNames": null,
+            "sourceGroupName": "",
+            "compileGroupLanguage": null,
+            "backtraces": [
+                [
+                    {
+                        "file": "^imported/CMakeLists\\.txt$",
+                        "line": null,
+                        "command": null,
+                        "hasParent": false
+                    }
+                ]
+            ]
+        },
+        {
+            "path": "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ZERO_CHECK\\.rule$",
+            "isGenerated": true,
+            "fileSetNames": null,
+            "sourceGroupName": "CMake Rules",
+            "compileGroupLanguage": null,
+            "backtraces": [
+                [
+                    {
+                        "file": "^imported/CMakeLists\\.txt$",
+                        "line": null,
+                        "command": null,
+                        "hasParent": false
+                    }
+                ]
+            ]
+        }
+    ],
+    "interfaceSources": null,
+    "sourceGroups": [
+        {
+            "name": "",
+            "sourcePaths": [
+                "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ZERO_CHECK$"
+            ],
+            "interfaceSourcePaths": null
+        },
+        {
+            "name": "CMake Rules",
+            "sourcePaths": [
+                "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ZERO_CHECK\\.rule$"
+            ],
+            "interfaceSourcePaths": null
+        }
+    ],
+    "compileGroups": null,
+    "backtrace": [
+        {
+            "file": "^imported/CMakeLists\\.txt$",
+            "line": null,
+            "command": null,
+            "hasParent": false
+        }
+    ],
+    "folder": null,
+    "nameOnDisk": null,
+    "artifacts": null,
+    "build": "^imported$",
+    "source": "^imported$",
+    "install": null,
+    "link": null,
+    "archive": null,
+    "dependencies": null,
+    "linkLibraries": null,
+    "interfaceLinkLibraries": null,
+    "compileDependencies": null,
+    "interfaceCompileDependencies": null,
+    "objectDependencies": null,
+    "orderDependencies": null
+}

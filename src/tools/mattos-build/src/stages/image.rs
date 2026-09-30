@@ -985,6 +985,10 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
         "curl",
         "sh",
         "bash",
+        "dash",
+        "awk",
+        "mawk",
+        "rsync",
         "dbus-broker",
         "dbus-broker-launch",
         "busctl",
@@ -1004,7 +1008,8 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
         }
     }
 
-    inventory.add_installed("brush", "sh");
+    inventory.add_installed(DASH_PROVIDER, "sh");
+    inventory.add_installed(MAWK_PROVIDER, "awk");
     inventory.add_installed("brush", "bash");
     inventory.add_excluded(DIFFUTILS_PROVIDER, "diff3");
     inventory.add_excluded(DIFFUTILS_PROVIDER, "sdiff");

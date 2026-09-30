@@ -5,6 +5,7 @@ suite = "trixie"
 # still recorded as a gap. This prevents a supplemental repository from
 # silently taking ownership of critical files already supplied by MattOS.
 packages = [
+  "sed", "dash", "mawk", "rsync", "pkgconf", "cmake", "libncurses-dev", "libcap-dev", "libnl-3-dev", "libnl-genl-3-dev", "libsystemd-dev", "libacl1-dev", "libattr1-dev",
   "apt", "binutils", "coreutils", "cpp", "dpkg", "g++", "gcc", "gpgv",
   "libgpg-error0", "libgcrypt20", "libassuan9", "libksba8", "libnpth0",
   "libapt-pkg7.0", "libc-bin", "libc6", "libc6-dev", "libgcc-14-dev",

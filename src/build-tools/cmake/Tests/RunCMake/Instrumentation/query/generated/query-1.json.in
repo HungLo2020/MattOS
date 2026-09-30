@@ -1,0 +1,19 @@
+{
+  "callbacks" :
+  [
+    "@CMAKE_COMMAND_QUOTE@ -E echo callback1"
+  ],
+  "hooks" :
+  [
+    "postGenerate"
+  ],
+  "options" : [
+    "cdashSubmit",
+    "cdashVerbose"
+  ],
+  "version" :
+  {
+    "major" : 1,
+    "minor" : 0
+  }
+}

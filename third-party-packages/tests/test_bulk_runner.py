@@ -107,7 +107,8 @@ class BulkRunnerTests(unittest.TestCase):
             with mock.patch.object(runner, "ROOT", root), \
                  mock.patch.object(runner, "descriptor", side_effect=recipes), \
                  mock.patch.object(runner, "discover_recipes", return_value=[Path("one.py"), Path("two.py")]), \
-                 mock.patch.object(runner, "repository_inventory", return_value={"one": ["1.0"], "two": ["1.0"]}) as inventory, \
+                 mock.patch.object(runner, "repository_inventory", return_value={
+                     "one": [runner.PublishedPackage("1.0-0mattos1")], "two": [runner.PublishedPackage("1.0-0mattos1")]}) as inventory, \
                  mock.patch.object(runner, "invoke", return_value=runner.Outcome("one", "UP TO DATE", "1.0", "1.0", "1.0", "ok", "")):
                 self.assertEqual(runner.main(["--check", "--color", "never"]), 0)
             inventory.assert_called_once_with(root, "mattos")

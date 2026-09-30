@@ -1316,6 +1316,14 @@ def _verify_installed_disk_boot(
         # cannot name the signer), and the kernel, which trusts only the
         # MattOS certificate, recorded no unsigned-module taint (bit 13).
         # modinfo is in /usr/sbin, which a user's PATH does not include.
+        # Base tools and the native build tools (mattos-build-essential in
+        # mattos-toolchain) launch on the installed system.
+        (
+            "native-build-tools",
+            "test \"$(readlink /usr/bin/sh)\" = dash && sed --version | grep -q 'GNU sed' && "
+            "test \"$(echo 2 3 | awk '{print $1 * $2}')\" = 6 && rsync --version >/dev/null && "
+            "cmake --version | grep -q 'cmake version 4' && pkg-config --modversion ncursesw >/dev/null",
+        ),
         ("no-unsigned-module-taint", "test $(( $(cat /proc/sys/kernel/tainted) & 8192 )) -eq 0"),
         (
             "kernel-modules-signed",

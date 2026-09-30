@@ -1,0 +1,41 @@
+include(RunCTest)
+
+function(run_InstrumentationInCTestXML CASE_NAME)
+  cmake_parse_arguments(ARGS "USE_INSTRUMENTATION_ENV_VARS;USE_VERBOSE_INSTRUMENTATION;USE_INSTRUMENTATION_CMD" "" "" ${ARGN})
+  if(ARGS_USE_VERBOSE_INSTRUMENTATION)
+    set(ENV{CTEST_USE_VERBOSE_INSTRUMENTATION} "1")
+    set(RunCMake_USE_VERBOSE_INSTRUMENTATION 1)
+  else()
+    set(ENV{CTEST_USE_VERBOSE_INSTRUMENTATION} "0")
+    set(RunCMake_USE_VERBOSE_INSTRUMENTATION 0)
+  endif()
+  if(ARGS_USE_INSTRUMENTATION_ENV_VARS)
+    set(ENV{CTEST_USE_INSTRUMENTATION} "1")
+  else()
+    set(ENV{CTEST_USE_INSTRUMENTATION} "0")
+  endif()
+  if (ARGS_USE_INSTRUMENTATION_CMD)
+    set(ENV{USE_INSTRUMENTATION_CMD} "1")
+    set(RunCMake_USE_VERBOSE_INSTRUMENTATION 1)
+  else()
+    set(ENV{USE_INSTRUMENTATION_CMD} "0")
+    set(RunCMake_USE_VERBOSE_INSTRUMENTATION 0)
+  endif()
+
+  configure_file(${RunCMake_SOURCE_DIR}/main.c
+                 ${RunCMake_BINARY_DIR}/${CASE_NAME}/main.c COPYONLY)
+  run_ctest("${CASE_NAME}")
+  unset(RunCMake_USE_LAUNCHERS)
+  unset(RunCMake_USE_INSTRUMENTATION)
+endfunction()
+run_InstrumentationInCTestXML(NoInstrumentationInCTestXML)
+run_InstrumentationInCTestXML(InstrumentationInCTestXML
+  USE_INSTRUMENTATION_ENV_VARS
+)
+run_InstrumentationInCTestXML(VerboseInstrumentationInCTestXML
+  USE_INSTRUMENTATION_ENV_VARS
+  USE_VERBOSE_INSTRUMENTATION
+)
+run_InstrumentationInCTestXML(InstrumentationInCTestXMLWithCmd
+  USE_INSTRUMENTATION_CMD
+)

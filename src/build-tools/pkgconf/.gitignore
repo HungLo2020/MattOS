@@ -1,0 +1,71 @@
+Makefile
+Makefile.in
+.dirstamp
+stamp-h*
+*.h.in~
+*.o
+*.og
+*.op
+*.lo
+*.gcno
+*.gcda
+*.gcov
+core
+.gdb_history
+
+.libs
+.deps
+
+*.exe
+*.dep
+*.diff
+*.orig
+*.patch
+*.rej
+
+# autoconf stuff
+/aclocal.m4
+/autom4te.cache/
+/buildsys.mk
+/config.h
+/config.h.in
+/config.log
+/config.status
+/configure
+/compile
+/config.guess
+/config.sub
+/depcomp
+/install-sh
+/missing
+
+# programs
+/bomtool
+/pccritic
+/pkgconf
+/pkgconf-gcov
+/pkgconf-profile
+/spdxtool
+/test-*
+
+# libtool
+/libtool
+/ltmain.sh
+/libpkgconf.la
+/m4/libtool.m4
+/m4/lt~obsolete.m4
+/m4/ltoptions.m4
+/m4/ltsugar.m4
+/m4/ltversion.m4
+
+# pkgconfig file
+/libpkgconf.pc
+
+# autoheader
+/libpkgconf/config.h
+/libpkgconf/config.h.in
+
+# tests
+/test-api-buffer
+/test-path-utils
+/test-runner

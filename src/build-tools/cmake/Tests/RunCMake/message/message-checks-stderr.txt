@@ -1,0 +1,3 @@
+^CMake Warning \(author\) at.*/Tests/RunCMake/message/message-checks\.cmake:13 \(message\):
+  Ignored CHECK_FAIL without CHECK_START
+This warning is for project developers\.  Use -Wno-author to suppress it\.$

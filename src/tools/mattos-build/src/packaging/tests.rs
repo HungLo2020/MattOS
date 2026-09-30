@@ -769,7 +769,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 332);
+    assert_eq!(PACKAGE_NAMES.len(), 346);
 }
 
 #[test]
@@ -814,10 +814,14 @@ fn base_userland_package_families_and_command_set_are_complete() {
         "git",
         "openssh-client",
         "openssh-server",
+        "dash",
+        "sed",
+        "mawk",
+        "rsync",
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 332);
+    assert_eq!(PACKAGE_NAMES.len(), 346);
     assert_eq!(
         UTIL_LINUX_BASE_PATHS,
         &[
@@ -911,7 +915,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 332);
+    assert_eq!(PACKAGE_NAMES.len(), 346);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",
@@ -1391,7 +1395,7 @@ fn libgcc_development_package_owns_shared_linker_name() {
 }
 
 #[test]
-fn brush_package_owns_sh_and_bash_entry_points() {
+fn brush_package_owns_bash_but_not_sh() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path();
     let source = repo.join("out/build/brush/cargo-target/release/brush");
@@ -1401,10 +1405,8 @@ fn brush_package_owns_sh_and_bash_entry_points() {
 
     stage_brush(repo, &staging).unwrap();
 
-    assert_eq!(
-        fs::read_link(staging.join("usr/bin/sh")).unwrap(),
-        Path::new("brush")
-    );
+    // /usr/bin/sh belongs to dash.
+    assert!(fs::symlink_metadata(staging.join("usr/bin/sh")).is_err());
     assert_eq!(
         fs::read_link(staging.join("usr/bin/bash")).unwrap(),
         Path::new("brush")

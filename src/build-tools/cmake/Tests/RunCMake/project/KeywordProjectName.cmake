@@ -1,0 +1,6 @@
+project(LANGUAGES)
+project(VERSION)
+project(COMPAT_VERSION)
+project(SPDX_LICENSE)
+project(DESCRIPTION)
+project(HOMEPAGE_URL)

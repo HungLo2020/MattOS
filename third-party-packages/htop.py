@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and publish the current htop release as a native MattOS .deb."""
+"""Build htop's selected release as a native MattOS .deb."""
 
 from __future__ import annotations
 
@@ -7,34 +7,18 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import (
-    BuildResult, PackageRecipe, RecipeError, autotools_build_install, download,
-    extract_archive, finalize_package, github_latest_release,
-    github_source_archive, run_recipe, sha256_file,
-)
+from common import RecipeError, SourceReleaseRecipe, run_recipe
 
 
-class HtopRecipe(PackageRecipe):
+class HtopRecipe(SourceReleaseRecipe):
     name = "htop"
     repository = "mattos"
     description = "Interactive process viewer"
-    depends = ("libc6", "libcap2", "libncursesw6", "libnl-3-200", "libnl-genl-3-200", "libsystemd0")
-
-    def discover_version(self) -> tuple[str, dict[str, str]]:
-        version, provenance = github_latest_release("htop-dev", "htop")
-        if not all(part.isdigit() for part in version.split(".")):
-            raise RecipeError("htop release API returned an invalid stable tag")
-        return version, provenance
-
-    def build(self, workspace: Path, version: str, provenance: dict[str, str]) -> BuildResult:
-        archive = workspace / f"htop-{version}.tar.gz"
-        url = github_source_archive("htop-dev", "htop", provenance["release_tag"])
-        download(url, archive)
-        source = extract_archive(archive, workspace / "source")
-        staging = workspace / "package"
-        autotools_build_install(source, workspace / "build", staging, options=["--enable-unicode"])
-        provenance = {**provenance, "source_url": url, "source_sha256": sha256_file(archive)}
-        return finalize_package(self, staging, workspace, version, provenance)
+    depends = ("libc6", "libcap2", "libncursesw6", "mattos-libtinfow6", "libnl-3-200", "libnl-genl-3-200")
+    github = ("htop-dev", "htop")
+    # The release archive carries the generated configure script.
+    source_url = "https://github.com/htop-dev/htop/releases/download/{version}/htop-{version}.tar.xz"
+    build_options = ("--enable-unicode", "--enable-capabilities")
 
 
 if __name__ == "__main__":

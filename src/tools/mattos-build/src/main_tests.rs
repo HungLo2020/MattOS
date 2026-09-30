@@ -3333,6 +3333,27 @@ fn base_userland_release_archives_are_exact_and_output_owned() {
             LESS_RELEASE_ARCHIVE_URL,
             LESS_RELEASE_ARCHIVE_SHA256,
         ),
+        (
+            "sed",
+            "4.10",
+            "89b7a2224d4faa9d8baf76094b1232ad1477ef3e",
+            SED_RELEASE_ARCHIVE_URL,
+            SED_RELEASE_ARCHIVE_SHA256,
+        ),
+        (
+            "dash",
+            "0.5.13.5",
+            "037bbdfd330017c368caf6242f977974123239b5",
+            DASH_RELEASE_ARCHIVE_URL,
+            DASH_RELEASE_ARCHIVE_SHA256,
+        ),
+        (
+            "rsync",
+            "3.5.1",
+            "04355d27b7386d7de0e6bd5e79c556223210f700",
+            RSYNC_RELEASE_ARCHIVE_URL,
+            RSYNC_RELEASE_ARCHIVE_SHA256,
+        ),
     ] {
         let state = read_sync_state(&root, component).unwrap().unwrap();
         assert_eq!(state.imported_commit, commit);
@@ -3346,7 +3367,7 @@ fn base_userland_release_archives_are_exact_and_output_owned() {
         policy
             .matches("staging_policy = \"output-mirror-only\"")
             .count(),
-        8
+        11
     );
     let source = include_str!("stages/helpers/native.rs");
     let start = source.find("fn build_release_autotools_program").unwrap();

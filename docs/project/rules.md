@@ -6,3 +6,4 @@
 - Downloaded build dependencies that do not become separate runtime artifacts do not need to be individually installed or managed through APT.
 - All source code for MattOS's own components and the software it installs, including the compilers and toolchains that build MattOS, must be contained in this repo. The only exception is build-only dependencies fetched through a project's normal dependency system, as described above.
 - The installer ISO itself must contain everything needed to install its supported profiles without internet access.
+- Packages published to the MattOS repositories that are not part of the MattOS build (see [Third-Party Packages](../packaging/third-party-packages.md)) must be built from checksum-verified upstream source by a checked-in recipe inside the MattOS builder container, and are never installed by default by the MattOS installer. A package name has exactly one producer: the MattOS build or one recipe.

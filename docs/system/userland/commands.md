@@ -16,7 +16,10 @@ is the authoritative size record for a given build.
 
 - `uutils/coreutils`: `91f6543cad721aba0bf17806e803e84a116f8603`
 - `uutils/grep`: `3e5552d8f78a94fb14149a7d3ba3f642725aafb9`
-- `uutils/sed`: `7239fb0e08d7d3ba2742ecc3c28f0d0e3eb5a4dd`
+- GNU `sed`: `89b7a2224d4faa9d8baf76094b1232ad1477ef3e` (`v4.10`)
+- `dash`: `037bbdfd330017c368caf6242f977974123239b5` (`v0.5.13.5`)
+- `mawk`: `cbefe06ea693a204ebf73f5fe0e1259326339265` (`t20260302`)
+- `rsync`: `04355d27b7386d7de0e6bd5e79c556223210f700` (`v3.5.1`)
 - `uutils/findutils`: `6ef1fd6cd4885c2970ea99a6d259c9c911a18e04`
 - `uutils/diffutils`: `4e8c5099485af4b15fa0b0221d51a5316ca43ad3`
 - `util-linux`: `fd82c4043fab942b889f478800118c66edfbc39f`
@@ -74,11 +77,40 @@ Counts from the 2026-09-27 build:
 - Installed path: `/usr/bin/grep`
 - Provider label: `uutils/grep`
 
-### uutils/sed
+### GNU sed
 
-- Binary: `sed`
+- Binary: `sed`, from the `sed` package (Essential, as in Debian)
 - Installed path: `/usr/bin/sed`
-- Provider label: `uutils/sed`
+- Provider label: `sed`
+- GNU sed replaced uutils sed: running an Autotools `config.status` with uutils
+  sed produced an empty `Makefile`, so native builds could not use it. The
+  package `Replaces: mattos-base-runtime`, which shipped the uutils binary.
+
+### dash
+
+- Binaries: `dash`, and `/usr/bin/sh` as a symlink to it (package `dash`,
+  Essential)
+- Provider label: `dash`
+- dash is `/bin/sh`, as in Debian: every `#!/bin/sh` script and every dpkg
+  maintainer script runs under it. Brush remained the login shell and `bash`
+  (below); as `/bin/sh` it deadlocked in rsync's generated `configure`.
+- `dash` replaces `mattos-brush`, so on an existing system installing it takes
+  `/usr/bin/sh` over from the old brush package with no moment without
+  `/bin/sh`; `mattos-brush` depends on `dash`, which is Essential, so APT
+  installs and configures dash first.
+
+### mawk
+
+- Binaries: `mawk`, and `/usr/bin/awk` as a symlink to it (package `mawk`)
+- Provider label: `mawk`
+- Version `1.3.4.<snapshot date>`, as Debian numbers mawk snapshots.
+
+### rsync
+
+- Binary: `rsync` (package `rsync`, in the base system)
+- Provider label: `rsync`
+- Linked against the MattOS acl, popt, zlib, zstd, lz4, xxhash and OpenSSL
+  libraries; IDN support is disabled because MattOS does not ship libidn2.
 
 ### uutils/findutils
 
@@ -122,7 +154,7 @@ Counts from the 2026-09-27 build:
 - less: `less`, `lesskey`, and `/usr/libexec/lessecho`, backed by MattOS
   ncurses/terminfo and PCRE2.
 
-GNU gzip, GNU Patch, and less use checksum-verified official release archives
+GNU gzip, GNU Patch, GNU sed, dash, rsync and less use checksum-verified official release archives
 to supply generated release inputs missing from their exact Git revisions. The
 archives are extracted only into `out/build/<component>/source`; authoritative
 vendored source is never regenerated or modified.
@@ -181,9 +213,12 @@ vendored source is never regenerated or modified.
 ### Brush shell and built-ins
 
 - Shell binary: `brush` at `/usr/bin/brush`
-- Package-owned compatibility entry points: `/usr/bin/sh -> brush` and `/usr/bin/bash -> brush`; the merged `/bin` layout therefore also provides `/bin/sh` and `/bin/bash`.
+- Package-owned compatibility entry point: `/usr/bin/bash -> brush`; the merged
+  `/bin` layout therefore also provides `/bin/bash`. Brush is the login shell;
+  `/usr/bin/sh` belongs to dash (above).
 - MattOS applies a checksummed output-mirror patch so Brush selects POSIX mode
-  when invoked as `sh`; `bash` and `brush` retain Bash-compatible behavior.
+  when invoked as `sh` (it no longer is by default); `bash` and `brush` retain
+  Bash-compatible behavior.
 - A second output-mirror patch fixes an upstream parser bug that read nested
   subshells written `( ( ... ) )` as an arithmetic command. As in Bash, only
   adjacent `((` opens an arithmetic command.

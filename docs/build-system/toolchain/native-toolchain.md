@@ -248,11 +248,23 @@ packaged: CPython 3.14 (stage id `cpython`, CLI `python`; packages `python3`,
 ([System](../../system/index.md)) and the Calamares graphical installer
 ([MattOS Installer](../../system/installer.md)) have also landed.
 
+pkgconf (with the `pkg-config` name) and CMake have since been built from
+pinned source and packaged in `mattos-toolchain`, together with dash as
+`/bin/sh`, GNU sed and mawk in the base system, a `mattos-build-essential`
+metapackage, and development packages for ncurses, libcap, libnl, systemd,
+acl and attr.  They make ordinary Autotools and CMake release archives build
+natively on MattOS; the MattOS builder container
+([Third-party packages](../../packaging/third-party-packages.md)) is built from
+them.  The `gcc`, `g++`, `cpp` and `binutils` packages also provide the
+`x86_64-pc-linux-gnu-` prefixed names (`gcc -dumpmachine`) that Autotools
+`--host` builds and some Makefiles (btop's) invoke, as Debian's packages do.
+
 Still missing:
 
 1. Perl, which many upstream build systems require.
-2. Autoconf, Automake, Libtool, and pkg-config/pkgconf.
-3. Meson, Ninja, and CMake.
+2. Autoconf, Automake and Libtool (release archives with a generated
+   `configure` build without them).
+3. Meson and Ninja.
 4. Hardening defaults for the installed native GCC (see above).
 5. Native rebuild of all MattOS packages.
 6. Native ISO generation.

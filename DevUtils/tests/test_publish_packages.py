@@ -143,6 +143,7 @@ class PublicationGuardTests(unittest.TestCase):
             mock.patch.object(PublishPackages, "find_repo_root", return_value=Path("/repo")),
             mock.patch.object(PublishPackages, "discover_packages", return_value=[]),
             mock.patch.object(PublishPackages, "inventory_packages", return_value=packages),
+            mock.patch.object(PublishPackages, "third_party_package_names", return_value=set()),
             mock.patch.object(PublishPackages, "published_index_url", return_value="https://x/Packages.gz"),
             mock.patch.object(PublishPackages, "fetch_published_index", return_value=self.INDEX),
             mock.patch.object(PublishPackages, "upload_packages") as upload,
@@ -167,6 +168,16 @@ class PublicationGuardTests(unittest.TestCase):
             with self.assertRaises(RepoError):
                 PublishPackages.main()
         upload.assert_not_called()
+
+    def test_names_claimed_by_third_party_recipes_are_refused(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            releases = root / PublishPackages.THIRD_PARTY_RELEASES_RELATIVE
+            releases.parent.mkdir(parents=True)
+            releases.write_text('{"format": 1, "packages": {"btop": {"version": "1"}}}', encoding="utf-8")
+            PublishPackages.reject_third_party_names(root, [_package("libc6", "2.43-1mattos1")])
+            with self.assertRaises(RepoError):
+                PublishPackages.reject_third_party_names(root, [_package("btop", "1.4.7-1mattos1")])
 
     def test_index_url_comes_from_the_installed_hosted_source(self) -> None:
         with TemporaryDirectory() as temporary:

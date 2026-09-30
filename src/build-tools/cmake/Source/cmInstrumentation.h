@@ -1,0 +1,161 @@
+/* Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+   file LICENSE.rst or https://cmake.org/licensing for details.  */
+#pragma once
+
+#include "cmConfigure.h" // IWYU pragma: keep
+
+#include <chrono>
+#include <functional>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
+#include <cm/memory>
+#include <cm/optional>
+
+#include <cm3p/json/value.h>
+#include <stddef.h>
+
+#ifndef CMAKE_BOOTSTRAP
+#  include <cmsys/SystemInformation.hxx>
+#endif
+#include <stdint.h>
+
+#include "cmFileLock.h"
+#include "cmInstrumentationQuery.h"
+#include "cmStateTypes.h"
+
+class cmGlobalGenerator;
+
+class cmInstrumentation
+{
+public:
+  using Callback = cmInstrumentationQuery::Callback;
+
+  enum class LoadQueriesAfter
+  {
+    Yes,
+    No
+  };
+  cmInstrumentation(std::string const& binary_dir,
+                    LoadQueriesAfter loadQueries = LoadQueriesAfter::Yes);
+  void LoadQueries();
+  void CheckCDashVariable();
+  struct CommandResult
+  {
+    int ExitCode;
+    cm::optional<std::string> StdOut;
+    cm::optional<std::string> StdErr;
+  };
+  int InstrumentCommand(
+    std::string command_type, std::vector<std::string> const& command,
+    std::function<CommandResult()> const& callback,
+    cm::optional<std::map<std::string, std::string>> options = cm::nullopt,
+    cm::optional<std::map<std::string, std::string>> arrayOptions =
+      cm::nullopt,
+    LoadQueriesAfter reloadQueriesAfterCommand = LoadQueriesAfter::No);
+  std::string InstrumentTest(std::string const& name,
+                             std::string const& command,
+                             std::vector<std::string> const& args,
+                             int64_t result,
+                             std::chrono::steady_clock::time_point steadyStart,
+                             std::chrono::system_clock::time_point systemStart,
+                             std::string config,
+                             cm::optional<std::string> output = cm::nullopt);
+  void GetPreTestStats();
+  bool HasQuery() const;
+  bool HasOption(cmInstrumentationQuery::Option option) const;
+  bool HasHook(cmInstrumentationQuery::Hook hook) const;
+  bool ReadJSONQueries(std::string const& directory);
+  void ReadJSONQuery(std::string const& file);
+  void WriteJSONQuery(cmInstrumentationQuery::Version dataVersion,
+                      std::set<cmInstrumentationQuery::Option> const& options,
+                      std::set<cmInstrumentationQuery::Hook> const& hooks,
+                      std::vector<std::vector<std::string>> const& callback);
+  void AddCustomContent(std::string const& name, Json::Value const& contents);
+  void WriteCMakeContent(std::unique_ptr<cmGlobalGenerator> const& gg);
+  Json::Value DumpTargets(std::unique_ptr<cmGlobalGenerator> const& gg);
+  void ClearGeneratedQueries();
+  int CollectTimingData(cmInstrumentationQuery::Hook hook);
+  int SpawnBuildDaemon();
+  bool LockBuildDaemon();
+  bool LockIndexing();
+  int CollectTimingAfterBuild(int ppid);
+  void AddHook(cmInstrumentationQuery::Hook hook);
+  void AddOption(cmInstrumentationQuery::Option option);
+  bool HasErrors() const;
+  std::string const& GetCDashDir() const;
+  std::string const& GetDataDir() const;
+  enum LatestOrOldest
+  {
+    Latest,
+    Oldest
+  };
+  std::string GetFileByTimestamp(LatestOrOldest latestOrOldest,
+                                 std::string const& dataSubdir,
+                                 std::string const& exclude = "");
+
+private:
+  Json::Value ReadJsonSnippet(std::string const& file_name);
+  bool AcquireLock(std::string const& lock_file, cmFileLock& lock,
+                   unsigned long timeout);
+  void WriteInstrumentationJson(cmInstrumentationQuery::Version version,
+                                Json::Value& index,
+                                std::string const& directory,
+                                std::string const& file_name);
+  void InsertStaticSystemInformation(Json::Value& index);
+  void GetDynamicSystemInformation(double& memory, double& load);
+  void InsertDynamicSystemInformation(Json::Value& index,
+                                      std::string const& instant);
+  void InsertTimingData(Json::Value& root,
+                        std::chrono::steady_clock::time_point steadyStart,
+                        std::chrono::system_clock::time_point systemStart);
+  bool HasQueryFile(std::string const& file);
+  static std::string GetCommandStr(std::vector<std::string> const& args);
+  static std::string ComputeSuffixHash(std::string const& command_str);
+  static std::string ComputeSuffixTime(
+    cm::optional<std::chrono::system_clock::time_point> time = cm::nullopt);
+  static bool IsInstrumentableTargetType(cmStateEnums::TargetType type);
+  void PrepareDataForCDash(std::string const& data_dir,
+                           std::string const& index_path);
+  std::string GetCompileTraceFile(std::vector<std::string> const& command,
+                                  Json::Value const& outputs,
+                                  std::string const& workingDir);
+  void CollectCompileTraceFile(Json::Value& root, std::string traceFile,
+                               long int oldTimestamp,
+                               std::string const& commandHash,
+                               std::string const& suffixTime);
+  void RemoveCompileTraceFile(Json::Value const& snippetData);
+  void RemoveOldFiles(std::string const& dataSubdir);
+  void WriteTraceFile(Json::Value const& index, std::string const& trace_name);
+  Json::Value BuildTraceEvent(std::vector<uint64_t>& workers,
+                              Json::Value const& snippetData);
+  size_t AssignTargetToTraceThread(std::vector<uint64_t>& workers,
+                                   uint64_t timeStart, uint64_t duration);
+  void ResetQueries();
+  std::string binaryDir;
+  std::string timingDirv1;
+  std::string userTimingDirv1;
+  std::string cdashDir;
+  std::string dataDir;
+  std::set<cmInstrumentationQuery::Option> options;
+  std::set<cmInstrumentationQuery::Hook> hooks;
+  std::vector<Callback> callbacks;
+  std::vector<std::string> queryFiles;
+  static std::map<std::string, std::string> cdashSnippetsMap;
+  Json::Value preTestStats;
+  std::string errorMsg;
+  bool hasQuery = false;
+  bool ranSystemChecks = false;
+  bool ranOSCheck = false;
+  Json::Value customContent = Json::objectValue;
+  std::map<std::string, Json::Value> configureSnippetData;
+#ifndef CMAKE_BOOTSTRAP
+  std::unique_ptr<cmsys::SystemInformation> systemInformation;
+  cmsys::SystemInformation& GetSystemInformation();
+#endif
+  int writtenJsonQueries = 0;
+  cmFileLock buildLock; // non-blocking
+  cmFileLock indexLock; // never held alongside buildLock
+};

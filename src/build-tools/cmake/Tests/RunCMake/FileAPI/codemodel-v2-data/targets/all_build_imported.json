@@ -1,0 +1,144 @@
+{
+    "name": "ALL_BUILD",
+    "id": "^ALL_BUILD::@ba7eb709d0b48779c6c8$",
+    "directorySource": "^imported$",
+    "projectName": "Imported",
+    "type": "UTILITY",
+    "imported": null,
+    "local": null,
+    "abstract": null,
+    "symbolic": null,
+    "isGeneratorProvided": true,
+    "fileSets": null,
+    "sources": [
+        {
+            "path": "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ALL_BUILD$",
+            "isGenerated": true,
+            "fileSetNames": null,
+            "sourceGroupName": "",
+            "compileGroupLanguage": null,
+            "backtraces": [
+                [
+                    {
+                        "file": "^imported/CMakeLists\\.txt$",
+                        "line": null,
+                        "command": null,
+                        "hasParent": false
+                    }
+                ]
+            ]
+        },
+        {
+            "path": "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ALL_BUILD\\.rule$",
+            "isGenerated": true,
+            "fileSetNames": null,
+            "sourceGroupName": "CMake Rules",
+            "compileGroupLanguage": null,
+            "backtraces": [
+                [
+                    {
+                        "file": "^imported/CMakeLists\\.txt$",
+                        "line": null,
+                        "command": null,
+                        "hasParent": false
+                    }
+                ]
+            ]
+        }
+    ],
+    "interfaceSources": null,
+    "sourceGroups": [
+        {
+            "name": "",
+            "sourcePaths": [
+                "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ALL_BUILD$"
+            ],
+            "interfaceSourcePaths": null
+        },
+        {
+            "name": "CMake Rules",
+            "sourcePaths": [
+                "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/imported/CMakeFiles/ALL_BUILD\\.rule$"
+            ],
+            "interfaceSourcePaths": null
+        }
+    ],
+    "compileGroups": null,
+    "backtrace": [
+        {
+            "file": "^imported/CMakeLists\\.txt$",
+            "line": null,
+            "command": null,
+            "hasParent": false
+        }
+    ],
+    "folder": null,
+    "nameOnDisk": null,
+    "artifacts": null,
+    "build": "^imported$",
+    "source": "^imported$",
+    "install": null,
+    "link": null,
+    "archive": null,
+    "dependencies": [
+        {
+            "id": "^ZERO_CHECK::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_shared_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_static_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_object_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_interface_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_interface_symbolic_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        }
+    ],
+    "linkLibraries": null,
+    "interfaceLinkLibraries": null,
+    "compileDependencies": null,
+    "interfaceCompileDependencies": null,
+    "objectDependencies": null,
+    "orderDependencies": [
+        {
+            "id": "^link_imported_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_shared_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_static_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_object_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_interface_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        },
+        {
+            "id": "^link_imported_interface_symbolic_exe::@ba7eb709d0b48779c6c8$",
+            "backtrace": null
+        }
+    ]
+}

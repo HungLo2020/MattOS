@@ -181,7 +181,8 @@ from the internal stage IDs used in cache manifests, logs, and
   `formal-sysroot` plus the libraries it actually links: for example
   compression (`zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`), `openssl`,
   `elfutils`, `pcre2`, `selinux`, `libxcrypt`, `libmd`/`libbsd`, `ncurses`,
-  `tar`, `procps`, `iproute2`, `iputils`, `curl`, the authentication stack
+  `tar`, `sed`, `dash`, `mawk`, `rsync`, `procps`, `iproute2`, `iputils`, `curl`,
+  the native build tools `pkgconf` and `cmake`, the authentication stack
   (`pam`, `shadow`, `util-linux`), `kmod`, `dbus`, `systemd`, `dpkg`, and
   `apt`.
 - **Language toolchains.** `python` (CPython with `libffi`), `llvm` (LLVM
@@ -190,7 +191,7 @@ from the internal stage IDs used in cache manifests, logs, and
   CPU target), and `rust` (rustc, the native standard library, rustdoc, and
   Cargo, built from the checksummed official source release and depending on
   `llvm`). This MattOS rustc compiles all target Rust code, so the Cargo-built
-  stages (`brush`, `coreutils`, `grep`, `sed`, `findutils`, `diffutils`,
+  stages (`brush`, `coreutils`, `grep`, `findutils`, `diffutils`,
   `init`, `sudo-rs`, `greetd`, `cozy`, `installer`) and the Meson builds with
   Rust components (`dbus-broker`, `mesa`, `gstreamer`) depend on `rust` as
   well as `formal-sysroot`.

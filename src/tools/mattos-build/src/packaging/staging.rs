@@ -43,13 +43,24 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
         "systemd" => stage_systemd_runtime(repo_root, &staging)?,
         "mattos-base-runtime" => stage_mattos_base_runtime(repo_root, &staging)?,
-        "mattos-base" | "mattos-cli" | "mattos-plasma" | "mattos-toolchain" => {
+        "mattos-base" | "mattos-cli" | "mattos-plasma" | "mattos-toolchain"
+        | "mattos-build-essential" => {
             stage_profile_package(repo_root, &staging, spec.name)?
         }
         "mattos-plasma-live" => stage_plasma_live_session_integration(repo_root, &staging)?,
         "mattos-plasma-theme" => stage_mattos_plasma_theme(repo_root, &staging)?,
         "ca-certificates" => stage_ca_certificates(repo_root, &staging)?,
         "mattos-brush" => stage_brush(repo_root, &staging)?,
+        "sed" => stage_base_command(repo_root, &staging, "sed", "sed", &[], "src/userland/sed/COPYING")?,
+        "dash" => stage_base_command(repo_root, &staging, "dash", "dash", &["sh"], "src/userland/dash/COPYING")?,
+        "mawk" => stage_base_command(repo_root, &staging, "mawk", "mawk", &["awk"], "src/userland/mawk/COPYING")?,
+        "rsync" => stage_base_command(repo_root, &staging, "rsync", "rsync", &[], "src/userland/rsync/COPYING")?,
+        "pkgconf" => stage_pkgconf(repo_root, &staging)?,
+        "cmake" => stage_cmake(repo_root, &staging)?,
+        name @ ("libncurses-dev" | "libcap-dev" | "libnl-3-dev" | "libnl-genl-3-dev"
+        | "libsystemd-dev" | "libacl1-dev" | "libattr1-dev") => {
+            stage_development_package(repo_root, &staging, name)?
+        }
         "coreutils" => stage_coreutils(repo_root, &staging)?,
         "curl" => {
             let source = repo_root.join("out/build/curl/install/usr/bin/curl");
@@ -1032,6 +1043,19 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             | "gcc"
             | "g++"
             | "make"
+            | "sed"
+            | "dash"
+            | "mawk"
+            | "rsync"
+            | "pkgconf"
+            | "cmake"
+            | "libncurses-dev"
+            | "libcap-dev"
+            | "libnl-3-dev"
+            | "libnl-genl-3-dev"
+            | "libsystemd-dev"
+            | "libacl1-dev"
+            | "libattr1-dev"
     ) {
         validate_no_embedded_build_root(repo_root, &staging)?;
     }

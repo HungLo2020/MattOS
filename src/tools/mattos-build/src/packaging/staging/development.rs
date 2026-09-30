@@ -324,3 +324,176 @@ pub(super) fn stage_vulkan_development(repo_root: &Path, staging: &Path) -> Resu
     )?;
     Ok(())
 }
+
+/// One `-dev` package built from a library stage's install tree: headers,
+/// linker names pointing at the runtime package's SONAME (as Debian does),
+/// pkg-config files and the license notice.
+struct DevelopmentPackage {
+    package: &'static str,
+    component: &'static str,
+    /// Paths under `usr/include` in the install tree.
+    headers: &'static [&'static str],
+    /// (linker name, SONAME it points at).
+    linker_names: &'static [(&'static str, &'static str)],
+    pkgconfig: &'static [&'static str],
+    license: &'static str,
+}
+
+const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
+    DevelopmentPackage {
+        package: "libncurses-dev",
+        component: "ncurses",
+        headers: &[
+            "curses.h", "eti.h", "form.h", "menu.h", "ncurses.h", "ncurses_dll.h", "panel.h",
+            "term.h", "term_entry.h", "termcap.h", "unctrl.h",
+        ],
+        linker_names: &[("libncursesw.so", "libncursesw.so.6"), ("libtinfow.so", "libtinfow.so.6")],
+        pkgconfig: &["ncursesw.pc", "tinfow.pc"],
+        license: "src/system/terminal/ncurses/COPYING",
+    },
+    DevelopmentPackage {
+        package: "libcap-dev",
+        component: "libcap",
+        headers: &["sys/capability.h"],
+        linker_names: &[("libcap.so", "libcap.so.2")],
+        pkgconfig: &["libcap.pc"],
+        license: "src/system/libraries/libcap/License",
+    },
+    DevelopmentPackage {
+        package: "libnl-3-dev",
+        component: "libnl",
+        headers: &["libnl3"],
+        linker_names: &[("libnl-3.so", "libnl-3.so.200")],
+        pkgconfig: &["libnl-3.0.pc"],
+        license: "src/system/network/libnl/COPYING",
+    },
+    DevelopmentPackage {
+        package: "libnl-genl-3-dev",
+        component: "libnl",
+        headers: &[],
+        linker_names: &[("libnl-genl-3.so", "libnl-genl-3.so.200")],
+        pkgconfig: &["libnl-genl-3.0.pc"],
+        license: "src/system/network/libnl/COPYING",
+    },
+    DevelopmentPackage {
+        package: "libsystemd-dev",
+        component: "systemd",
+        headers: &["systemd"],
+        linker_names: &[("libsystemd.so", "libsystemd.so.0")],
+        pkgconfig: &["libsystemd.pc"],
+        license: "src/system/systemd/LICENSE.LGPL2.1",
+    },
+    DevelopmentPackage {
+        package: "libacl1-dev",
+        component: "acl",
+        headers: &["acl", "sys/acl.h"],
+        linker_names: &[("libacl.so", "libacl.so.1")],
+        pkgconfig: &["libacl.pc"],
+        license: "src/system/libraries/acl/doc/COPYING.LGPL",
+    },
+    DevelopmentPackage {
+        package: "libattr1-dev",
+        component: "attr",
+        headers: &["attr"],
+        linker_names: &[("libattr.so", "libattr.so.1")],
+        pkgconfig: &["libattr.pc"],
+        license: "src/system/libraries/attr/doc/COPYING.LGPL",
+    },
+];
+
+pub(super) fn stage_development_package(repo_root: &Path, staging: &Path, name: &str) -> Result<()> {
+    let package = DEVELOPMENT_PACKAGES
+        .iter()
+        .find(|package| package.package == name)
+        .ok_or_else(|| anyhow!("{name} is not a table development package"))?;
+    let install = component_install(repo_root, package.component).join("usr");
+    for header in package.headers {
+        let source = install.join("include").join(header);
+        let destination = staging.join("usr/include").join(header);
+        if source.is_dir() {
+            copy_tree_preserving(&source, &destination)?;
+        } else {
+            copy_preserving(&source, &destination)?;
+        }
+    }
+    // Generated headers can name the checkout they were generated in (for
+    // example a comment in ncurses' curses.h); publish the stable source
+    // prefix instead, as the kernel's module paths do.
+    normalize_checkout_paths(repo_root, &staging.join("usr/include"))?;
+    let libdir = staging.join("usr/lib/x86_64-linux-gnu");
+    fs::create_dir_all(&libdir)?;
+    for (linker_name, soname) in package.linker_names {
+        std::os::unix::fs::symlink(soname, libdir.join(linker_name))?;
+    }
+    // Some producers (systemd's Meson install) write their DESTDIR prefix
+    // into pkg-config metadata; the installed prefix is always /usr.
+    let staged_prefix = format!("{}", install.display());
+    for pc in package.pkgconfig {
+        let source = install.join("lib/x86_64-linux-gnu/pkgconfig").join(pc);
+        let body = fs::read_to_string(&source)
+            .with_context(|| format!("failed to read {}", source.display()))?
+            .replace(&staged_prefix, "/usr");
+        let destination = libdir.join("pkgconfig").join(pc);
+        fs::create_dir_all(destination.parent().expect("pkgconfig has a parent"))?;
+        fs::write(destination, body)?;
+    }
+    copy_preserving(
+        &repo_root.join(package.license),
+        &staging.join("usr/share/doc").join(name).join("copyright"),
+    )
+}
+
+/// pkgconf with its compatibility `pkg-config` name.  libpkgconf is static,
+/// so its headers and archive stay in the build tree.
+pub(super) fn stage_pkgconf(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "pkgconf").join("usr");
+    stage_executable(&install.join("bin/pkgconf"), &staging.join("usr/bin/pkgconf"), 0o755)?;
+    std::os::unix::fs::symlink("pkgconf", staging.join("usr/bin/pkg-config"))?;
+    std::os::unix::fs::symlink("pkgconf", staging.join("usr/bin/x86_64-linux-gnu-pkg-config"))?;
+    copy_preserving(&install.join("share/aclocal/pkg.m4"), &staging.join("usr/share/aclocal/pkg.m4"))?;
+    copy_preserving(
+        &repo_root.join("src/build-tools/pkgconf/COPYING"),
+        &staging.join("usr/share/doc/pkgconf/copyright"),
+    )
+}
+
+/// CMake with its module tree (Debian's cmake plus cmake-data).
+pub(super) fn stage_cmake(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "cmake").join("usr");
+    for tool in ["cmake", "ctest", "cpack"] {
+        stage_executable(&install.join("bin").join(tool), &staging.join("usr/bin").join(tool), 0o755)?;
+    }
+    let share = install.join("share");
+    let modules = fs::read_dir(&share)?
+        .filter_map(|entry| entry.ok())
+        .find(|entry| entry.file_name().to_string_lossy().starts_with("cmake-"))
+        .ok_or_else(|| anyhow!("cmake install has no share/cmake-<version> module tree"))?;
+    copy_tree_preserving(&modules.path(), &staging.join("usr/share").join(modules.file_name()))?;
+    if share.join("aclocal").is_dir() {
+        copy_tree_preserving(&share.join("aclocal"), &staging.join("usr/share/aclocal"))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/build-tools/cmake/LICENSE.rst"),
+        &staging.join("usr/share/doc/cmake/copyright"),
+    )
+}
+
+fn normalize_checkout_paths(repo_root: &Path, directory: &Path) -> Result<()> {
+    if !directory.is_dir() {
+        return Ok(());
+    }
+    let checkout = repo_root.to_string_lossy().into_owned();
+    for entry in fs::read_dir(directory)? {
+        let path = entry?.path();
+        let metadata = fs::symlink_metadata(&path)?;
+        if metadata.is_dir() {
+            normalize_checkout_paths(repo_root, &path)?;
+        } else if metadata.is_file()
+            && let Ok(text) = fs::read_to_string(&path)
+            && text.contains(&checkout)
+        {
+            fs::write(&path, text.replace(&checkout, "/usr/src/mattos"))?;
+        }
+    }
+    Ok(())
+}

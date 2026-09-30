@@ -43,15 +43,15 @@ source configuration, changed LinuxScripts publisher, or nested Git metadata.
 | filesystem | merged `/usr`: `/bin`, `/sbin`, and `/lib` resolve into `/usr`; package paths and common commands remain conventional. |
 | package state | `/var/lib/dpkg` is initialized as mutable state and populated through real `dpkg`; packages never ship its status, locks, or generated `info` data. |
 | APT | deb822 sources, `/etc/apt/preferences.d`, conventional cache/list/log directories, the local `file:` repository, and the signed hosted MattOS repository are present. |
-| maintainer scripts | Brush is available as both `/bin/sh` and `/bin/bash`; basic pre/post install/remove scripts are supported. Perl-based helpers are not. |
+| maintainer scripts | dash is `/bin/sh` (as in Debian) and Brush is `/bin/bash`; basic pre/post install/remove scripts are supported. Perl-based helpers are not. |
 | systemd | The `systemd` package owns PID 1, `systemctl`, the udev executables, and the unit tree; it is `Essential: yes` and `Provides: systemd-sysv`. D-Bus, logind, and `pam_systemd` work. |
 | metadata | conffiles are honored; the alternatives database and `update-alternatives` exist; full Debian trigger/helper coverage is not claimed. |
 | dependencies | Build-time graph checks require every named dependency to resolve and ABI-coupled MattOS dependencies use exact versions. |
 
 Brush remains `mattos-brush`; it does not claim the Debian `bash` package.
-The package owns `/usr/bin/brush` and symlinks `/usr/bin/sh` and
-`/usr/bin/bash` to it. With merged `/usr`, scripts using either `/bin/sh` or
-`/bin/bash` execute Brush without shebang changes. No versioned `Provides:
+The package owns `/usr/bin/brush` and symlinks `/usr/bin/bash` to it; the
+`dash` package owns `/usr/bin/sh`, so `#!/bin/sh` scripts run under dash and
+`#!/bin/bash` scripts under Brush. No versioned `Provides:
 bash` is emitted because Brush is not asserted to implement the complete Bash
 package contract.
 

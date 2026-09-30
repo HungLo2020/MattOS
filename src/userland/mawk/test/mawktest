@@ -1,0 +1,301 @@
+#!/bin/sh
+# $MawkId: mawktest,v 1.60 2026/01/30 01:22:58 tom Exp $
+###############################################################################
+# copyright 2008-2024,2026, Thomas E. Dickey
+# copyright 2010, Guido Berhoerster
+# copyright 2010, Jonathan Nieder
+# copyright 2005, Aleksey Cheusov
+# copyright 1996, Michael D. Brennan
+#
+# This is a source file for mawk, an implementation of
+# the AWK programming language.
+#
+# Mawk is distributed without warranty under the terms of
+# the GNU General Public License, version 2, 1991.
+###############################################################################
+
+# This is a simple test check if a newly built mawk is working properly.
+# It's certainly not exhaustive!
+#
+# It must be run from mawk/test
+# and mawk must be in mawk/test or in PATH
+
+: "${FGREP:=grep -F}"
+
+MYTEMP=`mktemp -d 2>/dev/null`
+if [ -z "$MYTEMP" ]
+then
+	MYTEMP=${TMPDIR-/tmp}/mawktest$$
+fi
+mkdir -p "$MYTEMP" || exit
+trap 'echo mawktest failed ; rm -rf "$MYTEMP"; exit 1'  0
+
+STDOUT=$MYTEMP/mawk-out
+STDERR=$MYTEMP/mawk-err
+
+# POSIX shells have functions...
+Fail() {
+	echo "?? fail $*"
+	FAIL=`expr "$FAIL" + 1`
+	ERRS=`expr "$ERRS" + 1`
+}
+
+Begin() {
+	echo
+	echo "$*"
+	FAIL=0
+}
+
+Finish() {
+	if [ "$FAIL" = 1 ]
+	then
+		echo "$* had one failure"
+	elif [ "$FAIL" != 0 ]
+	then
+		echo "$* had $FAIL failures"
+	else
+		echo "$* OK"
+	fi
+}
+
+ERRS=0
+
+Summary() {
+	if [ "$ERRS" = 1 ]
+	then
+		echo "$* had one failure"
+	elif [ "$ERRS" != 0 ]
+	then
+		echo "$* had $ERRS failures"
+	else
+		echo "$* OK"
+	fi
+}
+
+if [ -f ../mawk ]
+then
+	PROG="${AWK:-../mawk}"
+else
+	PROG="${AWK:-mawk}"
+fi
+
+MAWKBINMODE=7
+export MAWKBINMODE
+
+if test $# != 0 ; then
+SRC=$1
+else
+SRC=..
+fi
+
+dat=mawktest.dat
+nulldat=mawknull.dat
+
+# The ulimit command interferes with valgrind (uncomment for ad hoc testing).
+#ulimit -v 25000
+
+# find out which mawk we're testing
+MAWKS=no
+if $PROG -W version </dev/null
+then
+	( $PROG -W version </dev/null 2>&1 |head -n 1 |grep mawk >/dev/null ) && MAWKS=yes
+	NULLS=`$PROG -W version 2>&1 </dev/null |$FGREP regex |$FGREP 'internal' 2>/dev/null`
+else
+	NULLS=
+fi
+
+#################################
+
+Begin "testing input and field splitting"
+
+LC_ALL=C $PROG -f wc.awk $dat | cmp -s - wc-awk.out || Fail "wc.awk"
+LC_ALL=C $PROG -f null-rs.awk null-rs.dat | cmp -s - null-rs.out || Fail "null-rs.awk"
+
+LC_ALL=C $PROG -F '(a?)*b' -f wc.awk $dat > "$STDOUT"
+LC_ALL=C $PROG -F 'a*b' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 2"
+
+LC_ALL=C $PROG -F '(a?)+b' -f wc.awk $dat > "$STDOUT"
+LC_ALL=C $PROG -F 'a*b' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 3"
+LC_ALL=C $PROG -F 'a{0,}b' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 3b"
+
+LC_ALL=C $PROG -F '[^^]' -f wc.awk $dat > "$STDOUT"
+LC_ALL=C $PROG -F '(.)' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 4"
+
+LC_ALL=C $PROG -F '[^]]' -f wc.awk $dat > "$STDOUT"
+LC_ALL=C $PROG -F '[[#a-zA-Z0-9/*!=<>+,;.&_%(){}" -]' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 5"
+
+LC_ALL=C $PROG -F '[a[]' -f wc.awk $dat > "$STDOUT"
+LC_ALL=C $PROG -F '[[a]' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 6"
+if test "$MAWKS" = "yes" ; then
+LC_ALL=C $PROG -F 'a|\[' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 6b"
+else
+echo "...skipping case 6b: escaped-bracket test"
+fi
+
+LC_ALL=C $PROG -F '(])' -f wc.awk $dat > "$STDOUT"
+LC_ALL=C $PROG -F '[]]' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 7"
+LC_ALL=C $PROG -F '\]' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 7b"
+
+# check that the regexp [\ does not make mawk segfault
+if test "$MAWKS" = "yes" ; then
+LC_ALL=C $PROG -F "[\\" 2> "$STDERR" || Fail "case 8"
+fi
+
+LC_ALL=C $PROG -F '(^)?)' -f wc.awk $dat > "$STDOUT"
+LC_ALL=C $PROG -F ')' -f wc.awk $dat | cmp -s - "$STDOUT" || Fail "case 9"
+
+echo baaab | LC_ALL=C $PROG -F 'a*+' '{print NF}' > "$STDOUT"
+echo baaab | LC_ALL=C $PROG -F 'a*' '{print NF}' | cmp -s - "$STDOUT" || Fail "case 10"
+
+#LC_ALL=C $PROG -F '[\\\\]' -f wc.awk $dat  > "$STDOUT"
+#LC_ALL=C $PROG -F '(\\\\)' -f wc.awk | cmp -s - "$STDOUT" || Fail "case 11"
+#LC_ALL=C $PROG -F '\\\\' -f wc.awk | cmp -s - "$STDOUT" || Fail "case 11b"
+
+if test -n "$NULLS" ; then
+	LC_ALL=C $PROG -F '\000'    -f nulls0.awk $nulldat > "$STDOUT"
+	LC_ALL=C $PROG -F '[\000 ]' -f nulls0.awk $nulldat >> "$STDOUT"
+	if ( cmp -s  nulls.out "$STDOUT" )
+	then
+		echo "... $PROG supports matches with NUL bytes"
+	else
+		echo "... $PROG does NOT supports matches with NUL bytes"
+	fi
+fi
+
+Finish "input and field splitting"
+
+#####################################
+
+Begin "testing regular expression matching"
+
+{
+	LC_ALL=C $PROG -f reg0.awk $dat
+	LC_ALL=C $PROG -f reg1.awk $dat
+	LC_ALL=C $PROG -f reg2.awk $dat
+	LC_ALL=C $PROG -f reg3.awk $dat
+	LC_ALL=C $PROG -f reg4.awk $dat
+	LC_ALL=C $PROG -f reg5.awk $dat
+	LC_ALL=C $PROG -f reg6.awk $dat
+	LC_ALL=C $PROG -f reg7.awk $dat
+} > "$STDOUT"
+
+cmp -s  reg-awk.out "$STDOUT" || Fail "reg0-reg7 case"
+
+echo "''Italics with an apostrophe' embedded''" |
+	LC_ALL=C $PROG -f noloop.awk || Fail "noloop2 test"
+echo "''Italics with an apostrophe'' embedded''" |
+	LC_ALL=C $PROG -f noloop.awk || Fail "noloop1 test"
+
+LC_ALL=C $PROG '/^[^^]*$/' $dat > "$STDOUT"
+cmp -s $dat "$STDOUT" || Fail "case 1"
+
+LC_ALL=C $PROG '!/^[^]]*$/' $dat > "$STDOUT"
+LC_ALL=C $PROG '/]/' $dat | cmp -s - "$STDOUT" || Fail "case 2"
+
+LC_ALL=C $PROG '/[a[]/' $dat > "$STDOUT"
+LC_ALL=C $PROG '/[[a]/' $dat | cmp -s - "$STDOUT" || Fail "case 3"
+
+LC_ALL=C $PROG '/]/' $dat > "$STDOUT"
+LC_ALL=C $PROG '/[]]/' $dat | cmp -s - "$STDOUT" || Fail "case 4"
+
+echo aaa | LC_ALL=C $PROG '/a*+/' > "$STDOUT"
+echo aaa | LC_ALL=C $PROG '/a*/' | cmp -s - "$STDOUT" || Fail "case 5"
+echo aaa | cmp -s - "$STDOUT" || Fail "case 6"
+
+Finish "regular expression matching"
+
+#######################################
+
+if [ -c /dev/full ]; then
+    Begin "testing checking for write errors"
+    # Check for write errors noticed when closing the file
+    LC_ALL=C $PROG '{print}' <full-awk.dat >/dev/full 2>/dev/null && Fail "case 1"
+    # Check for write errors noticed on writing
+    # The file has to be bigger than the buffer size of the libc
+    LC_ALL=C $PROG '{print}' <"$SRC"/scan.c >/dev/full 2>/dev/null && Fail "case 2"
+
+    Finish "checking for write errors"
+else
+    echo
+    echo "No /dev/full - check for write errors skipped"
+fi
+
+#######################################
+
+Begin "testing arrays and flow of control"
+
+LC_ALL=C $PROG -f wfrq0.awk $dat | cmp -s - wfrq-awk.out || Fail "wfrq-awk"
+
+Finish "array test"
+
+#######################################
+
+Begin "testing nextfile"
+
+LC_ALL=C $PROG -f nextfile.awk full-awk.dat $dat | cmp -s - nextfile.out || Fail "nextfile.awk"
+
+Finish "nextfile test"
+
+#################################
+
+Begin "testing function calls and general stress test"
+
+LC_ALL=C $PROG -f "$SRC"/examples/decl.awk $dat | cmp -s - decl-awk.out || Fail "examples/decl.awk"
+
+Finish "general stress test"
+
+#################################
+
+Begin "testing r{n,m} repetitions"
+
+LC_ALL=C $PROG -f repetitions.awk repetitions.dat | cmp -s - repetitions.out || Fail "repetitions.awk"
+LC_ALL=C $PROG -f interval0.awk repetitions.dat | cmp -s - interval0.out || Fail "interval0.awk"
+
+Finish "repetitions test"
+
+#################################
+
+#################################
+
+Begin "character-classes demo"
+LC_ALL=C $PROG -f cclass.awk mawktest.dat | cmp -s - cclass.out || Fail "cclass.awk"
+Finish "character-classes demo"
+
+#################################
+
+#################################
+Begin "long-lines test"
+AWK=$PROG ./longline.sh | cmp -s - longline.out || Fail "longline.awk"
+Finish "long-lines test"
+
+#################################
+
+#################################
+
+not_a_sign() {
+	sed -e 's/[-+][Ii]nf/inf/g' -e 's/[-+][Nn]a[Nn]/nan/g' nan-$1.out >$MYTEMP/ref.log
+	sed -e 's/[-+][Ii]nf/inf/g' -e 's/[-+][Nn]a[Nn]/nan/g' $MYTEMP/result >$MYTEMP/cmp.log
+	if cmp -s $MYTEMP/ref.log $MYTEMP/cmp.log
+	then
+		echo "? different signs of Inf/NaN in $1 test"
+	else
+		Fail "nan.awk ($1)"
+	fi
+}
+
+Begin "not-a-number demo"
+LC_ALL=C $PROG --posix -f nan.awk | tee $MYTEMP/result | cmp -s - nan-posix.out  || not_a_sign "posix"
+LC_ALL=C $PROG         -f nan.awk | tee $MYTEMP/result | cmp -s - nan-legacy.out || not_a_sign "legacy"
+Finish "not-a-number demo"
+
+#################################
+
+echo
+echo "##################################################"
+Summary "tested $PROG"
+echo "##################################################"
+
+trap 0
+rm -rf "$MYTEMP"
+exit "$ERRS"
+# vile: ts=4 sw=4

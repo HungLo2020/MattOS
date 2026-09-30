@@ -1,0 +1,20 @@
+.*swiftc(\.exe)?"? [^
+]* -parse-as-library -static[^
+]* -module-name StaticLibrary [^
+]* -emit-module -emit-module-path (Debug/|Release/)?StaticLibrary\.swiftmodule [^
+]*
+.*swiftc(\.exe)?"? [^
+]* -parse-as-library[^
+]* -module-name DynamicLibrary [^
+]* -emit-module -emit-module-path (debug|release)/modules/DynamicLibrary\.swiftmodule [^
+]*
+.*swiftc(\.exe)?"? [^
+]* -emit-library [^
+]* -Xlinker -install_name -Xlinker @rpath/libDynamicLibrary\.dylib -o ([A-Za-z]+/)?libDynamicLibrary\.dylib [^
+]*
+.*swiftc(\.exe)?"? [^
+]* -parse-as-library[^
+]* -module-name DynamicLibrary2 [^
+]* -emit-module -emit-module-path Modules/(Debug/|Release/)?DynamicLibrary2\.swiftmodule [^
+]*
+.*swiftc(\.exe)?"? -j [0-9]+ -num-threads [0-9]+ -c  -module-name Executable

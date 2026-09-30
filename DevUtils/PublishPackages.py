@@ -35,6 +35,7 @@ PUBLISHER_RELATIVE = Path(
     "src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py"
 )
 REPOSITORY_SOURCES_RELATIVE = Path("src/system/packages/config/apt/mattos-hosted.sources")
+THIRD_PARTY_RELEASES_RELATIVE = Path("third-party-packages/releases.json")
 
 
 def parse_args() -> argparse.Namespace:
@@ -174,6 +175,26 @@ def inventory_packages(repo_root: Path) -> list[InventoryPackage]:
     return packages
 
 
+def third_party_package_names(repo_root: Path) -> set[str]:
+    """Names published by third-party recipes rather than the MattOS build."""
+    path = repo_root / THIRD_PARTY_RELEASES_RELATIVE
+    if not path.is_file():
+        return set()
+    import json
+
+    return set(json.loads(path.read_text(encoding="utf-8")).get("packages", {}))
+
+
+def reject_third_party_names(repo_root: Path, packages: list[InventoryPackage]) -> None:
+    """A package name belongs to exactly one producer: MattOS or one recipe."""
+    claimed = sorted(package.name for package in packages if package.name in third_party_package_names(repo_root))
+    if claimed:
+        raise RepoError(
+            "MattOS packages also claimed by a third-party recipe: " + ", ".join(claimed)
+            + f"; remove the recipe from {THIRD_PARTY_RELEASES_RELATIVE} before publishing"
+        )
+
+
 def published_index_url(repo_root: Path) -> str:
     """The binary Packages index of the hosted repository the installed system uses."""
     fields: dict[str, str] = {}
@@ -254,6 +275,7 @@ def main() -> int:
         f"Discovered {len(packages)} package(s) from {PACKAGE_INVENTORY_RELATIVE}"
     )
     entries = inventory_packages(repo_root)
+    reject_third_party_names(repo_root, entries)
     url = published_index_url(repo_root)
     plan = plan_publication(entries, parse_packages_index(fetch_published_index(url)))
     for package, newest in plan.older_than_published:

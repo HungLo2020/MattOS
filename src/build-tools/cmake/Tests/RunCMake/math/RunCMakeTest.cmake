@@ -1,0 +1,16 @@
+include(RunCMake)
+
+run_cmake(MATH)
+run_cmake(MATH-WrongArgument)
+run_cmake(MATH-DoubleOption)
+run_cmake(MATH-TooManyArguments)
+run_cmake(MATH-InvalidExpression)
+run_cmake(MATH-ToleratedExpression)
+run_cmake(MATH-DivideByZero)
+run_cmake(MATH-ModByZero)
+run_cmake(MATH-DivideMinByMinusOne)
+run_cmake(MATH-ModMinByMinusOne)
+
+if(CMake_TEST_MATH_OVERFLOW)
+  run_cmake_script(Overflow)
+endif()

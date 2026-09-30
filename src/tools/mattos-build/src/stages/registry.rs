@@ -31,9 +31,9 @@ fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile 
         | BuildStage::Brush
         | BuildStage::Coreutils
         | BuildStage::Grep
-        | BuildStage::Sed
         | BuildStage::Findutils
         | BuildStage::Diffutils
+        | BuildStage::Cmake
         | BuildStage::Git
         | BuildStage::Libffi
         | BuildStage::NvidiaDriver
@@ -113,7 +113,6 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
             vec!["out/build/coreutils/cargo-target/release/coreutils".into()]
         }
         BuildStage::Grep => vec!["out/build/grep/cargo-target/release/grep".into()],
-        BuildStage::Sed => vec!["out/build/sed/cargo-target/release/sed".into()],
         BuildStage::Findutils => vec!["out/build/findutils/cargo-target/release/find".into()],
         BuildStage::Diffutils => {
             vec!["out/build/diffutils/cargo-target/release/diffutils".into()]
@@ -735,6 +734,11 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Coreutils => build_coreutils(repo_root),
         BuildStage::Grep => build_grep(repo_root),
         BuildStage::Sed => build_sed(repo_root),
+        BuildStage::Dash => build_dash(repo_root),
+        BuildStage::Mawk => build_mawk(repo_root),
+        BuildStage::Rsync => build_rsync(repo_root),
+        BuildStage::Pkgconf => build_pkgconf(repo_root),
+        BuildStage::Cmake => build_cmake(repo_root),
         BuildStage::Findutils => build_findutils(repo_root),
         BuildStage::Diffutils => build_diffutils(repo_root),
         BuildStage::Gzip => build_gzip(repo_root),

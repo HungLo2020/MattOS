@@ -1,0 +1,11 @@
+^CMake Warning \(policy\) at [^
+]*/Modules/CMakeDetermineASMCompiler\.cmake:[0-9]+ \(cmake_policy\):
+  Policy CMP0194 is not set: MSVC is not an assembler for language ASM\.  Run
+  "cmake --help-policy CMP0194" for policy details\.  Use the cmake_policy
+  command to set the policy and suppress this warning\.
+Call Stack \(most recent call first\):
+  CMP0194-common\.cmake:[0-9]+ \(enable_language\)
+  CMP0194-WARN\.cmake:[0-9]+ \(include\)
+  CMakeLists\.txt:[0-9]+ \(include\)
+This warning is for project developers\.  Use -Wno-author or -Wno-policy to
+suppress it\.$

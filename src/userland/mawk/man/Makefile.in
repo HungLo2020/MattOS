@@ -1,0 +1,86 @@
+# $MawkId: Makefile.in,v 1.10 2026/03/02 21:48:57 tom Exp $
+###############################################################################
+# copyright 2010-2024,2026 Thomas E. Dickey
+#
+# This is a source file for mawk, an implementation of
+# the AWK programming language.
+#
+# Mawk is distributed without warranty under the terms of
+# the GNU General Public License, version 2, 1991.
+###############################################################################
+# produce alternate forms from mawk's documentation.
+
+SHELL=/bin/sh
+
+srcdir		= @srcdir@
+VPATH		= @srcdir@
+
+prefix          = @prefix@
+datarootdir     = @datarootdir@
+
+mandir		= @mandir@
+
+INSTALL         = @INSTALL@
+INSTALL_DATA    = @INSTALL_DATA@
+
+# these are overridden by top-level makefile
+PROGRAM		= mawk
+TOPIC		=
+SECTION		= 1
+
+# what/where to put the man pages (do not override)
+MANDIR          = $(DESTDIR)$(mandir)
+TARGET_DIR	= $(MANDIR)/man$(SECTION)
+SOURCE_ROOT	= mawk$(TOPIC)
+TARGET_ROOT	= $(PROGRAM)$(TOPIC)
+SOURCE_FILE	= $(SOURCE_ROOT).$(SECTION)
+TARGET_FILE	= $(TARGET_ROOT).$(SECTION)
+
+# workaround for bug in GNU Make 4.4.1
+.PRECIOUS: mawk.1 mawk-arrays.7 mawk-code.7
+
+.SUFFIXES : .html .$(SECTION) .man .ps .pdf .doc .txt
+
+.$(SECTION).html :
+	../man2html.tmp $* $(SECTION) man >$@
+
+.$(SECTION).ps :
+	$(SHELL) -c "tbl $*.$(SECTION) | groff -man" >$@
+
+.$(SECTION).doc :
+	GROFF_NO_SGR=stupid $(SHELL) -c "tbl $*.$(SECTION) | nroff -rHY=0 -Tascii -man" >$@
+
+.$(SECTION).txt :
+	GROFF_NO_SGR=stupid $(SHELL) -c "tbl $*.$(SECTION) | nroff -rHY=0 -Tascii -man | col -bx" >$@
+
+.ps.pdf :
+	ps2pdf $*.ps
+
+ALL	= \
+	$(SOURCE_ROOT).html \
+	$(SOURCE_ROOT).pdf \
+	$(SOURCE_ROOT).ps
+
+all:	$(SOURCE_ROOT).txt $(SOURCE_ROOT).doc $(ALL)
+
+install: $(TARGET_DIR)
+	@echo "$@ing $(TARGET_DIR)/$(TARGET_FILE) manpage"
+	@$(INSTALL_DATA) $(SOURCE_FILE) $(TARGET_DIR)/$(TARGET_FILE)
+
+uninstall:
+	@echo "$@ing $(TARGET_DIR)/$(TARGET_FILE) manpage"
+	@-rm -f $(TARGET_DIR)/$(TARGET_FILE)
+
+clean:
+	-rm -f $(ALL)
+
+distclean: clean
+	rm -f Makefile
+
+maintainer-clean: clean
+	rm -f $(SOURCE_ROOT).txt $(SOURCE_ROOT).doc
+
+$(SOURCE_ROOT).pdf : $(SOURCE_ROOT).ps
+
+$(TARGET_DIR) :
+	mkdir -p "$@"

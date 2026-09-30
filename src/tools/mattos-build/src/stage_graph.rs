@@ -15,6 +15,11 @@ pub(crate) enum BuildStage {
     Coreutils,
     Grep,
     Sed,
+    Dash,
+    Mawk,
+    Rsync,
+    Pkgconf,
+    Cmake,
     Findutils,
     Diffutils,
     Gzip,
@@ -286,6 +291,11 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Coreutils => "coreutils",
         BuildStage::Grep => "grep",
         BuildStage::Sed => "sed",
+        BuildStage::Dash => "dash",
+        BuildStage::Mawk => "mawk",
+        BuildStage::Rsync => "rsync",
+        BuildStage::Pkgconf => "pkgconf",
+        BuildStage::Cmake => "cmake",
         BuildStage::Findutils => "findutils",
         BuildStage::Diffutils => "diffutils",
         BuildStage::Gzip => "gzip",
@@ -2889,11 +2899,22 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Initramfs => &["formal-sysroot", "linux"],
         // The ISO carries the offline package repository beside the live root.
         BuildStage::Iso => &["linux", "live-root", "initramfs", "grub", "repository"],
+        BuildStage::Rsync => &[
+            "formal-sysroot",
+            "acl",
+            "attr",
+            "popt",
+            "zlib",
+            "zstd",
+            "lz4",
+            "xxhash",
+            "openssl",
+        ],
+        BuildStage::Cmake => &["formal-sysroot", "openssl"],
         // Cargo-built userland: compiled by the MattOS-built rustc.
         BuildStage::Brush
         | BuildStage::Coreutils
         | BuildStage::Grep
-        | BuildStage::Sed
         | BuildStage::Findutils
         | BuildStage::Diffutils
         | BuildStage::Init => &["formal-sysroot", "rust"],
@@ -2914,6 +2935,11 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Coreutils,
         BuildStage::Grep,
         BuildStage::Sed,
+        BuildStage::Dash,
+        BuildStage::Mawk,
+        BuildStage::Rsync,
+        BuildStage::Pkgconf,
+        BuildStage::Cmake,
         BuildStage::Findutils,
         BuildStage::Diffutils,
         BuildStage::Gzip,
@@ -3602,22 +3628,22 @@ mod tests {
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // Fontconfig and the Plasma closure are first-class consumers of
             // glibc through their source-owned runtime dependencies.
-            ("glibc source", &["glibc"], 265, &["linux"]),
+            ("glibc source", &["glibc"], 270, &["linux"]),
             ("Linux x86_64 config", &["linux"], 14, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                266,
+                271,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                263,
+                268,
                 &["linux", "glibc", "linux-headers"],
             ),
             // zlib reaches Cargo-built userland through the MattOS rustc.
-            ("zlib shared library", &["zlib"], 195, &["attr", "linux"]),
+            ("zlib shared library", &["zlib"], 196, &["attr", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

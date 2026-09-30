@@ -3,22 +3,18 @@
   "packages": {
     "btop": {
       "release_tag": "v1.4.7",
+      "source_sha256": "933de2e4d1b2211a638be463eb6e8616891bfba73aef5d38060bd8319baeefc6",
       "version": "1.4.7"
     },
     "fastfetch": {
-      "release_tag": "v2.68.1",
+      "release_tag": "2.68.1",
+      "source_sha256": "c268cfcd230cc7ed5447fb34ed21bf4977315c7104356a39388b6ba784ad11b0",
       "version": "2.68.1"
-    },
-    "firefox": {
-      "version": "155.0"
     },
     "htop": {
       "release_tag": "3.5.3",
+      "source_sha256": "a8b164386494cb85bb255a415a3f5f80afe7a0c4491da5d113b3a0f951087e65",
       "version": "3.5.3"
-    },
-    "rsync": {
-      "release_tag": "v3.5.0",
-      "version": "3.5.0"
     }
   }
 }

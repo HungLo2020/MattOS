@@ -1,0 +1,592 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  msvc:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: win32-x86
+            runs_on: windows-2025
+            msbuild_arch: x86
+
+          - name: win64-x64
+            runs_on: windows-2025
+            msbuild_arch: x64
+
+          - name: win-arm64
+            runs_on: windows-11-arm
+            msbuild_arch: arm64
+    runs-on: ${{ matrix.runs_on }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up MSBuild
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msbuild_arch }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Meson and Ninja
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja
+
+      - name: Install WiX
+        run: |
+          dotnet tool install --global wix
+          $wixVersion = (wix --version).Trim()
+          wix eula accept wix7
+          wix extension add -g "WixToolset.UI.wixext/$wixVersion"
+
+      - name: Build
+        run: |
+          meson setup _build --vsenv -Dwerror=true
+          meson compile -C _build msi
+
+      - name: Run tests
+        run: |
+          meson test -v -C _build
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-${{ matrix.msbuild_arch }}
+          path: |
+            _build/*.exe
+            _build/*.dll
+            _build/*.msi
+
+  clang-cl:
+    name: ${{ matrix.name }}
+    runs-on: windows-2025
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Meson and Ninja
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install meson ninja
+
+      - name: Build
+        run: |
+          meson setup _build --vsenv -Dwerror=true
+          meson compile -C _build
+        env:
+          CC: clang-cl
+
+      - name: Run tests
+        run: |
+          meson test -v -C _build
+
+  msys2:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { msystem: MINGW64, arch: x86_64},
+        ]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: setup-msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+          install: >-
+            mingw-w64-${{ matrix.arch }}-meson
+            mingw-w64-${{ matrix.arch }}-ninja
+            mingw-w64-${{ matrix.arch }}-gcc
+
+      - name: Build
+        shell: msys2 {0}
+        run: |
+          # the code assumes msvc style printf atm
+          export CFLAGS=-D__USE_MINGW_ANSI_STDIO=0
+
+          meson setup _build -Dwerror=true
+          meson compile -C _build
+
+      - name: Run tests
+        shell: msys2 {0}
+        run: |
+          meson test -v -C _build
+
+  macOS:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          brew update
+          brew install meson
+
+      - name: Build
+        run: |
+          meson setup _build -Dwerror=true
+          meson compile -C _build
+
+      - name: Run tests
+        run: |
+          meson test -v -C _build
+
+  cygwin:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Cygwin
+        uses: cygwin/cygwin-install-action@v6
+        with:
+          packages: |
+            meson
+            ninja
+            gcc-core
+
+      - name: Build
+        shell: D:\cygwin\bin\bash.exe -o igncr '{0}'
+        run: |
+          export PATH="/usr/bin:$(cygpath ${SYSTEMROOT})/system32"
+          meson setup _build -Dwerror=true
+          meson compile -C _build
+
+      - name: Run tests
+        shell: D:\cygwin\bin\bash.exe -o igncr '{0}'
+        run: |
+          export PATH="/usr/bin:$(cygpath ${SYSTEMROOT})/system32"
+          meson test -v -C _build
+
+  QEMU_VMs:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: cpa.sh {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os_image: netbsd
+            version: '10.1'
+
+          - os_image: freebsd
+            version: '15.1'
+
+          - os_image: openbsd
+            version: '7.9'
+
+          # - os_image: haiku
+          #  version: 'r1beta5'
+
+          - os_image: omnios
+            version: 'r151056'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Start VM on ${{ matrix.os_image }}
+        uses: cross-platform-actions/action@v1.3.0
+        with:
+          operating_system: ${{ matrix.os_image }}
+          version: ${{ matrix.version }}
+
+      - name: Install meson
+        run: |
+          case "${{ matrix.os_image }}" in
+            netbsd)
+              sudo pkgin -y install meson
+              ;;
+            freebsd)
+              # Using system compiler
+              sudo pkg -o ASSUME_ALWAYS_YES=yes install meson
+              ;;
+            openbsd)
+              sudo pkg_add https://cdn.openbsd.org/%m/meson
+              ;;
+            haiku)
+              pkgman install -y meson
+              ;;
+            omnios)
+              sudo pkg install --deny-new-be --no-backup-be \
+                pkg:/developer/gcc14 \
+                pkg:/library/python-3/meson-313 \
+                pkg:/ooce/developer/ninja
+              ;;
+          esac
+
+      - name: Build
+        run: |
+          if [[ "${{ matrix.os_image }}" == "omnios" ]]; then
+            export PATH=/usr/lib/python3.13/bin:$PATH
+          fi
+          meson setup _build -Dwerror=true
+          meson compile -C _build
+
+      - name: Run tests
+        run: |
+          if [[ "${{ matrix.os_image }}" == "omnios" ]]; then
+            export PATH=/usr/lib/python3.13/bin:$PATH
+          fi
+          meson test -v -C _build
+
+  debian-meson:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:testing
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential meson
+
+      - name: Build
+        run: |
+          meson setup _build -Dwerror=true
+          meson compile -C _build
+
+      - name: Run tests
+        run: |
+          meson test -v -C _build
+
+  debian-meson-asan:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:testing
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential meson
+
+      - name: Build
+        run: |
+          meson setup _build -Db_sanitize=address -Dwerror=true
+          meson compile -C _build
+
+      - name: Run tests
+        run: |
+          meson test -v -C _build
+        env:
+          ASAN_OPTIONS: "exitcode=7"
+
+  debian-autotools:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:testing
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential autoconf libtool
+
+      - name: Build
+        run: |
+          ./autogen.sh
+          ./configure
+          make -j9
+
+      - name: Run tests
+        run: |
+          make distcheck
+
+  dist-meson:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:testing
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential autoconf libtool meson
+
+      - name: Build tarball
+        run: |
+          ./autogen.sh
+          ./configure
+          make dist
+
+      - name: Build and test tarball with Meson
+        run: |
+          tar xf pkgconf-*.tar.xz
+          cd pkgconf-*/
+          meson setup _build -Dwerror=true
+          meson compile -C _build
+          meson test -v -C _build
+
+  alpine-meson:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apk update
+          apk add build-base meson gcovr bash git curl gpg
+
+      - name: Build
+        run: |
+          meson setup _build -Dwerror=true -Db_coverage=true
+          meson compile -C _build
+
+      - name: Run tests
+        run: |
+          meson test -v -C _build
+
+      - name: Run coverage
+        run: |
+          ninja -C _build coverage-xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v6
+        with:
+          fail_ci_if_error: true
+          files: ./_build/meson-logs/coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  alpine-muon:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apk update
+          apk add build-base muon samurai
+
+      - name: Build
+        run: |
+          muon setup -Ddefault_library=both -Dwerror=true _build
+          samu -C _build
+
+      - name: Run tests
+        run: |
+          cd _build
+          muon test -v -v
+
+  alpine-autotools:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apk update
+          apk add build-base autoconf automake libtool xz gzip tar
+
+      - name: Build
+        run: |
+          ./autogen.sh
+          ./configure
+          make -j9
+
+      - name: Run tests
+        run: |
+          make distcheck
+
+  debian-7:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          path: pkgconf
+
+      - name: Checkout muon
+        uses: actions/checkout@v6
+        with:
+          repository: muon-build/muon
+          path: muon
+
+      - name: Build inside Debian 7
+        run: |
+          cat > build.sh << 'EOF'
+          #!/bin/bash
+          set -e
+
+          # See: https://www.howtoforge.com/using-old-debian-versions-in-your-sources.list
+          cat > /etc/apt/sources.list << 'SOURCES'
+          deb http://archive.debian.org/debian/ wheezy main non-free contrib
+          deb-src http://archive.debian.org/debian/ wheezy main non-free contrib
+
+          deb http://archive.debian.org/debian-security/ wheezy/updates main non-free contrib
+          deb-src http://archive.debian.org/debian-security/ wheezy/updates main non-free contrib
+          SOURCES
+
+          # Install gcc
+          apt-get update || true
+          apt-get install -y --force-yes gcc
+
+          # Build muon
+          cd /home/muon
+          ./bootstrap.sh build
+          build/muon-bootstrap setup -Dmeson-docs=disabled build
+          build/muon-bootstrap -C build samu
+          build/muon -C build install
+
+          # Build pkgconf + run tests
+          cd /home/pkgconf
+          export CFLAGS="${CFLAGS} -Wno-missing-field-initializers -Wno-missing-braces"
+          muon build builddir
+          muon -C builddir test -v -v
+          EOF
+          docker run --rm --volume "$PWD":/home debian:7 /bin/bash /home/build.sh
+
+  analysis:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apk update
+          apk add build-base meson libtool xz gzip
+
+      - name: Build
+        run: |
+          CC=gcc meson setup _build -Danalyzer=true -Dwerror=true
+          meson compile -C _build
+
+  llvm-sanitizers:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apk update
+          apk add build-base meson clang cmd:llvm-symbolizer compiler-rt
+
+      - name: Build
+        run: |
+          CC=clang meson setup _build -Dwerror=true -Db_sanitize=address,undefined -Db_lundef=false
+          meson compile -C _build
+
+      - name: Run tests
+        run: |
+          meson test -v -C _build
+
+  lite:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apk update
+          apk add build-base clang cmd:llvm-symbolizer compiler-rt
+
+      - name: Build
+        run: |
+          export CC=clang
+          export CFLAGS="-std=c99 -O2 -Wall -Wextra -ggdb3 -fsanitize=address,undefined"
+          make -f Makefile.lite PKG_DEFAULT_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig" SYSTEM_LIBDIR="/usr/lib" SYSTEM_INCLUDEDIR="/usr/include" -j $(nproc)
+
+      - name: Run tests
+        run: |
+          export CC=clang
+          export CFLAGS="-std=c99 -O2 -Wall -Wextra -ggdb3 -fsanitize=address,undefined"
+          make -f Makefile.lite PKG_DEFAULT_PATH="/usr/lib/pkgconfig:/usr/share/pkgconfig" SYSTEM_LIBDIR="/usr/lib" SYSTEM_INCLUDEDIR="/usr/include" -j $(nproc) check
+
+  fuzz:
+    runs-on: ubuntu-latest
+    container:
+      image: alpine
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fuzzer: parser
+            corpus: _fuzz/corpus
+            seed: tests/lib1
+          - fuzzer: solver
+            corpus: _fuzz/solver-corpus
+            seed: fuzzer/solver-corpus
+          - fuzzer: spdxtool
+            corpus: _fuzz/spdxtool-corpus
+            seed: fuzzer/solver-corpus
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Update system and add dependencies
+        run: |
+          apk update
+          apk add build-base meson clang cmd:llvm-symbolizer compiler-rt
+
+      - name: Build
+        run: |
+          CC=clang meson setup _fuzz -Dfuzzing=true -Ddefault_library=static -Db_sanitize=address,undefined -Db_lundef=false
+          meson compile -C _fuzz
+
+      - name: Run ${{ matrix.fuzzer }} fuzzer
+        run: |
+          mkdir -p ${{ matrix.corpus }}
+          ./_fuzz/fuzzer/${{ matrix.fuzzer }}-fuzzer -max_total_time=120 -max_len=8192 -rss_limit_mb=2048 -print_final_stats=1 ${{ matrix.corpus }} ${{ matrix.seed }}
+        env:
+          ASAN_OPTIONS: "abort_on_error=1:halt_on_error=1:detect_leaks=0"
+          UBSAN_OPTIONS: "halt_on_error=1:print_stacktrace=1"
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crashes-${{ matrix.fuzzer }}
+          path: |
+            crash-*
+            oom-*
+            timeout-*
+          if-no-files-found: ignore

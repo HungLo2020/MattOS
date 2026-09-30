@@ -1,0 +1,7 @@
+^Available configure presets:
+
+  "IncludeUser"
+  "IncludeUserCommon"
+  "Include"
+  "Subdir"
+  "IncludeCommon"$

@@ -284,7 +284,7 @@ authority when this table and the code disagree.
 | `gcc-compiler` | GCC | none | `binutils`, `gcc-runtime`, `cross-toolchain` | native compiler install and configure record |
 | `make` | Make and gnulib | none | `gcc-compiler`, `binutils`, `gcc-runtime`, `cross-toolchain` | native Make install |
 | `formal-sysroot` (virtual) | none | none | `linux-headers`, `glibc`, `gcc-runtime` | declared sysroot boundary files |
-| `brush`, `coreutils`, `grep`, `sed`, `findutils`, `diffutils`, `init` | named component tree (Brush also its patches) | component `Cargo.toml`/`Cargo.lock` and Cargo ownership contract (`init`: `Cargo.toml` only) | formal sysroot, `rust` | release binary (`coreutils` and `diffutils` multicall; `init` the `mattos-init` binary) |
+| `brush`, `coreutils`, `grep`, `findutils`, `diffutils`, `init` | named component tree (Brush also its patches) | component `Cargo.toml`/`Cargo.lock` and Cargo ownership contract (`init`: `Cargo.toml` only) | formal sysroot, `rust` | release binary (`coreutils` and `diffutils` multicall; `init` the `mattos-init` binary) |
 | `expat`, `libcap`, `attr`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`, `pcre2`, `libxcrypt`, `libmd`, `ncurses`, `iputils`, `libffi` | named component tree | none | formal sysroot | component install |
 | `kmod` | kmod | none | formal sysroot, zstd | kmod install |
 | `acl` | ACL | none | formal sysroot, Attr | ACL install |
@@ -293,6 +293,11 @@ authority when this table and the code disagree.
 | `selinux` | SELinux | none | formal sysroot, PCRE2 | SELinux install |
 | `libbsd` | libbsd | none | formal sysroot, libmd | libbsd install |
 | `tar` | tar, paxutils, gnulib | none | formal sysroot, ACL, Attr | tar install |
+| `sed`, `dash` | GNU sed, dash, each with its verified release archive | none | formal sysroot | sed or dash install |
+| `mawk` | mawk (its Git snapshot carries `configure`) | none | formal sysroot | mawk install |
+| `rsync` | rsync and its verified release archive | none | formal sysroot, ACL, Attr, popt, zlib, zstd, lz4, xxhash, OpenSSL | rsync install |
+| `pkgconf` | pkgconf (Meson, static libpkgconf) | none | formal sysroot | pkgconf install |
+| `cmake` | CMake with its bundled third-party libraries | none | formal sysroot, OpenSSL | CMake install; library and header searches confined to the MattOS sysroot |
 | `procps-ng` | procps-ng | none | formal sysroot, ncurses | procps install |
 | `iproute2` | iproute2 | none | formal sysroot, libcap, zlib, zstd, elfutils, PCRE2, SELinux | iproute2 install |
 | `curl` | curl | none | formal sysroot, OpenSSL, zlib, zstd | curl install |

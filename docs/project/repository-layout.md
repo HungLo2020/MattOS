@@ -54,8 +54,9 @@ Other top-level directories:
 - `DevUtils/`: developer scripts
 - `docs/`: this wiki
 - `third-party-packages/`: standalone recipes that build native `.deb`
-  packages for software outside the ISO build (for example btop, fastfetch,
-  Firefox and htop); they are not build stages
+  packages for software outside the ISO build (for example btop, fastfetch
+  and htop) inside the MattOS builder container; they are not build stages
+  (see [Third-Party Packages](../packaging/third-party-packages.md))
 - `frnsrc/`: MattOS KDE Plasma theming files (global theme, launcher icons and
   KWin/panel defaults)
 - `resources/`: project artwork such as the MattOS logo icons

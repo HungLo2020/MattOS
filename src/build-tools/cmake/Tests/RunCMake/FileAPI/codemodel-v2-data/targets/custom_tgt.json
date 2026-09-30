@@ -1,0 +1,107 @@
+{
+    "name": "custom_tgt",
+    "id": "^custom_tgt::@c11385ffed57b860da63$",
+    "directorySource": "^custom$",
+    "projectName": "Custom",
+    "type": "UTILITY",
+    "imported": null,
+    "local": null,
+    "abstract": null,
+    "symbolic": null,
+    "isGeneratorProvided": null,
+    "fileSets": null,
+    "sources": [
+        {
+            "path": "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/custom/CMakeFiles/custom_tgt(-(Debug|Release|RelWithDebInfo|MinSizeRel))?$",
+            "isGenerated": true,
+            "fileSetNames": null,
+            "sourceGroupName": "",
+            "compileGroupLanguage": null,
+            "backtraces": [
+                [
+                    {
+                        "file": "^custom/CMakeLists\\.txt$",
+                        "line": 3,
+                        "command": "add_custom_target",
+                        "hasParent": true
+                    },
+                    {
+                        "file": "^custom/CMakeLists\\.txt$",
+                        "line": null,
+                        "command": null,
+                        "hasParent": false
+                    }
+                ]
+            ]
+        },
+        {
+            "path": "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/(custom/)?CMakeFiles/([0-9a-f]+/)?custom_tgt(-\\(CONFIG\\))?\\.rule$",
+            "isGenerated": true,
+            "fileSetNames": null,
+            "sourceGroupName": "CMake Rules",
+            "compileGroupLanguage": null,
+            "backtraces": [
+                [
+                    {
+                        "file": "^custom/CMakeLists\\.txt$",
+                        "line": null,
+                        "command": null,
+                        "hasParent": false
+                    }
+                ]
+            ]
+        }
+    ],
+    "interfaceSources": null,
+    "sourceGroups": [
+        {
+            "name": "",
+            "sourcePaths": [
+                "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/custom/CMakeFiles/custom_tgt(-(Debug|Release|RelWithDebInfo|MinSizeRel))?$"
+            ],
+            "interfaceSourcePaths": null
+        },
+        {
+            "name": "CMake Rules",
+            "sourcePaths": [
+                "^.*/Tests/RunCMake/FileAPI/codemodel-v2-build/(custom/)?CMakeFiles/([0-9a-f]+/)?custom_tgt(-\\(CONFIG\\))?\\.rule$"
+            ],
+            "interfaceSourcePaths": null
+        }
+    ],
+    "compileGroups": null,
+    "backtrace": [
+        {
+            "file": "^custom/CMakeLists\\.txt$",
+            "line": 3,
+            "command": "add_custom_target",
+            "hasParent": true
+        },
+        {
+            "file": "^custom/CMakeLists\\.txt$",
+            "line": null,
+            "command": null,
+            "hasParent": false
+        }
+    ],
+    "folder": null,
+    "nameOnDisk": null,
+    "artifacts": null,
+    "build": "^custom$",
+    "source": "^custom$",
+    "install": null,
+    "link": null,
+    "archive": null,
+    "dependencies": [
+        {
+            "id": "^ZERO_CHECK::@c11385ffed57b860da63$",
+            "backtrace": null
+        }
+    ],
+    "linkLibraries": null,
+    "interfaceLinkLibraries": null,
+    "compileDependencies": null,
+    "interfaceCompileDependencies": null,
+    "objectDependencies": null,
+    "orderDependencies": null
+}

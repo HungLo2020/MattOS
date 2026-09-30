@@ -56,6 +56,16 @@ action = "exclude"
 reason = "MattOS stages the checksum-verified official patch-2.8 release archive in an output-owned mirror; that release contains the generated Gnulib closure required to build patch, so the development-only Git submodule is neither an authoritative vendored-tree member nor a runtime input."
 
 [[component]]
+name = "sed"
+upstream_commit = "89b7a2224d4faa9d8baf76094b1232ad1477ef3e"
+
+[[component.gitlink]]
+path = "gnulib"
+upstream_commit = "15211966deb52d4cae425c655177a815a88d3fc0"
+action = "exclude"
+reason = "MattOS stages the checksum-verified official sed-4.10 release archive in an output-owned mirror; that release contains the generated Gnulib closure required to build GNU sed, so the development-only Git submodule is neither an authoritative vendored-tree member nor a runtime input."
+
+[[component]]
 name = "git"
 upstream_commit = "e9019fcafe0040228b8631c30f97ae1adb61bcdc"
 

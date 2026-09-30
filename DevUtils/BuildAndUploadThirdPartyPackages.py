@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RECIPES = ROOT / "third-party-packages"
 SKIP = frozenset({"__init__.py"})
 sys.path.insert(0, str(RECIPES))
-from common import RecipeError, repository_inventory, write_repository_inventory  # noqa: E402
+from common import PublishedPackage, RecipeError, repository_inventory, write_repository_inventory  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -54,7 +54,8 @@ class Colors:
     def status(self, status: str) -> str:
         palette = {
             "UP TO DATE": "32", "UPSTREAM NEWER": "33", "PENDING PUBLISH": "33",
-            "REPOSITORY DIVERGED": "33", "UPLOADED": "32", "DRY RUN": "33", "FAILED": "31",
+            "REPOSITORY DIVERGED": "33", "REBUILD PENDING": "33", "UPLOADED": "32", "DRY RUN": "33",
+            "FAILED": "31",
         }
         return self.paint(f"1;{palette[status]}", status)
 
@@ -115,13 +116,17 @@ def invoke(recipe: RecipeDescriptor, *, mode: str, dry_run: bool, inventory: Pat
         labels = {
             "up-to-date": "UP TO DATE", "upstream-newer": "UPSTREAM NEWER",
             "pending-publish": "PENDING PUBLISH", "repository-diverged": "REPOSITORY DIVERGED",
+            "rebuild-pending": "REBUILD PENDING",
             "uploaded": "UPLOADED", "dry-run": "DRY RUN",
         }
         label = labels.get(state)
         if not label:
             return Outcome(recipe.package, "FAILED", upstream, selected, published,
                            f"recipe returned unknown status {state!r}", output)
-        detail = "selected release is already published" if state == "up-to-date" else state.replace("-", " ")
+        detail = {
+            "up-to-date": "published from identical build inputs",
+            "rebuild-pending": "published, but from different build inputs",
+        }.get(state, state.replace("-", " "))
         return Outcome(recipe.package, label, upstream, selected, published, detail, output)
 
 

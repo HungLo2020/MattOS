@@ -72,27 +72,75 @@ fn build_grep(repo_root: &Path) -> Result<()> {
 }
 
 fn build_sed(repo_root: &Path) -> Result<()> {
-    let sed = repo_root.join("src/userland/sed");
-    if !sed.join("Cargo.toml").exists() {
-        bail!(
-            "sed source not found in {}; run import first",
-            sed.display()
-        );
-    }
-    let target = repo_root.join("out/build/sed/cargo-target");
-    run_cmd_with_env_overrides(
+    // GNU sed: the uutils implementation produced an empty Makefile from
+    // autoconf's config.status, so it could not serve native builds.
+    build_release_autotools_program(
         repo_root,
-        "cargo",
+        "sed",
+        "sed-4.10.tar.xz",
+        SED_RELEASE_ARCHIVE_URL,
+        SED_RELEASE_ARCHIVE_SHA256,
+        &[],
+        &["--prefix=/usr", "--disable-nls", "--disable-acl", "--without-selinux"],
+        &["usr/bin/sed"],
+    )
+}
+
+fn build_dash(repo_root: &Path) -> Result<()> {
+    build_release_autotools_program(
+        repo_root,
+        "dash",
+        "dash-0.5.13.5.tar.gz",
+        DASH_RELEASE_ARCHIVE_URL,
+        DASH_RELEASE_ARCHIVE_SHA256,
+        &[],
+        &["--prefix=/usr"],
+        &["usr/bin/dash"],
+    )
+}
+
+fn build_mawk(repo_root: &Path) -> Result<()> {
+    // mawk's Git snapshots carry a generated configure script and parser,
+    // but its Makefile only builds in the source directory.
+    let out_root = repo_root.join("out/build/mawk");
+    let source = out_root.join("source");
+    let install = out_root.join("install");
+    remove_path_if_exists(&source)?;
+    fs::create_dir_all(&out_root)?;
+    sync_build_source(&repo_root.join("src/userland/mawk"), &source)?;
+    // Keep the shipped parser newer than its grammar so make never asks
+    // the build host for yacc.
+    for generated in ["parse.c", "parse.h"] {
+        filetime::set_file_mtime(source.join(generated), filetime::FileTime::now())?;
+    }
+    run_cmd(&source, "./configure", &["--prefix=/usr", "--mandir=/usr/share/man"])?;
+    run_cmd(&source, "make", &["-j", "4"])?;
+    remove_path_if_exists(&install)?;
+    run_cmd(&source, "make", &["install", &format!("DESTDIR={}", install.display())])?;
+    if !install.join("usr/bin/mawk").is_file() {
+        bail!("mawk install did not produce usr/bin/mawk");
+    }
+    Ok(())
+}
+
+fn build_rsync(repo_root: &Path) -> Result<()> {
+    build_release_autotools_program(
+        repo_root,
+        "rsync",
+        "rsync-3.5.1.tar.gz",
+        RSYNC_RELEASE_ARCHIVE_URL,
+        RSYNC_RELEASE_ARCHIVE_SHA256,
+        &["acl", "attr", "popt", "zlib", "zstd", "lz4", "xxhash", "openssl"],
         &[
-            "build",
-            "--locked",
-            "--release",
-            "--manifest-path",
-            "src/userland/sed/Cargo.toml",
-            "--bin",
-            "sed",
+            "--prefix=/usr",
+            // The release archive ships generated manual pages.
+            "--disable-md2man",
+            "--with-included-popt=no",
+            "--with-included-zlib=no",
+            // MattOS does not ship libidn2; hostnames stay ASCII/punycode.
+            "--disable-idn",
         ],
-        &[("CARGO_TARGET_DIR", target.display().to_string())],
+        &["usr/bin/rsync"],
     )
 }
 

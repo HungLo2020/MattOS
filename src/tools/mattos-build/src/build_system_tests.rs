@@ -375,12 +375,15 @@ fn cold_build_concurrency_groups_preserve_barriers_and_output_ownership() {
         BuildStage::Brush,
         BuildStage::Coreutils,
         BuildStage::Grep,
-        BuildStage::Sed,
         BuildStage::Findutils,
         BuildStage::Diffutils,
         BuildStage::Init,
     ] {
         assert_eq!(build_stage_spec(stage).dependencies, ["formal-sysroot", "rust"]);
+    }
+    // GNU sed, dash and mawk are C programs built by the target toolchain.
+    for stage in [BuildStage::Sed, BuildStage::Dash, BuildStage::Mawk, BuildStage::Pkgconf] {
+        assert_eq!(build_stage_spec(stage).dependencies, ["formal-sysroot"]);
     }
     let independent_after_sysroot = [
         BuildStage::Expat,

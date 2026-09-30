@@ -1,0 +1,267 @@
+include(${CMAKE_CURRENT_LIST_DIR}/verify-snippet.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/json.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/check-query-dir.cmake)
+
+file(GLOB snippets LIST_DIRECTORIES false ${v1}/data/*)
+if (NOT snippets)
+  add_error("No snippet files generated")
+endif()
+
+set(FOUND_SNIPPETS "")
+foreach(snippet IN LISTS snippets)
+  get_filename_component(filename "${snippet}" NAME)
+
+  read_json("${snippet}" contents)
+
+  # Verify snippet file is valid
+  verify_snippet_file("${snippet}" "${contents}")
+
+  # Append to list of collected snippet roles
+  if (NOT role IN_LIST FOUND_SNIPPETS AND NOT role STREQUAL build)
+    list(APPEND FOUND_SNIPPETS ${role})
+  endif()
+
+  # Ensure launcher-driven snippets record stdout/stderr and tests keep merged output.
+  if (filename MATCHES "^(compile|link|custom|install|test)-")
+    if (ARGS_CAPTURE_OUTPUT_QUERY)
+      json_has_key("${snippet}" "${contents}" stdout)
+      json_has_key("${snippet}" "${contents}" stderr)
+    else()
+      json_missing_key("${snippet}" "${contents}" stdout)
+      json_missing_key("${snippet}" "${contents}" stderr)
+    endif()
+  endif()
+
+  # Verify target
+  string(JSON target ERROR_VARIABLE noTarget GET "${contents}" target)
+  if (target)
+    set(targets "main;lib;customTarget;TARGET_NAME")
+    if (ARGS_FAIL)
+      list(APPEND targets "dummy")
+    endif()
+    if (NOT ${target} IN_LIST targets)
+      json_error("${snippet}" "Unexpected target: ${target}")
+    endif()
+  endif()
+
+  # Verify contents of compile-* Snippets
+  if (filename MATCHES "^compile-")
+    string(JSON target GET "${contents}" target)
+    string(JSON source GET "${contents}" source)
+    string(JSON language GET "${contents}" language)
+    string(JSON result GET "${contents}" result)
+    if (NOT language STREQUAL "C")
+      json_error("${snippet}" "Expected C compile language")
+    endif()
+    if (NOT source MATCHES "${target}.c$")
+      json_error("${snippet}" "Unexpected source file")
+    endif()
+    if (ARGS_FAIL)
+      if (source MATCHES "dummy.c" AND result EQUAL 0)
+        json_error("${snippet}"
+          "Expected nonzero exit code for compile command, got: ${result}"
+        )
+      elseif (NOT source MATCHES "dummy.c" AND NOT result EQUAL 0)
+        json_error("${snippet}"
+          "Expected zero exit code for compile command, got: ${result}"
+        )
+      endif()
+    else()
+      if (NOT result EQUAL 0)
+        json_error("${snippet}"
+          "Expected zero exit code for compile command, got: ${result}"
+        )
+      endif()
+    endif()
+    if (ARGS_COMPILE_TRACE_QUERY)
+      json_has_key("${snippet}" "${contents}" traceFile)
+      string(JSON jsonFile GET "${contents}" traceFile)
+      if (NOT EXISTS "${v1}/data/${jsonFile}" OR IS_DIRECTORY "${v1}/data/${jsonFile}")
+        json_error("${snippet}" "Missing copied compile JSON file: ${jsonFile}")
+      else()
+        read_json("${v1}/data/${jsonFile}" trace_contents)
+        json_has_key("${v1}/data/${jsonFile}" "${trace_contents}" traceEvents)
+      endif()
+    elseif (ARGS_COMPILE_TRACE_QUERY_NULL)
+      json_assert_key("${snippet}" "${contents}" traceFile null)
+    else()
+      json_missing_key("${snippet}" "${contents}" traceFile)
+    endif()
+  endif()
+
+  # Verify contents of link-* Snippets
+  if (filename MATCHES "^link-")
+    string(JSON target GET "${contents}" target)
+    if (NOT target MATCHES "main|lib")
+      json_error("${snippet}" "Unexpected link target: ${target}")
+    endif()
+  endif()
+
+  # Verify contents of custom-* Snippets
+  if (filename MATCHES "^custom-")
+    string(JSON outputs GET "${contents}" outputs)
+    if (ARGS_CAPTURE_OUTPUT_QUERY AND outputs MATCHES "output3")
+      string(JSON stdout GET "${contents}" stdout)
+      string(JSON stderr GET "${contents}" stderr)
+      if (NOT stdout MATCHES "test stdout")
+        json_error("${snippet}" "Expected custom command stdout to be captured")
+      endif()
+      if (NOT stderr MATCHES "test stderr")
+        json_error("${snippet}" "Expected custom command stderr to be captured")
+      endif()
+    endif()
+    # if "outputs" is CMakeFiles/customTarget, should not have a "target"
+    if (outputs MATCHES "customTarget")
+      json_missing_key("${snippet}" "${contents}" target)
+    # if "outputs" is empty list, should have "target" main
+    elseif (outputs MATCHES "\\[\\]")
+      json_assert_key("${snippet}" "${contents}" target main)
+    # if "outputs" is includes output1, should also include output2, and no target
+    elseif (outputs MATCHES "output1")
+      if (NOT outputs MATCHES "output2")
+        json_error("${snippet}" "Custom command missing outputs")
+      endif()
+      json_missing_key("${snippet}" "${contents}" target)
+    # unrecognized outputs
+    elseif (NOT outputs MATCHES "shell_redirect\\.out|output3")
+      json_error("${snippet}" "Custom command has unexpected outputs\n${outputs}")
+    endif()
+  endif()
+
+  # Verify contents of test-* Snippets
+  if (filename MATCHES "^test-")
+    string(JSON testName GET "${contents}" testName)
+    string(JSON result GET "${contents}" result)
+    if (ARGS_FAIL)
+      if (testName STREQUAL "test" AND NOT result EQUAL 0)
+        json_error("${snippet}" "Expected zero exit code for test")
+      elseif (testName STREQUAL "dummy" AND result EQUAL 0)
+        json_error("${snippet}"
+          "Expected nonzero exit code for dummy test, got: ${result}"
+        )
+      elseif (NOT testName MATCHES "test|dummy")
+        json_error("${snippet}" "Unexpected test name: ${testName}")
+      endif()
+    else()
+      if (NOT testName STREQUAL "test")
+        json_error("${snippet}" "Unexpected test name: ${testName}")
+      endif()
+      if (NOT result EQUAL 0)
+        json_error("${snippet}"
+          "Expected zero exit code for test, got: ${result}"
+        )
+      endif()
+      if (ARGS_CAPTURE_OUTPUT_QUERY)
+        string(JSON output GET "${contents}" stdout)
+        if (NOT output MATCHES "test stdout")
+          json_error("${snippet}" "Expected test output to contain stdout")
+        endif()
+        if (NOT output MATCHES "test stderr")
+          json_error("${snippet}" "Expected test output to contain stderr")
+        endif()
+      endif()
+    endif()
+  endif()
+
+  # Verify the overall result, in addition to the sub-commands above.
+  if (filename MATCHES "^(cmakeInstall|cmakeBuild|ctest)")
+    string(JSON result GET "${contents}" result)
+    if (ARGS_FAIL AND result EQUAL 0)
+      json_error("${snippet}"
+        "Expected nonzero exit code, got: ${result}"
+      )
+    elseif (NOT ARGS_FAIL AND NOT result EQUAL 0)
+      json_error("${snippet}"
+        "Expected zero exit code, got: ${result}"
+      )
+    endif()
+  endif()
+
+  # Verify that Config is Debug
+  if (filename MATCHES "^(test|compile|link|custom|install)")
+    string(JSON config GET "${contents}" config)
+    if (NOT config STREQUAL "Debug")
+      json_error(${snippet} "Unexpected config: ${config}")
+    endif()
+  endif()
+
+  # Verify command args were passed
+  if (filename MATCHES "^(cmakeBuild|ctest)")
+    string(JSON command GET "${contents}" command)
+    if (NOT command MATCHES "Debug")
+      json_error(${snippet} "Command value missing passed arguments")
+    endif()
+  endif()
+
+endforeach()
+
+# Verify that listed snippets match expected roles
+set(EXPECTED_SNIPPETS configure generate)
+if (ARGS_BUILD OR ARGS_BUILD_MAKE_PROGRAM)
+  list(APPEND EXPECTED_SNIPPETS compile link custom)
+  if (ARGS_BUILD)
+    list(APPEND EXPECTED_SNIPPETS cmakeBuild)
+  endif()
+endif()
+if (ARGS_TEST)
+  list(APPEND EXPECTED_SNIPPETS ctest)
+  if (NOT ARGS_DISABLE_TEST)
+    list(APPEND EXPECTED_SNIPPETS test)
+  endif()
+endif()
+if (ARGS_INSTALL)
+  list(APPEND EXPECTED_SNIPPETS cmakeInstall)
+  if (ARGS_INSTALL_PARALLEL)
+    list(APPEND EXPECTED_SNIPPETS install)
+  endif()
+endif()
+foreach(role IN LISTS EXPECTED_SNIPPETS)
+  list(FIND FOUND_SNIPPETS "${role}" found)
+  if (found EQUAL -1)
+    add_error("No snippet files of role \"${role}\" were found in ${v1}")
+  endif()
+endforeach()
+foreach(role IN LISTS FOUND_SNIPPETS)
+  list(FIND EXPECTED_SNIPPETS "${role}" found)
+  if (${found} EQUAL -1)
+    add_error("Found unexpected snippet file of role \"${role}\" in ${v1}")
+  endif()
+endforeach()
+
+# Verify test/install artifacts
+if (ARGS_INSTALL AND NOT EXISTS ${RunCMake_TEST_BINARY_DIR}/install)
+  add_error("ctest --instrument launcher failed to install the project")
+endif()
+if (ARGS_TEST AND NOT EXISTS ${RunCMake_TEST_BINARY_DIR}/Testing)
+  add_error("ctest --instrument launcher failed to test the project")
+endif()
+# Ensure shell_redirect command ran successfully
+if (ARGS_BUILD AND NOT EXISTS ${RunCMake_TEST_BINARY_DIR}/shell_redirect.out)
+  add_error("custom command with shell redirection did not run")
+endif()
+
+if (CHECK_NINJA_INSTRUMENT_ORDER)
+  set(rules_ninja "${RunCMake_TEST_BINARY_DIR}/CMakeFiles/rules.ninja")
+  file(READ "${rules_ninja}" ninja_content)
+  if (NOT ninja_content MATCHES "command = \"[^\"]*ctest(\.exe)?\" --instrument")
+    add_error("Expected compile command to start with ctest --instrument")
+  endif()
+endif()
+
+# Look for build snippet, which may not appear immediately
+if (ARGS_BUILD_MAKE_PROGRAM)
+  set(NUM_TRIES 30)
+  set(DELAY 1)
+  set(foundBuildSnippet 0)
+  foreach(_ RANGE ${NUM_TRIES})
+    file(GLOB snippets LIST_DIRECTORIES false ${v1}/data/build-*)
+    if (snippets MATCHES build)
+      set(foundBuildSnippet 1)
+      break()
+    endif()
+    execute_process(COMMAND ${CMAKE_COMMAND} -E sleep ${DELAY})
+  endforeach()
+  if (NOT foundBuildSnippet)
+    add_error("No snippet files of role \"build\" were found in ${v1}")
+  endif()
+endif()

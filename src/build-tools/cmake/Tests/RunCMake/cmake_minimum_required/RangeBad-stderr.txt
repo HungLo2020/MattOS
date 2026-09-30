@@ -1,0 +1,56 @@
+^CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_minimum_required\):
+  cmake_minimum_required VERSION "3\.11\.\.\." does not have a version on both
+  sides of "\.\.\."\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_minimum_required\):
+  cmake_minimum_required VERSION "\.\.\.3\.11" does not have a version on both
+  sides of "\.\.\."\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_minimum_required\):
+  cmake_minimum_required VERSION "\.\.\." does not have a version on both sides
+  of "\.\.\."\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_minimum_required\):
+  Invalid policy max version value "4"\.  A numeric
+  major\.minor\[\.patch\[\.tweak\]\] must be given\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_minimum_required\):
+  Policy VERSION range "3\.11\.\.\.3\.10" specifies a later minimum than maximum\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_policy\):
+  cmake_policy VERSION "3\.11\.\.\." does not have a version on both sides of
+  "\.\.\."\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_policy\):
+  cmake_policy VERSION "\.\.\.3\.11" does not have a version on both sides of
+  "\.\.\."\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_policy\):
+  cmake_policy VERSION "\.\.\." does not have a version on both sides of "\.\.\."\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_policy\):
+  Invalid policy max version value "4"\.  A numeric
+  major\.minor\[\.patch\[\.tweak\]\] must be given\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)
++
+CMake Error at RangeBad\.cmake:[0-9]+ \(cmake_policy\):
+  Policy VERSION range "3\.11\.\.\.3\.10" specifies a later minimum than maximum\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:3 \(include\)$

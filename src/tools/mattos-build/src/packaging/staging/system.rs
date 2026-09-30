@@ -283,10 +283,9 @@ pub(crate) fn stage_brush(repo_root: &Path, staging: &Path) -> Result<()> {
         &bin_dir.join("brush"),
         0o755,
     )?;
+    // /usr/bin/sh belongs to dash; brush keeps its bash entry point.
     #[cfg(unix)]
-    for alias in ["sh", "bash"] {
-        std::os::unix::fs::symlink("brush", bin_dir.join(alias))?;
-    }
+    std::os::unix::fs::symlink("brush", bin_dir.join("bash"))?;
     Ok(())
 }
 
@@ -360,7 +359,6 @@ pub(super) fn stage_systemd_runtime(repo_root: &Path, staging: &Path) -> Result<
 pub(super) fn stage_mattos_base_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
     for (source, destination) in [
         ("out/build/grep/cargo-target/release/grep", "usr/bin/grep"),
-        ("out/build/sed/cargo-target/release/sed", "usr/bin/sed"),
         (
             "out/build/findutils/cargo-target/release/find",
             "usr/bin/find",
@@ -445,6 +443,16 @@ pub(super) fn stage_profile_package(repo_root: &Path, staging: &Path, package: &
             &staging
                 .join("usr/share/mattos/install-profiles")
                 .join(format!("{profile}.toml")),
+        )?;
+    }
+    if package == "mattos-build-essential" {
+        let doc = staging.join("usr/share/doc/mattos-build-essential");
+        fs::create_dir_all(&doc)?;
+        fs::write(
+            doc.join("README"),
+            "MattOS build essentials: GCC, G++, Make, Binutils, pkgconf and CMake with\n\
+             the C library headers, dash, GNU sed and mawk.  Enough to build ordinary\n\
+             Autotools and CMake projects; add the -dev packages a project needs.\n",
         )?;
     }
     if package == "mattos-toolchain" {
@@ -1556,4 +1564,31 @@ mod udev_hwdb_tests {
             .to_string();
         assert!(error.contains("mutable /etc/udev/hwdb.bin"), "{error}");
     }
+}
+
+/// A base command package: its binary, command aliases (the `sh` and `awk`
+/// names Debian selects with diversions/alternatives are plain symlinks
+/// here), manual page and license notice.
+pub(super) fn stage_base_command(
+    repo_root: &Path,
+    staging: &Path,
+    package: &str,
+    binary: &str,
+    aliases: &[&str],
+    license: &str,
+) -> Result<()> {
+    let install = component_install(repo_root, package).join("usr");
+    let bin_dir = staging.join("usr/bin");
+    stage_executable(&install.join("bin").join(binary), &bin_dir.join(binary), 0o755)?;
+    for alias in aliases {
+        std::os::unix::fs::symlink(binary, bin_dir.join(alias))?;
+    }
+    let manual = install.join("share/man/man1").join(format!("{binary}.1"));
+    if manual.is_file() {
+        copy_preserving(&manual, &staging.join("usr/share/man/man1").join(format!("{binary}.1")))?;
+    }
+    copy_preserving(
+        &repo_root.join(license),
+        &staging.join("usr/share/doc").join(package).join("copyright"),
+    )
 }

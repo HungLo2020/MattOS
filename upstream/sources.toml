@@ -153,10 +153,52 @@ sync = "copy"
 
 [[component]]
 name = "sed"
-repo = "https://github.com/uutils/sed.git"
-branch = "main"
-revision = "7239fb0e08d7d3ba2742ecc3c28f0d0e3eb5a4dd"
+repo = "https://git.savannah.gnu.org/git/sed.git"
+branch = "v4.10"
+revision = "89b7a2224d4faa9d8baf76094b1232ad1477ef3e"
 path = "src/userland/sed"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#sed"
+gitlink_policy = "upstream/policies/gitlinks.toml#sed"
+
+[[component]]
+name = "dash"
+repo = "https://git.kernel.org/pub/scm/utils/dash/dash.git"
+branch = "v0.5.13.5"
+revision = "037bbdfd330017c368caf6242f977974123239b5"
+path = "src/userland/dash"
+sync = "copy"
+
+[[component]]
+name = "mawk"
+repo = "https://github.com/ThomasDickey/mawk-snapshots.git"
+branch = "t20260302"
+revision = "cbefe06ea693a204ebf73f5fe0e1259326339265"
+path = "src/userland/mawk"
+sync = "copy"
+
+[[component]]
+name = "rsync"
+repo = "https://github.com/RsyncProject/rsync.git"
+branch = "v3.5.1"
+revision = "04355d27b7386d7de0e6bd5e79c556223210f700"
+path = "src/userland/rsync"
+sync = "copy"
+
+[[component]]
+name = "pkgconf"
+repo = "https://github.com/pkgconf/pkgconf.git"
+branch = "pkgconf-3.0.7"
+revision = "0c9e506b64124d8727b68d8af0ed73739e66e2ba"
+path = "src/build-tools/pkgconf"
+sync = "copy"
+
+[[component]]
+name = "cmake"
+repo = "https://github.com/Kitware/CMake.git"
+branch = "v4.4.3"
+revision = "af7ecc8c294d153b0120813776e1fa11c5bfe4a1"
+path = "src/build-tools/cmake"
 sync = "copy"
 
 [[component]]

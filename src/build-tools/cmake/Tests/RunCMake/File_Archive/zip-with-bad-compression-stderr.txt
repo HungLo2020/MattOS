@@ -1,0 +1,5 @@
+CMake Error at roundtrip\.cmake:[0-9]+ \(file\):
+  file PPMd compression is not supported for zip format
+Call Stack \(most recent call first\):
+  zip-with-bad-compression\.cmake:6 \(include\)
+  CMakeLists\.txt:3 \(include\)

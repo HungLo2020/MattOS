@@ -1,0 +1,3 @@
+CMake Error: Could not read presets from [^
+]*/Tests/RunCMake/CMakePresetsBuild/NoConfigurePreset:
+Invalid build preset: "noConfigurePreset": Build presets must either be hidden or have an associated configure preset$

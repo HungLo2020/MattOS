@@ -24,7 +24,18 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Brush => &["src/userland/brush", "upstream/patches/brush"],
         BuildStage::Coreutils => &["src/userland/coreutils"],
         BuildStage::Grep => &["src/userland/grep"],
-        BuildStage::Sed => &["src/userland/sed"],
+        BuildStage::Sed => &["src/userland/sed", "upstream/policies/release-archives.toml"],
+        BuildStage::Dash => &["src/userland/dash", "upstream/policies/release-archives.toml"],
+        BuildStage::Mawk => &["src/userland/mawk"],
+        BuildStage::Rsync => &["src/userland/rsync", "upstream/policies/release-archives.toml"],
+        BuildStage::Pkgconf => &[
+            "src/build-tools/pkgconf",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
+        BuildStage::Cmake => &[
+            "src/build-tools/cmake",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
         BuildStage::Findutils => &["src/userland/findutils"],
         BuildStage::Diffutils => &["src/userland/diffutils"],
         BuildStage::Gzip => &[
@@ -908,6 +919,9 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             | BuildStage::Coreutils
             | BuildStage::Grep
             | BuildStage::Sed
+            | BuildStage::Dash
+            | BuildStage::Mawk
+            | BuildStage::Rsync
             | BuildStage::Findutils
             | BuildStage::Diffutils
             | BuildStage::Init
@@ -1043,7 +1057,6 @@ fn local_cargo_manifest_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Brush => "src/userland/brush",
         BuildStage::Coreutils => "src/userland/coreutils",
         BuildStage::Grep => "src/userland/grep",
-        BuildStage::Sed => "src/userland/sed",
         BuildStage::Findutils => "src/userland/findutils",
         BuildStage::Diffutils => "src/userland/diffutils",
         BuildStage::SudoRs => "src/system/auth/sudo-rs",
@@ -1064,7 +1077,6 @@ pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Brush => &["brush"],
         BuildStage::Coreutils => &["coreutils"],
         BuildStage::Grep => &["grep"],
-        BuildStage::Sed => &["sed"],
         BuildStage::Findutils => &["findutils"],
         BuildStage::Diffutils => &["diffutils"],
         BuildStage::SudoRs => &["sudo-rs"],
@@ -1086,6 +1098,8 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
     let tools: &[&str] = match stage {
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
         BuildStage::Duktape => &["gcc", "python3"],
+        BuildStage::Pkgconf => &["gcc", "ld", "meson", "ninja"],
+        BuildStage::Cmake => &["gcc", "g++", "ld", "cmake", "ninja"],
         BuildStage::Initramfs => &["gcc", "cpio", "xz", "modinfo"],
         BuildStage::MaterialCursors => &[
             "bash",
@@ -1320,7 +1334,6 @@ pub(crate) fn is_rust_stage(stage: BuildStage) -> bool {
         BuildStage::Brush
             | BuildStage::Coreutils
             | BuildStage::Grep
-            | BuildStage::Sed
             | BuildStage::Findutils
             | BuildStage::Diffutils
             | BuildStage::SudoRs
@@ -1620,6 +1633,9 @@ mod tests {
         for stage in [
             BuildStage::Gzip,
             BuildStage::Patch,
+            BuildStage::Sed,
+            BuildStage::Dash,
+            BuildStage::Rsync,
             BuildStage::Less,
             BuildStage::Rust,
             BuildStage::SndFile,

@@ -114,7 +114,10 @@ struct NvidiaDriverManifest {
 
 const COREUTILS_PROVIDER: &str = "uutils/coreutils";
 const GREP_PROVIDER: &str = "uutils/grep";
-const SED_PROVIDER: &str = "uutils/sed";
+const SED_PROVIDER: &str = "sed";
+const DASH_PROVIDER: &str = "dash";
+const MAWK_PROVIDER: &str = "mawk";
+const RSYNC_PROVIDER: &str = "rsync";
 const FINDUTILS_PROVIDER: &str = "uutils/findutils";
 const DIFFUTILS_PROVIDER: &str = "uutils/diffutils";
 const UTIL_LINUX_PROVIDER: &str = "util-linux";
@@ -145,6 +148,18 @@ const GZIP_RELEASE_ARCHIVE_SHA256: &str =
 const PATCH_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/patch/patch-2.8.tar.xz";
 const PATCH_RELEASE_ARCHIVE_SHA256: &str =
     "f87cee69eec2b4fcbf60a396b030ad6aa3415f192aa5f7ee84cad5e11f7f5ae3";
+// GNU sed, dash and rsync keep their generated configure scripts out of Git;
+// each official release archive supplies them at the exact imported tag.
+const SED_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/sed/sed-4.10.tar.xz";
+const SED_RELEASE_ARCHIVE_SHA256: &str =
+    "b8e72182b2ec96a3574e2998c47b7aaa64cc20ce000d8e9ac313cc07cecf28c7";
+const DASH_RELEASE_ARCHIVE_URL: &str =
+    "http://gondor.apana.org.au/~herbert/dash/files/dash-0.5.13.5.tar.gz";
+const DASH_RELEASE_ARCHIVE_SHA256: &str =
+    "40090101a2a491f13e901d3d48e90414f26634628b9bfff35ff540363c227a7d";
+const RSYNC_RELEASE_ARCHIVE_URL: &str = "https://download.samba.org/pub/rsync/src/rsync-3.5.1.tar.gz";
+const RSYNC_RELEASE_ARCHIVE_SHA256: &str =
+    "c55f9c9dc10fb8bec397b399a0fdded53cc9a2d8e30891bb0d63724d25c37bef";
 const RUST_RELEASE_ARCHIVE_URL: &str = "https://static.rust-lang.org/dist/rustc-1.97.1-src.tar.xz";
 const RUST_RELEASE_ARCHIVE_SHA256: &str =
     "0ed06fdaffd4722a7702e0b4eebfafc897ab8f513e8e1b247cdd7e5c6df6ded2";
@@ -470,6 +485,10 @@ const ZSTD_BINARIES: &[ComponentBinarySpec] = &[
     component_binary("usr/bin/zstdcat", "zstdcat"),
 ];
 const PATCH_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/patch", "patch")];
+const SED_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/sed", "sed")];
+const DASH_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/dash", "dash")];
+const MAWK_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/mawk", "mawk")];
+const RSYNC_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/rsync", "rsync")];
 const FILE_BINARIES: &[ComponentBinarySpec] = &[component_binary("usr/bin/file", "file")];
 const LESS_BINARIES: &[ComponentBinarySpec] = &[
     component_binary("usr/bin/less", "less"),
@@ -573,6 +592,26 @@ const COMPONENT_INSTALL_MANIFESTS: &[ComponentInstallManifest] = &[
         binaries: PATCH_BINARIES,
     },
     ComponentInstallManifest {
+        provider: SED_PROVIDER,
+        install_root_rel: "out/build/sed/install",
+        binaries: SED_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: DASH_PROVIDER,
+        install_root_rel: "out/build/dash/install",
+        binaries: DASH_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: MAWK_PROVIDER,
+        install_root_rel: "out/build/mawk/install",
+        binaries: MAWK_BINARIES,
+    },
+    ComponentInstallManifest {
+        provider: RSYNC_PROVIDER,
+        install_root_rel: "out/build/rsync/install",
+        binaries: RSYNC_BINARIES,
+    },
+    ComponentInstallManifest {
         provider: FILE_PROVIDER,
         install_root_rel: "out/build/file/install",
         binaries: FILE_BINARIES,
@@ -614,12 +653,6 @@ const USERLAND_BINARY_INSTALLS: &[BinaryInstallSpec] = &[
         source_rel: "out/build/grep/cargo-target/release/grep",
         install_name: "grep",
         command_name: "grep",
-    },
-    BinaryInstallSpec {
-        provider: SED_PROVIDER,
-        source_rel: "out/build/sed/cargo-target/release/sed",
-        install_name: "sed",
-        command_name: "sed",
     },
     BinaryInstallSpec {
         provider: FINDUTILS_PROVIDER,
@@ -724,6 +757,9 @@ enum Commands {
         keep_going: bool,
     },
     Image,
+    /// Build (or reuse) the MattOS builder container image for third-party
+    /// package recipes: out/images/mattos-builder.oci.tar.
+    BuilderImage,
     Run,
     Clean {
         #[arg(value_enum)]
@@ -1160,6 +1196,7 @@ fn main() -> Result<()> {
             },
         ),
         Commands::Image => build_image(&repo_root),
+        Commands::BuilderImage => packaging::build_builder_image(&repo_root),
         Commands::Run => run_qemu(&repo_root),
         Commands::Clean { target } => clean(&repo_root, target.unwrap_or(CleanTarget::Artifacts)),
         Commands::BootstrapWsl {
@@ -1259,7 +1296,6 @@ fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
                 "brush",
                 "coreutils",
                 "grep",
-                "sed",
                 "findutils",
                 "diffutils",
                 "sudo-rs",
@@ -1594,6 +1630,7 @@ fn kernel_config_state(config: &str, symbol: &str) -> Option<KernelConfigState> 
 
 include!("stages/toolchain.rs");
 include!("stages/base_userland.rs");
+include!("stages/build_tools.rs");
 include!("stages/helpers/native.rs");
 include!("stages/helpers/pkgconfig.rs");
 include!("stages/helpers/autotools.rs");

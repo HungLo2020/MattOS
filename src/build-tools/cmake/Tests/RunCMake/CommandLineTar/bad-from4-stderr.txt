@@ -1,0 +1,7 @@
+^CMake Error: Unable to read from file:
+  does-not-exist
+because:
+  [^
+]*
+CMake Error: Problem creating tar:
+  bad\.tar$

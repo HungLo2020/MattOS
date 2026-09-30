@@ -1,0 +1,58 @@
+^CMake Warning \(deprecated\) at CMP0144-OLD-CaseInsensitive\.cmake:[0-9]+ \(cmake_policy\):
+  The OLD behavior for policy CMP0144 will be removed from a future version
+  of CMake\.
+
+  The cmake-policies\(7\) manual explains that the OLD behaviors of all
+  policies are deprecated and that a policy should be set to OLD only under
+  specific short-term circumstances\.  Projects should be ported to the NEW
+  behavior and not rely on setting a policy to OLD\.
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:[0-9]+ \(include\)
+This warning is for project developers\.  Use -Wno-author or -Wno-deprecated
+to suppress it\.
++
+----------
+FOO_ROOT     : ''
+ENV{FOO_ROOT}: ''
+
+find_package\(Foo\)
+FOO_TEST_FILE_FOO: FOO_TEST_FILE_FOO-NOTFOUND
+FOO_TEST_FILE_ZOT: FOO_TEST_FILE_ZOT-NOTFOUND
+FOO_TEST_PATH_FOO: FOO_TEST_PATH_FOO-NOTFOUND
+FOO_TEST_PATH_ZOT: FOO_TEST_PATH_ZOT-NOTFOUND
+FOO_TEST_PROG_FOO: FOO_TEST_PROG_FOO-NOTFOUND
+
+----------
+FOO_ROOT     : '<base>/foo/cmake_root'
+ENV{FOO_ROOT}: '<base>/foo/env_root'
+
+find_package\(Foo\)
+FOO_TEST_FILE_FOO: <base>/foo/env_root/include/foo\.h
+FOO_TEST_FILE_ZOT: <base>/foo/env_root/include/zot/zot\.h
+FOO_TEST_PATH_FOO: <base>/foo/env_root/include
+FOO_TEST_PATH_ZOT: <base>/foo/env_root/include/zot
+FOO_TEST_PROG_FOO: <base>/foo/env_root/bin/foo\.exe
+
+----------
+FOO_ROOT     : '<base>/foo/cmake_root'
+ENV{FOO_ROOT}: ''
+
+find_package\(Foo\)
+FOO_TEST_FILE_FOO: FOO_TEST_FILE_FOO-NOTFOUND
+FOO_TEST_FILE_ZOT: FOO_TEST_FILE_ZOT-NOTFOUND
+FOO_TEST_PATH_FOO: FOO_TEST_PATH_FOO-NOTFOUND
+FOO_TEST_PATH_ZOT: FOO_TEST_PATH_ZOT-NOTFOUND
+FOO_TEST_PROG_FOO: FOO_TEST_PROG_FOO-NOTFOUND
+
+----------
+FOO_ROOT     : ''
+ENV{FOO_ROOT}: '<base>/foo/env_root'
+
+find_package\(Foo\)
+FOO_TEST_FILE_FOO: <base>/foo/env_root/include/foo\.h
+FOO_TEST_FILE_ZOT: <base>/foo/env_root/include/zot/zot\.h
+FOO_TEST_PATH_FOO: <base>/foo/env_root/include
+FOO_TEST_PATH_ZOT: <base>/foo/env_root/include/zot
+FOO_TEST_PROG_FOO: <base>/foo/env_root/bin/foo\.exe
+
+----------$

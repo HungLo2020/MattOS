@@ -1,0 +1,7 @@
+CMake Warning \(author\) at BeforeProject\.cmake:2 \(message\):
+  build_command\(\) returned:
+
+   .*cmake.* --build \..*
+Call Stack \(most recent call first\):
+  CMakeLists\.txt:5 \(include\)
+This warning is for project developers\.  Use -Wno-author to suppress it\.

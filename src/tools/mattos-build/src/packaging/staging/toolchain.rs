@@ -711,6 +711,9 @@ pub(super) fn stage_native_binutils(repo_root: &Path, staging: &Path) -> Result<
         "strip",
     ] {
         copy_preserving(&source.join(name), &staging.join("usr/bin").join(name))?;
+        // Build systems that name the host triplet (Autotools --host, many
+        // Makefiles) look for `<triplet>-<tool>`, as Debian provides them.
+        std::os::unix::fs::symlink(name, staging.join("usr/bin").join(format!("{TOOLCHAIN_TARGET}-{name}")))?;
     }
     copy_preserving(
         &repo_root.join("src/toolchain/binutils/COPYING3"),
@@ -750,9 +753,16 @@ pub(super) fn stage_native_compiler_driver(
 ) -> Result<()> {
     let source = repo_root.join("out/build/gcc-toolchain/install/usr/bin");
     copy_preserving(&source.join(driver), &staging.join("usr/bin").join(driver))?;
+    // `gcc -dumpmachine` names the triplet; build systems (btop's Makefile,
+    // Autotools --host) invoke `<triplet>-gcc` / `<triplet>-g++`.
+    let triplet = |name: &str| staging.join("usr/bin").join(format!("{TOOLCHAIN_TARGET}-{name}"));
+    std::os::unix::fs::symlink(driver, triplet(driver))?;
     match driver {
         "gcc" => std::os::unix::fs::symlink("gcc", staging.join("usr/bin/cc"))?,
-        "g++" => std::os::unix::fs::symlink("g++", staging.join("usr/bin/c++"))?,
+        "g++" => {
+            std::os::unix::fs::symlink("g++", staging.join("usr/bin/c++"))?;
+            std::os::unix::fs::symlink("g++", triplet("c++"))?;
+        }
         _ => {}
     }
     copy_preserving(

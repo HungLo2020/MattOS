@@ -1,0 +1,2 @@
+^\[1/1\] Generating echo_depend_target\.txt
+'[^']*[\/]Tests[\/]RunCMake[\/]NinjaMultiConfigCustomCommands[\/]CustomCommandOutputGenex-build'\$ '[^']*[\/]Tests[\/]RunCMake[\/]NinjaMultiConfigCustomCommands[\/]CustomCommandOutputGenex-build[\/]Release[\/]echo(\.exe)?' 'Release'$
