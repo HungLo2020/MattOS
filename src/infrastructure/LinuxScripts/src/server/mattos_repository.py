@@ -10,6 +10,7 @@ written repository.
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 import fcntl
 import getpass
 import importlib.util
@@ -23,14 +24,18 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from dataclasses import asdict, dataclass, replace
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.error import HTTPError, URLError
+from urllib.parse import unquote, urlparse
+from urllib.request import Request, urlopen
 
 from server.r2_repository import R2Error
+from server.cloudflare_ingress import CloudflareIngress, CloudflareIngressError
 
 
 REPOSITORIES = ("mattos", "mattpackages")
@@ -43,11 +48,14 @@ DEFAULT_COMPONENT = "main"
 DEFAULT_ARCHITECTURES = ("amd64",)
 DEFAULT_BIND = "127.0.0.1"
 DEFAULT_PORT = 8790
+PUBLIC_PORTS = {"mattos": 8791, "mattpackages": 8792}
 DEFAULT_R2_ITEM = "MattOS R2 Repository Publisher"
 DEFAULT_GPG_ITEM = "MattOS Repository Signing Key"
 DEFAULT_BUCKET = "matt-apt-repo"
 SERVICE_NAME = "mattos-repository.service"
 SERVICE_PATH = Path("/etc/systemd/system") / SERVICE_NAME
+PUBLIC_SERVICE_NAMES = {name: f"mattos-repository-{name}-public.service" for name in REPOSITORIES}
+CLOUDFLARE_ITEM = "MattPackages Cloudflare Setup"
 
 
 class RepositoryError(RuntimeError):
@@ -97,8 +105,8 @@ def provision_client_token(token: str, user: str) -> None:
     os.chmod(path, 0o600)
 
 
-def install_dependencies() -> None:
-    required = ("reprepro", "gpg", "dpkg-deb", "boto3")
+def install_dependencies(*, require_r2: bool = True) -> None:
+    required = ("reprepro", "gpg", "dpkg-deb") + (("boto3",) if require_r2 else ())
     missing = [name for name in required if (importlib.util.find_spec("boto3") is None if name == "boto3" else shutil.which(name) is None)]
     if not missing:
         return
@@ -165,6 +173,99 @@ def install_service(config_path: Path, user: str) -> None:
         raise RepositoryError("systemctl is required to install the MattOS repository service")
     privileged(["systemctl", "daemon-reload"])
     privileged(["systemctl", "enable", "--now", SERVICE_NAME])
+
+
+def remove_legacy_public_services() -> None:
+    """Replace the separately installed public units from the earlier rollout."""
+    removed = False
+    for name in PUBLIC_SERVICE_NAMES.values():
+        path = Path("/etc/systemd/system") / name
+        if path.exists():
+            privileged(["systemctl", "stop", name])
+            privileged(["systemctl", "disable", name])
+            privileged(["rm", "-f", str(path)])
+            removed = True
+    if removed:
+        privileged(["systemctl", "daemon-reload"])
+
+
+def cloudflare_status(*, details: bool = False, item_name: str = CLOUDFLARE_ITEM) -> dict[str, Any]:
+    """Report available vault configuration without exposing secret values."""
+    from bitwarden import BitwardenClient
+    password_file = Path(os.environ.get("MATTOS_BW_PASSWORD_FILE", str(Path.home() / "Documents/Repos/LinuxScripts/.bw_master_password"))).expanduser()
+    vault = BitwardenClient(password_file=password_file, error_type=RepositoryError)
+    item = vault.item(item_name)
+    status = {
+        "item": item_name,
+        "cloudflare_items": sorted(str(entry.get("name")) for entry in vault.list_items("Cloudflare") if entry.get("name")),
+        "fields": sorted(str(field.get("name")) for field in item.get("fields", []) if isinstance(field, dict) and field.get("name")),
+        "has_login_username": bool((item.get("login") or {}).get("username")),
+        "has_login_password": bool((item.get("login") or {}).get("password")),
+        "has_notes": bool(item.get("notes")),
+    }
+    if details:
+        status["login_username"] = (item.get("login") or {}).get("username", "")
+        status["notes"] = item.get("notes", "")
+        status["has_totp"] = bool((item.get("login") or {}).get("totp"))
+        token = (item.get("login") or {}).get("password", "")
+        if item_name != CLOUDFLARE_ITEM:
+            request = Request("https://api.cloudflare.com/client/v4/user/tokens/verify",
+                              headers={"Authorization": f"Bearer {token}", "Accept": "application/json"})
+            try:
+                with urlopen(request, timeout=15) as response:
+                    status["api_token_status"] = json.load(response).get("result", {}).get("status")
+            except (HTTPError, URLError, ValueError) as exc:
+                status["api_token_status"] = f"unavailable ({getattr(exc, 'code', type(exc).__name__)})"
+            return status
+        def probe(label: str, path: str) -> None:
+            request = Request("https://api.cloudflare.com/client/v4" + path,
+                              headers={"Authorization": f"Bearer {token}", "Accept": "application/json"})
+            try:
+                with urlopen(request, timeout=15) as response:
+                    payload = json.load(response)
+                result = payload.get("result", [])
+                if isinstance(result, dict):
+                    result = result.get("domains", result.get("rules", []))
+                status[label] = [{key: entry.get(key) for key in ("id", "name", "domain", "type", "content", "status", "proxied", "ref", "expression", "action", "action_parameters", "enabled") if key in entry}
+                                 for entry in result]
+            except (HTTPError, URLError, ValueError) as exc:
+                status[label] = f"unavailable ({getattr(exc, 'code', type(exc).__name__)})"
+        probe("accounts", "/accounts?per_page=50")
+        probe("zones", "/zones?name=mattsherfey.com")
+        probe("api_tokens", "/user/tokens?per_page=50")
+        accounts, zones = status["accounts"], status["zones"]
+        if isinstance(accounts, list) and len(accounts) == 1 and isinstance(zones, list) and len(zones) == 1:
+            account_id, zone_id = accounts[0]["id"], zones[0]["id"]
+            probe("tunnels", f"/accounts/{account_id}/cfd_tunnel?per_page=50")
+            for name, bucket in (("mattos", "matt-apt-repo"), ("mattpackages", "mattpackages-apt-repo")):
+                probe(f"{name}_r2_domains", f"/accounts/{account_id}/r2/buckets/{bucket}/domains/custom")
+            for name, hostname in (("mattos", "packages.mattsherfey.com"), ("mattpackages", "mattpackages.mattsherfey.com")):
+                probe(f"{name}_dns", f"/zones/{zone_id}/dns_records?name={hostname}")
+                suite = "trixie" if name == "mattos" else "stable"
+                try:
+                    with urlopen(Request(f"https://{hostname}/dists/{suite}/InRelease",
+                                         headers={"User-Agent": "LinuxScripts/1.0"}), timeout=10) as response:
+                        prefix = response.read(64)
+                        status[f"{name}_public_check"] = {
+                            "http_status": response.status,
+                            "origin": response.headers.get("X-MattOS-Repository-Origin", ""),
+                            "cache_status": response.headers.get("CF-Cache-Status", ""),
+                            "signed": b"BEGIN PGP SIGNED MESSAGE" in prefix,
+                        }
+                except (HTTPError, URLError, TimeoutError) as exc:
+                    status[f"{name}_public_check"] = f"unavailable ({getattr(exc, 'code', type(exc).__name__)})"
+            probe("cache_rules", f"/zones/{zone_id}/rulesets/phases/http_request_cache_settings/entrypoint")
+    return status
+
+
+def update_cloudflare_token() -> None:
+    """Store a replacement setup token in the existing vault login."""
+    from bitwarden import BitwardenClient
+    token = getpass.getpass("Cloudflare setup API token: ").strip()
+    if not token.startswith("cfat_"):
+        raise RepositoryError("Expected an account-owned Cloudflare API token (cfat_ prefix).")
+    password_file = Path(os.environ.get("MATTOS_BW_PASSWORD_FILE", str(Path.home() / "Documents/Repos/LinuxScripts/.bw_master_password"))).expanduser()
+    BitwardenClient(password_file=password_file, error_type=RepositoryError).update_login_password(CLOUDFLARE_ITEM, token)
 
 
 def run(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> str:
@@ -540,7 +641,7 @@ class RepositoryManager:
             finally:
                 handle.close()
 
-    def add(self, package: Path) -> dict[str, str]:
+    def add(self, package: Path, *, no_overwrites: bool = False) -> dict[str, str]:
         package = package.resolve()
         if not package.is_file() or package.suffix != ".deb":
             raise RepositoryError("Upload must be a regular .deb file")
@@ -548,18 +649,28 @@ class RepositoryManager:
         if architecture != "all" and architecture not in self.config.architectures:
             raise RepositoryError(f"Package architecture {architecture} is not configured")
         with self._lock() as handle:
-            stage = Path(tempfile.mkdtemp(prefix="mattos-repository-", dir=self.releases))
             try:
-                self._stage_from_active(stage)
-                incoming = stage / ".incoming.deb"
-                shutil.copy2(package, incoming)
-                self._build(stage, [incoming])
-                incoming.unlink(missing_ok=True)
-                self._commit(stage)
-                self.synchronize_r2()
-            except Exception:
-                shutil.rmtree(stage, ignore_errors=True)
-                raise
+                active = self._active()
+                condition = f"Package (== {name}), $Version (== {version}), $Architecture (== {architecture})"
+                replacement = bool(run(["reprepro", "--basedir", str(active), "-T", "deb", "listfilter", self.config.suite, condition]).strip()) if active else False
+                if replacement and no_overwrites:
+                    raise RepositoryError(f"Package already exists: {name} {version} ({architecture})")
+                stage = Path(tempfile.mkdtemp(prefix="mattos-repository-", dir=self.releases))
+                try:
+                    self._stage_from_active(stage)
+                    incoming = stage / ".incoming.deb"
+                    shutil.copy2(package, incoming)
+                    if replacement:
+                        # Remove only this indexed build from the staged copy.
+                        # Export and signing happen once after the new include.
+                        run(["reprepro", "--basedir", str(stage), "--export=never", "-T", "deb", "removefilter", self.config.suite, condition])
+                    self._build(stage, [incoming])
+                    incoming.unlink(missing_ok=True)
+                    self._commit(stage)
+                    self.synchronize_r2()
+                except Exception:
+                    shutil.rmtree(stage, ignore_errors=True)
+                    raise
             finally:
                 handle.close()
         return {"repository": self.config.repository, "name": name, "version": version, "architecture": architecture}
@@ -600,7 +711,7 @@ class RepositoryManager:
 
     def status(self) -> dict[str, Any]:
         active = self._active()
-        return {"repository": self.config.repository, "bucket": self.config.bucket, "initialized": active is not None, "root": str(self.root), "public_url": self.config.public_url, "suite": self.config.suite, "component": self.config.component, "architectures": list(self.config.architectures), "packages": len(self.packages())}
+        return {"repository": self.config.repository, "bucket": self.config.bucket, "publication": "r2" if self.config.r2_enabled else "local", "initialized": active is not None, "root": str(self.root), "public_url": self.config.public_url, "suite": self.config.suite, "component": self.config.component, "architectures": list(self.config.architectures), "packages": len(self.packages())}
 
     def public_key(self) -> str:
         with tempfile.TemporaryDirectory(prefix="mattos-public-key-") as temp:
@@ -631,7 +742,7 @@ class RepositoryManager:
 def setup_server(config: ServerConfig, configs: dict[str, ServerConfig], config_path: Path) -> None:
     """Set up only the selected archive; the shared service exposes both."""
     validate_configs(configs)
-    install_dependencies()
+    install_dependencies(require_r2=config.r2_enabled)
     user = service_user()
     for directory in (config.root, config.token_file.parent):
         privileged(["install", "-d", "-o", user, "-g", user, "-m", "0755", str(directory)])
@@ -644,7 +755,35 @@ def setup_server(config: ServerConfig, configs: dict[str, ServerConfig], config_
         config.token_file, config.credentials_file or config.root / "r2-credentials.json"))
     save_configs(configs, config_path)
     provision_client_token(manager.ensure_token(), user)
+    remove_legacy_public_services()
     install_service(config_path, user)
+
+
+def setup_with_publication(config: ServerConfig, configs: dict[str, ServerConfig], config_path: Path) -> None:
+    """Run central setup and migrate one public hostname when local is chosen."""
+    if config.r2_enabled:
+        setup_server(config, configs, config_path)
+        return
+    ingress = CloudflareIngress.from_vault(privileged)
+    hostnames = {name: urlparse(item.public_url).hostname or "" for name, item in configs.items()}
+    ingress.preflight(tuple(hostnames.values()))
+    tunnel_id, token = ingress.ensure_tunnel(hostnames)
+    try:
+        ingress.ensure_cache_rule(hostnames[config.repository], config.repository)
+    except CloudflareIngressError as exc:
+        if "HTTP 403" not in str(exc):
+            raise
+    previous = load_configs(config_path)
+    setup_server(config, configs, config_path)
+    try:
+        ingress.provision(config.repository, configs, service_user(), tunnel_id, token)
+    except Exception:
+        # A failed migration must not leave subsequent uploads silently skipping
+        # the existing R2 destination. The domain may still be on either origin;
+        # both keep serving the same local archive until setup is retried.
+        save_configs(previous, config_path)
+        install_service(config_path, service_user())
+        raise
 
 
 class RepositoryHandler(BaseHTTPRequestHandler):
@@ -685,7 +824,7 @@ class RepositoryHandler(BaseHTTPRequestHandler):
     def _error(self, status: int, message: str) -> None:
         self._send(status, {"error": message})
 
-    def _serve_repository_file(self, path: str) -> bool:
+    def _serve_repository_file(self, path: str, *, head_only: bool = False) -> bool:
         """Serve only public dists/pool files from the active release."""
         prefix = "/repository/"
         if path == "/repository":
@@ -705,6 +844,9 @@ class RepositoryHandler(BaseHTTPRequestHandler):
             relative = path.removeprefix(prefix)
         else:
             return False
+        # APT percent-encodes characters such as "+" and "~" in package
+        # versions (%2b, %7e); files are stored under their literal names.
+        relative = unquote(relative)
         if not relative.startswith(("dists/", "pool/")):
             self._error(404, "repository file not found")
             return True
@@ -722,10 +864,19 @@ class RepositoryHandler(BaseHTTPRequestHandler):
         if not target.is_file():
             self._error(404, "repository file not found")
             return True
-        data = target.read_bytes()
-        content_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
-        cache_control = "public, max-age=31536000, immutable" if "/pool/" in path and target.suffix == ".deb" else "no-cache, max-age=0, must-revalidate"
-        self._send(200, data, content_type, cache_control)
+        try:
+            with target.open("rb") as source:
+                self.send_response(200)
+                self.send_header("Content-Type", mimetypes.guess_type(target.name)[0] or "application/octet-stream")
+                self.send_header("Content-Length", str(os.fstat(source.fileno()).st_size))
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("Cloudflare-CDN-Cache-Control", "no-store")
+                self.send_header("X-MattOS-Repository-Origin", "home-server")
+                self.end_headers()
+                if not head_only:
+                    shutil.copyfileobj(source, self.wfile, 1024 * 1024)
+        except FileNotFoundError:
+            self._error(404, "repository file not found")
         return True
 
     def do_GET(self) -> None:
@@ -751,6 +902,8 @@ class RepositoryHandler(BaseHTTPRequestHandler):
             if path == "/upload":
                 length = int(self.headers.get("Content-Length", "0")); filename = self.headers.get("X-Package-Filename", "package.deb")
                 if Path(filename).name != filename or not filename.endswith(".deb") or length <= 0: return self._error(400, "invalid package upload")
+                no_overwrites = self.headers.get("X-No-Overwrites", "0")
+                if no_overwrites not in {"0", "1"}: return self._error(400, "invalid X-No-Overwrites header")
                 with tempfile.TemporaryDirectory(prefix="repository-upload-") as directory:
                     temporary = Path(directory) / filename
                     with temporary.open("wb") as output:
@@ -761,7 +914,7 @@ class RepositoryHandler(BaseHTTPRequestHandler):
                                 raise RepositoryError("incomplete package upload")
                             output.write(block)
                             remaining -= len(block)
-                    return self._send(200, self.manager.add(temporary))
+                    return self._send(200, self.manager.add(temporary, no_overwrites=no_overwrites == "1"))
             if path == "/remove":
                 length = int(self.headers.get("Content-Length", "0")); body = json.loads(self.rfile.read(length))
                 self.manager.remove(str(body["name"]), str(body["version"]) if body.get("version") else None); return self._send(200, {"repository": self.repository, "removed": True})
@@ -773,6 +926,26 @@ class RepositoryHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args: Any) -> None:
         print(f"[mattos-repository] {format % args}", file=sys.stderr)
 
+
+class PublicRepositoryHandler(RepositoryHandler):
+    """Expose one archive at its APT URL root, without management routes."""
+
+    def do_GET(self) -> None:
+        self._serve_public(head_only=False)
+
+    def do_HEAD(self) -> None:
+        self._serve_public(head_only=True)
+
+    def do_POST(self) -> None:
+        self._error(405, "read-only repository")
+
+    def _serve_public(self, *, head_only: bool) -> None:
+        path = urlparse(self.path).path
+        if not path.startswith(("/dists/", "/pool/")):
+            self._error(404, "repository file not found")
+            return
+        repository = self.server.repository  # type: ignore[attr-defined]
+        self._serve_repository_file(f"/repositories/{repository}{path}", head_only=head_only)
 
 def create_server(configs: dict[str, ServerConfig], bind: str, port: int) -> ThreadingHTTPServer:
     validate_configs(configs)
@@ -787,9 +960,28 @@ def create_server(configs: dict[str, ServerConfig], bind: str, port: int) -> Thr
 
 
 def serve(configs: dict[str, ServerConfig], bind: str, port: int) -> None:
-    with create_server(configs, bind, port) as server:
-        print(f"MattOS and MattPackages repository API listening on {bind}:{port}")
-        server.serve_forever()
+    with ExitStack() as stack:
+        server = stack.enter_context(create_server(configs, bind, port))
+        public_servers = [stack.enter_context(create_public_server(configs, name, "127.0.0.1", PUBLIC_PORTS[name]))
+                          for name in REPOSITORIES]
+        for public in public_servers:
+            threading.Thread(target=public.serve_forever, daemon=True).start()
+        print(f"MattOS and MattPackages repository API listening on {bind}:{port}; public archives on loopback ports 8791 and 8792")
+        try:
+            server.serve_forever()
+        finally:
+            for public in public_servers:
+                public.shutdown()
+
+
+def create_public_server(configs: dict[str, ServerConfig], repository: str, bind: str, port: int) -> ThreadingHTTPServer:
+    validate_configs(configs)
+    if repository not in REPOSITORIES:
+        raise RepositoryError(SELECTION_ERROR)
+    server = ThreadingHTTPServer((bind, port), PublicRepositoryHandler)
+    server.managers = {repository: RepositoryManager(configs[repository])}
+    server.repository = repository
+    return server
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -798,10 +990,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--config", type=Path, default=CONFIG_PATH)
     parser.add_argument("--root", type=Path, help="Override only the selected repository's local root")
     sub = parser.add_subparsers(dest="command", required=True)
-    for command in ("init", "setup", "status", "verify", "list", "publish", "token"):
+    for command in ("init", "status", "verify", "list", "publish", "token"):
         sub.add_parser(command)
+    cloudflare = sub.add_parser("cloudflare-status")
+    cloudflare.add_argument("--details", action="store_true")
+    cloudflare.add_argument("--item", default=CLOUDFLARE_ITEM)
+    sub.add_parser("cloudflare-token-update")
+    setup = sub.add_parser("setup")
+    setup.add_argument("--publication", choices=("r2", "local"), help="Persist the selected repository's publication destination")
     for command in ("add", "upload"):
         add = sub.add_parser(command)
+        add.add_argument("--no-overwrites", action="store_true", help="Reject packages already present with the same name, version, and architecture")
         add.add_argument("package", type=Path)
     remove = sub.add_parser("remove"); remove.add_argument("name"); remove.add_argument("--version")
     for command in ("export-key", "export-private-key"):
@@ -820,6 +1019,9 @@ def main(argv: list[str] | None = None) -> int:
             serve(configs, args.bind, args.port)
             return 0
         config = configs[args.repo]
+        if args.command == "setup" and args.publication:
+            config = replace(config, r2_enabled=args.publication == "r2")
+            configs[args.repo] = config
         if args.root:
             root = args.root.expanduser().resolve()
             token_file = root / "api-token" if config.token_file == config.root / "api-token" else config.token_file
@@ -831,18 +1033,20 @@ def main(argv: list[str] | None = None) -> int:
                     token_file=config.token_file)
             validate_configs(configs)
         manager = RepositoryManager(config)
-        if args.command == "token": print(manager.ensure_token())
+        if args.command == "cloudflare-status": print(json.dumps(cloudflare_status(details=args.details, item_name=args.item), indent=2, sort_keys=True))
+        elif args.command == "cloudflare-token-update": update_cloudflare_token(); print(f"Updated Bitwarden item {CLOUDFLARE_ITEM}.")
+        elif args.command == "token": print(manager.ensure_token())
         elif args.command == "init": manager.init(); print(json.dumps(manager.status(), indent=2, sort_keys=True))
         elif args.command == "setup":
-            setup_server(config, configs, args.config.resolve())
+            setup_with_publication(config, configs, args.config.resolve())
             print(json.dumps(manager.status(), indent=2, sort_keys=True))
-            print("Shared repository service configured; selected repository synchronized with R2.")
+            print("Shared repository service configured; selected repository " + ("synchronized with R2." if config.r2_enabled else "served locally without R2 publication."))
         elif args.command == "status": print(json.dumps(manager.status(), indent=2, sort_keys=True))
         elif args.command == "verify": manager.verify(); print(f"{args.repo}: repository verification passed.")
         elif args.command == "publish": manager.publish(); print(f"{args.repo}: repository published.")
         elif args.command == "list":
             for item in manager.packages(): print(f"{item['name']}\t{item['version']}\t{item['architecture']}")
-        elif args.command in {"add", "upload"}: print(json.dumps(manager.add(args.package), sort_keys=True))
+        elif args.command in {"add", "upload"}: print(json.dumps(manager.add(args.package, no_overwrites=args.no_overwrites), sort_keys=True))
         elif args.command == "remove": manager.remove(args.name, args.version); print(f"{args.repo}: package removed.")
         elif args.command in {"export-key", "export-private-key"}:
             content = manager.public_key() if args.command == "export-key" else manager.private_key()
@@ -852,7 +1056,7 @@ def main(argv: list[str] | None = None) -> int:
                 os.fchmod(handle.fileno(), 0o644 if args.command == "export-key" else 0o600)
                 handle.write(content)
         return 0
-    except (RepositoryError, R2Error, OSError) as exc:
+    except (RepositoryError, R2Error, CloudflareIngressError, OSError) as exc:
         print(f"Error: {exc}", file=sys.stderr); return 1
 
 

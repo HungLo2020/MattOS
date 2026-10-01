@@ -29,7 +29,7 @@ if str(SOURCE_DIRECTORY) not in sys.path:
 REPOSITORIES = ("mattos", "mattpackages")
 SELECTION_ERROR = "Repository selection is required. Use --repo mattos or --repo mattpackages. No operation was performed."
 
-DEFAULT_SERVER_URL = "http://hunglosvr:8790"
+DEFAULT_SERVER_URL = "http://hunglosvr.tail30f889.ts.net:8790"
 DEFAULT_PUBLIC_URL = "https://packages.mattsherfey.com"
 DEFAULT_R2_ITEM = "MattOS R2 Repository Publisher"
 DEFAULT_GPG_ITEM = "MattOS Repository Signing Key"
@@ -272,8 +272,11 @@ class ServerRepository:
         except json.JSONDecodeError as exc:
             raise RemoteError("Repository server returned invalid JSON") from exc
 
-    def upload(self, path: Path) -> dict[str, Any]:
-        return self.request("POST", "/upload", body=path.read_bytes(), content_type="application/vnd.debian.binary-package", headers={"X-Package-Filename": path.name})
+    def upload(self, path: Path, *, no_overwrites: bool = False) -> dict[str, Any]:
+        headers = {"X-Package-Filename": path.name}
+        if no_overwrites:
+            headers["X-No-Overwrites"] = "1"
+        return self.request("POST", "/upload", body=path.read_bytes(), content_type="application/vnd.debian.binary-package", headers=headers)
 
     def remove(self, name: str, version: str | None = None) -> dict[str, Any]:
         return self.request("POST", "/remove", body=json.dumps({"name": name, "version": version}).encode())
@@ -322,6 +325,7 @@ def parser() -> argparse.ArgumentParser:
         sub.add_parser(command)
     for command in ("upload", "add"):
         item = sub.add_parser(command)
+        item.add_argument("--no-overwrites", action="store_true", help="Reject packages already present with the same name, version, and architecture")
         item.add_argument("packages", nargs="+", type=Path)
     remove = sub.add_parser("remove")
     remove.add_argument("package")
@@ -347,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Dry run: upload {len(infos)} validated package(s)")
                 return 0
             for info in infos:
-                result = repository.upload(info.path)
+                result = repository.upload(info.path, no_overwrites=args.no_overwrites)
                 print(f"Uploaded {result['name']} {result['version']} ({result['architecture']})")
             return 0
         if args.command == "init":

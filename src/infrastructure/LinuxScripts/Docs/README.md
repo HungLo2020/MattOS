@@ -2,6 +2,7 @@
 
 - [PackageManagement.md](PackageManagement.md): package profiles, providers, bootstraps, script hooks, and MattOS behavior.
 - [ContainerManagement.md](ContainerManagement.md): Docker workload manager, direct launchers, lifecycle actions, and data paths.
+- [Local-Image-Generation.md](Local-Image-Generation.md): Forge, Open WebUI integration, local model files, and image-generation settings.
 - [ServerManagement.md](ServerManagement.md): Btrfs, Restic backup management, privileges, and service ownership.
 - [BTRFS-Notes.md](BTRFS-Notes.md): personal BTRFS operational notes.
 

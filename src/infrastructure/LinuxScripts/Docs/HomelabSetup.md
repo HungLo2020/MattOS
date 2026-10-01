@@ -73,7 +73,7 @@ The home server hosts the regular application workloads. `Tools/ContainerManager
 | Open WebUI | `open-webui` | `3000` | `~/.ollama-stack/open-webui` |
 | AUTOMATIC1111 Stable Diffusion WebUI | `automatic1111` | `7861` | `~/.automatic1111` |
 
-Homepage requires an active Tailscale connection and rewrites configured loopback URLs to the active Tailscale IPv4 address. Portainer provides Docker administration. Ollama and Open WebUI form the local AI stack. AUTOMATIC1111 runs the Stable Diffusion WebUI and uses NVIDIA GPU passthrough when Docker and the host support it.
+Homepage requires an active Tailscale connection and rewrites configured loopback URLs to the active Tailscale IPv4 address. Portainer provides Docker administration. Ollama and Open WebUI form the local AI stack; the launcher enables Open WebUI web search using its built-in DDGS/DuckDuckGo provider with automatic backend selection. Search requests go to public search providers, and Web Search still needs to be turned on for a chat. AUTOMATIC1111 runs the Stable Diffusion WebUI and uses NVIDIA GPU passthrough when Docker and the host support it.
 
 ### Jellyfin Media Stack
 

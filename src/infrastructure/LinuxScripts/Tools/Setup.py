@@ -27,6 +27,7 @@ if str(SOURCE_DIRECTORY) not in sys.path:
     sys.path.insert(0, str(SOURCE_DIRECTORY))
 
 from host import detect_host
+from mattpackages import configure_repository, eligibility_problem
 from packages.cli import build_command_plan, load_resources, main as package_cli_main, print_plan
 from packages.executor import execute_operations
 from packages.planner import PackageResolutionError
@@ -99,6 +100,19 @@ def offer_storage_mount(platform_name: str, package_manager: PackageManager | No
     configure_interactively()
 
 
+def offer_mattpackages(platform_name: str, package_manager: PackageManager | None) -> None:
+    """Offer public repository enrollment before selecting any packages."""
+
+    if platform_name not in {"linux", "mattos"} or package_manager is not PackageManager.APT:
+        return
+    problem = eligibility_problem()
+    if problem:
+        print(f"Skipping MattPackages: {problem}")
+        return
+    if prompt_yes_no("Enable the MattPackages APT repository for this machine?"):
+        configure_repository()
+
+
 def offer_server_manager(platform_name: str) -> None:
     """Offer server administration as an independent optional Setup capability."""
 
@@ -153,6 +167,11 @@ def main() -> int:
         except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
             print(f"Preflight failed: {error}", file=sys.stderr)
             return 1
+    try:
+        offer_mattpackages(platform_name, package_manager)
+    except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
+        print(f"MattPackages setup failed: {error}", file=sys.stderr)
+        return 1
     succeeded = run_package_flow()
     if not succeeded:
         return 1

@@ -10,7 +10,7 @@ This is a hybrid build-tool bootstrap, not a self-hosted distribution. The autho
 | --- | --- | --- | --- | --- |
 | dpkg | `https://git.dpkg.org/git/dpkg/dpkg.git` | `main` | `ff7e9d8bf01379e8b022028a65afaa262e2c25cd` | `src/system/packages/dpkg/` |
 | APT | `https://salsa.debian.org/apt-team/apt.git` | `main` | `5e6dcc8d0c8bdce61e9cc7f497abadb5349d509a` | `src/system/packages/apt/` |
-| LinuxScripts | `https://github.com/HungLo2020/LinuxScripts.git` | `master` | `d1e85219c8f86ceaa1135312126d02fa4dbee623` | `src/infrastructure/LinuxScripts/` |
+| LinuxScripts | `https://github.com/HungLo2020/LinuxScripts.git` | `master` | `da40e3473e4d8f6b9d492ad63be33af966036773` | `src/infrastructure/LinuxScripts/` |
 
 The imports are ordinary editable files without nested Git repositories. `upstream/sources.toml` is authoritative and `upstream/state/{dpkg,apt}.toml` records the exact imports.
 

@@ -1,4 +1,4 @@
-"""Regression coverage for the legacy-compatible ZIP backup manager."""
+"""Regression coverage for the tar.zst-backed generic backup manager."""
 
 from __future__ import annotations
 
@@ -33,13 +33,15 @@ class ZipBackupManagerTests(unittest.TestCase):
             stored = manager.config_path(config.slug).read_text(encoding="utf-8")
             self.assertIn("CONFIG_NAME='Archive Job'", stored)
             self.assertEqual(manager.config_from_file(manager.config_path(config.slug)), config)
+            self.assertIn("KEEP_FIVE_YEAR=2", stored)
+            self.assertLess(stored.index("KEEP_YEARLY"), stored.index("KEEP_FIVE_YEAR"))
             self.assertEqual(manager.config_path(config.slug).stat().st_mode & 0o777, 0o600)
 
     def test_prune_keeps_newest_distinct_retention_buckets_and_sidecars(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             manager = self.manager(directory)
-            config = ZipBackupConfig("MattMC", "mattmc", root, root, "mattmc", keep_daily=1, keep_weekly=1, keep_monthly=1, keep_yearly=1)
+            config = ZipBackupConfig("MattMC", "mattmc", root, root, "mattmc", keep_daily=1, keep_weekly=1, keep_monthly=1, keep_yearly=1, keep_five_year=1)
             old = root / "mattmc_2024-01-01_12-00-00.zip"
             latest = root / "mattmc_2025-02-03_12-00-00.zip"
             for archive in (old, latest):
@@ -51,7 +53,7 @@ class ZipBackupManagerTests(unittest.TestCase):
             self.assertTrue(latest.exists())
             self.assertTrue(latest.with_name(f"{latest.name}.sha256").exists())
 
-    def test_create_archive_uses_legacy_zip_cwd_and_validates_before_checksum(self):
+    def test_create_archive_uses_shared_tar_zst_engine_and_validates_before_checksum(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "source"
@@ -63,12 +65,20 @@ class ZipBackupManagerTests(unittest.TestCase):
                 run_command.return_value.returncode = 0
                 with patch.object(Path, "replace") as replace:
                     archive = manager.create_archive(config, datetime(2026, 8, 6, 12, 30, 15))
-            self.assertEqual(archive.name, "mattmc_2026-08-06_12-30-15.zip")
-            self.assertEqual(run_command.call_args_list[0].args[0][:4], ("zip", "-r", "-q", str(destination / "mattmc_2026-08-06_12-30-15.zip.tmp")))
-            self.assertEqual(run_command.call_args_list[0].kwargs["cwd"], source.parent)
-            self.assertEqual(run_command.call_args_list[1].args[0], ("unzip", "-tqq", str(archive)))
+            self.assertEqual(archive.name, "mattmc_2026-08-06_12-30-15.tar.zst")
+            self.assertEqual(run_command.call_args_list[0].args[0][:5], ("tar", "--zstd", "-cf", str(destination / "mattmc_2026-08-06_12-30-15.tar.zst.tmp"), "-C"))
+            self.assertEqual(run_command.call_args_list[0].args[0][-1], "source")
+            self.assertEqual(run_command.call_args_list[1].args[0], ("zstd", "--test", "--quiet", str(destination / "mattmc_2026-08-06_12-30-15.tar.zst.tmp")))
+            self.assertEqual(run_command.call_args_list[2].args[0], ("tar", "--zstd", "-tf", str(destination / "mattmc_2026-08-06_12-30-15.tar.zst.tmp")))
             replace.assert_called_once_with(archive)
-            checksum.assert_called_once_with(archive)
+            checksum.assert_called_once_with(archive, None)
+
+    def test_default_configs_are_discovered_from_resources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            manager = self.manager(directory)
+            defaults = manager.default_configs()
+            self.assertTrue(any(config.slug == "mattmc" for config in defaults))
+            self.assertEqual(manager.find_default_config("MattMC").prefix, "mattmc")
 
     def test_helper_and_timer_keep_legacy_names_and_daily_semantics(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -44,10 +44,12 @@ status, listing, verification, and publication for either selected repository.
 
 Setup installs dependencies, initializes only the selected repository, saves both
 configurations to `/etc/mattos-repository/server.json`, and updates the shared
-service. It starts MattPackages as a signed empty archive. If its local archive
-is absent but its bucket already contains repository files, setup refuses to
-import or overwrite those files. Existing initialized archives are retained on
-repeated setup. Keep a backup of local repository state for disaster recovery.
+service. That service also serves both read-only APT archives on loopback; a
+separate public-service setup command is not needed. It starts MattPackages as
+a signed empty archive. If its local archive is absent but its bucket already
+contains repository files, setup refuses to import or overwrite those files.
+Existing initialized archives are retained on repeated setup. Keep a backup of
+local repository state for disaster recovery.
 
 The existing MattOS root, bucket, public URL, package contents, and key remain in
 use. If your existing server uses non-default paths or R2 settings, supply those
@@ -84,7 +86,7 @@ and `MATTOS_REPOSITORY_SERVICE_USER` customize service installation.
 
 ### Explicit client selection
 
-The standalone helper still defaults to `http://hunglosvr:8790`:
+The standalone helper still defaults to `http://hunglosvr.tail30f889.ts.net:8790`:
 
 ```bash
 python3 GenericScripts/ManageMattOSRepository.py --repo mattos list
@@ -92,7 +94,15 @@ python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages list
 python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages status
 python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages --dry-run upload package.deb
 python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages upload package.deb
+python3 GenericScripts/ManageMattOSRepository.py --repo mattpackages upload --no-overwrites package.deb
 ```
+
+`upload` and `add` replace an existing package with the same name, version,
+and architecture by default. Put `--no-overwrites` after the subcommand to
+reject that collision instead. The server administration commands accept the
+same flag. APT will not upgrade an already installed package when its version
+is unchanged; increase the version for normal upgrades. Previously cached
+package URLs may retain old bytes until their cache expires or is purged.
 
 Every command requires `--repo mattos` or `--repo mattpackages`, including
 `doctor`, `init`, `add`/`upload`, `remove`, `publish`, `list`, `status`, `verify`,
@@ -135,6 +145,42 @@ separate lock in each bucket. Public R2 uploads are incremental, not an atomic
 multi-object transaction. Normal synchronization never imports remote packages
 into an empty archive or restores the last package after explicit removal.
 
+### Serving packages from the home server
+
+The management API remains on the private Tailscale address. The same managed
+service opens read-only APT listeners on `127.0.0.1:8791` for MattOS and
+`127.0.0.1:8792` for MattPackages. They serve `GET` and `HEAD` requests for
+`dists/` and `pool/` only, with `Cache-Control: no-store`; they do not expose
+upload, key export, or other management routes.
+
+Run `Tools/Setup.py` as the server user, open **Server Manager**, choose
+**Debian repository management**, select a repository, and choose **setup**.
+At the publication prompt, select `local` to move that repository's public
+hostname from R2 to the home server. The same setup action installs the
+`cloudflared` connector, creates or updates one managed tunnel and its systemd
+service, adds a Cloudflare cache bypass rule when the token permits it, removes its R2
+custom-domain connection, updates DNS, and verifies the public signed archive.
+The Cloudflare API token comes from the `MattPackages Cloudflare Setup`
+Bitwarden item. The user running setup must be able to unlock that vault;
+privileged installation steps use `sudo` when needed. The token needs account
+Cloudflare Tunnel Edit, zone DNS Edit, and account Workers R2 Storage Write
+permissions. Cache Rules Edit allows setup to install an explicit bypass rule;
+without it, the origin sends `no-store` headers and setup checks the public
+response for caching. Setup checks Cloudflare access before changing
+the local publication setting.
+
+Alternatively, use the existing repository wrapper as the server user:
+
+```bash
+python3 Tools/ManageMattOSRepositoryServer.py --repo mattos setup --publication local
+python3 Tools/ManageMattOSRepositoryServer.py --repo mattpackages setup --publication local
+```
+
+The publication setting is persisted in `server.json`. The tunnel can route
+both hostnames while each repository's publication setting remains independent.
+Changing to `local` does not delete existing R2 objects or buckets. Selecting
+`r2` later resumes R2 publication; it does not switch public DNS back to R2.
+
 The local HTTP server exposes `/repositories/mattos/dists/...` and
 `/repositories/mattpackages/dists/...` (and corresponding `pool/...` paths).
 The old public `/repository/...` path remains a MattOS download alias; it is not
@@ -157,7 +203,7 @@ Run the Linux-only server administration interface with:
 python3 Tools/ServerManager.py
 ```
 
-The Btrfs Snapshot Manager elevates independently because it manages Btrfs subvolumes. Container and Restic management intentionally run as the invoking user, preserving user-owned service data and configuration.
+The Btrfs Snapshot Manager elevates independently because it manages Btrfs subvolumes. Container, Restic, ZIP, and GitHub backup management intentionally run as the invoking user, preserving user-owned service data and configuration. GitHub backup setup invokes `src/server/github_backups.py --install`, which installs or updates its persistent six-hour timer.
 
 ## Restic Backups
 
@@ -196,3 +242,59 @@ python3 src/containers/run_uptime_kuma.py
 ```
 
 It preserves the no-argument install/update/start behavior and `--on`, `--off`, and `-D` lifecycle flags. The container is named `uptime-kuma`, uses `louislam/uptime-kuma:latest`, persists data at `~/.uptime-kuma/data`, and serves the UI at `http://localhost:3002` by default. Set `UPTIME_KUMA_PORT` before running it to select another host port.
+
+## Cryptomator and Jellyfin
+
+Server Manager includes a standalone Cryptomator vault manager, also available as:
+
+```bash
+python3 Tools/ManageCryptomator.py
+```
+
+Setup mounts the decrypted MattsVault at `/mnt/cryptomator/mattsvault`, outside
+the `/srv/storage` Samba tree. It installs a pinned Cryptomator CLI, a root-owned
+runtime and configuration, the narrowly scoped AppArmor rules required by FUSE,
+enables `user_allow_other` in `/etc/fuse.conf`, mounts with Cryptomator's required
+`--mountOption=-oallow_other` syntax, and installs an enabled
+`cryptomator-mattsvault.service`. Setup and reconciliation restart
+the vault service and succeed only after the mount is a non-empty FUSE filesystem.
+
+The password is stored separately with mode `0600` under the configuring user's
+`~/.config/cryptomator-vault-manager/credentials/` directory. Existing password
+and service files are detected, and interactive setup asks before replacing them.
+Automatic unlocking necessarily means the server can obtain this password at boot.
+
+The optional `cryptomator-mattsvault-jellyfin.service` is installed but is not
+enabled automatically. Jellyfin's base Compose stack has no Cryptomator dependency and starts
+normally while the vault is unavailable. Enabling the integration explicitly may
+recreate only Jellyfin, adding the decrypted mount read-only at `/vault-media`.
+The watcher reattaches it if the base container is recreated and removes the bind
+before an intentional vault shutdown. Enabling the integration first verifies
+that the live FUSE mount allows Docker access, then waits until Jellyfin itself
+can enumerate non-empty `/vault-media` contents. If the mount predates this
+support, run the manager's reconcile option before enabling integration.
+
+### Activating the Jellyfin mount
+
+Starting from `python3 Tools/ServerManager.py`:
+
+1. Select **Cryptomator vault manager** and confirm the Server Manager prompt.
+2. Select **Reconcile installed files and restart vault**. This updates the
+   deployed helper and remounts the vault with Docker access; it does not touch
+   Jellyfin while the optional integration is disabled.
+3. Select **Show status** and require `mount access ready`, an enabled/active
+   vault service, and a nonzero content count.
+4. Select **Enable optional Jellyfin integration**, then confirm the explicit
+   warning that only Jellyfin will be recreated. Do not continue until the
+   manager reports that Jellyfin can read nonzero `/vault-media` entries.
+5. Before creating the library, open **Dashboard → Users → Library Access** for
+   every user who must not see it. Turn off access to all libraries and select
+   only the existing libraries that user should retain. Jellyfin otherwise gives
+   users with “access to all libraries” automatic access to newly added ones.
+6. Open **Administration Dashboard → Server → Libraries**, add a dedicated media
+   library, and enter `/vault-media` as its folder. Prefer a specific content
+   type over `Mixed` when the vault layout permits it.
+
+The mount is intentionally read-only in Jellyfin. Metadata, artwork, and the
+Jellyfin database remain under the regular `/config` bind rather than being
+written into the decrypted vault.

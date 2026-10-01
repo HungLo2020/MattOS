@@ -144,7 +144,7 @@ class R2Publisher:
             if key.startswith("dists/"):
                 content = "text/plain; charset=utf-8"
             elif key.endswith(".deb"):
-                content = "application/vnd.debian.binary-package"; cache = "public, max-age=31536000, immutable"
+                content = "application/vnd.debian.binary-package"
             elif key.endswith(".gz"):
                 content = "application/gzip"
             with path.open("rb") as body:

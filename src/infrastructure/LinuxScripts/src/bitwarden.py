@@ -168,6 +168,22 @@ class BitwardenClient:
             self.fail(f"Bitwarden item {name!r} has invalid data.")
         return item
 
+    def update_login_password(self, name: str, password: str) -> None:
+        """Replace one existing login secret without changing its other fields."""
+        if not password:
+            self.fail("Refusing to save an empty Bitwarden login password.")
+        self.ensure_session()
+        self.run(("bw", "sync"))
+        item = self.item(name)
+        if item is None or not isinstance(item.get("login"), dict):
+            self.fail(f"Bitwarden item {name!r} is not a login item.")
+        item["login"]["password"] = password
+        encoded = self.run(("bw", "encode"), input_text=json.dumps(item)).stdout.strip()
+        self.run(("bw", "edit", "item", str(item["id"])), input_text=encoded)
+        saved = self.item(name)
+        if saved is None or (saved.get("login") or {}).get("password") != password:
+            self.fail(f"Bitwarden item {name!r} could not be verified after update.")
+
     def create_secure_note(self, name: str, notes: str) -> None:
         if self.item(name, required=False) is not None:
             self.fail(f"Refusing to overwrite existing Bitwarden item: {name}")

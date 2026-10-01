@@ -1,9 +1,11 @@
 # MattOS remote repository integration
 
 MattOS builds and validates `.deb` files. The imported LinuxScripts publisher
-uploads explicitly approved artifacts to the home repository service, which
-publishes them to Cloudflare R2 for `https://packages.mattsherfey.com`
-(`trixie`, `main`, `amd64`/`all`).
+uploads explicitly approved artifacts to the home repository service
+(`mattos-repository.service` on hunglosvr, reached over Tailscale at
+`http://hunglosvr.tail30f889.ts.net:8790`), which serves
+`https://packages.mattsherfey.com` through Cloudflare (`trixie`, `main`,
+`amd64`/`all`).
 
 The authoritative upstream is imported as ordinary source, without a nested
 Git repository:
@@ -11,7 +13,7 @@ Git repository:
 ```text
 repository: https://github.com/HungLo2020/LinuxScripts.git
 branch: master
-commit: d1e85219c8f86ceaa1135312126d02fa4dbee623
+commit: da40e3473e4d8f6b9d492ad63be33af966036773
 destination: src/infrastructure/LinuxScripts
 sync method: copy
 ```
@@ -21,7 +23,7 @@ sync method: copy
 
 ```text
 src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py
-SHA-256: 0b0be18e1164481612aa41ab6300c301b5d1088f86f9f653aed5a516ed50f35c
+SHA-256: cd3ad79486f35655fe2e8c8e907a91fecdac89421effd823793e9ca5cebdead7
 ```
 
 The imported component is externally maintained and read-only in MattOS.

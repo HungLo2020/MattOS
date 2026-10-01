@@ -11,6 +11,10 @@ match the published one is truly unchanged and is skipped; a new or newer
 version is uploaded, and so is a rebuild whose bytes differ under the same
 version (the publisher replaces it in place, which testing relies on).  A
 version older than the published one is refused.
+
+Repository requests that fail for a transient reason (the server unreachable,
+a timeout, HTTP 5xx) are retried ten times, ten seconds apart; a rejection
+fails at once.
 """
 
 from __future__ import annotations
@@ -20,13 +24,15 @@ import gzip
 import re
 import subprocess
 import sys
+import time
 import tomllib
+import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import run_qemu
-from common import RepoError, find_repo_root, run_command
+from common import RepoError, find_repo_root
 
 
 PACKAGE_OUTPUT_RELATIVE = Path("out/packages/amd64")
@@ -36,6 +42,46 @@ PUBLISHER_RELATIVE = Path(
 )
 REPOSITORY_SOURCES_RELATIVE = Path("src/system/packages/config/apt/mattos-hosted.sources")
 THIRD_PARTY_RELEASES_RELATIVE = Path("third-party-packages/releases.json")
+REPOSITORY_RETRIES = 10
+REPOSITORY_RETRY_DELAY = 10
+# Publisher output that means the server could not be reached or failed
+# while handling the request, rather than rejecting it.
+TRANSIENT_PUBLISHER_OUTPUT = re.compile(
+    r"server is unreachable|ConnectionResetError|ConnectionRefusedError|TimeoutError|timed out"
+    r"|RemoteDisconnected|BrokenPipeError|IncompleteRead|returned invalid JSON"
+)
+
+
+class TransientRepositoryError(RepoError):
+    """A repository request failed in a way a later attempt may not."""
+
+
+def transient_http_status(code: int) -> bool:
+    return code >= 500 or code in (408, 429)
+
+
+def transient_publisher_failure(output: str) -> bool:
+    """The publisher reports every server problem as a remote error, so the
+    HTTP status in its message decides: 4xx (but 408 and 429) is a refusal."""
+    status = re.search(r"returned HTTP (\d{3})", output)
+    if status:
+        return transient_http_status(int(status.group(1)))
+    return bool(TRANSIENT_PUBLISHER_OUTPUT.search(output))
+
+
+def with_repository_retries(action, what: str):
+    """Run `action`, retrying a TransientRepositoryError REPOSITORY_RETRIES
+    times REPOSITORY_RETRY_DELAY seconds apart before giving up."""
+    for attempt in range(REPOSITORY_RETRIES + 1):
+        try:
+            return action()
+        except TransientRepositoryError as exc:
+            if attempt == REPOSITORY_RETRIES:
+                raise RepoError(f"{exc} (gave up after {REPOSITORY_RETRIES} retries)") from exc
+            print(f"{what} failed ({exc}); retry {attempt + 1}/{REPOSITORY_RETRIES} "
+                  f"in {REPOSITORY_RETRY_DELAY} s", flush=True)
+            time.sleep(REPOSITORY_RETRY_DELAY)
+    raise AssertionError("unreachable")
 
 
 def parse_args() -> argparse.Namespace:
@@ -124,7 +170,24 @@ def upload_packages(repo_root: Path, packages: list[Path], *, dry_run: bool) -> 
     if dry_run:
         command.append("--dry-run")
     command.extend(["--repo", "mattos", "upload", *(str(package) for package in packages)])
-    run_command(command, cwd=repo_root)
+
+    def upload() -> None:
+        print("+", " ".join(command), flush=True)
+        try:
+            completed = subprocess.run(command, cwd=repo_root, text=True, check=False,
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        except OSError as exc:
+            raise RepoError(f"failed to execute the publisher: {exc}") from exc
+        print(completed.stdout, end="", flush=True)
+        if completed.returncode:
+            lines = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+            reason = lines[-1] if lines else f"exit code {completed.returncode}"
+            # Re-uploading a package with the same bytes is harmless, so the
+            # whole batch is simply repeated.
+            error = (TransientRepositoryError if transient_publisher_failure(completed.stdout) else RepoError)
+            raise error(f"upload failed: {reason}")
+
+    with_repository_retries(upload, "uploading packages")
 
 
 @dataclass(frozen=True)
@@ -212,13 +275,19 @@ def published_index_url(repo_root: Path) -> str:
 
 
 def fetch_published_index(url: str) -> str:
-    try:
-        # The CDN refuses urllib's default User-Agent.
-        request = urllib.request.Request(url, headers={"User-Agent": "MattOS-PublishPackages/1"})
-        with urllib.request.urlopen(request, timeout=60) as response:
-            return gzip.decompress(response.read()).decode("utf-8")
-    except OSError as exc:
-        raise RepoError(f"could not read the published package index {url}: {exc}") from exc
+    def fetch() -> str:
+        try:
+            # The CDN refuses urllib's default User-Agent.
+            request = urllib.request.Request(url, headers={"User-Agent": "MattOS-PublishPackages/1"})
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return gzip.decompress(response.read()).decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            error = TransientRepositoryError if transient_http_status(exc.code) else RepoError
+            raise error(f"could not read the published package index {url}: {exc}") from exc
+        except OSError as exc:
+            raise TransientRepositoryError(f"could not read the published package index {url}: {exc}") from exc
+
+    return with_repository_retries(fetch, "reading the published package index")
 
 
 def parse_packages_index(text: str) -> dict[tuple[str, str], list[PublishedPackage]]:

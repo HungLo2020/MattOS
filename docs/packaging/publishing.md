@@ -42,3 +42,24 @@ A replaced package keeps its version, so a system that already installed that
 version keeps its old bytes until it reinstalls the package (`apt install
 --reinstall`) or installs fresh; fresh test installs always get the new bytes. The build itself never publishes; see
 [MattOS remote repository integration](remote-repository.md).
+
+## Transient repository failures
+
+Reading the index and uploading are retried when they fail for a reason that
+can pass: the server unreachable (refused, reset or timed-out connections),
+HTTP 5xx, 408 or 429. Each is retried ten times, ten seconds apart, before the
+script fails. A rejection (bad credentials, an invalid package, any other HTTP
+4xx) fails at once. Re-uploading a package with the same bytes is harmless, so
+a failed batch is simply repeated. Third-party recipes follow the same policy
+([Third-party packages](third-party-packages.md)).
+
+The publisher reaches the server by its Tailscale name,
+`http://hunglosvr.tail30f889.ts.net:8790`, because the service listens only
+on the server's Tailscale address. The bare name `hunglosvr` is ambiguous: the
+home router's DNS also answers it (`hunglosvr.home.local`, an address where
+nothing listens on 8790). On 2026-10-01, while the router's IPv6 route was
+flapping, that answer won and uploads were refused for about an hour although
+the service never stopped; the publisher then still defaulted to the bare
+name. A `SERVER_URL` in `~/.config/mattos-repository/client.conf` or
+`MATTOS_REPOSITORY_SERVER_URL` overrides the default; keep it a fully
+qualified name.

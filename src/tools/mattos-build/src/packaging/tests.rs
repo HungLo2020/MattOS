@@ -2305,7 +2305,7 @@ fn compatibility_manifest_pins_and_read_only_publisher_validate() {
             &root.join("src/infrastructure/LinuxScripts/GenericScripts/ManageMattOSRepository.py")
         )
         .unwrap(),
-        "0b0be18e1164481612aa41ab6300c301b5d1088f86f9f653aed5a516ed50f35c"
+        "cd3ad79486f35655fe2e8c8e907a91fecdac89421effd823793e9ca5cebdead7"
     );
 }
 

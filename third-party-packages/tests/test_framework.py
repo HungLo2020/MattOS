@@ -336,9 +336,85 @@ class FrameworkTests(unittest.TestCase):
             with self.assertRaises(framework.RecipeError):
                 framework.repository_versions(root, "fixture", "mattos", snapshot)
 
+    def test_transient_repository_failures_are_retried_and_rejections_are_not(self):
+        unreachable = framework.RecipeError("command failed\nError [remote]: Repository server is unreachable: http://x")
+        rejected = framework.RecipeError("command failed\nError [remote]: Repository server returned HTTP 400: bad deb")
+        overloaded = framework.RecipeError("command failed\nError [remote]: Repository server returned HTTP 503: busy")
+        for error, transient in ((unreachable, True), (overloaded, True), (rejected, False),
+                                 (framework.RecipeError("Error [package]: not a deb"), False),
+                                 (framework.RecipeError("Error [remote]: Repository server returned HTTP 429: slow"), True),
+                                 (framework.RecipeError("Traceback ...\nConnectionResetError: reset"), True)):
+            with self.subTest(error=str(error)):
+                self.assertEqual(framework.transient_publisher_failure(str(error)), transient)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            artifact = root / "fixture_1.0_amd64.deb"
+            # Recovers on the eleventh attempt: ten retries, ten seconds apart.
+            with mock.patch.object(framework, "command", side_effect=[unreachable] * 10 + ["ok"]) as run, \
+                 mock.patch.object(framework.time, "sleep") as sleep:
+                framework.publish(root, artifact, repository="mattos", dry_run=False)
+            self.assertEqual(run.call_count, 11)
+            self.assertEqual([call.args[0] for call in sleep.call_args_list], [10] * 10)
+            with mock.patch.object(framework, "command", side_effect=[unreachable] * 11) as run, \
+                 mock.patch.object(framework.time, "sleep"), self.assertRaises(framework.RecipeError):
+                framework.publish(root, artifact, repository="mattos", dry_run=False)
+            self.assertEqual(run.call_count, 11)
+            with mock.patch.object(framework, "command", side_effect=[rejected]) as run, \
+                 mock.patch.object(framework.time, "sleep") as sleep, self.assertRaises(framework.RecipeError):
+                framework.publish(root, artifact, repository="mattos", dry_run=False)
+            self.assertEqual((run.call_count, sleep.call_count), (1, 0))
+
+    def test_index_reads_and_dependency_downloads_retry_transient_failures(self):
+        import gzip as gzip_module
+        import urllib.error
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return gzip_module.compress(b"Package: a\nVersion: 1\n")
+
+        def http(code):
+            return urllib.error.HTTPError("u", code, "x", {}, None)
+
+        with mock.patch.object(framework, "repository_index_url", return_value="https://example.invalid/Packages.gz"), \
+             mock.patch.object(framework.time, "sleep") as sleep:
+            with mock.patch.object(framework, "urlopen", side_effect=[OSError("refused"), http(502), Response()]):
+                self.assertEqual(list(framework.repository_inventory(Path("/repo"), "mattos")), ["a"])
+            self.assertEqual(sleep.call_count, 2)
+            with mock.patch.object(framework, "urlopen", side_effect=[OSError("refused"), http(404)]):
+                self.assertEqual(framework.repository_inventory(Path("/repo"), "mattos"), {})
+            sleep.reset_mock()
+            with mock.patch.object(framework, "urlopen", side_effect=http(403)), \
+                 self.assertRaises(framework.RecipeError):
+                framework.repository_inventory(Path("/repo"), "mattos")
+            self.assertEqual(sleep.call_count, 0)
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            published = framework.PublishedPackage("1", "", "pool/l/libx_1_amd64.deb")
+            down = framework.RecipeError("download failed after retries")
+            down.__cause__ = urllib.error.URLError("unreachable")
+            missing = framework.RecipeError("download failed after retries")
+            missing.__cause__ = http(404)
+            config = mock.Mock(public_url="https://repo.invalid")
+            with mock.patch.object(framework, "_publisher_config", return_value=config), \
+                 mock.patch.object(framework.time, "sleep"):
+                with mock.patch.object(framework, "download", side_effect=[down, None]) as fetch:
+                    framework.fetch_build_dependencies(Path("/repo"), "mattos", workspace, [("libx", published)])
+                self.assertEqual(fetch.call_count, 2)
+                with mock.patch.object(framework, "download", side_effect=missing) as fetch, \
+                     self.assertRaises(framework.RecipeError):
+                    framework.fetch_build_dependencies(Path("/repo"), "mattos", workspace, [("libx", published)])
+                self.assertEqual(fetch.call_count, 1)
+
     def test_repository_lookup_failure_is_not_version_absent(self):
         with mock.patch.object(framework, "repository_index_url", return_value="https://example.invalid/Packages.gz"), \
-             mock.patch.object(framework, "urlopen", side_effect=OSError("offline")):
+             mock.patch.object(framework, "urlopen", side_effect=OSError("offline")), \
+             mock.patch.object(framework.time, "sleep"):
             with self.assertRaises(framework.RecipeError):
                 framework.repository_versions(Path("/repo"), "fastfetch", "mattos")
 

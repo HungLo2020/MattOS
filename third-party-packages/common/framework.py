@@ -25,6 +25,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import tomllib
 import urllib.error
 from dataclasses import dataclass
@@ -54,6 +55,13 @@ BUILDER_IMAGE_METADATA = Path("out/images/mattos-builder.json")
 
 
 MATTOS_INVENTORY = Path("out/packages/inventory.toml")
+
+
+# How often, and how far apart, a repository request that failed for a
+# transient reason (the server unreachable, a timeout, HTTP 5xx) is retried.
+# A rejection (bad credentials, an invalid package, other HTTP 4xx) fails at once.
+REPOSITORY_RETRIES = 10
+REPOSITORY_RETRY_DELAY = 10
 
 
 # Built packages whose upload failed, kept so the next update can publish
@@ -280,6 +288,55 @@ def resolve_build_dependencies(root: Path, recipe: PackageRecipe,
     return resolved
 
 
+def transient_http_status(code: int) -> bool:
+    return code >= 500 or code in (408, 429)
+
+
+def transient_request_error(exc: BaseException) -> bool:
+    """Whether a failed request to the repository may succeed later."""
+    while exc is not None:
+        if isinstance(exc, urllib.error.HTTPError):
+            return transient_http_status(exc.code)
+        if isinstance(exc, OSError):  # URLError, timeouts, refused or reset connections
+            return True
+        exc = exc.__cause__
+    return False
+
+
+# Publisher output that means the server could not be reached or failed
+# while handling the request, rather than rejecting it.
+_TRANSIENT_PUBLISHER_OUTPUT = re.compile(
+    r"server is unreachable|ConnectionResetError|ConnectionRefusedError|TimeoutError|timed out"
+    r"|RemoteDisconnected|BrokenPipeError|IncompleteRead|returned invalid JSON"
+)
+
+
+def transient_publisher_failure(output: str) -> bool:
+    """Whether a failed upload by the vendored publisher is worth retrying.
+    The publisher reports every server problem as a remote error, so the
+    HTTP status in its message decides: 4xx (but 408 and 429) is a refusal."""
+    status = re.search(r"returned HTTP (\d{3})", output)
+    if status:
+        return transient_http_status(int(status.group(1)))
+    return bool(_TRANSIENT_PUBLISHER_OUTPUT.search(output))
+
+
+def with_repository_retries(action, what: str, transient):
+    """Run `action`, retrying a transient failure REPOSITORY_RETRIES times
+    REPOSITORY_RETRY_DELAY seconds apart before giving up."""
+    for attempt in range(REPOSITORY_RETRIES + 1):
+        try:
+            return action()
+        except RecipeError as exc:
+            if attempt == REPOSITORY_RETRIES or not transient(exc):
+                raise
+            reason = [line.strip() for line in str(exc).splitlines() if line.strip()][-1:] or [type(exc).__name__]
+            print(f"{what} failed ({reason[0]}); retry {attempt + 1}/{REPOSITORY_RETRIES} "
+                  f"in {REPOSITORY_RETRY_DELAY} s", flush=True)
+            time.sleep(REPOSITORY_RETRY_DELAY)
+    raise AssertionError("unreachable")
+
+
 def fetch_build_dependencies(root: Path, repository: str, workspace: Path,
                              dependencies: Sequence[tuple[str, PublishedPackage]]) -> None:
     """Download the dependency packages into the workspace, where the
@@ -288,7 +345,9 @@ def fetch_build_dependencies(root: Path, repository: str, workspace: Path,
         return
     base = _publisher_config(root, repository).public_url.rstrip("/")
     for name, package in dependencies:
-        download(f"{base}/{package.filename}", workspace / THIRD_PARTY_DEPENDENCY_DIR / Path(package.filename).name)
+        url = f"{base}/{package.filename}"
+        destination = workspace / THIRD_PARTY_DEPENDENCY_DIR / Path(package.filename).name
+        with_repository_retries(lambda: download(url, destination), f"downloading {name}", transient_request_error)
 
 
 def container_memory_high() -> int | None:
@@ -414,17 +473,21 @@ def repository_inventory(root: Path, repository: str) -> dict[str, list[Publishe
     if repository not in VALID_REPOSITORIES:
         raise RecipeError(f"unsupported repository {repository!r}")
     url = repository_index_url(root, repository)
-    try:
-        request = Request(url, headers={"User-Agent": "MattOS-third-party-packages/2"})
-        with urlopen(request, timeout=60) as response:
-            text = gzip.decompress(response.read()).decode("utf-8")
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            return {}
-        raise RecipeError(f"could not read the {repository} package index {url}: {exc}") from exc
-    except OSError as exc:
-        raise RecipeError(f"could not read the {repository} package index {url}: {exc}") from exc
-    return parse_packages_index(text)
+
+    def fetch() -> str | None:
+        try:
+            request = Request(url, headers={"User-Agent": "MattOS-third-party-packages/2"})
+            with urlopen(request, timeout=60) as response:
+                return gzip.decompress(response.read()).decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return None
+            raise RecipeError(f"could not read the {repository} package index {url}: {exc}") from exc
+        except OSError as exc:
+            raise RecipeError(f"could not read the {repository} package index {url}: {exc}") from exc
+
+    text = with_repository_retries(fetch, f"reading the {repository} package index", transient_request_error)
+    return {} if text is None else parse_packages_index(text)
 
 
 def write_repository_inventory(path: Path, repository: str, inventory: dict[str, list[PublishedPackage]]) -> None:
@@ -569,7 +632,10 @@ def publish(root: Path, artifact: Path, *, repository: str, dry_run: bool) -> No
     if dry_run:
         args.append("--dry-run")
     args += ["--repo", repository, "upload", str(artifact)]
-    command(args, cwd=root)
+    # Replacing a package with the same bytes is harmless, so a failed
+    # upload can simply be repeated.
+    with_repository_retries(lambda: command(args, cwd=root), f"uploading {artifact.name}",
+                            lambda exc: transient_publisher_failure(str(exc)))
 
 
 def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:

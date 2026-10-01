@@ -25,6 +25,21 @@ Start the interactive setup interface to inspect the host, choose a profile, rev
 python3 Tools/Setup.py
 ```
 
+On Linux APT hosts (including Debian, Kubuntu, and MattOS), interactive setup offers to enable
+MattPackages before package selection. Press Enter to decline. On supported `amd64` machines,
+accepting installs the bundled public signing key in `/etc/apt/keyrings/mattpackages-archive-keyring.asc`
+and an enabled `/etc/apt/sources.list.d/mattpackages.sources` for
+`https://mattpackages.mattsherfey.com`, suite `stable`, component `main`. It refreshes that repository
+through APT, including signature verification, even if you subsequently skip package installation.
+No Bitwarden or Tailscale access is needed. Other architectures are skipped.
+
+Repeating setup preserves correct files and repairs its own missing or disabled configuration.
+An existing MattPackages entry elsewhere, or a source file not managed by LinuxScripts at the
+same path, produces an explanation instead of duplicate entries or overwriting that configuration.
+If APT refresh fails, setup stops before package installation; the installed source and key remain
+available for diagnosis and retry. This option does not change the MattOS repository or install
+applications by itself. Command-line `profiles`, `plan`, and `apply` do not enroll the machine.
+
 `Setup.py` also exposes non-interactive commands for automation:
 
 ```bash

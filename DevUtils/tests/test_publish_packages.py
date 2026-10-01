@@ -52,7 +52,7 @@ class PublishPackagesTests(unittest.TestCase):
 
     def test_upload_delegates_all_discovered_packages_to_vendored_manager(self) -> None:
         packages = [Path("/repo/out/packages/amd64/a.deb"), Path("/repo/out/packages/amd64/b.deb")]
-        with mock.patch("PublishPackages.run_command") as run:
+        with mock.patch("PublishPackages.subprocess.run", return_value=mock.Mock(returncode=0, stdout="")) as run:
             with mock.patch.object(PublishPackages, "publisher_path", return_value=Path("/repo/ManageMattOSRepository.py")):
                 PublishPackages.upload_packages(Path("/repo"), packages, dry_run=True)
         command = run.call_args.args[0]
@@ -61,13 +61,65 @@ class PublishPackagesTests(unittest.TestCase):
 
     def test_upload_selects_mattos_without_dry_run(self) -> None:
         packages = [Path("/repo/out/packages/amd64/a.deb")]
-        with mock.patch("PublishPackages.run_command") as run:
+        with mock.patch("PublishPackages.subprocess.run", return_value=mock.Mock(returncode=0, stdout="")) as run:
             with mock.patch.object(PublishPackages, "publisher_path", return_value=Path("/repo/ManageMattOSRepository.py")):
                 PublishPackages.upload_packages(Path("/repo"), packages, dry_run=False)
         self.assertEqual(
             run.call_args.args[0],
             [sys.executable, "/repo/ManageMattOSRepository.py", "--non-interactive", "--repo", "mattos", "upload", str(packages[0])],
         )
+
+
+    def test_transient_upload_failures_are_retried_ten_times_ten_seconds_apart(self) -> None:
+        packages = [Path("/repo/out/packages/amd64/a.deb")]
+        unreachable = mock.Mock(returncode=40, stdout="Error [remote]: Repository server is unreachable: http://x\n")
+        rejected = mock.Mock(returncode=40, stdout="Error [remote]: Repository server returned HTTP 400: bad\n")
+        ok = mock.Mock(returncode=0, stdout="uploaded\n")
+        patches = (mock.patch.object(PublishPackages, "publisher_path", return_value=Path("/repo/m.py")),
+                   mock.patch("PublishPackages.time.sleep"))
+        with patches[0], patches[1] as sleep, \
+             mock.patch("PublishPackages.subprocess.run", side_effect=[unreachable] * 10 + [ok]) as run:
+            PublishPackages.upload_packages(Path("/repo"), packages, dry_run=False)
+        self.assertEqual(run.call_count, 11)
+        self.assertEqual([call.args[0] for call in sleep.call_args_list], [10] * 10)
+        with patches[0], patches[1], \
+             mock.patch("PublishPackages.subprocess.run", return_value=unreachable) as run, \
+             self.assertRaisesRegex(PublishPackages.RepoError, "gave up after 10 retries"):
+            PublishPackages.upload_packages(Path("/repo"), packages, dry_run=False)
+        self.assertEqual(run.call_count, 11)
+        with patches[0], patches[1] as sleep, \
+             mock.patch("PublishPackages.subprocess.run", return_value=rejected) as run, \
+             self.assertRaisesRegex(PublishPackages.RepoError, "HTTP 400"):
+            PublishPackages.upload_packages(Path("/repo"), packages, dry_run=False)
+        self.assertEqual((run.call_count, sleep.call_count), (1, 0))
+
+    def test_index_fetch_retries_transient_failures_only(self) -> None:
+        import gzip
+        import urllib.error
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return gzip.compress(b"Package: a\n")
+
+        def http(code):
+            return urllib.error.HTTPError("u", code, "x", {}, None)
+
+        with mock.patch("PublishPackages.time.sleep") as sleep:
+            with mock.patch("PublishPackages.urllib.request.urlopen",
+                            side_effect=[OSError("refused"), http(503), Response()]):
+                self.assertEqual(PublishPackages.fetch_published_index("https://x"), "Package: a\n")
+            self.assertEqual(sleep.call_count, 2)
+            sleep.reset_mock()
+            with mock.patch("PublishPackages.urllib.request.urlopen", side_effect=http(404)), \
+                 self.assertRaises(PublishPackages.RepoError):
+                PublishPackages.fetch_published_index("https://x")
+            self.assertEqual(sleep.call_count, 0)
 
 
 def _package(name: str, version: str, sha: str = "a" * 64, dependencies: tuple[str, ...] = ()):

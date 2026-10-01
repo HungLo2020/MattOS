@@ -1,7 +1,7 @@
-"""Legacy-compatible local ZIP backup manager for Linux servers.
+"""Generic local archive-backup manager for Linux servers.
 
-This preserves the legacy configuration layout, archive names, retention
-algorithm, helper/unit names, menu commands, and systemd scheduling behavior.
+The historical ZIP configuration, helper, and systemd names remain supported
+so existing deployments can migrate to tar.zst without a destructive reset.
 """
 
 from __future__ import annotations
@@ -25,7 +25,13 @@ DEFAULT_SOURCE = Path("/srv/storage/Storage/Sync/MattMC")
 DEFAULT_PREFIX = "mattmc"
 DEFAULT_NAME = "MattMC"
 KEEP_DAILY, KEEP_WEEKLY, KEEP_MONTHLY, KEEP_YEARLY = 3, 3, 3, 2
+KEEP_FIVE_YEAR = 2
 ARCHIVE_TIME_FORMAT = "%Y-%m-%d_%H-%M-%S"
+ARCHIVE_EXTENSION = ".tar.zst"
+LEGACY_ARCHIVE_EXTENSION = ".zip"
+ARCHIVE_PATTERN = re.compile(
+    r"^(?P<prefix>.+)_(?P<timestamp>\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})(?P<extension>\.tar\.zst|\.zip)$"
+)
 
 
 def log(message: str) -> None:
@@ -48,7 +54,7 @@ def archive_prefix(value: str) -> str:
 
 @dataclass(frozen=True)
 class ZipBackupConfig:
-    """One persisted ZIP job using the legacy shell environment format."""
+    """One persisted archive job using the legacy shell environment format."""
 
     name: str
     slug: str
@@ -59,10 +65,28 @@ class ZipBackupConfig:
     keep_weekly: int = KEEP_WEEKLY
     keep_monthly: int = KEEP_MONTHLY
     keep_yearly: int = KEEP_YEARLY
+    keep_five_year: int = KEEP_FIVE_YEAR
+
+
+@dataclass(frozen=True)
+class ArchiveSpec:
+    """Description of one tar.zst archive for the shared backup engine."""
+
+    source_root: Path
+    members: tuple[str, ...]
+    destination: Path
+    prefix: str
+    timestamp_format: str = ARCHIVE_TIME_FORMAT
+    archive_extension: str = ARCHIVE_EXTENSION
+    checksum_name: str | None = None
 
 
 class ZipBackupManager:
-    """Manage verified ZIP backup archives and daily systemd timers."""
+    """Manage verified tar.zst archives and systemd timers.
+
+    GitHub backups use this class directly with a different ArchiveSpec, so
+    archive creation, verification, checksums, and deletion have one engine.
+    """
 
     def __init__(self, home: Path | None = None, manager_path: Path | None = None) -> None:
         self.home = home or Path.home()
@@ -110,16 +134,17 @@ class ZipBackupManager:
         return Path("/etc/systemd/system") / ZipBackupManager.timer_name(slug)
 
     def require_dependencies(self) -> None:
-        """Install the exact legacy zip/unzip dependencies on APT systems."""
+        """Install tar/zstd dependencies on APT systems when necessary."""
 
-        missing = [command for command in ("zip", "unzip") if shutil.which(command) is None]
+        missing = [command for command in ("tar", "zstd") if shutil.which(command) is None]
         if not missing:
             return
         if shutil.which("apt-get") is None:
-            raise RuntimeError("zip/unzip are missing and this distro is unsupported for automatic installation.")
+            raise RuntimeError("tar/zstd are missing and this distro is unsupported for automatic installation.")
         log(f"Missing dependencies: {' '.join(missing)}")
         self.sudo(("apt-get", "update"))
-        self.sudo(("apt-get", "install", "-y", *missing))
+        packages = ["zstd" if command == "zstd" else command for command in missing]
+        self.sudo(("apt-get", "install", "-y", *packages))
         if any(shutil.which(command) is None for command in missing):
             raise RuntimeError("dependency installation failed.")
 
@@ -148,7 +173,7 @@ class ZipBackupManager:
             raise RuntimeError(f"configuration file is missing required fields: {', '.join(missing)}")
         return ZipBackupConfig(
             values["CONFIG_NAME"], values.get("CONFIG_SLUG", path.stem), Path(values["BACKUP_DEST_DIR"]), Path(values["BACKUP_SOURCE_DIR"]), values["BACKUP_NAME"],
-            int(values.get("KEEP_DAILY", KEEP_DAILY)), int(values.get("KEEP_WEEKLY", KEEP_WEEKLY)), int(values.get("KEEP_MONTHLY", KEEP_MONTHLY)), int(values.get("KEEP_YEARLY", KEEP_YEARLY)),
+            int(values.get("KEEP_DAILY", KEEP_DAILY)), int(values.get("KEEP_WEEKLY", KEEP_WEEKLY)), int(values.get("KEEP_MONTHLY", KEEP_MONTHLY)), int(values.get("KEEP_YEARLY", KEEP_YEARLY)), int(values.get("KEEP_FIVE_YEAR", KEEP_FIVE_YEAR)),
         )
 
     def write_config(self, config: ZipBackupConfig) -> None:
@@ -159,6 +184,7 @@ class ZipBackupManager:
             "CONFIG_NAME": config.name, "CONFIG_SLUG": config.slug, "BACKUP_DEST_DIR": str(config.destination),
             "BACKUP_SOURCE_DIR": str(config.source), "BACKUP_NAME": config.prefix, "KEEP_DAILY": str(config.keep_daily),
             "KEEP_WEEKLY": str(config.keep_weekly), "KEEP_MONTHLY": str(config.keep_monthly), "KEEP_YEARLY": str(config.keep_yearly),
+            "KEEP_FIVE_YEAR": str(config.keep_five_year),
         }
         path = self.config_path(config.slug)
         path.write_text("".join(f"{key}={shlex.quote(value)}\n" for key, value in values.items()), encoding="utf-8")
@@ -173,6 +199,32 @@ class ZipBackupManager:
             except (OSError, RuntimeError, ValueError) as error:
                 log(f"Skipping invalid configuration {path.name}: {error}")
         return configs
+
+    def default_config_directory(self) -> Path:
+        """Locate repository-provided defaults relative to this script."""
+
+        return self.manager_path.resolve().parents[2] / "resources" / "defaultzipconfigs"
+
+    def default_configs(self) -> list[ZipBackupConfig]:
+        """Discover default .env templates at runtime, including new files."""
+
+        directory = self.default_config_directory()
+        if not directory.is_dir():
+            return []
+        configs: list[ZipBackupConfig] = []
+        for path in sorted(directory.glob("*.env")):
+            try:
+                configs.append(self.config_from_file(path))
+            except (OSError, RuntimeError, ValueError) as error:
+                log(f"Skipping invalid default configuration {path.name}: {error}")
+        return configs
+
+    def find_default_config(self, selector: str) -> ZipBackupConfig:
+        normalized = slugify(selector)
+        for config in self.default_configs():
+            if config.slug == normalized or config.name.lower() == selector.lower():
+                return config
+        raise RuntimeError(f"no default configuration found for selector '{selector}'.")
 
     def set_current(self, slug: str) -> None:
         self.ensure_config_directories()
@@ -226,14 +278,14 @@ class ZipBackupManager:
             raise RuntimeError(f"source path is not readable: {source}")
 
     def ensure_destination_writable(self, destination: Path) -> None:
-        """Retain direct-then-sudo destination creation and writable probe behavior."""
+        """Create a destination and verify that the backup user can write there."""
 
         try:
             destination.mkdir(parents=True, exist_ok=True)
         except PermissionError:
             self.sudo(("mkdir", "-p", str(destination)))
             self.sudo(("chown", f"{getpass.getuser()}:{getpass.getuser()}", str(destination)))
-        probe = destination / ".zip-backup-write-probe"
+        probe = destination / ".archive-backup-write-probe"
         try:
             probe.touch()
             probe.unlink()
@@ -243,14 +295,16 @@ class ZipBackupManager:
 
     @staticmethod
     def archive_pattern(config: ZipBackupConfig) -> re.Pattern[str]:
-        return re.compile(rf"^{re.escape(config.prefix)}_(\d{{4}}-\d{{2}}-\d{{2}})_(\d{{2}}-\d{{2}}-\d{{2}})\.zip$")
+        return re.compile(
+            rf"^{re.escape(config.prefix)}_(\d{{4}}-\d{{2}}-\d{{2}})_(\d{{2}}-\d{{2}}-\d{{2}})(?:\.tar\.zst|\.zip)$"
+        )
 
     def managed_archives(self, config: ZipBackupConfig) -> list[tuple[datetime, Path]]:
-        """Return only archives whose names exactly match the legacy managed pattern."""
+        """Return current tar.zst archives and legacy ZIPs for migration pruning."""
 
         pattern = self.archive_pattern(config)
         archives: list[tuple[datetime, Path]] = []
-        for archive in config.destination.glob(f"{config.prefix}_*.zip"):
+        for archive in config.destination.glob(f"{config.prefix}_*"):
             match = pattern.match(archive.name)
             if match is None:
                 continue
@@ -261,53 +315,106 @@ class ZipBackupManager:
         return archives
 
     def prune(self, config: ZipBackupConfig) -> None:
-        """Keep the newest archive in the newest daily/weekly/monthly/yearly buckets."""
+        """Retain the newest archive in each configured calendar bucket.
+
+        Five-year buckets let long-lived jobs keep a small historical trail;
+        legacy .zip files are eligible for normal age-out alongside tar.zst.
+        """
 
         archives = self.managed_archives(config)
         if not archives:
             log("No archives found for pruning.")
             return
-        buckets: dict[str, dict[str, tuple[datetime, Path]]] = {"daily": {}, "weekly": {}, "monthly": {}, "yearly": {}}
+        buckets: dict[str, dict[str, tuple[datetime, Path]]] = {"daily": {}, "weekly": {}, "monthly": {}, "yearly": {}, "five-year": {}}
         for created, archive in archives:
             iso_year, iso_week, _ = created.isocalendar()
-            keys = {"daily": created.strftime("%F"), "weekly": f"{iso_year}-{iso_week:02d}", "monthly": created.strftime("%Y-%m"), "yearly": created.strftime("%Y")}
+            keys = {
+                "daily": created.strftime("%F"),
+                "weekly": f"{iso_year}-{iso_week:02d}",
+                "monthly": created.strftime("%Y-%m"),
+                "yearly": created.strftime("%Y"),
+                "five-year": str(created.year - created.year % 5),
+            }
             for bucket, key in keys.items():
                 previous = buckets[bucket].get(key)
                 if previous is None or created > previous[0]:
                     buckets[bucket][key] = (created, archive)
         keep: set[Path] = set()
-        for bucket, count in (("daily", config.keep_daily), ("weekly", config.keep_weekly), ("monthly", config.keep_monthly), ("yearly", config.keep_yearly)):
-            keep.update(archive for _, archive in sorted(buckets[bucket].values(), reverse=True)[:count])
+        for bucket, count in (
+            ("daily", config.keep_daily),
+            ("weekly", config.keep_weekly),
+            ("monthly", config.keep_monthly),
+            ("yearly", config.keep_yearly),
+            ("five-year", config.keep_five_year),
+        ):
+            newest_buckets = sorted(buckets[bucket].values(), key=lambda item: item[0], reverse=True)[:count]
+            keep.update(archive for _, archive in newest_buckets)
+        self.prune_paths(archives, keep)
+
+    def prune_paths(self, archives: list[tuple[datetime, Path]], keep: set[Path]) -> None:
+        """Delete unretained archives and checksums for any caller's policy."""
+
         for _, archive in archives:
             if archive not in keep:
                 archive.unlink(missing_ok=True)
                 archive.with_name(f"{archive.name}.sha256").unlink(missing_ok=True)
                 log(f"Pruned: {archive}")
 
-    def write_checksum(self, archive: Path) -> None:
-        """Write the optional legacy sha256sum-compatible sidecar file."""
+    def write_checksum(self, archive: Path, display_name: str | None = None) -> None:
+        """Write a sha256sum-compatible sidecar without loading the archive in RAM."""
 
         if shutil.which("sha256sum") is None:
             return
-        digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-        archive.with_name(f"{archive.name}.sha256").write_text(f"{digest}  {archive}\n", encoding="utf-8")
+        digest_hash = hashlib.sha256()
+        with archive.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                digest_hash.update(chunk)
+        digest = digest_hash.hexdigest()
+        checksum_target = display_name or str(archive)
+        archive.with_name(f"{archive.name}.sha256").write_text(f"{digest}  {checksum_target}\n", encoding="utf-8")
 
     def create_archive(self, config: ZipBackupConfig, now: datetime | None = None) -> Path:
-        """Create, validate, and checksum a timestamped archive using zip/unzip."""
+        """Create a standard backup through the shared tar.zst engine."""
 
-        self.validate_source(config.source)
-        self.ensure_destination_writable(config.destination)
-        timestamp = (now or datetime.now()).strftime(ARCHIVE_TIME_FORMAT)
-        archive = config.destination / f"{config.prefix}_{timestamp}.zip"
+        return self.create_tar_zst(
+            ArchiveSpec(
+                source_root=config.source.parent,
+                members=(config.source.name,),
+                destination=config.destination,
+                prefix=config.prefix,
+            ),
+            now=now,
+        )
+
+    def create_tar_zst(self, spec: ArchiveSpec, now: datetime | None = None) -> Path:
+        """Create, validate, atomically publish, and checksum one tar.zst archive."""
+
+        self.validate_source(spec.source_root)
+        if not spec.members:
+            raise RuntimeError("archive must contain at least one source member")
+        for member in spec.members:
+            member_path = Path(member)
+            if member_path.is_absolute() or ".." in member_path.parts:
+                raise RuntimeError(f"archive member must stay below source root: {member}")
+            if not (spec.source_root / member_path).exists():
+                raise RuntimeError(f"archive member does not exist: {spec.source_root / member_path}")
+        self.ensure_destination_writable(spec.destination)
+        timestamp = (now or datetime.now()).strftime(spec.timestamp_format)
+        archive = spec.destination / f"{spec.prefix}_{timestamp}{spec.archive_extension}"
+        if archive.exists():
+            raise RuntimeError(f"An archive already exists for this second: {archive}")
         temporary = archive.with_name(f"{archive.name}.tmp")
         temporary.unlink(missing_ok=True)
         log(f"Creating archive: {archive}")
-        self.run(("zip", "-r", "-q", str(temporary), config.source.name), cwd=config.source.parent)
+        self.run(("tar", "--zstd", "-cf", str(temporary), "-C", str(spec.source_root), *spec.members))
+        if self.run(("zstd", "--test", "--quiet", str(temporary)), check=False).returncode != 0:
+            temporary.unlink(missing_ok=True)
+            raise RuntimeError("zstd integrity test failed.")
+        if self.run(("tar", "--zstd", "-tf", str(temporary)), check=False, capture=True).returncode != 0:
+            temporary.unlink(missing_ok=True)
+            raise RuntimeError("tar archive listing test failed.")
         temporary.replace(archive)
-        if self.run(("unzip", "-tqq", str(archive)), check=False).returncode != 0:
-            archive.unlink(missing_ok=True)
-            raise RuntimeError("archive integrity test failed.")
-        self.write_checksum(archive)
+        self.write_checksum(archive, spec.checksum_name)
         return archive
 
     def backup_now(self, selector: str | None = None) -> None:
@@ -337,7 +444,7 @@ class ZipBackupManager:
         helper = self.create_helper(config)
         user = getpass.getuser()
         service = "\n".join(("[Unit]", f"Description=Zip backup for {config.name}", "After=network-online.target", "Wants=network-online.target", "", "[Service]", "Type=oneshot", f"User={user}", f"Group={user}", f"ExecStart={helper}", ""))
-        timer = "\n".join(("[Unit]", f"Description=Daily zip backup timer for {config.name}", "", "[Timer]", "OnCalendar=daily", "Persistent=true", "RandomizedDelaySec=30m", "", "[Install]", "WantedBy=timers.target", ""))
+        timer = "\n".join(("[Unit]", f"Description=Daily archive backup timer for {config.name}", "", "[Timer]", "OnCalendar=daily", "Persistent=true", "RandomizedDelaySec=30m", "", "[Install]", "WantedBy=timers.target", ""))
         subprocess.run(("sudo", "tee", str(self.service_path(config.slug))), input=service, text=True, check=True, stdout=subprocess.DEVNULL)
         subprocess.run(("sudo", "tee", str(self.timer_path(config.slug))), input=timer, text=True, check=True, stdout=subprocess.DEVNULL)
         self.sudo(("systemctl", "daemon-reload"))
@@ -358,21 +465,53 @@ class ZipBackupManager:
                 return Path(str(path).rstrip("/")) if str(path) != "/" else path
             print("Path cannot be empty.")
 
-    def setup(self) -> None:
-        """Run the legacy setup/rerun flow with its overwrite defaults."""
+    def prompt_int(self, label: str, default: int) -> int:
+        while True:
+            value = self.prompt(f"{label} [{default}]: ") or str(default)
+            try:
+                parsed = int(value)
+            except ValueError:
+                parsed = -1
+            if parsed >= 0:
+                return parsed
+            print("Please enter a non-negative whole number.")
+
+    def setup(self, default_selector: str | None = None, *, noninteractive: bool = False) -> None:
+        """Create or rerun a config, optionally importing a discovered template."""
 
         self.require_dependencies()
         self.require_systemd()
         self.ensure_config_directories()
-        destination = self.prompt_path("Enter backup destination directory", DEFAULT_DESTINATION)
-        source = self.prompt_path("Enter source path to zip", DEFAULT_SOURCE)
+        template: ZipBackupConfig | None = None
+        defaults = self.default_configs()
+        if default_selector:
+            template = self.find_default_config(default_selector)
+        elif noninteractive:
+            raise RuntimeError("--yes requires --setup-default <name>")
+        elif defaults:
+            print("\n=== Default Backup Configurations ===")
+            print("0) Custom configuration")
+            for index, config in enumerate(defaults, 1):
+                print(f"{index}) Import {config.name} [{config.slug}]")
+            choice = self.prompt("Select a default to import [0]: ") or "0"
+            if choice.isdigit() and 1 <= int(choice) <= len(defaults):
+                template = defaults[int(choice) - 1]
+            elif choice != "0":
+                raise RuntimeError("invalid default configuration selection")
+
+        destination_default = template.destination if template else DEFAULT_DESTINATION
+        source_default = template.source if template else DEFAULT_SOURCE
+        prefix_default = template.prefix if template else DEFAULT_PREFIX
+        name_default = template.name if template else DEFAULT_NAME
+        destination = destination_default if noninteractive else self.prompt_path("Enter backup destination directory", destination_default)
+        source = source_default if noninteractive else self.prompt_path("Enter source path to archive", source_default)
         while True:
-            prefix = archive_prefix(self.prompt(f"Enter backup archive prefix [{DEFAULT_PREFIX}]: ") or DEFAULT_PREFIX)
+            prefix = archive_prefix(prefix_default if noninteractive else self.prompt(f"Enter backup archive prefix [{prefix_default}]: ") or prefix_default)
             if prefix:
                 break
             print("Backup archive prefix must include letters or numbers.")
         while True:
-            name = self.prompt(f"Enter backup config name [{DEFAULT_NAME}]: ") or DEFAULT_NAME
+            name = name_default if noninteractive else self.prompt(f"Enter backup config name [{name_default}]: ") or name_default
             slug = slugify(name)
             if slug:
                 break
@@ -380,12 +519,23 @@ class ZipBackupManager:
         self.validate_source(source)
         self.ensure_destination_writable(destination)
         existing = self.config_path(slug)
-        if existing.is_file():
+        if existing.is_file() and not noninteractive:
             overwrite = self.prompt(f"Config '{name}' already exists. Overwrite settings? [Y/n]: ") or "Y"
             if overwrite.lower() not in {"y", "yes"}:
                 log("Setup cancelled.")
                 return
-        config = ZipBackupConfig(name, slug, destination, source, prefix)
+        config = ZipBackupConfig(
+            name,
+            slug,
+            destination,
+            source,
+            prefix,
+            template.keep_daily if template else KEEP_DAILY,
+            template.keep_weekly if template else KEEP_WEEKLY,
+            template.keep_monthly if template else KEEP_MONTHLY,
+            template.keep_yearly if template else KEEP_YEARLY,
+            template.keep_five_year if template else KEEP_FIVE_YEAR,
+        )
         self.write_config(config)
         self.set_current(config.slug)
         self.setup_timer(config)
@@ -395,7 +545,8 @@ class ZipBackupManager:
     def show(self, config: ZipBackupConfig) -> None:
         print("=== Zip Backup Config ===")
         print(f"Name:       {config.name}\nSlug:       {config.slug}\nSource:     {config.source}\nDestination:{config.destination}\nPrefix:     {config.prefix}")
-        print(f"Retention:  daily={config.keep_daily} weekly={config.keep_weekly} monthly={config.keep_monthly} yearly={config.keep_yearly}")
+        print(f"Format:     tar.zst (legacy .zip files are migration candidates)")
+        print(f"Retention:  daily={config.keep_daily} weekly={config.keep_weekly} monthly={config.keep_monthly} yearly={config.keep_yearly} five-year={config.keep_five_year}")
         print(f"Service:    {self.service_name(config.slug)}\nTimer:      {self.timer_name(config.slug)}")
 
     def list_configs(self) -> list[ZipBackupConfig]:
@@ -467,7 +618,7 @@ class ZipBackupManager:
         while True:
             print()
             self.list_configs()
-            print("\n=== Zip Backup Manager ===\n1) Run / rerun setup\n2) Exit\n\nSpecial commands:\n  delete <config-number>   Delete config + service/timer/helper\n  3 <config-number>        Take immediate zip backup now\n  4 <config-number>        List zip archives\n  5 <config-number>        Run prune now\n  6 <config-number>        Show config details\n  7 <config-number>        Trigger systemd service now\n  backup|list|prune|show|service <config-number>\n")
+            print("\n=== Zip Backup Manager ===\n1) Run / rerun setup\n2) Exit\n\nSpecial commands:\n  delete <config-number>   Delete config + service/timer/helper\n  3 <config-number>        Take immediate tar.zst backup now\n  4 <config-number>        List managed archives\n  5 <config-number>        Run prune now\n  6 <config-number>        Show config details\n  7 <config-number>        Trigger systemd service now\n  backup|list|prune|show|service <config-number>\n")
             entered = self.prompt("Choose an option [1-2 or command]: ")
             command, _, index = entered.partition(" ")
             try:
@@ -501,9 +652,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--run-backup", action="store_true", help="Run a configured backup without the menu.")
     parser.add_argument("--config-name", help="Select a backup by name or slug with --run-backup.")
     parser.add_argument("--prune-only", action="store_true", help="Apply retention without creating an archive.")
+    parser.add_argument("--setup-default", metavar="NAME", help="Import a discovered default config and install its timer.")
+    parser.add_argument("--yes", action="store_true", help="Accept the selected setup template without prompts.")
     args = parser.parse_args(argv)
     manager = ZipBackupManager()
     manager.ensure_config_directories()
+    if args.setup_default:
+        manager.setup(args.setup_default, noninteractive=args.yes)
+        return 0
     if args.run_backup:
         manager.require_dependencies()
         config = manager.resolve_config(args.config_name)

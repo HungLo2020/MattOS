@@ -117,6 +117,18 @@ class Docker:
     def image_exists(self, image: str) -> bool:
         return bool(self.output("images", "-q", image))
 
+    def container_has_environment(self, name: str, expected: tuple[str, ...]) -> bool:
+        """Return whether a container has all requested environment settings."""
+
+        raw = self.output("inspect", "--format", "{{json .Config.Env}}", name)
+        if not raw:
+            return False
+        try:
+            configured = set(json.loads(raw))
+        except (TypeError, json.JSONDecodeError):
+            return False
+        return all(item in configured for item in expected)
+
     def network_exists(self, network: str) -> bool:
         return network in self.output("network", "ls", "--format", "{{.Name}}").splitlines()
 
@@ -416,11 +428,22 @@ class OllamaWorkload(Workload):
     description = "Ollama and Open WebUI"
     ollama_name = "ollama"
     webui_name = "open-webui"
-    ollama_image = "ollama/ollama"
+    ollama_image = "ollama/ollama:0.34.4"
     webui_image = "ghcr.io/open-webui/open-webui:main"
     network = "ai-stack"
-    model = "dolphin-mistral:7b"
+    model = "hf.co/ccharnkij/Qwen3.5-9B-Uncensored-GGUF:Q4_K_M"
     root = Path.home() / ".ollama-stack"
+    webui_environment = (
+        "ENABLE_IMAGE_GENERATION=true",
+        "IMAGE_GENERATION_ENGINE=automatic1111",
+        "AUTOMATIC1111_BASE_URL=http://automatic1111:7862/",
+        "AUTOMATIC1111_PARAMS={}",
+        "IMAGE_SIZE=1024x1024",
+        "IMAGE_STEPS=30",
+        "ENABLE_WEB_SEARCH=true",
+        "WEB_SEARCH_ENGINE=duckduckgo",
+        "DDGS_BACKEND=auto",
+    )
 
     def execute(self, action: Action) -> int:
         docker = Docker()
@@ -458,12 +481,15 @@ class OllamaWorkload(Workload):
         gpu = nvidia_gpu_available(docker)
         if gpu:
             log("NVIDIA GPU detected - enabling GPU passthrough for Ollama.")
+        if docker.container_exists(self.ollama_name) and not docker.container_has_environment(self.ollama_name, ("OLLAMA_KEEP_ALIVE=0",)):
+            docker.stop_if_running(self.ollama_name)
+            docker.remove_if_present(self.ollama_name)
         if docker.container_running(self.ollama_name):
             log("ollama is already running.")
         elif docker.container_exists(self.ollama_name):
             docker.run("start", self.ollama_name)
         else:
-            arguments = ["run", "-d", "--name", self.ollama_name, "--restart", "unless-stopped", "--network", self.network, "-p", "11434:11434", "-v", f"{ollama_data}:/root/.ollama"]
+            arguments = ["run", "-d", "--name", self.ollama_name, "--restart", "unless-stopped", "--network", self.network, "-p", "11434:11434", "-v", f"{ollama_data}:/root/.ollama", "-e", "OLLAMA_KEEP_ALIVE=0"]
             if gpu:
                 arguments.extend(("--gpus", "all"))
             docker.run(*arguments, self.ollama_image)
@@ -475,12 +501,18 @@ class OllamaWorkload(Workload):
                 raise RuntimeError(f"required model not installed ({self.model}). Run without flags first.")
             log(f"Pulling model: {self.model}")
             docker.run("exec", self.ollama_name, "ollama", "pull", self.model)
+        if docker.container_exists(self.webui_name) and not docker.container_has_environment(self.webui_name, self.webui_environment):
+            docker.stop_if_running(self.webui_name)
+            docker.remove_if_present(self.webui_name)
         if docker.container_running(self.webui_name):
             log("open-webui is already running.")
         elif docker.container_exists(self.webui_name):
             docker.run("start", self.webui_name)
         else:
-            docker.run("run", "-d", "--name", self.webui_name, "--restart", "unless-stopped", "--network", self.network, "-p", "3000:8080", "-e", "OLLAMA_BASE_URL=http://ollama:11434", "-e", "OLLAMA_API_BASE_URL=http://ollama:11434", "-v", f"{webui_data}:/app/backend/data", self.webui_image)
+            arguments = ["run", "-d", "--name", self.webui_name, "--restart", "unless-stopped", "--network", self.network, "-p", "3000:8080", "-e", "OLLAMA_BASE_URL=http://ollama:11434", "-e", "OLLAMA_API_BASE_URL=http://ollama:11434", "-v", f"{webui_data}:/app/backend/data"]
+            for item in self.webui_environment:
+                arguments.extend(("-e", item))
+            docker.run(*arguments, self.webui_image)
         log("=== Services ready ===")
         log("Open WebUI: http://localhost:3000")
         log("Ollama API: http://localhost:11434")
@@ -664,27 +696,40 @@ class JellyfinWorkload(Workload):
 
 class StableDiffusionWorkload(SingleContainerWorkload):
     name = "stable-diffusion"
-    description = "AUTOMATIC1111 Stable Diffusion WebUI"
+    description = "Forge image generation for RealVisXL and FLUX.1-dev"
     container_name = "automatic1111"
-    image = "automatic1111-webui"
+    image = "forge-webui"
+    network = "ai-stack"
     data_root = Path.home() / ".automatic1111"
-    image_version = "3"
-    model = "Dreamshaper_8.safetensors"
-    primary_model_url = f"https://huggingface.co/Lykon/dreamshaper-8/resolve/main/{model}"
-    fallback_model_url = "https://huggingface.co/digiplay/DreamShaper_8/resolve/main/dreamshaper_8.safetensors"
+    image_version = "6"
+    forge_revision = "dfdcbab685e57677014f05a3309b48cc87383167"
+    realvis_model = "RealVisXL_V5.0_fp16.safetensors"
+    flux_model = "flux1-dev-Q5_1.gguf"
+    realvis_url = f"https://huggingface.co/SG161222/RealVisXL_V5.0/resolve/main/{realvis_model}?download=true"
+    flux_url = f"https://huggingface.co/city96/FLUX.1-dev-gguf/resolve/main/{flux_model}?download=true"
+    flux_components = (
+        ("VAE", "ae.safetensors", "https://huggingface.co/flux-safetensors/flux-safetensors/resolve/d3705fe7b6f2ed06621efc69ce91e99257481398/ae.safetensors?download=true", 335304388, "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38"),
+        ("text_encoder", "clip_l.safetensors", "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/168aff54c7de740a8946f19cf87b2eda743c6342/clip_l.safetensors?download=true", 246144152, "660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd"),
+        ("text_encoder", "t5xxl_fp16.safetensors", "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/168aff54c7de740a8946f19cf87b2eda743c6342/t5xxl_fp16.safetensors?download=true", 9787841024, "6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635"),
+    )
+    expected_models = {
+        realvis_model: (6938065488, "6a35a7855770ae9820a3c931d4964c3817b6d9e3c6f9c4dabb5b3a94e5643b80"),
+        flux_model: (9010085024, "86c5643225ca76fa5b3573415a8deb55a1bde6d2e2e934458f6e65d015bb01ed"),
+    }
 
     def dockerfile(self) -> str:
         return f'''FROM python:3.10-slim-bookworm
 LABEL version="{self.image_version}"
 ENV DEBIAN_FRONTEND=noninteractive PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y --no-install-recommends git wget curl libgl1 libglib2.0-0 libsm6 libxrender1 libxext6 libgomp1 ffmpeg && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth=1 https://github.com/AUTOMATIC1111/stable-diffusion-webui /app
+RUN git init /app && git -C /app remote add origin https://github.com/lllyasviel/stable-diffusion-webui-forge.git && git -C /app fetch --depth=1 origin {self.forge_revision} && git -C /app checkout FETCH_HEAD
 RUN groupadd -g 1000 webui && useradd -m -u 1000 -g webui -s /bin/bash webui && chown -R webui:webui /app
 WORKDIR /app
-RUN mkdir -p /app/models/Stable-diffusion /app/models/VAE /app/outputs /app/extensions /app/venv && chown -R webui:webui /app/models /app/outputs /app/extensions /app/venv
+COPY forge_api_proxy.py /usr/local/bin/forge_api_proxy.py
+RUN mkdir -p /app/models/Stable-diffusion /app/models/VAE /app/models/text_encoder /app/outputs /app/extensions /app/venv && chown -R webui:webui /app/models /app/outputs /app/extensions /app/venv /usr/local/bin/forge_api_proxy.py
 USER webui
 ENV HOME=/home/webui
-EXPOSE 7861
+EXPOSE 7860 7862
 '''
 
     def build_if_needed(self, docker: Docker) -> None:
@@ -694,44 +739,115 @@ EXPOSE 7861
         if version:
             log(f"Docker image is outdated (version {version} -> {self.image_version}); rebuilding...")
             docker.run("rmi", self.image, check=False)
-        with tempfile.TemporaryDirectory(prefix="linuxscripts-automatic1111-") as directory:
+        with tempfile.TemporaryDirectory(prefix="linuxscripts-forge-") as directory:
             dockerfile = Path(directory) / "Dockerfile"
             dockerfile.write_text(self.dockerfile(), encoding="utf-8")
+            shutil.copyfile(Path(__file__).with_name("forge_api_proxy.py"), Path(directory) / "forge_api_proxy.py")
             log("Building Docker image - this is a one-time step that may take 10-20 minutes.")
             docker.run("build", "--network=host", "-t", self.image, directory)
 
-    def download_model(self) -> Path:
-        directory = self.data_root / "models" / "Stable-diffusion"
-        directory.mkdir(parents=True, exist_ok=True)
-        destination = directory / self.model
+    def download_file(self, url: str, destination: Path, expected_size: int, expected_sha256: str) -> Path:
+        destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.is_file():
-            return destination
-        for url, candidate in ((self.primary_model_url, destination), (self.fallback_model_url, directory / "dreamshaper_8.safetensors")):
-            partial = candidate.with_suffix(candidate.suffix + ".partial")
-            log(f"Downloading model: {candidate.name}")
+            size = destination.stat().st_size
+            digest = self.file_sha256(destination)
+            if size == expected_size and digest == expected_sha256:
+                return destination
+            raise RuntimeError(f"Existing file failed size/hash verification: {destination}")
+        partial = destination.with_suffix(destination.suffix + ".partial")
+        log(f"Downloading {destination.name} ({expected_size / 1_000_000_000:.2f} GB)...")
+        for attempt in range(1, 6):
+            offset = partial.stat().st_size if partial.exists() else 0
+            headers = {"User-Agent": "LinuxScripts image model installer"}
+            if offset:
+                headers["Range"] = f"bytes={offset}-"
+            request = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(url, timeout=30) as source, partial.open("wb") as output:
-                    shutil.copyfileobj(source, output)
-                partial.replace(candidate)
-                return candidate
-            except (OSError, urllib.error.URLError):
-                partial.unlink(missing_ok=True)
-        raise RuntimeError("could not download the model from any source.")
+                with urllib.request.urlopen(request, timeout=60) as source:
+                    if offset and source.status != 206:
+                        offset = 0
+                    mode = "ab" if offset else "wb"
+                    transferred = offset
+                    next_report = transferred + 512 * 1024 * 1024
+                    with partial.open(mode) as output:
+                        while chunk := source.read(4 * 1024 * 1024):
+                            output.write(chunk)
+                            transferred += len(chunk)
+                            if transferred >= next_report:
+                                log(f"  {transferred / 1_000_000_000:.2f} / {expected_size / 1_000_000_000:.2f} GB")
+                                next_report = transferred + 512 * 1024 * 1024
+                break
+            except (OSError, urllib.error.URLError) as error:
+                if attempt == 5:
+                    raise RuntimeError(f"Download failed after five resumable attempts: {destination.name}: {error}") from error
+                log(f"  transfer interrupted at {partial.stat().st_size if partial.exists() else 0} bytes; retry {attempt + 1}/5")
+                time.sleep(attempt * 2)
+        actual_size = partial.stat().st_size
+        actual_hash = self.file_sha256(partial)
+        if actual_size != expected_size or actual_hash != expected_sha256:
+            raise RuntimeError(f"Downloaded file failed verification: {destination.name} ({actual_size} bytes, sha256 {actual_hash})")
+        partial.replace(destination)
+        log(f"Verified {destination.name} (sha256 {expected_sha256}).")
+        return destination
+
+    @staticmethod
+    def file_sha256(path: Path) -> str:
+        digest = __import__("hashlib").sha256()
+        with path.open("rb") as file:
+            while chunk := file.read(4 * 1024 * 1024):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    def download_models(self) -> tuple[Path, Path]:
+        models = self.data_root / "models" / "Stable-diffusion"
+        expected_realvis = self.expected_models[self.realvis_model]
+        expected_flux = self.expected_models[self.flux_model]
+        realvis = self.download_file(self.realvis_url, models / self.realvis_model, *expected_realvis)
+        flux = self.download_file(self.flux_url, models / self.flux_model, *expected_flux)
+        for folder, filename, url, size, sha256 in self.flux_components:
+            self.download_file(url, self.data_root / "models" / folder / filename, size, sha256)
+        return realvis, flux
 
     def valid_model_exists(self) -> bool:
         folder = self.data_root / "models" / "Stable-diffusion"
-        return any(folder.glob("*.safetensors")) or any(folder.glob("*.ckpt"))
+        return all((folder / model).is_file() for model in (self.realvis_model, self.flux_model))
 
     def launch_args(self, docker: Docker) -> list[str]:
         gpu = nvidia_gpu_available(docker)
-        arguments = "--listen --port 7860 --disable-safe-unpickle --no-download-sd-model --api --allow-code --enable-insecure-extension-access"
+        arguments = f"--listen --port 7860 --disable-safe-unpickle --no-download-sd-model --api --ckpt /app/models/Stable-diffusion/{self.realvis_model}"
         if not gpu:
             arguments += " --skip-torch-cuda-test --no-half --precision full"
         user = f"{os.getuid()}:{os.getgid()}"
-        run = ["--name", self.container_name, "--user", user, "-p", "7861:7860", "-v", f"{self.data_root / 'models' / 'Stable-diffusion'}:/app/models/Stable-diffusion", "-v", f"{self.data_root / 'outputs'}:/app/outputs", "-v", f"{self.data_root / 'venv'}:/app/venv", "-v", f"{self.data_root / 'extensions'}:/app/extensions", "-e", "STABLE_DIFFUSION_REPO=https://github.com/Jonel865/stable-diffusion-stability-ai.git", "-e", "STABLE_DIFFUSION_COMMIT_HASH=cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf", "-e", f"COMMANDLINE_ARGS={arguments}", "-e", "HOME=/tmp"]
+        run = ["--name", self.container_name, "--network", self.network, "--user", user, "-p", "7861:7860", "-v", f"{self.data_root / 'models' / 'Stable-diffusion'}:/app/models/Stable-diffusion", "-v", f"{self.data_root / 'models' / 'VAE'}:/app/models/VAE", "-v", f"{self.data_root / 'models' / 'text_encoder'}:/app/models/text_encoder", "-v", f"{self.data_root / 'outputs'}:/app/outputs", "-v", f"{self.data_root / 'forge-venv'}:/app/venv", "-v", f"{self.data_root / 'extensions'}:/app/extensions", "-v", f"{self.data_root / 'forge-config.json'}:/app/config.json", "-e", f"COMMANDLINE_ARGS={arguments}", "-e", "TORCH_COMMAND=pip install torch==2.10.0 torchvision==0.25.0 numpy==1.26.2 --extra-index-url https://download.pytorch.org/whl/cu128", "-e", "HOME=/tmp"]
         if gpu:
             run.extend(("--gpus", "all"))
         return run
+
+    def install_default_forge_config(self) -> None:
+        config = self.data_root / "forge-config.json"
+        if config.exists():
+            return
+        defaults = {
+            "sd_model_checkpoint": self.realvis_model,
+            "forge_preset": "xl",
+            "forge_inference_memory": 2048,
+            "forge_async_loading": "Queue",
+            "forge_pin_shared_memory": "CPU",
+            "forge_unet_storage_dtype": "Automatic",
+            "forge_additional_modules": [],
+            "xl_t2i_width": 1024,
+            "xl_t2i_height": 1024,
+            "xl_t2i_cfg": 5.5,
+            "xl_t2i_sampler": "DPM++ SDE",
+            "xl_t2i_scheduler": "Karras",
+            "flux_t2i_width": 1024,
+            "flux_t2i_height": 1024,
+            "flux_t2i_cfg": 1.0,
+            "flux_t2i_d_cfg": 3.5,
+            "flux_t2i_sampler": "Euler",
+            "flux_t2i_scheduler": "Simple",
+        }
+        config.write_text(json.dumps(defaults, indent=2) + "\n", encoding="utf-8")
 
     def execute(self, action: Action) -> int:
         if os.geteuid() == 0 and action in {Action.RUN, Action.ON}:
@@ -745,44 +861,54 @@ EXPOSE 7861
             return self.delete(docker)
         if action is Action.OFF:
             return self.off(docker)
-        if action is Action.ON and (not docker.image_exists(self.image) or not self.valid_model_exists()):
-            raise RuntimeError("AUTOMATIC1111 image or model is not installed. Run without flags first.")
+        required_paths = [self.data_root / "models" / "Stable-diffusion" / name for name in (self.realvis_model, self.flux_model)]
+        required_paths.extend(self.data_root / "models" / folder / filename for folder, filename, *_ in self.flux_components)
+        if action is Action.ON and (not docker.image_exists(self.image) or not all(path.is_file() for path in required_paths)):
+            raise RuntimeError("Forge image or replacement image models are not installed. Run without flags first.")
         if action is Action.RUN:
-            for directory in (self.data_root / "models" / "Stable-diffusion", self.data_root / "outputs", self.data_root / "extensions"):
+            for directory in (self.data_root / "models" / "Stable-diffusion", self.data_root / "models" / "VAE", self.data_root / "models" / "text_encoder", self.data_root / "outputs", self.data_root / "extensions"):
                 directory.mkdir(parents=True, exist_ok=True)
-            self.download_model()
+            self.download_models()
             self.build_if_needed(docker)
-        venv = self.data_root / "venv"
+            self.install_default_forge_config()
+        if not docker.network_exists(self.network):
+            docker.run("network", "create", self.network)
+        venv = self.data_root / "forge-venv"
         if venv.is_dir() and not (venv / "bin" / "activate").is_file():
             shutil.rmtree(venv)
         if not (venv / "bin" / "activate").is_file():
             venv.mkdir(parents=True, exist_ok=True)
             docker.run("run", "--rm", "--user", f"{os.getuid()}:{os.getgid()}", "-v", f"{venv}:/app/venv", self.image, "python", "-m", "venv", "/app/venv")
         if docker.container_running(self.container_name):
+            networks = docker.output("inspect", "--format", "{{json .NetworkSettings.Networks}}", self.container_name)
+            try:
+                attached = self.network in json.loads(networks)
+            except (TypeError, json.JSONDecodeError):
+                attached = False
+            if not attached:
+                docker.run("network", "connect", self.network, self.container_name)
             log("Container is already running.")
             return 0
         if docker.container_exists(self.container_name):
-            docker.run("start", self.container_name)
-            detached = True
-        else:
-            detached = action is Action.ON
-            command = ("run", "-d", *self.launch_args(docker), self.image, "bash", "webui.sh") if detached else (
-                "run", *self.launch_args(docker), self.image, "bash", "webui.sh"
-            )
-            if not detached:
-                def announce_readiness() -> None:
-                    if wait_for_http("http://127.0.0.1:7861/", 180):
-                        log("WebUI is ready at: http://localhost:7861")
-                    else:
-                        log("Warning: WebUI readiness check timed out after 180s.")
+            docker.remove_if_present(self.container_name)
+        detached = action is Action.ON
+        command = ("run", "-d", *self.launch_args(docker), self.image, "bash", "-lc", "python /usr/local/bin/forge_api_proxy.py & exec /app/venv/bin/python launch.py $COMMANDLINE_ARGS") if detached else (
+            "run", *self.launch_args(docker), self.image, "bash", "-lc", "python /usr/local/bin/forge_api_proxy.py & exec /app/venv/bin/python launch.py $COMMANDLINE_ARGS"
+        )
+        if not detached:
+            def announce_readiness() -> None:
+                if wait_for_http("http://127.0.0.1:7861/", 600):
+                    log("WebUI is ready at: http://localhost:7861")
+                else:
+                    log("Warning: WebUI readiness check timed out after 600s.")
 
-                threading.Thread(target=announce_readiness, daemon=True).start()
-            docker.run(*command)
-            return 0
-        if wait_for_http("http://127.0.0.1:7861/", 60):
-            log("WebUI is ready at: http://localhost:7861")
-        else:
-            log("WebUI container started, but readiness check timed out.")
+            threading.Thread(target=announce_readiness, daemon=True).start()
+        docker.run(*command)
+        if detached:
+            if wait_for_http("http://127.0.0.1:7861/", 600):
+                log("WebUI is ready at: http://localhost:7861")
+            else:
+                log("WebUI container started, but readiness check timed out.")
         return 0
 
 

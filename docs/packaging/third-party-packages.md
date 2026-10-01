@@ -168,6 +168,10 @@ links it.
   (the repository replaces it in place);
 - the version is not published: built and published.
 
+Repository requests (reading the index, downloading a build dependency,
+uploading) that fail for a transient reason are retried ten times, ten seconds
+apart, as for MattOS's own packages
+([transient repository failures](publishing.md#transient-repository-failures)).
 A package whose upload fails is kept in `out/third-party/unpublished/`, and
 the failure says so. The next `update` or `publish` uploads it instead of
 building again when its version, build inputs and build environment still
