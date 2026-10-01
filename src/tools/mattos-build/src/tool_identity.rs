@@ -78,13 +78,27 @@ fn stable_tool_output_inner(
     arguments: &[&str],
     allow_exit_one: bool,
 ) -> Result<String> {
-    let output = Command::new(tool)
-        .args(arguments)
-        .env("LC_ALL", "C")
-        .env("LANG", "C")
-        .env("TZ", "UTC")
-        .output()
-        .with_context(|| format!("failed to inspect tool {}", tool.display()))?;
+    // A tool rewritten just before it is probed can fail to execute with
+    // ETXTBSY while a concurrently forked child still holds the inherited
+    // write descriptor (closed when that child execs).  Retry briefly.
+    let mut attempts = 0;
+    let output = loop {
+        match Command::new(tool)
+            .args(arguments)
+            .env("LC_ALL", "C")
+            .env("LANG", "C")
+            .env("TZ", "UTC")
+            .output()
+        {
+            Err(error) if error.raw_os_error() == Some(libc::ETXTBSY) && attempts < 50 => {
+                attempts += 1;
+                std::thread::sleep(std::time::Duration::from_millis(20));
+            }
+            result => {
+                break result.with_context(|| format!("failed to inspect tool {}", tool.display()))?;
+            }
+        }
+    };
     if !output.status.success() && !(allow_exit_one && output.status.code() == Some(1)) {
         bail!(
             "tool identity probe failed with {}: {} {}",

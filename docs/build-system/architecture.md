@@ -303,7 +303,8 @@ authority when this table and the code disagree.
 | `ninja` | Ninja (CMake) | none | formal sysroot | ninja install |
 | `procps-ng` | procps-ng | none | formal sysroot, ncurses | procps install |
 | `iproute2` | iproute2 | none | formal sysroot, libcap, zlib, zstd, elfutils, PCRE2, SELinux | iproute2 install |
-| `curl` | curl | none | formal sysroot, OpenSSL, zlib, zstd | curl install |
+| `nghttp2` | nghttp2 (library only, CMake) | none | formal sysroot | libnghttp2 install |
+| `curl` | curl | none | formal sysroot, OpenSSL, zlib, zstd, nghttp2 | curl install (HTTP/2 through nghttp2) |
 | `linux-pam` | Linux-PAM | none | formal sysroot, libxcrypt | PAM install |
 | `util-linux` | util-linux and patches | none | formal sysroot, PAM, SELinux, PCRE2, ncurses, libxcrypt | util-linux install |
 | `shadow` | shadow | none | formal sysroot, PAM, libbsd, libmd, libxcrypt | shadow install |

@@ -1403,6 +1403,16 @@ path = "src/system/libraries/xxhash"
 sync = "copy"
 
 [[component]]
+name = "nghttp2"
+repo = "https://github.com/nghttp2/nghttp2.git"
+branch = "v1.70.0"
+revision = "85e300c79fb6dbcfa9c1013215c8710c1c2cd3d2"
+path = "src/system/libraries/nghttp2"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#nghttp2"
+gitlink_policy = "upstream/policies/gitlinks.toml#nghttp2"
+
+[[component]]
 name = "zstd"
 repo = "https://github.com/facebook/zstd.git"
 branch = "v1.5.7"

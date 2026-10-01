@@ -283,11 +283,19 @@ in `mattos-toolchain` and the builder container, so Git snapshots that need
   Python's `site-packages` with the entry-point launcher `/usr/bin/meson`;
   `ninja-build` is built with CMake.
 
+`mattos-toolchain` also carries the development packages of MattOS libraries
+that ordinary software builds against: `zlib1g-dev`, `libssl-dev`,
+`libpcre2-dev`, `libzstd-dev`, `libglib2.0-dev` (with `glib-mkenums`,
+`glib-genmarshal`, `glib-compile-resources` and `gdbus-codegen`),
+`libpixman-1-dev`, `libwayland-dev` (with `wayland-scanner`),
+`wayland-protocols` and `libxkbcommon-dev`. Each is a table
+entry in `packaging/staging/development.rs` built from the library's own stage
+output (no extra build), and shares its runtime package's version.
+
 Still missing:
 
-1. Hardening defaults for the installed native GCC (see above).
-2. Native rebuild of all MattOS packages.
-3. Native ISO generation.
+1. Native rebuild of all MattOS packages.
+2. Native ISO generation.
 
 MattOS has not performed a compiler self-rebuild, a complete native package
 rebuild, or native ISO generation.

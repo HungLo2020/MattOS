@@ -28,6 +28,45 @@ class FrameworkTests(unittest.TestCase):
             self.assertTrue(hasattr(common, name), name)
             self.assertTrue(hasattr(framework, name), name)
 
+    def test_git_latest_tag_picks_the_highest_matching_release(self):
+        listing = "\n".join(f"{i}\trefs/tags/{tag}" for i, tag in enumerate(
+            ["v1.9.0", "v1.10.0", "v1.10.0-rc1", "20201217", "release-2.32.10"]))
+        with mock.patch.object(framework, "command", return_value=listing):
+            self.assertEqual(framework.git_latest_tag("u", r"v([0-9]+\.[0-9]+\.[0-9]+)"), ("1.10.0", "v1.10.0"))
+            self.assertEqual(framework.git_latest_tag("u", r"release-(2\.[0-9.]+)"), ("2.32.10", "release-2.32.10"))
+            with self.assertRaises(framework.RecipeError):
+                framework.git_latest_tag("u", r"x([0-9]+)")
+
+    def test_build_dependencies_resolve_to_their_selected_published_package(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_selection(root, "libfixture", "2.0")
+
+            class Recipe(framework.PackageRecipe):
+                name = "user"
+                repository = "mattos"
+                build_depends = ("libfixture",)
+
+            published = framework.PublishedPackage("2.0-0mattos1", "inputs", "pool/l/libfixture.deb")
+            inventory = {"libfixture": [framework.PublishedPackage("1.0-0mattos1", "", "old.deb"), published]}
+            self.assertEqual(framework.resolve_build_dependencies(root, Recipe(), inventory),
+                             [("libfixture", published)])
+            with self.assertRaises(framework.RecipeError):
+                framework.resolve_build_dependencies(root, Recipe(), {"libfixture": inventory["libfixture"][:1]})
+            # A dependency's published build changes the dependent's inputs.
+            script = Path(framework.__file__)
+            selection = framework.ReleaseSelection("1.0", {})
+            first = framework.build_inputs_digest(root, script, selection, "image", [("libfixture", published)])
+            rebuilt = framework.PublishedPackage("2.0-0mattos1", "other", "pool/l/libfixture.deb")
+            self.assertNotEqual(first, framework.build_inputs_digest(root, script, selection, "image",
+                                                                     [("libfixture", rebuilt)]))
+
+    def test_packages_index_records_filenames(self):
+        index = "Package: a\nVersion: 1\nFilename: pool/a_1_amd64.deb\n\nPackage: b\nVersion: 2\n"
+        parsed = framework.parse_packages_index(index)
+        self.assertEqual(parsed["a"][0].filename, "pool/a_1_amd64.deb")
+        self.assertEqual(parsed["b"][0].filename, "")
+
     def load_recipe(self, filename: str):
         return runpy.run_path(str(PACKAGE_ROOT / filename), run_name=f"test_{filename}")
 

@@ -18,7 +18,9 @@ class FastfetchRecipe(SourceReleaseRecipe):
     github = ("fastfetch-cli", "fastfetch")
     source_url = "https://github.com/fastfetch-cli/fastfetch/archive/refs/tags/{tag}.tar.gz"
     build_system = "cmake"
-    build_options = ("-DBUILD_TESTS=OFF",)
+    # GLX needs the X11 development headers, which MattOS (a Wayland system)
+    # does not ship; OpenGL detection uses EGL.
+    build_options = ("-DBUILD_TESTS=OFF", "-DENABLE_GLX=OFF")
 
 
 if __name__ == "__main__":

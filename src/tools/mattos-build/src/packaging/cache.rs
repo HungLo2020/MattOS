@@ -401,6 +401,9 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // leaving the upstream primary configuration files owned by systemd.
         // Revision 3 moves grep, findutils and diffutils to their own packages.
         "mattos-base-runtime" => 3,
+        // Revision 2 keeps newuidmap and newgidmap setuid through the
+        // package mode normalization (rootless containers need them).
+        "uidmap" => 2,
         // Revision 2 gives the embedded installed-system repository a
         // lexically earlier source filename than the hosted repository. At
         // equal pin priority and package version, APT must select the

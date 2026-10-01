@@ -498,6 +498,150 @@ classification = "debian-compatible"
 known_gaps = ["The ninja shell completions and manual are not shipped"]
 
 [[package]]
+debian_name = "zlib1g-dev"
+mattos_name = "zlib1g-dev"
+source_component = "zlib"
+owned_paths = ["/usr/include/zlib.h", "/usr/lib/x86_64-linux-gnu/libz.so"]
+provided_abi_or_commands = ["zlib development files"]
+protected = true
+current_mattos_version = "1.3.2-1mattos1"
+expected_debian_role = "zlib development files"
+classification = "debian-compatible"
+known_gaps = ["No static libz.a is shipped"]
+
+[[package]]
+debian_name = "libssl-dev"
+mattos_name = "libssl-dev"
+source_component = "openssl"
+owned_paths = ["/usr/include/openssl", "/usr/lib/x86_64-linux-gnu/libssl.so"]
+provided_abi_or_commands = ["OpenSSL development files"]
+protected = true
+current_mattos_version = "3.5.8-1mattos1"
+expected_debian_role = "OpenSSL development files"
+classification = "debian-compatible"
+known_gaps = ["No static archives are shipped"]
+
+[[package]]
+debian_name = "libpcre2-dev"
+mattos_name = "libpcre2-dev"
+source_component = "pcre2"
+owned_paths = ["/usr/include/pcre2.h", "/usr/lib/x86_64-linux-gnu/libpcre2-8.so"]
+provided_abi_or_commands = ["PCRE2 development files"]
+protected = true
+current_mattos_version = "10.49-1mattos1"
+expected_debian_role = "PCRE2 development files"
+classification = "debian-compatible"
+known_gaps = ["Only the 8-bit library; the POSIX wrapper, 16/32-bit libraries and pcre2-config are not shipped"]
+
+[[package]]
+debian_name = "libzstd-dev"
+mattos_name = "libzstd-dev"
+source_component = "zstd"
+owned_paths = ["/usr/include/zstd.h", "/usr/lib/x86_64-linux-gnu/libzstd.so"]
+provided_abi_or_commands = ["Zstandard development files"]
+protected = true
+current_mattos_version = "1.5.7-1mattos1"
+expected_debian_role = "Zstandard development files"
+classification = "debian-compatible"
+known_gaps = ["No static archive is shipped"]
+
+[[package]]
+debian_name = "libglib2.0-dev"
+mattos_name = "libglib2.0-dev"
+source_component = "glib"
+owned_paths = ["/usr/include/glib-2.0", "/usr/bin/glib-mkenums"]
+provided_abi_or_commands = ["GLib development files and code generators"]
+protected = true
+current_mattos_version = "2.84.4-1mattos1"
+expected_debian_role = "GLib development files and code generators"
+classification = "debian-compatible"
+known_gaps = ["libgirepository, GSettings schema tools and glib-gettextize are not shipped; Debian splits libglib2.0-dev-bin"]
+
+[[package]]
+debian_name = "libpixman-1-dev"
+mattos_name = "libpixman-1-dev"
+source_component = "pixman"
+owned_paths = ["/usr/include/pixman-1", "/usr/lib/x86_64-linux-gnu/libpixman-1.so"]
+provided_abi_or_commands = ["pixman development files"]
+protected = true
+current_mattos_version = "0.46.4+git20250720.161402.9cc163c9da0f-1mattos1"
+expected_debian_role = "pixman development files"
+classification = "debian-compatible"
+known_gaps = ["No static archive is shipped"]
+
+[[package]]
+debian_name = "libwayland-dev"
+mattos_name = "libwayland-dev"
+source_component = "wayland"
+owned_paths = ["/usr/include/wayland-client.h", "/usr/bin/wayland-scanner"]
+provided_abi_or_commands = ["Wayland development files and wayland-scanner"]
+protected = true
+current_mattos_version = "1.26.0-1mattos1"
+expected_debian_role = "Wayland development files and wayland-scanner"
+classification = "debian-compatible"
+known_gaps = ["Debian ships wayland-scanner separately as libwayland-bin"]
+
+[[package]]
+debian_name = "wayland-protocols"
+mattos_name = "wayland-protocols"
+source_component = "wayland-protocols"
+owned_paths = ["/usr/share/wayland-protocols"]
+provided_abi_or_commands = ["Wayland protocol extension definitions"]
+protected = true
+current_mattos_version = "1.46-1mattos1"
+expected_debian_role = "Wayland protocol extension definitions"
+classification = "debian-compatible"
+known_gaps = ["None known"]
+
+[[package]]
+debian_name = "libxkbcommon-dev"
+mattos_name = "libxkbcommon-dev"
+source_component = "xkbcommon"
+owned_paths = ["/usr/include/xkbcommon", "/usr/lib/x86_64-linux-gnu/libxkbcommon.so"]
+provided_abi_or_commands = ["xkbcommon development files"]
+protected = true
+current_mattos_version = "1.9.2-1mattos1"
+expected_debian_role = "xkbcommon development files"
+classification = "debian-compatible"
+known_gaps = ["xkbcommon-x11 and xkbregistry development files are not shipped"]
+
+[[package]]
+debian_name = "uidmap"
+mattos_name = "uidmap"
+source_component = "shadow"
+owned_paths = ["/usr/bin/newuidmap", "/usr/bin/newgidmap"]
+provided_abi_or_commands = ["newuidmap and newgidmap (setuid)"]
+protected = true
+current_mattos_version = "4.20.0+git20260730.115122.855d15a04625-1mattos1"
+expected_debian_role = "subordinate user and group ID mapping tools"
+classification = "debian-compatible"
+known_gaps = ["Its postinst also allocates subordinate ID ranges for existing users; Debian leaves that to adduser"]
+
+[[package]]
+debian_name = "libnghttp2-14"
+mattos_name = "libnghttp2-14"
+source_component = "nghttp2"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnghttp2.so.14"]
+provided_abi_or_commands = ["libnghttp2 ABI 14"]
+protected = true
+current_mattos_version = "1.70.0-1mattos1"
+expected_debian_role = "HTTP/2 C library"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libnghttp2-dev"
+mattos_name = "libnghttp2-dev"
+source_component = "nghttp2"
+owned_paths = ["/usr/include/nghttp2", "/usr/lib/x86_64-linux-gnu/libnghttp2.so"]
+provided_abi_or_commands = ["nghttp2 development files"]
+protected = true
+current_mattos_version = "1.70.0-1mattos1"
+expected_debian_role = "HTTP/2 C library development files"
+classification = "debian-compatible"
+known_gaps = ["No static archive is shipped"]
+
+[[package]]
 debian_name = "curl"
 mattos_name = "curl"
 source_component = "curl"

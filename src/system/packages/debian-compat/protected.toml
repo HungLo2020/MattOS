@@ -5,6 +5,7 @@ suite = "trixie"
 # still recorded as a gap. This prevents a supplemental repository from
 # silently taking ownership of critical files already supplied by MattOS.
 packages = [
+  "zlib1g-dev", "libssl-dev", "libpcre2-dev", "libzstd-dev", "libglib2.0-dev", "libpixman-1-dev", "libwayland-dev", "wayland-protocols", "libxkbcommon-dev", "uidmap", "libnghttp2-14", "libnghttp2-dev",
   "perl", "m4", "autoconf", "automake", "libtool", "meson", "ninja-build",
   "grep", "findutils", "diffutils", "sed", "dash", "mawk", "rsync", "pkgconf", "cmake", "libncurses-dev", "libcap-dev", "libnl-3-dev", "libnl-genl-3-dev", "libsystemd-dev", "libacl1-dev", "libattr1-dev",
   "apt", "binutils", "coreutils", "cpp", "dpkg", "g++", "gcc", "gpgv",

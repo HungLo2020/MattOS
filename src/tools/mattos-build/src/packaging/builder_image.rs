@@ -37,6 +37,23 @@ pub(crate) const BUILDER_IMAGE_PACKAGES: &[&str] = &[
     "libsystemd-dev",
     "libacl1-dev",
     "libattr1-dev",
+    // Rust recipes (ripgrep, codex, netavark) build with the MattOS toolchain.
+    "rustc",
+    "cargo",
+    // QEMU's configure builds a Python venv; SDL2 needs the EGL headers.
+    "python3-venv",
+    "libglvnd-dev",
+    "zlib1g-dev",
+    "libssl-dev",
+    "libpcre2-dev",
+    "libzstd-dev",
+    "libglib2.0-dev",
+    "libpixman-1-dev",
+    "libwayland-dev",
+    "wayland-protocols",
+    "libxkbcommon-dev",
+    // json-c's runtime package carries its development files.
+    "libjson-c5",
     "perl",
     "m4",
     "autoconf",

@@ -511,13 +511,18 @@ pub(super) fn stage_glibc_runtime(repo_root: &Path, staging: &Path) -> Result<()
 
 pub(super) fn stage_glibc_utilities(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = repo_root.join("out/build/glibc/install");
-    for name in ["getent", "locale"] {
+    for name in ["getent", "locale", "getconf"] {
         stage_executable(
             &install.join("usr/bin").join(name),
             &staging.join("usr/bin").join(name),
             0o755,
         )?;
     }
+    // getconf's per-programming-environment helpers (`getconf -v`).
+    copy_tree_preserving(
+        &install.join("usr/libexec/getconf"),
+        &staging.join("usr/libexec/getconf"),
+    )?;
     copy_path_preserving(&install.join("usr/bin/ldd"), &staging.join("usr/bin/ldd"))?;
     stage_executable(
         &install.join("sbin/ldconfig"),

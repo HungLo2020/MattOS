@@ -21,6 +21,17 @@ SPEC.loader.exec_module(runner)
 
 
 class BulkRunnerTests(unittest.TestCase):
+    def test_recipes_run_after_their_build_dependencies(self):
+        def recipe(name, *depends):
+            return runner.RecipeDescriptor(Path(f"{name}.py"), name, "mattos", "1", tuple(depends))
+        ordered = runner.dependency_order([recipe("qemu", "sdl", "slirp"), recipe("alpha"),
+                                           recipe("sdl"), recipe("slirp")])
+        names = [item.package for item in ordered]
+        self.assertLess(names.index("sdl"), names.index("qemu"))
+        self.assertLess(names.index("slirp"), names.index("qemu"))
+        with self.assertRaises(runner.RecipeError):
+            runner.dependency_order([recipe("a", "b"), recipe("b", "a")])
+
     def test_discovers_only_immediate_recipe_modules_in_order(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

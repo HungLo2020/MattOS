@@ -856,6 +856,7 @@ fn build_xdg_desktop_portal(repo_root: &Path) -> Result<()> {
             "ostree",
             "xz",
             "curl",
+            "nghttp2",
             "openssl",
             "gpgme",
             "libgpg-error",

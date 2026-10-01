@@ -428,3 +428,31 @@ path = "gnulib"
 upstream_commit = "491f1bb7d3049f3ab7825f3ee665c209658e9965"
 action = "exclude"
 reason = "MattOS stages the checksum-verified official libtool-2.6.2 release archive in an output-owned mirror; that release contains the generated Gnulib closure required to build libtool, so the development-only Git submodule is neither an authoritative vendored-tree member nor a runtime input."
+
+[[component]]
+name = "nghttp2"
+upstream_commit = "85e300c79fb6dbcfa9c1013215c8710c1c2cd3d2"
+
+[[component.gitlink]]
+path = "tests/munit"
+upstream_commit = "114805e1bab0222574b5eb3a92461ad5216647ed"
+action = "exclude"
+reason = "nghttp2's unit-test framework; MattOS builds the library with tests off."
+
+[[component.gitlink]]
+path = "third-party/mruby"
+upstream_commit = "831da26b9021de0369d17b71b5667e2941a1a32d"
+action = "exclude"
+reason = "mruby scripting for the nghttpx proxy application; MattOS builds only libnghttp2 (ENABLE_LIB_ONLY), which never compiles third-party/."
+
+[[component.gitlink]]
+path = "third-party/neverbleed"
+upstream_commit = "68f65c7b05f68e6fd93631668d4f469875946656"
+action = "exclude"
+reason = "OpenSSL key isolation for the nghttpx proxy application; MattOS builds only libnghttp2 (ENABLE_LIB_ONLY), which never compiles third-party/."
+
+[[component.gitlink]]
+path = "third-party/urlparse"
+upstream_commit = "59b068a7618a256c6823b0b9801b61d1d04677a3"
+action = "exclude"
+reason = "URL parser for nghttp2's command-line applications; MattOS builds only libnghttp2 (ENABLE_LIB_ONLY), which never compiles third-party/."

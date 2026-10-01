@@ -137,6 +137,19 @@ The `grep`, `findutils` and `diffutils` packages were split out of
 `Replaces: mattos-base-runtime`, so installing them takes the files over on an
 existing system. `mattos-base` depends on all three.
 
+### uidmap (shadow)
+
+- Binaries: `newuidmap`, `newgidmap` (setuid root), package `uidmap`, built
+  from the vendored shadow like `passwd`
+- Rootless containers (Podman) map subordinate user and group IDs through
+  them. Installing `uidmap` with APT (Podman depends on it) runs its
+  `postinst`, which creates `/etc/subuid` and `/etc/subgid` (system state no
+  package owns) and gives every existing regular user a range of 65,536 IDs;
+  with the files present, `useradd` allocates ranges for later users. The
+  live image also starts with the empty files. Verified on a fresh install:
+  `apt install podman` gives the installed user a range, and rootless
+  containers run.
+
 ### util-linux (traditional C implementation)
 
 - Authentication commands remain split into the existing `login` and `mount`

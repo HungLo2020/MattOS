@@ -6,6 +6,7 @@ mod system;
 mod toolchain;
 pub(crate) use desktop::*;
 use development::*;
+pub(crate) use development::development_package_component;
 pub(crate) use system::*;
 pub(crate) use toolchain::*;
 
@@ -73,7 +74,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "meson" => stage_meson(repo_root, &staging)?,
         "cmake" => stage_cmake(repo_root, &staging)?,
         name @ ("libncurses-dev" | "libcap-dev" | "libnl-3-dev" | "libnl-genl-3-dev"
-        | "libsystemd-dev" | "libacl1-dev" | "libattr1-dev") => {
+        | "libsystemd-dev" | "libacl1-dev" | "libattr1-dev" | "zlib1g-dev" | "libssl-dev" | "libpcre2-dev" | "libzstd-dev" | "libglib2.0-dev" | "libpixman-1-dev" | "libwayland-dev" | "wayland-protocols" | "libxkbcommon-dev" | "libnghttp2-dev") => {
             stage_development_package(repo_root, &staging, name)?
         }
         "coreutils" => stage_coreutils(repo_root, &staging)?,
@@ -988,6 +989,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "libpam-modules" => stage_pam_modules(repo_root, &staging)?,
         "libpam-runtime" => stage_pam_runtime(repo_root, &staging)?,
         "passwd" => stage_shadow(repo_root, &staging)?,
+        "uidmap" => stage_uidmap(repo_root, &staging)?,
         "mattos-sudo-rs" => stage_sudo_rs(repo_root, &staging)?,
         "login" => stage_util_linux_auth(repo_root, &staging)?,
         "iproute2" => stage_iproute2(repo_root, &staging)?,
@@ -1102,6 +1104,16 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             | "libsystemd-dev"
             | "libacl1-dev"
             | "libattr1-dev"
+            | "zlib1g-dev"
+            | "libssl-dev"
+            | "libpcre2-dev"
+            | "libzstd-dev"
+            | "libglib2.0-dev"
+            | "libpixman-1-dev"
+            | "libwayland-dev"
+            | "wayland-protocols"
+            | "libxkbcommon-dev"
+            | "libnghttp2-dev"
     ) {
         validate_no_embedded_build_root(repo_root, &staging)?;
     }
@@ -1235,6 +1247,12 @@ const IMPORTED_SONAME_LIBRARIES: &[(&str, &str, &str, &str)] = &[
         "zstd",
         "libzstd.so.1",
         "src/system/libraries/zstd/LICENSE",
+    ),
+    (
+        "libnghttp2-14",
+        "nghttp2",
+        "libnghttp2.so.14",
+        "src/system/libraries/nghttp2/COPYING",
     ),
     (
         "mattos-libcrypto3",

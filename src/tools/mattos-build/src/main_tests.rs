@@ -4173,6 +4173,8 @@ fn enforce_auth_file_modes_sets_secure_permissions() {
         "usr/bin/pkexec",
         "usr/bin/fusermount3",
         "usr/lib/polkit-1/polkit-agent-helper-1",
+        "usr/bin/newuidmap",
+        "usr/bin/newgidmap",
     ] {
         write(&root.join(rel), "x\n");
     }
@@ -4187,6 +4189,11 @@ fn enforce_auth_file_modes_sets_secure_permissions() {
         .mode()
         & 0o7777;
     assert_eq!(sudo_mode, 0o4755);
+    // Rootless containers: the subordinate-ID databases exist (empty) so
+    // useradd allocates ranges, and the mapping helpers are setuid.
+    assert_eq!(fs::read_to_string(root.join("etc/subuid")).unwrap(), "");
+    assert_eq!(fs::read_to_string(root.join("etc/subgid")).unwrap(), "");
+    assert_eq!(fs::metadata(root.join("usr/bin/newuidmap")).unwrap().permissions().mode() & 0o7777, 0o4755);
     let fusermount_mode = fs::metadata(root.join("usr/bin/fusermount3"))
         .expect("fusermount3 metadata")
         .permissions()
@@ -4224,6 +4231,8 @@ fn auth_file_mode_validation_rejects_unsafe_permissions() {
         "usr/bin/pkexec",
         "usr/bin/fusermount3",
         "usr/lib/polkit-1/polkit-agent-helper-1",
+        "usr/bin/newuidmap",
+        "usr/bin/newgidmap",
     ] {
         write(&root.join(rel), "x\n");
     }

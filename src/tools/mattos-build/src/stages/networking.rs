@@ -299,12 +299,35 @@ fn curl_configure_options() -> Vec<&'static str> {
         "--without-brotli",
         "--without-zstd",
         "--without-libidn2",
-        "--without-nghttp2",
+        // HTTP/2 through MattOS's nghttp2 (Cargo multiplexes over it).
+        "--with-nghttp2",
         "--without-ngtcp2",
         "--without-nghttp3",
         "--without-libssh2",
         "--disable-dependency-tracking",
     ]
+}
+
+/// nghttp2's HTTP/2 library only (its proxy and client tools are not
+/// built), for curl's HTTP/2 support.
+fn build_nghttp2(repo_root: &Path) -> Result<()> {
+    build_cmake_runtime(
+        repo_root,
+        "nghttp2",
+        "src/system/libraries/nghttp2",
+        &[],
+        &[
+            "-DCMAKE_INSTALL_PREFIX=/usr",
+            "-DCMAKE_INSTALL_LIBDIR=lib/x86_64-linux-gnu",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DENABLE_LIB_ONLY=ON",
+            "-DBUILD_SHARED_LIBS=ON",
+            "-DBUILD_STATIC_LIBS=OFF",
+            "-DENABLE_DOC=OFF",
+            "-DBUILD_TESTING=OFF",
+        ],
+        "usr/lib/x86_64-linux-gnu/libnghttp2.so.14",
+    )
 }
 
 fn build_curl(repo_root: &Path) -> Result<()> {
@@ -328,6 +351,11 @@ fn build_curl(repo_root: &Path) -> Result<()> {
     let zlib_lib = zlib.join("lib/x86_64-linux-gnu");
     let zstd = repo_root.join("out/build/zstd/install/usr");
     let zstd_lib = zstd.join("lib/x86_64-linux-gnu");
+    let nghttp2 = repo_root.join("out/build/nghttp2/install/usr");
+    let nghttp2_lib = nghttp2.join("lib/x86_64-linux-gnu");
+    if !nghttp2_lib.join("libnghttp2.so").exists() {
+        bail!("MattOS curl HTTP/2 dependency is missing; run build nghttp2 first")
+    }
     if !openssl_lib.join("libcrypto.so").exists()
         || !openssl_lib.join("libssl.so").exists()
         || !zlib_lib.join("libz.so").exists()
@@ -338,26 +366,28 @@ fn build_curl(repo_root: &Path) -> Result<()> {
     let options = curl_configure_options();
     let openssl_state = fs::read_to_string(repo_root.join("upstream/state/openssl.toml"))
         .context("failed to read OpenSSL upstream state")?;
-    let library_path = std::env::join_paths([&openssl_lib, &zlib_lib, &zstd_lib])?
+    let library_path = std::env::join_paths([&openssl_lib, &zlib_lib, &zstd_lib, &nghttp2_lib])?
         .to_string_lossy()
         .to_string();
     let env = [
         (
             "CPPFLAGS",
             format!(
-                "-I{} -I{} -I{}",
+                "-I{} -I{} -I{} -I{}",
                 openssl.join("include").display(),
                 zlib.join("include").display(),
-                zstd.join("include").display()
+                zstd.join("include").display(),
+                nghttp2.join("include").display()
             ),
         ),
         (
             "LDFLAGS",
             format!(
-                "-L{} -L{} -L{}",
+                "-L{} -L{} -L{} -L{}",
                 openssl_lib.display(),
                 zlib_lib.display(),
-                zstd_lib.display()
+                zstd_lib.display(),
+                nghttp2_lib.display()
             ),
         ),
         ("LIBRARY_PATH", library_path.clone()),
@@ -368,6 +398,7 @@ fn build_curl(repo_root: &Path) -> Result<()> {
                 openssl_lib.join("pkgconfig"),
                 zlib_lib.join("pkgconfig"),
                 zstd_lib.join("pkgconfig"),
+                nghttp2_lib.join("pkgconfig"),
             ])?
             .to_string_lossy()
             .to_string(),
@@ -408,11 +439,12 @@ fn build_curl(repo_root: &Path) -> Result<()> {
             bail!("curl install did not produce {}", binary.source_rel);
         }
     }
-    let runtime_dirs: [&Path; 3] = [&openssl_lib, &zlib_lib, &zstd_lib];
+    let runtime_dirs: [&Path; 4] = [&openssl_lib, &zlib_lib, &zstd_lib, &nghttp2_lib];
     let libcurl = install_dir.join("usr/lib/x86_64-linux-gnu/libcurl.so.4.8.0");
     validate_dependency_resolves_from(&libcurl, "libssl.so.3", &openssl_lib, &runtime_dirs)?;
     validate_dependency_resolves_from(&libcurl, "libcrypto.so.3", &openssl_lib, &runtime_dirs)?;
     validate_dependency_resolves_from(&libcurl, "libzstd.so.1", &zstd_lib, &runtime_dirs)?;
+    validate_dependency_resolves_from(&libcurl, "libnghttp2.so.14", &nghttp2_lib, &runtime_dirs)?;
     // This is a build-private libtool convenience archive. Leaving it in
     // the staged install lets downstream libtool consumers embed this
     // checkout's absolute staging path as an ELF RUNPATH. The libcurl .so

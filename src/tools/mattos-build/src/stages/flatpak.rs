@@ -60,7 +60,7 @@ fn build_appstream(repo_root: &Path) -> Result<()> {
         "appstream",
         "src/system/libraries/appstream",
         &[
-            "glib", "libffi", "pcre2", "libxml2", "zlib", "curl", "openssl", "libfyaml", "libxmlb", "xz",
+            "glib", "libffi", "pcre2", "libxml2", "zlib", "curl", "nghttp2", "openssl", "libfyaml", "libxmlb", "xz",
             "zstd", "systemd", "wayland",
         ],
         &[
@@ -147,6 +147,7 @@ fn build_flatpak(repo_root: &Path) -> Result<()> {
             "zlib",
             "xz",
             "curl",
+            "nghttp2",
             "openssl",
             "libcap",
             "libarchive",
@@ -250,6 +251,7 @@ fn build_flatpak_target_install_helper(repo_root: &Path) -> Result<()> {
         "zlib",
         "xz",
         "curl",
+        "nghttp2",
         "openssl",
         "libcap",
         "libarchive",
@@ -424,6 +426,7 @@ fn build_ostree(repo_root: &Path) -> Result<()> {
             "xz",
             "zstd",
             "curl",
+            "nghttp2",
             "openssl",
             "libarchive",
             "libxml2",

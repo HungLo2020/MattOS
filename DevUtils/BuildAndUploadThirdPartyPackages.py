@@ -31,6 +31,7 @@ class RecipeDescriptor:
     package: str
     repository: str
     selected_version: str
+    build_depends: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -86,9 +87,34 @@ def descriptor(path: Path) -> RecipeDescriptor:
         raise RecipeError(f"{path.stem}: {failure_summary(completed.stdout)}")
     try:
         data = json.loads(completed.stdout)
-        return RecipeDescriptor(path, str(data["package"]), str(data["repository"]), str(data["selected_version"]))
+        return RecipeDescriptor(path, str(data["package"]), str(data["repository"]), str(data["selected_version"]),
+                                tuple(str(name) for name in data.get("build_depends", ())))
     except (KeyError, TypeError, json.JSONDecodeError) as exc:
         raise RecipeError(f"{path.stem}: invalid recipe descriptor: {exc}") from exc
+
+
+def dependency_order(recipes: list[RecipeDescriptor]) -> list[RecipeDescriptor]:
+    """Recipes ordered so each builds after the third-party packages it
+    build-depends on (which it installs from the repository)."""
+    by_name = {recipe.package: recipe for recipe in recipes}
+    ordered: list[RecipeDescriptor] = []
+    state: dict[str, str] = {}
+
+    def visit(recipe: RecipeDescriptor) -> None:
+        if state.get(recipe.package) == "done":
+            return
+        if state.get(recipe.package) == "visiting":
+            raise RecipeError(f"third-party build dependency cycle through {recipe.package}")
+        state[recipe.package] = "visiting"
+        for dependency in recipe.build_depends:
+            if dependency in by_name:
+                visit(by_name[dependency])
+        state[recipe.package] = "done"
+        ordered.append(recipe)
+
+    for recipe in sorted(recipes, key=lambda recipe: recipe.package):
+        visit(recipe)
+    return ordered
 
 
 def invoke(recipe: RecipeDescriptor, *, mode: str, dry_run: bool, inventory: Path) -> Outcome:
@@ -158,7 +184,7 @@ def main(argv: list[str]) -> int:
     if not paths:
         parser.error("no third-party package recipes were discovered")
     try:
-        recipes = [descriptor(path) for path in paths]
+        recipes = dependency_order([descriptor(path) for path in paths])
     except RecipeError as exc:
         parser.error(str(exc))
     mode = "check" if args.check else "update"
@@ -183,14 +209,28 @@ def main(argv: list[str]) -> int:
                 print(colors.status("FAILED") + f" repository {repository}: {exc}")
                 for recipe in grouped[repository]:
                     outcomes.append(Outcome(recipe.package, "FAILED", "?", recipe.selected_version, "?", str(exc), ""))
+        failed_packages: set[str] = set()
         for recipe in recipes:
             snapshot = snapshots.get(recipe.repository)
-            if snapshot:
+            if not snapshot:
+                continue
+            broken = [name for name in recipe.build_depends if name in failed_packages]
+            if broken:
+                outcome = Outcome(recipe.package, "FAILED", "?", recipe.selected_version, "?",
+                                  "build dependency failed: " + ", ".join(broken), "")
+            else:
                 outcome = invoke(recipe, mode=mode, dry_run=args.dry_run, inventory=snapshot)
-                outcomes.append(outcome)
-                print_outcome(colors, outcome)
-                if args.verbose and outcome.output.strip():
-                    print(outcome.output.rstrip())
+            if outcome.status == "FAILED":
+                failed_packages.add(recipe.package)
+            elif outcome.status == "UPLOADED":
+                # Packages that build-depend on this one install it from the
+                # repository: refresh the snapshot they are handed.
+                write_repository_inventory(snapshot, recipe.repository,
+                                           repository_inventory(ROOT, recipe.repository))
+            outcomes.append(outcome)
+            print_outcome(colors, outcome)
+            if args.verbose and outcome.output.strip():
+                print(outcome.output.rstrip())
     print("\n" + colors.paint("1", "Summary"))
     for outcome in outcomes:
         print_outcome(colors, outcome)

@@ -104,7 +104,10 @@ neither.
 
 curl is intentionally configured for HTTP and HTTPS only, with IPv4 and the
 blocking glibc resolver. HTTPS verification uses OpenSSL and the compiled
-default CA path `/etc/ssl/certs/ca-certificates.crt`.
+default CA path `/etc/ssl/certs/ca-certificates.crt`. HTTP/2 comes from the
+vendored nghttp2 (`libnghttp2-14`, `src/system/libraries/nghttp2`, built
+library-only): Cargo multiplexes crate downloads over it, and without it
+fails with "Unsupported protocol".
 
 ## Pinned Trust Store
 

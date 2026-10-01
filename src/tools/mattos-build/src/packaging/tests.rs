@@ -209,6 +209,25 @@ fn portal_package_consumes_flatpak_owned_bubblewrap_without_copying_it() {
 }
 
 #[test]
+fn uidmap_helpers_stay_setuid_after_normalization() {
+    let root = tempfile::tempdir().unwrap();
+    for name in ["newuidmap", "newgidmap"] {
+        let helper = root.path().join("usr/bin").join(name);
+        fs::create_dir_all(helper.parent().unwrap()).unwrap();
+        fs::write(&helper, "shadow helper\n").unwrap();
+        set_mode(helper, 0o4755).unwrap();
+    }
+    normalize_package_modes(root.path()).unwrap();
+    for name in ["newuidmap", "newgidmap"] {
+        assert_eq!(
+            fs::metadata(root.path().join("usr/bin").join(name)).unwrap().permissions().mode() & 0o7777,
+            0o4755,
+            "rootless containers map subordinate IDs through a setuid {name}"
+        );
+    }
+}
+
+#[test]
 fn flatpak_document_portal_keeps_fusermount_privileged_after_normalization() {
     let root = tempfile::tempdir().unwrap();
     let helper = root.path().join("usr/bin/fusermount3");
@@ -769,7 +788,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 356);
+    assert_eq!(PACKAGE_NAMES.len(), 368);
 }
 
 #[test]
@@ -824,7 +843,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 356);
+    assert_eq!(PACKAGE_NAMES.len(), 368);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -928,7 +947,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 356);
+    assert_eq!(PACKAGE_NAMES.len(), 368);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",

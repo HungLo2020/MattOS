@@ -231,6 +231,7 @@ pub(crate) enum BuildStage {
     Iproute2,
     Iputils,
     Curl,
+    Nghttp2,
     Expat,
     Libcap,
     Attr,
@@ -513,6 +514,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Iproute2 => "iproute2",
         BuildStage::Iputils => "iputils",
         BuildStage::Curl => "curl",
+        BuildStage::Nghttp2 => "nghttp2",
         BuildStage::Expat => "expat",
         BuildStage::Libcap => "libcap",
         BuildStage::Attr => "attr",
@@ -590,6 +592,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Git => &[
             "formal-sysroot",
             "curl",
+            "nghttp2",
             "expat",
             "openssl",
             "zlib",
@@ -2596,6 +2599,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "zlib",
             "xz",
             "curl",
+            "nghttp2",
             "openssl",
             "libcap",
             "libarchive",
@@ -2672,6 +2676,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "ostree",
             "xz",
             "curl",
+            "nghttp2",
             // flatpak.pc exposes libcurl's TLS backend; OpenSSL's target
             // pkg-config metadata must therefore be visible to Meson.
             "openssl",
@@ -2710,6 +2715,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "libxml2",
             "zlib",
             "curl",
+            "nghttp2",
             "openssl",
             "libfyaml",
             "libxmlb",
@@ -2746,6 +2752,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "xz",
             "zstd",
             "curl",
+            "nghttp2",
             "openssl",
             "libarchive",
             "libxml2",
@@ -2808,7 +2815,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "ncurses",
         ],
         BuildStage::Llvm => &["formal-sysroot", "zlib", "zstd"],
-        BuildStage::Rust => &["formal-sysroot", "llvm", "openssl", "zlib", "curl"],
+        BuildStage::Rust => &["formal-sysroot", "llvm", "openssl", "zlib", "curl", "nghttp2"],
         BuildStage::Procps => &["formal-sysroot", "ncurses"],
         BuildStage::Kmod => &["formal-sysroot", "zstd"],
         BuildStage::Iproute2 => &[
@@ -2820,7 +2827,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "pcre2",
             "selinux",
         ],
-        BuildStage::Curl => &["formal-sysroot", "openssl", "zlib", "zstd"],
+        BuildStage::Curl => &["formal-sysroot", "openssl", "zlib", "zstd", "nghttp2"],
         BuildStage::Pam => &["formal-sysroot", "libxcrypt"],
         BuildStage::UtilLinux => &[
             "formal-sysroot",
@@ -3186,6 +3193,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Iproute2,
         BuildStage::Iputils,
         BuildStage::Curl,
+        BuildStage::Nghttp2,
         BuildStage::Pam,
         BuildStage::UtilLinux,
         BuildStage::Kmod,
@@ -3648,18 +3656,18 @@ mod tests {
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // Fontconfig and the Plasma closure are first-class consumers of
             // glibc through their source-owned runtime dependencies.
-            ("glibc source", &["glibc"], 276, &["linux"]),
+            ("glibc source", &["glibc"], 277, &["linux"]),
             ("Linux x86_64 config", &["linux"], 14, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                277,
+                278,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                274,
+                275,
                 &["linux", "glibc", "linux-headers"],
             ),
             // zlib reaches Cargo-built userland through the MattOS rustc.

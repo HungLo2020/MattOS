@@ -335,7 +335,12 @@ struct DevelopmentPackage {
     headers: &'static [&'static str],
     /// (linker name, SONAME it points at).
     linker_names: &'static [(&'static str, &'static str)],
+    /// pkg-config files, from `lib/x86_64-linux-gnu/pkgconfig` or
+    /// `share/pkgconfig` (published at the same place).
     pkgconfig: &'static [&'static str],
+    /// Further paths under `usr` copied as they are (tools such as
+    /// wayland-scanner, glib's generated `glibconfig.h`, protocol data).
+    extra: &'static [&'static str],
     license: &'static str,
 }
 
@@ -349,6 +354,7 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
         ],
         linker_names: &[("libncursesw.so", "libncursesw.so.6"), ("libtinfow.so", "libtinfow.so.6")],
         pkgconfig: &["ncursesw.pc", "tinfow.pc"],
+        extra: &[],
         license: "src/system/terminal/ncurses/COPYING",
     },
     DevelopmentPackage {
@@ -357,6 +363,7 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
         headers: &["sys/capability.h"],
         linker_names: &[("libcap.so", "libcap.so.2")],
         pkgconfig: &["libcap.pc"],
+        extra: &[],
         license: "src/system/libraries/libcap/License",
     },
     DevelopmentPackage {
@@ -365,6 +372,7 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
         headers: &["libnl3"],
         linker_names: &[("libnl-3.so", "libnl-3.so.200")],
         pkgconfig: &["libnl-3.0.pc"],
+        extra: &[],
         license: "src/system/network/libnl/COPYING",
     },
     DevelopmentPackage {
@@ -373,6 +381,7 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
         headers: &[],
         linker_names: &[("libnl-genl-3.so", "libnl-genl-3.so.200")],
         pkgconfig: &["libnl-genl-3.0.pc"],
+        extra: &[],
         license: "src/system/network/libnl/COPYING",
     },
     DevelopmentPackage {
@@ -381,6 +390,7 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
         headers: &["systemd"],
         linker_names: &[("libsystemd.so", "libsystemd.so.0")],
         pkgconfig: &["libsystemd.pc"],
+        extra: &[],
         license: "src/system/systemd/LICENSE.LGPL2.1",
     },
     DevelopmentPackage {
@@ -389,6 +399,7 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
         headers: &["acl", "sys/acl.h"],
         linker_names: &[("libacl.so", "libacl.so.1")],
         pkgconfig: &["libacl.pc"],
+        extra: &[],
         license: "src/system/libraries/acl/doc/COPYING.LGPL",
     },
     DevelopmentPackage {
@@ -397,7 +408,127 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
         headers: &["attr"],
         linker_names: &[("libattr.so", "libattr.so.1")],
         pkgconfig: &["libattr.pc"],
+        extra: &[],
         license: "src/system/libraries/attr/doc/COPYING.LGPL",
+    },
+    DevelopmentPackage {
+        package: "zlib1g-dev",
+        component: "zlib",
+        headers: &["zlib.h", "zconf.h"],
+        linker_names: &[("libz.so", "libz.so.1")],
+        pkgconfig: &["zlib.pc"],
+        extra: &[],
+        license: "src/system/libraries/zlib/LICENSE",
+    },
+    DevelopmentPackage {
+        package: "libssl-dev",
+        component: "openssl",
+        headers: &["openssl"],
+        linker_names: &[("libssl.so", "libssl.so.3"), ("libcrypto.so", "libcrypto.so.3")],
+        pkgconfig: &["libssl.pc", "libcrypto.pc", "openssl.pc"],
+        extra: &[],
+        license: "src/system/libraries/openssl/LICENSE.txt",
+    },
+    DevelopmentPackage {
+        package: "libpcre2-dev",
+        component: "pcre2",
+        headers: &["pcre2.h"],
+        linker_names: &[("libpcre2-8.so", "libpcre2-8.so.0")],
+        pkgconfig: &["libpcre2-8.pc"],
+        extra: &[],
+        license: "src/system/libraries/pcre2/LICENCE.md",
+    },
+    DevelopmentPackage {
+        package: "libzstd-dev",
+        component: "zstd",
+        headers: &["zstd.h", "zdict.h", "zstd_errors.h"],
+        linker_names: &[("libzstd.so", "libzstd.so.1")],
+        pkgconfig: &["libzstd.pc"],
+        extra: &[],
+        license: "src/system/libraries/zstd/LICENSE",
+    },
+    DevelopmentPackage {
+        package: "libglib2.0-dev",
+        component: "glib",
+        headers: &["glib-2.0", "gio-unix-2.0"],
+        linker_names: &[
+            ("libglib-2.0.so", "libglib-2.0.so.0"),
+            ("libgobject-2.0.so", "libgobject-2.0.so.0"),
+            ("libgio-2.0.so", "libgio-2.0.so.0"),
+            ("libgmodule-2.0.so", "libgmodule-2.0.so.0"),
+            ("libgthread-2.0.so", "libgthread-2.0.so.0"),
+        ],
+        pkgconfig: &[
+            "glib-2.0.pc", "gobject-2.0.pc", "gio-2.0.pc", "gio-unix-2.0.pc", "gmodule-2.0.pc",
+            "gmodule-export-2.0.pc", "gmodule-no-export-2.0.pc", "gthread-2.0.pc",
+        ],
+        extra: &[
+            "lib/x86_64-linux-gnu/glib-2.0/include",
+            "bin/glib-mkenums",
+            "bin/glib-genmarshal",
+            "bin/glib-compile-resources",
+            "bin/gdbus-codegen",
+            "share/glib-2.0/codegen",
+            "share/aclocal/glib-2.0.m4",
+        ],
+        license: "src/system/libraries/glib/COPYING",
+    },
+    DevelopmentPackage {
+        package: "libpixman-1-dev",
+        component: "pixman",
+        headers: &["pixman-1"],
+        linker_names: &[("libpixman-1.so", "libpixman-1.so.0")],
+        pkgconfig: &["pixman-1.pc"],
+        extra: &[],
+        license: "src/system/libraries/pixman/COPYING",
+    },
+    DevelopmentPackage {
+        package: "libwayland-dev",
+        component: "wayland",
+        headers: &[
+            "wayland-client-core.h", "wayland-client-protocol.h", "wayland-client.h", "wayland-cursor.h",
+            "wayland-egl-backend.h", "wayland-egl-core.h", "wayland-egl.h", "wayland-server-core.h",
+            "wayland-server-protocol.h", "wayland-server.h", "wayland-util.h", "wayland-version.h",
+        ],
+        linker_names: &[
+            ("libwayland-client.so", "libwayland-client.so.0"),
+            ("libwayland-cursor.so", "libwayland-cursor.so.0"),
+            ("libwayland-egl.so", "libwayland-egl.so.1"),
+            ("libwayland-server.so", "libwayland-server.so.0"),
+        ],
+        pkgconfig: &[
+            "wayland-client.pc", "wayland-cursor.pc", "wayland-egl.pc", "wayland-egl-backend.pc",
+            "wayland-server.pc", "wayland-scanner.pc",
+        ],
+        extra: &["bin/wayland-scanner", "share/wayland", "share/aclocal/wayland-scanner.m4"],
+        license: "src/system/libraries/wayland/COPYING",
+    },
+    DevelopmentPackage {
+        package: "wayland-protocols",
+        component: "wayland-protocols",
+        headers: &[],
+        linker_names: &[],
+        pkgconfig: &["wayland-protocols.pc"],
+        extra: &["share/wayland-protocols"],
+        license: "src/graphics/wayland-protocols/COPYING",
+    },
+    DevelopmentPackage {
+        package: "libxkbcommon-dev",
+        component: "xkbcommon",
+        headers: &["xkbcommon"],
+        linker_names: &[("libxkbcommon.so", "libxkbcommon.so.0")],
+        pkgconfig: &["xkbcommon.pc"],
+        extra: &[],
+        license: "src/system/libraries/xkbcommon/LICENSE",
+    },
+    DevelopmentPackage {
+        package: "libnghttp2-dev",
+        component: "nghttp2",
+        headers: &["nghttp2"],
+        linker_names: &[("libnghttp2.so", "libnghttp2.so.14")],
+        pkgconfig: &["libnghttp2.pc"],
+        extra: &[],
+        license: "src/system/libraries/nghttp2/COPYING",
     },
 ];
 
@@ -429,18 +560,40 @@ pub(super) fn stage_development_package(repo_root: &Path, staging: &Path, name: 
     // into pkg-config metadata; the installed prefix is always /usr.
     let staged_prefix = format!("{}", install.display());
     for pc in package.pkgconfig {
-        let source = install.join("lib/x86_64-linux-gnu/pkgconfig").join(pc);
+        let relative = ["lib/x86_64-linux-gnu/pkgconfig", "share/pkgconfig"]
+            .into_iter()
+            .map(|directory| Path::new(directory).join(pc))
+            .find(|relative| install.join(relative).is_file())
+            .ok_or_else(|| anyhow!("{name}: {pc} is not in the {} install", package.component))?;
+        let source = install.join(&relative);
         let body = fs::read_to_string(&source)
             .with_context(|| format!("failed to read {}", source.display()))?
             .replace(&staged_prefix, "/usr");
-        let destination = libdir.join("pkgconfig").join(pc);
+        let destination = staging.join("usr").join(&relative);
         fs::create_dir_all(destination.parent().expect("pkgconfig has a parent"))?;
         fs::write(destination, body)?;
+    }
+    for relative in package.extra {
+        let source = install.join(relative);
+        let destination = staging.join("usr").join(relative);
+        if source.is_dir() {
+            copy_tree_preserving(&source, &destination)?;
+        } else {
+            copy_preserving(&source, &destination)?;
+        }
     }
     copy_preserving(
         &repo_root.join(package.license),
         &staging.join("usr/share/doc").join(name).join("copyright"),
     )
+}
+
+/// The source component of a table `-dev` package, which gives its version.
+pub(crate) fn development_package_component(name: &str) -> Option<&'static str> {
+    DEVELOPMENT_PACKAGES
+        .iter()
+        .find(|package| package.package == name)
+        .map(|package| package.component)
 }
 
 /// pkgconf with its compatibility `pkg-config` name.  libpkgconf is static,

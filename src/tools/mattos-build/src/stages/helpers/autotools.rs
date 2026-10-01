@@ -520,7 +520,7 @@ fn build_git(repo_root: &Path) -> Result<()> {
     sync_build_source(&source, &source_copy)?;
     let env = staged_library_environment(
         repo_root,
-        &["curl", "expat", "openssl", "zlib", "zstd", "pcre2"],
+        &["curl", "nghttp2", "expat", "openssl", "zlib", "zstd", "pcre2"],
     )?;
     let curl_config = repo_root.join("out/build/curl/install/usr/bin/curl-config");
     if !curl_config.is_file() {

@@ -18,6 +18,8 @@ fn build_rust(repo_root: &Path) -> Result<()> {
             // Cargo's curl-sys links libcurl; it must be MattOS curl, never
             // the host's (which a host pkg-config search would select).
             repo_root.join("out/build/curl/install/usr"),
+            // libcurl's HTTP/2 library, which the linker must resolve too.
+            repo_root.join("out/build/nghttp2/install/usr"),
         ],
     )?;
     let archive = ensure_verified_release_archive(

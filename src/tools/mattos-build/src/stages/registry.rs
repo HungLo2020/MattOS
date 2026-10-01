@@ -952,6 +952,7 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Iproute2 => build_iproute2(repo_root),
         BuildStage::Iputils => build_iputils(repo_root),
         BuildStage::Curl => build_curl(repo_root),
+        BuildStage::Nghttp2 => build_nghttp2(repo_root),
         BuildStage::Expat => build_expat(repo_root),
         BuildStage::Libcap => build_libcap(repo_root),
         BuildStage::Attr => build_attr(repo_root),

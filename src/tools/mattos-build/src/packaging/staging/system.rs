@@ -1235,6 +1235,44 @@ pub(super) fn stage_shadow(repo_root: &Path, staging: &Path) -> Result<()> {
     validate_no_mutable_system_state(staging)
 }
 
+/// Subordinate IDs for rootless containers: when installed on a running
+/// system, create /etc/subuid and /etc/subgid (useradd then allocates a range
+/// for every new user) and give each existing regular user a range.
+pub(super) const UIDMAP_POSTINST: &str = r#"#!/bin/sh
+set -e
+[ -n "${DPKG_ROOT:-}" ] && exit 0
+for file in /etc/subuid /etc/subgid; do
+    [ -e "$file" ] || { : > "$file"; chmod 0644 "$file"; }
+done
+getent passwd | while IFS=: read -r user _ uid _; do
+    [ "$uid" -ge 1000 ] && [ "$uid" -lt 60000 ] || continue
+    start=$((100000 + (uid - 1000) * 65536))
+    end=$((start + 65535))
+    grep -q "^$user:" /etc/subuid || usermod --add-subuids "$start-$end" "$user"
+    grep -q "^$user:" /etc/subgid || usermod --add-subgids "$start-$end" "$user"
+done
+exit 0
+"#;
+
+/// Debian's uidmap: shadow's setuid newuidmap and newgidmap, which rootless
+/// Podman and other user-namespace tools use to map subordinate IDs.
+pub(super) fn stage_uidmap(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "shadow").join("usr");
+    for program in ["newuidmap", "newgidmap"] {
+        let destination = staging.join("usr/bin").join(program);
+        stage_executable(&install.join("bin").join(program), &destination, 0o755)?;
+        set_mode(destination, 0o4755)?;
+    }
+    let postinst = staging.join("DEBIAN/postinst");
+    fs::create_dir_all(postinst.parent().expect("postinst has a parent"))?;
+    fs::write(&postinst, UIDMAP_POSTINST)?;
+    set_mode(postinst, 0o755)?;
+    copy_preserving(
+        &repo_root.join("src/system/auth/shadow/COPYING"),
+        &staging.join("usr/share/doc/uidmap/copyright"),
+    )
+}
+
 pub(super) fn stage_sudo_rs(repo_root: &Path, staging: &Path) -> Result<()> {
     stage_runtime_paths(
         repo_root,

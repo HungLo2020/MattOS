@@ -742,6 +742,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/userland/curl",
             "src/tools/mattos-build/src/stages/networking.rs",
         ],
+        BuildStage::Nghttp2 => &[
+            "src/system/libraries/nghttp2",
+            "src/tools/mattos-build/src/stages/networking.rs",
+        ],
         BuildStage::Expat => &[
             "src/system/libraries/expat/expat",
             "src/tools/mattos-build/src/stages/foundation_libraries.rs",
@@ -1128,6 +1132,7 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         BuildStage::Duktape => &["gcc", "python3"],
         BuildStage::Pkgconf => &["gcc", "ld", "meson", "ninja"],
         BuildStage::Cmake => &["gcc", "g++", "ld", "cmake", "ninja"],
+        BuildStage::Nghttp2 => &["gcc", "ld", "cmake", "ninja"],
         BuildStage::Perl => &["gcc", "ld", "make"],
         BuildStage::M4 => &["gcc", "ld", "make"],
         BuildStage::Autoconf | BuildStage::Automake => &["make", "m4", "perl"],

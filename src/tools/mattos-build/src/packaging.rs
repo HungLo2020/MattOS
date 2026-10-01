@@ -1138,6 +1138,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "rsync" => &["rsync"],
             "pkgconf" => &["pkgconf"],
             "cmake" => &["cmake"],
+            "wayland-protocols" => &["wayland-protocols"],
             "perl" => &["perl"],
             "m4" => &["m4"],
             "autoconf" => &["autoconf"],
@@ -1333,6 +1334,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "xz" => &["xz"],
             "xxhash" => &["xxhash"],
             "zstd" => &["zstd"],
+            "nghttp2" => &["nghttp2"],
             "openssl" => &["openssl"],
             "elfutils" => &["elfutils"],
             "pcre2" => &["pcre2"],
@@ -1425,6 +1427,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "libmd" => &["src/system/libraries/libmd"],
         "libbsd" => &["src/system/libraries/libbsd"],
         "zstd" => &["src/system/libraries/zstd"],
+        "nghttp2" => &["src/system/libraries/nghttp2"],
         "openssl" => &["src/system/libraries/openssl"],
         "elfutils" => &["src/system/libraries/elfutils"],
         "pcre2" => &["src/system/libraries/pcre2"],
@@ -1477,6 +1480,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "rsync" => &["src/userland/rsync", "upstream/policies/release-archives.toml"],
         "pkgconf" => &["src/build-tools/pkgconf"],
         "cmake" => &["src/build-tools/cmake"],
+        "wayland-protocols" => &["src/graphics/wayland-protocols"],
         "perl" => &["src/development/perl"],
         "m4" => &["src/build-tools/m4", "upstream/policies/release-archives.toml"],
         "autoconf" => &["src/build-tools/autoconf", "upstream/policies/release-archives.toml"],
@@ -2084,6 +2088,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libmd0" => component_snapshot_version(repo_root, "libmd")?,
         "libbsd0" => component_snapshot_version(repo_root, "libbsd")?,
         "libzstd1" | "zstd" => component_snapshot_version(repo_root, "zstd")?,
+        "libnghttp2-14" => component_snapshot_version(repo_root, "nghttp2")?,
         "mattos-libcrypto3" | "libssl3t64" => component_snapshot_version(repo_root, "openssl")?,
         "libelf1t64" => component_snapshot_version(repo_root, "elfutils")?,
         "libpcre2-8-0" => component_snapshot_version(repo_root, "pcre2")?,
@@ -2094,7 +2099,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libpam0g" | "mattos-libpam-misc0" | "libpam-modules" | "libpam-runtime" => {
             component_snapshot_version(repo_root, "linux-pam")?
         }
-        "passwd" => component_snapshot_version(repo_root, "shadow")?,
+        "passwd" | "uidmap" => component_snapshot_version(repo_root, "shadow")?,
         "mattos-sudo-rs" => {
             cargo_package_version(&repo_root.join("src/system/auth/sudo-rs/Cargo.toml"))?
         }
@@ -2342,7 +2347,11 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "mattos-toolchain"
         | "mattos-plasma-live"
         | "mattos-plasma-theme" => "0.1".to_string(),
-        _ => bail!("unknown package {}", spec.name),
+        name => match staging::development_package_component(name) {
+            // A table `-dev` package shares its library's version.
+            Some(component) => component_snapshot_version(repo_root, component)?,
+            None => bail!("unknown package {}", spec.name),
+        },
     };
     let epoch = compatibility_epoch(repo_root, &spec.name)?;
     let upstream = match epoch {
@@ -2788,7 +2797,7 @@ fn write_provenance(
         component @ ("glibc" | "ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker"
         | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2"
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
-        | "xxhash" | "zstd" | "openssl" | "elfutils" | "pcre2" | "selinux"
+        | "xxhash" | "zstd" | "nghttp2" | "openssl" | "elfutils" | "pcre2" | "selinux"
         | "libxcrypt" | "libmd" | "libbsd" | "tar" | "gzip" | "patch" | "file"
         | "libgpg-error" | "libgcrypt" | "libassuan" | "libksba" | "npth"
         | "gnupg" | "less" | "git" | "openssh" | "libffi" | "wayland"
@@ -2945,6 +2954,8 @@ fn normalize_package_modes(root: &Path) -> Result<()> {
                     | "usr/bin/su"
                     | "usr/bin/pkexec"
                     | "usr/bin/fusermount3"
+                    | "usr/bin/newuidmap"
+                    | "usr/bin/newgidmap"
                     | "usr/lib/polkit-1/polkit-agent-helper-1"
             )
         ) {

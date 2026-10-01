@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT. Its local repository (carried on the installer medium and copied onto installed systems) supplies every MattOS package, and the signed hosted MattOS repository at `https://packages.mattsherfey.com` is an enabled source at equal priority. Signed Debian 13 (Trixie) sources are shipped but disabled. See [APT source and pin policy](#apt-source-and-pin-policy). Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (356 packages at the time of writing; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the kernel modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
+This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (368 packages at the time of writing; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the kernel modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
 
 ## Imported package-manager sources
 
@@ -64,7 +64,7 @@ The table below covers representative core packages only; it is not the complete
 | `mattos-brush` | required | `/usr/bin/brush` |
 | `coreutils` | required | uutils multicall binary and non-conflicting applet symlinks |
 | `grep`, `findutils`, `diffutils` | required, Essential | uutils `grep`; `find`, `xargs`, `locate`, `updatedb`; `diff`, `cmp` |
-| `curl` | optional | curl CLI and its source-built matching `libcurl.so.4` ABI |
+| `curl` | optional | curl CLI and its source-built matching `libcurl.so.4` ABI, with HTTP/2 through `libnghttp2-14` |
 | `libmd0`, `libbsd0` | important | source-built message-digest and BSD portability ABIs and SONAME links |
 | `libzstd1` | important | source-built Zstandard runtime ABI and SONAME links |
 | `mattos-libcrypto3`, `libssl3t64` | important | source-built OpenSSL crypto and TLS runtime ABIs and SONAME links |

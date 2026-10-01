@@ -2352,6 +2352,16 @@ fn verify_required_pam_modules(rootfs: &Path) -> Result<()> {
 }
 
 fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
+    // Subordinate-ID databases, like /etc/shadow, are system state no
+    // package owns.  With them present, useradd (the installer's included)
+    // allocates each new user a range for rootless containers.
+    for rel in ["etc/subuid", "etc/subgid"] {
+        let path = rootfs.join(rel);
+        if !path.exists() {
+            fs::write(&path, "")?;
+        }
+        set_mode(path, 0o644)?;
+    }
     for (rel, mode) in [
         ("etc/shadow", 0o600),
         ("etc/gshadow", 0o600),
@@ -2372,6 +2382,9 @@ fn enforce_auth_file_modes(rootfs: &Path) -> Result<()> {
         // polkit authentication helper, whose upstream contract is setuid
         // root.  Package/rootfs copying can otherwise reduce it to 0755.
         ("usr/lib/polkit-1/polkit-agent-helper-1", 0o4755),
+        // uidmap's subordinate-ID mapping helpers (rootless containers).
+        ("usr/bin/newuidmap", 0o4755),
+        ("usr/bin/newgidmap", 0o4755),
     ] {
         let path = rootfs.join(rel);
         if !path.exists() {
@@ -2426,6 +2439,9 @@ fn validate_auth_file_modes(rootfs: &Path) -> Result<()> {
         ("usr/bin/pkexec", 0o4755),
         ("usr/bin/fusermount3", 0o4755),
         ("usr/lib/polkit-1/polkit-agent-helper-1", 0o4755),
+        // uidmap's subordinate-ID mapping helpers (rootless containers).
+        ("usr/bin/newuidmap", 0o4755),
+        ("usr/bin/newgidmap", 0o4755),
         ("root", 0o700),
         ("home/mattos", 0o750),
     ] {

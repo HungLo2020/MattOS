@@ -40,6 +40,15 @@ MATTOS_INVENTORY = Path("out/packages/inventory.toml")
 # version (`-1mattos1`), so MattOS can always take a package over.
 REVISION_PREFIX = "0mattos"
 BUILD_INPUTS_FIELD = "X-MattOS-Build-Inputs"
+# Debian's multiarch library directory, which the MattOS loader searches.
+MULTIARCH_LIBDIR = "lib/x86_64-linux-gnu"
+# Workspace directory holding third-party build dependencies to install.
+THIRD_PARTY_DEPENDENCY_DIR = "third-party-deps"
+# The Go toolchain Go recipes build with: a pinned, checksum-verified official
+# release downloaded into the build (Go is not needed to build MattOS itself,
+# so it is neither vendored nor packaged).
+GO_VERSION = "1.27.1"
+GO_SHA256 = "63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445"
 
 
 class RecipeError(RuntimeError):
@@ -78,6 +87,8 @@ class ReleaseSelection:
 class PublishedPackage:
     version: str
     build_inputs: str = ""
+    # Repository-relative path of the .deb (the index's Filename field).
+    filename: str = ""
 
 
 class PackageRecipe:
@@ -91,6 +102,12 @@ class PackageRecipe:
     description: str = ""
     depends: Sequence[str] = ()
     provides: Sequence[str] = ()
+    conflicts: Sequence[str] = ()
+    # Other third-party packages (published in the same repository) that must
+    # be installed in the builder container to build this one, for example a
+    # library it links.  They are installed from the repository at their
+    # selected release, and the bulk runner publishes them first.
+    build_depends: Sequence[str] = ()
 
     def discover_version(self) -> tuple[str, dict[str, str]]:
         raise NotImplementedError
@@ -114,6 +131,7 @@ class PackageRecipe:
             "description": self.description,
             "depends": tuple(self.dependency_names()),
             "provides": tuple(self.provides),
+            "conflicts": tuple(self.conflicts),
         }
 
 
@@ -130,13 +148,6 @@ def validate_repository(recipe: PackageRecipe) -> str:
             f"expected one of: {allowed}"
         )
     return repository
-
-
-def repo_root(script: Path) -> Path:
-    for candidate in (script.parent, *script.parents):
-        if (candidate / "Cargo.toml").is_file() and (candidate / "upstream/sources.toml").is_file():
-            return candidate
-    raise RecipeError(f"cannot locate MattOS repository root from {script}")
 
 
 def repo_root(script: Path) -> Path:
@@ -263,6 +274,18 @@ def fetch_json(url: str, *, headers: dict[str, str] | None = None, attempts: int
     raise RecipeError(f"upstream API request failed after {attempts} attempts: {url}: {last}") from last
 
 
+def _skip_unsafe_links(member: tarfile.TarInfo, path: str) -> tarfile.TarInfo | None:
+    """tarfile's `data` filter, except that a link pointing outside the tree
+    (typically upstream test data) is left out instead of failing the whole
+    extraction.  Anything else the filter rejects still fails."""
+    try:
+        return tarfile.data_filter(member, path)
+    except (tarfile.AbsoluteLinkError, tarfile.LinkOutsideDestinationError):
+        if member.issym() or member.islnk():
+            return None
+        raise
+
+
 def extract_archive(archive: Path, destination: Path) -> Path:
     destination.mkdir(parents=True, exist_ok=True)
     with tarfile.open(archive, "r:*") as tar:
@@ -271,7 +294,7 @@ def extract_archive(archive: Path, destination: Path) -> Path:
             target = (destination / member.name).resolve()
             if not target.is_relative_to(destination.resolve()):
                 raise RecipeError(f"archive contains path traversal: {member.name}")
-        tar.extractall(destination, filter="data")
+        tar.extractall(destination, filter=_skip_unsafe_links)
     roots = [path for path in destination.iterdir() if path.is_dir()]
     if len(roots) == 1:
         return roots[0]
@@ -288,6 +311,7 @@ def sha256_file(path: Path) -> str:
 
 def write_control(staging: Path, *, name: str, version: str, description: str,
                   depends: Sequence[str], provides: Sequence[str] = (),
+                  conflicts: Sequence[str] = (),
                   architecture: str = "amd64", section: str = "utils",
                   priority: str = "optional", build_inputs: str = "") -> None:
     control = staging / "DEBIAN/control"
@@ -304,6 +328,9 @@ def write_control(staging: Path, *, name: str, version: str, description: str,
         lines.append("Depends: " + ", ".join(depends))
     if provides:
         lines.append("Provides: " + ", ".join(provides))
+    if conflicts:
+        lines.append("Conflicts: " + ", ".join(conflicts))
+        lines.append("Replaces: " + ", ".join(conflicts))
     if build_inputs:
         lines.append(f"{BUILD_INPUTS_FIELD}: {build_inputs}")
     lines.append("Description: " + description)
@@ -341,18 +368,23 @@ def elf_runtime_dependencies(staging: Path) -> list[str]:
     with `dpkg-query -S`.  A library no package owns fails the build.
     """
     libraries: set[str] = set()
+    # A package's programs may load the package's own libraries: resolve
+    # those from the staging tree, and depend only on what lies outside it.
+    own = [staging / "usr" / MULTIARCH_LIBDIR, staging / "usr/lib"]
+    env = {**os.environ, "LD_LIBRARY_PATH": ":".join(str(path) for path in own if path.is_dir())}
+    staged = Path(os.path.abspath(staging))
     for path in sorted(staging.rglob("*")):
         if path.is_symlink() or not path.is_file() or "DEBIAN" in path.parts or not _is_elf(path):
             continue
         result = subprocess.run(["ldd", str(path)], text=True, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, check=False)
+                                stderr=subprocess.STDOUT, check=False, env=env)
         if "not a dynamic executable" in result.stdout:
             continue
         for line in result.stdout.splitlines():
             if "=> not found" in line:
                 raise RecipeError(f"{path.relative_to(staging)} needs a library MattOS does not provide: {line.strip()}")
             match = re.search(r"=>\s+(/\S+)", line)
-            if match:
+            if match and not Path(os.path.realpath(match.group(1))).is_relative_to(staged):
                 libraries.add(os.path.realpath(match.group(1)))
     packages: set[str] = set()
     for library in sorted(libraries):
@@ -411,6 +443,30 @@ def github_latest_release(owner: str, repository: str) -> tuple[str, dict[str, s
     }
 
 
+def version_key(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in re.findall(r"[0-9]+", version))
+
+
+def git_latest_tag(url: str, pattern: str) -> tuple[str, str]:
+    """The newest release tag of a Git repository, by version order.
+
+    `pattern` is a full-match regular expression whose first group is the
+    version (for example ``v([0-9.]+)``).  Listing tags needs no API quota,
+    so every recipe can be checked in one run.
+    """
+    output = command(["git", "ls-remote", "--tags", "--refs", url])
+    candidates = []
+    for line in output.splitlines():
+        tag = line.split("refs/tags/", 1)[-1].strip()
+        match = re.fullmatch(pattern, tag)
+        if match:
+            candidates.append((version_key(match.group(1)), match.group(1), tag))
+    if not candidates:
+        raise RecipeError(f"no release tag of {url} matches {pattern!r}")
+    _, version, tag = max(candidates)
+    return version, tag
+
+
 def github_source_archive(owner: str, repository: str, release_tag: str) -> str:
     return f"https://github.com/{owner}/{repository}/archive/refs/tags/{release_tag}.tar.gz"
 
@@ -421,7 +477,8 @@ def cmake_build_install(source: Path, build: Path, staging: Path,
     require_tools(["cmake", "make", "cc", "c++"])
     command([
         "cmake", "-S", str(source), "-B", str(build),
-        "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_INSTALL_PREFIX=/usr", *options,
+        "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_INSTALL_PREFIX=/usr",
+        f"-DCMAKE_INSTALL_LIBDIR={MULTIARCH_LIBDIR}", *options,
     ])
     command(["cmake", "--build", str(build), "--parallel"])
     env = {**os.environ, "DESTDIR": str(staging)}
@@ -438,10 +495,23 @@ def autotools_build_install(source: Path, build: Path, staging: Path,
         command(["autoreconf", "--install", "--force"], cwd=source)
     build.mkdir(parents=True, exist_ok=True)
     command([
-        str(configure), "--prefix=/usr", "--disable-dependency-tracking", *options,
+        str(configure), "--prefix=/usr", f"--libdir=/usr/{MULTIARCH_LIBDIR}",
+        "--disable-dependency-tracking", *options,
     ], cwd=build)
     command(["make", "-j", str(os.cpu_count() or 1)], cwd=build)
     command(["make", f"DESTDIR={staging}", "install"], cwd=build)
+
+
+def meson_build_install(source: Path, build: Path, staging: Path,
+                        *, options: Sequence[str] = ()) -> None:
+    """Configure, build, and DESTDIR-install a Meson project."""
+    require_tools(["meson", "ninja", "cc"])
+    command([
+        "meson", "setup", str(build), str(source), "--prefix=/usr",
+        f"--libdir={MULTIARCH_LIBDIR}", "--buildtype=release", "--wrap-mode=nodownload", *options,
+    ])
+    command(["ninja", "-C", str(build)])
+    command(["meson", "install", "-C", str(build), "--destdir", str(staging)])
 
 
 def make_build_install(source: Path, staging: Path, *, options: Sequence[str] = (),
@@ -450,6 +520,60 @@ def make_build_install(source: Path, staging: Path, *, options: Sequence[str] = 
     require_tools(["make", "cc", "c++"])
     command(["make", "-j", str(os.cpu_count() or 1), *options], cwd=source)
     command(["make", *options, *install_options, f"DESTDIR={staging}", "install"], cwd=source)
+
+
+def go_environment(workspace: Path, *, cgo: bool = False) -> dict[str, str]:
+    """Environment for `go build` with the pinned Go toolchain.  Modules are
+    fetched from the Go module proxy and verified against go.sum."""
+    root = workspace / "go-toolchain"
+    if not (root / "go/bin/go").is_file():
+        archive = workspace / f"go{GO_VERSION}.linux-amd64.tar.gz"
+        download(f"https://go.dev/dl/go{GO_VERSION}.linux-amd64.tar.gz", archive, sha256=GO_SHA256)
+        root.mkdir(parents=True, exist_ok=True)
+        with tarfile.open(archive, "r:gz") as tar:
+            tar.extractall(root, filter="data")
+        archive.unlink()
+    cache = workspace / "go-cache"
+    return {
+        **os.environ,
+        "PATH": f"{root / 'go/bin'}:{os.environ.get('PATH', '/usr/bin:/bin')}",
+        "GOPATH": str(cache / "path"),
+        "GOMODCACHE": str(cache / "mod"),
+        "GOCACHE": str(cache / "build"),
+        "GOTOOLCHAIN": "local",
+        "GOFLAGS": "-trimpath -buildvcs=false -mod=readonly",
+        "CGO_ENABLED": "1" if cgo else "0",
+        "HOME": str(workspace),
+    }
+
+
+def cargo_environment(workspace: Path) -> dict[str, str]:
+    """Environment for `cargo build` with the MattOS Rust toolchain.  Crates
+    are fetched from crates.io at the versions pinned by Cargo.lock."""
+    return {
+        **os.environ,
+        "CARGO_HOME": str(workspace / "cargo-home"),
+        "CARGO_TARGET_DIR": str(workspace / "cargo-target"),
+        "CARGO_NET_RETRY": "5",
+        # Bounded parallelism: large workspaces (codex) otherwise run one
+        # rustc per CPU thread and exhaust memory.
+        "CARGO_BUILD_JOBS": "6",
+        "HOME": str(workspace),
+    }
+
+
+def install_file(source: Path, destination: Path, mode: int = 0o644) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, destination)
+    destination.chmod(mode)
+
+
+def install_license(staging: Path, package: str, source: Path, names: Sequence[str]) -> None:
+    """The package's copyright notice, from the named upstream license files."""
+    text = "\n".join((source / name).read_text(encoding="utf-8", errors="replace") for name in names)
+    destination = staging / "usr/share/doc" / package / "copyright"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(text, encoding="utf-8")
 
 
 class SourceReleaseRecipe(PackageRecipe):
@@ -461,20 +585,25 @@ class SourceReleaseRecipe(PackageRecipe):
     """
 
     github: tuple[str, str] = ("", "")
+    # Release tags are listed from this Git repository (default: the GitHub
+    # repository); `tag_pattern` full-matches a release tag, its group the
+    # version.  Pre-releases do not match the default pattern.
+    git_url: str = ""
+    tag_pattern: str = r"v?([0-9]+(?:\.[0-9]+)*)"
     # Formatted with {version} and {tag} (the selected release_tag).
     source_url: str = ""
-    build_system: str = "autotools"  # "autotools", "cmake" or "make"
+    build_system: str = "autotools"  # "autotools", "cmake", "meson", "make" or custom
     build_options: Sequence[str] = ()
     install_options: Sequence[str] = ()
 
     def discover_version(self) -> tuple[str, dict[str, str]]:
         owner, repository = self.github
-        if not owner:
-            raise NotImplementedError(f"{self.name} must set github or override discover_version")
-        version, provenance = github_latest_release(owner, repository)
-        if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", version):
-            raise RecipeError(f"{self.name} release API returned an invalid stable tag {version!r}")
-        return version, provenance
+        url = self.git_url or (f"https://github.com/{owner}/{repository}.git" if owner else "")
+        if not url:
+            raise NotImplementedError(f"{self.name} must set github or git_url, or override discover_version")
+        version, tag = git_latest_tag(url, self.tag_pattern)
+        upstream = url.removesuffix(".git")
+        return version, {"upstream": upstream, "release_tag": tag}
 
     def source_archive_url(self, version: str, provenance: dict[str, str]) -> str:
         return self.source_url.format(version=version, tag=provenance.get("release_tag", version))
@@ -484,6 +613,8 @@ class SourceReleaseRecipe(PackageRecipe):
             cmake_build_install(source, workspace / "build", staging, options=self.build_options)
         elif self.build_system == "autotools":
             autotools_build_install(source, workspace / "build", staging, options=self.build_options)
+        elif self.build_system == "meson":
+            meson_build_install(source, workspace / "build", staging, options=self.build_options)
         elif self.build_system == "make":
             make_build_install(source, staging, options=self.build_options, install_options=self.install_options)
         else:
@@ -494,6 +625,9 @@ class SourceReleaseRecipe(PackageRecipe):
 
     def build(self, workspace: Path, version: str, provenance: dict[str, str]) -> BuildResult:
         upstream = provenance.get("upstream_version", version)
+        # The upstream release being built, for recipes that stamp it into
+        # the binaries they build.
+        self.upstream_version = upstream
         url = self.source_archive_url(upstream, provenance)
         expected = provenance.get("source_sha256")
         if not expected:
@@ -571,17 +705,65 @@ def recorded_builder_image_digest(root: Path) -> str:
         return ""
 
 
-def build_inputs_digest(root: Path, script: Path, selection: ReleaseSelection, image_digest: str) -> str:
+def build_inputs_digest(root: Path, script: Path, selection: ReleaseSelection, image_digest: str,
+                        dependencies: Sequence[tuple[str, PublishedPackage]] = ()) -> str:
     """Identity of everything a package build consumes: the recipe, the shared
-    framework, the pinned release selection and the builder image.  Equal
-    digests mean a rebuild would produce the published package again."""
+    framework, the pinned release selection, the builder image and the
+    third-party build dependencies.  Equal digests mean a rebuild would
+    produce the published package again."""
     digest = hashlib.sha256()
     for path in (script, Path(__file__).resolve()):
         digest.update(path.name.encode() + b"\0" + path.read_bytes() + b"\0")
     digest.update(json.dumps({"version": selection.version, "revision": selection.revision,
                               **selection.provenance}, sort_keys=True).encode())
     digest.update(b"\0" + image_digest.encode())
+    for name, package in dependencies:
+        digest.update(f"\0{name}={package.version}:{package.build_inputs}".encode())
     return digest.hexdigest()
+
+
+def resolve_build_dependencies(root: Path, recipe: PackageRecipe,
+                               inventory: dict[str, list[PublishedPackage]]) -> list[tuple[str, PublishedPackage]]:
+    """The published package of each third-party build dependency, at the
+    release selected for it in releases.json."""
+    selections = release_selections(root)
+    resolved = []
+    for name in recipe.build_depends:
+        selection = selections.get(name)
+        if selection is None:
+            raise RecipeError(f"{recipe.name} build-depends on {name}, which has no selected release")
+        wanted = selection.package_version
+        match = next((entry for entry in inventory.get(name, []) if entry.version == wanted), None)
+        if match is None or not match.filename:
+            raise RecipeError(
+                f"{recipe.name} build-depends on {name} {wanted}, which is not published in "
+                f"{recipe.repository}; publish it first"
+            )
+        resolved.append((name, match))
+    return resolved
+
+
+def fetch_build_dependencies(root: Path, repository: str, workspace: Path,
+                             dependencies: Sequence[tuple[str, PublishedPackage]]) -> None:
+    """Download the dependency packages into the workspace, where the
+    container build installs them before building."""
+    if not dependencies:
+        return
+    base = _publisher_config(root, repository).public_url.rstrip("/")
+    for name, package in dependencies:
+        download(f"{base}/{package.filename}", workspace / THIRD_PARTY_DEPENDENCY_DIR / Path(package.filename).name)
+
+
+def container_memory_high() -> int | None:
+    """Three quarters of MemAvailable (at least 2 GiB), or None if unknown."""
+    try:
+        for line in Path("/proc/meminfo").read_text(encoding="utf-8").splitlines():
+            if line.startswith("MemAvailable:"):
+                available = int(line.split()[1]) * 1024
+                return max(available // 4 * 3, 2 << 30)
+    except (OSError, ValueError, IndexError):
+        pass
+    return None
 
 
 def build_in_container(root: Path, recipe: PackageRecipe, script: Path, workspace: Path,
@@ -605,6 +787,13 @@ def build_in_container(root: Path, recipe: PackageRecipe, script: Path, workspac
     user_args: list[str] = []
     if Path(engine).name != "podman":
         user_args = ["--user", f"{os.getuid()}:{os.getgid()}"]
+    else:
+        # Like a MattOS build stage, the container is reclaimed and
+        # throttled at three quarters of the memory available when it
+        # starts, instead of pushing the desktop into swap.
+        high = container_memory_high()
+        if high:
+            user_args = [f"--cgroup-conf=memory.high={high}"]
     args = [
         engine, "run", "--rm", *user_args,
         "--volume", f"{workspace.resolve()}:/work:rw",
@@ -646,19 +835,9 @@ def validate_package_artifact(recipe: PackageRecipe, result: BuildResult) -> Non
 
 def _write_container_result(recipe: PackageRecipe, workspace: Path,
                             version: str, provenance: dict[str, str]) -> int:
-    result = recipe.build(workspace, version, provenance)
-    artifact = result.artifact.resolve()
-    if not artifact.is_relative_to(workspace.resolve()):
-        raise RecipeError("recipe artifact must remain inside its disposable workspace")
-    (workspace / "container-result.json").write_text(
-        json.dumps({"artifact": artifact.relative_to(workspace.resolve()).as_posix()}, sort_keys=True),
-        encoding="utf-8",
-    )
-    return 0
-
-
-def _write_container_result(recipe: PackageRecipe, workspace: Path,
-                            version: str, provenance: dict[str, str]) -> int:
+    dependencies = sorted((workspace / THIRD_PARTY_DEPENDENCY_DIR).glob("*.deb"))
+    if dependencies:
+        command(["dpkg", "--install", *map(str, dependencies)])
     result = recipe.build(workspace, version, provenance)
     artifact = result.artifact.resolve()
     if not artifact.is_relative_to(workspace.resolve()):
@@ -697,7 +876,7 @@ def parse_packages_index(text: str) -> dict[str, list[PublishedPackage]]:
                 fields[key] = value.strip()
         if "Package" in fields and "Version" in fields:
             published.setdefault(fields["Package"], []).append(
-                PublishedPackage(fields["Version"], fields.get(BUILD_INPUTS_FIELD, ""))
+                PublishedPackage(fields["Version"], fields.get(BUILD_INPUTS_FIELD, ""), fields.get("Filename", ""))
             )
     return published
 
@@ -728,7 +907,8 @@ def write_repository_inventory(path: Path, repository: str, inventory: dict[str,
         "format": 2,
         "repository": repository,
         "packages": {
-            name: [{"version": entry.version, "build_inputs": entry.build_inputs} for entry in entries]
+            name: [{"version": entry.version, "build_inputs": entry.build_inputs, "filename": entry.filename}
+                   for entry in entries]
             for name, entries in inventory.items()
         },
     }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -746,7 +926,8 @@ def read_repository_inventory(path: Path, repository: str) -> dict[str, list[Pub
     inventory: dict[str, list[PublishedPackage]] = {}
     for package, entries in packages.items():
         try:
-            inventory[package] = [PublishedPackage(str(entry["version"]), str(entry.get("build_inputs", "")))
+            inventory[package] = [PublishedPackage(str(entry["version"]), str(entry.get("build_inputs", "")),
+                                                   str(entry.get("filename", "")))
                                   for entry in entries]
         except (KeyError, TypeError) as exc:
             raise RecipeError(f"repository inventory is invalid ({path}): malformed package versions") from exc
@@ -839,6 +1020,7 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
             "package": recipe.name,
             "repository": repository,
             "selected_version": version,
+            "build_depends": list(recipe.build_depends),
         }, sort_keys=True))
         return 0
     print(f"[{recipe.name}] mode: {args.command}", flush=True)
@@ -855,10 +1037,21 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
     existing: list[PublishedPackage] = []
     if args.command in ("check", "update", "publish"):
         existing = published_packages(root, recipe.name, repository, args.repository_inventory)
+    dependencies: list[tuple[str, PublishedPackage]] | None = []
+    if recipe.build_depends:
+        inventory = (read_repository_inventory(args.repository_inventory, repository)
+                     if args.repository_inventory else repository_inventory(root, repository))
+        try:
+            dependencies = resolve_build_dependencies(root, recipe, inventory)
+        except RecipeError:
+            if args.command != "check":
+                raise
+            dependencies = None
     published_versions = [entry.version for entry in existing]
     published_inputs = next((entry.build_inputs for entry in existing if entry.version == version), None)
     image_digest = recorded_builder_image_digest(root)
-    expected_inputs = build_inputs_digest(root, script, selection, image_digest) if image_digest else ""
+    expected_inputs = (build_inputs_digest(root, script, selection, image_digest, dependencies)
+                       if image_digest and dependencies is not None else "")
     state, repository_version = release_state(
         upstream_version, selection.version, published_versions,
         selected_package_version=version, published_inputs=published_inputs, build_inputs=expected_inputs,
@@ -881,7 +1074,7 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
         ensure_not_a_mattos_package(root, recipe)
     engine = container_engine()
     image = builder_image(root, engine)
-    build_inputs = build_inputs_digest(root, script, selection, image[1])
+    build_inputs = build_inputs_digest(root, script, selection, image[1], dependencies or ())
     if args.command == "update" and published_inputs == build_inputs:
         print(f"[{recipe.name}] {version} is already published from identical build inputs; nothing to do", flush=True)
         if args.result_json:
@@ -898,6 +1091,7 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
         (root / "out/tmp").mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix=f"mattos-{recipe.name}-", dir=root / "out/tmp") as temporary:
             workspace = Path(temporary).resolve()
+            fetch_build_dependencies(root, repository, workspace, dependencies or ())
             result_build = build_in_container(root, recipe, script, workspace, version, provenance, image)
             artifact = result_build.artifact.resolve()
             if not artifact.is_relative_to(workspace):

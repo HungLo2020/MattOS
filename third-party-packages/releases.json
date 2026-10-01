@@ -1,20 +1,125 @@
 {
   "format": 1,
   "packages": {
+    "aardvark-dns": {
+      "release_tag": "v2.1.0",
+      "source_sha256": "daf871488603e659b0501224cf0731ac317809b1d1701fc061cb4f6ae39a894f",
+      "version": "2.1.0"
+    },
     "btop": {
       "release_tag": "v1.4.7",
       "source_sha256": "933de2e4d1b2211a638be463eb6e8616891bfba73aef5d38060bd8319baeefc6",
       "version": "1.4.7"
+    },
+    "catatonit": {
+      "release_tag": "v0.2.1",
+      "source_sha256": "771385049516fdd561fbb9164eddf376075c4c7de3900a8b18654660172748f1",
+      "version": "0.2.1"
+    },
+    "codex": {
+      "release_tag": "rust-v0.159.2",
+      "source_sha256": "da1fb76975416fe137f174dd3fd6c7b778ace11629f0607451474bfd78d98d83",
+      "version": "0.159.2"
+    },
+    "conmon": {
+      "release_tag": "v2.2.1",
+      "source_sha256": "814fb5979a3a4b8576b1f901e606b482bebb41cb7e57926e6d5765ee786b96d3",
+      "version": "2.2.1"
+    },
+    "containers-common": {
+      "release_tag": "common/v0.69.2",
+      "source_sha256": "76ac2130ee222adf0dca4551ae79637e6c4ece9dc024bcbe166dfca1e20b87dd",
+      "version": "0.69.2"
+    },
+    "crun": {
+      "release_tag": "1.30.1",
+      "source_sha256": "99d036d95113552b6df66c7c879432835504bf0e525fc0372745071df129527b",
+      "version": "1.30.1"
     },
     "fastfetch": {
       "release_tag": "2.68.1",
       "source_sha256": "c268cfcd230cc7ed5447fb34ed21bf4977315c7104356a39388b6ba784ad11b0",
       "version": "2.68.1"
     },
+    "gh": {
+      "release_tag": "v2.102.0",
+      "source_sha256": "08bf0ef8b4409893889175e0f5279d30d6edd96465816042c0d7c72eac598158",
+      "version": "2.102.0"
+    },
     "htop": {
       "release_tag": "3.5.3",
       "source_sha256": "a8b164386494cb85bb255a415a3f5f80afe7a0c4491da5d113b3a0f951087e65",
       "version": "3.5.3"
+    },
+    "libjansson4": {
+      "release_tag": "v2.15.1",
+      "source_sha256": "0c7114dc0b2d22a670724a1f95922029d7077c19dbf79a584cb8084d2f267f2f",
+      "version": "2.15.1"
+    },
+    "libmnl0": {
+      "release_tag": "libmnl-1.0.5",
+      "source_sha256": "274b9b919ef3152bfb3da3a13c950dd60d6e2bcd54230ffeca298d03b40d0525",
+      "version": "1.0.5"
+    },
+    "libnftnl11": {
+      "release_tag": "libnftnl-1.3.2",
+      "source_sha256": "c97abc3409f8fa396b4462b2bb7f147a3a47a4ddc97cfa0b2f18890c9cfde8b0",
+      "version": "1.3.2"
+    },
+    "libsdl2-2.0-0": {
+      "release_tag": "release-2.32.10",
+      "source_sha256": "5f5993c530f084535c65a6879e9b26ad441169b3e25d789d83287040a9ca5165",
+      "version": "2.32.10"
+    },
+    "libseccomp2": {
+      "release_tag": "v2.6.1",
+      "source_sha256": "501f66c667225d53791b97e1d7cf85ab764c297d04881f60f38f451c4b0ee1be",
+      "version": "2.6.1"
+    },
+    "libslirp0": {
+      "release_tag": "v4.9.5",
+      "source_sha256": "f43e68b60b580647574ec4a0e2b6c600a56281e6c39f79426510832dc810f483",
+      "version": "4.9.5"
+    },
+    "netavark": {
+      "release_tag": "v2.1.0",
+      "source_sha256": "96677048168ddd1abe313e4c2e17f1cace72b60ee1bac8ca12a4bd7dfcadfbbb",
+      "version": "2.1.0"
+    },
+    "nftables": {
+      "release_tag": "v1.1.7",
+      "source_sha256": "a6fbf060d8d4fff001517a2b94f356bb4366bfbf0ba366366f9d27cc38caa58f",
+      "version": "1.1.7"
+    },
+    "passt": {
+      "release_tag": "2026_09_25.df90211",
+      "source_sha256": "cdf655b5677ce219108cf3df93a55e0ae98a376887be110fe35303ea900d5d68",
+      "version": "0.0~git20260925.df90211"
+    },
+    "podman": {
+      "release_tag": "v6.1.3",
+      "source_sha256": "6253aee14e573f747ca77e5a83a0df4ef9c2f609604f56715070ed06b6f9ddd8",
+      "version": "6.1.3"
+    },
+    "qemu-system-x86": {
+      "release_tag": "v11.1.2",
+      "source_sha256": "731b5681e4bb18be313231579b8efd0296c5b015fa36dc533874b639ba838016",
+      "version": "11.1.2"
+    },
+    "ripgrep": {
+      "release_tag": "15.2.0",
+      "source_sha256": "7605249d3eb0d5f170e3414498e3344e26b1e7a147aec518b57090b80036a562",
+      "version": "15.2.0"
+    },
+    "tailscale": {
+      "release_tag": "v1.104.0",
+      "source_sha256": "d5ef52c6561de4a9ab671964976e205859250627817f65a9c1f9245b409efa95",
+      "version": "1.104.0"
+    },
+    "wget": {
+      "release_tag": "v1.25.0",
+      "source_sha256": "766e48423e79359ea31e41db9e5c289675947a7fcf2efdcedb726ac9d0da3784",
+      "version": "1.25.0"
     }
   }
 }
