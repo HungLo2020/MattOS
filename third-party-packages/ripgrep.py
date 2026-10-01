@@ -20,6 +20,7 @@ from common import (  # noqa: E402
 class RipgrepRecipe(SourceReleaseRecipe):
     name = "ripgrep"
     repository = "mattos"
+    toolchains = ("rust",)
     description = "Recursively searches directories for a regex pattern (rg)"
     depends = ("libc6",)
     github = ("BurntSushi", "ripgrep")

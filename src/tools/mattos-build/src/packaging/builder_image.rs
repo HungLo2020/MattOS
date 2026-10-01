@@ -77,6 +77,11 @@ struct BuilderImageMetadata {
     archive: String,
     input_digest: String,
     packages: Vec<String>,
+    /// The inventory SHA-256 of each package in the image.  Third-party
+    /// recipes fingerprint their build environment from the entries for the
+    /// packages they link and the compiler toolchain they use.
+    #[serde(default)]
+    package_sha256: BTreeMap<String, String>,
 }
 
 /// `names` and everything they depend on, in installation order.
@@ -105,6 +110,7 @@ pub(crate) fn build_builder_image(repo_root: &Path) -> Result<()> {
     let order = package_closure(BUILDER_IMAGE_PACKAGES)?;
     let mut input = Sha256Hasher::new();
     input.update(IMAGE_FORMAT.as_bytes());
+    let mut package_sha256 = BTreeMap::new();
     for name in &order {
         let entry = inventory
             .package
@@ -112,15 +118,22 @@ pub(crate) fn build_builder_image(repo_root: &Path) -> Result<()> {
             .find(|entry| entry.name == *name)
             .ok_or_else(|| anyhow!("package {name} is not built; run `mattos-build build all` first"))?;
         input.update(format!("\n{name}={}", entry.sha256).as_bytes());
+        package_sha256.insert(name.to_string(), entry.sha256.clone());
     }
     let input_digest = format!("{:x}", input.finalize());
     let metadata_path = repo_root.join(IMAGE_METADATA);
-    if let Some(existing) = fs::read_to_string(&metadata_path)
+    if let Some(mut existing) = fs::read_to_string(&metadata_path)
         .ok()
         .and_then(|text| serde_json::from_str::<BuilderImageMetadata>(&text).ok())
         && existing.input_digest == input_digest
         && repo_root.join(&existing.archive).is_file()
     {
+        // Metadata from before the per-package digests were recorded
+        // describes the same image; complete it without rebuilding.
+        if existing.package_sha256 != package_sha256 {
+            existing.package_sha256 = package_sha256;
+            performance::atomic_write(&metadata_path, serde_json::to_string_pretty(&existing)?.as_bytes())?;
+        }
         println!("builder image {} is up to date", existing.reference);
         return Ok(());
     }
@@ -209,6 +222,7 @@ pub(crate) fn build_builder_image(repo_root: &Path) -> Result<()> {
         archive: IMAGE_ARCHIVE.to_string(),
         input_digest,
         packages: order.iter().map(|name| name.to_string()).collect(),
+        package_sha256,
     };
     performance::atomic_write(&metadata_path, serde_json::to_string_pretty(&metadata)?.as_bytes())?;
     println!("built builder image {reference} ({} packages)", order.len());

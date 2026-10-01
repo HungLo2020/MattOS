@@ -20,6 +20,7 @@ from common import (  # noqa: E402
 class GhRecipe(SourceReleaseRecipe):
     name = "gh"
     repository = "mattos"
+    toolchains = ("go",)
     section = "vcs"
     description = "GitHub's official command-line tool"
     depends = ("git",)

@@ -92,6 +92,34 @@ class BulkRunnerTests(unittest.TestCase):
             self.assertIn("update", invoke.call_args.args[0])
             self.assertIn("--dry-run", invoke.call_args.args[0])
 
+    def test_stale_environment_is_reported_and_rebuilt_only_on_request(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "out/tmp").mkdir(parents=True)
+            recipe = root / "wget.py"
+            recipe.write_text("# fixture\n")
+            inventory = root / "mattos.json"
+            inventory.write_text("{}")
+
+            def completed(args, **_kwargs):
+                result = Path(args[args.index("--result-json") + 1])
+                status = "uploaded" if "--rebuild-stale" in args else "stale-environment"
+                result.write_text(json.dumps({
+                    "status": status, "package": "wget", "upstream_version": "1.0",
+                    "selected_version": "1.0-0mattos1", "repository_version": "1.0-0mattos1",
+                }))
+                return SimpleNamespace(returncode=0, stdout="")
+
+            with mock.patch.object(runner, "ROOT", root), mock.patch.object(subprocess, "run", side_effect=completed):
+                stale = runner.invoke(self.fixture_descriptor(recipe), mode="update", dry_run=False,
+                                      inventory=inventory)
+                rebuilt = runner.invoke(self.fixture_descriptor(recipe), mode="update", dry_run=False,
+                                        inventory=inventory, rebuild_stale=True)
+            self.assertEqual(stale.status, "STALE ENVIRONMENT")
+            self.assertIn("older builder image", stale.detail)
+            self.assertEqual(rebuilt.status, "UPLOADED")
+            self.assertIn("STALE ENVIRONMENT", runner.Colors(True).status("STALE ENVIRONMENT"))
+
     def test_failure_is_isolated_and_has_a_concise_diagnostic(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

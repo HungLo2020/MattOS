@@ -40,6 +40,7 @@ def protoc(workspace: Path) -> Path:
 class NetavarkRecipe(SourceReleaseRecipe):
     name = "netavark"
     repository = "mattos"
+    toolchains = ("rust",)
     section = "admin"
     description = "Container network stack for Podman"
     # Rootful container networking programs the firewall through nft.

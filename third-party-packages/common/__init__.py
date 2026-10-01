@@ -1,6 +1,8 @@
 """Shared helpers for independently maintained MattOS third-party packages."""
 
 from .framework import (
+    BUILD_ENVIRONMENT_FIELD,
+    BUILD_INPUTS_FIELD,
     BuildResult,
     PackageRecipe,
     PublishedPackage,
@@ -17,10 +19,13 @@ from .framework import (
     git_latest_tag,
     cargo_environment,
     build_in_container,
+    build_environment_digest,
     build_inputs_digest,
     builder_image,
     cmake_build_install,
     command,
+    container_build,
+    dependency_package_names,
     download,
     ensure_not_a_mattos_package,
     extract_archive,
@@ -28,6 +33,7 @@ from .framework import (
     finalize_package,
     github_latest_release,
     github_source_archive,
+    image_package_sha256,
     make_build_install,
     mattos_package_names,
     package_staging,
@@ -47,6 +53,10 @@ from .framework import (
 )
 
 __all__ = [
+    "BUILD_ENVIRONMENT_FIELD", "BUILD_INPUTS_FIELD", "MULTIARCH_LIBDIR", "build_environment_digest",
+    "cargo_environment", "container_build", "dependency_package_names", "git_latest_tag",
+    "go_environment", "image_package_sha256", "install_file", "install_license",
+    "meson_build_install", "resolve_build_dependencies",
     "BuildResult", "PackageRecipe", "PublishedPackage", "RecipeError", "ReleaseSelection",
     "SourceReleaseRecipe", "autotools_build_install", "build_in_container", "build_inputs_digest",
     "builder_image", "cmake_build_install", "command", "download", "ensure_not_a_mattos_package",

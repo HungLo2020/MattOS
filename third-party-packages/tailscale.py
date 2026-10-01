@@ -39,6 +39,7 @@ fi
 class TailscaleRecipe(SourceReleaseRecipe):
     name = "tailscale"
     repository = "mattos"
+    toolchains = ("go",)
     section = "net"
     description = "Tailscale WireGuard mesh VPN client and daemon"
     depends = ("iproute2", "ca-certificates")

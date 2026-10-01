@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PACKAGE_ROOT = ROOT / "third-party-packages"
 sys.path.insert(0, str(PACKAGE_ROOT))
 import common.framework as framework
+import common.build as build_module
+import common.discovery as discovery
 import common
 
 
@@ -31,11 +33,21 @@ class FrameworkTests(unittest.TestCase):
     def test_git_latest_tag_picks_the_highest_matching_release(self):
         listing = "\n".join(f"{i}\trefs/tags/{tag}" for i, tag in enumerate(
             ["v1.9.0", "v1.10.0", "v1.10.0-rc1", "20201217", "release-2.32.10"]))
-        with mock.patch.object(framework, "command", return_value=listing):
+        with mock.patch.object(discovery, "command", return_value=listing):
             self.assertEqual(framework.git_latest_tag("u", r"v([0-9]+\.[0-9]+\.[0-9]+)"), ("1.10.0", "v1.10.0"))
             self.assertEqual(framework.git_latest_tag("u", r"release-(2\.[0-9.]+)"), ("2.32.10", "release-2.32.10"))
             with self.assertRaises(framework.RecipeError):
                 framework.git_latest_tag("u", r"x([0-9]+)")
+
+    def test_git_latest_tag_retries_a_transient_failure(self):
+        listing = "0\trefs/tags/v1.2.0"
+        with mock.patch.object(discovery, "command",
+                               side_effect=[framework.RecipeError("reset"), framework.RecipeError("reset"), listing]), \
+             mock.patch.object(discovery.time, "sleep"):
+            self.assertEqual(framework.git_latest_tag("u", r"v([0-9.]+)"), ("1.2.0", "v1.2.0"))
+        with mock.patch.object(discovery, "command", side_effect=framework.RecipeError("down")), \
+             mock.patch.object(discovery.time, "sleep"), self.assertRaises(framework.RecipeError):
+            framework.git_latest_tag("u", r"v([0-9.]+)")
 
     def test_build_dependencies_resolve_to_their_selected_published_package(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -56,9 +68,9 @@ class FrameworkTests(unittest.TestCase):
             # A dependency's published build changes the dependent's inputs.
             script = Path(framework.__file__)
             selection = framework.ReleaseSelection("1.0", {})
-            first = framework.build_inputs_digest(root, script, selection, "image", [("libfixture", published)])
+            first = framework.build_inputs_digest(Recipe(), script, selection, [("libfixture", published)])
             rebuilt = framework.PublishedPackage("2.0-0mattos1", "other", "pool/l/libfixture.deb")
-            self.assertNotEqual(first, framework.build_inputs_digest(root, script, selection, "image",
+            self.assertNotEqual(first, framework.build_inputs_digest(Recipe(), script, selection,
                                                                      [("libfixture", rebuilt)]))
 
     def test_packages_index_records_filenames(self):
@@ -85,13 +97,14 @@ class FrameworkTests(unittest.TestCase):
                 return self.body
 
         response = Response(json.dumps({"tag_name": "v2.68.1"}).encode())
-        with mock.patch.object(framework, "urlopen", return_value=response):
+        with mock.patch.object(discovery, "urlopen", return_value=response):
             version, provenance = framework.github_latest_release("fastfetch-cli", "fastfetch")
         self.assertEqual(version, "2.68.1")
         self.assertEqual(provenance["release_tag"], "v2.68.1")
 
         bad_response = Response(b"[]")
-        with mock.patch.object(framework, "urlopen", return_value=bad_response):
+        with mock.patch.object(discovery, "urlopen", return_value=bad_response), \
+             mock.patch.object(discovery.time, "sleep"):
             with self.assertRaises(framework.RecipeError):
                 framework.github_latest_release("owner", "missing")
 
@@ -183,6 +196,59 @@ class FrameworkTests(unittest.TestCase):
         self.assertEqual(index["htop"], [framework.PublishedPackage("3.5.3-0mattos1", "abc")])
         self.assertEqual(index["btop"], [framework.PublishedPackage("1.4.7", "")])
 
+    def test_index_parsing_keeps_the_build_environment_and_depends(self):
+        index = framework.parse_packages_index(
+            "Package: wget\nVersion: 1.25-0mattos1\nDepends: libc6 (>= 2.42), libssl3t64, libidn2-0 | libidn2\n"
+            "X-MattOS-Build-Environment: env\nDescription: x\n"
+        )
+        entry = index["wget"][0]
+        self.assertEqual(entry.build_environment, "env")
+        self.assertEqual(entry.depends, ("libc6 (>= 2.42)", "libssl3t64", "libidn2-0 | libidn2"))
+        self.assertEqual(framework.dependency_package_names(entry.depends),
+                         ["libc6", "libidn2", "libidn2-0", "libssl3t64"])
+        with tempfile.TemporaryDirectory() as directory:
+            snapshot = Path(directory) / "inventory.json"
+            framework.write_repository_inventory(snapshot, "mattos", index)
+            self.assertEqual(framework.read_repository_inventory(snapshot, "mattos"), index)
+
+    def test_build_environment_counts_only_linked_packages_and_the_toolchain(self):
+        class C(framework.PackageRecipe):
+            name = "wget"
+            repository = "mattos"
+
+        class Rust(C):
+            toolchains = ("rust",)
+
+        class Go(C):
+            toolchains = ("go",)
+
+        image = {name: "1" for name in (*framework.TOOLCHAIN_PACKAGES["rust"], "libc6", "libssl3t64", "libidn2-0",
+                                       "libsqlite3-0", "python3")}
+
+        def changed(**shas):
+            return {**image, **shas}
+
+        depends = ("libc6 (>= 2.42)", "libssl3t64", "conmon")  # conmon is third-party: not in the image
+        digest = framework.build_environment_digest
+        for recipe in (C(), Rust(), Go()):
+            base = digest(recipe, depends, image)
+            with self.subTest(recipe=type(recipe).__name__):
+                self.assertRegex(base, r"^[0-9a-f]{64}$")
+                # A library the package does not link, or an unrelated tool.
+                self.assertEqual(base, digest(recipe, depends, changed(libsqlite3_0="2", python3="2")))
+                self.assertEqual(base, digest(recipe, depends, changed(**{"libsqlite3-0": "2"})))
+                # A library it links.
+                self.assertNotEqual(base, digest(recipe, depends, changed(libssl3t64="2")))
+        # The compilers count only for the toolchains a recipe declares.
+        self.assertNotEqual(digest(C(), depends, image), digest(C(), depends, changed(gcc="2")))
+        self.assertEqual(digest(C(), depends, image), digest(C(), depends, changed(rustc="2")))
+        self.assertNotEqual(digest(Rust(), depends, image), digest(Rust(), depends, changed(rustc="2")))
+        self.assertEqual(digest(Go(), depends, image), digest(Go(), depends, changed(gcc="2", rustc="2")))
+        self.assertEqual(digest(C(), depends, {}), "")
+        bad = type("Bad", (C,), {"toolchains": ("fortran",)})()
+        with self.assertRaises(framework.RecipeError):
+            digest(bad, depends, image)
+
     def test_release_selection_revision_and_states_are_explicit(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -204,19 +270,58 @@ class FrameworkTests(unittest.TestCase):
                                published_inputs="old", build_inputs="new"), ("rebuild-pending", "1.0-0mattos1"))
         self.assertEqual(state("1.0", "1.0", ["1.0-0mattos1"], selected_package_version="1.0-0mattos1",
                                published_inputs="same", build_inputs="same"), ("up-to-date", "1.0-0mattos1"))
+        self.assertEqual(state("1.0", "1.0", ["1.0-0mattos1"], selected_package_version="1.0-0mattos1",
+                               published_inputs="same", build_inputs="same",
+                               published_environment="old", build_environment="new"),
+                         ("stale-environment", "1.0-0mattos1"))
+        # A stale environment is reported even when upstream moved on.
+        self.assertEqual(state("1.1", "1.0", ["1.0-0mattos1"], selected_package_version="1.0-0mattos1",
+                               published_inputs="same", build_inputs="same",
+                               published_environment="old", build_environment="new")[0], "stale-environment")
+        # Changed build inputs win over a stale environment; an unknown
+        # environment (an older publication) is not stale.
+        self.assertEqual(state("1.0", "1.0", ["1.0-0mattos1"], selected_package_version="1.0-0mattos1",
+                               published_inputs="old", build_inputs="new",
+                               published_environment="old", build_environment="new")[0], "rebuild-pending")
+        self.assertEqual(state("1.0", "1.0", ["1.0-0mattos1"], selected_package_version="1.0-0mattos1",
+                               published_inputs="same", build_inputs="same",
+                               published_environment="", build_environment="new")[0], "up-to-date")
 
-    def test_build_inputs_change_with_recipe_selection_and_image(self):
+    def test_build_inputs_cover_the_recipe_selection_and_build_code_only(self):
+        recipe = self.fixture_recipe()()
         with tempfile.TemporaryDirectory() as directory:
             script = Path(directory) / "fixture.py"
             script.write_text("# v1\n")
+            build_code = Path(directory) / "build.py"
+            build_code.write_text("# build v1\n")
             selection = framework.ReleaseSelection("1.0", {"source_sha256": "a" * 64})
-            base = framework.build_inputs_digest(Path(directory), script, selection, "image-a")
-            self.assertEqual(base, framework.build_inputs_digest(Path(directory), script, selection, "image-a"))
-            self.assertNotEqual(base, framework.build_inputs_digest(Path(directory), script, selection, "image-b"))
-            self.assertNotEqual(base, framework.build_inputs_digest(
-                Path(directory), script, framework.ReleaseSelection("1.0", {"source_sha256": "a" * 64}, 2), "image-a"))
-            script.write_text("# v2\n")
-            self.assertNotEqual(base, framework.build_inputs_digest(Path(directory), script, selection, "image-a"))
+            with mock.patch.object(framework.build_module, "__file__", str(build_code)):
+                base = framework.build_inputs_digest(recipe, script, selection)
+                self.assertEqual(base, framework.build_inputs_digest(recipe, script, selection))
+                self.assertNotEqual(base, framework.build_inputs_digest(
+                    recipe, script, framework.ReleaseSelection("1.0", {"source_sha256": "a" * 64}, 2)))
+                # The image is not an input; neither is any host-only code.
+                with mock.patch.object(framework, "image_package_sha256", return_value={"libc6": "new"}):
+                    self.assertEqual(base, framework.build_inputs_digest(recipe, script, selection))
+                build_code.write_text("# build v2\n")
+                self.assertNotEqual(base, framework.build_inputs_digest(recipe, script, selection))
+                build_code.write_text("# build v1\n")
+                script.write_text("# v2\n")
+                self.assertNotEqual(base, framework.build_inputs_digest(recipe, script, selection))
+        common_dir = Path(framework.__file__).resolve().parent
+        self.assertEqual(framework.build_code_files(recipe), [common_dir / "build.py"])
+        go_recipe = type("GoFixture", (type(recipe),), {"toolchains": ("go",)})()
+        self.assertEqual(framework.build_code_files(go_recipe), [common_dir / "build.py", common_dir / "go.py"])
+        hashed = {path.name for path in framework.build_code_files(go_recipe)}
+        self.assertTrue(hashed.isdisjoint({"framework.py", "discovery.py", "__init__.py"}))
+
+    def test_build_code_does_not_import_host_only_modules(self):
+        # Whatever build.py imports at module level runs in every build and
+        # would escape the fingerprint.
+        import ast
+        tree = ast.parse(Path(build_module.__file__).read_text(encoding="utf-8"))
+        imported = {node.module for node in tree.body if isinstance(node, ast.ImportFrom) and node.level}
+        self.assertEqual(imported, set())
 
     def test_repository_inventory_snapshot_avoids_repeated_remote_lookup(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -227,7 +332,7 @@ class FrameworkTests(unittest.TestCase):
             with mock.patch.object(framework, "repository_inventory", side_effect=AssertionError("remote lookup")):
                 self.assertEqual(framework.published_packages(root, "fixture", "mattos", snapshot),
                                  [framework.PublishedPackage("1.0-0mattos1", "abc")])
-            snapshot.write_text('{"format": 2, "repository": "mattpackages", "packages": {}}')
+            snapshot.write_text('{"format": 3, "repository": "mattpackages", "packages": {}}')
             with self.assertRaises(framework.RecipeError):
                 framework.repository_versions(root, "fixture", "mattos", snapshot)
 
@@ -309,7 +414,9 @@ class FrameworkTests(unittest.TestCase):
                 commands = [call.args[0] for call in run.call_args_list]
                 self.assertEqual(commands[0][-1], "builder-image")
                 self.assertEqual(sum(1 for args in commands if args[1] == "load"), loads)
-            self.assertEqual(framework.recorded_builder_image_digest(root), "sha256:abc")
+            self.assertEqual(framework.image_package_sha256(root), {})
+            metadata.write_text(json.dumps({"package_sha256": {"libc6": "abc"}}))
+            self.assertEqual(framework.image_package_sha256(root), {"libc6": "abc"})
 
     def test_elf_dependencies_map_loaded_libraries_to_their_packages(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -441,7 +548,10 @@ class FrameworkTests(unittest.TestCase):
             self.assertIn('"repository": "mattpackages"',
                           (staging / "usr/share/mattos/third-party/fixture-one/provenance.json").read_text())
 
-    def lifecycle(self, root: Path, published=(), image=("localhost/mattos-builder:x", "sha256:x")):
+    IMAGE_PACKAGES = {"libc6": "1", "gcc": "1", "libsqlite3-0": "1"}
+
+    def lifecycle(self, root: Path, published=(), image=("localhost/mattos-builder:x", "sha256:x"),
+                  package_sha256=None):
         """Patches around run_recipe: an in-process build, a fixed image and
         a MattOS inventory that does not contain the fixture."""
         (root / "Cargo.toml").write_text("[workspace]\n")
@@ -453,15 +563,22 @@ class FrameworkTests(unittest.TestCase):
         inventory.write_text('[[package]]\nname = "libc6"\n')
         metadata = root / framework.BUILDER_IMAGE_METADATA
         metadata.parent.mkdir(parents=True, exist_ok=True)
-        metadata.write_text(json.dumps({"reference": image[0], "manifest_digest": image[1], "archive": "x"}))
+        metadata.write_text(json.dumps({"reference": image[0], "manifest_digest": image[1], "archive": "x",
+                                        "package_sha256": package_sha256 or self.IMAGE_PACKAGES}))
+
+        def build_in_container(_root, recipe, _script, workspace, version, provenance, _image=None,
+                               package_sha256=None):
+            # What container_build does, in process.
+            build_module._image_package_sha256.clear()
+            build_module._image_package_sha256.update(package_sha256 or {})
+            return recipe.build(workspace, version, provenance)
+
         return [
             mock.patch.object(framework, "repo_root", return_value=root),
             mock.patch.object(framework, "published_packages", return_value=list(published)),
             mock.patch.object(framework, "container_engine", return_value="podman"),
             mock.patch.object(framework, "builder_image", return_value=image),
-            mock.patch.object(framework, "build_in_container",
-                              side_effect=lambda _root, recipe, _script, workspace, version, provenance, _image=None:
-                              recipe.build(workspace, version, provenance)),
+            mock.patch.object(framework, "build_in_container", side_effect=build_in_container),
         ]
 
     @staticmethod
@@ -470,6 +587,7 @@ class FrameworkTests(unittest.TestCase):
             name = "fixture"
             repository = "mattos"
             description = "Fixture"
+            depends = ("libc6",)
             built = []
 
             def discover_version(self):
@@ -506,6 +624,10 @@ class FrameworkTests(unittest.TestCase):
             fields = framework.command(["dpkg-deb", "--field", str(destination / "fixture_1.0-0mattos1_amd64.deb"),
                                         "X-MattOS-Build-Inputs"]).strip()
             self.assertRegex(fields, r"^[0-9a-f]{64}$")
+            environment = framework.command(["dpkg-deb", "--field", str(destination / "fixture_1.0-0mattos1_amd64.deb"),
+                                             "X-MattOS-Build-Environment"]).strip()
+            self.assertEqual(environment, framework.build_environment_digest(
+                self.fixture_recipe()(), ("libc6",), self.IMAGE_PACKAGES))
             self.assertEqual(list((root / "out/tmp").iterdir()), [])
 
     def test_no_argument_invocation_is_read_only_check(self):
@@ -524,7 +646,7 @@ class FrameworkTests(unittest.TestCase):
             self.write_selection(root)
             self.lifecycle(root)  # writes the fixture recipe file the digest covers
             selection = framework.ReleaseSelection("1.0", {}, 1)
-            identical = framework.build_inputs_digest(root, root / "recipe.py", selection, "sha256:x")
+            identical = framework.build_inputs_digest(self.fixture_recipe()(), root / "recipe.py", selection)
             for published_inputs, builds in ((identical, 0), ("stale", 1), (None, 1)):
                 published = [] if published_inputs is None else [framework.PublishedPackage("1.0-0mattos1", published_inputs)]
                 patches = self.lifecycle(root, published)
@@ -533,6 +655,38 @@ class FrameworkTests(unittest.TestCase):
                     self.assertEqual(self.run_with(patches, recipe(), ["update"], root), 0)
                 self.assertEqual(len(recipe.built), builds)
                 self.assertEqual(upload.call_count, builds)
+
+    def test_an_older_builder_image_makes_a_package_stale_not_rebuilt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_selection(root)
+            self.lifecycle(root)
+            recipe_class = self.fixture_recipe()
+            selection = framework.ReleaseSelection("1.0", {}, 1)
+            inputs = framework.build_inputs_digest(recipe_class(), root / "recipe.py", selection)
+            built_with = framework.build_environment_digest(recipe_class(), ("libc6",), self.IMAGE_PACKAGES)
+            published = [framework.PublishedPackage("1.0-0mattos1", inputs, "pool/f.deb", built_with, ("libc6",))]
+            cases = (
+                # (image packages now, arguments, rebuilt, status)
+                (self.IMAGE_PACKAGES, ["update"], 0, "up-to-date"),
+                ({**self.IMAGE_PACKAGES, "libsqlite3-0": "2"}, ["update"], 0, "up-to-date"),  # not linked
+                ({**self.IMAGE_PACKAGES, "libc6": "2"}, ["update"], 0, "stale-environment"),
+                ({**self.IMAGE_PACKAGES, "gcc": "2"}, ["update"], 0, "stale-environment"),  # its compiler
+                ({**self.IMAGE_PACKAGES, "libc6": "2"}, ["update", "--rebuild-stale"], 1, "uploaded"),
+                ({**self.IMAGE_PACKAGES, "libc6": "2"}, ["check"], 0, "checked"),
+            )
+            for image, argv, rebuilt, status in cases:
+                result = root / "result.json"
+                patches = self.lifecycle(root, published, package_sha256=image)
+                recipe = self.fixture_recipe()
+                with self.subTest(image=image, argv=argv), mock.patch.object(framework, "publish") as upload:
+                    self.assertEqual(self.run_with(patches, recipe(), [*argv, "--result-json", str(result)], root), 0)
+                    data = json.loads(result.read_text())
+                    self.assertEqual(data["status"], status)
+                    if status == "checked":
+                        self.assertEqual(data["release_state"], "stale-environment")
+                    self.assertEqual(len(recipe.built), rebuilt)
+                    self.assertEqual(upload.call_count, rebuilt)
 
     def test_publishing_a_mattos_package_name_is_refused(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -554,15 +708,54 @@ class FrameworkTests(unittest.TestCase):
                 self.run_with(self.lifecycle(root), self.fixture_recipe("fixture failed")(), ["update"], root)
             self.assertEqual(list((root / "out/tmp").iterdir()), [])
 
-    def test_publish_failure_also_cleans_workspace_and_keeps_no_deb(self):
+    def test_publish_failure_cleans_workspace_and_keeps_the_package_for_the_next_update(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.write_selection(root)
-            patches = self.lifecycle(root) + [
-                mock.patch.object(framework, "publish", side_effect=framework.RecipeError("upload failed"))]
-            with self.assertRaises(framework.RecipeError):
-                self.run_with(patches, self.fixture_recipe()(), ["publish"], root)
+            kept = root / framework.UNPUBLISHED_ARTIFACTS / "fixture_1.0-0mattos1_amd64.deb"
+            recipe = self.fixture_recipe()
+            patches = self.lifecycle(root) + [mock.patch.object(
+                framework, "publish", side_effect=framework.RecipeError("command failed\nError [remote]: unreachable"))]
+            with self.assertRaises(framework.RecipeError) as raised:
+                self.run_with(patches, recipe(), ["update"], root)
             self.assertEqual(list((root / "out/tmp").iterdir()), [])
+            self.assertTrue(kept.is_file())
+            last = str(raised.exception).splitlines()[-1]
+            self.assertTrue(last.startswith("error: upload failed (Error [remote]: unreachable)"), last)
+            self.assertIn(str(kept.relative_to(root)), last)
+            self.assertEqual(len(recipe.built), 1)
+            # The repository is back: the kept package is published, not rebuilt.
+            with mock.patch.object(framework, "publish") as upload:
+                self.assertEqual(self.run_with(self.lifecycle(root), recipe(), ["update"], root), 0)
+            self.assertEqual(len(recipe.built), 1)
+            self.assertEqual(upload.call_args.args[1], kept)
+            self.assertFalse(kept.is_file())
+
+    def test_a_kept_package_is_rebuilt_when_it_no_longer_matches(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_selection(root)
+            kept = root / framework.UNPUBLISHED_ARTIFACTS / "fixture_1.0-0mattos1_amd64.deb"
+            recipe = self.fixture_recipe()
+            with self.assertRaises(framework.RecipeError):
+                self.run_with(self.lifecycle(root) + [mock.patch.object(
+                    framework, "publish", side_effect=framework.RecipeError("down"))], recipe(), ["update"], root)
+            self.assertTrue(kept.is_file())
+            # A linked library changed in the image since: rebuild, then the
+            # kept package is replaced by the published one.
+            changed = {**self.IMAGE_PACKAGES, "libc6": "2"}
+            with mock.patch.object(framework, "publish") as upload:
+                self.assertEqual(self.run_with(self.lifecycle(root, package_sha256=changed), recipe(), ["update"],
+                                               root), 0)
+            self.assertEqual(len(recipe.built), 2)
+            self.assertNotEqual(upload.call_args.args[1], kept)
+            self.assertFalse(kept.is_file())
+            # A dry run never keeps a package.
+            with self.assertRaises(framework.RecipeError):
+                self.run_with(self.lifecycle(root) + [mock.patch.object(
+                    framework, "publish", side_effect=framework.RecipeError("down"))], recipe(),
+                    ["update", "--dry-run"], root)
+            self.assertFalse(kept.is_file())
 
     def test_recipes_are_outside_the_core_dag(self):
         for recipe in self.RECIPES:

@@ -20,6 +20,7 @@ from common import (  # noqa: E402
 class AardvarkDnsRecipe(SourceReleaseRecipe):
     name = "aardvark-dns"
     repository = "mattos"
+    toolchains = ("rust",)
     section = "admin"
     description = "Authoritative DNS server for Podman container networks"
     depends = ("libc6",)

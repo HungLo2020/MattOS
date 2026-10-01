@@ -24,6 +24,7 @@ BUILD_TAGS = "grpcnotrace seccomp systemd containers_image_openpgp exclude_graph
 class PodmanRecipe(SourceReleaseRecipe):
     name = "podman"
     repository = "mattos"
+    toolchains = ("go", "c")  # cgo
     section = "admin"
     description = "Daemonless, rootless OCI container engine"
     depends = ("conmon", "crun", "netavark", "aardvark-dns", "passt", "catatonit",

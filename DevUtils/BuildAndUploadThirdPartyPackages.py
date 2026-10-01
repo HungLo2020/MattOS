@@ -55,7 +55,8 @@ class Colors:
     def status(self, status: str) -> str:
         palette = {
             "UP TO DATE": "32", "UPSTREAM NEWER": "33", "PENDING PUBLISH": "33",
-            "REPOSITORY DIVERGED": "33", "REBUILD PENDING": "33", "UPLOADED": "32", "DRY RUN": "33",
+            "REPOSITORY DIVERGED": "33", "REBUILD PENDING": "33", "STALE ENVIRONMENT": "36", "UPLOADED": "32",
+            "DRY RUN": "33",
             "FAILED": "31",
         }
         return self.paint(f"1;{palette[status]}", status)
@@ -117,13 +118,16 @@ def dependency_order(recipes: list[RecipeDescriptor]) -> list[RecipeDescriptor]:
     return ordered
 
 
-def invoke(recipe: RecipeDescriptor, *, mode: str, dry_run: bool, inventory: Path) -> Outcome:
+def invoke(recipe: RecipeDescriptor, *, mode: str, dry_run: bool, inventory: Path,
+           rebuild_stale: bool = False) -> Outcome:
     with tempfile.TemporaryDirectory(prefix="mattos-third-party-result-", dir=ROOT / "out/tmp") as temp:
         result = Path(temp) / "result.json"
         arguments = [sys.executable, str(recipe.path), mode, "--result-json", str(result),
                      "--repository-inventory", str(inventory)]
         if dry_run:
             arguments.append("--dry-run")
+        if rebuild_stale:
+            arguments.append("--rebuild-stale")
         completed = subprocess.run(arguments, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output = completed.stdout
         if completed.returncode:
@@ -142,7 +146,7 @@ def invoke(recipe: RecipeDescriptor, *, mode: str, dry_run: bool, inventory: Pat
         labels = {
             "up-to-date": "UP TO DATE", "upstream-newer": "UPSTREAM NEWER",
             "pending-publish": "PENDING PUBLISH", "repository-diverged": "REPOSITORY DIVERGED",
-            "rebuild-pending": "REBUILD PENDING",
+            "rebuild-pending": "REBUILD PENDING", "stale-environment": "STALE ENVIRONMENT",
             "uploaded": "UPLOADED", "dry-run": "DRY RUN",
         }
         label = labels.get(state)
@@ -152,6 +156,7 @@ def invoke(recipe: RecipeDescriptor, *, mode: str, dry_run: bool, inventory: Pat
         detail = {
             "up-to-date": "published from identical build inputs",
             "rebuild-pending": "published, but from different build inputs",
+            "stale-environment": "built with an older builder image; --rebuild-stale rebuilds it",
         }.get(state, state.replace("-", " "))
         return Outcome(recipe.package, label, upstream, selected, published, detail, output)
 
@@ -168,6 +173,8 @@ def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Check or update all MattOS third-party package recipes")
     parser.add_argument("--check", action="store_true", help="read-only three-version status report (never builds)")
     parser.add_argument("--dry-run", action="store_true", help="validate publication without uploading")
+    parser.add_argument("--rebuild-stale", action="store_true",
+                        help="also rebuild packages built with an older builder image (STALE ENVIRONMENT)")
     parser.add_argument("--recipe", action="append", default=[], metavar="NAME", help="run only a discovered recipe (repeatable)")
     parser.add_argument("--color", choices=("auto", "always", "never"), default="auto")
     parser.add_argument("--verbose", action="store_true", help="print complete captured output for each recipe")
@@ -219,7 +226,8 @@ def main(argv: list[str]) -> int:
                 outcome = Outcome(recipe.package, "FAILED", "?", recipe.selected_version, "?",
                                   "build dependency failed: " + ", ".join(broken), "")
             else:
-                outcome = invoke(recipe, mode=mode, dry_run=args.dry_run, inventory=snapshot)
+                outcome = invoke(recipe, mode=mode, dry_run=args.dry_run, inventory=snapshot,
+                                 rebuild_stale=args.rebuild_stale)
             if outcome.status == "FAILED":
                 failed_packages.add(recipe.package)
             elif outcome.status == "UPLOADED":

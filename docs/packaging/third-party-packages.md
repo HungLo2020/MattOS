@@ -28,17 +28,20 @@ python3 third-party-packages/htop.py update
 python3 third-party-packages/htop.py publish --dry-run
 python3 DevUtils/BuildAndUploadThirdPartyPackages.py --check
 python3 DevUtils/BuildAndUploadThirdPartyPackages.py
+python3 DevUtils/BuildAndUploadThirdPartyPackages.py --rebuild-stale
 python3 DevUtils/BuildAndUploadThirdPartyPackages.py --dry-run --recipe htop
 ```
 
 With no command a recipe runs the read-only `check`. `build` makes a local
 `.deb` in `--output` (default `third-party-packages/dist/`) without touching a
-repository. `update` builds and publishes only when needed (below); `publish`
-builds and publishes unconditionally. `--dry-run` passes through to the
-repository client. `DevUtils/BuildAndUploadThirdPartyPackages.py` runs every
+repository. `update` builds and publishes only when needed (below);
+`update --rebuild-stale` also rebuilds packages built with an older builder
+image; `publish` builds and publishes unconditionally. `--dry-run` passes
+through to the repository client. `DevUtils/BuildAndUploadThirdPartyPackages.py` runs every
 recipe (or `--recipe NAME`), fetches each repository's index once, and prints
 a status table: **UP TO DATE**, **UPSTREAM NEWER**, **PENDING PUBLISH**,
-**REBUILD PENDING**, **UPLOADED**, **DRY RUN** or **FAILED**.
+**REBUILD PENDING**, **STALE ENVIRONMENT**, **UPLOADED**, **DRY RUN** or
+**FAILED**.
 
 ## Releases, versions and source verification
 
@@ -84,7 +87,8 @@ GLib, pixman, Wayland (with `wayland-scanner` and `wayland-protocols`),
 xkbcommon, alongside json-c (whose runtime package carries its headers), ncurses, libcap, libnl, systemd, acl, attr and
 libglvnd. Go recipes (gh, tailscale, podman) build with a pinned,
 checksum-verified official Go release downloaded into the build
-(`go_environment`); Go is not needed to build MattOS, so it is not packaged.
+(`go_environment`, pinned in `common/go.py`); Go is not needed to build
+MattOS, so it is not packaged.
 Rust crates and Go modules are fetched at the versions their lock files pin.
 
 ## Third-party build dependencies
@@ -120,18 +124,59 @@ checks `/proc/self/status` and says so; run recipes from a terminal where
 
 ## Skipping unchanged packages
 
-Every package records `X-MattOS-Build-Inputs`: a SHA-256 of the recipe file,
-the shared framework, its `releases.json` selection and the builder image's
-manifest digest. The repository index carries the field, so `update` compares
-it with the published package after one index fetch per repository:
+A package records two fingerprints in its control file, and the repository
+index carries both, so `update` compares them with the published package after
+one index fetch per repository.
 
-- identical inputs: nothing is built or uploaded;
-- the selected version is published from different inputs: rebuilt and
-  republished (the repository replaces it in place);
+`X-MattOS-Build-Inputs` is what the package is made from: a SHA-256 of the
+recipe file, the shared code that runs inside the build, its `releases.json`
+selection, and the published versions and build inputs of its third-party
+build dependencies. The shared code is split so that only the build side is
+hashed:
+
+| File | Runs | Hashed |
+| --- | --- | --- |
+| `common/build.py` | in the container: recipe base classes, build-system helpers, Cargo, staging, ELF dependency resolution, control files | every recipe |
+| `common/go.py` | in the container: the pinned Go toolchain | recipes declaring the `go` toolchain |
+| `common/discovery.py` | on the host: upstream release discovery | no |
+| `common/framework.py` | on the host: release selection, repository inventory, fingerprints, starting the container, publishing | no |
+
+Changing discovery or publishing therefore rebuilds nothing, and a Go update
+rebuilds only the Go packages. `build.py` must not import the host modules at
+module level (a test checks this).
+
+`X-MattOS-Build-Environment` is which builder image the package was built
+with, narrowed to what it relied on: the inventory SHA-256 of the MattOS
+packages in its `Depends` (the libraries it links, as resolved in the
+container, plus its declared dependencies) and of the compiler toolchain it
+declares in `toolchains` (`c`, the default: GCC, Binutils, the C and C++
+runtime development packages and kernel headers; `rust`: those plus `rustc`
+and `cargo`; `go`: nothing from the image, since Go is pinned). The image
+metadata (`out/images/mattos-builder.json`, `package_sha256`) lists each image
+package's digest. A changed wget library does not touch codex unless codex
+links it.
+
+`update` then decides:
+
+- identical inputs and environment: nothing is built or uploaded (UP TO DATE);
+- identical inputs, different environment: the package is reported as
+  STALE ENVIRONMENT and left alone. MattOS libraries keep their SONAMEs, so a
+  package built against an older image keeps working, as Debian packages do
+  when their build environment moves on. `--rebuild-stale` rebuilds it;
+- the selected version is published from different inputs (a recipe,
+  selection, build code or build dependency change): rebuilt and republished
+  (the repository replaces it in place);
 - the version is not published: built and published.
 
-The build inputs also include the third-party build dependencies' published
-versions and build inputs.
+A package whose upload fails is kept in `out/third-party/unpublished/`, and
+the failure says so. The next `update` or `publish` uploads it instead of
+building again when its version, build inputs and build environment still
+match; otherwise it is rebuilt. A dry run never keeps a package.
+
+`check` compares with the last built builder image without building one;
+`update` first brings the image up to date. A rebuilt third-party build
+dependency keeps its build inputs when only its environment changed, so
+`--rebuild-stale` on a library does not cascade into its users.
 
 ## Package ownership
 
@@ -143,7 +188,7 @@ claims in `releases.json`.
 ## Writing a recipe
 
 Most recipes only declare their archive and build system; `SourceReleaseRecipe`
-(`common/framework.py`) downloads and verifies the archive, extracts it,
+(`common/build.py`) downloads and verifies the archive, extracts it,
 builds it with Autotools, CMake, Meson or the project's own Makefile, installs into a
 staging tree, and writes the control file and provenance:
 
@@ -162,7 +207,8 @@ class HtopRecipe(SourceReleaseRecipe):
 Override `discover_version`, `build_source`, `post_install` or `build` for
 unusual packages; `self.upstream_version` is the release being built.
 `cargo_environment`, `go_environment`, `install_file` and `install_license`
-cover Rust and Go builds. A recipe can write `DEBIAN/conffiles` and maintainer
+cover Rust and Go builds; a Rust recipe declares `toolchains = ("rust",)`, a
+Go recipe `("go",)` (with `"c"` too when it enables cgo). A recipe can write `DEBIAN/conffiles` and maintainer
 scripts into the staging tree (tailscale enables `tailscaled.service` on a
 running system; like MattOS's own scripts they exit when `DPKG_ROOT` is set). Tests in `third-party-packages/tests/` use local fixtures and
 mocked publication; they never upload.

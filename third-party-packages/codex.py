@@ -20,6 +20,7 @@ from common import (  # noqa: E402
 class CodexRecipe(SourceReleaseRecipe):
     name = "codex"
     repository = "mattos"
+    toolchains = ("rust",)
     section = "devel"
     description = "OpenAI Codex coding agent command-line interface"
     # Codex searches files with ripgrep.
