@@ -9,9 +9,9 @@
 
 MattOS uses Debian's package formats and tooling (`.deb`, `dpkg`, APT) on
 `amd64` with a MattOS-built and MattOS-controlled critical base. MattOS
-repositories take precedence. Debian sources are shipped but disabled; if an
-administrator enables them, Debian is only a supplemental source for optional
-software and may not replace protected infrastructure.
+MattOS installs only from its own repositories (the embedded media repository
+and the signed hosted one); no Debian archive is configured. Every package
+offered is built by MattOS or by a checked-in third-party recipe.
 
 The machine-readable mapping of the current state is
 `src/system/packages/debian-compat/trixie.toml`. It maps every package in
@@ -20,16 +20,13 @@ time of writing) to source, representative owned paths, ABI or command surface,
 protection, deterministic version, Debian dependency role, classification, and
 known gaps, and may record a Debian epoch. Classifications are
 `debian-compatible`, `mattos-alternative`, `mattos-extension`, and
-`mattos-specific`. `protected.toml` is the authoritative protected-name
-inventory, and each shipped package's `protected` flag in `trixie.toml` must
-agree with it in both directions. Each entry's `current_mattos_version`
+`mattos-specific`. Each entry's `current_mattos_version`
 records the version MattOS ships; it is maintained by hand, so every package
 build warns about entries whose recorded version differs from the version just
 built.
 The build rejects an incomplete mapping, invalid classification or version,
-a protected flag that disagrees with `protected.toml`, a missing or extra
-protected pin in either the live or the installed APT preferences, unsafe
-source configuration, changed LinuxScripts publisher, or nested Git metadata.
+an APT source other than the two MattOS repositories or a pin for another
+origin, changed LinuxScripts publisher, or nested Git metadata.
 
 ## Current interfaces
 
@@ -95,27 +92,20 @@ APT priority (`src/system/packages/config/apt/00mattos-priority`, and the
 installed-system copy under `config/apt/installed/`) is:
 
 1. local MattOS: `990`, matching `o=MattOS,l=MattOS Local,n=trixie`;
-2. hosted MattOS: `990`, matching `o=MattOS,l=MattOS,n=trixie`;
-3. Debian Trixie: `500`, matching `o=Debian,n=trixie`.
-
-Every name in `protected.toml` has an additional Debian-origin priority of
-`-1`, in both the live and the installed preferences. Some protected names are reserved before MattOS ships a matching
-package: of the current list, `libgcc-14-dev`, `libstdc++-14-dev`,
-`linux-image-amd64`, and `linux-headers-amd64` are not MattOS packages. This
-prevents Debian from silently taking ownership of files already supplied
-through another MattOS boundary.
+2. hosted MattOS: `990`, matching `o=MattOS,l=MattOS,n=trixie`.
 
 The local repository publishes `Origin: MattOS`, `Label: MattOS Local`,
 `Suite: trixie`, and `Codename: trixie`. Its unsigned `file:` source alone uses
 the `Trusted: yes` local exception. The hosted MattOS source is enabled on both
 the live image and installed systems and uses `Signed-By:
-/usr/share/keyrings/mattos-archive-keyring.asc`. Only the Debian sources are
-shipped disabled; they use `Signed-By:
-/usr/share/keyrings/debian-archive-keyring.asc` and never `Trusted: yes`, and
-the installer refuses to produce an installed system with them enabled.
-Enabling Debian is an explicit administrative action. See
+/usr/share/keyrings/mattos-archive-keyring.asc`. See
 [APT source and pin policy](debian-packaging.md#apt-source-and-pin-policy) for
 the full live and installed policy.
+
+Debian's archive was once shipped as a disabled supplemental source, with
+`-1` pins (from a `protected.toml` inventory) keeping it from replacing
+MattOS infrastructure. MattOS now builds every package it offers, so the
+source, its keyring and the pins were removed.
 
 ## Controlled Debian test (historical)
 
@@ -145,8 +135,6 @@ all-remotes-disabled policy of that time.
 
 ## Known gaps
 
-- Debian's `systemd` remains blocked by the `-1` pin even though MattOS now
-  ships its own `systemd` package.
 - MattOS `util-linux` ships only a subset of administration commands (for
   example `lsblk`, `fdisk`, `wipefs`, `findmnt`); nonessential and legacy
   commands are deliberately omitted. `login` owns `login`, `su`, `agetty`, and

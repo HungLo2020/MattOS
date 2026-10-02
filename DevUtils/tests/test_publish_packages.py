@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import tomllib
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -149,12 +150,12 @@ class PublicationGuardTests(unittest.TestCase):
         )
         self.assertEqual(len(index), 3)
 
-    def test_plan_skips_identical_replaces_rebuilt_and_refuses_older(self) -> None:
+    def test_plan_skips_identical_holds_back_rebuilt_and_refuses_older(self) -> None:
         published = PublishPackages.parse_packages_index(self.INDEX)
         plan = PublishPackages.plan_publication(
             [
                 _package("libc6", "2.43-1mattos1"),  # identical: skipped
-                _package("bash", "5.3-1mattos1", sha="d" * 64),  # rebuilt: replaced
+                _package("bash", "5.3-1mattos1", sha="d" * 64),  # rebuilt: needs a new revision
                 _package("linux-libc-dev", "0~git.8ba098e6b6ff-1mattos1"),  # sorts lower
                 _package("zlib1g", "1.3.2-1mattos1"),  # not published yet
                 _package("bash-doc", "5.4-1mattos1"),  # not published yet
@@ -168,7 +169,8 @@ class PublicationGuardTests(unittest.TestCase):
             [("linux-libc-dev", "0~git.f17f39c917cd-1mattos1")],
         )
         self.assertEqual([p.name for p in plan.new], ["zlib1g", "bash-doc"])
-        self.assertEqual([p.name for p in plan.upload], ["zlib1g", "bash-doc", "bash"])
+        # Different bytes are never uploaded under a published version.
+        self.assertEqual([p.name for p in plan.upload], ["zlib1g", "bash-doc"])
 
     def test_a_newer_version_is_uploaded(self) -> None:
         published = PublishPackages.parse_packages_index(self.INDEX)
@@ -184,30 +186,155 @@ class PublicationGuardTests(unittest.TestCase):
         self.assertEqual(plan.older_than_published, [])
         self.assertEqual(len(plan.upload), 1)
 
-    def test_main_uploads_only_new_and_rebuilt_packages(self) -> None:
-        packages = [
-            _package("libc6", "2.43-1mattos1"),
-            _package("bash", "5.3-1mattos1", sha="d" * 64),
-            _package("zlib1g", "1.3.2-1mattos1"),
-        ]
-        with (
-            mock.patch.object(PublishPackages, "parse_args", return_value=mock.Mock(clean=False, no_build=True, dry_run=True)),
-            mock.patch.object(PublishPackages, "find_repo_root", return_value=Path("/repo")),
+    def main_patches(self, root: Path, args, inventories, build=None):
+        return [
+            mock.patch.object(PublishPackages, "parse_args", return_value=args),
+            mock.patch.object(PublishPackages, "find_repo_root", return_value=root),
             mock.patch.object(PublishPackages, "discover_packages", return_value=[]),
-            mock.patch.object(PublishPackages, "inventory_packages", return_value=packages),
+            mock.patch.object(PublishPackages, "inventory_packages", side_effect=inventories),
             mock.patch.object(PublishPackages, "third_party_package_names", return_value=set()),
             mock.patch.object(PublishPackages, "published_index_url", return_value="https://x/Packages.gz"),
             mock.patch.object(PublishPackages, "fetch_published_index", return_value=self.INDEX),
-            mock.patch.object(PublishPackages, "upload_packages") as upload,
-        ):
-            self.assertEqual(PublishPackages.main(), 0)
-        uploaded = upload.call_args.args[1]
-        self.assertEqual(sorted(path.name for path in uploaded), ["bash_5.3-1mattos1_amd64.deb", "zlib1g_1.3.2-1mattos1_amd64.deb"])
-        self.assertTrue(upload.call_args.kwargs["dry_run"])
+            mock.patch.object(PublishPackages, "ensure_build", side_effect=build),
+        ]
+
+    @staticmethod
+    def ledger(root: Path, body: str = "") -> Path:
+        path = root / PublishPackages.REVISION_LEDGER_RELATIVE
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("# header comment\nschema_version = 1\n\n[package]\n" + body, encoding="utf-8")
+        return path
+
+    def run_main(self, patches):
+        import contextlib
+        with contextlib.ExitStack() as stack:
+            for patch in patches:
+                stack.enter_context(patch)
+            upload = stack.enter_context(mock.patch.object(PublishPackages, "upload_packages"))
+            result = PublishPackages.main()
+        return result, upload
+
+    def test_main_raises_revisions_rebuilds_and_uploads_the_new_versions(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ledger = self.ledger(root)
+            before = [
+                _package("libc6", "2.43-1mattos1", sha="e" * 64),  # changed
+                _package("bash", "5.3-1mattos1", dependencies=("libc6 (= 2.43-1mattos1)",)),
+                _package("zlib1g", "1.3.2-1mattos1"),
+            ]
+            after = [
+                _package("libc6", "2.43-1mattos2", sha="e" * 64),
+                _package("bash", "5.3-1mattos2", sha="f" * 64, dependencies=("libc6 (= 2.43-1mattos2)",)),
+                _package("zlib1g", "1.3.2-1mattos1"),
+            ]
+            import dataclasses
+            before, after = (
+                [dataclasses.replace(p, artifact=root / "out/packages/amd64" / p.artifact.name) for p in packages]
+                for packages in (before, after)
+            )
+            builds = []
+            args = mock.Mock(clean=False, no_build=True, dry_run=False, no_bump=False)
+            result, upload = self.run_main(
+                self.main_patches(root, args, [before, after], build=lambda *a, **k: builds.append(k))
+            )
+            self.assertEqual(result, 0)
+            # The initial --no-build pass, then one rebuild after the bump.
+            self.assertEqual([build["no_build"] for build in builds], [True, False])
+            self.assertEqual(
+                tomllib.loads(ledger.read_text())["package"],
+                {"bash": {"upstream": "5.3", "revision": 2}, "libc6": {"upstream": "2.43", "revision": 2}},
+            )
+            self.assertTrue(ledger.read_text().startswith("# header comment\n"))
+            uploaded = sorted(path.name for path in upload.call_args.args[1])
+            self.assertEqual(
+                uploaded,
+                ["bash_5.3-1mattos2_amd64.deb", "libc6_2.43-1mattos2_amd64.deb", "zlib1g_1.3.2-1mattos1_amd64.deb"],
+            )
+
+    def test_main_refuses_or_only_reports_without_changing_anything(self) -> None:
+        changed = [_package("bash", "5.3-1mattos1", sha="d" * 64)]
+        for flags, raises in (({"no_bump": True, "dry_run": False}, True), ({"no_bump": False, "dry_run": True}, False)):
+            with self.subTest(flags=flags), TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                ledger = self.ledger(root)
+                original = ledger.read_text()
+                args = mock.Mock(clean=False, no_build=True, **flags)
+                patches = self.main_patches(root, args, [changed])
+                if raises:
+                    with self.assertRaisesRegex(RepoError, "--no-bump"):
+                        self.run_main(patches)
+                else:
+                    result, upload = self.run_main(patches)
+                    self.assertEqual(result, 0)
+                    upload.assert_not_called()
+                self.assertEqual(ledger.read_text(), original)
+
+    def test_main_gives_up_when_packaging_keeps_changing(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            self.ledger(root)
+            changed = [_package("bash", "5.3-1mattos1", sha="d" * 64)]
+            args = mock.Mock(clean=False, no_build=True, dry_run=False, no_bump=False)
+            # A rebuild that never yields a new version (as if the ledger had
+            # no effect) must stop rather than loop.
+            patches = self.main_patches(root, args, [changed] * 10)
+            with self.assertRaisesRegex(RepoError, "not be reproducible"):
+                self.run_main(patches)
+
+    def test_bump_targets_follow_exact_dependents_that_are_published(self) -> None:
+        published = PublishPackages.parse_packages_index(
+            self.INDEX
+            + "\nPackage: zlib1g\nVersion: 1.3.2-1mattos1\nArchitecture: amd64\nSHA256: " + "a" * 64 + "\n"
+            + "\nPackage: gzip\nVersion: 1.14-1mattos1\nArchitecture: amd64\nSHA256: " + "a" * 64 + "\n"
+        )
+        packages = [
+            _package("libc6", "2.43-1mattos1", sha="e" * 64),  # changed
+            _package("zlib1g", "1.3.2-1mattos1", dependencies=("libc6 (= 2.43-1mattos1)",)),
+            # Pins zlib1g, which pins libc6: transitively affected.
+            _package("gzip", "1.14-1mattos1", dependencies=("zlib1g (= 1.3.2-1mattos1)",)),
+            # Not published yet: uploaded as new, needs no bump.
+            _package("tar", "1.35-1mattos1", dependencies=("libc6 (= 2.43-1mattos1)",)),
+            # An unversioned dependency does not change with libc6's version.
+            _package("bash", "5.3-1mattos1", sha="b" * 64, dependencies=("libc6",)),
+        ]
+        plan = PublishPackages.plan_publication(packages, published)
+        self.assertEqual(
+            [package.name for package in PublishPackages.bump_targets(plan, packages)],
+            ["gzip", "libc6", "zlib1g"],
+        )
+
+    def test_raised_revisions_keep_other_entries_and_quote_names(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ledger = self.ledger(root, '"apt" = { upstream = "3.3.2", revision = 2 }\n')
+            changes = PublishPackages.raise_revisions(
+                root,
+                [_package("libgdk-pixbuf-2.0-0", "2.42.12-1mattos1"), _package("g++", "1:15.3.0-1mattos4")],
+            )
+            self.assertEqual(
+                changes,
+                [
+                    ("libgdk-pixbuf-2.0-0", "2.42.12-1mattos1", "2.42.12-1mattos2"),
+                    ("g++", "1:15.3.0-1mattos4", "1:15.3.0-1mattos5"),
+                ],
+            )
+            self.assertEqual(
+                tomllib.loads(ledger.read_text())["package"],
+                {
+                    "apt": {"upstream": "3.3.2", "revision": 2},
+                    "g++": {"upstream": "1:15.3.0", "revision": 5},
+                    "libgdk-pixbuf-2.0-0": {"upstream": "2.42.12", "revision": 2},
+                },
+            )
+            with self.assertRaises(RepoError):
+                PublishPackages.split_mattos_version("1.0-1")
 
     def test_main_refuses_older_versions_without_uploading(self) -> None:
         with (
-            mock.patch.object(PublishPackages, "parse_args", return_value=mock.Mock(clean=False, no_build=True, dry_run=False)),
+            mock.patch.object(
+                PublishPackages, "parse_args", return_value=mock.Mock(clean=False, no_build=True, dry_run=False, no_bump=False)
+            ),
             mock.patch.object(PublishPackages, "find_repo_root", return_value=Path("/repo")),
             mock.patch.object(PublishPackages, "discover_packages", return_value=[]),
             mock.patch.object(

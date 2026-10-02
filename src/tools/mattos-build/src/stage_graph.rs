@@ -216,6 +216,7 @@ pub(crate) enum BuildStage {
     Libfyaml,
     Libxmlb,
     JsonGlib,
+    SharedMimeInfo,
     Appstream,
     GdkPixbuf,
     Gpgme,
@@ -499,6 +500,7 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Libfyaml => "libfyaml",
         BuildStage::Libxmlb => "libxmlb",
         BuildStage::JsonGlib => "json-glib",
+        BuildStage::SharedMimeInfo => "shared-mime-info",
         BuildStage::Appstream => "appstream",
         BuildStage::GdkPixbuf => "gdk-pixbuf",
         BuildStage::Gpgme => "gpgme",
@@ -2708,6 +2710,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Libfyaml => &["formal-sysroot"],
         BuildStage::Libxmlb => &["formal-sysroot", "glib", "libffi", "xz", "zlib"],
         BuildStage::JsonGlib => &["formal-sysroot", "glib", "libffi", "pcre2", "zlib"],
+        BuildStage::SharedMimeInfo => &["formal-sysroot", "glib", "libffi", "pcre2", "zlib", "libxml2"],
         BuildStage::Appstream => &[
             "formal-sysroot",
             "glib",
@@ -3156,6 +3159,7 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Libfyaml,
         BuildStage::Libxmlb,
         BuildStage::JsonGlib,
+        BuildStage::SharedMimeInfo,
         BuildStage::Appstream,
         BuildStage::GdkPixbuf,
         BuildStage::Gpgme,
@@ -3656,22 +3660,22 @@ mod tests {
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // Fontconfig and the Plasma closure are first-class consumers of
             // glibc through their source-owned runtime dependencies.
-            ("glibc source", &["glibc"], 277, &["linux"]),
+            ("glibc source", &["glibc"], 278, &["linux"]),
             ("Linux x86_64 config", &["linux"], 14, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                278,
+                279,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                275,
+                276,
                 &["linux", "glibc", "linux-headers"],
             ),
             // zlib reaches Cargo-built userland through the MattOS rustc.
-            ("zlib shared library", &["zlib"], 196, &["attr", "linux"]),
+            ("zlib shared library", &["zlib"], 197, &["attr", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

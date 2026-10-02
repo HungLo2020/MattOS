@@ -408,8 +408,10 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // lexically earlier source filename than the hosted repository. At
         // equal pin priority and package version, APT must select the
         // coherent ISO package record rather than stale hosted metadata;
-        // newer hosted versions still win normally.
-        "apt" => 2,
+        // newer hosted versions still win normally. Revision 3 drops the
+        // disabled Debian archive source and keyring and removes the
+        // unmodified scaffold an earlier package left on upgrade.
+        "apt" => 3,
         // Revision 2 preserves fuse3's documented setuid fusermount3 helper
         // in the Flatpak payload.  The document portal invokes this helper to
         // mount each user's document filesystem; a revision-1 package loses
@@ -430,11 +432,17 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // install helper, which uses the live libflatpak runtime and writes
         // only the mounted target installation. Revision 10 drops the
         // aggregate Info index its bundled gpgme install used to leak.
-        "flatpak" => 10,
+        // Revision 11 leaves libpng to its own libpng16-16t64 and
+        // libpng-dev packages. Revision 12 leaves the rest of its runtime
+        // closure (OSTree, GPGME, GDK Pixbuf, AppStream, JSON-GLib, libxmlb,
+        // libfyaml, FUSE 3, Bubblewrap, xdg-dbus-proxy) to their own packages.
+        "flatpak" => 12,
         // Revision 2 stops copying Flatpak-owned /usr/bin/bwrap into the
         // portal package. The portal depends on Flatpak for that runtime
         // helper, leaving a single package owner for the executable.
-        "xdg-desktop-portal" => 2,
+        // Revision 3 depends on the packages of the libraries and helpers it
+        // uses (FUSE 3, GDK Pixbuf, JSON-GLib, Bubblewrap) instead of Flatpak.
+        "xdg-desktop-portal" => 3,
         "mattos-cozy" => 1,
         "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" | "gpgv" => 2,
         _ => 1,

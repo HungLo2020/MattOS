@@ -435,6 +435,12 @@ pub(super) fn stage_uutils_commands(
     Ok(())
 }
 
+/// Earlier `apt` packages shipped a disabled Debian archive source as a
+/// conffile.  dpkg keeps an obsolete conffile, so remove it here while it is
+/// still the shipped, fully disabled scaffold; an administrator's enabled
+/// copy is left alone.
+pub(crate) const APT_POSTINST: &str = "#!/bin/sh\nset -e\nif [ \"$1\" = configure ]; then\n    debian=\"${DPKG_ROOT:-}/etc/apt/sources.list.d/debian-trixie.sources\"\n    if [ -f \"$debian\" ] && grep -q '^Enabled: no' \"$debian\" && ! grep -q '^Enabled: yes' \"$debian\"; then\n        rm -f \"$debian\"\n    fi\nfi\n";
+
 pub(super) const PLASMA_PROFILE_POSTINST: &str = "#!/bin/sh\nset -e\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\nif command -v systemctl >/dev/null 2>&1; then\n    if [ \"$(readlink /etc/systemd/system/display-manager.service 2>/dev/null || true)\" = \"/usr/lib/systemd/system/plasma-greeter.service\" ]; then rm /etc/systemd/system/display-manager.service; fi\n    systemctl enable plasmalogin.service >/dev/null\n    systemctl set-default graphical.target >/dev/null\nfi\n";
 
 pub(super) fn stage_profile_package(repo_root: &Path, staging: &Path, package: &str) -> Result<()> {
@@ -585,12 +591,10 @@ pub(super) fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
         &config.join("01mattos"),
         &staging.join("etc/apt/apt.conf.d/01mattos"),
     )?;
-    for name in ["mattos-hosted.sources", "debian-trixie.sources"] {
-        copy_preserving(
-            &config.join(name),
-            &staging.join("etc/apt/sources.list.d").join(name),
-        )?;
-    }
+    copy_preserving(
+        &config.join("mattos-hosted.sources"),
+        &staging.join("etc/apt/sources.list.d/mattos-hosted.sources"),
+    )?;
     copy_preserving(
         &config.join("00mattos-priority"),
         &staging.join("etc/apt/preferences.d/00mattos-priority"),
@@ -601,19 +605,16 @@ pub(super) fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
         "00mattos-priority",
         "00-mattos-local.sources",
         "mattos-hosted.sources",
-        "debian-trixie.sources",
     ] {
         copy_preserving(
             &installed_config.join(name),
             &staging.join("usr/share/mattos/apt/installed").join(name),
         )?;
     }
-    for name in ["mattos-archive-keyring.asc", "debian-archive-keyring.asc"] {
-        copy_preserving(
-            &config.join("keys").join(name),
-            &staging.join("usr/share/keyrings").join(name),
-        )?;
-    }
+    copy_preserving(
+        &config.join("keys/mattos-archive-keyring.asc"),
+        &staging.join("usr/share/keyrings/mattos-archive-keyring.asc"),
+    )?;
     let resources = repo_root.join("src/system/packages/config/apt/units");
     for unit in [
         "mattos-apt-daily.service",
@@ -640,6 +641,8 @@ pub(super) fn stage_apt(repo_root: &Path, staging: &Path) -> Result<()> {
         staging.join("DEBIAN/conffiles"),
         format!("{}\n", APT_CONFFILES.join("\n")),
     )?;
+    fs::write(staging.join("DEBIAN/postinst"), APT_POSTINST)?;
+    set_mode(staging.join("DEBIAN/postinst"), 0o755)?;
     validate_no_mutable_package_state(staging)
 }
 
@@ -656,12 +659,10 @@ pub(crate) fn apply_live_apt_policy(repo_root: &Path, rootfs: &Path) -> Result<(
         &config.join("00-mattos-local.sources"),
         &rootfs.join("etc/apt/sources.list.d/00-mattos-local.sources"),
     )?;
-    for name in ["mattos-hosted.sources", "debian-trixie.sources"] {
-        copy_preserving(
-            &config.join(name),
-            &rootfs.join("etc/apt/sources.list.d").join(name),
-        )?;
-    }
+    copy_preserving(
+        &config.join("mattos-hosted.sources"),
+        &rootfs.join("etc/apt/sources.list.d/mattos-hosted.sources"),
+    )?;
     copy_preserving(
         &config.join("00mattos-priority"),
         &rootfs.join("etc/apt/preferences.d/00mattos-priority"),
@@ -672,18 +673,15 @@ pub(crate) fn apply_live_apt_policy(repo_root: &Path, rootfs: &Path) -> Result<(
 pub(crate) fn validate_live_apt_policy(rootfs: &Path) -> Result<()> {
     let local = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/00-mattos-local.sources"))?;
     let hosted = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/mattos-hosted.sources"))?;
-    let debian = fs::read_to_string(rootfs.join("etc/apt/sources.list.d/debian-trixie.sources"))?;
     let preferences = fs::read_to_string(rootfs.join("etc/apt/preferences.d/00mattos-priority"))?;
     let keyrings = rootfs.join("usr/share/keyrings");
     if !local.contains("URIs: file:/usr/share/mattos/repository")
         || local.contains("Enabled: no")
         || !local.contains("Trusted: yes")
         || !hosted.contains("Enabled: yes")
-        || !debian.contains("Enabled: no")
         || !hosted.contains("Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc")
-        || !debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
         || !keyrings.join("mattos-archive-keyring.asc").is_file()
-        || !keyrings.join("debian-archive-keyring.asc").is_file()
+        || rootfs.join("etc/apt/sources.list.d/debian-trixie.sources").exists()
         || !rootfs.join("usr/bin/gpgv").is_file()
         || fs::symlink_metadata(
             rootfs.join("etc/systemd/system/timers.target.wants/mattos-apt-daily.timer"),

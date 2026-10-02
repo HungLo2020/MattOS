@@ -38,8 +38,8 @@ unversioned linker names, pkg-config/CMake metadata, and compiler support files.
 The interpreter/compiler packages own commands and their language-specific
 runtime trees. No package is permitted to overlap another package's path.
 
-The protected-package and APT pinning policies reserve these MattOS-owned paths
-against replacement by a supplemental Debian repository. Compatibility entries
+MattOS installs only from its own repositories, so no other archive can
+replace these MattOS-owned paths. Compatibility entries
 document where the newer language ABI is a MattOS extension rather than a claim
 to be the exact Debian 13 default.
 

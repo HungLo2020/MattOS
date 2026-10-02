@@ -1,0 +1,5 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/>.
+
+<https://example.com/book/1>
+  dc:title "Random Title";
+  dc:publisher "Free Desktop Organization".

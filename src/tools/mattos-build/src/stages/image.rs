@@ -700,6 +700,7 @@ fn build_rootfs_into(repo_root: &Path, out: &Path) -> Result<()> {
     if !aliases.contains(" nvidia") || !aliases.contains(" nouveau") {
         bail!("rootfs depmod metadata does not preserve both NVIDIA and Nouveau aliases");
     }
+    generate_mime_database(repo_root, out)?;
     let package_owned = packaging::package_owned_paths(out)?;
     let package_snapshot = packaging::snapshot_package_files(out, &package_owned)?;
     for rel in LEGACY_SKELETON_FILES {
@@ -2649,6 +2650,31 @@ fn validate_locale_service(rootfs: &Path) -> Result<()> {
     ] {
         if !rootfs.join(rel).exists() {
             bail!("systemd-localed runtime contract is missing /{rel}");
+        }
+    }
+    Ok(())
+}
+
+/// Builds the MIME database (`/usr/share/mime/mime.cache` and friends) from
+/// every installed package's definitions with the image's own
+/// `update-mime-database`, run through the MattOS loader.  The package's
+/// postinst leaves this to offline composition, which sets DPKG_ROOT.
+fn generate_mime_database(repo_root: &Path, rootfs: &Path) -> Result<()> {
+    let loader = repo_root.join("out/build/glibc/install/lib64/ld-linux-x86-64.so.2");
+    let tool = rootfs.join("usr/bin/update-mime-database");
+    let database = rootfs.join("usr/share/mime");
+    if !tool.is_file() || !database.join("packages/freedesktop.org.xml").is_file() {
+        bail!("rootfs lacks shared-mime-info; the MIME database cannot be generated");
+    }
+    let library_path = rootfs.join("usr/lib/x86_64-linux-gnu");
+    run_cmd(
+        repo_root,
+        path_str(&loader)?,
+        &["--library-path", path_str(&library_path)?, path_str(&tool)?, path_str(&database)?],
+    )?;
+    for generated in ["mime.cache", "globs2", "magic"] {
+        if !database.join(generated).is_file() {
+            bail!("update-mime-database did not write /usr/share/mime/{generated}");
         }
     }
     Ok(())

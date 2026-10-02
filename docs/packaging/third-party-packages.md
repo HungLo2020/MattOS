@@ -13,9 +13,17 @@ container and publishes it through the vendored repository client.
 | Podman | podman, conmon, crun, netavark, aardvark-dns, passt, catatonit, containers-common, libseccomp2 |
 | nftables (rootful container networking) | nftables, libnftnl11, libmnl0, libjansson4 |
 | QEMU | qemu-system-x86 (x86_64 system emulator with qemu-img), libslirp0, libsdl2-2.0-0 |
+| ImageMagick | imagemagick, libjpeg62-turbo, libwebp7, libtiff6, libopenjp2-7 |
 
 Only software MattOS needs to build itself is vendored; everything here is
-third-party because MattOS's own build does not need it.
+third-party because MattOS's own build does not need it. A library a vendored program
+needs is vendored even when a third-party package also uses it: ImageMagick
+links MattOS's libpng, FreeType, Fontconfig, Little CMS, libxml2, zlib, bzip2,
+xz and zstd through their `-dev` packages, and only the image codecs nothing
+in MattOS uses (libjpeg-turbo, libwebp, libtiff, OpenJPEG) are third-party.
+libjpeg-turbo is built without its SIMD extensions, which need NASM. ImageMagick draws text with any installed font named
+by `-font` (for example `-font Fira-Sans-Regular`); with no `-font` it looks
+for a Helvetica- or Arial-class font, which MattOS does not ship.
 
 ## Commands
 
@@ -48,8 +56,8 @@ a status table: **UP TO DATE**, **UPSTREAM NEWER**, **PENDING PUBLISH**,
 `third-party-packages/releases.json` is the checked-in selection for every
 recipe: the upstream `version`, its `release_tag`, the `source_sha256` of the
 release archive, and an optional packaging `revision` (default 1). The package
-version is `<version>-0mattos<revision>`: bump `revision` for a packaging-only
-change. A `0mattos` revision sorts below a MattOS-built `-1mattos1` package of
+version is `<version>-0mattos<revision>`; the framework raises `revision`
+itself when a rebuild would otherwise reuse a published version (see below). A `0mattos` revision sorts below a MattOS-built `-1mattos1` package of
 the same upstream version, so MattOS can always take a package over. Upstream
 discovery (GitHub's latest release) is only a signal that a newer release
 exists; a build always uses the selection. Discovery lists the upstream
@@ -164,9 +172,19 @@ links it.
   package built against an older image keeps working, as Debian packages do
   when their build environment moves on. `--rebuild-stale` rebuilds it;
 - the selected version is published from different inputs (a recipe,
-  selection, build code or build dependency change): rebuilt and republished
-  (the repository replaces it in place);
+  selection, build code or build dependency change): rebuilt as the next
+  revision;
 - the version is not published: built and published.
+
+Different bytes are never published under a version that is already in the
+repository, since installed systems would never upgrade to them. Whenever
+`update` or `publish` is about to upload a version that is published (changed
+inputs, `--rebuild-stale`, or an explicit `publish`), the build becomes
+`<version>-0mattos<N+1>`, N being the highest published revision of that
+upstream release, and `releases.json` records the new revision (commit it).
+A dry run builds the next version without recording it. A package that
+build-depends on the rebuilt one then sees a new dependency version, so its
+inputs change and it gets its own next revision in the same run.
 
 Repository requests (reading the index, downloading a build dependency,
 uploading) that fail for a transient reason are retried ten times, ten seconds

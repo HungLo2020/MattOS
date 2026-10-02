@@ -112,38 +112,45 @@ fn installer_package_cache_tracks_its_embedded_linux_kernel() {
 }
 
 #[test]
-fn flatpak_package_owns_the_complete_target_built_runtime_closure() {
+fn flatpak_runtime_closure_is_packaged_separately() {
     let specs = package_specs();
-    let flatpak = specs
-        .iter()
-        .find(|spec| spec.name == "flatpak")
-        .expect("flatpak package spec");
+    let spec = |name: &str| {
+        specs
+            .iter()
+            .find(|spec| spec.name == name)
+            .unwrap_or_else(|| panic!("{name} package spec"))
+    };
+    let flatpak = spec("flatpak");
     assert_eq!(flatpak.source_component, "flatpak");
+    assert_eq!(package_stage_dependencies("flatpak"), ["flatpak"]);
     assert_eq!(
-        package_stage_dependencies("flatpak"),
+        package_source_roots("flatpak"),
         [
-            "flatpak",
-            "ostree",
-            "gpgme",
-            "gdk-pixbuf",
-            "appstream",
-            "json-glib",
-            "libxmlb",
-            "libfyaml",
-            "fuse3",
-            "libxml2",
-            "libpng",
-            "bubblewrap",
-            "xdg-dbus-proxy",
+            "src/system/packages/flatpak",
+            "src/system/installer/flatpak-target-install.c"
         ]
     );
-    assert!(package_source_roots("flatpak").contains(&"src/system/packages/flatpak"));
-    assert!(package_source_roots("flatpak").contains(&"src/system/packages/ostree"));
-    assert!(package_source_roots("flatpak").contains(&"src/system/security/bubblewrap"));
-    assert!(package_source_roots("flatpak").contains(&"src/system/packages/xdg-dbus-proxy"));
-    assert!(
-        package_source_roots("flatpak").contains(&"src/system/installer/flatpak-target-install.c")
-    );
+    for (package, component) in [
+        ("libostree-1-1", "ostree"),
+        ("libgpgme45", "gpgme"),
+        ("libgdk-pixbuf-2.0-0", "gdk-pixbuf"),
+        ("libappstream5", "appstream"),
+        ("libjson-glib-1.0-0", "json-glib"),
+        ("libxmlb2", "libxmlb"),
+        ("libfyaml0", "libfyaml"),
+        ("libfuse3-4", "fuse3"),
+        ("fuse3", "fuse3"),
+        ("bubblewrap", "bubblewrap"),
+        ("xdg-dbus-proxy", "xdg-dbus-proxy"),
+    ] {
+        assert!(flatpak.depends.contains(&package), "flatpak lacks {package}");
+        assert_eq!(spec(package).source_component, component);
+        // Upgrades take the files over from the old all-in-one package.
+        assert_eq!(spec(package).replaces, ["flatpak"]);
+    }
+    for tool in ["ostree", "appstream", "libgdk-pixbuf2.0-bin"] {
+        assert!(PACKAGE_NAMES.contains(&tool));
+    }
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     assert!(
         !root
@@ -151,6 +158,106 @@ fn flatpak_package_owns_the_complete_target_built_runtime_closure() {
             .join("firefox.toml")
             .exists()
     );
+}
+
+#[test]
+fn gdk_pixbuf_ships_a_loader_cache_naming_installed_paths() {
+    let staging = tempfile::tempdir().unwrap();
+    let staging = staging.path();
+    let loaders = staging.join("usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders");
+    fs::create_dir_all(&loaders).unwrap();
+    fs::write(loaders.join("libpixbufloader-gif.so"), "module").unwrap();
+    crate::packaging::staging::write_pixbuf_loader_cache(staging, |modules| {
+        assert_eq!(modules, [loaders.join("libpixbufloader-gif.so")]);
+        Ok(format!("# generated\n\"{}\"\n\"gif\" 4 \"gdk-pixbuf\" \"GIF\" \"LGPL\"\n", modules[0].display()))
+    })
+    .unwrap();
+    let cache = fs::read_to_string(loaders.parent().unwrap().join("loaders.cache")).unwrap();
+    assert!(cache.contains("\"/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-gif.so\""));
+    assert!(!cache.contains(staging.to_str().unwrap()));
+    // A query that does not describe a staged module is refused.
+    assert!(
+        crate::packaging::staging::write_pixbuf_loader_cache(staging, |_| Ok("# empty\n".into())).is_err()
+    );
+}
+
+#[test]
+fn flatpak_closure_packages_stage_only_their_runtime_files() {
+    let root = tempfile::tempdir().unwrap();
+    let write = |component: &str, relative: &str| {
+        let path = root
+            .path()
+            .join("out/build")
+            .join(component)
+            .join("install")
+            .join(relative);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, relative).unwrap();
+    };
+    write("ostree", "usr/lib/x86_64-linux-gnu/libostree-1.so.1.0.0");
+    write("ostree", "usr/include/ostree-1/ostree.h");
+    write("ostree", "usr/lib/x86_64-linux-gnu/pkgconfig/ostree-1.pc");
+    write("ostree", "usr/share/ostree/trusted.gpg.d/README-gpg");
+    let libdir = root.path().join("out/build/ostree/install/usr/lib/x86_64-linux-gnu");
+    symlink("libostree-1.so.1.0.0", libdir.join("libostree-1.so.1")).unwrap();
+    symlink("libostree-1.so.1", libdir.join("libostree-1.so")).unwrap();
+    for (component, relative) in [
+        ("fuse3", "usr/bin/fusermount3"),
+        ("fuse3", "usr/sbin/mount.fuse3"),
+        ("fuse3", "usr/lib/udev/rules.d/99-fuse3.rules"),
+        ("fuse3", "usr/share/man/man1/fusermount3.1"),
+        ("fuse3", "usr/share/man/man8/mount.fuse3.8"),
+        ("fuse3", "etc/fuse.conf"),
+    ] {
+        write(component, relative);
+    }
+    for license in [
+        "src/system/packages/ostree/COPYING",
+        "src/system/libraries/fuse3/LICENSE",
+    ] {
+        let path = root.path().join(license);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, "license").unwrap();
+    }
+
+    let ostree = root.path().join("libostree");
+    stage_flatpak_closure_package(root.path(), &ostree, "libostree-1-1").unwrap();
+    let staged = ostree.join("usr/lib/x86_64-linux-gnu");
+    assert!(staged.join("libostree-1.so.1.0.0").is_file());
+    assert_eq!(
+        fs::read_link(staged.join("libostree-1.so.1")).unwrap(),
+        Path::new("libostree-1.so.1.0.0")
+    );
+    // Development files stay out of the runtime package.
+    assert!(!staged.join("libostree-1.so").exists());
+    assert!(!ostree.join("usr/include").exists());
+    assert!(!staged.join("pkgconfig").exists());
+    assert!(ostree.join("usr/share/ostree/trusted.gpg.d/README-gpg").is_file());
+    assert!(ostree.join("usr/share/doc/libostree-1-1/copyright").is_file());
+
+    let fuse = root.path().join("fuse3");
+    stage_flatpak_closure_package(root.path(), &fuse, "fuse3").unwrap();
+    assert_eq!(
+        fs::metadata(fuse.join("usr/bin/fusermount3")).unwrap().permissions().mode() & 0o7777,
+        0o4755
+    );
+    assert_eq!(
+        fs::read_to_string(fuse.join("DEBIAN/conffiles")).unwrap(),
+        "/etc/fuse.conf\n"
+    );
+
+    // A SONAME link whose target file is not selected is refused.
+    fs::remove_file(libdir.join("libostree-1.so.1")).unwrap();
+    symlink("libostree-1.so.9.9.9", libdir.join("libostree-1.so.1")).unwrap();
+    let error = stage_flatpak_closure_package(root.path(), &root.path().join("dangling"), "libostree-1-1")
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("does not contain"), "{error}");
+
+    // A missing payload path is an error, not a silently thinner package.
+    fs::remove_file(root.path().join("out/build/fuse3/install/usr/sbin/mount.fuse3")).unwrap();
+    assert!(stage_flatpak_closure_package(root.path(), &root.path().join("again"), "fuse3").is_err());
+    assert!(stage_flatpak_closure_package(root.path(), &root.path().join("x"), "flatpak").is_err());
 }
 
 #[test]
@@ -171,13 +278,16 @@ fn apt_package_cache_tracks_repository_policy_configuration() {
 }
 
 #[test]
-fn portal_package_consumes_flatpak_owned_bubblewrap_without_copying_it() {
+fn portal_package_depends_on_bubblewrap_and_fuse_without_copying_them() {
     let specs = package_specs();
     let portal = specs
         .iter()
         .find(|spec| spec.name == "xdg-desktop-portal")
         .expect("portal package spec");
-    assert!(portal.depends.contains(&"flatpak"));
+    for package in ["bubblewrap", "fuse3", "libfuse3-4", "libgdk-pixbuf-2.0-0", "libjson-glib-1.0-0"] {
+        assert!(portal.depends.contains(&package), "portal lacks {package}");
+    }
+    assert!(!portal.depends.contains(&"flatpak"));
     assert_eq!(
         package_stage_dependencies("xdg-desktop-portal"),
         ["xdg-desktop-portal", "gstreamer", "gstreamer-base"]
@@ -581,10 +691,8 @@ fn apt_live_and_installed_policies_have_opposite_source_authority() {
     assert!(installed.contains("Trusted: yes"));
     assert!("00-mattos-local.sources" < "mattos-hosted.sources");
     let hosted = fs::read_to_string(config.join("installed/mattos-hosted.sources")).unwrap();
-    let debian = fs::read_to_string(config.join("installed/debian-trixie.sources")).unwrap();
     assert!(hosted.contains("Enabled: yes"));
-    assert!(debian.contains("Enabled: no"));
-    assert!(debian.contains("Suites: trixie-security"));
+    assert!(!config.join("installed/debian-trixie.sources").exists());
 }
 
 #[test]
@@ -788,7 +896,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 368);
+    assert_eq!(PACKAGE_NAMES.len(), 393);
 }
 
 #[test]
@@ -843,7 +951,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 368);
+    assert_eq!(PACKAGE_NAMES.len(), 393);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -903,9 +1011,9 @@ fn base_userland_package_families_and_command_set_are_complete() {
     assert_eq!(package_recipe_revision("libpam-modules"), 2);
     // Flatpak's package payload includes MattOS's signed Flathub policy,
     // a minimal initialized OSTree layout, and the target-rooted optional
-    // install helper, and no aggregate Info index. Keep this expectation
-    // aligned with that contract.
-    assert_eq!(package_recipe_revision("flatpak"), 10);
+    // install helper, and no aggregate Info index; libpng is its own
+    // package. Keep this expectation aligned with that contract.
+    assert_eq!(package_recipe_revision("flatpak"), 12);
     let ssh_service = include_str!("../../../../system/network/openssh/ssh.service");
     assert!(ssh_service.contains("\nType=notify\n"));
     assert!(ssh_service.contains("ExecStart=/usr/sbin/sshd -D"));
@@ -944,10 +1052,19 @@ fn self_hosting_development_package_families_are_split_and_complete() {
         "lld",
         "rustc",
         "cargo",
+        "libpng16-16t64",
+        "libpng-dev",
+        "libfreetype-dev",
+        "libfontconfig-dev",
+        "liblcms2-dev",
+        "libxml2-dev",
+        "libbz2-dev",
+        "liblzma-dev",
+        "libexpat1-dev",
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 368);
+    assert_eq!(PACKAGE_NAMES.len(), 393);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",
@@ -1671,7 +1788,7 @@ fn apt_configuration_is_local_only_vendor_scoped_and_reinstall_safe() {
     assert!(config.contains("Pager \"false\""));
     assert!(config.contains("#clear Acquire::Changelogs::URI::Origin"));
     assert!(config.contains("#clear Acquire::Snapshots::URI"));
-    assert_eq!(APT_CONFFILES.len(), 5);
+    assert_eq!(APT_CONFFILES.len(), 4);
     assert!(
         APT_CONFFILES
             .iter()
@@ -1993,59 +2110,220 @@ fn legacy_collision_is_rejected() {
 }
 
 #[test]
-fn protected_pins_must_match_the_manifest_exactly_in_well_formed_records() {
-    let protected = ["libc6".to_string(), "gpgv".to_string()];
-    let record =
-        |names: &str| format!("Package: {names}\nPin: release o=Debian\nPin-Priority: -1\n");
-    let good = format!(
-        "Package: *\nPin: release o=Debian,n=trixie\nPin-Priority: 500\n\n{}\n{}",
-        record("libc6"),
-        record("gpgv")
-    );
-    validate_protected_pins("test", &good, &protected).unwrap();
-    let missing = record("libc6");
+fn apt_policy_configures_only_mattos_repositories() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    validate_apt_compatibility_policy(&root).unwrap();
+    // A second archive source, or a pin for another origin, is refused.
+    let copy = tempfile::tempdir().unwrap();
+    let config = copy.path().join("src/system/packages/config/apt");
+    fs::create_dir_all(config.join("installed")).unwrap();
+    fs::create_dir_all(config.join("keys")).unwrap();
+    let source = root.join("src/system/packages/config/apt");
+    for name in [
+        "00mattos-priority",
+        "00-mattos-local.sources",
+        "mattos-hosted.sources",
+        "installed/00mattos-priority",
+        "installed/00-mattos-local.sources",
+        "installed/mattos-hosted.sources",
+        "installed/01mattos",
+        "keys/mattos-archive-keyring.asc",
+    ] {
+        fs::copy(source.join(name), config.join(name)).unwrap();
+    }
+    validate_apt_compatibility_policy(copy.path()).unwrap();
+    fs::write(config.join("installed/debian-trixie.sources"), "Enabled: no\n").unwrap();
     assert!(
-        validate_protected_pins("test", &missing, &protected)
+        validate_apt_compatibility_policy(copy.path())
             .unwrap_err()
             .to_string()
-            .contains("missing gpgv")
+            .contains("installed APT sources must be exactly")
     );
-    let extra = record("libc6 gpgv curl");
+    fs::remove_file(config.join("installed/debian-trixie.sources")).unwrap();
+    let preferences = fs::read_to_string(config.join("00mattos-priority")).unwrap();
+    fs::write(
+        config.join("00mattos-priority"),
+        format!("{preferences}\nPackage: *\nPin: release o=Debian\nPin-Priority: 500\n"),
+    )
+    .unwrap();
     assert!(
-        validate_protected_pins("test", &extra, &protected)
+        validate_apt_compatibility_policy(copy.path())
             .unwrap_err()
             .to_string()
-            .contains("curl")
-    );
-    let twice = format!("{}\n{}", record("libc6 gpgv"), record("libc6"));
-    assert!(
-        validate_protected_pins("test", &twice, &protected)
-            .unwrap_err()
-            .to_string()
-            .contains("more than once")
-    );
-    // A comment does not separate records: two stanzas run together.
-    let merged = format!("{}# Explanation: next\n{}", record("libc6"), record("gpgv"));
-    assert!(
-        validate_protected_pins("test", &merged, &protected)
-            .unwrap_err()
-            .to_string()
-            .contains("exactly one")
+            .contains("non-MattOS origin")
     );
 }
 
 #[test]
-fn repository_apt_preferences_protect_exactly_the_manifest() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let manifest: ProtectedPackageManifest = toml::from_str(
-        &fs::read_to_string(root.join("src/system/packages/debian-compat/protected.toml")).unwrap(),
-    )
-    .unwrap();
-    for file in ["00mattos-priority", "installed/00mattos-priority"] {
-        let preferences =
-            fs::read_to_string(root.join("src/system/packages/config/apt").join(file)).unwrap();
-        validate_protected_pins(file, &preferences, &manifest.packages).unwrap();
+fn shared_mime_info_scripts_rebuild_online_and_defer_offline() {
+    use crate::packaging::staging::{SHARED_MIME_INFO_POSTINST, SHARED_MIME_INFO_POSTRM};
+    let root = tempfile::tempdir().unwrap();
+    let bin = root.path().join("bin");
+    fs::create_dir_all(&bin).unwrap();
+    let log = root.path().join("calls");
+    let tool = bin.join("update-mime-database");
+    fs::write(&tool, format!("#!/bin/sh\necho \"$@\" >> {}\n", log.display())).unwrap();
+    set_mode(tool.clone(), 0o755).unwrap();
+    let postinst = root.path().join("postinst");
+    fs::write(&postinst, SHARED_MIME_INFO_POSTINST).unwrap();
+    let run = |script: &Path, argument: &str, dpkg_root: Option<&Path>| {
+        let mut command = Command::new("sh");
+        command
+            .arg(script)
+            .arg(argument)
+            .env("PATH", format!("{}:/usr/bin:/bin", bin.display()))
+            .env_remove("DPKG_ROOT");
+        if let Some(dpkg_root) = dpkg_root {
+            command.env("DPKG_ROOT", dpkg_root);
+        }
+        assert!(command.status().unwrap().success());
+    };
+    // Offline composition generates the database itself.
+    run(&postinst, "configure", Some(root.path()));
+    assert!(!log.exists());
+    run(&postinst, "configure", None);
+    run(&postinst, "triggered", None);
+    run(&postinst, "abort-upgrade", None);
+    assert_eq!(fs::read_to_string(&log).unwrap(), "/usr/share/mime\n/usr/share/mime\n");
+
+    // Purge removes the generated database but not the definitions.
+    let mime = root.path().join("usr/share/mime");
+    fs::create_dir_all(mime.join("packages")).unwrap();
+    fs::create_dir_all(mime.join("text")).unwrap();
+    fs::write(mime.join("packages/kde6.xml"), "x").unwrap();
+    fs::write(mime.join("mime.cache"), "x").unwrap();
+    fs::write(mime.join("text/plain.xml"), "x").unwrap();
+    let postrm = root.path().join("postrm");
+    fs::write(&postrm, SHARED_MIME_INFO_POSTRM).unwrap();
+    run(&postrm, "remove", Some(root.path()));
+    assert!(mime.join("mime.cache").exists());
+    run(&postrm, "purge", Some(root.path()));
+    assert!(!mime.join("mime.cache").exists());
+    assert!(!mime.join("text").exists());
+    assert!(mime.join("packages/kde6.xml").is_file());
+}
+
+#[test]
+fn shared_mime_info_package_declares_its_trigger_and_is_in_the_base() {
+    let specs = package_specs();
+    let spec = |name: &str| specs.iter().find(|spec| spec.name == name).unwrap();
+    assert!(spec("mattos-base").depends.contains(&"shared-mime-info"));
+    assert!(spec("flatpak").depends.contains(&"shared-mime-info"));
+    let root = tempfile::tempdir().unwrap();
+    let install = root.path().join("out/build/shared-mime-info/install");
+    for relative in [
+        "usr/bin/update-mime-database",
+        "usr/share/mime/packages/freedesktop.org.xml",
+        "usr/share/man/man1/update-mime-database.1",
+        "usr/share/gettext/its/shared-mime-info.its",
+        "usr/share/pkgconfig/shared-mime-info.pc",
+        "usr/share/locale/de/LC_MESSAGES/shared-mime-info.mo",
+    ] {
+        let path = install.join(relative);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, relative).unwrap();
     }
+    let license = root.path().join("src/system/libraries/shared-mime-info/COPYING");
+    fs::create_dir_all(license.parent().unwrap()).unwrap();
+    fs::write(&license, "license").unwrap();
+    let staging = root.path().join("staging");
+    crate::packaging::staging::stage_shared_mime_info(root.path(), &staging).unwrap();
+    assert_eq!(
+        fs::read_to_string(staging.join("DEBIAN/triggers")).unwrap(),
+        "interest-noawait /usr/share/mime/packages\n"
+    );
+    assert!(staging.join("usr/share/mime/packages/freedesktop.org.xml").is_file());
+    // The generated database is never package payload.
+    assert!(!staging.join("usr/share/mime/mime.cache").exists());
+}
+
+#[test]
+fn packaging_revisions_come_from_the_ledger_while_upstream_is_unchanged() {
+    let real = fs::canonicalize(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..")).unwrap();
+    // The real repository, linked entry by entry, except for the ledger.
+    let root = tempfile::tempdir().unwrap();
+    let mut mirrored = root.path().to_path_buf();
+    let mut original = real.clone();
+    for component in ["src", "system", "packages"] {
+        for entry in fs::read_dir(&original).unwrap() {
+            let entry = entry.unwrap();
+            if entry.file_name() != component {
+                symlink(entry.path(), mirrored.join(entry.file_name())).unwrap();
+            }
+        }
+        mirrored = mirrored.join(component);
+        original = original.join(component);
+        fs::create_dir(&mirrored).unwrap();
+    }
+    for entry in fs::read_dir(&original).unwrap() {
+        let entry = entry.unwrap();
+        if entry.file_name() != "revisions.toml" {
+            symlink(entry.path(), mirrored.join(entry.file_name())).unwrap();
+        }
+    }
+    let specs = package_specs();
+    let spec = |name: &str| specs.iter().find(|spec| spec.name == name).unwrap().clone();
+    let base = spec("mattos-base");
+    let cli = spec("mattos-cli");
+    assert!(cli.depends.contains(&"mattos-base"));
+    // No ledger: revision 1.
+    assert_eq!(package_version(root.path(), &base).unwrap(), "0.1-1mattos1");
+    let ledger = root.path().join("src/system/packages/revisions.toml");
+    let write = |body: &str| fs::write(&ledger, format!("schema_version = 1\n\n[package]\n{body}")).unwrap();
+    write("mattos-base = { upstream = \"0.1\", revision = 3 }\n");
+    assert_eq!(package_version(root.path(), &base).unwrap(), "0.1-1mattos3");
+    // Exact dependencies follow the new version, so dependents change too.
+    assert!(
+        package_dependencies(root.path(), &cli)
+            .unwrap()
+            .contains(&"mattos-base (= 0.1-1mattos3)".to_string())
+    );
+    assert_eq!(validate_revision_ledger(root.path()).unwrap(), None);
+    // A new upstream version starts again at 1 and reports the old entry.
+    write("mattos-base = { upstream = \"0.0\", revision = 3 }\n");
+    assert_eq!(package_version(root.path(), &base).unwrap(), "0.1-1mattos1");
+    let warning = validate_revision_ledger(root.path()).unwrap().unwrap();
+    assert!(warning.contains("mattos-base: entry for 0.0, now 0.1"), "{warning}");
+    for (body, error) in [
+        ("nonexistent = { upstream = \"1\", revision = 2 }\n", "unknown package nonexistent"),
+        ("mattos-base = { upstream = \"0.1\", revision = 1 }\n", "must be at least 2"),
+        ("mattos-base = { upstream = \"0.1\", revision = 2, note = \"x\" }\n", "failed to parse"),
+    ] {
+        write(body);
+        let message = format!("{:#}", validate_revision_ledger(root.path()).unwrap_err());
+        assert!(message.contains(error), "{message}");
+    }
+    // The checked-in ledger is valid.
+    validate_revision_ledger(&real).unwrap();
+}
+
+#[test]
+fn apt_postinst_removes_only_the_unmodified_debian_scaffold() {
+    let root = tempfile::tempdir().unwrap();
+    let sources = root.path().join("etc/apt/sources.list.d");
+    fs::create_dir_all(&sources).unwrap();
+    let script = root.path().join("postinst");
+    fs::write(&script, crate::packaging::staging::APT_POSTINST).unwrap();
+    let run = || {
+        let status = Command::new("sh")
+            .arg(&script)
+            .arg("configure")
+            .env("DPKG_ROOT", root.path())
+            .status()
+            .unwrap();
+        assert!(status.success());
+    };
+    let debian = sources.join("debian-trixie.sources");
+    fs::write(&debian, "Enabled: no\nURIs: a\n\nEnabled: no\nURIs: b\n").unwrap();
+    run();
+    assert!(!debian.exists());
+    // An administrator enabled it: keep it.
+    fs::write(&debian, "Enabled: yes\nURIs: a\n\nEnabled: no\nURIs: b\n").unwrap();
+    run();
+    assert!(debian.exists());
+    // Nothing to remove is not an error.
+    fs::remove_file(&debian).unwrap();
+    run();
 }
 
 #[test]
@@ -2296,9 +2574,7 @@ fn compatibility_manifest_pins_and_read_only_publisher_validate() {
     let hosted = preferences
         .find("Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990")
         .unwrap();
-    let debian = preferences.find("Pin-Priority: 500").unwrap();
-    let blocked = preferences.find("Pin-Priority: -1").unwrap();
-    assert!(local < hosted && hosted < debian && debian < blocked);
+    assert!(local < hosted);
     assert!(!root.join("src/infrastructure/LinuxScripts/.git").exists());
     assert_eq!(
         sha256_file(
@@ -2323,19 +2599,14 @@ fn publish_plan_selects_mattos_repository_without_executing_manager() {
 }
 
 #[test]
-fn apt_sources_enable_hosted_mattos_and_never_trust_debian() {
+fn apt_sources_enable_hosted_mattos_and_trust_only_the_local_repository() {
     let hosted = include_str!("../../../../system/packages/config/apt/mattos-hosted.sources");
-    let debian = include_str!("../../../../system/packages/config/apt/debian-trixie.sources");
     let installed_preferences =
         include_str!("../../../../system/packages/config/apt/installed/00mattos-priority");
     assert!(hosted.contains("Enabled: yes"));
     assert!(hosted.contains("https://packages.mattsherfey.com"));
     assert!(hosted.contains("Signed-By:"));
-    assert!(debian.contains("Enabled: no"));
-    assert!(debian.contains("https://deb.debian.org/debian"));
-    assert!(debian.contains("Signed-By:"));
     assert!(!hosted.contains("Trusted: yes"));
-    assert!(!debian.contains("Trusted: yes"));
     assert!(
         installed_preferences
             .contains("Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 990")
@@ -2722,7 +2993,7 @@ fn builds_report_compatibility_entries_whose_recorded_version_drifted() {
     let root = tempfile::tempdir().unwrap();
     let entry = |name: &str, version: &str| {
         format!(
-            "[[package]]\ndebian_name = \"{name}\"\nmattos_name = \"{name}\"\nsource_component = \"x\"\nowned_paths = [\"/x\"]\nprovided_abi_or_commands = [\"x\"]\nprotected = false\ncurrent_mattos_version = \"{version}\"\nexpected_debian_role = \"x\"\nclassification = \"debian-compatible\"\nknown_gaps = [\"x\"]\n"
+            "[[package]]\ndebian_name = \"{name}\"\nmattos_name = \"{name}\"\nsource_component = \"x\"\nowned_paths = [\"/x\"]\nprovided_abi_or_commands = [\"x\"]\ncurrent_mattos_version = \"{version}\"\nexpected_debian_role = \"x\"\nclassification = \"debian-compatible\"\nknown_gaps = [\"x\"]\n"
         )
     };
     let manifest = format!(

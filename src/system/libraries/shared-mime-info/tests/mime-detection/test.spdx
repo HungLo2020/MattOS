@@ -1,0 +1,26 @@
+SPDXVersion: SPDX-2.3
+DataLicense: CC0-1.0
+DocumentNamespace: http://spdx.org/spdxdocs/tools-java/v1.1.5-444504E0-4F89-41D3-9A0C-0305E82C3301
+DocumentName: SPDX Tools v1.1.5 Java SBOM
+SPDXID: SPDXRef-DOCUMENT
+
+## Creation Information
+Creator: Person: Gary O'Neall (gary@sourceauditor.com)
+Created: 2023-05-12T18:30:22Z
+## Relationships
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package
+
+## Package Information
+PackageName: tools-java
+SPDXID: SPDXRef-Package
+PackageVersion: 1.5.1
+PackageFileName: tools-java-1.1.5.zip
+PackageSupplier: Organization: SPDX (Spdx-tech@lists.spdx.org)
+PackageDownloadLocation: https://github.com/spdx/tools-java/releases/download/v1.1.5/tools-java-1.1.5.zip
+PackageChecksum: SHA1: e01bcba3c55fa7f0c82d08d0cdce9061b21bf32f
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+ExternalRef: PACKAGE-MANAGER purl pkg:github/spdx/tools-java@2235d5d7f7fe46ce1e0d54b7831c5681633b25cc
+FilesAnalyzed: false
+
+

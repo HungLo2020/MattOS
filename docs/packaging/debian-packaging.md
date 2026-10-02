@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT. Its local repository (carried on the installer medium and copied onto installed systems) supplies every MattOS package, and the signed hosted MattOS repository at `https://packages.mattsherfey.com` is an enabled source at equal priority. Signed Debian 13 (Trixie) sources are shipped but disabled. See [APT source and pin policy](#apt-source-and-pin-policy). Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (368 packages at the time of writing; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the kernel modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
+This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (378 packages at the time of writing; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the kernel modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
 
 ## Imported package-manager sources
 
@@ -35,7 +35,7 @@ out/packages/inventory.toml
 out/repository/
 ```
 
-Versions use `<upstream-version>-1mattos1`; unreleased snapshots use `<declared version>+git<YYYYMMDD>.<HHMMSS>.<12-hex commit>-1mattos1` (see [Package versions from pins](../sources/upstream-sync.md#package-versions-from-pins)). A package rebuilt without a version change, for example after a toolchain change, keeps its version and replaces the published package in place (see [Publishing Packages](publishing.md#what-gets-uploaded)). Where Debian's package carries an epoch, the `debian_epoch` field in `trixie.toml` adds it (for example `libxau6` is `1:1.0.12-1mattos1` and `libx11-6` is `2:1.8.12-1mattos1`). `dpkg` is the one exception to both forms: its version comes from the imported `debian/changelog` plus the short import commit, giving `1.23.8+git.ff7e9d8b-1mattos1`. `out/packages/inventory.toml` records the exact current version of every package. Package modes and timestamps are normalized, directory walks are sorted, `dpkg-deb --root-owner-group` records root ownership, symlinks remain symlinks, and repository gzip headers and Release dates are fixed. No package ships the aggregate Info index `/usr/share/info/dir`: `install-info` maintains it on the installed system (Debian Policy 12.2), so `stage_package` removes it from every payload, including indexes carried in by bundled component installs such as flatpak's gpgme.
+Versions use `<upstream-version>-1mattos<N>`; unreleased snapshots use `<declared version>+git<YYYYMMDD>.<HHMMSS>.<12-hex commit>-1mattos<N>` (see [Package versions from pins](../sources/upstream-sync.md#package-versions-from-pins)). N is the packaging revision from `src/system/packages/revisions.toml`, 1 unless raised: a package whose bytes change without an upstream version change gets a higher revision when it is published, never a replacement under the same version (see [Packaging revisions](publishing.md#packaging-revisions)). Where Debian's package carries an epoch, the `debian_epoch` field in `trixie.toml` adds it (for example `libxau6` is `1:1.0.12-1mattos1` and `libx11-6` is `2:1.8.12-1mattos1`). `dpkg` is the one exception to both forms: its version comes from the imported `debian/changelog` plus the short import commit, giving `1.23.8+git.ff7e9d8b-1mattos1`. `out/packages/inventory.toml` records the exact current version of every package. Package modes and timestamps are normalized, directory walks are sorted, `dpkg-deb --root-owner-group` records root ownership, symlinks remain symlinks, and repository gzip headers and Release dates are fixed. No package ships the aggregate Info index `/usr/share/info/dir`: `install-info` maintains it on the installed system (Debian Policy 12.2), so `stage_package` removes it from every payload, including indexes carried in by bundled component installs such as flatpak's gpgme.
 
 Most packages have no maintainer scripts. The current exceptions are `mattos-plasma` (a `postinst` that enables the Plasma login manager and sets `graphical.target` as the default) and `linux-modules-nvidia-595-open-<kernel>` (a `postinst` and `postrm` that run `depmod`). All of them exit immediately when `DPKG_ROOT` is set, so offline root assembly does not run them against the build host.
 
@@ -133,7 +133,7 @@ The package never ships `/var/lib/dpkg/status`, `available`, generated `info/`, 
 
 ### APT boundary
 
-`apt` owns `apt`, `apt-get`, `apt-cache`, `apt-config`, and `apt-mark`; `/usr/lib/apt/apt-helper`; the `copy`, `file`, `gpgv`, `http`, `https`, and `store` methods; planners and solvers; `libapt-private.so.0.0`; the live-image `/etc/apt` policy files; `/usr/share/keyrings/mattos-archive-keyring.asc` and `/usr/share/keyrings/debian-archive-keyring.asc`; the installed-system policy templates under `/usr/share/mattos/apt/installed/`; the `mattos-apt-daily.{service,timer}` and `mattos-apt-bootstrap.{service,timer}` units; and empty writable state directory scaffolding. `APT_RUNTIME_PATHS` in `src/tools/mattos-build/src/packaging.rs` and `stage_apt` in `src/tools/mattos-build/src/packaging/staging.rs` define the payload.
+`apt` owns `apt`, `apt-get`, `apt-cache`, `apt-config`, and `apt-mark`; `/usr/lib/apt/apt-helper`; the `copy`, `file`, `gpgv`, `http`, `https`, and `store` methods; planners and solvers; `libapt-private.so.0.0`; the live-image `/etc/apt` policy files; `/usr/share/keyrings/mattos-archive-keyring.asc`; the installed-system policy templates under `/usr/share/mattos/apt/installed/`; the `mattos-apt-daily.{service,timer}` and `mattos-apt-bootstrap.{service,timer}` units; and empty writable state directory scaffolding. `APT_RUNTIME_PATHS` in `src/tools/mattos-build/src/packaging.rs` and `stage_apt` in `src/tools/mattos-build/src/packaging/staging.rs` define the payload.
 
 `apt` depends exactly on the MattOS `gpgv` package, so signed remote sources always have a packaged verifier. Repository generation continues to use host `dpkg-scanpackages` and `apt-ftparchive`. The live and installed source policies are described in [APT source and pin policy](#apt-source-and-pin-policy).
 
@@ -166,6 +166,67 @@ the pinned curl CA Extract URL/date, SHA-256, destination, MPL-2.0 license, and
 validated count of 119 certificates. Ordinary builds never download a mutable
 `latest` bundle. The installed `UPDATE.md` describes the explicit
 checksum-and-count update process.
+
+### Library packages split out of bundles
+
+A library or helper gets its own package, under its Debian name, rather than
+riding inside the package of the first program that needed it; otherwise any
+other package that needs it, MattOS or third-party, collides with the bundling
+package's files. Flatpak was the last bundle. `flatpak` now carries Flatpak
+alone and depends on its runtime closure (`FLATPAK_CLOSURE_PACKAGES` in
+`packaging/staging/desktop.rs`):
+
+| Package | Payload |
+| --- | --- |
+| `libostree-1-1`, `ostree` | `libostree-1.so.1`; the `ostree` tool |
+| `libgpgme45` | `libgpgme.so.45` |
+| `libgdk-pixbuf-2.0-0`, `libgdk-pixbuf2.0-bin` | `libgdk_pixbuf-2.0.so.0`, its loaders and their `loaders.cache`; the `gdk-pixbuf-*` tools and thumbnailer |
+| `libappstream5`, `appstream` | `libappstream.so.5`; `appstreamcli` |
+| `libjson-glib-1.0-0` | `libjson-glib-1.0.so.0` |
+| `libxmlb2` | `libxmlb.so.2` |
+| `libfyaml0` | `libfyaml.so.0` |
+| `libfuse3-4`, `fuse3` | `libfuse3.so.4`; setuid `fusermount3`, `mount.fuse3`, `/etc/fuse.conf` (a conffile) and the udev rule |
+| `bubblewrap` | `bwrap` |
+| `xdg-dbus-proxy` | `xdg-dbus-proxy` |
+
+gdk-pixbuf finds loader modules (its GIF loader; PNG is built in) only
+through `loaders.cache`, which its install step skips under `DESTDIR`, so the
+package generates it at staging with the build's `gdk-pixbuf-query-loaders`
+(`write_pixbuf_loader_cache`). All MattOS loaders come from gdk-pixbuf itself;
+a package that added loaders would need Debian's trigger-driven regeneration.
+
+libpng (`libpng16-16t64`, `libpng-dev`) left the same bundle earlier. Each new
+package `Replaces: flatpak`, so it takes its files over from an installed
+all-in-one `flatpak`. `xdg-desktop-portal` depends on `bubblewrap`, `fuse3` and
+the libraries it links instead of on Flatpak. Development files (headers,
+pkg-config files) of these libraries are not packaged yet, and the tools
+nothing uses (`json-glib-*`, `fy-*`, `gpgme-tool`, OSTree's boot integration)
+are no longer shipped.
+
+### MIME database
+
+`shared-mime-info` (vendored at `src/system/libraries/shared-mime-info`, built
+by the `shared-mime-info` stage) ships `update-mime-database` and the
+freedesktop.org definitions in `/usr/share/mime/packages`; other packages add
+their own definitions there. The compiled database (`mime.cache`, `globs2`,
+`magic` and the per-type files) is generated, never package payload. GLib's
+content-type detection reads it, so without it GLib cannot recognise, for
+example, a gzip file; AppStream then fails to read Flathub's compressed
+catalog and `flatpak search` finds nothing. `mattos-base` and `flatpak`
+depend on the package.
+
+The database is kept current three ways:
+
+- on a running system, the package's dpkg trigger (`interest-noawait
+  /usr/share/mime/packages`) reruns `update-mime-database` whenever a package
+  changes the definitions, and its postinst runs it on configure;
+- offline composition sets `DPKG_ROOT`, where the postinst does nothing:
+  image assembly (`generate_mime_database` in `stages/image.rs`) runs the
+  image's own tool through the MattOS loader after installing the packages,
+  and the installer (`generate_mime_database` in the installer policy) runs
+  the target's tool after its package transaction, failing if definitions
+  exist without the tool;
+- purging the package removes the generated files and leaves `packages/`.
 
 ## Dependency and Essential policy
 
@@ -221,10 +282,9 @@ APT owns and marks these as conffiles:
 /etc/apt/preferences.d/00mattos-priority
 /etc/apt/sources.list.d/00-mattos-local.sources
 /etc/apt/sources.list.d/mattos-hosted.sources
-/etc/apt/sources.list.d/debian-trixie.sources
 ```
 
-These carry the live policy. On an installed system the installer overwrites `01mattos`, `00mattos-priority`, `mattos-hosted.sources`, and `debian-trixie.sources` with the installed templates and adds `/etc/apt/sources.list.d/00-mattos-local.sources`, so dpkg sees those conffiles as locally modified on later `apt` upgrades.
+These carry the live policy. On an installed system the installer overwrites `01mattos`, `00mattos-priority`, and `mattos-hosted.sources` with the installed templates and adds `/etc/apt/sources.list.d/00-mattos-local.sources`, so dpkg sees those conffiles as locally modified on later `apt` upgrades.
 
 dpkg owns and marks `/etc/dpkg/dpkg.cfg` as a conffile. `mattos-base-files` retains its identity and profile conffiles. No generated `/var` state is a conffile. Normal dpkg reinstall semantics therefore preserve an administrator-modified configuration or surface the standard conffile decision rather than silently replacing it.
 
@@ -250,24 +310,28 @@ The ISO carries the repository beside the SquashFS at `/mattos/repository`. In t
 
 ## APT source and pin policy
 
-The live policy files are `src/system/packages/config/apt/{00-mattos-local.sources,mattos-hosted.sources,debian-trixie.sources,00mattos-priority,01mattos}`. The `apt` package installs them under `/etc/apt`, and rootfs assembly re-applies and validates them (`apply_live_apt_policy` and `validate_live_apt_policy` in `staging.rs`). The installed-system templates are in `src/system/packages/config/apt/installed/`, shipped by `apt` as `/usr/share/mattos/apt/installed/*`, and copied into the target by the installer's `configure_installed_apt` (`src/system/installer/policy/mod.rs`). The live and installed local sources share the file name `00-mattos-local.sources`, so the installer replaces the live source instead of adding a second entry for the same repository; the QEMU install test checks that exactly one source names it.
+The live policy files are `src/system/packages/config/apt/{00-mattos-local.sources,mattos-hosted.sources,00mattos-priority,01mattos}`. The `apt` package installs them under `/etc/apt`, and rootfs assembly re-applies and validates them (`apply_live_apt_policy` and `validate_live_apt_policy` in `staging.rs`). The installed-system templates are in `src/system/packages/config/apt/installed/`, shipped by `apt` as `/usr/share/mattos/apt/installed/*`, and copied into the target by the installer's `configure_installed_apt` (`src/system/installer/policy/mod.rs`). The live and installed local sources share the file name `00-mattos-local.sources`, so the installer replaces the live source instead of adding a second entry for the same repository; the QEMU install test checks that exactly one source names it.
 
 | Source | Live image | Installed system |
 | --- | --- | --- |
 | local `file:/usr/share/mattos/repository` (`Label: MattOS Local`) | enabled, `Trusted: yes` (`00-mattos-local.sources`) | enabled, `Trusted: yes` (same file, replaced by the installed template) |
 | hosted `https://packages.mattsherfey.com` (`Label: MattOS`) | enabled, `Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc` | enabled, same `Signed-By` |
-| Debian `trixie`, `trixie-updates`, `trixie-security` | present but `Enabled: no`, `Signed-By: /usr/share/keyrings/debian-archive-keyring.asc` | present but `Enabled: no` |
+
+MattOS installs only from these two repositories. Every package they carry is
+built by MattOS or by a checked-in third-party recipe, so no Debian archive is
+configured; the build's policy validation rejects any other source file or a
+pin for any other origin. Earlier `apt` packages shipped a disabled Debian
+source as a conffile; the `apt` postinst removes that file on upgrade while it
+is still the shipped, fully disabled scaffold.
 
 Pinning (`00mattos-priority`) is the same shape in both:
 
 - local MattOS (`o=MattOS,l=MattOS Local,n=trixie`): `990`;
-- hosted MattOS (`o=MattOS,l=MattOS,n=trixie`): `990`, so a newer hosted version is a normal upgrade candidate while the local repository can still satisfy a complete offline closure;
-- Debian (`o=Debian,n=trixie`): `500`;
-- protected MattOS names get `-1` from `o=Debian`. In both the live and installed files, the set of names pinned away from Debian must equal `protected.toml` exactly, each name listed once in a well-formed record (`validate_protected_pins` in `packaging.rs`); this covers the base system, the APT verification packages (`gpgv`, `libgcrypt20`, and related libraries), and `polkit`, `network-manager`, and `libduktape207`.
+- hosted MattOS (`o=MattOS,l=MattOS,n=trixie`): `990`, so a newer hosted version is a normal upgrade candidate while the local repository can still satisfy a complete offline closure.
 
-A local pin of `1001` is rejected: the build's policy validation and the installer's `configure_installed_apt` both fail if the installed preferences contain `Pin-Priority: 1001`. The installer also requires the installed Debian sources to stay disabled; Debian must not silently become part of installed APT state.
+A local pin of `1001` is rejected: the build's policy validation and the installer's `configure_installed_apt` both fail if the installed preferences contain `Pin-Priority: 1001`. The installer also fails if any Debian source is present on the target.
 
-`Trusted: yes` on the local `file:` source is the only unauthenticated exception. Hosted and Debian sources always use `Signed-By` with the keyrings shipped by `apt`, and verification uses the packaged `gpgv`. The installed `01mattos` additionally sets `Acquire::https::Verify-Peer` and `Verify-Host` to `true` and `Acquire::AllowInsecureRepositories` and `AllowDowngradeToInsecureRepositories` to `false`.
+`Trusted: yes` on the local `file:` source is the only unauthenticated exception. The hosted source always uses `Signed-By` with the keyring shipped by `apt`, and verification uses the packaged `gpgv`. The installed `01mattos` additionally sets `Acquire::https::Verify-Peer` and `Verify-Host` to `true` and `Acquire::AllowInsecureRepositories` and `AllowDowngradeToInsecureRepositories` to `false`.
 
 Installed systems also enable `mattos-apt-bootstrap.timer` (a first index refresh shortly after boot) and `mattos-apt-daily.timer` (a daily `apt-get update`). The live root must not enable the daily timer. During installation the target's APT lists are seeded from the local source only, so installation does not depend on the hosted repository being reachable.
 

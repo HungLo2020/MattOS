@@ -1,0 +1,20 @@
+
+option('update-mimedb', type: 'boolean', value: false,
+    description: 'Call update-mime-database after install. It should not be enabled if DESTDIR is used.',
+)
+
+option('build-tools', type: 'boolean', value: true,
+    description: 'Build and install the update-mime-database tools. If set to false only the mime data is installed.',
+)
+
+option('build-translations', type: 'boolean', value: true,
+    description: 'Build and install the translations.'
+)
+
+option('build-tests', type: 'boolean', value: true,
+    description: 'Build the test suite.  If not set then there will be no \'test\' build target. Requires xmllint. The test binaries are not part of the install.',
+)
+
+option('build-spec', type: 'boolean', value: true,
+    description: 'Build the HTML specification into <builddir>/data/shared-mime-info-spec-html using xmlto and docbook-xsl. The spec is not installed by "install".',
+)

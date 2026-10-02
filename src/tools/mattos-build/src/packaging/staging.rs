@@ -74,7 +74,8 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "meson" => stage_meson(repo_root, &staging)?,
         "cmake" => stage_cmake(repo_root, &staging)?,
         name @ ("libncurses-dev" | "libcap-dev" | "libnl-3-dev" | "libnl-genl-3-dev"
-        | "libsystemd-dev" | "libacl1-dev" | "libattr1-dev" | "zlib1g-dev" | "libssl-dev" | "libpcre2-dev" | "libzstd-dev" | "libglib2.0-dev" | "libpixman-1-dev" | "libwayland-dev" | "wayland-protocols" | "libxkbcommon-dev" | "libnghttp2-dev") => {
+        | "libsystemd-dev" | "libacl1-dev" | "libattr1-dev" | "zlib1g-dev" | "libssl-dev" | "libpcre2-dev" | "libzstd-dev" | "libglib2.0-dev" | "libpixman-1-dev" | "libwayland-dev" | "wayland-protocols" | "libxkbcommon-dev" | "libnghttp2-dev"
+        | "libpng-dev" | "libfreetype-dev" | "libfontconfig-dev" | "liblcms2-dev" | "libxml2-dev" | "libbz2-dev" | "liblzma-dev" | "libexpat1-dev") => {
             stage_development_package(repo_root, &staging, name)?
         }
         "coreutils" => stage_coreutils(repo_root, &staging)?,
@@ -133,6 +134,11 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "procps" => stage_procps(repo_root, &staging)?,
         "udev" => stage_udev_hwdb(repo_root, &staging)?,
         "fontconfig" => stage_fontconfig(repo_root, &staging)?,
+        "fontconfig-config" => stage_fontconfig_config(repo_root, &staging)?,
+        "shared-mime-info" => stage_shared_mime_info(repo_root, &staging)?,
+        name @ ("libostree-1-1" | "ostree" | "libgpgme45" | "libgdk-pixbuf-2.0-0" | "libgdk-pixbuf2.0-bin" | "libappstream5" | "appstream" | "libjson-glib-1.0-0" | "libxmlb2" | "libfyaml0" | "libfuse3-4" | "fuse3" | "bubblewrap" | "xdg-dbus-proxy") => {
+            stage_flatpak_closure_package(repo_root, &staging, name)?
+        }
         "fonts-fira" => stage_pop_fonts(repo_root, &staging)?,
         "libelf1t64" => {
             stage_imported_soname_library(
@@ -1114,6 +1120,14 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             | "wayland-protocols"
             | "libxkbcommon-dev"
             | "libnghttp2-dev"
+            | "libpng-dev"
+            | "libfreetype-dev"
+            | "libfontconfig-dev"
+            | "liblcms2-dev"
+            | "libxml2-dev"
+            | "libbz2-dev"
+            | "liblzma-dev"
+            | "libexpat1-dev"
     ) {
         validate_no_embedded_build_root(repo_root, &staging)?;
     }
@@ -1325,6 +1339,12 @@ const IMPORTED_SONAME_LIBRARIES: &[(&str, &str, &str, &str)] = &[
         "libxml2",
         "libxml2.so.16",
         "src/system/libraries/libxml2/Copyright",
+    ),
+    (
+        "libpng16-16t64",
+        "libpng",
+        "libpng16.so.16",
+        "src/system/libraries/libpng/LICENSE",
     ),
     (
         "libxkbfile1",

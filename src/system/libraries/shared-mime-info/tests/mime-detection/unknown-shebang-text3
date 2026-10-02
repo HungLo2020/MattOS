@@ -1,0 +1,3 @@
+#! /usr/bin/env x-nonexistent-interpreter
+# This is a script for a nonexistent interpreter, but finding it
+# with /usr/bin/env. Or rather, not finding it.

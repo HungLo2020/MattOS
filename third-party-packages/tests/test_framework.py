@@ -752,6 +752,7 @@ class FrameworkTests(unittest.TestCase):
                 ({**self.IMAGE_PACKAGES, "libc6": "2"}, ["check"], 0, "checked"),
             )
             for image, argv, rebuilt, status in cases:
+                self.write_selection(root)
                 result = root / "result.json"
                 patches = self.lifecycle(root, published, package_sha256=image)
                 recipe = self.fixture_recipe()
@@ -761,6 +762,12 @@ class FrameworkTests(unittest.TestCase):
                     self.assertEqual(data["status"], status)
                     if status == "checked":
                         self.assertEqual(data["release_state"], "stale-environment")
+                    if rebuilt:
+                        # The rebuild is a new version, never the published one.
+                        self.assertEqual(data["selected_version"], "1.0-0mattos2")
+                        self.assertEqual(upload.call_args.args[1].name, "fixture_1.0-0mattos2_amd64.deb")
+                        selections = framework.release_selections(root)
+                        self.assertEqual(selections["fixture"].revision, 2)
                     self.assertEqual(len(recipe.built), rebuilt)
                     self.assertEqual(upload.call_count, rebuilt)
 
@@ -806,6 +813,39 @@ class FrameworkTests(unittest.TestCase):
             self.assertEqual(len(recipe.built), 1)
             self.assertEqual(upload.call_args.args[1], kept)
             self.assertFalse(kept.is_file())
+
+    def test_a_published_version_is_never_rebuilt_in_place(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.write_selection(root)
+            self.lifecycle(root)
+            published = [framework.PublishedPackage("1.0-0mattos1", "other inputs", "pool/f1.deb")]
+            selection = framework.ReleaseSelection("1.0", {}, 1)
+            self.assertEqual(framework.next_release_revision(selection, ["1.0-0mattos1", "1.0-0mattos3",
+                                                                         "2.0-0mattos7"]), 4)
+            # A dry run builds the next version but records nothing.
+            recipe = self.fixture_recipe()
+            with mock.patch.object(framework, "publish") as upload:
+                self.assertEqual(self.run_with(self.lifecycle(root, published), recipe(), ["update", "--dry-run"],
+                                               root), 0)
+            self.assertEqual(upload.call_args.args[1].name, "fixture_1.0-0mattos2_amd64.deb")
+            self.assertEqual(framework.release_selections(root)["fixture"].revision, 1)
+            # A real update records the revision it published.
+            with mock.patch.object(framework, "publish") as upload:
+                self.assertEqual(self.run_with(self.lifecycle(root, published), recipe(), ["update"], root), 0)
+            self.assertEqual(upload.call_args.args[1].name, "fixture_1.0-0mattos2_amd64.deb")
+            self.assertEqual(framework.release_selections(root)["fixture"].revision, 2)
+            # Nothing changed and nothing published at the selected version:
+            # no further bump.
+            identical = framework.build_inputs_digest(recipe(), root / "recipe.py",
+                                                      framework.ReleaseSelection("1.0", {}, 2))
+            built_with = framework.build_environment_digest(recipe(), ("libc6",), self.IMAGE_PACKAGES)
+            current = published + [framework.PublishedPackage("1.0-0mattos2", identical, "pool/f2.deb", built_with,
+                                                              ("libc6",))]
+            with mock.patch.object(framework, "publish") as upload:
+                self.assertEqual(self.run_with(self.lifecycle(root, current), recipe(), ["update"], root), 0)
+            upload.assert_not_called()
+            self.assertEqual(framework.release_selections(root)["fixture"].revision, 2)
 
     def test_a_kept_package_is_rebuilt_when_it_no_longer_matches(self):
         with tempfile.TemporaryDirectory() as directory:

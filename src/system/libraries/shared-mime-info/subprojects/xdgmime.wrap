@@ -1,0 +1,8 @@
+[wrap-git]
+directory=xdgmime
+url=https://gitlab.freedesktop.org/xdg/xdgmime.git
+revision=master
+depth=1
+
+[provide]
+dependency_names = xdgmime

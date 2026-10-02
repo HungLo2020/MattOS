@@ -968,26 +968,13 @@ pub(crate) fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/packages/config/flatpak/flathub.flatpakrepo"),
         staging,
     )?;
-    for component in [
-        "ostree",
-        "gpgme",
-        "gdk-pixbuf",
-        "appstream",
-        "json-glib",
-        "libxmlb",
-        "libfyaml",
-        "fuse3",
-        "libpng",
-        "bubblewrap",
-        "xdg-dbus-proxy",
-        "flatpak",
-    ] {
-        let install = component_install(repo_root, component);
-        for top_level in ["usr", "etc", "var"] {
-            let source = install.join(top_level);
-            if source.is_dir() {
-                copy_tree_preserving(&source, &staging.join(top_level))?;
-            }
+    // The libraries and helpers Flatpak runs on are their own packages
+    // (`FLATPAK_CLOSURE_PACKAGES`); this package carries Flatpak itself.
+    let install = component_install(repo_root, "flatpak");
+    for top_level in ["usr", "etc", "var"] {
+        let source = install.join(top_level);
+        if source.is_dir() {
+            copy_tree_preserving(&source, &staging.join(top_level))?;
         }
     }
     // Libtool archives are build-time link metadata, not part of Flatpak's
@@ -1043,11 +1030,159 @@ pub(crate) fn stage_flatpak(repo_root: &Path, staging: &Path) -> Result<()> {
         }
         std::os::unix::fs::symlink(format!("/{target}"), link)?;
     }
-    // The document portal mounts its per-user document filesystem through
-    // libfuse's privileged helper. The source build deliberately avoids
-    // setting ownership bits (it runs unprivileged), so establish the target
-    // package's documented root-owned setuid contract at package staging.
-    set_mode(staging.join("usr/bin/fusermount3"), 0o4755)?;
+    Ok(())
+}
+
+/// The packages of Flatpak's runtime closure, named as in Debian: each is
+/// (package, source component, paths from the component's install tree, license).
+/// A path ending in `*` names every entry of its directory with that prefix
+/// (a library's SONAME link and its versioned file).  Headers, pkg-config
+/// files and other development files are not shipped.
+const FLATPAK_CLOSURE_PACKAGES: &[(&str, &str, &[&str], &str)] = &[
+    ("libostree-1-1", "ostree", &["usr/lib/x86_64-linux-gnu/libostree-1.so.1*", "usr/share/ostree"], "src/system/packages/ostree/COPYING"),
+    ("ostree", "ostree", &["usr/bin/ostree", "usr/share/bash-completion/completions/ostree"], "src/system/packages/ostree/COPYING"),
+    ("libgpgme45", "gpgme", &["usr/lib/x86_64-linux-gnu/libgpgme.so.45*"], "src/system/security/gpgme/COPYING.LESSER"),
+    ("libgdk-pixbuf-2.0-0", "gdk-pixbuf", &["usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0*", "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0", "usr/share/locale"], "src/system/libraries/gdk-pixbuf/COPYING"),
+    ("libgdk-pixbuf2.0-bin", "gdk-pixbuf", &["usr/bin/gdk-pixbuf-csource", "usr/bin/gdk-pixbuf-pixdata", "usr/bin/gdk-pixbuf-query-loaders", "usr/bin/gdk-pixbuf-thumbnailer", "usr/share/thumbnailers"], "src/system/libraries/gdk-pixbuf/COPYING"),
+    ("libappstream5", "appstream", &["usr/lib/x86_64-linux-gnu/libappstream.so.5", "usr/lib/x86_64-linux-gnu/libappstream.so.1*", "usr/share/appstream", "usr/share/locale"], "src/system/libraries/appstream/COPYING"),
+    ("appstream", "appstream", &["usr/bin/appstreamcli", "usr/share/metainfo", "usr/share/gettext"], "src/system/libraries/appstream/COPYING"),
+    ("libjson-glib-1.0-0", "json-glib", &["usr/lib/x86_64-linux-gnu/libjson-glib-1.0.so.0*", "usr/share/locale"], "src/system/libraries/json-glib/COPYING"),
+    ("libxmlb2", "libxmlb", &["usr/lib/x86_64-linux-gnu/libxmlb.so.2*"], "src/system/libraries/libxmlb/LICENSE"),
+    ("libfyaml0", "libfyaml", &["usr/lib/x86_64-linux-gnu/libfyaml.so.0*"], "src/system/libraries/libfyaml/LICENSE"),
+    ("libfuse3-4", "fuse3", &["usr/lib/x86_64-linux-gnu/libfuse3.so.4", "usr/lib/x86_64-linux-gnu/libfuse3.so.3*"], "src/system/libraries/fuse3/LICENSE"),
+    ("fuse3", "fuse3", &["usr/bin/fusermount3", "usr/sbin/mount.fuse3", "usr/lib/udev/rules.d/99-fuse3.rules", "usr/share/man/man1/fusermount3.1", "usr/share/man/man8/mount.fuse3.8", "etc/fuse.conf"], "src/system/libraries/fuse3/LICENSE"),
+    ("bubblewrap", "bubblewrap", &["usr/bin/bwrap"], "src/system/security/bubblewrap/COPYING"),
+    ("xdg-dbus-proxy", "xdg-dbus-proxy", &["usr/bin/xdg-dbus-proxy"], "src/system/packages/xdg-dbus-proxy/COPYING"),
+];
+
+/// gdk-pixbuf finds its loader modules (GIF here; PNG is built in) only
+/// through `loaders.cache`, which its install step does not write under
+/// DESTDIR.  Generate it for the staged modules and ship it: every MattOS
+/// loader comes from gdk-pixbuf itself.  A package adding loaders would need
+/// Debian's trigger-driven regeneration instead.
+pub(crate) fn write_pixbuf_loader_cache(
+    staging: &Path,
+    query: impl Fn(&[PathBuf]) -> Result<String>,
+) -> Result<()> {
+    let loaders = staging.join("usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders");
+    let mut modules = fs::read_dir(&loaders)
+        .with_context(|| format!("libgdk-pixbuf-2.0-0 has no loader directory {}", loaders.display()))?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    modules.retain(|path| path.extension().and_then(OsStr::to_str) == Some("so"));
+    modules.sort();
+    if modules.is_empty() {
+        bail!("libgdk-pixbuf-2.0-0 stages no loader modules in {}", loaders.display());
+    }
+    let staged = staging.to_str().context("staging path is not UTF-8")?;
+    // The query names each module by the path it was given; record the
+    // installed path instead of the staging one.
+    let cache = query(&modules)?.replace(staged, "");
+    for module in &modules {
+        let installed = format!("\"/{}\"", module.strip_prefix(staging)?.display());
+        if !cache.contains(&installed) {
+            bail!("gdk-pixbuf-query-loaders did not describe {installed}");
+        }
+    }
+    fs::write(loaders.parent().expect("loader directory has a parent").join("loaders.cache"), cache)?;
+    Ok(())
+}
+
+/// Run the build's gdk-pixbuf-query-loaders through the MattOS loader.
+fn query_pixbuf_loaders(repo_root: &Path, modules: &[PathBuf]) -> Result<String> {
+    let glibc = component_install(repo_root, "glibc");
+    let mut library_path = vec![glibc.join("usr/lib/x86_64-linux-gnu"), glibc.join("lib64")];
+    for component in ["glib", "libffi", "pcre2", "zlib", "libpng", "gdk-pixbuf"] {
+        library_path.push(component_install(repo_root, component).join("usr/lib/x86_64-linux-gnu"));
+    }
+    let output = std::process::Command::new(glibc.join("lib64/ld-linux-x86-64.so.2"))
+        .arg("--library-path")
+        .arg(std::env::join_paths(library_path)?)
+        .arg(component_install(repo_root, "gdk-pixbuf").join("usr/bin/gdk-pixbuf-query-loaders"))
+        .args(modules)
+        .output()
+        .context("failed to run gdk-pixbuf-query-loaders")?;
+    if !output.status.success() {
+        bail!(
+            "gdk-pixbuf-query-loaders failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    Ok(String::from_utf8(output.stdout)?)
+}
+
+pub(crate) fn stage_flatpak_closure_package(repo_root: &Path, staging: &Path, name: &str) -> Result<()> {
+    let (_, component, paths, license) = FLATPAK_CLOSURE_PACKAGES
+        .iter()
+        .find(|(package, ..)| *package == name)
+        .ok_or_else(|| anyhow!("{name} is not a Flatpak closure package"))?;
+    let install = component_install(repo_root, component);
+    for path in *paths {
+        let sources = match path.strip_suffix('*') {
+            Some(prefix) => {
+                let relative = Path::new(prefix);
+                let directory = install.join(relative.parent().expect("pattern has a directory"));
+                let stem = relative.file_name().and_then(OsStr::to_str).expect("pattern has a name");
+                let mut matches = fs::read_dir(&directory)
+                    .with_context(|| format!("{name}: cannot list {}", directory.display()))?
+                    .map(|entry| entry.map(|entry| entry.path()))
+                    .collect::<std::io::Result<Vec<_>>>()?;
+                matches.retain(|path| {
+                    path.file_name().and_then(OsStr::to_str).is_some_and(|file| file.starts_with(stem))
+                });
+                matches.sort();
+                matches
+            }
+            None => vec![install.join(path)],
+        };
+        if sources.is_empty() {
+            bail!("{name}: nothing in the {component} install matches {path}");
+        }
+        for source in sources {
+            let relative = source.strip_prefix(&install).expect("source is in the install tree");
+            if fs::symlink_metadata(&source).is_err() {
+                bail!("{name}: the {component} install lacks /{}", relative.display());
+            }
+            if source.is_dir() && !source.is_symlink() {
+                copy_tree_preserving(&source, &staging.join(relative))?;
+            } else {
+                copy_path_preserving(&source, &staging.join(relative))?;
+            }
+        }
+    }
+    // Every link must land inside the package: a SONAME link whose target
+    // file was not selected would install as a dangling link.
+    walk_tree(staging, &mut |path, metadata| {
+        if metadata.file_type().is_symlink() {
+            let target = fs::read_link(path)?;
+            let resolved = if target.is_absolute() {
+                staging.join(target.strip_prefix("/").expect("absolute path"))
+            } else {
+                path.parent().expect("link has a parent").join(&target)
+            };
+            if fs::metadata(&resolved).is_err() {
+                bail!(
+                    "{name}: {} links to {}, which the package does not contain",
+                    path.strip_prefix(staging).unwrap_or(path).display(),
+                    target.display()
+                );
+            }
+        }
+        Ok(())
+    })?;
+    copy_preserving(&repo_root.join(license), &staging.join("usr/share/doc").join(name).join("copyright"))?;
+    if name == "libgdk-pixbuf-2.0-0" {
+        write_pixbuf_loader_cache(staging, |modules| query_pixbuf_loaders(repo_root, modules))?;
+    }
+    if name == "fuse3" {
+        // The document portal mounts its per-user document filesystem through
+        // libfuse's privileged helper. The source build deliberately avoids
+        // setting ownership bits (it runs unprivileged), so establish the
+        // package's documented root-owned setuid contract at package staging.
+        set_mode(staging.join("usr/bin/fusermount3"), 0o4755)?;
+        fs::create_dir_all(staging.join("DEBIAN"))?;
+        fs::write(staging.join("DEBIAN/conffiles"), "/etc/fuse.conf\n")?;
+    }
     Ok(())
 }
 
@@ -1183,7 +1318,6 @@ pub(super) fn stage_xwayland(repo_root: &Path, staging: &Path) -> Result<()> {
 }
 
 pub(super) fn stage_fontconfig(repo_root: &Path, staging: &Path) -> Result<()> {
-    let install = component_install(repo_root, "fontconfig");
     stage_runtime_paths(
         repo_root,
         staging,
@@ -1200,6 +1334,60 @@ pub(super) fn stage_fontconfig(repo_root: &Path, staging: &Path) -> Result<()> {
             "usr/bin/fc-validate",
         ],
     )?;
+    copy_preserving(
+        &repo_root.join("src/system/libraries/fontconfig/COPYING"),
+        &staging.join("usr/share/doc/fontconfig/copyright"),
+    )?;
+    if !staging.join("usr/bin/fc-match").exists() {
+        bail!("fontconfig package missing /usr/bin/fc-match");
+    }
+    Ok(())
+}
+
+/// Rebuilds the MIME database whenever a package adds or removes MIME
+/// definitions.  Offline composition (the image build and the installer,
+/// which set DPKG_ROOT) builds it once after every package is unpacked.
+pub(crate) const SHARED_MIME_INFO_POSTINST: &str = "#!/bin/sh\nset -e\n[ -n \"${DPKG_ROOT:-}\" ] && exit 0\ncase \"$1\" in\n    configure|triggered) update-mime-database /usr/share/mime ;;\nesac\n";
+
+/// The generated database is not package payload: purge removes it, leaving
+/// only `packages/`, whose definitions belong to their packages.
+pub(crate) const SHARED_MIME_INFO_POSTRM: &str = "#!/bin/sh\nset -e\nif [ \"$1\" = purge ]; then\n    mime=\"${DPKG_ROOT:-}/usr/share/mime\"\n    if [ -d \"$mime\" ]; then\n        find \"$mime\" -mindepth 1 -maxdepth 1 ! -name packages -exec rm -rf {} +\n    fi\nfi\n";
+
+pub(crate) fn stage_shared_mime_info(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "shared-mime-info");
+    for relative in [
+        "usr/bin/update-mime-database",
+        "usr/share/mime/packages/freedesktop.org.xml",
+        "usr/share/man/man1/update-mime-database.1",
+        "usr/share/gettext/its",
+        "usr/share/pkgconfig/shared-mime-info.pc",
+        "usr/share/locale",
+    ] {
+        let source = install.join(relative);
+        if source.is_dir() {
+            copy_tree_preserving(&source, &staging.join(relative))?;
+        } else {
+            copy_path_preserving(&source, &staging.join(relative))?;
+        }
+    }
+    copy_preserving(
+        &repo_root.join("src/system/libraries/shared-mime-info/COPYING"),
+        &staging.join("usr/share/doc/shared-mime-info/copyright"),
+    )?;
+    let debian = staging.join("DEBIAN");
+    fs::create_dir_all(&debian)?;
+    fs::write(debian.join("triggers"), "interest-noawait /usr/share/mime/packages\n")?;
+    fs::write(debian.join("postinst"), SHARED_MIME_INFO_POSTINST)?;
+    set_mode(debian.join("postinst"), 0o755)?;
+    fs::write(debian.join("postrm"), SHARED_MIME_INFO_POSTRM)?;
+    set_mode(debian.join("postrm"), 0o755)?;
+    Ok(())
+}
+
+/// The configuration libfontconfig reads (`/etc/fonts`), the available
+/// configuration snippets and the DTD, as Debian's fontconfig-config.
+pub(super) fn stage_fontconfig_config(repo_root: &Path, staging: &Path) -> Result<()> {
+    let install = component_install(repo_root, "fontconfig");
     for relative in [
         "etc/fonts",
         "usr/share/fontconfig",
@@ -1209,15 +1397,11 @@ pub(super) fn stage_fontconfig(repo_root: &Path, staging: &Path) -> Result<()> {
     }
     copy_preserving(
         &repo_root.join("src/system/libraries/fontconfig/COPYING"),
-        &staging.join("usr/share/doc/fontconfig/copyright"),
+        &staging.join("usr/share/doc/fontconfig-config/copyright"),
     )?;
-    for required in [
-        "usr/bin/fc-match",
-        "etc/fonts/fonts.conf",
-        "usr/share/fontconfig/conf.avail",
-    ] {
+    for required in ["etc/fonts/fonts.conf", "usr/share/fontconfig/conf.avail"] {
         if !staging.join(required).exists() {
-            bail!("fontconfig package missing /{required}");
+            bail!("fontconfig-config package missing /{required}");
         }
     }
     Ok(())
@@ -1297,9 +1481,18 @@ mod desktop_data_tests {
         fs::create_dir_all(license.parent().unwrap()).unwrap();
         fs::write(&license, b"fontconfig license").unwrap();
 
+        // The utilities and the configuration are separate packages.
+        let tools = repo.path().join("tools");
+        fs::create_dir_all(&tools).unwrap();
+        stage_fontconfig(repo.path(), &tools).unwrap();
+        assert!(tools.join("usr/bin/fc-match").is_file());
+        assert!(!tools.join("etc").exists());
+        assert!(!tools.join("usr/share/fontconfig").exists());
+
         let staging = repo.path().join("staged");
         fs::create_dir_all(&staging).unwrap();
-        stage_fontconfig(repo.path(), &staging).unwrap();
+        stage_fontconfig_config(repo.path(), &staging).unwrap();
+        assert!(!staging.join("usr/bin").exists());
 
         assert_eq!(
             fs::read(staging.join("etc/fonts/fonts.conf")).unwrap(),
@@ -1317,7 +1510,11 @@ mod desktop_data_tests {
                 .is_symlink()
         );
         assert_eq!(
-            fs::read(staging.join("usr/share/doc/fontconfig/copyright")).unwrap(),
+            fs::read(staging.join("usr/share/doc/fontconfig-config/copyright")).unwrap(),
+            b"fontconfig license"
+        );
+        assert_eq!(
+            fs::read(tools.join("usr/share/doc/fontconfig/copyright")).unwrap(),
             b"fontconfig license"
         );
     }

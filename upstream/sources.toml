@@ -1689,6 +1689,14 @@ path = "src/build-support/gnulib"
 sync = "copy"
 
 [[component]]
+name = "shared-mime-info"
+repo = "https://gitlab.freedesktop.org/xdg/shared-mime-info.git"
+branch = "2.5.1"
+revision = "fd8ab89c20093f1bfba8fa9e302ba584fffd0fd7"
+path = "src/system/libraries/shared-mime-info"
+sync = "copy"
+
+[[component]]
 name = "json-glib"
 repo = "https://gitlab.gnome.org/GNOME/json-glib.git"
 branch = "1.10.8"

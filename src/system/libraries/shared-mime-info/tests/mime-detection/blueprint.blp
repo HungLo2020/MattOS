@@ -1,0 +1,14 @@
+using Gtk 4.0;
+using Adw 1;
+
+Box {
+  Label label {
+    label: "Hello, World!";
+    margin-top: 12;
+    visible: bind button.visible;
+  }
+
+  Button button {
+    clicked => $on_button_clicked() swapped;
+  }
+}

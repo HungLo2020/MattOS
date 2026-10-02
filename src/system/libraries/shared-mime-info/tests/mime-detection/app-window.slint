@@ -1,0 +1,25 @@
+import { Button, VerticalBox } from "std-widgets.slint";
+
+export global CounterSingleton {
+    in property <int> counter-value: 0;
+
+    callback request-increment-counter();
+    callback request-set-value(int);
+}
+
+export component AppWindow inherits Window {
+
+    VerticalBox {
+        Text {
+            text: "Counter: \{CounterSingleton.counter-value}";
+            font-size: 100px;
+        }
+
+        Button {
+            text: "Increment value";
+            clicked => {
+                CounterSingleton.request-increment-counter();
+            }
+        }
+    }
+}

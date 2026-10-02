@@ -1,0 +1,4158 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the shared-mime-info package.
+# 
+# Translators:
+# George Machitidze <giomac@gmail.com>, 2012
+msgid ""
+msgstr ""
+"Project-Id-Version: shared-mime-info\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-25 20:26+0200\n"
+"PO-Revision-Date: 2010-11-30 12:22+0000\n"
+"Last-Translator: George Machitidze <giomac@gmail.com>, 2012\n"
+"Language-Team: Georgian (http://app.transifex.com/freedesktop/shared-mime-info/language/ka/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ka\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: data/freedesktop.org.xml.in:83
+msgid "Atari 2600 ROM"
+msgstr "Atari 2600 ROM"
+
+#: data/freedesktop.org.xml.in:88
+msgid "Atari 7800 ROM"
+msgstr "Atari 7800 ROM"
+
+#: data/freedesktop.org.xml.in:96
+msgid "Atari Lynx ROM"
+msgstr "Atari Lynx ROM"
+
+#: data/freedesktop.org.xml.in:104
+msgid "ATK inset"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:111
+msgid "Electronic book document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:125
+msgid "Kindle book document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:132
+msgid "Adobe Illustrator document"
+msgstr "Adobe Illustrator-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:138
+msgid "Macintosh BinHex-encoded file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:148
+msgid "Mathematica Notebook file"
+msgstr "Mathematica Notebook-ის ფაილი"
+
+#: data/freedesktop.org.xml.in:163
+msgid "MathML document"
+msgstr "MathML-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:172
+msgid "Mailbox file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:181 data/freedesktop.org.xml.in:190
+msgid "Metalink file"
+msgstr "მეტაბმულის ფაილი"
+
+#: data/freedesktop.org.xml.in:199
+msgid "Unknown"
+msgstr "უცნობი"
+
+#: data/freedesktop.org.xml.in:202
+msgid "Partially downloaded file"
+msgstr "ნაწილობრივ გადმოწერილი ფაილი"
+
+#: data/freedesktop.org.xml.in:209
+msgid "ODA document"
+msgstr "ODA დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:216
+msgid "WWF document"
+msgstr "WWF დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:223
+msgid "PDF document"
+msgstr "PDF დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:237
+msgid "XSPF playlist"
+msgstr "XSPF დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:251
+msgid "Microsoft Windows theme pack"
+msgstr "Microsoft Windows-ის თემის შეკვრა"
+
+#: data/freedesktop.org.xml.in:257
+msgid "AmazonMP3 download file"
+msgstr "AmazonMP3 გადმოწერის ფაილი"
+
+#: data/freedesktop.org.xml.in:261
+msgid "GSM 06.10 audio"
+msgstr "GSM 06.10 აუდიო"
+
+#: data/freedesktop.org.xml.in:267
+msgid "iRiver playlist"
+msgstr "iRiver დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:274
+msgid "PGP/MIME-encrypted message header"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:284
+msgid "PGP keys"
+msgstr "PGP გასაღები"
+
+#: data/freedesktop.org.xml.in:303
+msgid "Detached OpenPGP signature"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:314
+msgid "PKCS#7 file"
+msgstr "PKCS#7 ფაილი"
+
+#: data/freedesktop.org.xml.in:328
+msgid "Detached S/MIME signature"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:340
+msgid "PKCS#8 private key"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:352
+msgid "PKCS#8 private key (encrypted)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:363
+msgid "PKCS#10 certification request"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:375
+msgid "X.509 certificate"
+msgstr "X.509 სერტიფიკატი"
+
+#: data/freedesktop.org.xml.in:387
+msgid "Certificate revocation list"
+msgstr "სერტიფიკატის გაუქმების სია"
+
+#: data/freedesktop.org.xml.in:396
+msgid "PkiPath certification path"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:400
+msgid "PostScript document"
+msgstr "PostScript-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:410
+msgid "Plucker document"
+msgstr "Plucker-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:417
+msgid "BuildStream element"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:425
+msgid "RAML document"
+msgstr "RAML-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:435
+msgid "RELAX NG XML schema"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:444
+msgid "RTF document"
+msgstr "RTF დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:456
+msgid "Sieve mail filter script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:462
+msgid "SMIL document"
+msgstr "SMIL-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:480
+msgid "SPDX SBOM document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:487
+msgid "WPL playlist"
+msgstr "WPL დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:497
+msgid "SQLite2 database"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:504
+msgid "SQLite3 database"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:512
+msgid "Apple System Profiler"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:523
+msgid "GEDCOM family history"
+msgstr "GEDCOM ოჯახის ისტორია"
+
+#: data/freedesktop.org.xml.in:537
+msgid "Flash video"
+msgstr "Flash-ის ვიდეო"
+
+#: data/freedesktop.org.xml.in:548
+msgid "JavaFX video"
+msgstr ""
+
+#. translators: a record is in this context a description of a board game
+#. that has been played, and that can be played back again:
+#. http://www.red-bean.com/sgf/
+#: data/freedesktop.org.xml.in:560
+msgid "SGF record"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:572
+msgid "Godot Engine project"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:577
+msgid "Godot Engine resource"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:585
+msgid "Godot Engine scene"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:594
+msgid "Godot Engine shader"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:599
+msgid "GDScript script"
+msgstr "GDScript-ის სკრიპტი"
+
+#: data/freedesktop.org.xml.in:604
+msgid "ITS translation file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:616
+msgid "XLIFF translation file"
+msgstr "XLIFF თარგმნის ფაილი"
+
+#: data/freedesktop.org.xml.in:630
+msgid "TOML document"
+msgstr "TOML დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:638
+msgid "YAML document"
+msgstr "YAML დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:653
+msgid "Corel Draw drawing"
+msgstr "Corel Draw-ის ნახაზი"
+
+#: data/freedesktop.org.xml.in:668
+msgid "HPGL file"
+msgstr "HPGL ფაილი"
+
+#: data/freedesktop.org.xml.in:675
+msgid "PCL file"
+msgstr "PCL ფაილი"
+
+#: data/freedesktop.org.xml.in:682
+msgid "PostScript printer description"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:690 data/freedesktop.org.xml.in:697
+msgid "CycloneDX BOM document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:711
+msgid "Lotus 1-2-3 spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:728
+msgid "Lotus Word Pro document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:736
+msgid "LMDB database"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:747
+msgid "JET database"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:763
+msgid "Microsoft Cabinet archive"
+msgstr "Microsoft-ის Cabinet არქივი"
+
+#: data/freedesktop.org.xml.in:772 data/freedesktop.org.xml.in:807
+msgid "Excel spreadsheet"
+msgstr "Excel-ის ცხრილი"
+
+#: data/freedesktop.org.xml.in:795
+msgid "Excel add-in"
+msgstr "Excel-ის დამატება"
+
+#: data/freedesktop.org.xml.in:801
+msgid "Excel 2007 binary spreadsheet"
+msgstr "Excel 2007-ის ბინარული ცხრილი"
+
+#: data/freedesktop.org.xml.in:813
+msgid "Excel spreadsheet template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:819 data/freedesktop.org.xml.in:842
+#: data/freedesktop.org.xml.in:854
+msgid "PowerPoint presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:837
+msgid "PowerPoint add-in"
+msgstr "PowerPoint-ის დამატება"
+
+#: data/freedesktop.org.xml.in:848
+msgid "PowerPoint slide"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:860
+msgid "PowerPoint presentation template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:866 data/freedesktop.org.xml.in:884
+msgid "Office Open XML Visio drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:872 data/freedesktop.org.xml.in:890
+msgid "Office Open XML Visio template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:878 data/freedesktop.org.xml.in:896
+msgid "Office Open XML Visio stencil"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:902 data/freedesktop.org.xml.in:966
+msgid "Word document"
+msgstr "Word -ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:908
+msgid "Word document template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:914
+msgid "OpenXPS document"
+msgstr "OpenXPS -ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:922
+msgid "XPS document"
+msgstr "XPS -ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:931
+msgid "Microsoft Works document"
+msgstr "Microsoft Works-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:951
+msgid "Microsoft Visio document"
+msgstr "Microsoft Visio-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:988
+msgid "Word template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:994
+msgid "GML document"
+msgstr "GML -ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1002
+msgid "GNUnet search file"
+msgstr "GNUnet ძებნის ფაილი"
+
+#: data/freedesktop.org.xml.in:1009
+msgid "TNEF message"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1021
+msgid "StarCalc 3-4 spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1033
+msgid "StarChart 3-4 chart"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1045
+msgid "StarDraw 4 drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1056
+msgid "StarImpress 3-4 presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1068
+msgid "StarMail 4 email"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1076
+msgid "StarMath 3-4 formula"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1088
+msgid "StarWriter 3-4 document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1101
+msgid "StarWriter 4 master document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1112
+msgid "StarCalc 5 spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1123
+msgid "StarChart 5 chart"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1134
+msgid "StarDraw 5 drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1145
+msgid "StarImpress 5 presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1156
+msgid "StarImpress packed presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1164
+msgid "StarMail 5 email"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1175
+msgid "StarMath 5 formula"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1186
+msgid "StarWriter 5 document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1199
+msgid "StarWriter 5 master document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1210
+msgid "OpenOffice.org 1.0 Calc spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1223
+msgid "OpenOffice.org 1.0 Calc template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1236
+msgid "OpenOffice.org 1.0 Draw drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1249
+msgid "OpenOffice.org 1.0 Draw template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1262
+msgid "OpenOffice.org 1.0 Impress presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1275
+msgid "OpenOffice.org 1.0 Impress template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1288
+msgid "OpenOffice.org 1.0 Math formula"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1301
+msgid "OpenOffice.org 1.0 Writer document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1314
+msgid "OpenOffice.org 1.0 Writer global document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1327
+msgid "OpenOffice.org 1.0 Writer template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1340
+msgid "ODT document"
+msgstr "ODT დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1355
+msgid "ODT document (Flat XML)"
+msgstr "ODT დოკუმენტი (Flat XML)"
+
+#: data/freedesktop.org.xml.in:1363
+msgid "ODT template"
+msgstr "ODT დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1378
+msgid "OTH template"
+msgstr "OTH შაბლონი"
+
+#: data/freedesktop.org.xml.in:1393
+msgid "ODM document"
+msgstr "ODM დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1408
+msgid "ODM template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1423
+msgid "ODG drawing"
+msgstr "ODG-ის ნახაზი"
+
+#: data/freedesktop.org.xml.in:1438
+msgid "ODG drawing (Flat XML)"
+msgstr "ODG-ის ნახაზი (Flat XML)"
+
+#: data/freedesktop.org.xml.in:1446
+msgid "ODG template"
+msgstr "ODG-ის შაბლონი"
+
+#: data/freedesktop.org.xml.in:1461
+msgid "ODP presentation"
+msgstr "ODP პრეზენტაცია"
+
+#: data/freedesktop.org.xml.in:1476
+msgid "ODP presentation (Flat XML)"
+msgstr "ODP პრეზენტაცია (Flat XML)"
+
+#: data/freedesktop.org.xml.in:1484
+msgid "ODP template"
+msgstr "ODP შაბლონი"
+
+#: data/freedesktop.org.xml.in:1499
+msgid "ODS spreadsheet"
+msgstr "ODS ცხრილი"
+
+#: data/freedesktop.org.xml.in:1514
+msgid "ODS spreadsheet (Flat XML)"
+msgstr "ODS ცხრილი (Flat XML)"
+
+#: data/freedesktop.org.xml.in:1522
+msgid "ODS template"
+msgstr "ODS-ის შაბლონი"
+
+#: data/freedesktop.org.xml.in:1537
+msgid "ODC chart"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1552
+msgid "ODC template"
+msgstr "ODC შაბლონი"
+
+#: data/freedesktop.org.xml.in:1567
+msgid "ODF formula"
+msgstr "ODF-ის ფორმულა"
+
+#: data/freedesktop.org.xml.in:1582
+msgid "ODF template"
+msgstr "ODF-ის შაბლონი"
+
+#: data/freedesktop.org.xml.in:1597
+msgid "ODB database"
+msgstr "ODB-ის მონაცემთა ბაზა"
+
+#: data/freedesktop.org.xml.in:1614
+msgid "ODI image"
+msgstr "ODI გამოსახულება"
+
+#: data/freedesktop.org.xml.in:1629
+msgid "LibreOffice extension"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1635
+msgid "Apache Parquet file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1645
+msgid "Android App Bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1650
+msgid "Android package"
+msgstr "Android-ის პაკეტი"
+
+#: data/freedesktop.org.xml.in:1655
+msgid "Alpine Package Keeper package"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1661
+msgid "SIS package"
+msgstr "SIS პაკეტი"
+
+#: data/freedesktop.org.xml.in:1671
+msgid "SISX package"
+msgstr "SISX პაკეტი"
+
+#: data/freedesktop.org.xml.in:1681
+msgid "Network packet capture"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1693
+msgid "PCAPNG packet capture"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1707
+msgid "WordPerfect document"
+msgstr "WordPerfect -ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1726
+msgid "YouTube media archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1736
+msgid "SPSS portable data file"
+msgstr "SPSS გადატანადი მონაცემების ფაილი"
+
+#: data/freedesktop.org.xml.in:1745
+msgid "SPSS data file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1757
+msgid "XBEL bookmarks"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1768
+msgid "7-zip archive"
+msgstr "7-zip არქივი"
+
+#: data/freedesktop.org.xml.in:1777
+msgid "AbiWord document"
+msgstr "AbiWord-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1791
+msgid "CD image cuesheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1797
+msgid "Lotus AmiPro document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1802
+msgid "AportisDoc document"
+msgstr "AportisDoc-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1813
+msgid "Protein Data Bank file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1823
+msgid "Applix Spreadsheets spreadsheet"
+msgstr "Applix Spreadsheets-ის ცხრილი"
+
+#: data/freedesktop.org.xml.in:1834
+msgid "Applix Words document"
+msgstr "Applix Words-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:1844
+msgid "ARC archive"
+msgstr "ARC არქივი"
+
+#: data/freedesktop.org.xml.in:1856
+msgid "AR archive"
+msgstr "AR არქივი"
+
+#: data/freedesktop.org.xml.in:1867
+msgid "ARJ archive"
+msgstr "ARJ არქივი"
+
+#: data/freedesktop.org.xml.in:1877
+msgid "Electron Archive (ASAR)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1888
+msgid "ASP page"
+msgstr "ASP გვერდი"
+
+#. Translators: "sed" is (more often than not) written in
+#. lowercase in English articles, even at the starts of sentences.
+#. Its GNU manpage is actually an exception. As a guideline, follow
+#. Wikipedia's usage for your language.
+#: data/freedesktop.org.xml.in:1901
+msgid "sed script"
+msgstr ""
+
+#. Translators: officially uses full capitalisation. Usually
+#. pronounced as a word. Compare: "NATO", "SMART"
+#: data/freedesktop.org.xml.in:1918
+msgid "AWK script"
+msgstr "AWK სცენარი"
+
+#: data/freedesktop.org.xml.in:1932
+msgid "GNU AWK script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1946
+msgid "New (BWK) AWK script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1960
+msgid "BCPIO archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1967
+msgid "BitTorrent seed file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1974
+msgid "Blender scene"
+msgstr "Blender-ის სცენა"
+
+#: data/freedesktop.org.xml.in:1983
+msgid "Brotli archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1992
+msgid "Tar archive (brotli-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:1999
+msgid "TeX DVI document (bzip2-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2005
+msgid "Bzip1 archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2013
+msgid "Tar archive (bzip1-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2020
+msgid "Bzip2 archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2030
+msgid "Tar archive (bzip2-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2039
+msgid "Bzip3 archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2048
+msgid "Tar archive (bzip3-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2055
+msgid "PDF document (bzip2-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2061
+msgid "PostScript document (bzip2-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2067
+msgid "Comic book archive (rar container)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2074
+msgid "Comic book archive (7z container)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2080
+msgid "Comic book archive (tar container)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2086
+msgid "Comic book archive (zip container)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2093
+msgid ""
+"Archive used for storing and transporting IPLD (InterPlanetary Linked Data)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2103
+msgid "Rzip archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2111
+msgid "Tar archive (rzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2118
+msgid "Lrzip archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2128
+msgid "Tar archive (lrzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2135
+msgid "Apple disk image"
+msgstr "Apple-ის სადისკო გამოსახულება"
+
+#: data/freedesktop.org.xml.in:2139
+msgid "Raw disk image"
+msgstr "დაუმუშავებელი დისკის ასლი"
+
+#: data/freedesktop.org.xml.in:2152
+msgid "Floppy disk image"
+msgstr "დისკეტის ასლის ფაილები."
+
+#: data/freedesktop.org.xml.in:2160
+msgid "Raw disk image (XZ-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2166
+msgid "Raw CD image"
+msgstr "დაუმუშავებელი CD დისკის ასლის ფაილი"
+
+#: data/freedesktop.org.xml.in:2176
+msgid "Compressed CD image"
+msgstr "შეკუმშული CD დისკის ასლის ფაილი"
+
+#: data/freedesktop.org.xml.in:2184 data/freedesktop.org.xml.in:9596
+msgid "AppImage application bundle"
+msgstr "AppImage-ის აპლიკაციის ნაკრები"
+
+#: data/freedesktop.org.xml.in:2200
+msgid "CD Table Of Contents"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2215
+msgid "GD-ROM image cuesheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2225
+msgid "Padus DiscJuggler CD image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2230
+msgid "Nero Burning ROM disc image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2235
+msgid "PGN chess game notation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2247
+msgid "CHM document"
+msgstr "CHM დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:2255
+msgid "Java byte code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2258
+msgid "UNIX-compressed file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2266
+msgid "Tar archive (gzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2273
+msgid "Program crash data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2292
+msgid "CPIO archive"
+msgstr "CPIO არქივი"
+
+#: data/freedesktop.org.xml.in:2303
+msgid "CPIO archive (gzip-compressed)"
+msgstr "CPIO არქივი (gzip-ით შეკუმშული)"
+
+#: data/freedesktop.org.xml.in:2309
+msgid "Perf data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2316
+msgid "C shell script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2332
+msgid "Xbase document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2341
+msgid "ECMAScript program"
+msgstr "ECMAScript პროგრამა"
+
+#: data/freedesktop.org.xml.in:2348
+msgid "MAME compressed hard disk image"
+msgstr ""
+
+#. Translate this to Mega-CD if the console was known as such in your locale
+#. Should be Mega-CD in all but en_US, Mexico, Canada and Brazil:
+#. https://en.wikipedia.org/wiki/Sega_CD
+#: data/freedesktop.org.xml.in:2358
+msgid "Sega CD disc image"
+msgstr ""
+
+#. Translate this to Kids Computer Pico if the console was known as such in
+#. your locale
+#. Should be Sega Pico in all but Japan:
+#. https://en.wikipedia.org/wiki/Sega_Pico
+#: data/freedesktop.org.xml.in:2386
+msgid "Sega Pico ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2400
+msgid "Sega Saturn disc image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2409
+msgid "Dreamcast disc image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2417
+msgid "Nintendo DS ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2428
+msgid "Nintendo 3DS ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2437
+msgid "Nintendo 3DS Executable"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2445
+msgid "Nintendo Switch encrypted ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2460
+msgid "PC Engine ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2465
+msgid "Wii disc image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2486
+msgid "WiiWare bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2496
+msgid "GameCube disc image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2513
+msgid "Thomson Mémo7 cartridge"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2518
+msgid "Thomson cassette"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2523
+msgid "HFE floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2534
+msgid "SAP Thomson floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2546
+msgid "Commodore tape image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2561
+msgid "Commodore 1541 floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2569 data/freedesktop.org.xml.in:2577
+#: data/freedesktop.org.xml.in:2595
+msgid "Commodore 1571 floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2587
+msgid "Commodore C64 headered disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2605
+msgid "Commodore 1581 floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2615
+msgid "Commodore 8050 floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2625
+msgid "Commodore 8250 floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2635
+msgid "Commodore D9090/D9060 hard disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2644
+msgid "Commodore cartridge"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2658
+msgid "ZX Spectrum Z80 snapshot"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2671
+msgid "ZX Spectrum SNA snapshot"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2675
+msgid "ZX Spectrum SZX snapshot"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2683
+msgid "ZX Spectrum SLT multiload snapshot"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2690
+msgid "ZX Spectrum RZX replay snapshot"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2698
+msgid "ZX Spectrum TZX tape image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2705
+msgid "ZX Spectrum TAP tape image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2715
+msgid "ZX Spectrum PZX tape archival image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2722
+msgid "Sinclair Microdrive tape cartridge image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2727
+msgid "Amstrad CPC/ZX Spectrum DSK floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2735
+msgid "ZX Spectrum/SAM Coupé MGT floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2749
+msgid "Didaktik D40/D80 floppy disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2758
+msgid "ZX Spectrum HDF hard disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2766
+msgid "CHIP-8 program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2773
+msgid "CHIP-8 Octo source"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2779
+msgid "LowRes NX program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2785
+msgid "TIC-80 cartridge"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2793
+msgid "PICO-8 editable code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2804
+msgid "PICO-8 binary code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2820
+msgid "Debian package"
+msgstr "Debian-ის პაკეტი"
+
+#: data/freedesktop.org.xml.in:2833
+msgid "Qt Designer interface document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2843
+msgid "Kaitai Struct definition file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2848
+msgid "Qt Markup Language file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2864
+msgid "Desktop entry"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2879
+msgid "FictionBook document"
+msgstr "FictionBook-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:2889
+msgid "Compressed FictionBook document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2900
+msgid "Dia diagram"
+msgstr "Dia-ის დიაგრამა"
+
+#: data/freedesktop.org.xml.in:2910
+msgid "Dia shape"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2920
+msgid "TeX DVI document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2930
+msgid "Enlightenment theme"
+msgstr "Enlightenment-ის თემა"
+
+#: data/freedesktop.org.xml.in:2934
+msgid "Egon Animator animation"
+msgstr "Egon Animator-ის ანიმაცია"
+
+#: data/freedesktop.org.xml.in:2939
+msgid "Executable"
+msgstr "შესრულებადი"
+
+#: data/freedesktop.org.xml.in:2955
+msgid "FLTK Fluid file"
+msgstr "FLTK Fluid-ის ფაილი"
+
+#: data/freedesktop.org.xml.in:2966
+msgid "WOFF font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2977
+msgid "WOFF2 font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:2987
+msgid "PostScript type-1 font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3003
+msgid "Adobe font metrics"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3008
+msgid "BDF font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3016
+msgid "DOS font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3025
+msgid "Adobe FrameMaker font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3032
+msgid "LIBGRX font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3039
+msgid "Linux PSF console font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3049
+msgid "Linux PSF console font (gzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3057
+msgid "PCF font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3069
+msgid "OpenType font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3079
+msgid "Speedo font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3087
+msgid "SunOS News font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3096
+msgid "TDPFR font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3108
+msgid "TeX font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3117
+msgid "TeX font metrics"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3125
+msgid "TrueType font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3136
+msgid "Font collection"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3141
+msgid "TrueType XML font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3150
+msgid "V font"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3157
+msgid "Adobe FrameMaker document"
+msgstr "Adobe FrameMaker-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:3172
+msgid "Game Boy ROM"
+msgstr "Game Boy-ის ROM"
+
+#: data/freedesktop.org.xml.in:3183
+msgid "Game Boy Color ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3194
+msgid "Game Boy Advance ROM"
+msgstr "Game Boy Advance-ის ROM"
+
+#: data/freedesktop.org.xml.in:3203
+msgid "Virtual Boy ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3208
+msgid "GDBM database"
+msgstr "GDBM მონაცემთა ბაზა"
+
+#. Translate "Genesis" to "Mega Drive" if the console was known as
+#. such in your locale. Should be "Mega Drive" in all but en_US,
+#. Mexico and Canada:
+#. https://en.wikipedia.org/wiki/Sega_Genesis#History
+#: data/freedesktop.org.xml.in:3222
+msgid "Genesis ROM (SMD dump)"
+msgstr ""
+
+#. Translate "Genesis" to "Mega Drive" if the console was known as
+#. such in your locale. Should be "Mega Drive" in all but en_US,
+#. Mexico and Canada:
+#. https://en.wikipedia.org/wiki/Sega_Genesis#History
+#: data/freedesktop.org.xml.in:3238
+msgid "Genesis ROM"
+msgstr ""
+
+#. Translate "Genesis 32X" to "Super 32X", "Mega Drive 32X",
+#. or "Mega 32X" if the system was known as such in your locale.
+#. Should be "Super 32X" in Japan, "Mega Drive 32X" in PAL regions,
+#. and "Mega 32X" in Brazil: https://en.wikipedia.org/wiki/32X
+#: data/freedesktop.org.xml.in:3259
+msgid "Genesis 32X ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3269
+msgid "Translated messages (machine-readable)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3278
+msgid "GTK+ Builder interface document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3287
+msgid "Glade project"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3296
+msgid "GnuCash financial data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3303
+msgid "Gnumeric spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3312
+msgid "Gnuplot document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3320
+msgid "Graphite scientific graph"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3325
+msgid "GTKtalog catalog"
+msgstr "GTKtalog-ის კატალოგი"
+
+#: data/freedesktop.org.xml.in:3332
+msgid "TeX DVI document (gzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3338
+msgid "Gzip archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3347
+msgid "PDF document (gzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3353
+msgid "PostScript document (gzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3359
+msgid "HDF document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3374
+msgid "IFF file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3382
+msgid "iPod firmware"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3388
+msgid "Java archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3396
+msgid "Java class"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3408
+msgid "Groovy source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3424
+msgid "Gradle script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3428
+msgid "Kotlin Gradle script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3433
+msgid "JNLP file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3444
+msgid "Java keystore"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3453
+msgid "Java JCE keystore"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3462
+msgid "Pack200 Java archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3470
+msgid "JavaScript program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3494
+msgid "Encoded JScript program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3503
+msgid "TypeScript program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3518
+msgid "JSON document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3526
+msgid "JSON5 document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3534
+msgid "HTTP archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3545
+msgid "JRD document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3553
+msgid "JSON patch"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3561
+msgid "JSON-LD document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3569
+msgid "JSON schema"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3580
+msgid "Jupyter notebook document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3591
+msgid "CoffeeScript document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3597
+msgid "JBuilder project"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3603
+msgid "Karbon14 drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3620
+msgid "KChart chart"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3637
+msgid "Kexi settings"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3641
+msgid "Kexi shortcut"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3645 data/freedesktop.org.xml.in:3650
+msgid "Kexi database file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3657
+msgid "KFormula formula"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3674
+msgid "KIllustrator drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3686
+msgid "Kivio flowchart"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3703
+msgid "Kontour drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3720
+msgid "KPovModeler scene"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3725
+msgid "KPresenter presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3743
+msgid "Krita document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3764
+msgid "KSpread spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3781
+msgid "KSpread spreadsheet (encrypted)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3788
+msgid "KSysV init package"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3797
+msgid "Kugar document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3802
+msgid "KWord document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3820
+msgid "KWord document (encrypted)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3827
+msgid "LHA archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3848
+msgid "LHZ archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3853
+msgid "Message catalog"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3864
+msgid "LyX document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3874
+msgid "LZ4 archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3883
+msgid "Tar archive (LZ4-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3889
+msgid "Lzip archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3897
+msgid "Tar archive (lzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3903
+msgid "PDF document (lzip-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3909
+msgid "LZMA archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3916
+msgid "Tar archive (LZMA-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3923
+msgid "LZO archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3933
+msgid "Qpress archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3941
+msgid "XAR archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3953
+msgid "Zlib archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3958
+msgid "MagicPoint presentation"
+msgstr "MagicPoint-ის პრეზენტაცია"
+
+#: data/freedesktop.org.xml.in:3964
+msgid "Macintosh MacBinary file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3971
+msgid "Matroska stream"
+msgstr "Matroska-ის ნაკადი"
+
+#: data/freedesktop.org.xml.in:3985
+msgid "Matroska video"
+msgstr "Matroska-ის ვიდეო"
+
+#: data/freedesktop.org.xml.in:3991
+msgid "Matroska 3D video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:3997
+msgid "Matroska audio"
+msgstr "Matroska-ის აუდიო"
+
+#: data/freedesktop.org.xml.in:4003
+msgid "WebM video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4017
+msgid "WebM audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4021
+msgid "MHTML web archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4029
+msgid "MXF video"
+msgstr "MXF ვიდეო"
+
+#: data/freedesktop.org.xml.in:4039
+msgid "OCL file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4046
+msgid "COBOL source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4054
+msgid "Mobipocket e-book"
+msgstr "Mobipocket-ის ელწიგნი"
+
+#: data/freedesktop.org.xml.in:4068
+msgid "Adobe FrameMaker MIF document"
+msgstr "Adobe FrameMaker-ის MIF დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:4072
+msgid "Mozilla bookmarks"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4081
+msgid "Windows or DOS program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4097
+msgid "DOS executable"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4110
+msgid "32-bit DOS executable"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4132
+msgid "16-bit Windows program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4147
+msgid "Windows or EFI program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4167
+msgid "Windows program database"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4175
+msgid "Windows object code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4230
+msgid "DOS/Windows batch file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4248
+msgid "PowerShell script"
+msgstr "PowerShell-ის სკრიპტი"
+
+#: data/freedesktop.org.xml.in:4258
+msgid "Windows scriptlet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4268
+msgid "Windows shortcut"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4277
+msgid "Internet shortcut"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4289
+msgid "WRI document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4294
+msgid "MSX ROM"
+msgstr "MSX-ის ROM"
+
+#: data/freedesktop.org.xml.in:4299
+msgid "M4 macro"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4305
+msgid "Nintendo64 ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4320
+msgid "Nautilus link"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4328
+msgid "Neo-Geo Pocket ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4339
+msgid "Neo-Geo Pocket Color ROM"
+msgstr ""
+
+#. Translate this to Famicom if the console was known as such in your locale
+#: data/freedesktop.org.xml.in:4351
+msgid "NES ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4359
+msgid "Unidata NetCDF document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4367
+msgid "NewzBin usenet index"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4375
+msgid "Object code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4392
+msgid "Annodex exchange format"
+msgstr "Annodex-ის გაცვლითი ფორმატი"
+
+#: data/freedesktop.org.xml.in:4405
+msgid "Annodex video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4418
+msgid "Annodex audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4431
+msgid "Ogg multimedia file"
+msgstr "Ogg-ის მულტიმედია ფაილი"
+
+#: data/freedesktop.org.xml.in:4440
+msgid "Ogg audio"
+msgstr "Ogg აუდიო"
+
+#: data/freedesktop.org.xml.in:4451
+msgid "Ogg video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4461
+msgid "Ogg Vorbis audio"
+msgstr "Ogg Vorbis აუდიო"
+
+#: data/freedesktop.org.xml.in:4474
+msgid "Ogg FLAC audio"
+msgstr "Ogg FLAC აუდიო"
+
+#: data/freedesktop.org.xml.in:4489
+msgid "Opus audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4499
+msgid "Ogg Speex audio"
+msgstr "Ogg Speex აუდიო"
+
+#: data/freedesktop.org.xml.in:4511
+msgid "Speex audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4518
+msgid "Ogg Theora video"
+msgstr "Ogg Theora ვიდეო"
+
+#: data/freedesktop.org.xml.in:4529
+msgid "OGM video"
+msgstr "OGM ვიდეო"
+
+#: data/freedesktop.org.xml.in:4542
+msgid "OLE2 compound document storage"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4549
+msgid "Microsoft Windows Thumbnail Cache"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4561
+msgid "Microsoft Publisher document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4572
+msgid "QuarkXPress document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4586
+msgid "Windows Installer package"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4597
+msgid "Windows Installer patch"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4608
+msgid "Windows Update package"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4614 data/freedesktop.org.xml.in:4620
+msgid "Windows app store package"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4626 data/freedesktop.org.xml.in:4632
+msgid "Windows app store bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4638
+msgid "Windows app store installer"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4647
+msgid "GNU Oleo spreadsheet"
+msgstr "GNU Oleo ცხრილი"
+
+#: data/freedesktop.org.xml.in:4655
+msgid "PAK archive"
+msgstr "PAK არქივი"
+
+#: data/freedesktop.org.xml.in:4660
+msgid "Palm OS database"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4668
+msgid "Parchive archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4679
+msgid "PEF executable"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4688
+msgid "Perl script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4717
+msgid "PHP script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4730
+msgid "PKCS#7 certificate bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4743
+msgid "Windows security catalog"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4750
+msgid "PKCS#12 certificate bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4760
+msgid "PlanPerfect spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4765
+msgid "Pocket Word document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4773
+msgid "Profiler results"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4779
+msgid "Pathetic Writer document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4784
+msgid "Python bytecode"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4792
+msgid "QtiPlot document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4802
+msgid "Quattro Pro spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4815
+msgid "QuickTime playlist"
+msgstr "QuickTime დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:4830
+msgid "Quicken document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4835
+msgid "RAR archive"
+msgstr "RAR არქვივი"
+
+#: data/freedesktop.org.xml.in:4847
+msgid "DAR archive"
+msgstr "DAR არქივი"
+
+#: data/freedesktop.org.xml.in:4857
+msgid "Alzip archive"
+msgstr "Alzip არქივი"
+
+#: data/freedesktop.org.xml.in:4865
+msgid "Rejected patch"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4872
+msgid "RPM package"
+msgstr "RPM პაკეტი"
+
+#: data/freedesktop.org.xml.in:4881
+msgid "Source RPM package"
+msgstr "წყარო RPM-ის პაკეტი"
+
+#: data/freedesktop.org.xml.in:4888
+msgid "Ruby script"
+msgstr "Ruby-ის სკრიპტი"
+
+#: data/freedesktop.org.xml.in:4905
+msgid "Markaby script"
+msgstr "Markaby-ის სცენარი"
+
+#: data/freedesktop.org.xml.in:4911
+msgid "Crystal source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4923
+msgid "Julia source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4935
+msgid "Rust source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4949
+msgid "SC/Xspread spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4956
+msgid "Shell archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4961
+msgid "Libtool shared library"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4967
+msgid "Shared library"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:4977
+msgid "Shell script"
+msgstr "გარსის სკრიპტი"
+
+#: data/freedesktop.org.xml.in:5000
+msgid "Fish shell script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5011
+msgid "Nushell script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5022
+msgid "Shockwave Flash file"
+msgstr ""
+
+#. translators: "Shorten" is the name of an audio codec
+#: data/freedesktop.org.xml.in:5036
+msgid "Shorten audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5045
+msgid "Siag spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5050
+msgid "Skencil document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5058
+msgid "Stampede package"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5062
+msgid "SG-1000 ROM"
+msgstr ""
+
+#. Translate this to "Master System/Mark III" if the console was known as such
+#. in your locale (probably only in Japan)
+#: data/freedesktop.org.xml.in:5068
+msgid "Master System ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5080
+msgid "Game Gear ROM"
+msgstr ""
+
+#. Translate this as Super Famicom (in Far East Asia) or Super Nintendo (in
+#. Europe) if the console was known as such in your locale
+#: data/freedesktop.org.xml.in:5094
+msgid "Super NES ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5101
+msgid "StuffIt archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5112
+msgid "StuffIt X archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5121
+msgid "SubRip subtitles"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5133
+msgid "WebVTT subtitles"
+msgstr "WebVTT ქვეტიტრები"
+
+#: data/freedesktop.org.xml.in:5144
+msgid "SAMI subtitles"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5156
+msgid "MicroDVD subtitles"
+msgstr "MicroDVD-ის ქვეტიტრები"
+
+#: data/freedesktop.org.xml.in:5166
+msgid "MPL2 subtitles"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5176
+msgid "MPlayer subtitles"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5184
+msgid "SSA subtitles"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5196
+msgid "Song lyrics"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5207
+msgid "OpenSSH public key"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5236
+msgid "OpenSSH private key"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5243
+msgid "SubViewer subtitles"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5251
+msgid "iMelody ringtone"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5262
+msgid "SMAF audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5274
+msgid "MRML playlist"
+msgstr "MRML რეპერტუარი"
+
+#: data/freedesktop.org.xml.in:5285
+msgid "XMF audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5295
+msgid "Mobile XMF audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5305
+msgid "SV4 CPIO archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5310
+msgid "SV4 CPIO archive (with CRC)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5315
+msgid "Tar archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5327
+msgid "Tar archive (compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5334
+msgid "Generic font file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5339
+msgid "Packed font file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5344
+msgid "TGIF document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5352
+msgid "Theme"
+msgstr "თემა"
+
+#: data/freedesktop.org.xml.in:5358
+msgid "ToutDoux document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5362
+msgid "Backup file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5370
+msgid "Troff document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5385
+msgid "Manual page"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5392
+msgid "Manual page (compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5396
+msgid "Tar archive (LZO-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5403
+msgid "XZ archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5411
+msgid "Tar archive (XZ-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5418
+msgid "Zpaq Archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5426
+msgid "Zstandard archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5434
+msgid "Tar archive (Zstandard-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5441
+msgid "PDF document (XZ-compressed)"
+msgstr "PDF დოკუმენტი (XZ-ით შეკუმშული)"
+
+#: data/freedesktop.org.xml.in:5447
+msgid "Ustar archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5452
+msgid "WAIS source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5458
+msgid "WordPerfect/Drawperfect image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5463
+msgid "Bandai WonderSwan ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5468
+msgid "Bandai WonderSwan Color ROM"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5473
+msgid "X.509 CA certificate"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5488
+msgid "Empty document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5491
+msgid "Zoo archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5499
+msgid "XHTML page"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5517
+msgid "Zip archive"
+msgstr "ZIP არქივი"
+
+#: data/freedesktop.org.xml.in:5528
+msgid "WIM disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5538
+msgid "Dolby Digital audio"
+msgstr "Dolby Digital-ის აუდიო"
+
+#: data/freedesktop.org.xml.in:5545
+msgid "DTS audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5558
+msgid "DTS-HD audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5571
+msgid "AMR audio"
+msgstr "AMR აუდიო"
+
+#: data/freedesktop.org.xml.in:5582
+msgid "AMR-WB audio"
+msgstr "AMR-WB აუდიო"
+
+#: data/freedesktop.org.xml.in:5593
+msgid "ULAW (Sun) audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5601
+msgid "Commodore 64 audio"
+msgstr "Commodore 64-ის აუდიო"
+
+#: data/freedesktop.org.xml.in:5609
+msgid "PCM audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5629
+msgid "AIFC audio"
+msgstr "AIFC აუდიო"
+
+#: data/freedesktop.org.xml.in:5641
+msgid "AIFF/Amiga/Mac audio"
+msgstr "AIFF/Amiga/Mac აუდიო"
+
+#: data/freedesktop.org.xml.in:5653
+msgid "Monkey's audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5660
+msgid "Audible.Com audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5669 data/freedesktop.org.xml.in:5676
+msgid "Audible Enhanced audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5683
+msgid "DSDIFF audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5696
+msgid "DSF audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5714
+msgid "Impulse Tracker audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5721
+msgid "FLAC audio"
+msgstr "FLAC აუდიო"
+
+#: data/freedesktop.org.xml.in:5731
+msgid "TAK audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5740
+msgid "WavPack audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5748
+msgid "WavPack audio correction file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5755
+msgid "MIDI audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5767
+msgid "Compressed Tracker audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5774
+msgid "AAC audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5787
+msgid "USAC audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5794
+msgid "MPEG-4 audio"
+msgstr "MPEG-4 აუდიო"
+
+#: data/freedesktop.org.xml.in:5804
+msgid "MPEG-4 ringtone"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5809
+msgid "MPEG-4 video"
+msgstr "MPEG-4 ვიდეო"
+
+#: data/freedesktop.org.xml.in:5832
+msgid "MPEG-4 audio book"
+msgstr "MPEG-4 აუდიოწიგნი"
+
+#: data/freedesktop.org.xml.in:5841
+msgid "3GPP multimedia file"
+msgstr "3GPP მულტიმედიური ფაილი"
+
+#: data/freedesktop.org.xml.in:5864
+msgid "3GPP2 multimedia file"
+msgstr "3GPP2 მულტიმედიური ფაილი"
+
+#: data/freedesktop.org.xml.in:5876
+msgid "Amiga SoundTracker audio"
+msgstr "Amiga SoundTracker-ის აუდიო"
+
+#: data/freedesktop.org.xml.in:5894
+msgid "OctaMED audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5904
+msgid "Composer 669 audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5958
+msgid "MultiTracker audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5966
+msgid "UltraTracker audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5974
+msgid "Dynamic Studio module audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5986
+msgid "MP2 audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:5991
+msgid "MP3 audio"
+msgstr "MP3 აუდიო"
+
+#: data/freedesktop.org.xml.in:6009 data/freedesktop.org.xml.in:6024
+msgid "Media playlist"
+msgstr "მედიის დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:6036
+msgid "Microsoft ASX playlist"
+msgstr "Microsoft-ის ASX რეპერტუარი"
+
+#: data/freedesktop.org.xml.in:6053
+msgid "PSF audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6062
+msgid "MiniPSF audio"
+msgstr "MiniPSF-ის აუდიო"
+
+#: data/freedesktop.org.xml.in:6069
+msgid "PSFlib audio library"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6076
+msgid "Windows Media audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6082
+msgid "Musepack audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6092
+msgid "RealAudio document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6099
+msgid "RealMedia playlist"
+msgstr "RealMedia დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:6103
+msgid "RealVideo document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6109
+msgid "RealMedia document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6123
+msgid "Radiance HDR image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6134
+msgid "RealPix document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6138
+msgid "RealText document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6143
+msgid "RIFF audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6146
+msgid "RIFF container"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6153
+msgid "Scream Tracker 3 audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6160
+msgid "MP3 ShoutCast playlist"
+msgstr "MP3 ShoutCast დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:6171
+msgid "Scream Tracker audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6180
+msgid "VOC audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6184
+msgid "WAV audio"
+msgstr "WAV აუდიო"
+
+#: data/freedesktop.org.xml.in:6195
+msgid "FastTracker II instrument"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6202
+msgid "FastTracker II audio"
+msgstr "FastTracker II-ის აუდიო"
+
+#: data/freedesktop.org.xml.in:6209
+msgid "TrueAudio audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6217
+msgid "Windows BMP image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6232
+msgid "WBMP image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6238
+msgid "CGM image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6244
+msgid "CCITT G3 fax image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6251
+msgid "GIF image"
+msgstr "GIF გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6260
+msgid "HEIF image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6279
+msgid "JPEG 2000 image encapsulated in HEIF"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6286
+msgid "AVC-encoded image encapsulated in HEIF"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6293
+msgid "IEF image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6297
+msgid "JPEG image"
+msgstr "JPEG გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6311
+msgid "MJPEG video stream"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6319
+msgid "JPEG-2000 codestream"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6328
+msgid "JPEG-2000 JP2 image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6341
+msgid "JPEG-2000 JPX image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6351
+msgid "JPEG-2000 JPM image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6361
+msgid "JPEG-2000 MJ2 video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6371
+msgid "JPEG XL image"
+msgstr "JPEG-XL გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6379
+msgid "OpenRaster image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6391
+msgid "DirectDraw Surface"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6399
+msgid "X11 cursor"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6405
+msgid "EXR image"
+msgstr "EXR გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6412
+msgid "Macintosh Quickdraw/PICT drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6437
+msgid "UFRaw ID image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6445
+msgid "Digital raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6448
+msgid "Adobe DNG negative"
+msgstr "Adobe DNG-ის ნეგატივი"
+
+#: data/freedesktop.org.xml.in:6458
+msgid "Canon CRW raw image"
+msgstr "Canon CRW raw გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6469
+msgid "Canon CR2 raw image"
+msgstr "Canon CR2 raw გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6477
+msgid "Canon CR3 raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6484
+msgid "Fuji RAF raw image"
+msgstr "Fuji RAF-ის raw გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6494
+msgid "Kodak DCR raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6502
+msgid "Kodak K25 raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6510
+msgid "Kodak KDC raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6521
+msgid "Minolta MRW raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6531
+msgid "Nikon NEF raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6539
+msgid "Nikon NRW raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6545
+msgid "Olympus ORF raw image"
+msgstr "Olympus ORF-ის raw გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6560 data/freedesktop.org.xml.in:6570
+msgid "Panasonic raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6582
+msgid "Pentax PEF raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6590
+msgid "Sigma X3F raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6604
+msgid "Sony SRF raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6612
+msgid "Sony SR2 raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6620
+msgid "Sony ARW raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6628
+msgid "Samsung SRW raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6634
+msgid "Phaseone IIQ raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6640
+msgid "Mamiya MEF raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6646
+msgid "Hasselblad 3FR raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6652
+msgid "Hasselblad FFF raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6658
+msgid "Epson ERF raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6664
+msgid "Leaf MOS raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6670
+msgid "Sinar STI raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6676
+msgid "Minolta MDC raw image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6681
+msgid "BroadBand eBook"
+msgstr "BroadBand eBook"
+
+#: data/freedesktop.org.xml.in:6689
+msgid "PNG image"
+msgstr "PNG გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6698
+msgid "Animated PNG image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6712
+msgid "RLE bitmap image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6718
+msgid "SVG image"
+msgstr "SVG გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6734
+msgid "Compressed SVG image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6742
+msgid "TIFF image"
+msgstr "TIFF გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6753
+msgid "Multi-page TIFF image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6759
+msgid "AutoCAD image"
+msgstr "AutoCAD-ის გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6763
+msgid "DXF vector image"
+msgstr "DXF ვექტორული გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6771
+msgid "MDI image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6780
+msgid "JPEG XR image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6792
+msgid "WebP image"
+msgstr "WebP გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6801
+msgid "3D Studio image"
+msgstr "3D Studio-ის გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6808
+msgid "Applix Graphics image"
+msgstr "Applix Graphics-ის გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6817
+msgid "EPS image (bzip2-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6824
+msgid "CMU raster image"
+msgstr "CMU-ის რასტრული გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6828
+msgid "Compressed GIMP image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6833
+msgid "DICOM image"
+msgstr "DICOM გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6844
+msgid "DocBook document"
+msgstr "DocBook-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:6859
+msgid "DIB image"
+msgstr "DIB გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6867
+msgid "DjVu image"
+msgstr "DjVu გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6882
+msgid "DjVu document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6897
+msgid "DPX image"
+msgstr "DPX გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6905
+msgid "EPS image"
+msgstr "EPS გამოსახულება"
+
+#: data/freedesktop.org.xml.in:6923
+msgid "FITS document"
+msgstr "FITS დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:6936
+msgid "FlashPix image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6947
+msgid "EPS image (gzip-compressed)"
+msgstr "EPS გამოსახულება (gzip-ით შეკუმშული)"
+
+#: data/freedesktop.org.xml.in:6954
+msgid "Windows icon"
+msgstr "Windows icon"
+
+#: data/freedesktop.org.xml.in:6969
+msgid "MacOS X icon"
+msgstr "MacOS X-ის ხატულა"
+
+#: data/freedesktop.org.xml.in:6976
+msgid "ILBM image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6990
+msgid "JNG image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:6996
+msgid "LightWave object"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7001
+msgid "LightWave scene"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7005
+msgid "MacPaint Bitmap image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7009
+msgid "Office drawing"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7013
+msgid "NIFF image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7021
+msgid "PCX image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7036
+msgid "PCD image"
+msgstr "PCD გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7043
+msgid "PNM image"
+msgstr "PNM გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7049
+msgid "PBM image"
+msgstr "PBM გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7070
+msgid "PGM image"
+msgstr "PGM გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7091
+msgid "PPM image"
+msgstr "PPM გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7112
+msgid "Photoshop image"
+msgstr "Photoshop-ის გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7125
+msgid "RGB image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7129
+msgid "SGI image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7133
+msgid "Sun raster image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7140
+msgid "TGA image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7172
+msgid "Windows cursor"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7181
+msgid "Windows animated cursor"
+msgstr "Windows -ის ანიმირებული კურსორი"
+
+#: data/freedesktop.org.xml.in:7190
+msgid "EMF image"
+msgstr "EMF გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7208
+msgid "WMF image"
+msgstr "WMF გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7232
+msgid "XBM image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7238
+msgid "GIMP image"
+msgstr "GIMP გამოსახულება"
+
+#: data/freedesktop.org.xml.in:7246
+msgid "GIMP brush"
+msgstr "GIMP-ის ფუნჯი"
+
+#: data/freedesktop.org.xml.in:7253
+msgid "GIMP brush pipe"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7257
+msgid "GIMP pattern"
+msgstr "GIMP შაბლონი"
+
+#: data/freedesktop.org.xml.in:7264
+msgid "XFig image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7271
+msgid "XPM image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7282
+msgid "X window image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7286
+msgid "KiSS cel"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7296
+msgid "Block device"
+msgstr "ბლოკური მოწყობილობა"
+
+#: data/freedesktop.org.xml.in:7299
+msgid "Character device"
+msgstr "სიმბოლური მოწყობილობა"
+
+#: data/freedesktop.org.xml.in:7302
+msgid "Folder"
+msgstr "საქაღალდე"
+
+#: data/freedesktop.org.xml.in:7307
+msgid "Pipe"
+msgstr "ფაიფი"
+
+#: data/freedesktop.org.xml.in:7310
+msgid "Mount point"
+msgstr "მიმაგრების წერტილი"
+
+#: data/freedesktop.org.xml.in:7314
+msgid "Socket"
+msgstr "სოკეტი"
+
+#: data/freedesktop.org.xml.in:7317
+msgid "Symbolic link"
+msgstr "სიმბმული"
+
+#: data/freedesktop.org.xml.in:7320
+msgid "Mail delivery report"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7325
+msgid "Mail disposition report"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7330
+msgid "Reference to remote file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7334
+msgid "Usenet news message"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7344
+msgid "Partial email message"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7349
+msgid "Email message"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7369
+msgid "GNU mail message"
+msgstr "GNU mail შეტყობინება"
+
+#: data/freedesktop.org.xml.in:7374
+msgid "IGES document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7387 data/freedesktop.org.xml.in:7397
+msgid "glTF model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7405
+msgid "VRML document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7418
+msgid "OBJ 3D model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7429
+msgid "OBJ 3D model material library"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7439
+msgid "Message in several formats"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7442
+msgid "Macintosh AppleDouble-encoded file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7445
+msgid "Message digest"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7448
+msgid "Encrypted message"
+msgstr "დაშიფრული შეტყობინება"
+
+#: data/freedesktop.org.xml.in:7451
+msgid "Compound documents"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7454
+msgid "Compound document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7457
+msgid "Mail system report"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7460
+msgid "Signed message"
+msgstr "ხელმოწერილი შეტყობინება"
+
+#: data/freedesktop.org.xml.in:7463
+msgid "Stream of data (server push)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7466
+msgid "VCS/ICS calendar"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7483
+msgid "CSS stylesheet"
+msgstr "CSS სტილი"
+
+#: data/freedesktop.org.xml.in:7490
+msgid "SPDX document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7500
+msgid "Electronic business card"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7514
+msgid "Notation3 document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7519
+msgid "Turtle document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7524
+msgid "txt2tags document"
+msgstr "txt2tags დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:7533
+msgid "Verilog source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7543
+msgid "SystemVerilog header"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7548
+msgid "SystemVerilog source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7553
+msgid "VHDL source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7561
+msgid "Enriched text document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7565
+msgid "Plain text document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7575
+msgid "RDF file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7586
+msgid "ReStructuredText document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7591
+msgid "OWL XML file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7602
+msgid "Email headers"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7606
+msgid "Rich text document"
+msgstr "მდიდარი ტექსტის ფორმატი"
+
+#: data/freedesktop.org.xml.in:7611
+msgid "RSS summary"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7624
+msgid "Atom syndication feed"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7634
+msgid "OPML syndication feed"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7646
+msgid "SGML document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7654
+msgid "Spreadsheet interchange document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7665
+msgid "TSV document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7673
+msgid "Graphviz DOT graph"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7686
+msgid "JAD document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7696
+msgid "WML document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7703
+msgid "WMLScript program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7708
+msgid "WarpScript source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7718
+msgid "ACE archive"
+msgstr "ACE არქივი"
+
+#: data/freedesktop.org.xml.in:7726
+msgid "Ada source code"
+msgstr "Ada-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7732
+msgid "Author list"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7737
+msgid "BibTeX document"
+msgstr "BibTeX-ის დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:7745
+msgid "Blueprint source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7755
+msgid "C++ header"
+msgstr "C++-ის თავსართი"
+
+#: data/freedesktop.org.xml.in:7764
+msgid "C++ source code"
+msgstr "C++-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7773
+msgid "ChangeLog document"
+msgstr "ChangeLog დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:7778
+msgid "C header"
+msgstr "C-ის თავსართი"
+
+#: data/freedesktop.org.xml.in:7783
+msgid "CMake source code"
+msgstr "CMake-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7789
+msgid "Common Lisp source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7797
+msgid "CSV document"
+msgstr "CSV დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:7807
+msgid "CSV Schema document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7814
+msgid "License terms"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7819
+msgid "Author credits"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7824
+msgid "C source code"
+msgstr "C-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7831
+msgid "Docker container build file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7844
+msgid "Assembly code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7859
+msgid "C# source code"
+msgstr "C#-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7873
+msgid "Vala source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7895
+msgid "OOC source code"
+msgstr "OOC-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7906
+msgid "DCL script"
+msgstr "DCL სცენარი"
+
+#: data/freedesktop.org.xml.in:7913
+msgid "DSSSL document"
+msgstr "DSSSL დოკუმენტი"
+
+#: data/freedesktop.org.xml.in:7920
+msgid "D source code"
+msgstr "D-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7934
+msgid "DTD file"
+msgstr "DTD ფაილი"
+
+#: data/freedesktop.org.xml.in:7943
+msgid "Eiffel source code"
+msgstr "Eiffel-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7952
+msgid "Emacs Lisp source code"
+msgstr "Emacs-ის Lisp საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7961
+msgid "Elixir source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7970
+msgid "Erlang source code"
+msgstr "Erlang-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7975
+msgid "Fortran source code"
+msgstr "Fortran-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:7983
+msgid "Genie source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:7999
+msgid "Translation file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8006
+msgid "Translation template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8015
+msgid "Gherkin document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8020
+msgid "HTML document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8049
+msgid "Windows HTML desktop application"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8061
+msgid "HTML component"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8070
+msgid "Web application cache file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8083
+msgid "Google Video Pointer shortcut"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8093
+msgid "Haskell source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8098
+msgid "IDL document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8105
+msgid "Installation instructions"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8110
+msgid "Java source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8123
+msgid "LDIF address book"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8135
+msgid "Lilypond music sheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8140
+msgid "LHS source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8147
+msgid "Application log"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8152
+msgid "Makefile build file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8165
+msgid "Markdown document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8174
+msgid "Qt MOC file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8181
+msgid "Windows Registry extract"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8191
+msgid "Visual Studio Project"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8199
+msgid "Visual Studio Workspace"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8207
+msgid "MOF file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8214
+msgid "Mup musical composition document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8223
+msgid "Nix source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8228
+msgid "Objective-C source code"
+msgstr "Objective-C-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:8233
+msgid "Objective-C++ source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8249
+msgid "OCaml source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8262
+msgid "OpenCL C source code"
+msgstr "OpenCL-ის C-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:8276
+msgid "C++ for OpenCL source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8283
+msgid "MATLAB file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8293
+msgid "Meson source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8300
+msgid "Modelica model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8312
+msgid "Pascal source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8318
+msgid "Differences between files"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8337
+msgid "Dart source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8349
+msgid "Nim source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8358
+msgid "Nimscript source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8364
+msgid "Go source code"
+msgstr "Go-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:8377
+msgid "SCons configuration file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8384
+msgid "Python 3 script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8403
+msgid "Python 2 script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8421
+msgid "Python script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8440
+msgid "Cython source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8453
+msgid "SageMath script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8458
+msgid "Lua script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8473
+msgid "Git bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8484
+msgid "README document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8489
+msgid "NFO document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8494
+msgid "Todo.txt file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8503
+msgid "RPM spec file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8514
+msgid "Sass CSS pre-processor file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8522
+msgid "Scala source code"
+msgstr "Scala-ის საწყისი კოდი"
+
+#: data/freedesktop.org.xml.in:8534
+msgid "Scheme source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8540
+msgid "SCSS pre-processor file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8548
+msgid "Setext document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8553
+msgid "SQL code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8559
+msgid "Tcl script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8566
+msgid "TeX document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8584
+msgid "TeXInfo document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8591
+msgid "Typst document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8597
+msgid "Troff ME input document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8602
+msgid "Troff MM input document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8607
+msgid "Troff MS input document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8612
+msgid "Twig template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8618
+msgid "X-Motif UIL table"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8623
+msgid "Resource location"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8628
+msgid "uuencoded file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8637
+msgid "BASIC program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8643
+msgid "Visual Basic .NET source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8653
+msgid "VBScript program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8660
+msgid "Encoded VBScript program"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8670
+msgid "XMI file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8679
+msgid "XSL FO file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8688
+msgid "iptables configuration file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8713
+msgid "D-Bus service file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8722
+msgid "Systemd unit file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8766
+msgid "XSLT stylesheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8779
+msgid "Maven description file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8786
+msgid "XMCD CD database"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8793
+msgid "XML document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8808
+msgid "XML entities document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8817
+msgid "DV video"
+msgstr "DV ვიდეო"
+
+#: data/freedesktop.org.xml.in:8826
+msgid "ISI video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8829
+msgid "MPEG-2 transport stream"
+msgstr "MPEG-2-ის ტრანსპორტული ნაკადი"
+
+#: data/freedesktop.org.xml.in:8864
+msgid "MPEG video"
+msgstr "MPEG ვიდეო"
+
+#: data/freedesktop.org.xml.in:8884
+msgid "Video playlist"
+msgstr "ვიდეო დასაკრავი სია"
+
+#: data/freedesktop.org.xml.in:8895
+msgid "QuickTime video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8908
+msgid "QuickTime image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8916 data/freedesktop.org.xml.in:8927
+msgid "Khronos texture image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8938
+msgid "ASTC texture"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8947
+msgid "Vivo video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8953
+msgid "Wavelet video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8956
+msgid "ANIM animation"
+msgstr "ANIM ანიმაცია"
+
+#: data/freedesktop.org.xml.in:8960
+msgid "FLIC animation"
+msgstr "FLIC ანიმაცია"
+
+#: data/freedesktop.org.xml.in:8977
+msgid "Aseprite image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:8992
+msgid "Hancom HWP document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9001
+msgid "Hancom HWP document template"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9007
+msgid "Hancom HWPX document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9023
+msgid "MNG animation"
+msgstr "MNG ანიმაცია"
+
+#: data/freedesktop.org.xml.in:9032
+msgid "ASF video"
+msgstr "ASF ვიდეო"
+
+#: data/freedesktop.org.xml.in:9046
+msgid "Windows Media Station file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9055
+msgid "Windows Media video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9060
+msgid "AVI video"
+msgstr "AVI ვიდეო"
+
+#: data/freedesktop.org.xml.in:9082
+msgid "NullSoft video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9089
+msgid "SDP multicast stream file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9104
+msgid "SGI video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9111
+msgid "eMusic download package"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9119
+msgid "KML geographic data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9127
+msgid "KML geographic compressed data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9134
+msgid "GeoJSON geospatial data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9141
+msgid "GPX geographic data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9153
+msgid "Citrix ICA settings file"
+msgstr "Citrix ICA-ის პარამეტრების ფაილი"
+
+#: data/freedesktop.org.xml.in:9161
+msgid "XUL interface document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9170
+msgid "XPInstall installer module"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9175
+msgid "Word 2007 document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9181
+msgid "Word 2007 document template"
+msgstr "Word 2007-ის დოკუმენტის შაბლონი"
+
+#: data/freedesktop.org.xml.in:9187
+msgid "PowerPoint 2007 presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9193
+msgid "PowerPoint 2007 slide"
+msgstr "PowerPoint 2007-ის სლაიდი"
+
+#: data/freedesktop.org.xml.in:9199
+msgid "PowerPoint 2007 show"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9205
+msgid "PowerPoint 2007 presentation template"
+msgstr "PowerPoint 2007-ის პრეზენტაციის შაბლონი"
+
+#: data/freedesktop.org.xml.in:9211
+msgid "Excel 2007 spreadsheet"
+msgstr "Excel 2007-ის ცხრილი"
+
+#: data/freedesktop.org.xml.in:9217
+msgid "Excel 2007 spreadsheet template"
+msgstr "Excel 2007-ის ცხრილის შაბლონი"
+
+#: data/freedesktop.org.xml.in:9223
+msgid "Microsoft Office 2007 theme"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9229
+msgid "T602 document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9239
+msgid "Cisco VPN settings"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9250
+msgid "ICC profile"
+msgstr "ICC პროფილი"
+
+#: data/freedesktop.org.xml.in:9260
+msgid "IT 8.7 color calibration file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9269
+msgid "CCMX color correction file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9278
+msgid "WinHelp help file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9286
+msgid "Binary differences between files"
+msgstr ""
+
+#. http://en.wikipedia.org/wiki/Design_rule_for_Camera_File_system
+#: data/freedesktop.org.xml.in:9297
+msgid "Digital photos"
+msgstr ""
+
+#. TRANSLATORS: This is a brand-name, not a generic term. Please see
+#. http://en.wikipedia.org/wiki/Video_CD
+#. http://www.herongyang.com/CD-DVD/VCD-Movie-File-Directory-Structure.html
+#: data/freedesktop.org.xml.in:9307
+msgid "Video CD"
+msgstr "ვიდეო CD"
+
+#. TRANSLATORS: This is a brand-name, not a generic term. Please see
+#. http://en.wikipedia.org/wiki/Super_Video_CD
+#. http://everything2.com/index.pl?node_id=1009222
+#: data/freedesktop.org.xml.in:9317
+msgid "Super Video CD"
+msgstr "Super Video CD"
+
+#. http://en.wikipedia.org/wiki/DVD-Video
+#: data/freedesktop.org.xml.in:9325
+msgid "Video DVD"
+msgstr "ვიდეო CD"
+
+#. http://en.wikipedia.org/wiki/Red_Book_(audio_CD_standard)
+#: data/freedesktop.org.xml.in:9336
+msgid "Audio CD"
+msgstr "აუდიო CD"
+
+#. http://en.wikipedia.org/wiki/Compact_Disc
+#: data/freedesktop.org.xml.in:9341
+msgid "Blank CD disc"
+msgstr ""
+
+#. http://en.wikipedia.org/wiki/DVD
+#: data/freedesktop.org.xml.in:9346
+msgid "Blank DVD disc"
+msgstr ""
+
+#. http://en.wikipedia.org/wiki/Blu-ray_Disc
+#: data/freedesktop.org.xml.in:9351
+msgid "Blank Blu-ray disc"
+msgstr ""
+
+#. http://en.wikipedia.org/wiki/HD_DVD
+#: data/freedesktop.org.xml.in:9356
+msgid "Blank HD DVD disc"
+msgstr ""
+
+#. http://en.wikipedia.org/wiki/DVD-Audio
+#: data/freedesktop.org.xml.in:9361
+msgid "Audio DVD"
+msgstr "აუდიო DVD"
+
+#. http://en.wikipedia.org/wiki/Blu-ray_Disc
+#. http://www.blu-raydisc.com/Section-13470/Section-13890/Index.html
+#: data/freedesktop.org.xml.in:9371
+msgid "Blu-ray video disc"
+msgstr "Blu-ray ვიდეო დისკი"
+
+#. http://en.wikipedia.org/wiki/HD_DVD
+#. http://www.dvdafteredit.com/wiki/The_HVDVD_TS_Folder
+#: data/freedesktop.org.xml.in:9381
+msgid "HD DVD video disc"
+msgstr "HD DVD ვიდეო დისკი"
+
+#. see fd.o hal spec
+#: data/freedesktop.org.xml.in:9391
+msgid "E-book reader"
+msgstr ""
+
+#. TRANSLATORS: This is a brand-name, not a generic term. Please see
+#. http://en.wikipedia.org/wiki/Picture_CD
+#. http://www.re.org/kristin/picturecd.html
+#: data/freedesktop.org.xml.in:9402
+msgid "Picture CD"
+msgstr "ფოტო სურათებიანი CD"
+
+#. see fd.o hal spec
+#: data/freedesktop.org.xml.in:9410
+msgid "Portable audio player"
+msgstr ""
+
+#. https://github.com/ostreedev/ostree/blob/master/man/ostree-create-usb.xml
+#: data/freedesktop.org.xml.in:9415
+msgid "OSTree software updates"
+msgstr ""
+
+#. http://standards.freedesktop.org/autostart-spec/autostart-spec-latest.html
+#. http://bugzilla.gnome.org/show_bug.cgi?id=509823#c3
+#: data/freedesktop.org.xml.in:9426
+msgid "Software"
+msgstr "პროგრამები"
+
+#. http://standards.freedesktop.org/autostart-spec/autostart-spec-latest.html
+#. http://bugzilla.gnome.org/show_bug.cgi?id=509823#c3
+#: data/freedesktop.org.xml.in:9432
+msgid "UNIX software"
+msgstr ""
+
+#. http://standards.freedesktop.org/autostart-spec/autostart-spec-latest.html
+#. http://bugzilla.gnome.org/show_bug.cgi?id=509823#c3
+#: data/freedesktop.org.xml.in:9444
+msgid "Windows software"
+msgstr "Windows-ის პროგრამა"
+
+#: data/freedesktop.org.xml.in:9453
+msgid "TriG RDF document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9462
+msgid "Apple Keynote 5 presentation"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9474
+msgid "Apple Numbers spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9487
+msgid "Apple Pages document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9500
+msgid "Apple Wallet pass"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9510
+msgid "Apple Wallet passes bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9521
+msgid "Adobe PageMaker document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9531
+msgid "Doom WAD file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9543
+msgid "Amiga disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9551
+msgid "Flatpak application bundle"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9563
+msgid "Flatpak repository description"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9573
+msgid "Flatpak repository reference"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9583
+msgid "Squashfs filesystem image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9612
+msgid "Snap package"
+msgstr "Snap-ის პაკეტი"
+
+#: data/freedesktop.org.xml.in:9619
+msgid "3MF document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9629
+msgid "STL 3D model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9643
+msgid "STEP 3D model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9653
+msgid "AMF 3D model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9661
+msgid "G-code file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9668
+msgid "G-code Extended file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9676
+msgid "Nintendo FDS disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9686
+msgid "OVF disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9700
+msgid "QEMU QED disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9709
+msgid "QEMU QCOW disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9721
+msgid "VHD disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9732
+msgid "VHDX disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9742
+msgid "VMDK disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9753
+msgid "VDI disk image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9769
+msgid "AppleWorks document"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9775
+msgid "BPS patch"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9785
+msgid "IPS patch"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9795
+msgid "Pyspread spreadsheet"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9803
+msgid "Pyspread spreadsheet (bzip2-compressed)"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9810
+msgid "Kotlin source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9826
+msgid "Devicetree source code"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9854
+msgid "Flattened Devicetree"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9864
+msgid "AVIF image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9882
+msgid "Quite OK Image Format"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9890
+msgid "Bink Video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9914
+msgid "Smacker Video"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9924
+msgid "Org-mode file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9929
+msgid "OpenZIM file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9938
+msgid "SPARQL query"
+msgstr "SPARQL მოთხოვნა"
+
+#: data/freedesktop.org.xml.in:9947
+msgid "SPARQL query results"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9955
+msgid "WASM binary module"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9964
+msgid "OpenVPN profile"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9971
+msgid "Modrinth Modpack"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9977
+msgid "QBrew beer recipes"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9982
+msgid "CBOR Data"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9988
+msgid "ERIS Link"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:9998
+msgid "Gerber file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10017
+msgid "Gerber job file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10023
+msgid "Excellon drill file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10033
+msgid "Tiled map files"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10038
+msgid "Tiled tileset files"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10044
+msgid "Scitex CT"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10054
+msgid "Pixar raster"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10062
+msgid "Portable FloatMap"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10071
+msgid "PlayStation graphics"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10079
+msgid "Farbfeld"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10087
+msgid "NSIS Script"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10097
+msgid "AppStream software component"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10105
+msgid "AppStream releases information"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10112
+msgid "Portable HalfMap"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10121
+msgid "Proxy Auto-Configuration file"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10130
+msgid "SF3 Archive"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10140
+msgid "SF3 Audio"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10150
+msgid "SF3 Image"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10160
+msgid "SF3 Log File"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10170
+msgid "SF3 3D Model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10180
+msgid "SF3 Physics Model"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10190
+msgid "SF3 Table"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10200
+msgid "SF3 Rich Text"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10210
+msgid "SF3 Vector Graphic"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10220
+msgid "Slint Language"
+msgstr ""
+
+#: data/freedesktop.org.xml.in:10230
+msgid "PlantUML Diagram"
+msgstr ""

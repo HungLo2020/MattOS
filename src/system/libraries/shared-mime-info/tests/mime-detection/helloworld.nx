@@ -1,0 +1,24 @@
+REM Lowres NX fantasy console BASIC
+REM https://lowresnx.inutilis.com/
+REM vim: set ft=basic:
+
+RANDOMIZE TIMER
+
+ON RASTER CALL RAINBOWTEXT
+
+SUB RAINBOWTEXT
+    T = ((RASTER/5) + TIMER/50)
+    R = ABS((T MOD 7) - 3)
+    G = ABS(((T+2) MOD 7) - 3)
+    B = ABS(((T+4) MOD 7) - 3)
+    PALETTE 0,,,((R*16)+(G*4)+B),
+END SUB
+
+DO
+    PRINT "HELLO, XDG!",
+    WAIT 30
+LOOP
+
+#1:MAIN PALETTES
+113F3B0000383400003C0C00263F3C00
+003F2A15003F2A15003F2A15003F2A15

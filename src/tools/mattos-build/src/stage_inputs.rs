@@ -705,6 +705,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         ],
         BuildStage::Libxmlb => &["src/system/libraries/libxmlb"],
         BuildStage::JsonGlib => &["src/system/libraries/json-glib"],
+        BuildStage::SharedMimeInfo => &["src/system/libraries/shared-mime-info"],
         BuildStage::Appstream => &["src/system/libraries/appstream"],
         BuildStage::GdkPixbuf => &["src/system/libraries/gdk-pixbuf"],
         BuildStage::Gpgme => &["src/system/security/gpgme"],
@@ -1012,6 +1013,7 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Libfyaml
             | BuildStage::Libxmlb
             | BuildStage::JsonGlib
+            | BuildStage::SharedMimeInfo
             | BuildStage::Appstream
             | BuildStage::GdkPixbuf
             | BuildStage::Gpgme

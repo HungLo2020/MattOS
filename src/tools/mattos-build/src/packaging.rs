@@ -35,7 +35,8 @@ pub(crate) use cache::{
 pub(crate) use staging::{
     GLIBC_RUNTIME_LIBRARIES, imported_soname_library_licenses, copy_path_preserving, copy_preserving, stage_brush,
     stage_ca_certificates, stage_cargo, stage_flatpak_system_remote, stage_gcc_development,
-    stage_iso_codes, stage_rustc, stage_wireless_regdb, stage_xdg_desktop_portal,
+    stage_flatpak_closure_package, stage_iso_codes, stage_rustc, stage_wireless_regdb,
+    stage_xdg_desktop_portal,
     validate_no_mutable_system_state, validate_vulkan_icd_manifests,
 };
 pub(crate) use staging::{
@@ -53,7 +54,10 @@ pub(crate) use registry::{live_excluded_packages, live_package_install_order, li
 pub(crate) use registry::{MATTOS_TOOLCHAIN_META_PACKAGE, MATTOS_TOOLCHAIN_PACKAGES};
 
 const ARCH: &str = "amd64";
-const REVISION: &str = "1mattos1";
+/// The Debian revision prefix: versions are `<upstream>-1mattos<N>`, with N
+/// from `src/system/packages/revisions.toml` (1 when no entry applies).
+const REVISION: &str = "1mattos";
+const REVISION_LEDGER: &str = "src/system/packages/revisions.toml";
 const SOURCE_DATE_EPOCH: i64 = 1_767_225_600; // 2026-01-01T00:00:00Z
 const DPKG_UPSTREAM_COMMIT: &str = "ff7e9d8bf01379e8b022028a65afaa262e2c25cd";
 const DPKG_UPSTREAM_REPOSITORY: &str = "https://git.dpkg.org/git/dpkg/dpkg.git";
@@ -124,7 +128,6 @@ const APT_CONFFILES: &[&str] = &[
     "/etc/apt/apt.conf.d/01mattos",
     "/etc/apt/sources.list.d/00-mattos-local.sources",
     "/etc/apt/sources.list.d/mattos-hosted.sources",
-    "/etc/apt/sources.list.d/debian-trixie.sources",
     "/etc/apt/preferences.d/00mattos-priority",
 ];
 const PAM_MODULES: &[&str] = &[
@@ -337,20 +340,12 @@ struct DebianCompatibilityPackage {
     source_component: String,
     owned_paths: Vec<String>,
     provided_abi_or_commands: Vec<String>,
-    protected: bool,
     current_mattos_version: String,
     expected_debian_role: String,
     classification: String,
     known_gaps: Vec<String>,
     #[serde(default)]
     debian_epoch: Option<u64>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ProtectedPackageManifest {
-    schema_version: u32,
-    suite: String,
-    packages: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -490,63 +485,7 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
         }
     }
 
-    let protected_path = repo_root.join("src/system/packages/debian-compat/protected.toml");
-    let protected: ProtectedPackageManifest = toml::from_str(&fs::read_to_string(&protected_path)?)
-        .with_context(|| format!("failed to parse {}", protected_path.display()))?;
-    if protected.schema_version != 1 || protected.suite != "trixie" {
-        bail!("protected-package manifest header is invalid")
-    }
-    let protected_names: BTreeSet<&str> = protected.packages.iter().map(String::as_str).collect();
-    if protected_names.len() != protected.packages.len() {
-        bail!("protected-package manifest contains duplicates")
-    }
-    for required in [
-        "libc6",
-        "libc-bin",
-        "libc6-dev",
-        "linux-libc-dev",
-        "libgcc-s1",
-        "libstdc++6",
-        "systemd",
-        "libsystemd0",
-        "libudev1",
-        "udev",
-        "dpkg",
-        "apt",
-        "coreutils",
-        "util-linux",
-        "mount",
-        "login",
-        "passwd",
-        "libpam0g",
-        "libpam-modules",
-        "libpam-runtime",
-        "libssl3t64",
-        "mattos-libcrypto3",
-        "mattos-filesystem",
-        "mattos-base-files",
-    ] {
-        if !protected_names.contains(required) {
-            bail!("protected-package manifest is missing {required}")
-        }
-    }
-    for package in &manifest.package {
-        let listed = protected_names.contains(package.mattos_name.as_str());
-        if package.protected && !listed {
-            bail!(
-                "protected compatibility package {} is not pinned",
-                package.mattos_name
-            )
-        }
-        if listed && !package.protected {
-            bail!(
-                "compatibility entry {} is not marked protected although protected.toml protects it",
-                package.mattos_name
-            )
-        }
-    }
-
-    validate_apt_compatibility_policy(repo_root, &protected.packages)?;
+    validate_apt_compatibility_policy(repo_root)?;
     validate_linuxscripts_upstream(repo_root)?;
     println!(
         "validated Debian {} {} compatibility policy for {} packages",
@@ -557,61 +496,35 @@ fn validate_debian_compatibility(repo_root: &Path) -> Result<()> {
     Ok(())
 }
 
-/// The names an APT preferences file forbids Debian from providing must be
-/// exactly `protected.toml`, each listed once, in well-formed records.  The
-/// live and installed files are both checked so neither can drift.
-fn validate_protected_pins(label: &str, preferences: &str, protected: &[String]) -> Result<()> {
-    let mut pinned = BTreeMap::<&str, usize>::new();
-    // APT separates preference records with blank lines only; comments do
-    // not end a record.
-    for record in preferences.split("\n\n") {
-        let fields = record
-            .lines()
-            .filter(|line| !line.trim_start().starts_with('#') && !line.trim().is_empty())
-            .collect::<Vec<_>>();
-        if fields.is_empty() {
-            continue;
-        }
-        for field in ["Package:", "Pin:", "Pin-Priority:"] {
-            if fields.iter().filter(|line| line.starts_with(field)).count() != 1 {
-                bail!("{label} APT preferences record must contain exactly one {field}: {record:?}");
-            }
-        }
-        let forbids_debian = fields.contains(&"Pin: release o=Debian") && fields.contains(&"Pin-Priority: -1");
-        if forbids_debian {
-            let packages = fields.iter().find_map(|line| line.strip_prefix("Package: ")).unwrap();
-            for name in packages.split_whitespace() {
-                *pinned.entry(name).or_default() += 1;
-            }
-        }
-    }
-    let expected = protected.iter().map(String::as_str).collect::<BTreeSet<_>>();
-    if let Some(missing) = expected.iter().find(|name| !pinned.contains_key(*name)) {
-        bail!("{label} APT protected-package pin is missing {missing}")
-    }
-    if let Some(extra) = pinned.keys().find(|name| !expected.contains(*name)) {
-        bail!("{label} APT preferences pin {extra}, which protected.toml does not protect")
-    }
-    if let Some((name, _)) = pinned.iter().find(|(_, count)| **count > 1) {
-        bail!("{label} APT preferences pin {name} more than once")
-    }
-    Ok(())
-}
+/// MattOS installs only from its own repositories: the embedded media
+/// repository and the signed hosted one.  No other archive is configured.
+const APT_SOURCE_FILES: &[&str] = &["00-mattos-local.sources", "mattos-hosted.sources"];
 
-fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> Result<()> {
+fn validate_apt_compatibility_policy(repo_root: &Path) -> Result<()> {
     let config = repo_root.join("src/system/packages/config/apt");
     let preferences = fs::read_to_string(config.join("00mattos-priority"))?;
     for required in [
         "Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 990",
         "Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990",
-        "Pin: release o=Debian,n=trixie\nPin-Priority: 500",
-        "Pin: release o=Debian\nPin-Priority: -1",
     ] {
         if !preferences.contains(required) {
             bail!("APT preferences lack required policy stanza: {required}")
         }
     }
-    validate_protected_pins("live", &preferences, protected)?;
+    for (label, directory) in [("live", config.clone()), ("installed", config.join("installed"))] {
+        let mut sources = fs::read_dir(&directory)?
+            .map(|entry| entry.map(|entry| entry.file_name().to_string_lossy().into_owned()))
+            .collect::<std::io::Result<Vec<_>>>()?;
+        sources.retain(|name| name.ends_with(".sources") || name.ends_with(".list"));
+        sources.sort();
+        if sources != APT_SOURCE_FILES {
+            bail!("{label} APT sources must be exactly {APT_SOURCE_FILES:?}, found {sources:?}")
+        }
+        let preferences = fs::read_to_string(directory.join("00mattos-priority"))?;
+        if preferences.lines().any(|line| line.starts_with("Pin:") && !line.contains("o=MattOS")) {
+            bail!("{label} APT preferences pin a non-MattOS origin")
+        }
+    }
     let local = fs::read_to_string(config.join("00-mattos-local.sources"))?;
     if !local.contains("URIs: file:/usr/share/mattos/repository")
         || !local.contains("Suites: trixie")
@@ -627,32 +540,17 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
     {
         bail!("hosted MattOS source scaffold is invalid")
     }
-    let debian = fs::read_to_string(config.join("debian-trixie.sources"))?;
-    if !debian.contains("URIs: https://deb.debian.org/debian")
-        || !debian.contains("URIs: https://security.debian.org/debian-security")
-        || !debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
-        || !debian.contains("Enabled: no")
-        || debian.contains("Trusted: yes")
-    {
-        bail!("Debian Trixie source scaffold is invalid")
-    }
     let installed = config.join("installed");
     let installed_local = fs::read_to_string(installed.join("00-mattos-local.sources"))?;
     let installed_hosted = fs::read_to_string(installed.join("mattos-hosted.sources"))?;
-    let installed_debian = fs::read_to_string(installed.join("debian-trixie.sources"))?;
     let installed_preferences = fs::read_to_string(installed.join("00mattos-priority"))?;
     let installed_conf = fs::read_to_string(installed.join("01mattos"))?;
-    validate_protected_pins("installed", &installed_preferences, protected)?;
     if !installed_local.contains("Enabled: yes")
         || !installed_local.contains("URIs: file:/usr/share/mattos/repository")
         || !installed_local.contains("Trusted: yes")
         || !installed_hosted.contains("Enabled: yes")
         || !installed_hosted.contains("URIs: https://packages.mattsherfey.com")
         || !installed_hosted.contains("Signed-By: /usr/share/keyrings/mattos-archive-keyring.asc")
-        || !installed_debian.contains("Enabled: no")
-        || !installed_debian.contains("Suites: trixie trixie-updates")
-        || !installed_debian.contains("Suites: trixie-security")
-        || !installed_debian.contains("Signed-By: /usr/share/keyrings/debian-archive-keyring.asc")
         || !installed_conf.contains("Acquire::https::Verify-Peer \"true\";")
         || !installed_conf.contains("Acquire::https::Verify-Host \"true\";")
         || !installed_conf.contains("Acquire::AllowInsecureRepositories \"false\";")
@@ -660,16 +558,12 @@ fn validate_apt_compatibility_policy(repo_root: &Path, protected: &[String]) -> 
             .contains("Pin: release o=MattOS,l=MattOS Local,n=trixie\nPin-Priority: 990")
         || !installed_preferences
             .contains("Pin: release o=MattOS,l=MattOS,n=trixie\nPin-Priority: 990")
-        || !installed_preferences.contains("Pin-Priority: 500")
         || installed_preferences.contains("Pin-Priority: 1001")
-        || !installed_preferences.contains("Pin-Priority: -1")
     {
         bail!("installed APT policy is invalid")
     }
-    for keyring in ["mattos-archive-keyring.asc", "debian-archive-keyring.asc"] {
-        if !config.join("keys").join(keyring).is_file() {
-            bail!("APT keyring source is missing: {keyring}")
-        }
+    if !config.join("keys/mattos-archive-keyring.asc").is_file() {
+        bail!("APT keyring source is missing: mattos-archive-keyring.asc")
     }
     Ok(())
 }
@@ -906,6 +800,8 @@ fn parallel_in_order<T: Send, R: Send>(
 }
 
 fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
+    // An invalid revision ledger would mis-version every package it names.
+    validate_revision_ledger(repo_root)?;
     let specs = package_specs();
     let mut selected = Vec::new();
     for name in names {
@@ -1040,6 +936,9 @@ fn build_packages(repo_root: &Path, names: &[String]) -> Result<()> {
     ensure_package_facts(repo_root, &inventory)?;
     print_inventory(repo_root)?;
     if let Some(warning) = stale_compatibility_versions(repo_root, &inventory)? {
+        eprint!("{warning}");
+    }
+    if let Some(warning) = validate_revision_ledger(repo_root)? {
         eprint!("{warning}");
     }
     write_package_set_manifest(repo_root)
@@ -1281,24 +1180,9 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "vulkan-tools" => &["vulkan-tools"],
             "mesa" => &["mesa"],
             "nvidia-driver" => &["nvidia-driver"],
-            // These stage outputs form Flatpak's runtime closure. They are
-            // intentionally owned by the flatpak package until MattOS splits
-            // them into separately installable library packages.
-            "flatpak" => &[
-                "flatpak",
-                "ostree",
-                "gpgme",
-                "gdk-pixbuf",
-                "appstream",
-                "json-glib",
-                "libxmlb",
-                "libfyaml",
-                "fuse3",
-                "libxml2",
-                "libpng",
-                "bubblewrap",
-                "xdg-dbus-proxy",
-            ],
+            // Flatpak's runtime closure is packaged separately
+            // (`FLATPAK_CLOSURE_PACKAGES`); each package keys on its own stage.
+            "flatpak" => &["flatpak"],
             "xwayland" => &[
                 "xwayland",
                 "libepoxy",
@@ -1879,19 +1763,6 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "flatpak" => &[
             "src/system/packages/flatpak",
             "src/system/installer/flatpak-target-install.c",
-            "src/system/packages/ostree",
-            "src/system/security/gpgme",
-            "src/system/libraries/gdk-pixbuf",
-            "src/system/libraries/appstream",
-            "src/system/libraries/json-glib",
-            "src/system/libraries/libxmlb",
-            "src/system/libraries/libfyaml",
-            "src/system/libraries/fuse3",
-            "src/system/libraries/libxml2",
-            "src/system/libraries/libarchive",
-            "src/system/libraries/libpng",
-            "src/system/security/bubblewrap",
-            "src/system/packages/xdg-dbus-proxy",
         ],
         "xwayland" => &[
             "src/system/graphics/xwayland",
@@ -2075,7 +1946,10 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         }
         "libexpat1" => component_snapshot_version(repo_root, "expat")?,
         "libfreetype6" => component_snapshot_version(repo_root, "freetype")?,
-        "libfontconfig1" | "fontconfig" => component_snapshot_version(repo_root, "fontconfig")?,
+        "shared-mime-info" => component_snapshot_version(repo_root, "shared-mime-info")?,
+        "libfontconfig1" | "fontconfig" | "fontconfig-config" => {
+            component_snapshot_version(repo_root, "fontconfig")?
+        }
         "fonts-fira" => component_snapshot_version(repo_root, "pop-fonts")?,
         "libcap2" | "libcap-dev" => component_snapshot_version(repo_root, "libcap")?,
         "libattr1" | "libattr1-dev" => component_snapshot_version(repo_root, "attr")?,
@@ -2197,6 +2071,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         }
         "libxkbcommon0" => component_snapshot_version(repo_root, "xkbcommon")?,
         "libxml2-16" => component_snapshot_version(repo_root, "libxml2")?,
+        "libpng16-16t64" => component_snapshot_version(repo_root, "libpng")?,
         "libxkbfile1" => component_snapshot_version(repo_root, "libxkbfile")?,
         "xkb-data" => component_snapshot_version(repo_root, "xkeyboard-config")?,
         "tzdata" => component_snapshot_version(repo_root, "tzdata")?,
@@ -2238,6 +2113,20 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         | "nvidia-utils-595"
         | "nvidia-driver-595-open" => "595.84".to_string(),
         "flatpak" => component_snapshot_version(repo_root, "flatpak")?,
+        "libostree-1-1" => component_snapshot_version(repo_root, "ostree")?,
+        "ostree" => component_snapshot_version(repo_root, "ostree")?,
+        "libgpgme45" => component_snapshot_version(repo_root, "gpgme")?,
+        "libgdk-pixbuf-2.0-0" => component_snapshot_version(repo_root, "gdk-pixbuf")?,
+        "libgdk-pixbuf2.0-bin" => component_snapshot_version(repo_root, "gdk-pixbuf")?,
+        "libappstream5" => component_snapshot_version(repo_root, "appstream")?,
+        "appstream" => component_snapshot_version(repo_root, "appstream")?,
+        "libjson-glib-1.0-0" => component_snapshot_version(repo_root, "json-glib")?,
+        "libxmlb2" => component_snapshot_version(repo_root, "libxmlb")?,
+        "libfyaml0" => component_snapshot_version(repo_root, "libfyaml")?,
+        "libfuse3-4" => component_snapshot_version(repo_root, "fuse3")?,
+        "fuse3" => component_snapshot_version(repo_root, "fuse3")?,
+        "bubblewrap" => component_snapshot_version(repo_root, "bubblewrap")?,
+        "xdg-dbus-proxy" => component_snapshot_version(repo_root, "xdg-dbus-proxy")?,
         "xwayland" => component_snapshot_version(repo_root, "xwayland")?,
         "xdg-desktop-portal" => component_snapshot_version(repo_root, "xdg-desktop-portal")?,
         "libduktape207" => component_snapshot_version(repo_root, "duktape")?,
@@ -2358,7 +2247,80 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         Some(epoch) => format!("{epoch}:{upstream}"),
         None => upstream,
     };
-    Ok(format!("{upstream}-{REVISION}"))
+    let revision = packaging_revision(repo_root, spec.name, &upstream)?;
+    Ok(format!("{upstream}-{REVISION}{revision}"))
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RevisionLedger {
+    schema_version: u32,
+    #[serde(default)]
+    package: BTreeMap<String, RevisionEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RevisionEntry {
+    upstream: String,
+    revision: u32,
+}
+
+fn read_revision_ledger(repo_root: &Path) -> Result<RevisionLedger> {
+    let path = repo_root.join(REVISION_LEDGER);
+    let text = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(RevisionLedger { schema_version: 1, package: BTreeMap::new() });
+        }
+        Err(error) => return Err(error).with_context(|| format!("failed to read {}", path.display())),
+    };
+    let ledger: RevisionLedger =
+        toml::from_str(&text).with_context(|| format!("failed to parse {}", path.display()))?;
+    if ledger.schema_version != 1 {
+        bail!("{} has unsupported schema_version {}", path.display(), ledger.schema_version);
+    }
+    Ok(ledger)
+}
+
+/// The packaging revision of `package` at `upstream`: the ledger's, while its
+/// entry names this upstream version, otherwise 1.
+fn packaging_revision(repo_root: &Path, package: &str, upstream: &str) -> Result<u32> {
+    Ok(read_revision_ledger(repo_root)?
+        .package
+        .get(package)
+        .filter(|entry| entry.upstream == upstream)
+        .map_or(1, |entry| entry.revision))
+}
+
+/// Reject ledger entries for unknown packages or with a meaningless revision,
+/// and report entries a newer upstream version has made obsolete.
+pub(crate) fn validate_revision_ledger(repo_root: &Path) -> Result<Option<String>> {
+    let ledger = read_revision_ledger(repo_root)?;
+    let specs = package_specs();
+    let mut stale = Vec::new();
+    for (name, entry) in &ledger.package {
+        let spec = specs
+            .iter()
+            .find(|spec| spec.name == name)
+            .ok_or_else(|| anyhow!("{REVISION_LEDGER} names unknown package {name}"))?;
+        if entry.revision < 2 {
+            bail!("{REVISION_LEDGER}: {name} revision {} must be at least 2 (1 is the default)", entry.revision);
+        }
+        let version = package_version(repo_root, spec)?;
+        let current = version.rsplit_once('-').map_or(version.as_str(), |(upstream, _)| upstream);
+        if entry.upstream != current {
+            stale.push(format!("  {name}: entry for {}, now {current}", entry.upstream));
+        }
+    }
+    Ok((!stale.is_empty()).then(|| {
+        format!(
+            "warning: {} entr{} in {REVISION_LEDGER} name an older upstream version and no longer apply:\n{}\n",
+            stale.len(),
+            if stale.len() == 1 { "y" } else { "ies" },
+            stale.join("\n")
+        )
+    }))
 }
 
 fn compatibility_epoch(repo_root: &Path, package_name: &str) -> Result<Option<u64>> {

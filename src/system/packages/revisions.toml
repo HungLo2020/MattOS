@@ -1,0 +1,22 @@
+# Debian revisions of MattOS packages.
+#
+# A MattOS package's version is <upstream>-1mattos<revision>.  A package whose
+# bytes change while its upstream version does not (a packaging fix, a
+# dependency's new exact version) needs a higher revision, or installed
+# systems never upgrade to it.  DevUtils/PublishPackages.py maintains this
+# file: it never uploads different bytes under a version that is already
+# published, and instead raises the revision here, rebuilds and publishes the
+# new version.  Commit this file with the packages it describes.
+#
+# An entry applies only while `upstream` is the package's current upstream
+# version (including any epoch); a new upstream version starts again at
+# revision 1, and the stale entry is then ignored.
+schema_version = 1
+
+[package]
+"flatpak" = { upstream = "1.18.0+git20260608.123633.5de2b58bdafd", revision = 2 }
+"libgdk-pixbuf-2.0-0" = { upstream = "2.42.12", revision = 2 }
+"libgdk-pixbuf2.0-bin" = { upstream = "2.42.12", revision = 2 }
+"mattos-plasma" = { upstream = "0.1", revision = 2 }
+"xdg-desktop-portal" = { upstream = "1.22.1", revision = 2 }
+"xdg-desktop-portal-kde" = { upstream = "6.6.5", revision = 2 }

@@ -141,6 +141,22 @@ def release_selections(root: Path) -> dict[str, ReleaseSelection]:
     return selections
 
 
+def next_release_revision(selection: ReleaseSelection, published_versions: Sequence[str]) -> int:
+    """The revision after every published package of this upstream release."""
+    pattern = re.compile(re.escape(selection.version) + "-" + REVISION_PREFIX + r"([1-9][0-9]*)")
+    revisions = [int(match.group(1)) for version in published_versions
+                 if (match := pattern.fullmatch(version))]
+    return max([selection.revision, *revisions]) + 1
+
+
+def record_release_revision(root: Path, package: str, revision: int) -> None:
+    """Set a package's packaging revision in releases.json, keeping the rest."""
+    path = root / "third-party-packages/releases.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["packages"][package]["revision"] = revision
+    path.write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
+
+
 def selected_release(root: Path, recipe: PackageRecipe) -> ReleaseSelection:
     try:
         return release_selections(root)[recipe.name]
@@ -751,6 +767,23 @@ def run_recipe(recipe: PackageRecipe, argv: Sequence[str], script: Path) -> int:
                 args.result_json.write_text(json.dumps({**result, "status": status}, sort_keys=True) + "\n",
                                             encoding="utf-8")
             return 0
+    if args.command in ("publish", "update") and version in published_versions:
+        # Different bytes are never published under a version that is already
+        # in the repository: installed systems would never upgrade to them.
+        # The rebuild gets the next packaging revision instead.
+        revision = next_release_revision(selection, published_versions)
+        selection = ReleaseSelection(selection.version, selection.provenance, revision)
+        print(f"[{recipe.name}] {version} is already published; this build is "
+              f"{selection.package_version}", flush=True)
+        if args.dry_run:
+            print(f"[{recipe.name}] dry run: releases.json keeps revision {revision - 1}", flush=True)
+        else:
+            record_release_revision(root, recipe.name, revision)
+            print(f"[{recipe.name}] recorded revision {revision} in releases.json (commit it)", flush=True)
+        version = selection.package_version
+        provenance = {**provenance, "version": version}
+        result = {**result, "selected_version": version}
+        build_inputs = build_inputs_digest(recipe, script, selection, dependencies or ())
     if args.command in ("publish", "update"):
         kept = kept_artifact(root, recipe, version, build_inputs, package_sha256)
         if kept:

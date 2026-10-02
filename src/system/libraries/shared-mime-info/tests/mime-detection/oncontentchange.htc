@@ -1,0 +1,10 @@
+<HTML xmlns:PUBLIC="urn:HTMLComponent">
+<PUBLIC:ATTACH EVENT="oncontentchange" HANDLER="contentchange_handler" />
+
+<SCRIPT LANGUAGE="JScript">
+function contentchange_handler()
+{
+   window.alert ("The oncontentchange event fired.");
+}
+</SCRIPT>
+</HTML>

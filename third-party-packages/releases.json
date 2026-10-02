@@ -51,10 +51,20 @@
       "source_sha256": "a8b164386494cb85bb255a415a3f5f80afe7a0c4491da5d113b3a0f951087e65",
       "version": "3.5.3"
     },
+    "imagemagick": {
+      "version": "7.1.2.32",
+      "release_tag": "7.1.2-32",
+      "source_sha256": "940e349f0ef394e658fd57400b83d1d7a81b954f6e7bdbfbfad31b2718c10add"
+    },
     "libjansson4": {
       "release_tag": "v2.15.1",
       "source_sha256": "0c7114dc0b2d22a670724a1f95922029d7077c19dbf79a584cb8084d2f267f2f",
       "version": "2.15.1"
+    },
+    "libjpeg62-turbo": {
+      "version": "3.2.0",
+      "release_tag": "3.2.0",
+      "source_sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e"
     },
     "libmnl0": {
       "release_tag": "libmnl-1.0.5",
@@ -65,6 +75,11 @@
       "release_tag": "libnftnl-1.3.2",
       "source_sha256": "c97abc3409f8fa396b4462b2bb7f147a3a47a4ddc97cfa0b2f18890c9cfde8b0",
       "version": "1.3.2"
+    },
+    "libopenjp2-7": {
+      "version": "2.5.4",
+      "release_tag": "v2.5.4",
+      "source_sha256": "a695fbe19c0165f295a8531b1e4e855cd94d0875d2f88ec4b61080677e27188a"
     },
     "libsdl2-2.0-0": {
       "release_tag": "release-2.32.10",
@@ -80,6 +95,16 @@
       "release_tag": "v4.9.5",
       "source_sha256": "f43e68b60b580647574ec4a0e2b6c600a56281e6c39f79426510832dc810f483",
       "version": "4.9.5"
+    },
+    "libtiff6": {
+      "version": "4.7.2",
+      "release_tag": "v4.7.2",
+      "source_sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a"
+    },
+    "libwebp7": {
+      "version": "1.6.0",
+      "release_tag": "v1.6.0",
+      "source_sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564"
     },
     "netavark": {
       "release_tag": "v2.1.0",

@@ -274,6 +274,10 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Libfyaml => vec!["out/build/libfyaml/install/usr/lib/x86_64-linux-gnu/libfyaml.so.0".into()],
         BuildStage::Libxmlb => vec!["out/build/libxmlb/install/usr/lib/x86_64-linux-gnu/libxmlb.so.2".into()],
         BuildStage::JsonGlib => vec!["out/build/json-glib/install/usr/lib/x86_64-linux-gnu/libjson-glib-1.0.so.0".into()],
+        BuildStage::SharedMimeInfo => vec![
+            "out/build/shared-mime-info/install/usr/bin/update-mime-database".into(),
+            "out/build/shared-mime-info/install/usr/share/mime/packages/freedesktop.org.xml".into(),
+        ],
         BuildStage::Appstream => vec!["out/build/appstream/install/usr/lib/x86_64-linux-gnu/libappstream.so.5".into()],
         BuildStage::GdkPixbuf => vec!["out/build/gdk-pixbuf/install/usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0".into()],
         BuildStage::Gpgme => vec!["out/build/gpgme/install/usr/lib/x86_64-linux-gnu/libgpgme.so.45".into()],
@@ -937,6 +941,7 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Libfyaml => build_libfyaml(repo_root),
         BuildStage::Libxmlb => build_libxmlb(repo_root),
         BuildStage::JsonGlib => build_json_glib(repo_root),
+        BuildStage::SharedMimeInfo => build_shared_mime_info(repo_root),
         BuildStage::Appstream => build_appstream(repo_root),
         BuildStage::GdkPixbuf => build_gdk_pixbuf(repo_root),
         BuildStage::Gpgme => build_gpgme(repo_root),

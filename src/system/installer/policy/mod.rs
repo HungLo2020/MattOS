@@ -1731,6 +1731,7 @@ fn compose_target_from_profile(
     if !status.success() {
         bail!("offline {profile_name} package transaction failed with {status}");
     }
+    generate_mime_database(target)?;
     initialize_account_database(target)?;
     let target_repository = target.join(EMBEDDED_REPOSITORY.trim_start_matches('/'));
     fs::create_dir_all(
@@ -1753,6 +1754,29 @@ fn compose_target_from_profile(
             target_repository.as_os_str(),
         ],
     )?;
+    Ok(())
+}
+
+/// Build the target's MIME database once its packages are unpacked.  The
+/// shared-mime-info postinst skips this in the chrootless transaction (DPKG_ROOT
+/// is set); the live system runs the target's own tool, which shares its ABI.
+fn generate_mime_database(target: &Path) -> Result<()> {
+    let definitions = target.join("usr/share/mime/packages");
+    if !definitions.is_dir() {
+        return Ok(());
+    }
+    let tool = target.join("usr/bin/update-mime-database");
+    if !tool.is_file() {
+        bail!("the target has MIME definitions but no update-mime-database (shared-mime-info)");
+    }
+    let database = target.join("usr/share/mime");
+    engine::run(
+        tool.to_str().context("update-mime-database path is not UTF-8")?,
+        &[database.as_os_str()],
+    )?;
+    if !database.join("mime.cache").is_file() {
+        bail!("update-mime-database did not write the target's mime.cache");
+    }
     Ok(())
 }
 
@@ -2245,10 +2269,6 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
             "mattos-hosted.sources",
             etc.join("sources.list.d/mattos-hosted.sources"),
         ),
-        (
-            "debian-trixie.sources",
-            etc.join("sources.list.d/debian-trixie.sources"),
-        ),
     ] {
         let source = template_root.join(name);
         if !source.is_file() {
@@ -2271,34 +2291,23 @@ fn configure_installed_apt(target: &Path) -> Result<()> {
 
     let local = fs::read_to_string(etc.join("sources.list.d/00-mattos-local.sources"))?;
     let hosted = fs::read_to_string(etc.join("sources.list.d/mattos-hosted.sources"))?;
-    let debian = fs::read_to_string(etc.join("sources.list.d/debian-trixie.sources"))?;
     let preferences = fs::read_to_string(etc.join("preferences.d/00mattos-priority"))?;
     if !local.contains("Enabled: yes")
         || !local.contains("file:/usr/share/mattos/repository")
         || !local.contains("Trusted: yes")
         || !hosted.contains("Enabled: yes")
         || !hosted.contains("https://packages.mattsherfey.com")
-        // MattOS's installed native policy deliberately exposes only the
-        // signed hosted MattOS repository. Debian repositories are retained
-        // as documented templates for explicit future policy decisions, but
-        // they must not silently become part of normal installed APT state.
-        || !debian.contains("Enabled: no")
-        || !debian.contains("Suites: trixie trixie-updates")
-        || !debian.contains("Suites: trixie-security")
+        // MattOS installs only from its own repositories: the embedded
+        // media repository and the signed hosted one.
+        || etc.join("sources.list.d/debian-trixie.sources").exists()
         || !preferences.contains("Pin-Priority: 990")
-        || !preferences.contains("Pin-Priority: 500")
         || preferences.contains("Pin-Priority: 1001")
-        || !preferences.contains("Pin-Priority: -1")
     {
         bail!("installed APT policy failed its fail-closed repository checks");
     }
-    for keyring in [
-        "usr/share/keyrings/mattos-archive-keyring.asc",
-        "usr/share/keyrings/debian-archive-keyring.asc",
-    ] {
-        if !target.join(keyring).is_file() {
-            bail!("installed APT keyring is missing: /{keyring}");
-        }
+    let keyring = "usr/share/keyrings/mattos-archive-keyring.asc";
+    if !target.join(keyring).is_file() {
+        bail!("installed APT keyring is missing: /{keyring}");
     }
     for name in ["mattos-apt-daily.timer", "mattos-apt-bootstrap.timer"] {
         let unit = format!("/usr/lib/systemd/system/{name}");
@@ -2993,7 +3002,27 @@ mod tests {
     }
 
     #[test]
-    fn installed_apt_keeps_local_and_signed_mattos_enabled_and_debian_disabled() {
+    fn target_mime_database_is_generated_after_the_package_transaction() {
+        use std::os::unix::fs::PermissionsExt;
+        let target = tempfile::tempdir().unwrap();
+        let target = target.path();
+        // No MIME definitions installed: nothing to do.
+        generate_mime_database(target).unwrap();
+        let packages = target.join("usr/share/mime/packages");
+        fs::create_dir_all(&packages).unwrap();
+        fs::write(packages.join("freedesktop.org.xml"), "<mime-info/>").unwrap();
+        // Definitions without the tool fail closed.
+        assert!(generate_mime_database(target).is_err());
+        let tool = target.join("usr/bin/update-mime-database");
+        fs::create_dir_all(tool.parent().unwrap()).unwrap();
+        fs::write(&tool, "#!/bin/sh\ntouch \"$1/mime.cache\"\n").unwrap();
+        fs::set_permissions(&tool, fs::Permissions::from_mode(0o755)).unwrap();
+        generate_mime_database(target).unwrap();
+        assert!(target.join("usr/share/mime/mime.cache").is_file());
+    }
+
+    #[test]
+    fn installed_apt_enables_only_the_local_and_signed_mattos_repositories() {
         let target = tempfile::tempdir().unwrap();
         let target = target.path();
         let template_root = target.join("usr/share/mattos/apt/installed");
@@ -3005,21 +3034,16 @@ mod tests {
             "00mattos-priority",
             "00-mattos-local.sources",
             "mattos-hosted.sources",
-            "debian-trixie.sources",
         ] {
             fs::copy(source_root.join(name), template_root.join(name)).unwrap();
         }
-        for name in ["mattos-archive-keyring.asc", "debian-archive-keyring.asc"] {
-            let destination = target.join("usr/share/keyrings").join(name);
-            fs::create_dir_all(destination.parent().unwrap()).unwrap();
-            fs::copy(
-                repo_root
-                    .join("src/system/packages/config/apt/keys")
-                    .join(name),
-                destination,
-            )
-            .unwrap();
-        }
+        let keyring = target.join("usr/share/keyrings/mattos-archive-keyring.asc");
+        fs::create_dir_all(keyring.parent().unwrap()).unwrap();
+        fs::copy(
+            repo_root.join("src/system/packages/config/apt/keys/mattos-archive-keyring.asc"),
+            keyring,
+        )
+        .unwrap();
         let timer = target.join("usr/lib/systemd/system/mattos-apt-daily.timer");
         fs::create_dir_all(timer.parent().unwrap()).unwrap();
         fs::write(&timer, "[Timer]\\n").unwrap();
@@ -3055,9 +3079,6 @@ mod tests {
         let hosted =
             fs::read_to_string(target.join("etc/apt/sources.list.d/mattos-hosted.sources"))
                 .unwrap();
-        let debian =
-            fs::read_to_string(target.join("etc/apt/sources.list.d/debian-trixie.sources"))
-                .unwrap();
         assert!(local.contains("Enabled: yes"));
         assert!(local.contains("Trusted: yes"));
         assert!(
@@ -3066,7 +3087,16 @@ mod tests {
                 .is_file()
         );
         assert!(hosted.contains("Enabled: yes"));
-        assert!(debian.contains("Enabled: no"));
+        let sources = fs::read_dir(&sources_dir)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().into_string().unwrap())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(
+            sources,
+            ["00-mattos-local.sources", "mattos-hosted.sources"]
+                .map(String::from)
+                .into()
+        );
         let enabled = target.join("etc/systemd/system/timers.target.wants/mattos-apt-daily.timer");
         assert_eq!(
             fs::read_link(enabled).unwrap(),

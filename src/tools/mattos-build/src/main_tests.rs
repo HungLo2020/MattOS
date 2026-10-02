@@ -514,6 +514,7 @@ fn production_scheduler_plan_is_valid_and_simulates_successful_cold_run() {
         ("appstream", 60.000),
         ("gdk-pixbuf", 30.000),
         ("json-glib", 20.000),
+        ("shared-mime-info", 15.000),
         ("libfyaml", 10.000),
         ("libpng", 20.000),
         ("libxmlb", 30.000),

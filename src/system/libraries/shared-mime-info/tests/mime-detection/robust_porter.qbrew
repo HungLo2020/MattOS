@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE recipe>
+<recipe application="qbrew" version="0.4.1">
+  <title>2022-06-porter-porter-avec-les-restes</title>
+  <brewer></brewer>
+  <style>Robust Porter</style>
+  <batch quantity="8.00 L"/>
+  <grains>
+    <grain quantity="0.40 kg" extract="1.036" color="320" type="Grain" use="Mashed">Carafa I malt</grain>
+    <grain quantity="0.10 kg" extract="1.033" color="2.2" type="Adjunct" use="Mashed">Flaked oats</grain>
+    <grain quantity="1.60 kg" extract="1.037" color="3" type="Grain" use="Mashed">German vienna</grain>
+    <grain quantity="0.40 kg" extract="1.038" color="4" type="Grain" use="Mashed">Maris Otter Malt</grain>
+  </grains>
+  <hops>
+    <hop quantity="11.00 g" alpha="12" time="60" type="Pellet">Magnum</hop>
+  </hops>
+  <miscingredients>
+    <miscingredient quantity="1.00 unit" type="Other" notes="">Generic</miscingredient>
+    <miscingredient quantity="1.00 unit" type="Yeast" notes="">Ale yeast</miscingredient>
+  </miscingredients>
+</recipe>

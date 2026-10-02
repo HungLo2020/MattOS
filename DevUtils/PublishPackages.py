@@ -8,9 +8,13 @@ new package definitions do not require edits to this script.
 Before uploading, each package is compared with the published repository
 index.  Builds are reproducible, so a package whose version and SHA-256 both
 match the published one is truly unchanged and is skipped; a new or newer
-version is uploaded, and so is a rebuild whose bytes differ under the same
-version (the publisher replaces it in place, which testing relies on).  A
-version older than the published one is refused.
+version is uploaded.  Different bytes are never uploaded under a version that
+is already published, since installed systems would never upgrade to them:
+the package's packaging revision (`<upstream>-1mattos<N>`, recorded in
+src/system/packages/revisions.toml) is raised instead, together with every
+published package that depends on it with an exact version, the packages are
+rebuilt, and the new versions are uploaded.  A version older than the
+published one is refused.
 
 Repository requests that fail for a transient reason (the server unreachable,
 a timeout, HTTP 5xx) are retried ten times, ten seconds apart; a rejection
@@ -21,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import json
 import re
 import subprocess
 import sys
@@ -42,6 +47,12 @@ PUBLISHER_RELATIVE = Path(
 )
 REPOSITORY_SOURCES_RELATIVE = Path("src/system/packages/config/apt/mattos-hosted.sources")
 THIRD_PARTY_RELEASES_RELATIVE = Path("third-party-packages/releases.json")
+REVISION_LEDGER_RELATIVE = Path("src/system/packages/revisions.toml")
+MATTOS_VERSION = re.compile(r"^(?P<upstream>.+)-1mattos(?P<revision>[1-9][0-9]*)$")
+EXACT_DEPENDENCY = re.compile(r"^(?P<name>[a-z0-9][a-z0-9+.-]*) \(= (?P<version>[^)]+)\)$")
+# Bumping a package and the packages that pin it exactly settles in one round;
+# a second is allowed for safety before suspecting nondeterministic packaging.
+MAX_BUMP_ROUNDS = 3
 REPOSITORY_RETRIES = 10
 REPOSITORY_RETRY_DELAY = 10
 # Publisher output that means the server could not be reached or failed
@@ -101,7 +112,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="validate and print the upload command without uploading",
+        help="validate and print the upload command without uploading (and without raising revisions)",
+    )
+    parser.add_argument(
+        "--no-bump",
+        action="store_true",
+        help="refuse, instead of raising packaging revisions, when a package changed under a published version",
     )
     return parser.parse_args()
 
@@ -215,7 +231,9 @@ class PublicationPlan:
 
     @property
     def upload(self) -> list[InventoryPackage]:
-        return self.new + self.rebuilt
+        # A package rebuilt under a published version is never uploaded; it
+        # needs a higher revision first (see `bump_targets`).
+        return list(self.new)
 
 
 def inventory_packages(repo_root: Path) -> list[InventoryPackage]:
@@ -335,6 +353,63 @@ def plan_publication(
     return plan
 
 
+def split_mattos_version(version: str) -> tuple[str, int]:
+    """(upstream, revision) of a `<upstream>-1mattos<N>` version."""
+    match = MATTOS_VERSION.match(version)
+    if not match:
+        raise RepoError(f"{version} is not a MattOS package version (<upstream>-1mattos<N>)")
+    return match["upstream"], int(match["revision"])
+
+
+def bump_targets(plan: PublicationPlan, packages: list[InventoryPackage]) -> list[InventoryPackage]:
+    """The packages that need a higher packaging revision: each package whose
+    bytes changed under its already-published version, and every package
+    whose version is published and that depends on one of them with an exact
+    version (its Depends changes with the new version, so its bytes do too)."""
+    published = {package.name for package in plan.rebuilt + plan.unchanged}
+    targets = {package.name for package in plan.rebuilt}
+    grew = True
+    while grew:
+        grew = False
+        for package in packages:
+            if package.name in targets or package.name not in published:
+                continue
+            for dependency in package.dependencies:
+                match = EXACT_DEPENDENCY.match(dependency.strip())
+                if match and match["name"] in targets:
+                    targets.add(package.name)
+                    grew = True
+                    break
+    return sorted((package for package in packages if package.name in targets), key=lambda package: package.name)
+
+
+def raise_revisions(repo_root: Path, packages: list[InventoryPackage]) -> list[tuple[str, str, str]]:
+    """Record revision N+1 for each package in the revision ledger, keeping its
+    header and other entries.  Returns (name, old version, new version)."""
+    path = repo_root / REVISION_LEDGER_RELATIVE
+    text = path.read_text(encoding="utf-8")
+    ledger = tomllib.loads(text)
+    if ledger.get("schema_version") != 1:
+        raise RepoError(f"{REVISION_LEDGER_RELATIVE} has an unsupported schema_version")
+    entries = {name: dict(entry) for name, entry in ledger.get("package", {}).items()}
+    changes = []
+    for package in packages:
+        upstream, revision = split_mattos_version(package.version)
+        entries[package.name] = {"upstream": upstream, "revision": revision + 1}
+        changes.append((package.name, package.version, f"{upstream}-1mattos{revision + 1}"))
+    lines = text.splitlines()
+    try:
+        header = lines[: lines.index("[package]") + 1]
+    except ValueError as exc:
+        raise RepoError(f"{REVISION_LEDGER_RELATIVE} lacks its [package] table") from exc
+    body = [
+        f'{json.dumps(name)} = {{ upstream = {json.dumps(entry["upstream"])}, revision = {entry["revision"]} }}'
+        for name, entry in sorted(entries.items())
+    ]
+    path.write_text("\n".join(header + body) + "\n", encoding="utf-8")
+    return changes
+
+
 def main() -> int:
     args = parse_args()
     repo_root = find_repo_root(Path(__file__).resolve().parent)
@@ -346,17 +421,48 @@ def main() -> int:
     entries = inventory_packages(repo_root)
     reject_third_party_names(repo_root, entries)
     url = published_index_url(repo_root)
-    plan = plan_publication(entries, parse_packages_index(fetch_published_index(url)))
-    for package, newest in plan.older_than_published:
-        print(f"  refused: {package.name} {package.version} is older than published {newest}")
-    if plan.older_than_published:
-        raise RepoError(
-            "the packages above are older than the published versions; publishing "
-            "them would not replace what clients install. Rebuild from a current checkout"
+    published = parse_packages_index(fetch_published_index(url))
+    for round_number in range(MAX_BUMP_ROUNDS + 1):
+        plan = plan_publication(entries, published)
+        for package, newest in plan.older_than_published:
+            print(f"  refused: {package.name} {package.version} is older than published {newest}")
+        if plan.older_than_published:
+            raise RepoError(
+                "the packages above are older than the published versions; publishing "
+                "them would not replace what clients install. Rebuild from a current checkout "
+                f"(is {REVISION_LEDGER_RELATIVE} up to date and committed?)"
+            )
+        if not plan.rebuilt:
+            break
+        targets = bump_targets(plan, entries)
+        print(
+            f"{len(plan.rebuilt)} package(s) changed under an already-published version; "
+            f"raising the packaging revision of {len(targets)} (with their exact dependents):"
         )
+        for package in targets:
+            upstream, revision = split_mattos_version(package.version)
+            reason = "changed" if package in plan.rebuilt else "pins a changed package exactly"
+            print(f"  {package.name}: {package.version} -> {upstream}-1mattos{revision + 1} ({reason})")
+        if args.no_bump:
+            raise RepoError(
+                "refusing to upload different bytes under published versions (--no-bump); "
+                "rerun without --no-bump to raise their revisions"
+            )
+        if args.dry_run:
+            print(f"Dry run: {REVISION_LEDGER_RELATIVE} is not changed and nothing is uploaded")
+            return 0
+        if round_number == MAX_BUMP_ROUNDS:
+            raise RepoError(
+                f"packages still changed under published versions after {MAX_BUMP_ROUNDS} revision "
+                "rounds; their packaging may not be reproducible"
+            )
+        raise_revisions(repo_root, targets)
+        print(f"Recorded the new revisions in {REVISION_LEDGER_RELATIVE} (commit it); rebuilding the packages")
+        ensure_build(repo_root, clean=False, no_build=False)
+        entries = inventory_packages(repo_root)
+        reject_third_party_names(repo_root, entries)
     print(
-        f"{len(plan.new)} new or newer, {len(plan.rebuilt)} rebuilt under a published "
-        f"version (replaced), {len(plan.unchanged)} identical to the published package (skipped)"
+        f"{len(plan.new)} new or newer, {len(plan.unchanged)} identical to the published package (skipped)"
     )
     if not plan.upload:
         print("Nothing to upload")

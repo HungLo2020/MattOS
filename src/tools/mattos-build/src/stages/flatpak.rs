@@ -54,6 +54,29 @@ fn build_json_glib(repo_root: &Path) -> Result<()> {
     )
 }
 
+/// The freedesktop.org MIME database and `update-mime-database`.  GLib's
+/// content-type detection (and so AppStream reading compressed catalogs)
+/// needs the compiled database; the image build and the installer generate
+/// it, and the package's dpkg trigger keeps it current.
+fn build_shared_mime_info(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "shared-mime-info",
+        "src/system/libraries/shared-mime-info",
+        &["glib", "libffi", "pcre2", "zlib", "libxml2"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dupdate-mimedb=false",
+            "-Dbuild-tests=false",
+            "-Dbuild-spec=false",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/bin/update-mime-database",
+        &[],
+    )
+}
+
 fn build_appstream(repo_root: &Path) -> Result<()> {
     build_meson_runtime(
         repo_root,

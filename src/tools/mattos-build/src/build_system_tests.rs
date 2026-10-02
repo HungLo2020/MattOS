@@ -1484,9 +1484,6 @@ fn kernel_release_matches_the_vendored_kernel_and_data() {
     assert_eq!(release, MATTOS_KERNEL_RELEASE, "update mattos_kernel_release! with the kernel");
     for data in [
         "src/system/packages/debian-compat/trixie.toml",
-        "src/system/packages/debian-compat/protected.toml",
-        "src/system/packages/config/apt/00mattos-priority",
-        "src/system/packages/config/apt/installed/00mattos-priority",
     ] {
         let text = fs::read_to_string(root.join(data)).unwrap();
         let names = text
