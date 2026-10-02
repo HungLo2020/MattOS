@@ -163,6 +163,49 @@ without extra flags, and a check that exactly one APT source names the local
 repository; these are not a substitute for interactive GUI or application
 acceptance tests.
 
+## Upgrade test
+
+A fresh install proves only that the current ISO installs. The upgrade test
+proves that a system installed from an earlier ISO upgrades to the current
+build with plain APT and still passes every installed-system check:
+
+```text
+python3 DevUtils/run_qemu.py --save-upgrade-baseline
+python3 DevUtils/run_qemu.py --upgrade-test [--install-profile cli|plasma] [--upgrade-from ISO]
+```
+
+`--save-upgrade-baseline` keeps a copy of the current ISO as the baseline
+(`out/images/upgrade-baseline/mattos-x86_64.iso`, with a JSON record of its
+SHA-256 and git commit); save one from each build you treat as a release.
+`--upgrade-test` then:
+
+1. installs the baseline ISO, with the same automated installer as
+   `--install`, on its own disk (`out/qemu/upgrade-test.qcow2`);
+2. boots the installed system and serves the current build's local repository
+   (`out/repository`) from the host over HTTP (the guest reaches the host's
+   loopback at `10.0.2.2`). A temporary APT source names it; the hosted
+   repository is disabled meanwhile, so the test upgrades to exactly what was
+   built, before anything is published;
+3. runs `apt-get full-upgrade` and requires that nothing was held back, that
+   no upgrade work remains, that `dpkg --audit` is clean, and that every
+   installed package MattOS builds is at its built version
+   (`out/packages/inventory.toml`);
+4. restores the installed APT sources, reboots, and runs the same boot
+   checks as `--install` (for Plasma, the graphical login, session and reboot
+   checks too).
+
+The result, with the baseline record, package counts and the packages that
+changed, is written to `out/logs/upgrade-test.json`; the guest log is
+`out/logs/upgrade-test.log`. A failed upgrade disk is kept for diagnosis.
+
+Before publishing a change, prepare it with
+`python3 DevUtils/PublishPackages.py --no-upload`, which raises the packaging
+revisions it needs and rebuilds without uploading (see
+[Publishing Packages](../packaging/publishing.md#packaging-revisions)), run
+`--upgrade-test --no-build` against that build, then publish.
+
+## Installed APT refresh
+
 Installed systems enable a bounded APT index bootstrap 15 seconds after boot,
 independently of login. Only a fully successful refresh records completion.
 Offline failures do not prevent installation or login, and retry on a later

@@ -252,6 +252,23 @@ class PublicationGuardTests(unittest.TestCase):
                 ["bash_5.3-1mattos2_amd64.deb", "libc6_2.43-1mattos2_amd64.deb", "zlib1g_1.3.2-1mattos1_amd64.deb"],
             )
 
+    def test_no_upload_prepares_the_new_revisions_without_uploading(self) -> None:
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ledger = self.ledger(root)
+            import dataclasses
+            before = [_package("bash", "5.3-1mattos1", sha="d" * 64)]
+            after = [_package("bash", "5.3-1mattos2", sha="d" * 64)]
+            before, after = (
+                [dataclasses.replace(p, artifact=root / "out/packages/amd64" / p.artifact.name) for p in packages]
+                for packages in (before, after)
+            )
+            args = mock.Mock(clean=False, no_build=True, dry_run=False, no_bump=False, no_upload=True)
+            result, upload = self.run_main(self.main_patches(root, args, [before, after]))
+            self.assertEqual(result, 0)
+            upload.assert_not_called()
+            self.assertEqual(tomllib.loads(ledger.read_text())["package"], {"bash": {"upstream": "5.3", "revision": 2}})
+
     def test_main_refuses_or_only_reports_without_changing_anything(self) -> None:
         changed = [_package("bash", "5.3-1mattos1", sha="d" * 64)]
         for flags, raises in (({"no_bump": True, "dry_run": False}, True), ({"no_bump": False, "dry_run": True}, False)):

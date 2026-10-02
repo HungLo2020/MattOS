@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import base64
+import functools
+import hashlib
+import http.server
 import json
+import threading
+import tomllib
 import os
 import re
 import shlex
@@ -39,6 +44,17 @@ DEFAULT_INSTALL_DISK_RELATIVE = Path("out/qemu/mattos-dev.qcow2")
 INSTALL_TEST_DISK_RELATIVE = Path("out/qemu/installed-test.qcow2")
 INSTALL_TEST_COMPLETION_RELATIVE = Path("out/qemu/installed-test.complete.json")
 INSTALL_TEST_LOG_RELATIVE = Path("out/logs/installed-test-install.log")
+UPGRADE_TEST_DISK_RELATIVE = Path("out/qemu/upgrade-test.qcow2")
+UPGRADE_BASELINE_RELATIVE = Path("out/images/upgrade-baseline/mattos-x86_64.iso")
+UPGRADE_REPORT_RELATIVE = Path("out/logs/upgrade-test.json")
+UPGRADE_LOG_RELATIVE = Path("out/logs/upgrade-test.log")
+UPGRADE_TEST_SOURCE = "/etc/apt/sources.list.d/zz-mattos-upgrade-test.sources"
+# QEMU user networking reaches the host's loopback at this address.
+QEMU_HOST_ADDRESS = "10.0.2.2"
+UPGRADE_SUMMARY = re.compile(
+    r"(?P<upgraded>\d+) upgraded, (?P<installed>\d+) newly installed, "
+    r"(?P<removed>\d+) to remove and (?P<held>\d+) not upgraded"
+)
 DEFAULT_INSTALL_DISK_SIZE = "16G"
 DEFAULT_VM_MEMORY_MIB = 6144
 DEFAULT_VM_CPUS = 4
@@ -144,6 +160,25 @@ def parse_args() -> argparse.Namespace:
         help="installed-system profile used by --install (default: plasma)",
     )
     parser.add_argument(
+        "--upgrade-test",
+        action="store_true",
+        help=(
+            "install the baseline ISO (--upgrade-from) on a separate disk, upgrade it with apt to the "
+            "current build's repository, reboot and rerun the installed-system checks"
+        ),
+    )
+    parser.add_argument(
+        "--upgrade-from",
+        type=Path,
+        metavar="ISO",
+        help=f"baseline ISO for --upgrade-test (default: {UPGRADE_BASELINE_RELATIVE})",
+    )
+    parser.add_argument(
+        "--save-upgrade-baseline",
+        action="store_true",
+        help=f"keep the current ISO as the --upgrade-test baseline ({UPGRADE_BASELINE_RELATIVE})",
+    )
+    parser.add_argument(
         "--run-installed",
         action="store_true",
         help="boot the existing dedicated installed-test.qcow2 without building or modifying it",
@@ -171,6 +206,12 @@ def parse_args() -> argparse.Namespace:
         parser.error("--install always builds the canonical current ISO; omit --no-build")
     if args.run_installed and args.clean and not args.install:
         parser.error("--run-installed never builds; --clean is not applicable")
+    if args.upgrade_test and (args.install or args.run_installed or args.build_only or args.no_install_disk):
+        parser.error("--upgrade-test cannot be combined with --install, --run-installed, --build-only or --no-install-disk")
+    if args.upgrade_from and not args.upgrade_test:
+        parser.error("--upgrade-from requires --upgrade-test")
+    if args.save_upgrade_baseline and (args.upgrade_test or args.install or args.run_installed):
+        parser.error("--save-upgrade-baseline only saves the current ISO; run the test separately")
     return args
 
 
@@ -1549,6 +1590,279 @@ def _verify_installed_disk_boot(
     return result
 
 
+def upgrade_baseline_metadata(iso: Path) -> Path:
+    return iso.with_name(iso.name + ".json")
+
+
+def save_upgrade_baseline(repo_root: Path, iso: Path) -> Path:
+    """Keep a copy of the current ISO as the baseline the upgrade test installs."""
+    destination = (repo_root / UPGRADE_BASELINE_RELATIVE).resolve()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_name(f".{destination.name}.saving-{os.getpid()}")
+    shutil.copyfile(iso, temporary)
+    digest = hashlib.sha256()
+    with temporary.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    commit = run_command_capture(["git", "rev-parse", "HEAD"], repo_root).strip()
+    dirty = bool(run_command_capture(["git", "status", "--porcelain"], repo_root).strip())
+    temporary.replace(destination)
+    metadata = {
+        "schema": 1,
+        "sha256": digest.hexdigest(),
+        "git_commit": commit,
+        "git_dirty": dirty,
+        "saved_at": datetime.now(UTC).isoformat(),
+    }
+    upgrade_baseline_metadata(destination).write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+    return destination
+
+
+def upgrade_test_source(port: int) -> str:
+    """The temporary APT source naming the build's local repository, served by the host.
+
+    It is unsigned like the embedded local repository, and its Release carries
+    the same `MattOS Local` label, so the installed pins treat it as MattOS.
+    """
+    return (
+        "Types: deb\n"
+        f"URIs: http://{QEMU_HOST_ADDRESS}:{port}/\n"
+        "Suites: trixie\n"
+        "Components: main\n"
+        "Architectures: amd64\n"
+        "Trusted: yes\n"
+    )
+
+
+# Terminal control sequences in guest output: OSC (systemd's shell
+# integration marks every prompt and command with OSC 3008 context frames,
+# terminated by ST or BEL) and CSI (colors).
+TERMINAL_CONTROLS = re.compile(r"\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b\[[0-9;?]*[ -/]*[@-~]")
+
+
+def strip_terminal_controls(text: str) -> str:
+    return TERMINAL_CONTROLS.sub("", text)
+
+
+def parse_upgrade_summary(output: str) -> dict[str, int]:
+    """The counts of apt-get's last `N upgraded, ...` summary line."""
+    matches = list(UPGRADE_SUMMARY.finditer(strip_terminal_controls(output)))
+    if not matches:
+        raise RepoError("apt-get printed no upgrade summary")
+    return {key: int(value) for key, value in matches[-1].groupdict().items()}
+
+
+def framed_output(output: str, label: str) -> str:
+    """The text a guest command printed between `<label>-begin` and `<label>-end` lines."""
+    output = strip_terminal_controls(output)
+    match = re.search(rf"(?m)^{re.escape(label)}-begin\r?$(.*?)^{re.escape(label)}-end\r?$", output, re.S)
+    if match is None:
+        raise RepoError(f"guest output lacks its {label} frame")
+    return match.group(1)
+
+
+def framed_command(command: str, label: str) -> str:
+    # The frame lines are assembled at run time, so the echoed command line
+    # itself can never be mistaken for them.
+    head, tail = label[:1], label[1:]
+    return f"printf '%s%s\\n' {head} {tail}-begin; {command}; printf '%s%s\\n' {head} {tail}-end"
+
+
+def stale_installed_packages(installed: str, inventory: dict[str, str]) -> list[str]:
+    """Installed packages the build produces whose version is not the build's.
+
+    `installed` is `dpkg-query -W -f '${Package} ${Version}\\n'` output.
+    """
+    stale = []
+    for line in installed.splitlines():
+        fields = line.split()
+        if len(fields) != 2:
+            continue
+        name, version = fields
+        expected = inventory.get(name)
+        if expected is not None and version != expected:
+            stale.append(f"{name} {version} (built {expected})")
+    return sorted(stale)
+
+
+def installed_check_results(log: str) -> dict[str, list[str]]:
+    """The named installed-system checks a verification log reports."""
+    results: dict[str, list[str]] = {"pass": [], "fail": []}
+    # Matched on the raw text: a stray ESC can directly precede the
+    # bracket, which control-sequence stripping would read as CSI.
+    for match in re.finditer(r"\[installed-check\] (PASS|FAIL) ([A-Za-z0-9-]+)", log):
+        results[match.group(1).lower()].append(match.group(2))
+    return results
+
+
+def build_inventory_versions(repo_root: Path) -> dict[str, str]:
+    inventory = tomllib.loads((repo_root / "out/packages/inventory.toml").read_text(encoding="utf-8"))
+    return {entry["name"]: entry["version"] for entry in inventory.get("package", [])}
+
+
+class _QuietRepositoryHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format: str, *args: object) -> None:
+        pass
+
+
+def serve_repository(directory: Path) -> tuple[http.server.ThreadingHTTPServer, int]:
+    """Serve the build's local repository on the host loopback for the guest."""
+    if not (directory / "dists/trixie/Release").is_file():
+        raise RepoError(f"no built local repository at {directory}; build MattOS first")
+    handler = functools.partial(_QuietRepositoryHandler, directory=str(directory))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, server.server_address[1]
+
+
+def _upgrade_installed_system(
+    repo_root: Path,
+    disk: Path,
+    args: argparse.Namespace,
+    port: int,
+    report: dict[str, object],
+) -> None:
+    """Boot the baseline install, upgrade it from the served repository, and
+    check the result before shutting down."""
+    upgrade_args = argparse.Namespace(**vars(args))
+    upgrade_args.install = False
+    upgrade_args.run_installed = False
+    upgrade_args.test_control = True
+    upgrade_args.require_virgl = getattr(args, "install_profile", "plasma") == "plasma"
+    upgrade_args.serial_console = False
+    upgrade_args.headless = False
+    log_path = (repo_root / UPGRADE_LOG_RELATIVE).resolve()
+    sudo = f"printf '%s\\n' {shlex.quote(TEST_INSTALL_PASSWORD)} | sudo -S"
+    inventory = build_inventory_versions(repo_root)
+    source = base64.b64encode(upgrade_test_source(port).encode()).decode()
+
+    def lifecycle(_proc: subprocess.Popen[str], control_paths: tuple[Path, Path]) -> None:
+        wait_for_socket(control_paths[0], 120)
+        serial = control_paths[1].resolve()
+
+        def stream(chunk: str) -> None:
+            print(chunk, end="", flush=True)
+            with log_path.open("a", encoding="utf-8") as log:
+                log.write(chunk)
+
+        def run(command: str, idle: float = INSTALL_BOOT_IDLE_SECONDS) -> str:
+            return serial_command_stream(serial, command, idle, on_output=stream)
+
+        installed_query = "dpkg-query -W -f '${Package} ${Version}\\n'"
+        before = framed_output(run(framed_command(installed_query, "installed")), "installed")
+        report["packages_before"] = len(before.split("\n")) - 1
+        # Upgrade from the build alone: the hosted repository may hold other versions.
+        run(
+            f"{sudo} sh -c 'echo {source} | base64 -d > {UPGRADE_TEST_SOURCE} && "
+            "sed -i \"s/^Enabled: yes/Enabled: no/\" /etc/apt/sources.list.d/mattos-hosted.sources'"
+        )
+        stream("[upgrade-test] serving the build repository at "
+               f"http://{QEMU_HOST_ADDRESS}:{port}/\n")
+        run(f"{sudo} apt-get update")
+        upgrade = run(
+            f"{sudo} env DEBIAN_FRONTEND=noninteractive apt-get -y "
+            "-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold full-upgrade",
+            INSTALL_PROGRESS_IDLE_SECONDS,
+        )
+        summary = parse_upgrade_summary(upgrade)
+        report["apt_full_upgrade"] = summary
+        stream(f"[upgrade-test] apt full-upgrade: {summary}\n")
+        if summary["held"]:
+            raise RepoError(f"apt held back {summary['held']} package(s) during the upgrade")
+        remaining = parse_upgrade_summary(run(f"{sudo} apt-get -s full-upgrade"))
+        if any(remaining[key] for key in ("upgraded", "installed", "removed", "held")):
+            raise RepoError(f"the upgrade left work undone: {remaining}")
+        run("test -z \"$(dpkg --audit)\"")
+        after = framed_output(run(framed_command(installed_query, "installed")), "installed")
+        stale = stale_installed_packages(after, inventory)
+        if stale:
+            raise RepoError("installed packages are not at the built versions: " + "; ".join(stale))
+        report["packages_after"] = len(after.split("\n")) - 1
+        report["changed_packages"] = sorted(
+            set(after.strip().splitlines()) - set(before.strip().splitlines())
+        )
+        stream(f"[upgrade-test] PASS every installed MattOS package is at its built version "
+               f"({len(report['changed_packages'])} changed)\n")
+        # Leave the ordinary installed APT policy for the post-upgrade checks.
+        run(
+            f"{sudo} sh -c 'rm -f {UPGRADE_TEST_SOURCE} && "
+            "sed -i \"s/^Enabled: no/Enabled: yes/\" /etc/apt/sources.list.d/mattos-hosted.sources'"
+        )
+        run(scheduled_poweroff_command(TEST_INSTALL_PASSWORD))
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path.write_text("MattOS upgrade test log\n", encoding="utf-8")
+    exit_code = _launch_one(repo_root, None, upgrade_args, boot_iso=False, install_disk=disk, lifecycle=lifecycle)
+    if exit_code != 0:
+        raise RepoError(f"upgrade VM exited with status {exit_code}")
+
+
+def run_upgrade_test(repo_root: Path, args: argparse.Namespace) -> int:
+    """Install the baseline ISO, upgrade it to the current build, reboot and
+    verify the upgraded system with the same checks as a fresh install."""
+    baseline = (args.upgrade_from or repo_root / UPGRADE_BASELINE_RELATIVE)
+    baseline = (baseline if baseline.is_absolute() else repo_root / baseline).resolve()
+    if not baseline.is_file():
+        raise RepoError(
+            f"no upgrade baseline ISO at {baseline}; save one with "
+            "python3 DevUtils/run_qemu.py --save-upgrade-baseline"
+        )
+    current = ensure_iso_exists(repo_root)
+    report: dict[str, object] = {
+        "schema": 1,
+        "profile": args.install_profile,
+        "baseline_iso": str(baseline),
+        "current_iso": str(current),
+        "started_at": datetime.now(UTC).isoformat(),
+    }
+    metadata = upgrade_baseline_metadata(baseline)
+    if metadata.is_file():
+        report["baseline"] = json.loads(metadata.read_text(encoding="utf-8"))
+    install_args = argparse.Namespace(**vars(args))
+    install_args.install = True
+    install_args.install_disk = args.install_disk or UPGRADE_TEST_DISK_RELATIVE
+    disk = prepare_install_disk(repo_root, install_args)
+    assert disk is not None
+    report_path = (repo_root / UPGRADE_REPORT_RELATIVE).resolve()
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    server, port = serve_repository((repo_root / "out/repository").resolve())
+    try:
+        print(f"[upgrade-test] installing the baseline {baseline} ({args.install_profile})", flush=True)
+        result = _launch_one(
+            repo_root,
+            baseline,
+            install_args,
+            boot_iso=True,
+            install_disk=disk,
+            lifecycle=lambda _proc, paths: _run_automatic_test_install(repo_root, disk, paths, args.install_profile),
+        )
+        if result != 0:
+            raise RepoError(f"baseline installer VM exited with status {result}")
+        print("[upgrade-test] upgrading the installed baseline to the current build", flush=True)
+        _upgrade_installed_system(repo_root, disk, install_args, port, report)
+        print("[upgrade-test] rebooting the upgraded system for the installed-system checks", flush=True)
+        verification = _verify_installed_disk_boot(repo_root, disk, install_args)
+        boot_log = install_task_log(repo_root).with_name("installed-test-boot.log")
+        report["verification"] = {
+            "uefi_grub_boot": verification.get("uefi_grub_boot"),
+            "clean_shutdown": verification.get("clean_shutdown"),
+            "installed_checks": installed_check_results(boot_log.read_text(encoding="utf-8", errors="replace")),
+        }
+        report["result"] = "pass"
+    except Exception as exc:
+        report["result"] = "fail"
+        report["error"] = str(exc)
+        print(f"[upgrade-test] failed upgrade disk retained for diagnosis: {disk}", file=sys.stderr)
+        raise
+    finally:
+        server.shutdown()
+        server.server_close()
+        report["finished_at"] = datetime.now(UTC).isoformat()
+        report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"[upgrade-test] PASS: {baseline.name} upgraded to the current build and verified; report: {report_path}")
+    return 0
+
+
 def launch_qemu(repo_root: Path, iso_path: Path | None, args: argparse.Namespace) -> int:
     """Launch QEMU, with --install publishing a marker only after real boot proof."""
     if not getattr(args, "install", False):
@@ -1601,6 +1915,13 @@ def main() -> int:
         raise RepoError("python3 not available")
 
     build_if_needed(repo_root, args)
+
+    if args.save_upgrade_baseline:
+        saved = save_upgrade_baseline(repo_root, ensure_iso_exists(repo_root))
+        print(f"[upgrade-test] saved the current ISO as the upgrade baseline: {saved}")
+        return 0
+    if args.upgrade_test:
+        return run_upgrade_test(repo_root, args)
 
     if args.build_only:
         if not args.dry_run:

@@ -115,6 +115,14 @@ def parse_args() -> argparse.Namespace:
         help="validate and print the upload command without uploading (and without raising revisions)",
     )
     parser.add_argument(
+        "--no-upload",
+        action="store_true",
+        help=(
+            "raise revisions and rebuild as needed, then stop before uploading "
+            "(prepare a build for DevUtils/run_qemu.py --upgrade-test)"
+        ),
+    )
+    parser.add_argument(
         "--no-bump",
         action="store_true",
         help="refuse, instead of raising packaging revisions, when a package changed under a published version",
@@ -469,6 +477,12 @@ def main() -> int:
         return 0
     for package in plan.upload:
         print(f"  {package.artifact.relative_to(repo_root)}")
+    if getattr(args, "no_upload", False) is True:
+        print(
+            f"Prepared {len(plan.upload)} package(s) without uploading (--no-upload); "
+            "test the upgrade with python3 DevUtils/run_qemu.py --upgrade-test --no-build, then publish"
+        )
+        return 0
     upload_packages(repo_root, sorted(package.artifact for package in plan.upload), dry_run=args.dry_run)
     return 0
 

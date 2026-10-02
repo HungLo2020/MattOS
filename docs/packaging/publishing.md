@@ -20,6 +20,9 @@ Options (from the script's `argparse`):
   would need a new revision (below), it lists them and changes nothing.
 - `--no-bump`: refuse, instead of raising revisions, when a package changed
   under a published version.
+- `--no-upload`: raise revisions and rebuild as needed, then stop before
+  uploading, so the prepared build can be checked with the
+  [upgrade test](../system/installer.md#upgrade-test) first.
 
 The script lists the packages it discovered from the inventory before handing
 them to the publisher.
