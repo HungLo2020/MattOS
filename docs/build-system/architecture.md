@@ -196,12 +196,20 @@ to, a stage's view of a file keeps every top-level function, constant and
 static reachable through identifier references across the whole crate
 (including helpers in unhashed files that call back into the recipe file),
 plus every other top-level item (imports, types, impls, macros).
-An item ends at the column-0 line that closes it (a line starting or ending
-with `}` or ending with `;`), so consecutive one-line functions, such as the
-one-line application recipes in `stages/plasma_apps.rs`, are separate items
-that each keep their own calls; merging them would hide a callee such as
-`build_qt_module` from the stages whose recipes are one-liners and silently
-drop recipe edits from their keys.
+Items are split lexically (projection v4): an item starts at a column-0 line
+at brace depth 0 outside any string or comment, and ends at the line that
+returns to depth 0 closing with `}` or `;`.  A column-0 line inside a
+multi-line string (an embedded C++ snippet or shell script) therefore never
+cuts a function in two, and consecutive one-line functions, such as the
+one-line application recipes in `stages/plasma_apps.rs`, stay separate items
+that each keep their own calls.  The v3 split worked line by line and cut such
+functions, which hid their later calls from their stages and widened every
+other stage's key with the stray fragment.
+A stage's key covers the recipe files listed in its source inputs and, as
+implicit inputs, every other `stages/*.rs` recipe file defining code it
+reaches (`recipe_projection::implicit_recipe_inputs`): Layer Shell Qt lists
+only `plasma.rs`, yet its key also covers its view of `kde_foundation.rs`
+(the shared KDE CMake helper) and `qt.rs`, so an edit there rebuilds it.
 `#[cfg(test)]` items and helpers the stage never reaches are excluded, so
 adding a test or a helper for one stage to a shared file such as
 `toolchain.rs` no longer rebuilds the others. Reachability follows the
@@ -211,12 +219,16 @@ a constant). It never passes through the stage dispatcher or the CLI entry
 point `main`, which reach every recipe. Name matching over-approximates
 calls, so a misjudgement can only widen a key. Manifests recorded under
 earlier projections migrate without a rebuild when the earlier, wider view is
-unchanged: v2 read every word, comments and strings included, and v1 removed
-only other stages' recipe functions (for v1, migration also requires that
-the current projection reaches none of the functions v1 removed, since those
-were outside v1's view). Helpers in files outside a
-stage's source inputs (`stages/helpers/*.rs`, `main.rs`) remain shared
-infrastructure: a behavior change there needs an explicit
+unchanged: v3 split items by lines (migration also requires every non-blank
+line the v4 view keeps to be one the v3 view kept), v2 read every word,
+comments and strings included, and v1 removed only other stages' recipe
+functions (for v1, migration also requires that the current projection
+reaches none of the functions v1 removed, since those were outside v1's
+view). A manifest recorded before implicit recipe inputs adopts them once
+(marked `recipe-coverage:implicit` in its source details); a stage known to
+be stale against such a file is rebuilt with a `recipe_revision` bump.
+Helpers in `stages/helpers/*.rs` and `main.rs` remain shared infrastructure,
+outside implicit coverage: a behavior change there needs an explicit
 `recipe_revision` bump for the affected stages.
 
 Package cache keys cover the staging code in the same way

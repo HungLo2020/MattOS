@@ -22,13 +22,16 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock};
 
 /// Marks a reachability projection digest.
-pub(crate) const PROJECTION_PREFIX: &str = "recipe-projection-v3:";
+pub(crate) const PROJECTION_PREFIX: &str = "recipe-projection-v4:";
 /// Earlier projections, kept so that manifests recorded under them migrate
 /// without a rebuild.  v2 read identifiers as every word of an item,
 /// including comments and strings (so the word "main" reached the CLI entry
 /// point); v1 removed only other stages' recipe functions.  Each successive
 /// projection hashes a subset of its predecessor's view (see
 /// `legacy_projection_matches`).
+/// v3 split items by lines alone, so a column-0 line inside a multi-line
+/// string could cut a function in two.
+pub(crate) const LEGACY_V3_PREFIX: &str = "recipe-projection-v3:";
 pub(crate) const LEGACY_V2_PREFIX: &str = "recipe-projection-v2:";
 pub(crate) const LEGACY_PROJECTION_PREFIX: &str = "recipe-projection-v1:";
 const CRATE_DIRECTORY: &str = "src/tools/mattos-build/src/";
@@ -126,6 +129,57 @@ pub(crate) fn projected_recipe_digest(
     }))
 }
 
+/// Marks a stage whose key also covers the recipe files it reaches but does
+/// not list (see `implicit_recipe_inputs`).  Manifests recorded before this
+/// coverage lack the marker and adopt those files once (see
+/// `stage_cache::can_migrate_narrowed_manifest`).
+pub(crate) const IMPLICIT_RECIPE_COVERAGE_KEY: &str = "recipe-coverage:implicit";
+pub(crate) const IMPLICIT_RECIPE_COVERAGE_VERSION: &str = "v1";
+
+/// Recipe files (`stages/*.rs`, not the shared `stages/helpers/` or the
+/// dispatcher) that define code `stage`'s recipe calls but that are not among
+/// its listed `source_inputs`.  A stage's key covers each of these through
+/// its projection, so a change to code the stage runs can never leave its
+/// cached output in place merely because the file was not listed.
+pub(crate) fn implicit_recipe_inputs(
+    repo_root: &Path,
+    stage: &str,
+    source_inputs: &[PathBuf],
+) -> Result<Vec<PathBuf>> {
+    let Some(variant) = stage_variant(stage) else {
+        return Ok(Vec::new());
+    };
+    let index = crate_index(repo_root, Tokens::Code)?;
+    // The same reachability a projection uses: what the recipe calls plus
+    // what always-kept items (impls, macros) mention.
+    let reached = reachable(&index, &variant, BARRIERS);
+    let listed = source_inputs
+        .iter()
+        .map(|path| repo_root.join(path.strip_prefix(repo_root).unwrap_or(path)))
+        .collect::<BTreeSet<_>>();
+    let recipe_directory = repo_root.join(RECIPE_DIRECTORY);
+    let mut implicit = Vec::new();
+    for (file, chunks) in &index.files {
+        let Ok(relative) = file.strip_prefix(&recipe_directory) else {
+            continue;
+        };
+        if relative.starts_with("helpers")
+            || relative == Path::new("registry.rs")
+            || listed.contains(file)
+        {
+            continue;
+        }
+        let calls_into = chunks.iter().any(|chunk| {
+            !chunk.test_only
+                && matches!(&chunk.kind, ChunkKind::Named(name) if reached.contains(name))
+        });
+        if calls_into {
+            implicit.push(file.clone());
+        }
+    }
+    Ok(implicit)
+}
+
 /// Whether `stored`, a digest recorded under an earlier projection, still
 /// describes `path` for `stage`, proving the current (v3) view unchanged.
 ///
@@ -146,6 +200,25 @@ pub(crate) fn legacy_projection_matches(
     let (Some(file), Some(variant)) = (recipe_file(repo_root, path), stage_variant(stage)) else {
         return Ok(false);
     };
+    if stored.starts_with(LEGACY_V3_PREFIX) {
+        // v3's view of the current file must be unchanged, and every line v4
+        // keeps must be one v3 kept: then the code this stage executes, which
+        // lies within the v4 view, is unchanged since the output was built.
+        let v3_index = crate_index(repo_root, Tokens::CodeLineSplit)?;
+        let v3_reachable = reachable(&v3_index, &variant, BARRIERS);
+        let index = crate_index(repo_root, Tokens::Code)?;
+        let current_reachable = reachable(&index, &variant, BARRIERS);
+        let (Some(v3_chunks), Some(chunks)) = (v3_index.files.get(&file), index.files.get(&file)) else {
+            return Ok(false);
+        };
+        let Some(v3_projection) = project(v3_chunks, &v3_reachable) else {
+            return Ok(false);
+        };
+        if format!("{LEGACY_V3_PREFIX}{:x}", Sha256::digest(v3_projection.as_bytes())) != stored {
+            return Ok(false);
+        }
+        return Ok(kept_lines(chunks, &current_reachable).is_subset(&kept_lines(v3_chunks, &v3_reachable)));
+    }
     if stored.starts_with(LEGACY_V2_PREFIX) {
         let index = crate_index(repo_root, Tokens::Words)?;
         let reachable = reachable(&index, &variant, V2_BARRIERS);
@@ -203,6 +276,33 @@ fn project(chunks: &[Chunk], reachable: &BTreeSet<String>) -> Option<String> {
         }
     }
     removed.then_some(projection)
+}
+
+/// Line numbers of the file (as split into `chunks`) that a projection with
+/// `reachable` keeps: each kept item's non-blank content lines.  Blank lines
+/// are layout, and the two splits attach them to items differently.
+fn kept_lines(chunks: &[Chunk], reachable: &BTreeSet<String>) -> BTreeSet<usize> {
+    let mut kept = BTreeSet::new();
+    let mut line = 0;
+    for chunk in chunks {
+        let keep = !chunk.test_only
+            && match &chunk.kind {
+                ChunkKind::Named(name) => reachable.contains(name),
+                ChunkKind::Other => true,
+            };
+        if keep {
+            kept.extend(
+                chunk
+                    .content()
+                    .lines()
+                    .enumerate()
+                    .filter(|(_, text)| !text.trim().is_empty())
+                    .map(|(offset, _)| line + offset),
+            );
+        }
+        line += chunk.text.lines().count();
+    }
+    kept
 }
 
 /// The v1 projection: `source` without the recipe functions that belong only
@@ -519,3 +619,5 @@ mod tests {
         assert!(!projection.contains("fn build_gcc_toolchain("));
     }
 }
+
+

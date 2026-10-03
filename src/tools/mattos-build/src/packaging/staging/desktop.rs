@@ -1432,16 +1432,12 @@ pub(super) fn stage_pop_fonts(repo_root: &Path, staging: &Path) -> Result<()> {
 }
 
 pub(crate) fn stage_xdg_desktop_portal(repo_root: &Path, staging: &Path) -> Result<()> {
-    // The generic broker and its GStreamer pbutils closure ship together. The
-    // portal executes Bubblewrap at /usr/bin/bwrap, but Flatpak owns that
-    // target-built executable and is the portal package's declared runtime
-    // dependency. Copying it here would create two Debian package owners for
-    // the same path. Desktop-specific portal backends are packaged by their
-    // own first-class stages.
-    for component in ["gstreamer", "gstreamer-base", "xdg-desktop-portal"] {
-        copy_component_usr_and_etc(repo_root, staging, component)?;
-    }
-    Ok(())
+    // Only the generic broker: GStreamer is packaged as libgstreamer1.0-0
+    // and libgstreamer-plugins-base1.0-0, and the portal executes the
+    // Bubblewrap that Flatpak's closure packages own.  Copying either here
+    // would create two Debian package owners for the same paths.
+    // Desktop-specific portal backends are packaged by their own stages.
+    copy_component_usr_and_etc(repo_root, staging, "xdg-desktop-portal")
 }
 
 pub(super) fn stage_amdgpu_ids(install: &Path, staging: &Path) -> Result<()> {

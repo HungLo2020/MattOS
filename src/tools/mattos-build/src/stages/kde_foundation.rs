@@ -278,6 +278,7 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
     fs::create_dir_all(&include)?;
     for provider in [
         repo_root.join("out/build/qtbase/install/usr/include"),
+        repo_root.join("out/build/qt5compat/install/usr/include"),
         repo_root.join("out/build/qtdeclarative/install/usr/include"),
         repo_root.join("out/build/qtpositioning/install/usr/include"),
         repo_root.join("out/build/qtshadertools/install/usr/include"),
@@ -300,6 +301,7 @@ fn qt_multimodule_cmake_view(repo_root: &Path, build: &Path) -> Result<PathBuf> 
     fs::create_dir_all(&metatypes)?;
     for provider in [
         repo_root.join("out/build/qtbase/install/usr/metatypes"),
+        repo_root.join("out/build/qt5compat/install/usr/metatypes"),
         repo_root.join("out/build/qtdeclarative/install/usr/metatypes"),
         repo_root.join("out/build/qtshadertools/install/usr/metatypes"),
         repo_root.join("out/build/qtpositioning/install/usr/metatypes"),
@@ -474,7 +476,9 @@ fn kde_qt_tool_bridge(build: &Path) -> Result<PathBuf> {
     for tool in ["qmlcontextpropertydump", "qmllint", "qmlformat", "qmltc"] {
         text.push_str(&format!("if(NOT TARGET Qt6::{tool})\n  add_executable(Qt6::{tool} IMPORTED GLOBAL)\n  set_target_properties(Qt6::{tool} PROPERTIES IMPORTED_LOCATION \"{}/bin/{tool}\")\nendif()\n", build.join("mattos-qt-cmake-view").display()));
     }
-    for tool in ["qmltyperegistrar", "qmlcachegen", "qmlaotstats"] {
+    // qmlimportscanner serves the import scan Qt runs when finalizing a QML
+    // executable created with qt_add_executable.
+    for tool in ["qmltyperegistrar", "qmlcachegen", "qmlaotstats", "qmlimportscanner"] {
         text.push_str(&format!("if(NOT TARGET Qt6::{tool})\n  add_executable(Qt6::{tool} IMPORTED GLOBAL)\n  set_target_properties(Qt6::{tool} PROPERTIES IMPORTED_LOCATION \"{}/libexec/{tool}\")\nendif()\n", build.join("mattos-qt-cmake-view").display()));
     }
     for (name, path) in [
@@ -566,6 +570,54 @@ fn append_cmake_flag(command: &mut Vec<String>, key: &str, value: &str) {
     } else {
         command.push(format!("{key}={value}"));
     }
+}
+
+/// Compiler and linker flag variables the helper composes; a component's own
+/// value is appended to them instead of replacing the helper's.
+const COMPOSED_CMAKE_FLAGS: &[&str] = &[
+    "-DCMAKE_C_FLAGS",
+    "-DCMAKE_CXX_FLAGS",
+    "-DCMAKE_EXE_LINKER_FLAGS",
+    "-DCMAKE_SHARED_LINKER_FLAGS",
+    "-DCMAKE_MODULE_LINKER_FLAGS",
+];
+
+/// Apply a component's own CMake options after every helper-derived one, so
+/// the recipe's explicit choice wins.  Composed flag variables are appended;
+/// any other variable the helper also set is replaced by the component's.
+fn apply_component_cmake_options(command: &mut Vec<String>, options: &[&str]) {
+    for option in options {
+        let key = option.split_once('=').map(|(key, _)| key);
+        match key {
+            Some(key) if option.starts_with("-D") && COMPOSED_CMAKE_FLAGS.contains(&key) => {
+                append_cmake_flag(command, key, &option[key.len() + 1..]);
+            }
+            Some(key) if option.starts_with("-D") => {
+                let assignment = format!("{key}=");
+                command.retain(|argument| !argument.starts_with(&assignment));
+                command.push((*option).to_owned());
+            }
+            _ => command.push((*option).to_owned()),
+        }
+    }
+}
+
+/// The shared target arguments set `CMAKE_SKIP_RPATH=ON`, which also drops
+/// the `INSTALL_RPATH` a project gives targets that load private libraries
+/// from their own directory (Discover's plasma-discover/, Elisa's elisa/).
+/// Keep RPATH handling on, but leave `CMAKE_INSTALL_RPATH` empty and switch
+/// off ECM's automatic RPATH settings (which would add the staged link
+/// directories): an installed binary records only its project's explicit
+/// install-time RPATH, never a staged build path.  Qt's QML-module helper
+/// would otherwise give every QML plugin a default `$ORIGIN/…/lib` RPATH;
+/// like Debian, MattOS ships QML plugins without one (the multiarch libdir
+/// is already on the default search path).
+fn keep_upstream_install_rpaths(command: &mut Vec<String>) {
+    command.retain(|argument| !argument.starts_with("-DCMAKE_SKIP_RPATH="));
+    command.push("-DCMAKE_SKIP_RPATH=OFF".into());
+    command.push("-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF".into());
+    command.push("-DKDE_SKIP_RPATH_SETTINGS=TRUE".into());
+    command.push("-DQT_NO_QML_PLUGIN_RPATH=TRUE".into());
 }
 
 fn build_kde_cmake(
@@ -1330,6 +1382,7 @@ public:
     } else {
         command.extend(isolated_target_cmake_args(repo_root, &prefixes)?);
     }
+    keep_upstream_install_rpaths(&mut command);
     if components.contains(&"qtbase") {
         let qtbase = repo_root.join("out/build/qtbase/install/usr");
         command.push(format!("-DQt6CorePrivate_DIR={}/lib/x86_64-linux-gnu/cmake/Qt6CorePrivate", qtbase.display()));
@@ -1453,6 +1506,10 @@ public:
             "-DQt6Multimedia_DIR={}/lib/x86_64-linux-gnu/cmake/Qt6Multimedia",
             multimedia.display()
         ));
+        command.push(format!(
+            "-DQt6MultimediaWidgets_DIR={}/lib/x86_64-linux-gnu/cmake/Qt6MultimediaWidgets",
+            multimedia.display()
+        ));
     }
     if components.contains(&"qtspeech") {
         let speech = repo_root.join("out/build/qtspeech/install/usr");
@@ -1473,7 +1530,6 @@ public:
             qca.display()
         ));
     }
-    command.extend(options.iter().map(|option| (*option).to_owned()));
     if component == "plasma-framework" {
         let x11 = repo_root.join("out/build/x11-compat/install/usr/include");
         append_cmake_flag(&mut command, "-DCMAKE_C_FLAGS", &format!("-I{}", x11.display()));
@@ -1835,6 +1891,7 @@ public:
             }
         }
     }
+    apply_component_cmake_options(&mut command, options);
     let refs = command.iter().map(String::as_str).collect::<Vec<_>>();
     let mut environment = kde_target_environment(repo_root, &build, components, qt_integration)?;
     if component == "breeze-icons" {

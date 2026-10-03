@@ -2219,6 +2219,28 @@ classification = "debian-compatible"
 known_gaps = ["Legacy Xorg and Xephyr servers are intentionally not built"]
 
 [[package]]
+debian_name = "libgstreamer1.0-0"
+mattos_name = "libgstreamer1.0-0"
+source_component = "gstreamer"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgstreamer-1.0.so.0", "/usr/libexec/gstreamer-1.0/gst-plugin-scanner"]
+provided_abi_or_commands = ["libgstreamer-1.0 ABI 0", "gst-launch-1.0", "gst-inspect-1.0"]
+current_mattos_version = "1.26.11-1mattos1"
+expected_debian_role = "GStreamer core libraries, core plugins and tools"
+classification = "debian-compatible"
+known_gaps = ["Development files and tools ship in the runtime package"]
+
+[[package]]
+debian_name = "libgstreamer-plugins-base1.0-0"
+mattos_name = "libgstreamer-plugins-base1.0-0"
+source_component = "gstreamer"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgstpbutils-1.0.so.0"]
+provided_abi_or_commands = ["gst-plugins-base 1.0 libraries ABI 0"]
+current_mattos_version = "1.26.11-1mattos1"
+expected_debian_role = "GStreamer base plugins and libraries"
+classification = "debian-compatible"
+known_gaps = ["Development files and the base plugins ship in the runtime package"]
+
+[[package]]
 debian_name = "xdg-desktop-portal"
 mattos_name = "xdg-desktop-portal"
 source_component = "xdg-desktop-portal 1.22.1"
@@ -3981,7 +4003,18 @@ provided_abi_or_commands = ["packagekitd and pkgcli"]
 current_mattos_version = "1.4.0-1mattos1"
 expected_debian_role = "PackageKit package-management service with the APT backend (daemon, pkgcli, libpackagekit-glib2)"
 classification = "debian-compatible"
-known_gaps = ["GStreamer comes from the xdg-desktop-portal package, which bundles it"]
+known_gaps = ["None known for the daemon and the APT backend"]
+
+[[package]]
+debian_name = "nasm"
+mattos_name = "nasm"
+source_component = "nasm"
+owned_paths = ["/usr/bin/nasm", "/usr/bin/ndisasm"]
+provided_abi_or_commands = ["nasm and ndisasm"]
+current_mattos_version = "3.02-1mattos1"
+expected_debian_role = "Netwide Assembler (x86 assembler) built for MattOS"
+classification = "debian-compatible"
+known_gaps = ["Man pages are not built (they need AsciiDoc)"]
 
 [[package]]
 debian_name = "libmpc3"

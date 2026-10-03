@@ -54,11 +54,14 @@ Debian's package names:
   Flatpak and KDE Store backends, and the PackageKit backend through
   PackageKit-Qt (`libpackagekitqt6-2`) and PackageKit with its APT backend
   (`packagekit`, which also needs SQLite (`libsqlite3-0`) and Jansson
-  (`libjansson4`)). PackageKit's APT backend links GStreamer, which the
-  `xdg-desktop-portal` package currently carries. Discover needs Kirigami
+  (`libjansson4`)). PackageKit's APT backend links GStreamer
+  (`libgstreamer1.0-0`, `libgstreamer-plugins-base1.0-0`). Discover needs Kirigami
   Addons 1.10 or later (MattOS pins 1.15.0) and QCoro's network module. Its
   update notifier starts with the session (`/etc/xdg/autostart`), and its
   Updates page appears in System Settings.
 
-libjpeg-turbo, libass and FFmpeg are built without their x86 assembly, which
-needs NASM; MattOS does not build NASM.
+libjpeg-turbo, libass, dav1d and FFmpeg build their x86 SIMD code with the
+MattOS-built NASM (the `nasm` stage, also shipped as the `nasm` package). It
+runs on the build host as a declared stage output, like Qt's own tools, and
+reaches Meson and Autotools builds through the staged dependency `PATH`.
+NASM's man pages are not built, since they need AsciiDoc.

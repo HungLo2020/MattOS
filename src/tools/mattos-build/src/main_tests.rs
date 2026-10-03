@@ -103,6 +103,76 @@ fn staged_pkgconfig_rewrite_is_idempotent() {
 }
 
 #[test]
+fn staged_pkgconfig_rewrite_rebases_descriptors_without_a_prefix_variable() {
+    let prefix = Path::new("/tmp/mattos-stage/apt/usr");
+    let apt_pkg = "libdir=/usr/lib/x86_64-linux-gnu\nincludedir=/usr/include\n\nName: apt-pkg\nCflags: -I${includedir}\n";
+    let rewritten = rewrite_pkgconfig_for_staged_consumer(apt_pkg, prefix);
+    assert!(rewritten.contains("libdir=/tmp/mattos-stage/apt/usr/lib/x86_64-linux-gnu\n"));
+    assert!(rewritten.contains("includedir=/tmp/mattos-stage/apt/usr/include\n"));
+    assert!(!rewritten.contains("${prefix}"));
+    assert_eq!(rewrite_pkgconfig_for_staged_consumer(&rewritten, prefix), rewritten);
+}
+
+#[test]
+fn component_cmake_options_override_helper_values_and_compose_flags() {
+    let mut command = vec![
+        "-DQt6Core5Compat_DIR=/view/Qt6Core5Compat".to_owned(),
+        "-DCMAKE_EXE_LINKER_FLAGS=-L/staged/lib".to_owned(),
+        "-DBUILD_TESTING=OFF".to_owned(),
+    ];
+    apply_component_cmake_options(
+        &mut command,
+        &[
+            "-DQt6Core5Compat_DIR=/qt5compat/Qt6Core5Compat",
+            "-DCMAKE_EXE_LINKER_FLAGS=-Wl,-rpath-link,/pulse",
+            "-DWITH_FOO=ON",
+        ],
+    );
+    assert_eq!(
+        command.iter().filter(|argument| argument.starts_with("-DQt6Core5Compat_DIR=")).collect::<Vec<_>>(),
+        ["-DQt6Core5Compat_DIR=/qt5compat/Qt6Core5Compat"]
+    );
+    assert!(command.contains(&"-DCMAKE_EXE_LINKER_FLAGS=-L/staged/lib -Wl,-rpath-link,/pulse".to_owned()));
+    assert_eq!(command.last().map(String::as_str), Some("-DWITH_FOO=ON"));
+}
+
+#[test]
+fn kde_cmake_keeps_upstream_install_rpaths_without_staged_link_paths() {
+    let mut command = vec!["-DCMAKE_INSTALL_RPATH=".to_owned(), "-DCMAKE_SKIP_RPATH=ON".to_owned()];
+    keep_upstream_install_rpaths(&mut command);
+    assert!(!command.contains(&"-DCMAKE_SKIP_RPATH=ON".to_owned()));
+    for required in [
+        "-DCMAKE_INSTALL_RPATH=",
+        "-DCMAKE_SKIP_RPATH=OFF",
+        "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF",
+        "-DKDE_SKIP_RPATH_SETTINGS=TRUE",
+        "-DQT_NO_QML_PLUGIN_RPATH=TRUE",
+    ] {
+        assert!(command.contains(&required.to_owned()), "missing {required}");
+    }
+}
+
+#[test]
+fn stage_keys_cover_recipe_files_their_recipe_calls_into_without_listing() {
+    // Layer Shell Qt lists only plasma.rs, but its recipe runs the shared KDE
+    // CMake helper (kde_foundation.rs) and Qt's target arguments (qt.rs);
+    // a change to either must change its key.
+    let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..").canonicalize().unwrap();
+    let inputs = crate::stage_inputs::source_inputs(crate::stage_graph::BuildStage::LayerShellQt);
+    let implicit =
+        crate::recipe_projection::implicit_recipe_inputs(&repo_root, "layer-shell-qt", &inputs).unwrap();
+    let names = implicit
+        .iter()
+        .map(|path| path.file_name().unwrap().to_string_lossy().into_owned())
+        .collect::<Vec<_>>();
+    for required in ["kde_foundation.rs", "qt.rs"] {
+        assert!(names.iter().any(|name| name == required), "{required} missing from {names:?}");
+    }
+    assert!(!names.iter().any(|name| name == "plasma.rs"), "listed input repeated: {names:?}");
+    assert!(implicit.iter().all(|path| !path.to_string_lossy().contains("/stages/helpers/")));
+}
+
+#[test]
 fn source_mirror_sync_excludes_and_deletes_derived_cargo_outputs() {
     assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--delete"));
     assert!(SOURCE_MIRROR_RSYNC_FLAGS.contains(&"--delete-excluded"));

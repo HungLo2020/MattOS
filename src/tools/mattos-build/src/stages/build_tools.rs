@@ -336,6 +336,36 @@ fn relocate_toolchain_configuration(repo_root: &Path, files: &[PathBuf]) -> Resu
     Ok(())
 }
 
+/// NASM, the x86 assembler libjpeg-turbo, libass, dav1d and FFmpeg build
+/// their SIMD code with.  It runs on the build host as a MattOS-built tool
+/// (like Qt's moc) and is packaged for self-hosting.  NASM's release tooling
+/// generates its man pages with AsciiDoc, which MattOS does not provide, so
+/// only the two programs are installed.
+fn build_nasm(repo_root: &Path) -> Result<()> {
+    let out_root = repo_root.join("out/build/nasm");
+    let source = out_root.join("source");
+    let build = out_root.join("build");
+    let install = out_root.join("install");
+    remove_path_if_exists(&build)?;
+    remove_path_if_exists(&install)?;
+    sync_build_source(&repo_root.join("src/build-tools/nasm"), &source)?;
+    // The imported tree carries configure.ac, not generated configure; NASM's
+    // own autogen.sh also stages its autoconf helper scripts.
+    run_cmd(&source, "sh", &["autogen.sh"])?;
+    fs::create_dir_all(&build)?;
+    // NASM compresses debug sections with zlib when it is available; use the
+    // MattOS zlib rather than its bundled copy or a host library.
+    let env = staged_library_environment(repo_root, &["zlib"])?;
+    run_cmd_with_env_overrides(&build, path_str(&source.join("configure"))?, &["--prefix=/usr"], &env)?;
+    run_cmd_with_env_overrides(&build, "make", &["-j", "4", "nasm", "ndisasm"], &env)?;
+    let bin = install.join("usr/bin");
+    fs::create_dir_all(&bin)?;
+    for program in ["nasm", "ndisasm"] {
+        fs::copy(build.join(program), bin.join(program))?;
+    }
+    Ok(())
+}
+
 fn build_ninja(repo_root: &Path) -> Result<()> {
     build_cmake_runtime(
         repo_root,

@@ -1,16 +1,18 @@
 // Runtime-facing multimedia and foundational library recipes.
 // Included into the crate root to preserve existing helper visibility.
+/// dav1d's x86 SIMD kernels assemble with the MattOS-built NASM, which the
+/// staged dependency environment puts on PATH.
 fn build_dav1d(repo_root: &Path) -> Result<()> {
     build_meson_runtime(
         repo_root,
         "dav1d",
         "src/system/multimedia/dav1d",
-        &[],
+        &["nasm"],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
             "--buildtype=release",
-            "-Denable_asm=false",
+            "-Denable_asm=true",
             "-Denable_tools=false",
             "-Denable_examples=false",
             "-Denable_tests=false",
@@ -90,10 +92,12 @@ fn build_ffmpeg(repo_root: &Path) -> Result<()> {
         "src/system/multimedia/ffmpeg",
         // zlib (PNG and compressed streams) and dav1d (AV1) are MattOS
         // libraries; autodetection stays off, so each is enabled explicitly.
-        &["zlib", "dav1d"],
+        &["zlib", "dav1d", "nasm"],
         &[
             "--enable-zlib",
             "--enable-libdav1d",
+            // x86 SIMD, assembled by the MattOS-built NASM.
+            "--x86asmexe=nasm",
             "--prefix=/usr",
             "--libdir=/usr/lib/x86_64-linux-gnu",
             "--enable-shared",
@@ -103,9 +107,6 @@ fn build_ffmpeg(repo_root: &Path) -> Result<()> {
             "--disable-doc",
             "--disable-debug",
             "--disable-network",
-            // NASM is a build-time optimization only. Keep this target-owned
-            // library closure independent of an undeclared host assembler.
-            "--disable-x86asm",
         ],
         &[
             "usr/lib/x86_64-linux-gnu/libavcodec.so",
@@ -577,14 +578,18 @@ fn build_mpfr(repo_root: &Path) -> Result<()> {
 }
 
 /// libjpeg-turbo with the libjpeg 6.2 ABI (Debian's libjpeg62-turbo) and the
-/// TurboJPEG API. The SIMD extensions need NASM, which MattOS does not build.
+/// TurboJPEG API, with its SIMD extensions assembled by the MattOS-built NASM.
 fn build_libjpeg_turbo(repo_root: &Path) -> Result<()> {
+    let nasm = format!(
+        "-DCMAKE_ASM_NASM_COMPILER={}",
+        repo_root.join("out/build/nasm/install/usr/bin/nasm").display()
+    );
     build_non_qt_cmake(
         repo_root,
         "libjpeg-turbo",
         "src/system/libraries/libjpeg-turbo",
         &[],
-        &["-DENABLE_STATIC=OFF", "-DWITH_SIMD=OFF", "-DWITH_TESTS=OFF", "-DWITH_TOOLS=OFF"],
+        &["-DENABLE_STATIC=OFF", "-DWITH_SIMD=ON", "-DREQUIRE_SIMD=ON", &nasm, "-DWITH_TESTS=OFF", "-DWITH_TOOLS=OFF"],
         "usr/lib/x86_64-linux-gnu/libjpeg.so.62",
     )
 }
@@ -664,21 +669,21 @@ fn build_harfbuzz(repo_root: &Path) -> Result<()> {
     )
 }
 
-/// libass subtitle renderer, for mpv. Its x86 assembly needs NASM, which
-/// MattOS does not build.
+/// libass subtitle renderer, for mpv, with its x86 assembly built by the
+/// MattOS-built NASM (on PATH through the staged dependency environment).
 fn build_libass(repo_root: &Path) -> Result<()> {
     build_meson_runtime(
         repo_root,
         "libass",
         "src/system/libraries/libass",
-        &["fribidi", "harfbuzz", "freetype", "fontconfig", "expat", "zlib"],
+        &["fribidi", "harfbuzz", "freetype", "fontconfig", "expat", "zlib", "nasm"],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
             "-Ddefault_library=shared",
             "-Dfontconfig=enabled",
             "-Dlibunibreak=disabled",
-            "-Dasm=disabled",
+            "-Dasm=enabled",
             "-Dtest=disabled",
             "-Dcompare=disabled",
             "-Dprofile=disabled",
@@ -815,25 +820,7 @@ fn build_packagekit(repo_root: &Path) -> Result<()> {
     // msgfmt merges translations into the polkit policy with polkit's ITS
     // rules, which the staged polkit installs rather than the host.
     let polkit_gettext = repo_root.join("out/build/polkit/install/usr/share/gettext").display().to_string();
-    // APT's apt-pkg.pc names absolute libdir/includedir without a `prefix`
-    // variable, which the staged pkg-config overlay expects to rebase; put a
-    // copy naming the staged APT tree first on the search path.
-    let apt_usr = repo_root.join("out/build/apt/install/usr");
-    let apt_pkgconfig = repo_root.join("out/build/packagekit/apt-pkgconfig");
-    fs::create_dir_all(&apt_pkgconfig)?;
-    let apt_pc = fs::read_to_string(apt_usr.join("lib/x86_64-linux-gnu/pkgconfig/apt-pkg.pc"))?;
-    fs::write(
-        apt_pkgconfig.join("apt-pkg.pc"),
-        apt_pc
-            .replace("libdir=/usr/", &format!("libdir={}/", apt_usr.display()))
-            .replace("includedir=/usr/", &format!("includedir={}/", apt_usr.display())),
-    )?;
-    let mut env = vec![("GETTEXTDATADIRS", polkit_gettext)];
-    for (key, value) in staged_library_environment(repo_root, dependencies)? {
-        if matches!(key, "PKG_CONFIG_PATH" | "PKG_CONFIG_LIBDIR") {
-            env.push((key, format!("{}:{value}", apt_pkgconfig.display())));
-        }
-    }
+    let env = vec![("GETTEXTDATADIRS", polkit_gettext)];
     build_meson_runtime(
         repo_root,
         "packagekit",

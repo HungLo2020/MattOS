@@ -43,15 +43,27 @@ fn rewrite_staged_pkgconfig_files(install_dir: &Path) -> Result<()> {
 }
 
 fn rewrite_pkgconfig_for_staged_consumer(contents: &str, prefix: &Path) -> String {
+    // A descriptor without a `prefix` variable (APT's apt-pkg.pc names
+    // absolute directories) cannot be rebased through `${prefix}`: that would
+    // expand to nothing and point consumers at `/include`.  Rebase its
+    // directories onto the staged prefix directly.
+    let has_prefix = contents.lines().any(|line| line.starts_with("prefix="));
+    let staged = |value: &str| {
+        if has_prefix {
+            format!("${{prefix}}{value}")
+        } else {
+            format!("{}{value}", prefix.display())
+        }
+    };
     contents
         .lines()
         .map(|line| {
             if let Some(value) = line.strip_prefix("prefix=/usr") {
                 format!("prefix={}{}", prefix.display(), value)
             } else if let Some(value) = line.strip_prefix("libdir=/usr") {
-                format!("libdir=${{prefix}}{}", value)
+                format!("libdir={}", staged(value))
             } else if let Some(value) = line.strip_prefix("includedir=/usr") {
-                format!("includedir=${{prefix}}{}", value)
+                format!("includedir={}", staged(value))
             } else {
                 line.to_string()
             }

@@ -546,6 +546,13 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             "packagekit",
             "src/system/packages/packagekit/COPYING",
         )?,
+        "nasm" => stage_multimedia_sdk(
+            repo_root,
+            &staging,
+            "nasm",
+            "nasm",
+            "src/build-tools/nasm/LICENSE",
+        )?,
         "libmpc3" => stage_multimedia_sdk(
             repo_root,
             &staging,
@@ -923,6 +930,20 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "flatpak" => stage_flatpak(repo_root, &staging)?,
         "xwayland" => stage_xwayland(repo_root, &staging)?,
         "xdg-desktop-portal" => stage_xdg_desktop_portal(repo_root, &staging)?,
+        "libgstreamer1.0-0" => stage_service_with_config(
+            repo_root,
+            &staging,
+            "gstreamer",
+            "libgstreamer1.0-0",
+            "src/system/multimedia/gstreamer/subprojects/gstreamer/COPYING",
+        )?,
+        "libgstreamer-plugins-base1.0-0" => stage_service_with_config(
+            repo_root,
+            &staging,
+            "gstreamer-base",
+            "libgstreamer-plugins-base1.0-0",
+            "src/system/multimedia/gstreamer/subprojects/gst-plugins-base/COPYING",
+        )?,
         "polkit" => stage_runtime_paths(
             repo_root,
             &staging,

@@ -288,10 +288,10 @@ fn portal_package_depends_on_bubblewrap_and_fuse_without_copying_them() {
         assert!(portal.depends.contains(&package), "portal lacks {package}");
     }
     assert!(!portal.depends.contains(&"flatpak"));
-    assert_eq!(
-        package_stage_dependencies("xdg-desktop-portal"),
-        ["xdg-desktop-portal", "gstreamer", "gstreamer-base"]
-    );
+    assert_eq!(package_stage_dependencies("xdg-desktop-portal"), ["xdg-desktop-portal"]);
+    for package in ["libgstreamer1.0-0", "libgstreamer-plugins-base1.0-0"] {
+        assert!(portal.depends.contains(&package), "portal lacks {package}");
+    }
     assert!(
         !package_source_roots("xdg-desktop-portal").contains(&"src/system/security/bubblewrap")
     );
@@ -315,6 +315,9 @@ fn portal_package_depends_on_bubblewrap_and_fuse_without_copying_them() {
     let staging = root.path().join("staging");
     stage_xdg_desktop_portal(root.path(), &staging).unwrap();
     assert!(!staging.join("usr/bin/bwrap").exists());
+    // GStreamer is owned by its own packages, never copied into the portal.
+    assert!(!staging.join("usr/lib/libgstreamer-1.0.so.0").exists());
+    assert!(!staging.join("usr/lib/libgstpbutils-1.0.so.0").exists());
     assert!(staging.join("usr/libexec/xdg-desktop-portal").is_file());
 }
 
@@ -896,7 +899,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 418);
+    assert_eq!(PACKAGE_NAMES.len(), 421);
 }
 
 #[test]
@@ -951,7 +954,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 418);
+    assert_eq!(PACKAGE_NAMES.len(), 421);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -1064,7 +1067,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 418);
+    assert_eq!(PACKAGE_NAMES.len(), 421);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",

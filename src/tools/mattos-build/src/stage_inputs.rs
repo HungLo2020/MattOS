@@ -919,6 +919,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/packages/packagekit",
             "src/tools/mattos-build/src/stages/runtime_libraries.rs",
         ],
+        BuildStage::Nasm => &[
+            "src/build-tools/nasm",
+            "src/tools/mattos-build/src/stages/build_tools.rs",
+        ],
         BuildStage::Mpc => &[
             "src/system/libraries/mpc",
             "src/tools/mattos-build/src/stages/runtime_libraries.rs",
@@ -1371,6 +1375,9 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
     match stage {
         BuildStage::All => 0,
         BuildStage::MaterialCursors => 1,
+        // Revision 2 rebuilds its QML plugin without Qt's default plugin
+        // RPATH: its key did not yet cover the shared KDE CMake helper.
+        BuildStage::LayerShellQt => 2,
         // Revision 1 gives the shipped native compiler the build compilers'
         // code-generation defaults and installs the MattOS hardening specs.
         // Revision 2 moves those specs to the unversioned overlay location so

@@ -138,7 +138,9 @@ fn staged_pkgconfig_overlay(
             ))
         })
         .collect::<Result<Vec<_>>>()?;
-    let digest = performance::digest_value(&identity)?;
+    // The overlay holds rewritten descriptors, so its identity includes the
+    // rewrite's own version: a rewrite fix must not reuse stale overlays.
+    let digest = performance::digest_value(&("staged-pkgconfig-rewrite-v2", &identity))?;
     let root = repo_root
         .join("out/build/.pkgconfig-overlays")
         .join(&digest);

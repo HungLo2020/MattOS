@@ -347,12 +347,30 @@ pub(crate) fn can_migrate_narrowed_manifest(
         .keys()
         .filter(|path| !current.details.source.contains_key(*path))
         .collect::<Vec<_>>();
+    // A manifest recorded before implicit recipe coverage adopts the recipe
+    // files its stage reaches but did not list, once: those files were
+    // already the code this output was built by.  Stages known to be stale
+    // relative to such a file are rebuilt with a `recipe_revision` bump.
+    let adopts_implicit_coverage = current
+        .details
+        .source
+        .contains_key(crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY)
+        && !manifest
+            .input_details
+            .source
+            .contains_key(crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY);
     for added in current
         .details
         .source
         .keys()
         .filter(|path| !manifest.input_details.source.contains_key(*path))
     {
+        if adopts_implicit_coverage
+            && (added == crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY
+                || added.starts_with("src/tools/mattos-build/src/stages/"))
+        {
+            continue;
+        }
         if !removed_sources
             .iter()
             .any(|root| Path::new(added).starts_with(root))
@@ -716,6 +734,27 @@ pub(crate) fn compute_stage_evaluation(
             None => digest_source_inputs(repo_root, std::slice::from_ref(path))?,
         };
         source.insert(diagnostic_path(repo_root, path), digest);
+    }
+    // Recipe files the stage calls into without listing them contribute their
+    // projection too, so shared recipe helpers are always part of the key.
+    let implicit = crate::recipe_projection::implicit_recipe_inputs(
+        repo_root,
+        &spec.id,
+        &spec.source_inputs,
+    )?;
+    for path in &implicit {
+        if let Some(digest) =
+            crate::recipe_projection::projected_recipe_digest(repo_root, &spec.id, path)?
+        {
+            source.insert(diagnostic_path(repo_root, path), digest);
+            projected = true;
+        }
+    }
+    if !implicit.is_empty() {
+        source.insert(
+            crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY.to_string(),
+            crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_VERSION.to_string(),
+        );
     }
     // A shared recipe file contributes only this stage's projection of it.
     let source_digest = if projected {

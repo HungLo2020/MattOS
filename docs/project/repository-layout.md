@@ -5,7 +5,7 @@ Project-managed source trees live under `src/`:
 - `src/boot/`: GRUB configuration and the early `/init`
 - `src/build-support/`: build-time support sources such as gnulib and
   autoconf-archive
-- `src/build-tools/`: build tools such as GNU Make and xcursorgen
+- `src/build-tools/`: build tools such as GNU Make, NASM and xcursorgen
 - `src/desktop/`: desktop components (fonts, KDE, Qt, themes)
 - `src/development/`: development runtimes such as Python
 - `src/graphics/`: graphics stack components such as wayland-protocols

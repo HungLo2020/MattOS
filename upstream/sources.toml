@@ -2653,6 +2653,14 @@ path = "src/system/libraries/mpc"
 sync = "copy"
 
 [[component]]
+name = "nasm"
+repo = "https://github.com/netwide-assembler/nasm.git"
+branch = "nasm-3.02"
+revision = "4a56d66ed9626d5a3ded5414c9d8b7f1a48ce065"
+path = "src/build-tools/nasm"
+sync = "copy"
+
+[[component]]
 name = "jansson"
 repo = "https://github.com/akheron/jansson.git"
 branch = "v2.15.1"

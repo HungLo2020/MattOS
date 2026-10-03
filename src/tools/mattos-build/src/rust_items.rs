@@ -244,7 +244,12 @@ pub(crate) fn indexed_files(
     }
     let mut files = BTreeMap::new();
     for path in &paths {
-        files.insert(path.clone(), chunks(&fs::read_to_string(path)?));
+        let source = fs::read_to_string(path)?;
+        let split = match tokens {
+            Tokens::Code => chunks(&source),
+            Tokens::Words | Tokens::CodeLineSplit => line_split_chunks(&source),
+        };
+        files.insert(path.clone(), split);
     }
     let index = Arc::new(ItemIndex::build(files, tokens));
     cache
@@ -289,12 +294,15 @@ pub(crate) enum Tokens {
     /// Every alphanumeric word, including those in comments and strings.
     /// Only for recomputing digests recorded before `Code` existed.
     Words,
+    /// `Code` identifiers over the line-based item split that preceded
+    /// [`chunks`]' lexical split.  Only for recomputing v3 projections.
+    CodeLineSplit,
 }
 
 /// The identifiers `text` mentions, read as `tokens` describes.
 pub(crate) fn identifiers(text: &str, tokens: Tokens) -> Vec<String> {
     match tokens {
-        Tokens::Code => code_identifiers(text),
+        Tokens::Code | Tokens::CodeLineSplit => code_identifiers(text),
         Tokens::Words => text
             .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
             .filter(|word| word.starts_with(|c: char| c.is_ascii_alphabetic() || c == '_'))
@@ -449,12 +457,190 @@ fn header(text: &str) -> &str {
 }
 
 /// Splits rustfmt-formatted `source` into top-level items.  An item starts at
-/// a column-0 line that follows a blank line or the end of the previous item
-/// (a column-0 line that closes with `}` or `;`); its leading comments and
-/// attributes stay with it.  Anything this misjudges (a column-0 line inside
-/// a multi-line string, say) only splits an item into an extra always-kept
-/// chunk, which widens rather than narrows what a key covers.
+/// a column-0 line in code (not inside a string or comment) at brace depth 0
+/// that follows a blank line or the end of the previous item; an item ends at
+/// a line that returns to brace depth 0 in code and closes with `}` or `;`.
+/// Leading comments and attributes stay with their item.  Tracking literals
+/// and depth keeps a column-0 line inside a multi-line string (an embedded
+/// C++ snippet, say) from splitting the function that contains it.
 pub(crate) fn chunks(source: &str) -> Vec<Chunk> {
+    let lines = source.split_inclusive('\n').collect::<Vec<_>>();
+    let states = line_states(source);
+    let mut texts: Vec<String> = Vec::new();
+    let mut previous_ends_item = true;
+    for (line, state) in lines.iter().zip(states) {
+        let content = line.trim_end_matches(['\n', '\r']);
+        let top_level_code = state.starts_in_code && state.depth_at_start == 0;
+        if content.trim().is_empty() {
+            if top_level_code {
+                previous_ends_item = true;
+            }
+        } else {
+            let at_column_zero = !content.starts_with(char::is_whitespace);
+            let continuation = content.starts_with(['}', ')', ']', ';']);
+            if top_level_code && at_column_zero && !continuation && previous_ends_item {
+                texts.push(String::new());
+            }
+            let trimmed = content.trim_end();
+            previous_ends_item = state.ends_in_code
+                && state.depth_at_end == 0
+                && (trimmed.ends_with('}') || trimmed.ends_with(';'));
+        }
+        if texts.is_empty() {
+            texts.push(String::new());
+        }
+        texts.last_mut().unwrap().push_str(line);
+    }
+    texts.into_iter().map(chunk_from_text).collect()
+}
+
+fn chunk_from_text(text: String) -> Chunk {
+    let test_only = text
+        .lines()
+        .map(str::trim)
+        .take_while(|line| line.is_empty() || line.starts_with("//") || line.starts_with("#["))
+        .any(|line| line == "#[cfg(test)]");
+    Chunk {
+        kind: item_name(header(&text)).map_or(ChunkKind::Other, ChunkKind::Named),
+        text,
+        test_only,
+    }
+}
+
+/// Lexical state at the start and end of each line of `source` (as split by
+/// `split_inclusive('\n')`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct LineState {
+    starts_in_code: bool,
+    ends_in_code: bool,
+    depth_at_start: i64,
+    depth_at_end: i64,
+}
+
+/// Scans `source` once, tracking comments, string, raw-string and character
+/// literals across lines, and the depth of `{}` braces in code.
+fn line_states(source: &str) -> Vec<LineState> {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Mode {
+        Code,
+        Block(usize),
+        Str,
+        Raw(usize),
+    }
+    let chars = source.chars().collect::<Vec<_>>();
+    let mut states = Vec::new();
+    let mut mode = Mode::Code;
+    let mut depth = 0i64;
+    let mut line_start = (true, 0i64);
+    let mut at = 0;
+    while at < chars.len() {
+        let c = chars[at];
+        let next = chars.get(at + 1).copied();
+        match mode {
+            Mode::Block(level) => {
+                if c == '/' && next == Some('*') {
+                    mode = Mode::Block(level + 1);
+                    at += 2;
+                    continue;
+                }
+                if c == '*' && next == Some('/') {
+                    mode = if level == 1 { Mode::Code } else { Mode::Block(level - 1) };
+                    at += 2;
+                    continue;
+                }
+            }
+            Mode::Str => {
+                if c == '\\' && next.is_some_and(|next| next != '\n') {
+                    at += 2;
+                    continue;
+                }
+                if c == '"' {
+                    mode = Mode::Code;
+                }
+            }
+            Mode::Raw(hashes) => {
+                if c == '"' && (0..hashes).all(|offset| chars.get(at + 1 + offset) == Some(&'#')) {
+                    mode = Mode::Code;
+                    at += 1 + hashes;
+                    continue;
+                }
+            }
+            Mode::Code => {
+                if c == '/' && next == Some('/') {
+                    while at < chars.len() && chars[at] != '\n' {
+                        at += 1;
+                    }
+                    continue;
+                }
+                if c == '/' && next == Some('*') {
+                    mode = Mode::Block(1);
+                    at += 2;
+                    continue;
+                }
+                if c == '"' {
+                    mode = Mode::Str;
+                } else if c == '\'' {
+                    // A character literal ('x', '\n', '\u{..}') or a lifetime ('a).
+                    if next == Some('\\') {
+                        at += 2;
+                        while at < chars.len() && chars[at] != '\'' {
+                            at += 1;
+                        }
+                    } else if chars.get(at + 2) == Some(&'\'') {
+                        at += 2;
+                    }
+                } else if (c == 'r' || c == 'b')
+                    && !at.checked_sub(1).is_some_and(|before| is_identifier_continue(chars[before]))
+                {
+                    let mut after = at + 1;
+                    if c == 'b' && chars.get(after) == Some(&'r') {
+                        after += 1;
+                    }
+                    let raw = c == 'r' || after == at + 2;
+                    let mut hashes = 0;
+                    while raw && chars.get(after + hashes) == Some(&'#') {
+                        hashes += 1;
+                    }
+                    if chars.get(after + hashes) == Some(&'"') {
+                        mode = if raw { Mode::Raw(hashes) } else { Mode::Str };
+                        at = after + hashes + 1;
+                        continue;
+                    }
+                } else if c == '{' {
+                    depth += 1;
+                } else if c == '}' {
+                    depth -= 1;
+                }
+            }
+        }
+        if c == '\n' {
+            states.push(LineState {
+                starts_in_code: line_start.0,
+                ends_in_code: mode == Mode::Code,
+                depth_at_start: line_start.1,
+                depth_at_end: depth,
+            });
+            line_start = (mode == Mode::Code, depth);
+        }
+        at += 1;
+    }
+    if !source.is_empty() && !source.ends_with('\n') {
+        states.push(LineState {
+            starts_in_code: line_start.0,
+            ends_in_code: mode == Mode::Code,
+            depth_at_start: line_start.1,
+            depth_at_end: depth,
+        });
+    }
+    states
+}
+
+/// The line-based item split used by projection v3 and earlier: an item
+/// starts at a column-0 line that follows a blank line or the end of the
+/// previous item (a column-0 line that closes with `}` or `;`).  It cannot
+/// see string literals, so a column-0 line inside a multi-line string could
+/// split a function.  Kept only to recompute digests recorded under it.
+pub(crate) fn line_split_chunks(source: &str) -> Vec<Chunk> {
     let mut texts: Vec<String> = Vec::new();
     let mut previous_ends_item = true;
     for line in source.split_inclusive('\n') {
@@ -532,6 +718,29 @@ pub(crate) fn item_name(header: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn column_zero_lines_inside_strings_and_comments_do_not_split_an_item() {
+        // An embedded C++ snippet: column-0 `};`, a blank line and a column-0
+        // line after it, all inside one raw string, plus a block comment.
+        let source = "fn build(r: &Path) -> Result<()> {\n    let snippet = r#\"\nclass X\n{\n};\n\n#endif\"#;\n/*\n}\n*/\n    let quote = '\"';\n    let brace = '{';\n    later(r)\n}\n\nfn later(r: &Path) -> Result<()> { Ok(()) }\n";
+        let named = chunks(source)
+            .into_iter()
+            .filter_map(|chunk| match chunk.kind {
+                ChunkKind::Named(name) => Some((name, chunk.text)),
+                ChunkKind::Other => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(named.iter().map(|(name, _)| name.as_str()).collect::<Vec<_>>(), ["build", "later"]);
+        assert!(named[0].1.contains("later(r)\n}\n"), "the call after the snippet stays in build");
+        let index = ItemIndex::build(
+            BTreeMap::from([(PathBuf::from("a.rs"), chunks(source))]),
+            Tokens::Code,
+        );
+        assert!(index.reachable("build", ["build".to_string()], &[]).contains("later"));
+        // The line split used by v3 cut the function at the snippet's `};`.
+        assert!(line_split_chunks(source).len() > chunks(source).len());
+    }
 
     #[test]
     fn consecutive_one_line_items_are_separate_and_keep_their_calls() {
