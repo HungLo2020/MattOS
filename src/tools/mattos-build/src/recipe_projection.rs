@@ -134,9 +134,10 @@ pub(crate) fn projected_recipe_digest(
 /// coverage lack the marker and adopt those files once (see
 /// `stage_cache::can_migrate_narrowed_manifest`).
 pub(crate) const IMPLICIT_RECIPE_COVERAGE_KEY: &str = "recipe-coverage:implicit";
-pub(crate) const IMPLICIT_RECIPE_COVERAGE_VERSION: &str = "v1";
+/// v1 covered `stages/*.rs`; v2 also covers the shared `stages/helpers/`.
+pub(crate) const IMPLICIT_RECIPE_COVERAGE_VERSION: &str = "v2";
 
-/// Recipe files (`stages/*.rs`, not the shared `stages/helpers/` or the
+/// Recipe files (`stages/*.rs` and the shared `stages/helpers/*.rs`, not the
 /// dispatcher) that define code `stage`'s recipe calls but that are not among
 /// its listed `source_inputs`.  A stage's key covers each of these through
 /// its projection, so a change to code the stage runs can never leave its
@@ -163,9 +164,7 @@ pub(crate) fn implicit_recipe_inputs(
         let Ok(relative) = file.strip_prefix(&recipe_directory) else {
             continue;
         };
-        if relative.starts_with("helpers")
-            || relative == Path::new("registry.rs")
-            || listed.contains(file)
+        if relative == Path::new("registry.rs") || listed.contains(file)
         {
             continue;
         }

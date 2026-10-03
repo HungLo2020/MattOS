@@ -1,0 +1,27 @@
+diff --git a/util/grub-mkrescue.c b/util/grub-mkrescue.c
+--- a/util/grub-mkrescue.c
++++ b/util/grub-mkrescue.c
+@@ -873,8 +873,21 @@
+       free (efidir_efi_boot);
+ 
+       efiimgfat = grub_util_path_concat (2, iso9660_dir, "efi.img");
+-      rv = grub_util_exec ((const char * []) { "mformat", "-C", "-f", "2880", "-L", "16", "-i",
+-	    efiimgfat, "::", NULL });
++      {
++	/* mformat picks a random FAT volume serial, the only bit that
++	   differs between two builds of efi.img.  Derive it from
++	   SOURCE_DATE_EPOCH (validated above) when that is set.  */
++	const char *epoch = getenv ("SOURCE_DATE_EPOCH");
++	char serial[9];
++	if (epoch)
++	  grub_snprintf (serial, sizeof (serial), "%08llx",
++			 (unsigned long long) strtoll (epoch, NULL, 10) & 0xffffffffULL);
++	rv = grub_util_exec (epoch
++			     ? (const char * []) { "mformat", "-C", "-f", "2880", "-L", "16",
++						   "-N", serial, "-i", efiimgfat, "::", NULL }
++			     : (const char * []) { "mformat", "-C", "-f", "2880", "-L", "16", "-i",
++						   efiimgfat, "::", NULL });
++      }
+       if (rv != 0)
+ 	grub_util_error ("`%s` invocation failed\n", "mformat");
+       rv = grub_util_exec ((const char * []) { "mcopy", "-s", "-i", efiimgfat, efidir_efi, "::/", NULL });

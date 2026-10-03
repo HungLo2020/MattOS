@@ -39,6 +39,13 @@ command already fixes xorriso file dates; neither the compression policy nor
 image layout changes. Both BIOS filesystem-UUID and EFI marker-file searches
 must therefore agree with the reproducible image timestamp.
 
+The fourth patch makes the EFI system partition image (`efi.img`, built with
+the host's mtools) reproducible: mkrescue runs `mformat` without a volume
+serial, and mtools then picks a random one, which was the only difference
+between two builds of the ISO. With `SOURCE_DATE_EPOCH` set, mkrescue passes
+`mformat -N` the low 32 bits of the epoch; `mcopy` already takes its file
+dates from `SOURCE_DATE_EPOCH`.
+
 Installed systems use upstream `grub-install --target=x86_64-efi --removable
 --no-nvram` and `grub-mkconfig`, not a handcrafted one-entry menu. The installer
 pairs `/boot/vmlinuz-<release>` with `/boot/initrd.img-<release>` and writes

@@ -206,10 +206,12 @@ that each keep their own calls.  The v3 split worked line by line and cut such
 functions, which hid their later calls from their stages and widened every
 other stage's key with the stray fragment.
 A stage's key covers the recipe files listed in its source inputs and, as
-implicit inputs, every other `stages/*.rs` recipe file defining code it
-reaches (`recipe_projection::implicit_recipe_inputs`): Layer Shell Qt lists
-only `plasma.rs`, yet its key also covers its view of `kde_foundation.rs`
-(the shared KDE CMake helper) and `qt.rs`, so an edit there rebuilds it.
+implicit inputs, every other recipe file under `stages/` (the shared
+`stages/helpers/*.rs` included) defining code it reaches
+(`recipe_projection::implicit_recipe_inputs`): Layer Shell Qt lists only
+`plasma.rs`, yet its key also covers its view of `kde_foundation.rs` (the
+shared KDE CMake helper), `qt.rs` and the helpers it runs, so an edit there
+rebuilds it.
 `#[cfg(test)]` items and helpers the stage never reaches are excluded, so
 adding a test or a helper for one stage to a shared file such as
 `toolchain.rs` no longer rebuilds the others. Reachability follows the
@@ -224,12 +226,14 @@ line the v4 view keeps to be one the v3 view kept), v2 read every word,
 comments and strings included, and v1 removed only other stages' recipe
 functions (for v1, migration also requires that the current projection
 reaches none of the functions v1 removed, since those were outside v1's
-view). A manifest recorded before implicit recipe inputs adopts them once
-(marked `recipe-coverage:implicit` in its source details); a stage known to
-be stale against such a file is rebuilt with a `recipe_revision` bump.
-Helpers in `stages/helpers/*.rs` and `main.rs` remain shared infrastructure,
-outside implicit coverage: a behavior change there needs an explicit
-`recipe_revision` bump for the affected stages.
+view). A manifest recorded before implicit recipe inputs, or under an
+earlier coverage version (v1 did not cover `stages/helpers/`), adopts the
+newly covered files once (marked `recipe-coverage:implicit` in its source
+details); a stage known to be stale against such a file is rebuilt with a
+`recipe_revision` bump. Code outside `stages/` (`main.rs`,
+`performance.rs`, the scheduler) remains shared infrastructure: a behavior
+change there that alters stage outputs needs an explicit `recipe_revision`
+bump for the affected stages.
 
 Package cache keys cover the staging code in the same way
 (`packaging/recipe_digest.rs`): a package's key includes `stage_package` with

@@ -161,7 +161,23 @@ compile-and-run check, a check that the installed `gcc` produces hardened
 binaries (PIE, build ID, CET, full RELRO, stack protector, fortified calls)
 without extra flags, and a check that exactly one APT source names the local
 repository; these are not a substitute for interactive GUI or application
-acceptance tests.
+acceptance tests. The Plasma profile also checks each shipped KDE application
+([KDE Applications](userland/kde-applications.md)).
+
+The Plasma checks also exercise Discover's update path end to end. The host
+rebuilds one installed leaf package (KCalc) with a higher version
+(`+updatetest1`), serves it from a temporary flat repository over HTTP, and
+the installed system adds that source and must then:
+
+1. refresh through PackageKit (`pkgcli -y refresh`);
+2. list the newer build among PackageKit's updates (`pkgcli list-updates`);
+3. show it through Discover's update notifier, whose status-notifier item
+   (`org.kde.DiscoverNotifier`) turns `Active` when updates are pending;
+4. install it through PackageKit and APT (`pkgcli -y update kcalc`), leaving
+   that version installed.
+
+The source is removed afterwards. The probe is skipped with `--no-network`,
+since the guest reaches the repository over QEMU's user-mode network.
 
 ## Upgrade test
 

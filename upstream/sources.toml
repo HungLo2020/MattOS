@@ -381,7 +381,7 @@ revision = "d38d6a1a9b79427848976f53d474392cd29c2a71"
 path = "src/boot/grub/upstream"
 sync = "copy"
 patch_manifest = "upstream/patches/grub/manifest.toml"
-patch_manifest_sha256 = "6c939c6ae14f32fcb8e1dca8d7edfa42929a8a8a60bc36de499a46cf5b4f1abf"
+patch_manifest_sha256 = "4bd82ef43b4d4e5876d561f3a5a1f3a328c68edf38d3f72a706ca09b1d259901"
 
 [[component]]
 name = "grub-gnulib"

@@ -333,6 +333,17 @@ pub(crate) fn can_migrate_narrowed_manifest(
             digest.clone_from(stored);
         }
     }
+    // The coverage marker's version itself is adopted below, with the files
+    // the newer coverage adds; it is not a change to an existing input.
+    if let (Some(stored), Some(current)) = (
+        manifest
+            .input_details
+            .source
+            .get(crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY),
+        current_source.get_mut(crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY),
+    ) {
+        current.clone_from(stored);
+    }
     if !shared_values_match(&manifest.input_details.source, &current_source)
         || !shared_values_match(
             &manifest.input_details.configuration,
@@ -351,14 +362,12 @@ pub(crate) fn can_migrate_narrowed_manifest(
     // files its stage reaches but did not list, once: those files were
     // already the code this output was built by.  Stages known to be stale
     // relative to such a file are rebuilt with a `recipe_revision` bump.
-    let adopts_implicit_coverage = current
-        .details
-        .source
-        .contains_key(crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY)
-        && !manifest
-            .input_details
-            .source
-            .contains_key(crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY);
+    // A newer coverage version (v2 added `stages/helpers/`) is adopted the
+    // same way, once.
+    let coverage_key = crate::recipe_projection::IMPLICIT_RECIPE_COVERAGE_KEY;
+    let adopts_implicit_coverage = current.details.source.get(coverage_key).is_some_and(|current| {
+        manifest.input_details.source.get(coverage_key) != Some(current)
+    });
     for added in current
         .details
         .source

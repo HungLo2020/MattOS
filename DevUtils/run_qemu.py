@@ -1303,7 +1303,33 @@ def _verify_installed_disk_boot(
     disk: Path,
     args: argparse.Namespace,
 ) -> dict[str, object]:
-    """Boot the target with no ISO and prove its real UEFI/GRUB path works."""
+    """Boot the target with no ISO and prove its real UEFI/GRUB path works.
+
+    A Plasma install is also offered a newer build of one installed package
+    from a host-served repository, which Discover's update path (PackageKit,
+    APT, the update notifier) must notice and install."""
+    # The probe repository is reached over QEMU's user-mode network.
+    if getattr(args, "install_profile", "plasma") != "plasma" or getattr(args, "no_network", False):
+        return _verify_installed_disk_boot_with(repo_root, disk, args, ())
+    probe_root = repo_root / "out/tmp/update-probe-repository"
+    package, version = prepare_update_probe_repository(repo_root, probe_root)
+    server, port = serve_flat_repository(probe_root)
+    try:
+        return _verify_installed_disk_boot_with(
+            repo_root, disk, args, installed_discover_update_probes(port, package, version)
+        )
+    finally:
+        server.shutdown()
+        server.server_close()
+        shutil.rmtree(probe_root, ignore_errors=True)
+
+
+def _verify_installed_disk_boot_with(
+    repo_root: Path,
+    disk: Path,
+    args: argparse.Namespace,
+    update_probes: tuple[tuple[str, str], ...],
+) -> dict[str, object]:
     verification_args = argparse.Namespace(**vars(args))
     verification_args.install = False
     verification_args.run_installed = False
@@ -1357,6 +1383,7 @@ def _verify_installed_disk_boot(
         ),
         *installed_plasma_applet_runtime_probes(),
         *installed_kde_application_probes(),
+        *update_probes,
     )
     checks = (
         ("not-live", "test ! -e /run/mattos-live"),
@@ -1737,6 +1764,134 @@ def build_inventory_versions(repo_root: Path) -> dict[str, str]:
 class _QuietRepositoryHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args: object) -> None:
         pass
+
+
+# The installed package the Discover update probe offers a newer build of: a
+# leaf application nothing else depends on, so updating it cannot cascade.
+UPDATE_PROBE_PACKAGE = "kcalc"
+UPDATE_PROBE_VERSION_SUFFIX = "+updatetest1"
+UPDATE_PROBE_SOURCE = "/etc/apt/sources.list.d/zz-mattos-update-probe.list"
+
+
+def _ar_members(data: bytes) -> list[tuple[str, bytes]]:
+    if not data.startswith(b"!<arch>\n"):
+        raise RepoError("not a Debian package (ar) archive")
+    members = []
+    at = 8
+    while at + 60 <= len(data):
+        header = data[at:at + 60]
+        name = header[:16].decode().strip().rstrip("/")
+        size = int(header[48:58].decode().strip())
+        members.append((name, data[at + 60:at + 60 + size]))
+        at += 60 + size + (size % 2)
+    return members
+
+
+def _ar_archive(members: list[tuple[str, bytes]]) -> bytes:
+    out = bytearray(b"!<arch>\n")
+    for name, body in members:
+        out += f"{name:<16}{0:<12}{0:<6}{0:<6}{'100644':<8}{len(body):<10}`\n".encode()
+        out += body
+        if len(body) % 2:
+            out += b"\n"
+    return bytes(out)
+
+
+def rebuild_deb_with_version(deb: bytes, version: str) -> tuple[bytes, str]:
+    """`deb` with its control `Version` replaced; returns it and its control."""
+    import io
+    import tarfile
+    from compression import zstd
+    members = _ar_members(deb)
+    rebuilt = []
+    control_text = ""
+    for name, body in members:
+        if name == "control.tar.zst":
+            source = tarfile.open(fileobj=io.BytesIO(zstd.decompress(body)))
+            buffer = io.BytesIO()
+            with tarfile.open(fileobj=buffer, mode="w", format=tarfile.GNU_FORMAT) as target:
+                for info in source.getmembers():
+                    payload = source.extractfile(info).read() if info.isfile() else None
+                    if info.name.lstrip("./") == "control":
+                        lines = payload.decode().splitlines()
+                        lines = [f"Version: {version}" if line.startswith("Version:") else line for line in lines]
+                        control_text = "\n".join(lines) + "\n"
+                        payload = control_text.encode()
+                        info.size = len(payload)
+                    target.addfile(info, io.BytesIO(payload) if payload is not None else None)
+            body = zstd.compress(buffer.getvalue())
+        rebuilt.append((name, body))
+    if not control_text:
+        raise RepoError("package has no control.tar.zst control file")
+    return _ar_archive(rebuilt), control_text
+
+
+def prepare_update_probe_repository(repo_root: Path, destination: Path) -> tuple[str, str]:
+    """A flat, unsigned repository holding one installed package rebuilt with
+    a higher version; returns the package and that version."""
+    inventory = tomllib.loads((repo_root / "out/packages/inventory.toml").read_text(encoding="utf-8"))
+    entry = next(
+        (package for package in inventory["package"] if package["name"] == UPDATE_PROBE_PACKAGE),
+        None,
+    )
+    if entry is None:
+        raise RepoError(f"{UPDATE_PROBE_PACKAGE} is not in the package inventory; build MattOS first")
+    version = entry["version"] + UPDATE_PROBE_VERSION_SUFFIX
+    deb, control = rebuild_deb_with_version((repo_root / entry["artifact_path"]).read_bytes(), version)
+    shutil.rmtree(destination, ignore_errors=True)
+    destination.mkdir(parents=True)
+    filename = f"{UPDATE_PROBE_PACKAGE}_{version}_{entry['architecture']}.deb"
+    (destination / filename).write_bytes(deb)
+    stanza = control.rstrip("\n") + (
+        f"\nFilename: ./{filename}\nSize: {len(deb)}\nSHA256: {hashlib.sha256(deb).hexdigest()}\n"
+    )
+    packages = (stanza + "\n").encode()
+    (destination / "Packages").write_bytes(packages)
+    (destination / "Release").write_text(
+        "Origin: MattOS update probe\nLabel: MattOS update probe\nArchitectures: amd64\n"
+        f"SHA256:\n {hashlib.sha256(packages).hexdigest()} {len(packages)} Packages\n",
+        encoding="utf-8",
+    )
+    return UPDATE_PROBE_PACKAGE, version
+
+
+def serve_flat_repository(directory: Path) -> tuple[http.server.ThreadingHTTPServer, int]:
+    """Serve a flat (`./`) repository on the host loopback for the guest."""
+    if not (directory / "Release").is_file():
+        raise RepoError(f"no flat repository at {directory}")
+    handler = functools.partial(_QuietRepositoryHandler, directory=str(directory))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server, server.server_address[1]
+
+
+def installed_discover_update_probes(port: int, package: str, version: str) -> tuple[tuple[str, str], ...]:
+    """Discover's update path on the installed Plasma session: PackageKit's
+    APT backend sees the newer build, Discover's notifier (a status-notifier
+    item that turns Active when updates are pending) reports it, and
+    PackageKit installs it.  Each probe is one short serial command."""
+    sudo = "printf '%s\\n' mattos | sudo -S -p ''"
+    notifier_active = (
+        "for n in $(seq 1 120); do for s in $(busctl --user list --no-legend | awk '/^org\\.kde\\.StatusNotifierItem-/{print $1}'); do "
+        "busctl --user get-property \"$s\" /StatusNotifierItem org.kde.StatusNotifierItem Id 2>/dev/null | grep -q DiscoverNotifier && "
+        "busctl --user get-property \"$s\" /StatusNotifierItem org.kde.StatusNotifierItem Status 2>/dev/null | grep -q Active && exit 0; "
+        "done; sleep 1; done; exit 1"
+    )
+    return (
+        (
+            "update-probe-source",
+            f"{sudo} sh -c 'echo \"deb [trusted=yes] http://10.0.2.2:{port}/ ./\" > {UPDATE_PROBE_SOURCE}'",
+        ),
+        ("discover-notifier-running", "for n in $(seq 1 60); do pgrep -u mattos -f DiscoverNotifier >/dev/null && exit 0; sleep 1; done; exit 1"),
+        ("packagekit-refresh", f"{sudo} pkgcli -y refresh"),
+        ("packagekit-offers-update", f"pkgcli list-updates | grep -F '{package}' | grep -qF '{version}'"),
+        ("discover-notifier-offers-update", notifier_active),
+        (
+            "packagekit-installs-update",
+            f"{sudo} pkgcli -y update {package} && test \"$(dpkg-query -W -f='${{Version}}' {package})\" = '{version}'",
+        ),
+        ("update-probe-cleanup", f"{sudo} rm -f {UPDATE_PROBE_SOURCE}"),
+    )
 
 
 def serve_repository(directory: Path) -> tuple[http.server.ThreadingHTTPServer, int]:

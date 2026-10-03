@@ -155,8 +155,8 @@ fn kde_cmake_keeps_upstream_install_rpaths_without_staged_link_paths() {
 #[test]
 fn stage_keys_cover_recipe_files_their_recipe_calls_into_without_listing() {
     // Layer Shell Qt lists only plasma.rs, but its recipe runs the shared KDE
-    // CMake helper (kde_foundation.rs) and Qt's target arguments (qt.rs);
-    // a change to either must change its key.
+    // CMake helper (kde_foundation.rs), Qt's target arguments (qt.rs) and
+    // shared helpers; a change to any of them must change its key.
     let repo_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..").canonicalize().unwrap();
     let inputs = crate::stage_inputs::source_inputs(crate::stage_graph::BuildStage::LayerShellQt);
     let implicit =
@@ -169,7 +169,10 @@ fn stage_keys_cover_recipe_files_their_recipe_calls_into_without_listing() {
         assert!(names.iter().any(|name| name == required), "{required} missing from {names:?}");
     }
     assert!(!names.iter().any(|name| name == "plasma.rs"), "listed input repeated: {names:?}");
-    assert!(implicit.iter().all(|path| !path.to_string_lossy().contains("/stages/helpers/")));
+    // The shared helpers it runs (command execution, source mirroring) are
+    // covered as well, so a behavior change there rebuilds it without a
+    // manual recipe revision.
+    assert!(implicit.iter().any(|path| path.to_string_lossy().contains("/stages/helpers/")));
 }
 
 #[test]

@@ -777,6 +777,12 @@ enum Commands {
         #[arg(value_enum)]
         target: Option<CleanTarget>,
     },
+    /// Report disk usage under out/ and prune leftovers no current recipe,
+    /// stage or package uses.
+    Disk {
+        #[command(subcommand)]
+        command: DiskCommands,
+    },
     #[command(hide = true)]
     BootstrapWsl {
         #[arg(long, default_value = "Ubuntu")]
@@ -866,6 +872,19 @@ enum CacheCommands {
         #[arg(long)]
         dependents: bool,
         stage: String,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum DiskCommands {
+    /// Read-only: usage per out/ area and what `disk prune` would reclaim.
+    Report,
+    /// Remove leftovers: unnamed build directories, interrupted temporaries,
+    /// pkg-config overlays, unreferenced package files and staging, manifests
+    /// of removed stages, and out/tmp scratch older than a day.
+    Prune {
+        #[arg(long)]
+        dry_run: bool,
     },
 }
 
@@ -1211,6 +1230,7 @@ fn main() -> Result<()> {
         Commands::BuilderImage => packaging::build_builder_image(&repo_root),
         Commands::Run => run_qemu(&repo_root),
         Commands::Clean { target } => clean(&repo_root, target.unwrap_or(CleanTarget::Artifacts)),
+        Commands::Disk { command } => disk_command(&repo_root, command),
         Commands::BootstrapWsl {
             distro,
             repo_path,
@@ -1293,6 +1313,7 @@ fn upstream_status(repo_root: &Path) -> Result<()> {
 }
 
 include!("commands/report.rs");
+include!("commands/disk.rs");
 fn clean(repo_root: &Path, target: CleanTarget) -> Result<()> {
     match target {
         CleanTarget::Artifacts => {
