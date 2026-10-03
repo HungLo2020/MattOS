@@ -56,7 +56,7 @@ T.RadioDelegate {
        \brief This property holds an item that will be displayed to the left of the delegate's contents.
        \default null
      */
-    property var leading: null
+    property Item leading: null
 
     /*!
        \brief This property holds the padding after the leading item.
@@ -69,7 +69,7 @@ T.RadioDelegate {
        delegate's contents.
        \default null
      */
-    property var trailing: null
+    property Item trailing: null
 
     /*!
        \brief This property holds the padding before the trailing item.
@@ -82,7 +82,7 @@ T.RadioDelegate {
        \brief This property allows to override the internal description
        item with a custom component.
      */
-    property alias descriptionItem: internalDescriptionItem
+    property alias descriptionItem: choiceLayout.descriptionItem
 
     horizontalPadding: Private.FormCardUnits.horizontalPadding
     verticalPadding: Private.FormCardUnits.verticalPadding
@@ -101,25 +101,17 @@ T.RadioDelegate {
 
     Layout.fillWidth: true
 
-    contentItem: ColumnLayout {
-        spacing: Private.FormCardUnits.verticalSpacing
+    contentItem: Private.FormChoiceDelegateLayout {
+        id: choiceLayout
 
-        RowLayout {
-            id: innerRowLayout
+        leading: root.leading
+        trailing: root.trailing
+        leadingPadding: root.leadingPadding
+        trailingPadding: root.trailingPadding
+        description: root.description
 
-            spacing: 0
-
-            Layout.fillWidth: true
-
-            Private.ContentItemLoader {
-                Layout.rightMargin: visible ? root.leadingPadding : 0
-                visible: root.leading
-                implicitHeight: visible ? root.leading.implicitHeight : 0
-                implicitWidth: visible ? root.leading.implicitWidth : 0
-                contentItem: root.leading
-            }
-
-            Controls.RadioButton {
+        Controls.RadioButton {
+            objectName: "checkControl"
                 id: radioButtonItem
                 focusPolicy: Qt.NoFocus // provided by delegate
                 Layout.rightMargin: Private.FormCardUnits.horizontalSpacing
@@ -127,7 +119,12 @@ T.RadioDelegate {
                 enabled: root.enabled
                 checked: root.checked
 
-                contentItem: null // Remove right margin
+                // A zero-sized item rather than null: assigning null to a deferred
+                // property makes Qt leak an in-progress creation (QTBUG-148846).
+                contentItem: Item {
+                    implicitWidth: 0
+                    implicitHeight: 0
+                }
                 spacing: 0
 
                 topPadding: 0
@@ -141,48 +138,27 @@ T.RadioDelegate {
                 onDoubleClicked: root.doubleClicked()
 
                 onCheckedChanged: {
-                    root.checked = checked;
+                    FormFieldHelper.setPropertyValue(root, "checked", checked);
                     checked = Qt.binding(() => root.checked);
                 }
-            }
+        }
 
-            Kirigami.Icon {
+        Kirigami.Icon {
                 visible: root.icon.name.length > 0 || root.icon.source.toString().length > 0
                 source: root.icon.name.length > 0 ? root.icon.name : root.icon.source
                 color: root.icon.color
                 Layout.rightMargin: visible ? Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing  : 0
                 implicitWidth: visible ? root.icon.width : 0
                 implicitHeight: visible ? root.icon.height : 0
-            }
+        }
 
-            Controls.Label {
+        Controls.Label {
                 Layout.fillWidth: true
                 text: root.text
                 color: root.enabled ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
                 elide: Text.ElideRight
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
-            }
-
-            Private.ContentItemLoader {
-                Layout.leftMargin: visible ? root.trailingPadding : 0
-                visible: root.trailing
-                implicitHeight: visible ? root.trailing.implicitHeight : 0
-                implicitWidth: visible ? root.trailing.implicitWidth : 0
-                contentItem: root.trailing
-            }
         }
-
-        Controls.Label {
-            id: internalDescriptionItem
-
-            visible: root.description !== ""
-            Layout.fillWidth: true
-            text: root.description
-            color: Kirigami.Theme.disabledTextColor
-            wrapMode: Text.Wrap
-        }
-    }
 }
-
-
+}

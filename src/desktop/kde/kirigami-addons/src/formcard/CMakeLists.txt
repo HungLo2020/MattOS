@@ -14,9 +14,7 @@ ecm_add_qml_module(formcardplugin
         org.kde.kirigamiaddons.delegates
 )
 
-if (TARGET Qt6::qdoc AND TARGET Qt6::qhelpgenerator)
-    ecm_generate_qdoc(formcardplugin formcard.qdocconf)
-endif()
+ecm_generate_qdoc(formcardplugin kirigamiaddonsformcard.qdocconf)
 
 ecm_target_qml_sources(formcardplugin SOURCES
     AboutKDE.qml
@@ -43,11 +41,13 @@ ecm_target_qml_sources(formcardplugin SOURCES
     FormRadioDelegate.qml
     FormRadioSelectorDelegate.qml
     FormSectionText.qml
+    FormSliderDelegate.qml
     FormSpinBoxDelegate.qml
     FormSwitchDelegate.qml
     FormTextAreaDelegate.qml
     FormTextDelegate.qml
     FormTextFieldDelegate.qml
+    FormDelegateCollapsible.qml
 )
 
 if(ANDROID)
@@ -67,6 +67,7 @@ target_sources(formcardplugin PRIVATE
     aboutcomponent_p.h
     filehelper.cpp
     filehelper_p.h
+    formfieldhelper_p.h
     passwordhealth.cpp
     passwordhealth.h
     zxcvbn/zxcvbn.c
@@ -78,7 +79,12 @@ set_source_files_properties(private/FormCardUnits.qml PROPERTIES QT_QML_SINGLETO
 
 ecm_target_qml_sources(formcardplugin PATH private SOURCES
     private/ContentItemLoader.qml
-    private/SpinButton.qml
+    private/FormCardBackground.qml
+    private/FormChoiceDelegateLayout.qml
+    private/FormDelegateLayout.qml
+    private/FormInfoGrid.qml
+    private/FormInlineMessage.qml
+    private/FormPathCompletion.qml
     private/FormCardUnits.qml
 )
 
@@ -88,6 +94,7 @@ target_link_libraries(formcardplugin PRIVATE
     KF6::I18n
     KF6::I18n
     KF6::CoreAddons
+    KF6::ConfigCore
 )
 
 ecm_finalize_qml_module(formcardplugin DESTINATION ${KDE_INSTALL_QMLDIR} EXPORT KirigamiAddonsTargets)

@@ -3,11 +3,9 @@
 // SPDX-FileCopyrightText: 2023 Carl Schwan <carl@carlschwan.eu>
 // SPDX-License-Identifier: LGPL-2.0-or-later
 
-import QtQml
 import QtQuick
-import QtQuick.Controls as QQC2
-import QtQuick.Templates as T
 import QtQuick.Layouts
+import QtQuick.Templates as T
 
 import org.kde.kirigami as Kirigami
 
@@ -20,6 +18,10 @@ import "private" as Private
 
    This is used to display multiple information in a FormCard.FormLayout
    without taking too much vertical space.
+
+   Form delegates can also be placed directly inside the container. In this
+   mode, delegates are displayed in a two-column grid, each with its own card
+   background.
 
    \qml
    import org.kde.kirigamiaddons.formcard as FormCard
@@ -43,10 +45,55 @@ import "private" as Private
    }
    \endqml
 
+   \qml
+   import org.kde.kirigamiaddons.formcard as FormCard
+
+   FormCard.FormGridContainer {
+       FormCard.FormTextDelegate {
+           text: "Name"
+       }
+       FormCard.FormSwitchDelegate {
+           text: "Enable notifications"
+       }
+   }
+   \endqml
+
    \since 0.11.0
  */
 Item {
     id: root
+
+    /*!
+       The form delegates displayed in the container. When left empty,
+       controls added as children are included, even after construction.
+     */
+    property list<Item> delegates // TODO KF7 make it default
+
+    property bool _collectChildControls: false
+
+    function _appendChildControls(): void {
+        if (!root._collectChildControls) {
+            return;
+        }
+
+        const newControls = root.children.filter(child => child instanceof T.Control && !root.delegates.includes(child));
+        if (newControls.length > 0) {
+            root.delegates = [...root.delegates, ...newControls];
+        }
+    }
+
+    Component.onCompleted: {
+        root._collectChildControls = root.delegates.length === 0;
+        root._appendChildControls();
+    }
+
+    onChildrenChanged: root._appendChildControls()
+
+    readonly property bool hasDelegates: delegates.length > 0
+
+    // Internal: the delegates that currently have `visible` set to `true`, used to
+    // lay out the grid and compute column spans while skipping hidden delegates.
+    readonly property var _visibleDelegates: root.delegates.filter(delegate => delegate.visible)
 
     /*!
        This property holds the maximum width of the grid.
@@ -104,10 +151,16 @@ Item {
            ]
        }
        \endqml
+
+       \deprecated Use direct form delegates instead.
      */
     property list<QtObject> infoCards
 
-    // Todo how to document FormGridContainer.InfoCard?
+    /*!
+       A legacy data object used by the deprecated \c infoCards property.
+
+       \deprecated Use direct form delegates instead.
+     */
     component InfoCard: QtObject {
         property bool visible: true
         property string title
@@ -123,23 +176,71 @@ Item {
 
     Layout.fillWidth: true
 
-    implicitHeight: topPadding + bottomPadding + grid.implicitHeight
+    implicitHeight: topPadding + bottomPadding + (hasDelegates ? delegateGrid.implicitHeight : infoGrid.implicitHeight)
 
-    Item {
-        id: _private
+    GridLayout {
+        id: delegateGrid
 
-        function getDarkness(background: color): real {
-            // Thanks to Gojir4 from the Qt forum
-            // https://forum.qt.io/topic/106362/best-way-to-set-text-color-for-maximum-contrast-on-background-color/
-            var temp = Qt.darker(background, 1);
-            var a = 1 - ( 0.299 * temp.r + 0.587 * temp.g + 0.114 * temp.b);
-            return a;
+        visible: root.hasDelegates
+        anchors {
+            fill: parent
+            leftMargin: (root.cardWidthRestricted ? Math.round((root.width - root.maximumWidth) / 2) : 0) + root.leftPadding
+            rightMargin: (root.cardWidthRestricted ? Math.round((root.width - root.maximumWidth) / 2) : 0) + root.rightPadding
+            topMargin: root.topPadding
+            bottomMargin: root.bottomPadding
         }
+        columns: 2
+        columnSpacing: Kirigami.Units.smallSpacing
+        rowSpacing: Kirigami.Units.smallSpacing
 
-        readonly property bool isDarkColor: {
-            const temp = Qt.darker(Kirigami.Theme.backgroundColor, 1);
-            return temp.a > 0 && getDarkness(Kirigami.Theme.backgroundColor) >= 0.4;
+        Repeater {
+            model: root.delegates
+
+            Item {
+                id: cell
+
+                required property int index
+                readonly property Item delegateItem: root.delegates[index]
+
+                visible: delegateItem?.visible ?? true
+
+                implicitWidth: delegateItem?.implicitWidth ?? 0
+                implicitHeight: delegateItem?.implicitHeight ?? 0
+
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                Layout.columnSpan: root._visibleDelegates.length % 2 !== 0 && cell.delegateItem === root._visibleDelegates[root._visibleDelegates.length - 1] ? 2 : 1
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                Private.FormCardBackground {
+                    anchors.fill: parent
+                    anchors.leftMargin: root.cardWidthRestricted ? 0 : -1
+                    anchors.rightMargin: root.cardWidthRestricted ? 0 : -1
+                    rounded: root.cardWidthRestricted
+                }
+
+                Private.ContentItemLoader {
+                    id: delegateLoader
+
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    contentItem: cell.delegateItem
+                }
+            }
         }
+    }
+
+    Private.FormInfoGrid {
+        id: infoGrid
+
+        visible: !root.hasDelegates
+        maximumWidth: root.maximumWidth
+        leftPadding: root.leftPadding
+        rightPadding: root.rightPadding
+        topPadding: root.topPadding
+        bottomPadding: root.bottomPadding
+        cardWidthRestricted: root.cardWidthRestricted
+        infoCards: root.infoCards
 
         anchors {
             top: parent.top
@@ -151,149 +252,5 @@ Item {
             rightMargin: root.cardWidthRestricted ? Math.round((root.width - root.maximumWidth) / 2) : 0
         }
 
-        GridLayout {
-            id: grid
-
-            readonly property int cellWidth: Kirigami.Units.gridUnit * 10
-            readonly property int visibleChildrenCount: visibleChildren.length - 1
-
-            anchors {
-                fill: parent
-                leftMargin: root.leftPadding
-                rightMargin: root.rightPadding
-                topMargin: root.topPadding
-                bottomMargin: root.bottomPadding
-            }
-
-            columns: 2
-            columnSpacing: Kirigami.Units.smallSpacing
-            rowSpacing: Kirigami.Units.smallSpacing
-
-            Repeater {
-                id: cardRepeater
-
-                model: root.infoCards
-
-                QQC2.AbstractButton {
-                    id: infoCardDelegate
-
-                    required property int index
-                    required property QtObject modelData
-
-                    readonly property string title: modelData.title
-                    readonly property string subtitle: modelData.subtitle
-                    readonly property string buttonIcon: modelData.buttonIcon
-                    readonly property string tooltipText: modelData.tooltipText
-                    readonly property int subtitleTextFormat: modelData.subtitleTextFormat
-
-                    visible: modelData.visible
-
-                    action: modelData.action
-
-                    leftPadding: Kirigami.Units.largeSpacing
-                    rightPadding: Kirigami.Units.largeSpacing
-                    topPadding: Kirigami.Units.largeSpacing
-                    bottomPadding: Kirigami.Units.largeSpacing
-
-                    leftInset: root.cardWidthRestricted ? 0 : -infoCardDelegate.background.border.width
-                    rightInset: root.cardWidthRestricted ? 0 : -infoCardDelegate.background.border.width
-
-                    hoverEnabled: true
-
-                    Accessible.name: title + " " + subtitle
-                    Accessible.role: action ? Accessible.Button : Accessible.Note
-
-                    Layout.preferredWidth: grid.cellWidth
-                    Layout.columnSpan: grid.visibleChildrenCount % grid.columns !== 0 && index === grid.visibleChildrenCount - 1 ? 2 : 1
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    QQC2.ToolTip.text: tooltipText
-                    QQC2.ToolTip.visible: tooltipText && hovered
-                    QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
-
-                    background: Kirigami.ShadowedRectangle {
-                        radius: root.cardWidthRestricted ? Kirigami.Units.cornerRadius : 0
-                        color: Kirigami.Theme.backgroundColor
-
-                        border {
-                            color: _private.isDarkColor ? Qt.darker(Kirigami.Theme.backgroundColor, 1.2) : Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, 0.15)
-                            width: 1
-                        }
-
-                        shadow {
-                            size: _private.isDarkColor ? Kirigami.Units.smallSpacing : Kirigami.Units.largeSpacing
-                            color: Qt.alpha(Kirigami.Theme.textColor, 0.10)
-                        }
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: root.cardWidthRestricted ? Kirigami.Units.cornerRadius : 0
-
-                            color: {
-                                let alpha = 0;
-
-                                if (!infoCardDelegate.enabled || !infoCardDelegate.action) {
-                                    alpha = 0;
-                                } else if (infoCardDelegate.pressed) {
-                                    alpha = 0.2;
-                                } else if (infoCardDelegate.visualFocus) {
-                                    alpha = 0.1;
-                                } else if (!Kirigami.Settings.tabletMode && infoCardDelegate.hovered) {
-                                    alpha = 0.07;
-                                }
-
-                                return Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, alpha)
-                            }
-
-                            Behavior on color {
-                                ColorAnimation { duration: Kirigami.Units.shortDuration }
-                            }
-                        }
-                    }
-
-                    contentItem: RowLayout {
-                        Kirigami.Icon {
-                            id: icon
-
-                            source: infoCardDelegate.buttonIcon
-                            visible: source
-                            Layout.alignment: Qt.AlignTop
-                        }
-
-                        ColumnLayout {
-                            spacing: 0
-
-                            // Title
-                            Kirigami.Heading {
-                                Layout.fillWidth: true
-                                level: 4
-                                text: infoCardDelegate.title
-                                verticalAlignment: Text.AlignVCenter
-                                horizontalAlignment: icon.visible ? Text.AlignLeft : Text.AlignHCenter
-                                maximumLineCount: 2
-                                elide: Text.ElideRight
-                                wrapMode: Text.Wrap
-                            }
-
-                            // Subtitle
-                            QQC2.Label {
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                visible: infoCardDelegate.subtitle
-                                text: infoCardDelegate.subtitle
-                                horizontalAlignment: icon.visible ? Text.AlignLeft : Text.AlignHCenter
-                                elide: Text.ElideRight
-                                wrapMode: Text.Wrap
-                                textFormat: infoCardDelegate.subtitleTextFormat
-                                opacity: 0.6
-                                verticalAlignment: Text.AlignTop
-                                onLinkActivated: (link) => modelData.linkActivated(link)
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }

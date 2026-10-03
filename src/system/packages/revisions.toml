@@ -14,9 +14,27 @@
 schema_version = 1
 
 [package]
+"breeze" = { upstream = "6.6.5", revision = 2 }
+"calamares" = { upstream = "3.4.3", revision = 2 }
+"ffmpeg-libs" = { upstream = "8.1.2", revision = 2 }
 "flatpak" = { upstream = "1.18.0+git20260608.123633.5de2b58bdafd", revision = 2 }
+"kf6-prison" = { upstream = "6.26.0", revision = 2 }
+"konsole" = { upstream = "26.08.1", revision = 2 }
+"kpipewire" = { upstream = "6.6.5", revision = 2 }
 "libgdk-pixbuf-2.0-0" = { upstream = "2.42.12", revision = 2 }
 "libgdk-pixbuf2.0-bin" = { upstream = "2.42.12", revision = 2 }
-"mattos-plasma" = { upstream = "0.1", revision = 2 }
+"mattos-installer" = { upstream = "0.1", revision = 2 }
+"mattos-plasma" = { upstream = "0.1", revision = 3 }
+"mattos-plasma-live" = { upstream = "0.1", revision = 2 }
+"plasma-desktop" = { upstream = "6.6.5", revision = 2 }
+"plasma-login-manager" = { upstream = "6.6.5", revision = 2 }
+"plasma-nm" = { upstream = "6.6.5", revision = 2 }
+"plasma-systemmonitor" = { upstream = "6.6.5", revision = 2 }
+"plasma-workspace" = { upstream = "6.6.5", revision = 2 }
+"powerdevil" = { upstream = "6.6.5", revision = 2 }
+"qcoro-qt6" = { upstream = "0.13.0", revision = 2 }
+"qt6-multimedia" = { upstream = "6.11.2", revision = 2 }
+"qt6-speech" = { upstream = "6.11.2", revision = 2 }
+"spectacle" = { upstream = "6.6.5", revision = 2 }
 "xdg-desktop-portal" = { upstream = "1.22.1", revision = 2 }
 "xdg-desktop-portal-kde" = { upstream = "6.6.5", revision = 2 }

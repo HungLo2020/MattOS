@@ -11,17 +11,21 @@ container and publishes it through the vendored repository client.
 | --- | --- |
 | Tools | btop, fastfetch, htop, ripgrep, wget, gh, tailscale, codex |
 | Podman | podman, conmon, crun, netavark, aardvark-dns, passt, catatonit, containers-common, libseccomp2 |
-| nftables (rootful container networking) | nftables, libnftnl11, libmnl0, libjansson4 |
+| nftables (rootful container networking) | nftables, libnftnl11, libmnl0 |
 | QEMU | qemu-system-x86 (x86_64 system emulator with qemu-img), libslirp0, libsdl2-2.0-0 |
-| ImageMagick | imagemagick, libjpeg62-turbo, libwebp7, libtiff6, libopenjp2-7 |
+| ImageMagick | imagemagick, libwebp7, libtiff6, libopenjp2-7 |
 
 Only software MattOS needs to build itself is vendored; everything here is
 third-party because MattOS's own build does not need it. A library a vendored program
 needs is vendored even when a third-party package also uses it: ImageMagick
-links MattOS's libpng, FreeType, Fontconfig, Little CMS, libxml2, zlib, bzip2,
-xz and zstd through their `-dev` packages, and only the image codecs nothing
-in MattOS uses (libjpeg-turbo, libwebp, libtiff, OpenJPEG) are third-party.
-libjpeg-turbo is built without its SIMD extensions, which need NASM. ImageMagick draws text with any installed font named
+links MattOS's libpng, libjpeg-turbo, FreeType, Fontconfig, Little CMS,
+libxml2, zlib, bzip2, xz and zstd through their `-dev` packages, and only the
+image codecs nothing in MattOS uses (libwebp, libtiff, OpenJPEG) are
+third-party. libjpeg-turbo (Gwenview) and Jansson (PackageKit) were once
+third-party recipes; now that vendored programs need them they are MattOS
+packages (`libjpeg62-turbo`, `libjansson4`, each carrying its development
+files) in the builder image, so libtiff6, ImageMagick and nftables build
+against them without listing them as third-party build dependencies. ImageMagick draws text with any installed font named
 by `-font` (for example `-font Fira-Sans-Regular`); with no `-font` it looks
 for a Helvetica- or Arial-class font, which MattOS does not ship.
 
@@ -92,7 +96,8 @@ anything else, such as commands it runs.
 The image also carries Rust (`rustc`, `cargo`) for Rust recipes and the MattOS
 `-dev` packages third-party builds link against: zlib, OpenSSL, PCRE2, zstd,
 GLib, pixman, Wayland (with `wayland-scanner` and `wayland-protocols`),
-xkbcommon, alongside json-c (whose runtime package carries its headers), ncurses, libcap, libnl, systemd, acl, attr and
+xkbcommon, alongside libjpeg-turbo and Jansson (whose runtime packages carry
+their headers), json-c (whose runtime package carries its headers), ncurses, libcap, libnl, systemd, acl, attr and
 libglvnd. Go recipes (gh, tailscale, podman) build with a pinned,
 checksum-verified official Go release downloaded into the build
 (`go_environment`, pinned in `common/go.py`); Go is not needed to build

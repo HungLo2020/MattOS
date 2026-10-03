@@ -7,18 +7,39 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.kirigamiaddons.components as Components
 
+/*!
+   \qmltype TimePopup
+   \inqmlmodule org.kde.kirigamiaddons.dateandtime
+   \brief A dialog for selecting a time.
+
+   Set \l value to the initial date and time. When the user clicks Select,
+   the dialog updates \l value and emits \l accepted.
+ */
 QQC2.Dialog {
     id: root
 
-    /**
-     * @brief The current date and time selected by the user.
+    /*!
+       The date and time selected by the user. The time is updated when the
+       user clicks Select.
      */
     property date value: new Date()
 
-    /**
-     * Emitted when the user cancells the popup
+    /*!
+       Emitted when the user clicks Cancel.
      */
     signal cancelled()
+
+    /*!
+       This property holds whether a "Reset" button is shown, allowing the user
+       to unset the value.
+
+       When the user clicks it, \l value is set to an invalid date, the
+       \l reset signal is emitted and the popup is closed.
+
+       \default false
+       \since 1.15.0
+     */
+    property bool resettable: false
 
     property date _value: new Date()
 
@@ -27,8 +48,9 @@ QQC2.Dialog {
     contentItem: TimePicker {
         id: popupContent
         implicitWidth: applicationWindow().width
-        minutes: root.value.getMinutes()
-        hours: root.value.getHours()
+        readonly property date _initialValue: isNaN(root.value.valueOf()) ? new Date() : root.value
+        minutes: _initialValue.getMinutes()
+        hours: _initialValue.getHours()
         onMinutesChanged: {
             root._value.setHours(hours, minutes);
         }
@@ -41,6 +63,8 @@ QQC2.Dialog {
 
     footer: QQC2.DialogButtonBox {
         id: box
+
+        standardButtons: root.resettable ? QQC2.DialogButtonBox.Reset : QQC2.DialogButtonBox.NoButton
 
         QQC2.Button {
             text: i18ndc("kirigami-addons6", "@action:button", "Cancel")
@@ -64,6 +88,11 @@ QQC2.Dialog {
 
             QQC2.DialogButtonBox.buttonRole: QQC2.DialogButtonBox.AcceptRole
         }
+    }
+
+    onReset: {
+        value = new Date(NaN);
+        close();
     }
 
     // black background, fades in and out

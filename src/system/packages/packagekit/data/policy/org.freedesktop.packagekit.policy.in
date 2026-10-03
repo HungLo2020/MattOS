@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+
+  <!--
+    Policy definitions for PackageKit system actions.
+    Copyright (c) 2007-2009 Richard Hughes <richard@hughsie.com>
+  -->
+
+  <vendor>The PackageKit Project</vendor>
+  <vendor_url>https://www.freedesktop.org/software/PackageKit/</vendor_url>
+  <icon_name>package-x-generic</icon_name>
+
+  <action id="org.freedesktop.packagekit.cancel-foreign">
+    <!-- SECURITY:
+          - Normal users are allowed to cancel their own task without
+            authentication, but a different user id needs the admin password
+            to cancel another users task.
+     -->
+    <description>Cancel foreign task</description>
+    <message>Authentication is required to cancel a task that was not started by yourself</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.package-install">
+    <!-- SECURITY:
+          - Normal users need authentication to install signed packages
+            from signed repositories, because otherwise the system is
+            only as secure as the least-secure package available in the
+            repositories.
+     -->
+    <description>Install signed package</description>
+    <message>Authentication is required to install software</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.package-install-untrusted">
+    <!-- SECURITY:
+          - Normal users require admin authentication to install untrusted or
+            unrecognised packages, as allowing users to do this without a
+            password would be a massive security hole.
+          - This is not retained as each package should be authenticated.
+     -->
+    <description>Install untrusted local file</description>
+    <message>Authentication is required to install untrusted software</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.imply">org.freedesktop.packagekit.package-install</annotate>
+  </action>
+
+  <action id="org.freedesktop.packagekit.package-reinstall">
+    <!-- SECURITY
+          - Normal users require admin authentication to reinstall packages.
+          - Authorization to install packages does not imply permissions to
+            reinstall them and vice versa.
+          - If a package in question is not trusted, user's permission to install
+            untrusted package will be checked as well.
+     -->
+    <description>Install already installed package again</description>
+    <message>Authentication is required to reinstall software</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.package-downgrade">
+    <!-- SECURITY
+          - Normal users require admin authentication to downgrade packages.
+          - User authorized to downgrade signed packages is authorized to install
+            them as well.
+          - If a package in question is not trusted, user's permission to install
+            untrusted package will be checked as well.
+     -->
+    <description>Install older version of installed package</description>
+    <message>Authentication is required to downgrade software</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.imply">org.freedesktop.packagekit.package-install</annotate>
+  </action>
+
+  <action id="org.freedesktop.packagekit.system-trust-signing-key">
+    <!-- SECURITY:
+          - Normal users require admin authentication to add signing keys.
+          - This implies adding an explicit trust, and should not be granted
+            without a secure authentication.
+          - This is not kept as each package should be authenticated.
+     -->
+    <description>Trust a key used for signing software</description>
+    <message>Authentication is required to consider a key used for signing software as trusted</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.package-eula-accept">
+    <!-- SECURITY:
+          - Normal users do not require admin authentication to accept new
+            licence agreements.
+          - Change this to 'auth_admin' for environments where users should not
+            be given the option to make legal decisions.
+     -->
+    <description>Accept EULA</description>
+    <message>Authentication is required to accept a EULA</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.package-remove">
+    <!-- SECURITY:
+          - Normal users require admin authentication to remove packages as
+            this can make the system unbootable or stop other applications from
+            working.
+          - Be sure to close the tool used to remove the packages after the
+            admin authentication has been obtained, otherwise packages can still
+            be removed. If this is not possible, change this authentication to
+            'auth_admin'.
+     -->
+    <description>Remove package</description>
+    <message>Authentication is required to remove software</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.imply">org.freedesktop.packagekit.package-install</annotate>
+  </action>
+
+  <action id="org.freedesktop.packagekit.system-update">
+    <!-- SECURITY:
+          - Normal users do not require admin authentication to update the
+            system as the packages will be signed, and the action is required
+            to update the system when unattended.
+          - Changing this to anything other than 'yes' will break unattended
+            updates.
+     -->
+    <description>Update software</description>
+    <message>Authentication is required to update software</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.system-sources-configure">
+    <!-- SECURITY:
+          - Normal users require admin authentication to enable or disable
+            software repositories as this can be used to enable new updates or
+            install different versions of software.
+     -->
+    <description>Change software repository parameters</description>
+    <message>Authentication is required to change software repository parameters</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.system-sources-refresh">
+    <!-- SECURITY:
+          - Normal users do not require admin authentication to refresh the
+            cache, as this doesn't actually install or remove software.
+     -->
+    <description>Refresh system repositories</description>
+    <message>Authentication is required to refresh the system repositories</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>yes</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.system-network-proxy-configure">
+    <!-- SECURITY:
+          - Normal users do not require admin authentication to set the proxy
+            used for downloading packages.
+     -->
+    <description>Set network proxy</description>
+    <message>Authentication is required to set the network proxy used for downloading software</message>
+    <icon_name>preferences-system-network-proxy</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.upgrade-system">
+    <!-- SECURITY:
+          - Normal users require admin authentication to upgrade the disto as
+            this can make the system unbootable or stop other applications from
+            working.
+     -->
+    <description>Upgrade System</description>
+    <message>Authentication is required to upgrade the operating system</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.repair-system">
+    <!-- SECURITY:
+          - Normal users require admin authentication to repair the system
+            since this can make the system unbootable or stop other
+            applications from working.
+     -->
+    <description>Repair System</description>
+    <message>Authentication is required to repair the installed software</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.trigger-offline-update">
+    <!-- SECURITY:
+          - Normal users are able to ask updates to be installed at
+            early boot time without a password.
+     -->
+    <description>Trigger offline updates</description>
+    <message>Authentication is required to trigger offline updates</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.trigger-offline-upgrade">
+    <!-- SECURITY:
+          - Normal users require admin authentication to upgrade the system
+            to a new distribution since this can make the system unbootable or
+            stop other applications from working.
+     -->
+    <description>Trigger offline updates</description>
+    <message>Authentication is required to trigger offline updates</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+  </action>
+
+  <action id="org.freedesktop.packagekit.clear-offline-update">
+    <!-- SECURITY:
+          - Normal users are able to clear the updates message that is
+            shown after an updates are applied at boot time.
+     -->
+    <description>Clear offline update message</description>
+    <message>Authentication is required to clear the offline updates message</message>
+    <icon_name>package-x-generic</icon_name>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+  </action>
+
+</policyconfig>
+

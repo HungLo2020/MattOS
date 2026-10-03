@@ -24,6 +24,7 @@ from run_qemu import (
     installed_plasma_user_desktop_absent_probe,
     installed_plasma_logout_command,
     installed_plasma_applet_runtime_probes,
+    installed_kde_application_probes,
     install_completion_marker,
     launch_qemu,
     network_arguments,
@@ -56,6 +57,17 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
         for applet in ("kickoff", "digitalclock", "pager", "volume"):
             self.assertIn(applet, loaded)
         self.assertIn("Cannot load library", loaded)
+
+    def test_installed_plasma_verifier_checks_every_shipped_kde_application(self) -> None:
+        probes = dict(installed_kde_application_probes())
+        self.assertEqual(len(probes), 14)
+        for package in ("dolphin", "kate", "plasma-discover", "plasma-systemmonitor", "konsole",
+                        "systemsettings", "haruna", "spectacle", "kcalc", "gwenview",
+                        "partitionmanager", "kwalletmanager", "ark", "elisa"):
+            self.assertIn(f"dpkg-query -W {package} ", probes[f"app-{package}"])
+        wallet = probes["app-kwalletmanager"]
+        self.assertIn("ldd /usr/bin/kwalletmanager5", wallet)
+        self.assertIn("QT_QPA_PLATFORM=offscreen timeout 60 /usr/bin/kwalletmanager5 --version", wallet)
 
     def test_installed_reboot_waits_for_qmp_reset_before_returning_to_serial_probe(self) -> None:
         events: list[str] = []

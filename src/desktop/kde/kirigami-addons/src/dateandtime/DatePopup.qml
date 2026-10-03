@@ -10,44 +10,58 @@ import org.kde.kirigami as Kirigami
 import org.kde.kirigamiaddons.components as Components
 import './private/' as P
 
-/**
- * A popup that prompts the user to select a date
+/*!
+   A popup that prompts the user to select a date.
  */
 QQC2.Dialog {
     id: root
 
-    /**
-     * @brief The current date and time selected by the user.
+    /*!
+       \brief The current date and time selected by the user.
      */
     property date value: new Date()
 
-    /**
-     * Emitted when the user cancells the popup
-     * @deprecated Use rejected instead.
+    /*!
+       Emitted when the user cancels the popup.
+       \deprecated Use rejected instead.
      */
     signal cancelled()
 
-    /**
-     * This property holds the minimum date (inclusive) that the user can select.
-     *
-     * By default, no limit is applied to the date selection.
+    /*!
+       This property holds the minimum date (inclusive) that the user can select.
+
+       By default, no limit is applied to the date selection.
      */
     property date minimumDate
 
-    /**
-     * This property holds the maximum date (inclusive) that the user can select.
-     *
-     * By default, no limit is applied to the date selection.
+    /*!
+       This property holds the maximum date (inclusive) that the user can select.
+
+       By default, no limit is applied to the date selection.
      */
     property date maximumDate
 
-    /**
-     * This property holds whether the date popup will automatically select a date
-     * on selection or has a "Select" button.
-     *
-     * By default, this is false.
+    /*!
+       This property holds whether the date popup will automatically select a date
+       on selection or has a "Select" button.
+
+       By default, this is false.
      */
     property bool autoAccept: false
+
+    /*!
+       This property holds whether a "Reset" button is shown, allowing the user
+       to unset the value.
+
+       \note The button is not shown when \l autoAccept is enabled.
+
+       When the user clicks it, \l value is set to an invalid date, the
+       \l reset signal is emitted and the popup is closed.
+
+       \default false
+       \since 1.15.0
+     */
+    property bool resettable: false
 
     padding: 0
     topPadding: undefined
@@ -61,7 +75,7 @@ QQC2.Dialog {
 
     contentItem: P.DatePicker {
         id: datePicker
-        selectedDate: root.value
+        selectedDate: isNaN(root.value.valueOf()) ? new Date() : root.value
         minimumDate: root.minimumDate
         maximumDate: root.maximumDate
         focus: true
@@ -76,6 +90,8 @@ QQC2.Dialog {
 
     footer: QQC2.DialogButtonBox {
         id: box
+
+        standardButtons: root.resettable ? QQC2.DialogButtonBox.Reset : QQC2.DialogButtonBox.NoButton
 
         visible: !autoAccept
 
@@ -110,6 +126,11 @@ QQC2.Dialog {
     }
 
     background: Components.DialogRoundedBackground {}
+
+    onReset: {
+        value = new Date(NaN);
+        close();
+    }
 
     // black background, fades in and out
     QQC2.Overlay.modal: Rectangle {

@@ -261,6 +261,39 @@ mod rust_package_metadata_tests {
     }
 }
 
+/// A system service whose package also owns configuration under `/etc`
+/// (PackageKit's daemon and APT hook): the whole `/usr` tree as
+/// [`stage_multimedia_sdk`] stages it, plus the component's `etc`.
+pub(super) fn stage_service_with_config(
+    repo_root: &Path,
+    staging: &Path,
+    component: &str,
+    package: &str,
+    license: &str,
+) -> Result<()> {
+    stage_multimedia_sdk(repo_root, staging, component, package, license)?;
+    let etc = component_install(repo_root, component).join("etc");
+    if etc.is_dir() {
+        copy_tree_preserving(&etc, &staging.join("etc"))?;
+    }
+    if component == "packagekit" {
+        // Only the APT backend is shipped, not PackageKit's test backends.
+        let backends = staging.join("usr/lib/x86_64-linux-gnu/packagekit-backend");
+        for entry in fs::read_dir(&backends)? {
+            let path = entry?.path();
+            let name = path.file_name().and_then(OsStr::to_str).unwrap_or_default();
+            if name.starts_with("libpk_backend_test_") {
+                fs::remove_file(&path)?;
+            }
+        }
+        remove_path_if_exists(&staging.join("usr/share/PackageKit/helpers/test_spawn"))?;
+        // The daemon keeps its transaction database here; the build's own
+        // database is not shipped, but the directory must exist.
+        fs::create_dir_all(staging.join("var/lib/PackageKit"))?;
+    }
+    Ok(())
+}
+
 pub(super) fn stage_multimedia_sdk(
     repo_root: &Path,
     staging: &Path,

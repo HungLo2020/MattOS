@@ -1,13 +1,13 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the kirigami-addons package.
 #
-# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Freek de Kruijf <freekdekruijf@kde.nl>
+# SPDX-FileCopyrightText: 2021-2026 Freek de Kruijf <freekdekruijf@kde.nl>
 msgid ""
 msgstr ""
 "Project-Id-Version: kirigami-addons\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-07-03 06:55+0000\n"
-"PO-Revision-Date: 2025-03-23 22:28+0100\n"
+"POT-Creation-Date: 2026-10-01 00:43+0000\n"
+"PO-Revision-Date: 2026-09-29 13:29+0200\n"
 "Last-Translator: Freek de Kruijf <freekdekruijf@kde.nl>\n"
 "Language-Team: \n"
 "Language: nl\n"
@@ -15,19 +15,234 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 24.12.3\n"
+"X-Generator: Lokalize 26.08.1\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
 msgid "Your names"
-msgstr "Freek de Kruijf - 2024 t/m 2025"
+msgstr "Freek de Kruijf - 2024 t/m 2026"
 
 #, kde-format
 msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "freekdekruijf@kde.nl"
 
-#: components/AbstractMaximizeComponent.qml:132
+#: actions/abstractkirigamiapplication.cpp:163
+#, kde-format
+msgid "Open Command Bar"
+msgstr "Commandobalk openen"
+
+#: actions/abstractkirigamiapplication.cpp:185 formcard/AboutPage.qml:128
+#, kde-format
+msgid "About %1"
+msgstr "Info over %1"
+
+#: actions/abstractkirigamiapplication.cpp:192 formcard/AboutKDEPage.qml:24
+#, kde-format
+msgid "About KDE"
+msgstr "Over KDE"
+
+#: actions/abstractkirigamiapplication.cpp:202
+#, kde-format
+msgctxt "@title:menu"
+msgid "File"
+msgstr "Bestand"
+
+#: actions/abstractkirigamiapplication.cpp:209
+#, kde-format
+msgctxt "@title:menu"
+msgid "Settings"
+msgstr "Instellingen"
+
+#: actions/abstractkirigamiapplication.cpp:222
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "Help"
+
+#: actions/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "Gereserveerde snelkoppeling"
+
+#: actions/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"De F12-toets is gereserveerd in Windows, en kan dus niet gebruikt worden "
+"voor een globale sneltoets.\n"
+"Graag een andere kiezen."
+
+#: actions/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "Globaal schaduwen van sneltoets"
+
+#: actions/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr ""
+"De toetsencombinatie '%1' wordt geschaduwd door de volgende globale acties:\n"
+
+#: actions/private/keysequencehelper.cpp:148
+#: actions/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "Actie '%1' in context '%2'\n"
+
+#: actions/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr "De toetscombinatie '%1' schaduwt de volgende globale acties:\n"
+
+#: actions/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "Conflict met standaard-sneltoets van de toepassing"
+
+#: actions/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"De toetscombinatie '%1' is reeds toegewezen aan de standaardactie \"%2\". "
+"Deze actie wordt door enkele programma's gebruikt.\n"
+"Wilt u de combinatie ook gebruiken als globale toetsencombinatie?"
+
+#: actions/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "Invoer"
+
+#: actions/private/KeySequenceItem.qml:131
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "Geen"
+
+#: actions/private/KeySequenceItem.qml:142
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"Klik op de knop, voer dan de sneltoets in zoals u zou doen in het "
+"programma.\n"
+"Voorbeeld voor Ctrl+A: houdt de Ctrl-toets in en druk op A."
+
+#: actions/private/KeySequenceItem.qml:183
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "Toetsenreeks wissen"
+
+#: actions/private/KeySequenceItem.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "Toetsenreeks opnemen annuleren"
+
+#: actions/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "Geen resultaten gevonden"
+
+#: actions/private/ShortcutsEditor.qml:19 actions/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "Sneltoetsen"
+
+#: actions/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "Filter…"
+
+#: actions/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "Sneltoets: %1"
+
+#: actions/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "Sneltoets:"
+
+#: actions/private/ShortcutsEditor.qml:144
+#: actions/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "Alternatief:"
+
+#: actions/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "Geen sneltoetsen gevonden"
+
+#: actions/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#: actions/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "Info over %1"
+
+#: actions/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "Over KDE"
+
+#: app/kirigamiappdefaults.cpp:113 app/kirigamiappdefaults.cpp:120
+#, kde-format
+msgctxt "@title:window"
+msgid "Failed to Load Application"
+msgstr "Toepassing laden is mislukt"
+
+#: app/kirigamiappdefaults.cpp:114
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Could not load the QML application. This issue might be caused by your "
+"distribution. Please report it to your distribution first."
+msgstr ""
+"De QML-toepassing kon niet worden geladen. Dit probleem wordt mogelijk "
+"veroorzaakt door uw distributie. Meld het probleem daarom eerst bij uw "
+"distributie."
+
+#: app/kirigamiappdefaults.cpp:121
+#, kde-format
+msgctxt "@info"
+msgid "Could not load the QML application."
+msgstr "Kon de QML-toepassing niet laden."
+
+#: components/AbstractMaximizeComponent.qml:137
 #, kde-format
 msgid "Close"
 msgstr "Sluiten"
@@ -69,58 +284,66 @@ msgstr "Opschrift verbergen"
 msgid "Save as"
 msgstr "Opslaan als"
 
-#: components/AlbumMaximizeComponent.qml:256
+#: components/AlbumMaximizeComponent.qml:255
 #, kde-format
 msgid "Previous image"
 msgstr "Vorige afbeelding"
 
-#: components/AlbumMaximizeComponent.qml:276
+#: components/AlbumMaximizeComponent.qml:273
 #, kde-format
 msgid "Next image"
 msgstr "Volgende afbeelding"
 
-#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#: components/Banner.qml:185 formcard/AboutPage.qml:240
+#: formcard/AboutPage.qml:354 formcard/AboutPage.qml:750
 #, kde-format
 msgctxt "@action:button"
 msgid "Close"
 msgstr "Sluiten"
 
-#: components/ConvergentContextMenu.qml:274
+#: components/ConvergentContextMenu.qml:318
+#: components/ConvergentContextMenu.qml:428
 #, kde-format
 msgctxt "@action:button"
 msgid "Go Back"
 msgstr "Ga terug"
+
+#: components/ConvergentContextMenu.qml:402 formcard/FormCardDialog.qml:102
+#, kde-format
+msgctxt "@action:button close dialog"
+msgid "Close"
+msgstr "Sluiten"
 
 #: components/DownloadAction.qml:40
 #, kde-format
 msgid "Download"
 msgstr "Downloaden"
 
-#: components/MessageDialog.qml:99
+#: components/MessageDialog.qml:179
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Success"
 msgstr "Succes"
 
-#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#: components/MessageDialog.qml:181 components/MessageDialog.qml:187
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Warning"
 msgstr "Waarschuwing"
 
-#: components/MessageDialog.qml:103
+#: components/MessageDialog.qml:183
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Error"
 msgstr "Fout"
 
-#: components/MessageDialog.qml:105
+#: components/MessageDialog.qml:185
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Information"
 msgstr "Informatie"
 
-#: components/MessageDialog.qml:255
+#: components/MessageDialog.qml:311
 #, kde-format
 msgctxt "@label:checkbox"
 msgid "Do not show again"
@@ -132,13 +355,14 @@ msgctxt "@action:button"
 msgid "Volume"
 msgstr "Volume"
 
-#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#: dateandtime/DatePopup.qml:103 dateandtime/TimePopup.qml:70
+#: onboarding/private/OnboardingOverlay.qml:236
 #, kde-format
 msgctxt "@action:button"
 msgid "Cancel"
 msgstr "Annuleren"
 
-#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#: dateandtime/DatePopup.qml:115 dateandtime/TimePopup.qml:81
 #, kde-format
 msgctxt "@action:button"
 msgid "Select"
@@ -177,34 +401,40 @@ msgctxt "@action:button"
 msgid "Go Next"
 msgstr "Ga naar volgende"
 
-#: dateandtime/TimePicker.qml:97
+#: dateandtime/TimePicker.qml:130
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset to current time"
+msgstr "Reset naar de huidige tijd"
+
+#: dateandtime/TimePicker.qml:155
 #, kde-format
 msgid "Hours"
 msgstr "Uren"
 
-#: dateandtime/TimePicker.qml:119
+#: dateandtime/TimePicker.qml:178
 #, kde-format
 msgctxt "Time separator"
 msgid ":"
 msgstr ":"
 
-#: dateandtime/TimePicker.qml:134
+#: dateandtime/TimePicker.qml:193
 #, kde-format
 msgid "Minutes"
 msgstr "Minuten"
 
-#: formcard/aboutcomponent.cpp:25
+#: formcard/aboutcomponent.cpp:102
 #, kde-format
 msgctxt "@info Platform name"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: formcard/aboutcomponent.cpp:29
+#: formcard/aboutcomponent.cpp:106
 #, kde-format
 msgid "KDE Frameworks"
 msgstr "KDE Frameworks"
 
-#: formcard/aboutcomponent.cpp:30
+#: formcard/aboutcomponent.cpp:107
 #, kde-format
 msgctxt "@info"
 msgid "Collection of libraries created by the KDE Community to extend Qt."
@@ -212,33 +442,51 @@ msgstr ""
 "Verzameling van bibliotheken gemaakt door de KDE gemeenschap om Qt uit te "
 "breiden."
 
-#: formcard/aboutcomponent.cpp:35
+#: formcard/aboutcomponent.cpp:112
 #, kde-format
 msgid "Qt"
 msgstr "Qt"
 
-#: formcard/aboutcomponent.cpp:36
+#: formcard/aboutcomponent.cpp:113
 #, kde-format
 msgctxt "@info"
 msgid "Cross-platform application development framework."
 msgstr "Cross-platform framework voor ontwikkeling van toepassingen."
 
-#: formcard/aboutcomponent.cpp:37
+#: formcard/aboutcomponent.cpp:114
 #, kde-format
 msgid "Using %1 and built against %2"
 msgstr "%1 gebruiken en bouwen tegen %2"
 
-#: formcard/aboutcomponent.cpp:41
+#: formcard/aboutcomponent.cpp:121
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Flatpak"
+msgstr "Flatpak"
+
+#: formcard/aboutcomponent.cpp:124
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Snap"
+msgstr "Snap"
+
+#: formcard/aboutcomponent.cpp:127
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "AppImage"
+msgstr "AppImage"
+
+#: formcard/aboutcomponent.cpp:130
+#, kde-format
+msgctxt "@info"
+msgid "Distribution method."
+msgstr "Distributiemethode."
+
+#: formcard/aboutcomponent.cpp:134
 #, kde-format
 msgctxt "@info"
 msgid "Underlying platform."
 msgstr "Onderliggend platform."
-
-#: formcard/AboutKDEPage.qml:24
-#: statefulapplication/abstractkirigamiapplication.cpp:174
-#, kde-format
-msgid "About KDE"
-msgstr "Over KDE"
 
 #: formcard/AboutKDEPage.qml:50
 #, kde-format
@@ -274,7 +522,7 @@ msgstr ""
 "bereiken. Iedereen is welkom om mee te doen en bij te dragen aan KDE, "
 "inclusief u."
 
-#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:403
 #, kde-format
 msgid "Homepage"
 msgstr "Homepagina"
@@ -332,7 +580,7 @@ msgstr ""
 "documentatie vertalen. U kunt afbeeldingen, thema's, geluiden en verbeterde "
 "documentatie leveren. Aan u de keuze!"
 
-#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:419
 #, kde-format
 msgid "Get Involved"
 msgstr "Doe mee"
@@ -387,77 +635,106 @@ msgstr ""
 msgid "KDE e.V."
 msgstr "KDE e.V."
 
-#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:411
 #, kde-format
 msgid "Donate"
 msgstr "Doneren"
 
-#: formcard/AboutPage.qml:91
-#: statefulapplication/abstractkirigamiapplication.cpp:167
+#: formcard/AboutPage.qml:166
 #, kde-format
-msgid "About %1"
-msgstr "Info over %1"
+msgid "What's new"
+msgstr "Wat is nieuw"
 
-#: formcard/AboutPage.qml:136
+#: formcard/AboutPage.qml:196
 #, kde-format
 msgid "Copyright"
 msgstr "Copyright"
 
-#: formcard/AboutPage.qml:144
+#: formcard/AboutPage.qml:204
+#, kde-format
+msgid "Release history"
+msgstr "Uitgavegeschiedenis"
+
+#: formcard/AboutPage.qml:278
+#, kde-format
+msgid "Show older changes…"
+msgstr "Oudere wijzigingen tonen…"
+
+#: formcard/AboutPage.qml:290
 #, kde-format
 msgid "Description"
 msgstr "Beschrijving"
 
-#: formcard/AboutPage.qml:157
+#: formcard/AboutPage.qml:303
 #, kde-format
 msgid "License"
 msgid_plural "Licenses"
 msgstr[0] "Licentie"
 msgstr[1] "Licenties"
 
-#: formcard/AboutPage.qml:279
+#: formcard/AboutPage.qml:439
 #, kde-format
 msgid "Report a Bug"
 msgstr "Een bug rapporteren"
 
-#: formcard/AboutPage.qml:285
+#: formcard/AboutPage.qml:452
+#, kde-format
+msgid "Matrix Channel"
+msgstr "Matrix-kanaal"
+
+#: formcard/AboutPage.qml:468
+#, kde-format
+msgid "Mastodon"
+msgstr "Mastodon"
+
+#: formcard/AboutPage.qml:480
+#, kde-format
+msgid "Source Code"
+msgstr "Broncode"
+
+#: formcard/AboutPage.qml:486
 #, kde-format
 msgid "Libraries in use"
 msgstr "Bibliotheken in gebruik"
 
-#: formcard/AboutPage.qml:288
+#: formcard/AboutPage.qml:490
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy to Clipboard"
 msgstr "Naar klembord kopiëren"
 
-#: formcard/AboutPage.qml:292
+#: formcard/AboutPage.qml:494
 #, kde-format
 msgctxt "@info"
 msgid "System information copied to clipboard."
 msgstr "Systeeminformatie gekopieerd naar het klembord."
 
-#: formcard/AboutPage.qml:305
+#: formcard/AboutPage.qml:509
 #, kde-format
 msgid "Authors"
 msgstr "Auteurs"
 
-#: formcard/AboutPage.qml:320
+#: formcard/AboutPage.qml:525
 #, kde-format
 msgid "Credits"
 msgstr "Dankbetuigingen"
 
-#: formcard/AboutPage.qml:335
+#: formcard/AboutPage.qml:541
 #, kde-format
 msgid "Translators"
 msgstr "Vertalers"
 
-#: formcard/AboutPage.qml:404
+#: formcard/AboutPage.qml:592
+#, kde-format
+msgid "More information"
+msgstr "Meer informatie"
+
+#: formcard/AboutPage.qml:652
 #, kde-format
 msgid "Visit %1's KDE Store page"
 msgstr "Bezoek de KDE Store-pagina van %1"
 
-#: formcard/AboutPage.qml:413
+#: formcard/AboutPage.qml:661
 #, kde-format
 msgid "Send an email to %1"
 msgstr "Een e-mail sturen naar %1"
@@ -474,48 +751,133 @@ msgctxt "Accessible description"
 msgid "Current color \"%1\""
 msgstr "Huidige kleur \"%1\""
 
-#: formcard/android/FormIconDelegate.qml:43
+#: formcard/android/FormIconDelegate.qml:19
 #, kde-format
 msgctxt "@action:button"
 msgid "Icon"
 msgstr "Pictogram"
 
-#: formcard/FormDateTimeDelegate.qml:202
+#: formcard/FormDateTimeDelegate.qml:227
 #, kde-format
 msgctxt "Displayed in place of the date if the selected day is today"
 msgid "Today"
 msgstr "Vandaag"
 
-#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#: formcard/FormDateTimeDelegate.qml:254 formcard/FormDateTimeDelegate.qml:399
 #, kde-format
 msgctxt "Date is not set"
 msgid "Not set"
 msgstr "Niet gezet"
 
-#: formcard/FormLinkDelegate.qml:52
+#: formcard/FormDateTimeDelegate.qml:305 formcard/FormDateTimeDelegate.qml:415
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset"
+msgstr ""
+
+#: formcard/FormFileDelegate.qml:186
+#, kde-format
+msgctxt "@info:status"
+msgid "The path doesn't exist."
+msgstr "Het pad bestaat niet."
+
+#: formcard/FormFileDelegate.qml:195
+#, kde-format
+msgctxt "@info:status"
+msgid "The file doesn't exist."
+msgstr "Het bestand bestaat niet."
+
+#: formcard/FormFileDelegate.qml:243
+#, kde-format
+msgctxt "@action:button"
+msgid "Select file"
+msgstr "Bestand selecteren"
+
+#: formcard/FormFileDelegate.qml:250
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No file selected"
+msgstr "Geen bestand geselecteerd"
+
+#: formcard/FormFolderDelegate.qml:153
+#, kde-format
+msgctxt "@info:status"
+msgid "The folder doesn't exist."
+msgstr "De map bestaat niet."
+
+#: formcard/FormFolderDelegate.qml:200
+#, kde-format
+msgctxt "@action:button"
+msgid "Select folder"
+msgstr "Map selecteren"
+
+#: formcard/FormFolderDelegate.qml:207
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No folder selected"
+msgstr "Geen map geselecteerd"
+
+#: formcard/FormLinkDelegate.qml:54
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Open Link"
 msgstr "Koppeling openen"
 
-#: formcard/FormLinkDelegate.qml:58
+#: formcard/FormLinkDelegate.qml:60
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Copy Link to Clipboard"
 msgstr "Koppeling naar klembord kopiëren"
 
-#: formcard/FormLinkDelegate.qml:64
+#: formcard/FormLinkDelegate.qml:66
 #, kde-format
 msgctxt "@info:status"
 msgid "Url copied to clipboard."
 msgstr "URL gekopieerd naar het klembord."
 
-#: formcard/FormPasswordFieldDelegate.qml:249
-#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#: formcard/FormPasswordFieldDelegate.qml:319
+#: formcard/FormTextAreaDelegate.qml:187 formcard/FormTextFieldDelegate.qml:332
 #, kde-format
 msgctxt "@label %1 is current text length, %2 is maximum length of text field"
 msgid "%1/%2"
 msgstr "%1/%2"
+
+#: formcard/FormPasswordFieldDelegate.qml:417
+#: formcard/FormTextFieldDelegate.qml:439
+#, kde-format
+msgctxt "@action:button"
+msgid "Done"
+msgstr "Gereed"
+
+#: onboarding/private/OnboardingOverlay.qml:201
+#, kde-format
+msgctxt "@action:button"
+msgid "Previous"
+msgstr "Vorige"
+
+#: onboarding/private/OnboardingOverlay.qml:202
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Previous"
+msgstr "Vorige"
+
+#: onboarding/private/OnboardingOverlay.qml:221
+#, kde-format
+msgctxt "@action:button"
+msgid "Next"
+msgstr "Volgende"
+
+#: onboarding/private/OnboardingOverlay.qml:222
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Next"
+msgstr "Volgende"
+
+#: onboarding/private/OnboardingOverlay.qml:237
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel"
+msgstr "Annuleren"
 
 #: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
 #, kde-format
@@ -651,170 +1013,9 @@ msgctxt "@action:button"
 msgid "Spell Checking"
 msgstr "Spellingcontrole"
 
-#: statefulapplication/abstractkirigamiapplication.cpp:145
-#, kde-format
-msgid "Open Command Bar"
-msgstr "Commandobalk openen"
-
-#: statefulapplication/private/keysequencehelper.cpp:117
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Reserved Shortcut"
-msgstr "Gereserveerde snelkoppeling"
-
-#: statefulapplication/private/keysequencehelper.cpp:119
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The F12 key is reserved on Windows, so cannot be used for a global "
-"shortcut.\n"
-"Please choose another one."
-msgstr ""
-"De F12-toets is gereserveerd in Windows, en kan dus niet gebruikt worden "
-"voor een globale sneltoets.\n"
-"Graag een andere kiezen."
-
-#: statefulapplication/private/keysequencehelper.cpp:143
-#, kde-format
-msgctxt ""
-"@title:dialog This happen when a global shortcut is already defined with the "
-"same shortcut"
-msgid "Global Shortcut Shadowing"
-msgstr "Globaal schaduwen van sneltoets"
-
-#: statefulapplication/private/keysequencehelper.cpp:146
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination is shadowed by following global actions:\n"
-msgstr ""
-"De toetsencombinatie '%1' wordt geschaduwd door de volgende globale acties:\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:148
-#: statefulapplication/private/keysequencehelper.cpp:154
-#, kde-format
-msgctxt "@info"
-msgid "Action '%1' in context '%2'\n"
-msgstr "Actie '%1' in context '%2'\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:152
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination shadows following global actions:\n"
-msgstr "De toetscombinatie '%1' schaduwt de volgende globale acties:\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:193
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Conflict with Standard Application Shortcut"
-msgstr "Conflict met standaard-sneltoets van toepassing"
-
-#: statefulapplication/private/keysequencehelper.cpp:195
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The '%1' key combination is also used for the standard action \"%2\" that "
-"some applications use.\n"
-"Do you really want to use it as a global shortcut as well?"
-msgstr ""
-"De toetscombinatie '%1' is reeds toegewezen aan de standaardactie \"%2\". "
-"Deze actie wordt door enkele programma's gebruikt.\n"
-"Wilt u de combinatie ook gebruiken als globale toetsencombinatie?"
-
-#: statefulapplication/private/KeySequenceItem.qml:129
-#, kde-format
-msgctxt "What the user inputs now will be taken as the new shortcut"
-msgid "Input"
-msgstr "Invoer"
-
-#: statefulapplication/private/KeySequenceItem.qml:130
-#, kde-format
-msgctxt "No shortcut defined"
-msgid "None"
-msgstr "Geen"
-
-#: statefulapplication/private/KeySequenceItem.qml:141
-#, kde-format
-msgid ""
-"Click on the button, then enter the shortcut like you would in the program.\n"
-"Example for Ctrl+A: hold the Ctrl key and press A."
-msgstr ""
-"Klik op de knop, voer dan de sneltoets in zoals u zou doen in het "
-"programma.\n"
-"Voorbeeld voor Ctrl+A: houdt de Ctrl-toets in en druk op A."
-
-#: statefulapplication/private/KeySequenceItem.qml:182
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Clear Key Sequence"
-msgstr "Toetsenreeks wissen"
-
-#: statefulapplication/private/KeySequenceItem.qml:198
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Cancel Key Sequence Recording"
-msgstr "Toetsenreeks opnemen annuleren"
-
-#: statefulapplication/private/KQuickCommandBarPage.qml:55
-#, kde-format
-msgctxt "@info:placeholder"
-msgid "No results found"
-msgstr "Geen resultaten gevonden"
-
-#: statefulapplication/private/ShortcutsEditor.qml:19
-#: statefulapplication/StatefulWindow.qml:99
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcuts"
-msgstr "Sneltoetsen"
-
-#: statefulapplication/private/ShortcutsEditor.qml:23
-#, kde-format
-msgctxt "@label:textbox"
-msgid "Filter…"
-msgstr "Filter…"
-
-#: statefulapplication/private/ShortcutsEditor.qml:69
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcut: %1"
-msgstr "Sneltoets: %1"
-
-#: statefulapplication/private/ShortcutsEditor.qml:89
-#, kde-format
-msgctxt "@label"
-msgid "Shortcut:"
-msgstr "Sneltoets:"
-
-#: statefulapplication/private/ShortcutsEditor.qml:144
-#: statefulapplication/private/ShortcutsEditor.qml:172
-#, kde-format
-msgctxt "@label"
-msgid "Alternative:"
-msgstr "Alternatief:"
-
-#: statefulapplication/private/ShortcutsEditor.qml:210
-#, kde-format
-msgctxt "Placeholder message"
-msgid "No shortcuts found"
-msgstr "Geen sneltoetsen gevonden"
-
-#: statefulapplication/shortcutsmodel.cpp:41
-#, kde-format
-msgctxt "List separator"
-msgid ", "
-msgstr ", "
-
-#: statefulapplication/StatefulWindow.qml:109
-#, kde-format
-msgctxt "@title:window"
-msgid "About %1"
-msgstr "Info over %1"
-
-#: statefulapplication/StatefulWindow.qml:122
-#, kde-format
-msgctxt "@title:window"
-msgid "About KDE"
-msgstr "Over KDE"
+#~ msgctxt "Linux packaging format"
+#~ msgid "Unknown/Default"
+#~ msgstr "Onbekend/Standaard"
 
 #~ msgid "Windowing system"
 #~ msgstr "Venstersysteem"

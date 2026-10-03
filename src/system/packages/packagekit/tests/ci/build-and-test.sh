@@ -1,0 +1,51 @@
+#!/bin/sh
+set -e
+
+if [ -d "build" ]; then
+  rm build -rf
+fi
+set -x
+
+meson setup build \
+    --buildtype=debugoptimized \
+    -Dmaintainer=true \
+    -Dlegacy_tools=true \
+    -Ddaemon_tests=true \
+    $@
+
+DUMMY_DESTDIR=/tmp/install-root/
+rm -rf $DUMMY_DESTDIR
+
+#
+# Build & Install
+#
+ninja -C build
+DESTDIR=$DUMMY_DESTDIR ninja -C build install
+
+#
+# Run tests
+#
+
+# Run the regular test suite (the end-to-end tests are run separately
+# below, as they need extra setup and must run as root)
+meson test -C build \
+    --no-suite e2e \
+    -v \
+    --print-errorlogs
+
+# Run the end-to-end integration suite. It needs the D-Bus and polkit policy
+# installed to their system paths so the bus and polkitd honour them; the test
+# wrapper starts a private system bus and polkitd on demand (and tears them
+# down) if none are running. It runs as root so packagekitd can own its name.
+BUILD_DATA_DIR=build/data
+install -Dm644 $BUILD_DATA_DIR/org.freedesktop.PackageKit.conf \
+    /usr/share/dbus-1/system.d/org.freedesktop.PackageKit.conf
+install -Dm644 $BUILD_DATA_DIR/policy/org.freedesktop.packagekit.policy \
+    /usr/share/polkit-1/actions/org.freedesktop.packagekit.policy
+install -Dm644 data/policy/org.freedesktop.packagekit.rules \
+    /usr/share/polkit-1/rules.d/org.freedesktop.packagekit.rules
+
+meson test -C build \
+    --suite e2e \
+    -v \
+    --print-errorlogs

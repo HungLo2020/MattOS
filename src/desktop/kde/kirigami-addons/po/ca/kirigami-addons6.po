@@ -1,16 +1,16 @@
 # Translation of kirigami-addons6.po to Catalan
-# Copyright (C) 2021-2025 This_file_is_part_of_KDE
+# Copyright (C) 2021-2026 This_file_is_part_of_KDE
 # This file is distributed under the license LGPL version 2.1 or
 # version 3 or later versions approved by the membership of KDE e.V.
 #
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Josep M. Ferrer <txemaq@gmail.com>
-# SPDX-FileCopyrightText: 2021, 2023, 2024 Antoni Bella Pérez <antonibella5@yahoo.com>
+# SPDX-FileCopyrightText: 2022-2026 Josep M. Ferrer <txemaq@gmail.com>
+# SPDX-FileCopyrightText: 2021, 2023-2024 Antoni Bella Pérez <antonibella5@yahoo.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kirigami-addons\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-07-03 06:55+0000\n"
-"PO-Revision-Date: 2025-03-23 09:49+0100\n"
+"POT-Creation-Date: 2026-10-01 00:43+0000\n"
+"PO-Revision-Date: 2026-09-29 10:10+0200\n"
 "Last-Translator: Josep M. Ferrer <txemaq@gmail.com>\n"
 "Language-Team: Catalan <kde-i18n-ca@kde.org>\n"
 "Language: ca\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Lokalize 22.12.3\n"
+"X-Generator: Lokalize 25.04.0\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -30,7 +30,223 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "antonibella5@yahoo.com"
 
-#: components/AbstractMaximizeComponent.qml:132
+#: actions/abstractkirigamiapplication.cpp:163
+#, kde-format
+msgid "Open Command Bar"
+msgstr "Obre la barra d'ordres"
+
+#: actions/abstractkirigamiapplication.cpp:185 formcard/AboutPage.qml:128
+#, kde-format
+msgid "About %1"
+msgstr "Quant al %1"
+
+#: actions/abstractkirigamiapplication.cpp:192 formcard/AboutKDEPage.qml:24
+#, kde-format
+msgid "About KDE"
+msgstr "Quant a KDE"
+
+#: actions/abstractkirigamiapplication.cpp:202
+#, kde-format
+msgctxt "@title:menu"
+msgid "File"
+msgstr "Fitxer"
+
+#: actions/abstractkirigamiapplication.cpp:209
+#, kde-format
+msgctxt "@title:menu"
+msgid "Settings"
+msgstr "Configuració"
+
+#: actions/abstractkirigamiapplication.cpp:222
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "Ajuda"
+
+#: actions/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "Drecera reservada"
+
+#: actions/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"La tecla F12 està reservada en el Windows, no es pot usar com a drecera "
+"global.\n"
+"Escolliu-ne una altra."
+
+#: actions/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "Drecera global ombrejada"
+
+#: actions/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr ""
+"La combinació de tecles «%1» està ombrejada per les accions globals "
+"següents:\n"
+
+#: actions/private/keysequencehelper.cpp:148
+#: actions/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "Acció «%1» en el context «%2»\n"
+
+#: actions/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr "La combinació de tecles «%1» ombreja les accions globals següents:\n"
+
+#: actions/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "Conflicte amb una drecera estàndard d'aplicació"
+
+#: actions/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"La combinació de tecla «%1» ja s'ha assignat a l'acció estàndard «%2» que "
+"usen algunes aplicacions.\n"
+"Esteu segur que també voleu usar-la com a drecera global?"
+
+#: actions/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "Entrada"
+
+#: actions/private/KeySequenceItem.qml:131
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "Cap"
+
+#: actions/private/KeySequenceItem.qml:142
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"Cliqueu en el botó, llavors introduïu la drecera com ho faríeu en el "
+"programa.\n"
+"Exemple per a «Ctrl+A»: manteniu premuda la tecla «Ctrl» mentre premeu la "
+"«A»."
+
+#: actions/private/KeySequenceItem.qml:183
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "Neteja la seqüència de tecles"
+
+#: actions/private/KeySequenceItem.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "Cancel·la l'enregistrament de la seqüència de tecles"
+
+#: actions/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "No s'ha trobat cap resultat"
+
+#: actions/private/ShortcutsEditor.qml:19 actions/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "Dreceres"
+
+#: actions/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "Filtre…"
+
+#: actions/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "Drecera: %1"
+
+#: actions/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "Drecera:"
+
+#: actions/private/ShortcutsEditor.qml:144
+#: actions/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "Alternativa:"
+
+#: actions/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "No s'ha trobat cap drecera"
+
+#: actions/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#: actions/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "Quant al %1"
+
+#: actions/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "Quant a KDE"
+
+#: app/kirigamiappdefaults.cpp:113 app/kirigamiappdefaults.cpp:120
+#, kde-format
+msgctxt "@title:window"
+msgid "Failed to Load Application"
+msgstr "Ha fallat en carregar una aplicació"
+
+#: app/kirigamiappdefaults.cpp:114
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Could not load the QML application. This issue might be caused by your "
+"distribution. Please report it to your distribution first."
+msgstr ""
+"No s'ha pogut carregar l'aplicació QML. Aquest problema podria ser causat "
+"per la vostra distribució. Si us plau, informeu-ho a la distribució."
+
+#: app/kirigamiappdefaults.cpp:121
+#, kde-format
+msgctxt "@info"
+msgid "Could not load the QML application."
+msgstr "No s'ha pogut trobar l'aplicació QML."
+
+#: components/AbstractMaximizeComponent.qml:137
 #, kde-format
 msgid "Close"
 msgstr "Tanca"
@@ -72,58 +288,66 @@ msgstr "Amaga la llegenda"
 msgid "Save as"
 msgstr "Desa com a"
 
-#: components/AlbumMaximizeComponent.qml:256
+#: components/AlbumMaximizeComponent.qml:255
 #, kde-format
 msgid "Previous image"
 msgstr "Imatge anterior"
 
-#: components/AlbumMaximizeComponent.qml:276
+#: components/AlbumMaximizeComponent.qml:273
 #, kde-format
 msgid "Next image"
 msgstr "Imatge següent"
 
-#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#: components/Banner.qml:185 formcard/AboutPage.qml:240
+#: formcard/AboutPage.qml:354 formcard/AboutPage.qml:750
 #, kde-format
 msgctxt "@action:button"
 msgid "Close"
 msgstr "Tanca"
 
-#: components/ConvergentContextMenu.qml:274
+#: components/ConvergentContextMenu.qml:318
+#: components/ConvergentContextMenu.qml:428
 #, kde-format
 msgctxt "@action:button"
 msgid "Go Back"
 msgstr "Retrocedeix"
+
+#: components/ConvergentContextMenu.qml:402 formcard/FormCardDialog.qml:102
+#, kde-format
+msgctxt "@action:button close dialog"
+msgid "Close"
+msgstr "Tanca"
 
 #: components/DownloadAction.qml:40
 #, kde-format
 msgid "Download"
 msgstr "Baixada"
 
-#: components/MessageDialog.qml:99
+#: components/MessageDialog.qml:179
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Success"
 msgstr "Correcte"
 
-#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#: components/MessageDialog.qml:181 components/MessageDialog.qml:187
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Warning"
 msgstr "Avís"
 
-#: components/MessageDialog.qml:103
+#: components/MessageDialog.qml:183
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Error"
 msgstr "Error"
 
-#: components/MessageDialog.qml:105
+#: components/MessageDialog.qml:185
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Information"
 msgstr "Informació"
 
-#: components/MessageDialog.qml:255
+#: components/MessageDialog.qml:311
 #, kde-format
 msgctxt "@label:checkbox"
 msgid "Do not show again"
@@ -135,13 +359,14 @@ msgctxt "@action:button"
 msgid "Volume"
 msgstr "Volum"
 
-#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#: dateandtime/DatePopup.qml:103 dateandtime/TimePopup.qml:70
+#: onboarding/private/OnboardingOverlay.qml:236
 #, kde-format
 msgctxt "@action:button"
 msgid "Cancel"
 msgstr "Cancel·la"
 
-#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#: dateandtime/DatePopup.qml:115 dateandtime/TimePopup.qml:81
 #, kde-format
 msgctxt "@action:button"
 msgid "Select"
@@ -180,34 +405,40 @@ msgctxt "@action:button"
 msgid "Go Next"
 msgstr "Ves a la següent"
 
-#: dateandtime/TimePicker.qml:97
+#: dateandtime/TimePicker.qml:130
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset to current time"
+msgstr "Restaura a l'hora actual"
+
+#: dateandtime/TimePicker.qml:155
 #, kde-format
 msgid "Hours"
 msgstr "Hores"
 
-#: dateandtime/TimePicker.qml:119
+#: dateandtime/TimePicker.qml:178
 #, kde-format
 msgctxt "Time separator"
 msgid ":"
 msgstr ":"
 
-#: dateandtime/TimePicker.qml:134
+#: dateandtime/TimePicker.qml:193
 #, kde-format
 msgid "Minutes"
 msgstr "Minuts"
 
-#: formcard/aboutcomponent.cpp:25
+#: formcard/aboutcomponent.cpp:102
 #, kde-format
 msgctxt "@info Platform name"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: formcard/aboutcomponent.cpp:29
+#: formcard/aboutcomponent.cpp:106
 #, kde-format
 msgid "KDE Frameworks"
 msgstr "Frameworks de KDE"
 
-#: formcard/aboutcomponent.cpp:30
+#: formcard/aboutcomponent.cpp:107
 #, kde-format
 msgctxt "@info"
 msgid "Collection of libraries created by the KDE Community to extend Qt."
@@ -215,33 +446,51 @@ msgstr ""
 "Col·lecció de biblioteques creades per la Comunitat de KDE per a ampliar les "
 "Qt."
 
-#: formcard/aboutcomponent.cpp:35
+#: formcard/aboutcomponent.cpp:112
 #, kde-format
 msgid "Qt"
 msgstr "Qt"
 
-#: formcard/aboutcomponent.cpp:36
+#: formcard/aboutcomponent.cpp:113
 #, kde-format
 msgctxt "@info"
 msgid "Cross-platform application development framework."
 msgstr "Entorn de desenvolupament d'aplicacions multiplataforma."
 
-#: formcard/aboutcomponent.cpp:37
+#: formcard/aboutcomponent.cpp:114
 #, kde-format
 msgid "Using %1 and built against %2"
 msgstr "S'utilitza %1 i s'ha construït amb %2"
 
-#: formcard/aboutcomponent.cpp:41
+#: formcard/aboutcomponent.cpp:121
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Flatpak"
+msgstr "Flatpak"
+
+#: formcard/aboutcomponent.cpp:124
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Snap"
+msgstr "Snap"
+
+#: formcard/aboutcomponent.cpp:127
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "AppImage"
+msgstr "AppImage"
+
+#: formcard/aboutcomponent.cpp:130
+#, kde-format
+msgctxt "@info"
+msgid "Distribution method."
+msgstr "Mètode de distribució."
+
+#: formcard/aboutcomponent.cpp:134
 #, kde-format
 msgctxt "@info"
 msgid "Underlying platform."
 msgstr "Plataforma subjacent."
-
-#: formcard/AboutKDEPage.qml:24
-#: statefulapplication/abstractkirigamiapplication.cpp:174
-#, kde-format
-msgid "About KDE"
-msgstr "Quant a KDE"
 
 #: formcard/AboutKDEPage.qml:50
 #, kde-format
@@ -278,7 +527,7 @@ msgstr ""
 "món. Donem la benvinguda a tothom a afegir-se i col·laborar amb KDE, "
 "incloent-vos-hi."
 
-#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:403
 #, kde-format
 msgid "Homepage"
 msgstr "Pàgina web"
@@ -336,7 +585,7 @@ msgstr ""
 "dels programes. Podeu proporcionar gràfics, temes, sons i millorar la "
 "documentació. Vós decidiu!"
 
-#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:419
 #, kde-format
 msgid "Get Involved"
 msgstr "Col·laboreu-hi"
@@ -392,77 +641,106 @@ msgstr ""
 msgid "KDE e.V."
 msgstr "KDE e.V."
 
-#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:411
 #, kde-format
 msgid "Donate"
-msgstr "Donatius"
+msgstr "Donació"
 
-#: formcard/AboutPage.qml:91
-#: statefulapplication/abstractkirigamiapplication.cpp:167
+#: formcard/AboutPage.qml:166
 #, kde-format
-msgid "About %1"
-msgstr "Quant al %1"
+msgid "What's new"
+msgstr "Què hi ha de nou"
 
-#: formcard/AboutPage.qml:136
+#: formcard/AboutPage.qml:196
 #, kde-format
 msgid "Copyright"
 msgstr "Copyright"
 
-#: formcard/AboutPage.qml:144
+#: formcard/AboutPage.qml:204
+#, kde-format
+msgid "Release history"
+msgstr "Historial de llançaments"
+
+#: formcard/AboutPage.qml:278
+#, kde-format
+msgid "Show older changes…"
+msgstr "Mostra els canvis antics…"
+
+#: formcard/AboutPage.qml:290
 #, kde-format
 msgid "Description"
 msgstr "Descripció"
 
-#: formcard/AboutPage.qml:157
+#: formcard/AboutPage.qml:303
 #, kde-format
 msgid "License"
 msgid_plural "Licenses"
 msgstr[0] "Llicència"
 msgstr[1] "Llicències"
 
-#: formcard/AboutPage.qml:279
+#: formcard/AboutPage.qml:439
 #, kde-format
 msgid "Report a Bug"
 msgstr "Informeu d'un error"
 
-#: formcard/AboutPage.qml:285
+#: formcard/AboutPage.qml:452
+#, kde-format
+msgid "Matrix Channel"
+msgstr "Canal de Matrix"
+
+#: formcard/AboutPage.qml:468
+#, kde-format
+msgid "Mastodon"
+msgstr "Mastodon"
+
+#: formcard/AboutPage.qml:480
+#, kde-format
+msgid "Source Code"
+msgstr "Codi font"
+
+#: formcard/AboutPage.qml:486
 #, kde-format
 msgid "Libraries in use"
 msgstr "Biblioteques en ús"
 
-#: formcard/AboutPage.qml:288
+#: formcard/AboutPage.qml:490
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy to Clipboard"
 msgstr "Copia al porta-retalls"
 
-#: formcard/AboutPage.qml:292
+#: formcard/AboutPage.qml:494
 #, kde-format
 msgctxt "@info"
 msgid "System information copied to clipboard."
 msgstr "La informació del sistema s'ha copiat al porta-retalls."
 
-#: formcard/AboutPage.qml:305
+#: formcard/AboutPage.qml:509
 #, kde-format
 msgid "Authors"
 msgstr "Autors"
 
-#: formcard/AboutPage.qml:320
+#: formcard/AboutPage.qml:525
 #, kde-format
 msgid "Credits"
 msgstr "Atribucions"
 
-#: formcard/AboutPage.qml:335
+#: formcard/AboutPage.qml:541
 #, kde-format
 msgid "Translators"
 msgstr "Traductors"
 
-#: formcard/AboutPage.qml:404
+#: formcard/AboutPage.qml:592
+#, kde-format
+msgid "More information"
+msgstr "Més informació"
+
+#: formcard/AboutPage.qml:652
 #, kde-format
 msgid "Visit %1's KDE Store page"
 msgstr "Visita la pàgina %1 de la KDE Store"
 
-#: formcard/AboutPage.qml:413
+#: formcard/AboutPage.qml:661
 #, kde-format
 msgid "Send an email to %1"
 msgstr "Envia un correu a %1"
@@ -479,48 +757,133 @@ msgctxt "Accessible description"
 msgid "Current color \"%1\""
 msgstr "Color actual «%1»"
 
-#: formcard/android/FormIconDelegate.qml:43
+#: formcard/android/FormIconDelegate.qml:19
 #, kde-format
 msgctxt "@action:button"
 msgid "Icon"
 msgstr "Icona"
 
-#: formcard/FormDateTimeDelegate.qml:202
+#: formcard/FormDateTimeDelegate.qml:227
 #, kde-format
 msgctxt "Displayed in place of the date if the selected day is today"
 msgid "Today"
 msgstr "Avui"
 
-#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#: formcard/FormDateTimeDelegate.qml:254 formcard/FormDateTimeDelegate.qml:399
 #, kde-format
 msgctxt "Date is not set"
 msgid "Not set"
 msgstr "No establert"
 
-#: formcard/FormLinkDelegate.qml:52
+#: formcard/FormDateTimeDelegate.qml:305 formcard/FormDateTimeDelegate.qml:415
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset"
+msgstr ""
+
+#: formcard/FormFileDelegate.qml:186
+#, kde-format
+msgctxt "@info:status"
+msgid "The path doesn't exist."
+msgstr "El camí no existeix."
+
+#: formcard/FormFileDelegate.qml:195
+#, kde-format
+msgctxt "@info:status"
+msgid "The file doesn't exist."
+msgstr "El fitxer no existeix."
+
+#: formcard/FormFileDelegate.qml:243
+#, kde-format
+msgctxt "@action:button"
+msgid "Select file"
+msgstr "Selecciona el fitxer"
+
+#: formcard/FormFileDelegate.qml:250
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No file selected"
+msgstr "No s'ha seleccionat cap fitxer"
+
+#: formcard/FormFolderDelegate.qml:153
+#, kde-format
+msgctxt "@info:status"
+msgid "The folder doesn't exist."
+msgstr "La carpeta no existeix."
+
+#: formcard/FormFolderDelegate.qml:200
+#, kde-format
+msgctxt "@action:button"
+msgid "Select folder"
+msgstr "Selecciona la carpeta"
+
+#: formcard/FormFolderDelegate.qml:207
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No folder selected"
+msgstr "Cap carpeta seleccionada"
+
+#: formcard/FormLinkDelegate.qml:54
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Open Link"
 msgstr "Obre l'enllaç"
 
-#: formcard/FormLinkDelegate.qml:58
+#: formcard/FormLinkDelegate.qml:60
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Copy Link to Clipboard"
 msgstr "Copia l'enllaç al porta-retalls"
 
-#: formcard/FormLinkDelegate.qml:64
+#: formcard/FormLinkDelegate.qml:66
 #, kde-format
 msgctxt "@info:status"
 msgid "Url copied to clipboard."
 msgstr "URL copiat al porta-retalls."
 
-#: formcard/FormPasswordFieldDelegate.qml:249
-#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#: formcard/FormPasswordFieldDelegate.qml:319
+#: formcard/FormTextAreaDelegate.qml:187 formcard/FormTextFieldDelegate.qml:332
 #, kde-format
 msgctxt "@label %1 is current text length, %2 is maximum length of text field"
 msgid "%1/%2"
 msgstr "%1/%2"
+
+#: formcard/FormPasswordFieldDelegate.qml:417
+#: formcard/FormTextFieldDelegate.qml:439
+#, kde-format
+msgctxt "@action:button"
+msgid "Done"
+msgstr "Fet"
+
+#: onboarding/private/OnboardingOverlay.qml:201
+#, kde-format
+msgctxt "@action:button"
+msgid "Previous"
+msgstr "Anterior"
+
+#: onboarding/private/OnboardingOverlay.qml:202
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Previous"
+msgstr "Anterior"
+
+#: onboarding/private/OnboardingOverlay.qml:221
+#, kde-format
+msgctxt "@action:button"
+msgid "Next"
+msgstr "Següent"
+
+#: onboarding/private/OnboardingOverlay.qml:222
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Next"
+msgstr "Següent"
+
+#: onboarding/private/OnboardingOverlay.qml:237
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel"
+msgstr "Cancel·la"
 
 #: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
 #, kde-format
@@ -656,169 +1019,6 @@ msgctxt "@action:button"
 msgid "Spell Checking"
 msgstr "Verificació ortogràfica"
 
-#: statefulapplication/abstractkirigamiapplication.cpp:145
-#, kde-format
-msgid "Open Command Bar"
-msgstr "Obre la barra d'ordres"
-
-#: statefulapplication/private/keysequencehelper.cpp:117
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Reserved Shortcut"
-msgstr "Drecera reservada"
-
-#: statefulapplication/private/keysequencehelper.cpp:119
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The F12 key is reserved on Windows, so cannot be used for a global "
-"shortcut.\n"
-"Please choose another one."
-msgstr ""
-"La tecla F12 està reservada en el Windows, no es pot usar com a drecera "
-"global.\n"
-"Escolliu-ne una altra."
-
-#: statefulapplication/private/keysequencehelper.cpp:143
-#, kde-format
-msgctxt ""
-"@title:dialog This happen when a global shortcut is already defined with the "
-"same shortcut"
-msgid "Global Shortcut Shadowing"
-msgstr "Drecera global ombrejada"
-
-#: statefulapplication/private/keysequencehelper.cpp:146
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination is shadowed by following global actions:\n"
-msgstr ""
-"La combinació de tecles «%1» està ombrejada per les accions globals "
-"següents:\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:148
-#: statefulapplication/private/keysequencehelper.cpp:154
-#, kde-format
-msgctxt "@info"
-msgid "Action '%1' in context '%2'\n"
-msgstr "Acció «%1» en el context «%2»\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:152
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination shadows following global actions:\n"
-msgstr "La combinació de tecles «%1» ombreja les accions globals següents:\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:193
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Conflict with Standard Application Shortcut"
-msgstr "Conflicte amb una drecera estàndard d'aplicació"
-
-#: statefulapplication/private/keysequencehelper.cpp:195
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The '%1' key combination is also used for the standard action \"%2\" that "
-"some applications use.\n"
-"Do you really want to use it as a global shortcut as well?"
-msgstr ""
-"La combinació de tecla «%1» ja s'ha assignat a l'acció estàndard «%2» que "
-"usen algunes aplicacions.\n"
-"Esteu segur que també voleu usar-la com a drecera global?"
-
-#: statefulapplication/private/KeySequenceItem.qml:129
-#, kde-format
-msgctxt "What the user inputs now will be taken as the new shortcut"
-msgid "Input"
-msgstr "Entrada"
-
-#: statefulapplication/private/KeySequenceItem.qml:130
-#, kde-format
-msgctxt "No shortcut defined"
-msgid "None"
-msgstr "Cap"
-
-#: statefulapplication/private/KeySequenceItem.qml:141
-#, kde-format
-msgid ""
-"Click on the button, then enter the shortcut like you would in the program.\n"
-"Example for Ctrl+A: hold the Ctrl key and press A."
-msgstr ""
-"Cliqueu en el botó, llavors introduïu la drecera com ho faríeu en el "
-"programa.\n"
-"Exemple per a «Ctrl+A»: manteniu premuda la tecla «Ctrl» mentre premeu la "
-"«A»."
-
-#: statefulapplication/private/KeySequenceItem.qml:182
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Clear Key Sequence"
-msgstr "Neteja la seqüència de tecles"
-
-#: statefulapplication/private/KeySequenceItem.qml:198
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Cancel Key Sequence Recording"
-msgstr "Cancel·la l'enregistrament de la seqüència de tecles"
-
-#: statefulapplication/private/KQuickCommandBarPage.qml:55
-#, kde-format
-msgctxt "@info:placeholder"
-msgid "No results found"
-msgstr "No s'ha trobat cap resultat"
-
-#: statefulapplication/private/ShortcutsEditor.qml:19
-#: statefulapplication/StatefulWindow.qml:99
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcuts"
-msgstr "Dreceres"
-
-#: statefulapplication/private/ShortcutsEditor.qml:23
-#, kde-format
-msgctxt "@label:textbox"
-msgid "Filter…"
-msgstr "Filtre…"
-
-#: statefulapplication/private/ShortcutsEditor.qml:69
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcut: %1"
-msgstr "Drecera: %1"
-
-#: statefulapplication/private/ShortcutsEditor.qml:89
-#, kde-format
-msgctxt "@label"
-msgid "Shortcut:"
-msgstr "Drecera:"
-
-#: statefulapplication/private/ShortcutsEditor.qml:144
-#: statefulapplication/private/ShortcutsEditor.qml:172
-#, kde-format
-msgctxt "@label"
-msgid "Alternative:"
-msgstr "Alternativa:"
-
-#: statefulapplication/private/ShortcutsEditor.qml:210
-#, kde-format
-msgctxt "Placeholder message"
-msgid "No shortcuts found"
-msgstr "No s'ha trobat cap drecera"
-
-#: statefulapplication/shortcutsmodel.cpp:41
-#, kde-format
-msgctxt "List separator"
-msgid ", "
-msgstr ", "
-
-#: statefulapplication/StatefulWindow.qml:109
-#, kde-format
-msgctxt "@title:window"
-msgid "About %1"
-msgstr "Quant al %1"
-
-#: statefulapplication/StatefulWindow.qml:122
-#, kde-format
-msgctxt "@title:window"
-msgid "About KDE"
-msgstr "Quant a KDE"
+#~ msgctxt "Linux packaging format"
+#~ msgid "Unknown/Default"
+#~ msgstr "Desconegut/Predeterminat"

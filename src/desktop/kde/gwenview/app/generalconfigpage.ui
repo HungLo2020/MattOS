@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GeneralConfigPage</class>
+ <widget class="QWidget" name="GeneralConfigPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>515</width>
+    <height>493</height>
+   </rect>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Videos:</string>
+     </property>
+     <property name="buddy">
+      <cstring>kcfg_ListVideos</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QCheckBox" name="kcfg_ListVideos">
+     <property name="text">
+      <string>Show videos</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QCheckBox" name="kcfg_AutoplayVideos">
+     <property name="text">
+      <string>Automatically play</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Notify after reaching the last image:</string>
+     </property>
+     <property name="buddy">
+      <cstring>neverShowWrapNoticeRadioButton</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QRadioButton" name="neverShowWrapNoticeRadioButton">
+     <property name="text">
+      <string>Never</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QRadioButton" name="wrapNoticeOnSlideshowRadioButton">
+     <property name="text">
+      <string>Only during slideshows</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QRadioButton" name="alwaysShowWrapNoticeRadioButton">
+     <property name="text">
+      <string>Always</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>After the last image:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QCheckBox" name="kcfg_WrapAfterLast">
+     <property name="text">
+      <string>Start over</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <spacer name="verticalSpacer_1">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Fullscreen background:</string>
+     </property>
+     <property name="buddy">
+      <cstring>fullscreenBackgroundImageRadioButton</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
+    <widget class="QRadioButton" name="fullscreenBackgroundImageRadioButton">
+     <property name="text">
+      <string>Dark gray texture</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QRadioButton" name="fullscreenBackgroundBlackRadioButton">
+     <property name="text">
+      <string>Black</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <spacer name="verticalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="11" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Lossy image save quality:</string>
+     </property>
+     <property name="buddy">
+      <cstring>kcfg_JPEGQuality</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QSlider" name="kcfg_JPEGQuality">
+       <property name="minimumSize">
+        <size>
+         <width>256</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="value">
+        <number>90</number>
+       </property>
+       <property name="sliderPosition">
+        <number>90</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="tickPosition">
+        <enum>QSlider::NoTicks</enum>
+       </property>
+       <property name="tickInterval">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="jpegQualitySpinner">
+       <property name="suffix">
+        <string>%</string>
+       </property>
+       <property name="prefix">
+        <string/>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="12" column="1">
+    <widget class="QLabel" name="lossyImageFormatHelpLabel">
+     <property name="text">
+      <string>The quality level when saving images using lossy image formats such as JPEG, WEBP, AVIF, HEIF, and HEIC. Higher quality increases the file size.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="1">
+    <spacer name="verticalSpacer_4">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="14" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Thumbnail actions:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="1">
+    <widget class="QRadioButton" name="allButtonsThumbnailActionsRadioButton">
+     <property name="text">
+      <string>All buttons</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="1">
+    <widget class="QRadioButton" name="selectionOnlyThumbnailActionsRadioButton">
+     <property name="text">
+      <string>Show selection button only</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="1">
+    <widget class="QRadioButton" name="noneThumbnailActionsRadioButton">
+     <property name="text">
+      <string comment="A number of thumbnail actions to show">None</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>kcfg_ListVideos</tabstop>
+  <tabstop>kcfg_AutoplayVideos</tabstop>
+  <tabstop>neverShowWrapNoticeRadioButton</tabstop>
+  <tabstop>wrapNoticeOnSlideshowRadioButton</tabstop>
+  <tabstop>alwaysShowWrapNoticeRadioButton</tabstop>
+  <tabstop>fullscreenBackgroundImageRadioButton</tabstop>
+  <tabstop>fullscreenBackgroundBlackRadioButton</tabstop>
+  <tabstop>kcfg_JPEGQuality</tabstop>
+  <tabstop>jpegQualitySpinner</tabstop>
+  <tabstop>allButtonsThumbnailActionsRadioButton</tabstop>
+  <tabstop>selectionOnlyThumbnailActionsRadioButton</tabstop>
+  <tabstop>noneThumbnailActionsRadioButton</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

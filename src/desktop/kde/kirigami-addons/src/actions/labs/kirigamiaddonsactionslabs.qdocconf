@@ -1,0 +1,32 @@
+include($KDE_DOCS/global/qt-module-defaults.qdocconf)
+
+project = KirigamiAddonsActionsLabs
+description = Experimental native menu types for the Kirigami Addons actions module.
+
+documentationinheaders = true
+
+headerdirs += .
+sourcedirs += .
+
+outputformats = HTML
+
+depends += kde kirigami qtcore qtquick qtquickcontrols qtgui kirigamiaddonsactions kirigamiaddonscomponents
+
+navigation.landingpage = "Kirigami Addons"
+
+qhp.projects = KirigamiAddonsActionsLabs
+
+qhp.KirigamiAddonsActionsLabs.file          = kirigamiaddonsactionslabs.qhp
+qhp.KirigamiAddonsActionsLabs.namespace     = org.kde.kirigamiaddonsactionslabs.$QT_VERSION_TAG
+qhp.KirigamiAddonsActionsLabs.virtualFolder = kirigamiaddonsactionslabs
+qhp.KirigamiAddonsActionsLabs.indexTitle    = Kirigami Addons Actions (Labs)
+qhp.KirigamiAddonsActionsLabs.indexRoot     =
+
+qhp.KirigamiAddonsActionsLabs.subprojects = actionslabs
+
+qhp.KirigamiAddonsActionsLabs.subprojects.actionslabs.title = Kirigami Addons Actions (Labs) QML Types
+qhp.KirigamiAddonsActionsLabs.subprojects.actionslabs.indexTitle = Kirigami Addons Actions (Labs) QML Types
+qhp.KirigamiAddonsActionsLabs.subprojects.actionslabs.selectors = qmlmodule:org.kde.kirigamiaddons.actions.labs
+qhp.KirigamiAddonsActionsLabs.subprojects.actionslabs.sortPages = true
+
+tagfile = kirigamiaddonsactionslabs.tags

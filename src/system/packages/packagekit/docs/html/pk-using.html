@@ -1,0 +1,178 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>PackageKit - How do I use PackageKit?</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen"/>
+</head>
+<body>
+
+<table align="center" class="title">
+<tr>
+ <td><img src="img/packagekit.png" alt=""/></td>
+ <td width="95%" valign="middle"><p class="title">How do I use PackageKit?</p></td>
+ <td><img src="img/packagekit.png" alt=""/></td>
+</tr>
+</table>
+
+<p>Back to the <a href="index.html">main page</a></p>
+
+<h1>How do I use PackageKit?</h1>
+
+<p style="background-color:#ffdddd; padding:25px;">
+If you are writing an application that wants to install packages on demand,
+and don't care about the low level details, there's a
+<a href="pk-faq.html#session-methods">session helper API</a>
+that you should use.
+It's much simpler than using PackageKit directly.
+</p>
+
+<h2>Using the command line</h2>
+<p>
+The <code>pkgcli</code> text-mode program allows you to interact with
+PackageKit on the command line. For example:
+</p>
+<pre>
+[hughsie@laptop ~]$ pkgcli list-updates
+[hughsie@hughsie-work PackageKit]$ pkgcli list-updates
+security    	bluez-utils-3.35-3.fc9                  	Bluetooth utilities
+bugfix      	xterm-236-1.fc9                         	Terminal emulator for the X Window System
+bugfix      	kernel-devel-2.6.25.14-108.fc9          	Development package for building kernel modules to match the kernel
+enhancement 	kde-filesystem-4-17.fc9                 	KDE filesystem layout
+enhancement 	subversion-1.5.1-1.fc9                  	Modern Version Control System designed to replace CVS
+</pre>
+<p>or</p>
+<pre>
+[hughsie@hughsie-work PackageKit]$ pkgcli --filter=~devel search name power
+installed   	DeviceKit-power-001-0.8.20080811git.fc9 	Power Management Service
+installed   	gnome-power-manager-2.23.4-1.118.20080801svn.fc9.hughsie	GNOME Power Manager
+installed   	powerman-2.1-1.fc9                      	PowerMan - Power to the Cluster
+installed   	powertop-1.9-3.fc9                      	Power consumption monitor
+available   	gnome-power-manager-2.22.1-1.fc9        	GNOME Power Manager
+available   	kadu-powerkadu-0.6.0-3.fc9              	PowerKadu
+available   	kadu-powerkadu-0.6.0.1-1.fc9            	PowerKadu
+available   	kpowersave-0.7.3-3.fc9                  	KPowersave is the KDE frontend for powermanagement
+available   	powerman-1.0.32-5.fc9                   	PowerMan - Power to the Cluster
+available   	powermanga-0.90-3                       	Arcade 2D shoot-them-up game
+</pre>
+<p>
+The <code>pkmon</code> program allows you to monitor what PackageKit is
+doing on the command line and is mainly used for debugging.
+</p>
+<p>
+The <code>pkgenpack</code> program allows you to generate
+<a href="pk-faq.html#service-pack">Service Packs</a> with a package and its dependencies.
+</p>
+
+
+<h2>Using graphical tools:</h2>
+<p>
+<code>gnome-software</code> and <code>gnome-packagekit</code> provide a rich
+set of GTK tools for automatically updating your computer and installing software.
+</p>
+<a href="http://kde-apps.org/content/show.php/Apper?content=84745">
+Apper</a> is the name of the KDE graphical tools designed
+for PackageKit.
+</p>
+
+<h2>Using libpackagekit:</h2>
+<p>
+The <a href="gtk-doc/PkTask.html">libpackagekit GObject library</a>
+wraps the D-Bus interface in a nice GLib-style API.
+This makes designing programs that use libpackagekit can concentrate on
+core functionality rather that the D-Bus and PackageKit internals.
+PkTask in libpackagekit can be used as easily as:
+</p>
+<pre>
+GError *error = NULL;
+PkError *error_code = NULL;
+PkResults *results = NULL;
+GPtrArray *array = NULL;
+PkPackage *item;
+gchar **values = NULL;
+gchar **package_ids = NULL;
+uint i;
+PkTask *task;
+
+task = pk_task_new ();
+
+/* resolve the package name */
+values = g_new0 (gchar*, 1 + 1);
+values[0] = g_strdup ("openclipart-libreoffice");
+values[1] = NULL;
+
+results = pk_task_resolve_sync (task, PK_FILTER_ENUM_NOT_INSTALLED, values, NULL, NULL, NULL, &amp;error);
+if (results == NULL) {
+	/* the operation failed: results is NULL and error is set */
+	g_printerr ("%s: %s\n", "Resolving of packages failed", error-&gt;message);
+	goto out;
+}
+
+/* check error code */
+error_code = pk_results_get_error_code (results);
+if (error_code != NULL) {
+	g_printerr ("%s: %s, %s\n", "Resolving of packages failed",
+		    pk_error_enum_to_string (pk_error_get_code (error_code)),
+		    pk_error_get_details (error_code));
+	goto out;
+}
+
+/* get the packages returned */
+array = pk_results_get_package_array (results);
+package_ids = g_new0 (gchar *, array->len+1);
+for (i = 0; i &lt; array->len; i++) {
+	item = g_ptr_array_index (array, i);
+	package_ids[i] = g_strdup (pk_package_get_id (item));
+}
+
+/* install the packages */
+g_clear_object (&amp;results);
+results = pk_task_install_packages_sync (task, package_ids , NULL, NULL, NULL, &amp;error);
+if (results == NULL) {
+	/* the operation failed: results is NULL and error is set */
+	g_printerr ("%s: %s\n", _("Error installing package(s)!"), error-&gt;message);
+	goto out;
+}
+
+/* check error code */
+error_code = pk_results_get_error_code (results);
+if (error_code != NULL) {
+	g_printerr ("%s: %s, %s\n", _("Error installing package(s)!"),
+		pk_error_enum_to_string (pk_error_get_code (error_code)),
+		pk_error_get_details (error_code));
+	goto out;
+}
+
+out:
+	g_clear_error (&amp;error);
+	g_strfreev (values);
+	g_object_unref (task);
+	if (error_code != NULL)
+		g_object_unref (error_code);
+	if (array != NULL)
+		g_ptr_array_unref (array);
+	if (package_ids != NULL)
+		g_strfreev (package_ids);
+	if (results != NULL)
+		g_object_unref (results);
+</pre>
+
+<h2>Using the raw D-Bus API:</h2>
+<p>
+Using the <a href="gtk-doc/api-reference.html">PackageKit D-Bus methods
+and signals</a> directly means that no GLib or GObject dependency is
+needed, although this means you will have to manage the transaction_id
+multiplexing in any client program.  This is not difficult, although
+does require more code than just using libpackagekit.
+</p>
+
+<p>Back to the <a href="index.html">main page</a></p>
+
+<p class="footer">
+ Copyright <a href="mailto:richard@hughsie.com">Richard Hughes 2007-2013</a><br/>
+ <a href="http://validator.w3.org/check/referer">Optimized</a>
+ for <a href="http://www.w3.org/">standards</a>.
+</p>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+
+#
+# Shared
+#
+
+daemon:
+- changed-files:
+  - any-glob-to-any-file: src/**
+  - any-glob-to-any-file: ['backends/dummy/**', 'backends/test/**']
+
+library:
+- changed-files:
+  - any-glob-to-any-file: lib/**
+
+backend-api:
+- changed-files:
+  - any-glob-to-any-file: python/**
+
+#
+# Backends
+#
+
+'Backend: alpm (Arch Linux)':
+- changed-files:
+  - any-glob-to-any-file: backends/alpm/**
+
+'Backend: apt (Debian GNU/Linux)':
+- changed-files:
+  - any-glob-to-any-file: backends/apt/**
+
+'Backend: dnf5 (Fedora Linux)':
+- changed-files:
+  - any-glob-to-any-file: backends/dnf5/**
+
+'Backend: entropy (Sabayon)':
+- changed-files:
+  - any-glob-to-any-file: backends/entropy/**
+
+'Backend: nix (NixOS)':
+- changed-files:
+  - any-glob-to-any-file: backends/nix/**
+
+'Backend: pisi (Pisi Linux)':
+- changed-files:
+  - any-glob-to-any-file: backends/pisi/**
+
+'Backend: pkg (FreeBSD)':
+- changed-files:
+  - any-glob-to-any-file: backends/freebsd/**
+
+'Backend: poldek (PLD Linux)':
+- changed-files:
+  - any-glob-to-any-file: backends/poldek/**
+
+'Backend: portage (Gentoo Linux)':
+- changed-files:
+  - any-glob-to-any-file: backends/portage/**
+
+'Backend: zypp (SUSE Linux)':
+- changed-files:
+  - any-glob-to-any-file: backends/zypp/**

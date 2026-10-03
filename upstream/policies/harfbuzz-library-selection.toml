@@ -1,0 +1,5 @@
+schema_version = 1
+component = "harfbuzz"
+upstream_commit = "eb033319fc2ebe723597fa497d4bb4331bab8b6b"
+retained_paths = ["meson.build", "meson_options.txt", "src", "COPYING", "AUTHORS", "README.md", "NEWS", "THANKS"]
+reason = "Retain the Meson build of the HarfBuzz library (sources, build definitions and licensing) that libass links; omit the shaping test corpus and fonts, benchmarks, command-line utilities, API documentation, Meson wrap subprojects, the CMake build and repository/assistant tooling notes, none of which the library build reads."

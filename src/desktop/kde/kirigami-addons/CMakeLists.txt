@@ -1,17 +1,16 @@
 # SPDX-FileCopyrightText: 2019 David Edmundson <kde@davidedmundson.co.uk>
 # SPDX-License-Identifier: BSD-2-Clause
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.29)
 
-project(kirigami-addons VERSION 1.9.0)
+project(kirigami-addons VERSION 1.15.0)
 
 include(FeatureSummary)
 
 set(AUTOMOC_MOC_OPTIONS -Muri=org.kde.kirigami)
 
-set(QT_REQUIRED_VERSION "6.6")
-set(KF_MIN_VERSION "6.5.0")
-set(KF_MAJOR_VERSION "6")
+set(QT_REQUIRED_VERSION "6.10.0")
+set(KF_MIN_VERSION "6.25.0")
 
 find_package(ECM ${KF_MIN_VERSION} NO_MODULE)
 set_package_properties(ECM PROPERTIES TYPE REQUIRED DESCRIPTION "Extra CMake Modules." URL "https://projects.kde.org/projects/kdesupport/extra-cmake-modules")
@@ -29,25 +28,25 @@ include(ECMSetupVersion)
 include(ECMGenerateHeaders)
 include(CMakePackageConfigHelpers)
 include(ECMQtDeclareLoggingCategory)
-include(ECMAddQch)
 include(ECMQmlModule)
 include(KDEClangFormat)
 include(ECMGenerateQDoc)
 
-find_package(Qt6 ${QT_REQUIRED_VERSION} REQUIRED NO_MODULE COMPONENTS Core Quick QuickControls2)
-find_package(Qt6Tools CONFIG)
-find_package(Qt6 COMPONENTS ToolsTools CONFIG)
+find_package(Qt6 ${QT_REQUIRED_VERSION} REQUIRED NO_MODULE COMPONENTS Core Quick QuickControls2 QuickEffects)
 
-find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS Kirigami I18n Config CoreAddons GuiAddons)
+find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS Kirigami I18n Config CoreAddons GuiAddons ColorScheme)
 if (BUILD_TESTING)
     find_package(Qt6QuickTest ${QT_REQUIRED_VERSION} CONFIG QUIET)
 endif()
-if (ANDROID)
+if(ANDROID)
     find_package(Gradle REQUIRED)
+    find_package(KF6 6.27 REQUIRED COMPONENTS Crash) # Android support was added in KF 6.27 only
+elseif(NOT IOS)
+    find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS Crash IconThemes)
 endif()
 
 if(NOT WIN32 AND NOT APPLE AND NOT ANDROID AND NOT HAIKU)
-    find_package(KF6GlobalAccel ${KF_DEP_VERSION} REQUIRED)
+    find_package(KF6GlobalAccel ${KF_MIN_VERSION} REQUIRED)
     set(HAVE_KGLOBALACCEL TRUE)
 else()
     set(HAVE_KGLOBALACCEL FALSE)
@@ -59,7 +58,6 @@ configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/KFKirigamiAddonsConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/KF6KirigamiAddonsConfig.cmake"
     INSTALL_DESTINATION  ${CMAKECONFIG_INSTALL_DIR}
-    PATH_VARS CMAKE_INSTALL_PREFIX
 )
 ecm_setup_version(${PROJECT_VERSION}
     VARIABLE_PREFIX KIRIGAMIADDONS

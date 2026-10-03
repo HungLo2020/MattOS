@@ -1,0 +1,2270 @@
+# Copyright (C) 2023 This file is copyright:
+# This file is distributed under the same license as the elisa package.
+#
+# SPDX-FileCopyrightText: 2022-2026 Kishore G <kishore96@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: elisa\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-13 02:46+0000\n"
+"PO-Revision-Date: 2026-05-10 16:19+0530\n"
+"Last-Translator: Kishore G <kishore96@gmail.com>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 26.04.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "கோ. கிஷோர்"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "Kde-l10n-ta@kde.org"
+
+#: databaseinterface.cpp:8059 databaseinterface.cpp:9173
+#: databaseinterface.cpp:9258
+#, kde-format
+msgctxt "@item:intable"
+msgid "Various Artists"
+msgstr "பல பாடகர்கள்"
+
+#: databaseinterface.cpp:8127
+#, kde-format
+msgctxt "@item:intable"
+msgid "Radio Stations"
+msgstr "வானொலி நிலையங்கள்"
+
+#: elisaapplication.cpp:184
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Playlist"
+msgstr "பாடல்வரிசையை நிலைமாற்று"
+
+#: elisaapplication.cpp:190
+#, kde-format
+msgctxt "@action"
+msgid "Seek forward 10 seconds"
+msgstr "10 நொடிகள் முன்னே செல்"
+
+#: elisaapplication.cpp:197
+#, kde-format
+msgctxt "@action"
+msgid "Scrub backwards 10 seconds"
+msgstr "10 நொடிகள் பின்னே செல்"
+
+#: elisaapplication.cpp:204
+#, kde-format
+msgctxt "@action"
+msgid "Go to next track"
+msgstr "அடுத்த பாடலுக்கு செல்"
+
+#: elisaapplication.cpp:211
+#, kde-format
+msgctxt "@action"
+msgid "Go to previous track"
+msgstr "முந்தைய பாடலுக்கு செல்"
+
+#: elisaapplication.cpp:218
+#, kde-format
+msgctxt "@action"
+msgid "Play/pause"
+msgstr "இயக்கு/பொறு"
+
+#: elisaapplication.cpp:231
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Party Mode"
+msgstr "கொண்டாட்ட பயன்முறையை இயக்கு/முடக்கு"
+
+#: main.cpp:113
+#, kde-format
+msgctxt "@title"
+msgid "Elisa"
+msgstr "எலைசா"
+
+#: main.cpp:115
+#, kde-format
+msgctxt "@info"
+msgid "A Simple Music Player made with love by the KDE community"
+msgstr "கே.டீ.யீ. சமூகம் உருவாக்கிய எளிய பாடல் இசைப்பி"
+
+#: main.cpp:117
+#, kde-format
+msgctxt "@info"
+msgid "© 2015–2026, Elisa contributors"
+msgstr "(c) 2015–2026, எலைசா நிரலாளர்கள்"
+
+#: main.cpp:119 models/lyricsmodel.cpp:165
+#, kde-format
+msgctxt "@label"
+msgid "Creator"
+msgstr "உருவாக்கியவர்"
+
+#: main.cpp:120
+#, kde-format
+msgctxt "@label"
+msgid "Author"
+msgstr "இயற்றியவர்"
+
+#: main.cpp:122
+#, kde-format
+msgctxt "@label"
+msgid "Concept and design work"
+msgstr "யோசனையும் வடிவமைப்பும்"
+
+#: main.cpp:123
+#, kde-format
+msgctxt "@label"
+msgid "Localization support"
+msgstr "மொழிப்பெயர்ப்புக்கான ஆதரவு"
+
+#: main.cpp:124
+#, kde-format
+msgctxt "@label"
+msgid "Right to left support in interface"
+msgstr "வலதிலிருந்து இடதாக எழுதும் மொழிகளுக்கான ஆதரவு"
+
+#: main.cpp:125
+#, kde-format
+msgctxt "@label"
+msgid "Various improvements to the interface"
+msgstr "இடைமுகப்பை மேம்படுத்தியவர்"
+
+#: main.cpp:126
+#, kde-format
+msgctxt "@label"
+msgid "Support for online radios"
+msgstr "இணைய வானொலி ஆதரவு"
+
+#: models/editabletrackmetadatamodel.cpp:316
+#, kde-format
+msgctxt "@info:status Error message when track URL is invalid"
+msgid "Invalid URL."
+msgstr "செல்லுபடியாகாத முகவரி."
+
+#: models/editabletrackmetadatamodel.cpp:326
+#, kde-format
+msgctxt "@info:status Error message when track title is empty"
+msgid "Empty title."
+msgstr "காலியான தலைப்பு."
+
+#: models/lyricsmodel.cpp:162
+#, kde-format
+msgctxt "@label musical artist"
+msgid "Artist"
+msgstr "கலைஞர்"
+
+#: models/lyricsmodel.cpp:163
+#, kde-format
+msgctxt "@label musical album"
+msgid "Album"
+msgstr "ஆல்பம்"
+
+#: models/lyricsmodel.cpp:164
+#, kde-format
+msgctxt "@label song title"
+msgid "Title"
+msgstr "தலைப்பு"
+
+#: models/lyricsmodel.cpp:166
+#, kde-format
+msgctxt "@label song length"
+msgid "Length"
+msgstr "நீளம்"
+
+#: models/lyricsmodel.cpp:167
+#, kde-format
+msgctxt "@label as in 'Created by: Joe'"
+msgid "Created by"
+msgstr "உருவாக்கியவர்"
+
+#: models/lyricsmodel.cpp:168
+#, kde-format
+msgctxt "@label as in 'a person who edits'"
+msgid "Editor"
+msgstr "தொகுப்பாளர்"
+
+#: models/lyricsmodel.cpp:169
+#, kde-format
+msgctxt "@label"
+msgid "Version"
+msgstr "பதிப்பு"
+
+#: models/lyricsmodel.cpp:192
+#, kde-format
+msgctxt "@label this is a key => value map"
+msgid "%1: %2\n"
+msgstr "%1: %2\n"
+
+#: models/trackmetadatamodel.cpp:107
+#, kde-format
+msgctxt "bit/second"
+msgid "bit/s"
+msgstr ""
+
+#: models/trackmetadatamodel.cpp:525
+#, kde-format
+msgctxt "@label:textbox Track title for track metadata view"
+msgid "Title"
+msgstr "தலைப்பு"
+
+#: models/trackmetadatamodel.cpp:528
+#, kde-format
+msgctxt "@label:textbox Duration label for track metadata view"
+msgid "Duration"
+msgstr "நீளம்"
+
+#: models/trackmetadatamodel.cpp:531
+#, kde-format
+msgctxt "@label:textbox Track artist for track metadata view"
+msgid "Artist"
+msgstr "கலைஞர்"
+
+#: models/trackmetadatamodel.cpp:534
+#, kde-format
+msgctxt "@label:textbox Album name for track metadata view"
+msgid "Album"
+msgstr "ஆல்பம்"
+
+#: models/trackmetadatamodel.cpp:537
+#, kde-format
+msgctxt "@label:textbox Album artist for track metadata view"
+msgid "Album artist"
+msgstr "ஆல்பத்தின் கலைஞர்"
+
+#: models/trackmetadatamodel.cpp:540
+#, kde-format
+msgctxt "@label:textbox Track number for track metadata view"
+msgid "Track number"
+msgstr "பாடல் எண்"
+
+#: models/trackmetadatamodel.cpp:543
+#, kde-format
+msgctxt "@label:textbox Disc number for track metadata view"
+msgid "Disc number"
+msgstr "வட்டு எண்"
+
+#: models/trackmetadatamodel.cpp:546
+#, kde-format
+msgctxt "@label:textbox Rating label for information panel"
+msgid "Rating"
+msgstr "மதிப்பீடு"
+
+#: models/trackmetadatamodel.cpp:549
+#, kde-format
+msgctxt "@label:textbox Genre label for track metadata view"
+msgid "Genre"
+msgstr "பாடல்வகை"
+
+#: models/trackmetadatamodel.cpp:552
+#, kde-format
+msgctxt "@label:textbox Lyricist label for track metadata view"
+msgid "Lyricist"
+msgstr "கவிஞர்"
+
+#: models/trackmetadatamodel.cpp:555
+#, kde-format
+msgctxt "@label:textbox Composer name for track metadata view"
+msgid "Composer"
+msgstr "இசையமைப்பாளர்"
+
+#: models/trackmetadatamodel.cpp:558
+#, kde-format
+msgctxt "@label:textbox Comment label for track metadata view"
+msgid "Comment"
+msgstr "குறிப்பு"
+
+#: models/trackmetadatamodel.cpp:561
+#, kde-format
+msgctxt "@label:textbox Year label for track metadata view"
+msgid "Year"
+msgstr "ஆண்டு"
+
+#: models/trackmetadatamodel.cpp:564
+#, kde-format
+msgctxt "@label:textbox Channels label for track metadata view"
+msgid "Channels"
+msgstr "ஒலித்தடங்கள்"
+
+#: models/trackmetadatamodel.cpp:567
+#, kde-format
+msgctxt "@label:textbox Bit rate label for track metadata view"
+msgid "Bit rate"
+msgstr "பிட்டு விகிதம்"
+
+#: models/trackmetadatamodel.cpp:570
+#, kde-format
+msgctxt "@label:textbox Sample Rate label for track metadata view"
+msgid "Sample rate"
+msgstr "பதிவுவிகிதம்"
+
+#: models/trackmetadatamodel.cpp:573
+#, kde-format
+msgctxt "@label:textbox Last play date label for track metadata view"
+msgid "Last played"
+msgstr "கடைசியாக இசைத்த‍து"
+
+#: models/trackmetadatamodel.cpp:576
+#, kde-format
+msgctxt "@label:textbox First play date label for track metadata view"
+msgid "First played"
+msgstr "முதலில் இசைத்த‍து"
+
+#: models/trackmetadatamodel.cpp:579
+#, kde-format
+msgctxt "@label:textbox Play counter label for track metadata view"
+msgid "Play count"
+msgstr "எத்தனைமுறை இசைத்தது"
+
+#: models/trackmetadatamodel.cpp:582
+#, kde-format
+msgctxt "@label:textbox Lyrics label for track metadata view"
+msgid "Lyrics"
+msgstr "பாடல்வரிகள்"
+
+#: models/trackmetadatamodel.cpp:585
+#, kde-format
+msgctxt "@label:textbox Radio HTTP address for radio metadata view"
+msgid "Stream HTTP address"
+msgstr "ஒலிபரப்புக்கான HTTP முகவரி"
+
+#: models/trackmetadatamodel.cpp:588
+#, kde-format
+msgctxt "@label:textbox Image address for radio metadata view"
+msgid "Image address"
+msgstr "படத்திற்கான முகவரி"
+
+#: models/viewsmodel.cpp:106 viewslistdata.cpp:53
+#, kde-format
+msgctxt "@title:window Title of the view of all albums"
+msgid "Albums"
+msgstr "ஆல்பங்கள்"
+
+#: models/viewsmodel.cpp:109 viewslistdata.cpp:101
+#, kde-format
+msgctxt "@title:window Title of the view of all genres"
+msgid "Genres"
+msgstr "பாடல்வகைகள்"
+
+#: models/viewsmodel.cpp:112 viewslistdata.cpp:67
+#, kde-format
+msgctxt "@title:window Title of the view of all artists"
+msgid "Artists"
+msgstr "கலைஞர்கள்"
+
+#: powermanagementinterface.cpp:179
+#, kde-format
+msgctxt "@info:status  explanation for sleep inhibit during play of music"
+msgid "Playing music"
+msgstr "பாடல் இசைக்கப்படுகிறது"
+
+#: powermanagementinterface.cpp:229
+#, kde-format
+msgctxt "@info:status explanation for sleep inhibit during play of music"
+msgid "Playing music"
+msgstr "பாடல் இசைக்கப்படுகிறது"
+
+#: progressindicator.cpp:48
+#, kde-format
+msgctxt "duration formatted as minutes:seconds"
+msgid "%1:%2"
+msgstr "%1:%2"
+
+#: progressindicator.cpp:50
+#, kde-format
+msgctxt "duration formatted as hours:minutes:seconds"
+msgid "%1:%2:%3"
+msgstr "%1:%2:%3"
+
+#: qml/AbstractBrowserDelegate.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Play now, replacing current playlist"
+msgstr "தற்போதைய பாடல்வரிசைக்கு பதிலாக இதை இசை"
+
+#: qml/AbstractBrowserDelegate.qml:49 qml/TrackBrowserDelegate.qml:87
+#, kde-format
+msgctxt "@action:button"
+msgid "Play next"
+msgstr "அடுத்தது இசை"
+
+#: qml/AbstractBrowserDelegate.qml:54 qml/TrackBrowserDelegate.qml:82
+#, kde-format
+msgctxt "@action:button"
+msgid "Add to playlist"
+msgstr "பாடல்வரிசையில் செர்"
+
+#: qml/AbstractBrowserDelegate.qml:63 qml/mobile/MobilePlayListDelegate.qml:169
+#: qml/TrackBrowserDelegate.qml:70
+#, kde-format
+msgctxt "@action:button Show the file for this song in the file manager"
+msgid "Show in folder"
+msgstr "அடைவில் காட்டு"
+
+#: qml/AbstractBrowserDelegate.qml:85
+#, kde-format
+msgctxt "@action:button"
+msgid "Options"
+msgstr "விருப்பங்கள்"
+
+#: qml/AbstractDataView.qml:209
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No matches"
+msgstr "பொருத்தங்கள் இல்லை"
+
+#: qml/AbstractDataView.qml:209
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Nothing to display"
+msgstr "காட்டுவதற்கு எதுவும் இல்லை"
+
+#: qml/ApplicationMenu.qml:19 qml/NativeTrayMenu.qml:18
+#, kde-format
+msgctxt "@title:menu"
+msgid "Application Menu"
+msgstr "செயலியின் பட்டி"
+
+#: qml/ApplicationMenu.qml:22 qml/NativeGlobalMenu.qml:70
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Exit Full Screen"
+msgstr "முழுத்திரை பயன்முறையிலிருந்து வெளியேறு"
+
+#: qml/ApplicationMenu.qml:22 qml/NativeGlobalMenu.qml:70
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Enter Full Screen"
+msgstr "முழுத்திரை பயன்முறையில் நுழை"
+
+#: qml/ApplicationMenu.qml:32 qml/NativeGlobalMenu.qml:77
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Hide Playlist"
+msgstr "பாடல்வரிசையை மறை"
+
+#: qml/ApplicationMenu.qml:33 qml/NativeGlobalMenu.qml:77
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Show Playlist"
+msgstr "பாடல்வரிசையைக் காட்டு"
+
+#: qml/ApplicationMenu.qml:42 qml/NativeTrayMenu.qml:21
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Scan for New Music"
+msgstr "புதிய பாடல்களுள்ளனவா என தேடு"
+
+#: qml/ApplicationMenu.qml:51 qml/NativeGlobalMenu.qml:37
+#: qml/NativeTrayMenu.qml:27
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Reset Database and Re-Scan Everything"
+msgstr "தரவுதளத்தை நீக்கி மீண்டும் பாடல்களை கண்டறி"
+
+#: qml/ApplicationMenu.qml:62
+#, kde-format
+msgctxt "@action:inmenu this has child menu items"
+msgid "Color Scheme"
+msgstr "நிறத் திட்டம்"
+
+#: qml/ConfigurationDialog.qml:22
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure"
+msgstr "அமை"
+
+#: qml/ContextView.qml:41
+#, kde-format
+msgctxt ""
+"@title:window Title of the context view related to the currently playing "
+"track"
+msgid "Now Playing"
+msgstr "இப்போது இசைக்கப்படுவது"
+
+#: qml/ContextView.qml:78 qml/NavigationActionBar.qml:244
+#, kde-format
+msgctxt "@action:button"
+msgid "Open sidebar"
+msgstr "ஓரப்பட்டையைத் திற"
+
+#: qml/ContextView.qml:114
+#, kde-format
+msgctxt "@option:radio One of the 'now playing' views"
+msgid "Metadata"
+msgstr "மேனிலைத் தரவு"
+
+#: qml/ContextView.qml:125
+#, kde-format
+msgctxt "@option:radio One of the 'now playing' views"
+msgid "Lyrics"
+msgstr "பாடல்வரிகள்"
+
+#: qml/ContextView.qml:132 qml/mobile/MobileTrackPlayer.qml:397
+#: qml/NavigationActionBar.qml:176
+#, kde-format
+msgctxt "@action:button"
+msgid "Show Playlist"
+msgstr "பாடல்வரிசையைக் காட்டு"
+
+#: qml/ContextView.qml:362
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Nothing playing"
+msgstr "எதுவும் இசைக்கப்படவில்லை"
+
+#: qml/ContextView.qml:396
+#, kde-format
+msgctxt "@action:button"
+msgid "Show In Folder"
+msgstr "அடைவில் காட்டு"
+
+#: qml/DataGridView.qml:162
+#, kde-format
+msgctxt "@item:intable View all tracks"
+msgid "All tracks"
+msgstr "அனைத்து பாடல்கள்"
+
+#: qml/DataGridView.qml:163
+#, kde-format
+msgctxt "@item:intable number of tracks/songs in all albums"
+msgid "%1 track"
+msgid_plural "%1 tracks"
+msgstr[0] "%1 பாடல்"
+msgstr[1] "%1 பாடல்கள்"
+
+#: qml/DurationSlider.qml:71
+#, kde-format
+msgctxt ""
+"@info:placeholder This is used to preserve a fixed width for the duration "
+"text."
+msgid "00:00:00"
+msgstr "00:00:00"
+
+#: qml/DurationSlider.qml:107
+#, kde-format
+msgctxt "@label"
+msgid "Duration"
+msgstr "நீளம்"
+
+#: qml/ElisaMainWindow.qml:31
+#, kde-format
+msgctxt "@label"
+msgid "Loading failed"
+msgstr "ஏற்றுவது தோல்வியடைந்த‍து"
+
+#: qml/ElisaMainWindow.qml:31 qml/ElisaMainWindow.qml:310
+#, kde-format
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "மீண்டும் முயற்சி"
+
+#: qml/ElisaMainWindow.qml:35
+#, kde-format
+msgctxt "@label"
+msgid "Playlist cleared"
+msgstr "பாடல்வரிசை காலியாக்கப்பட்டுள்ளது"
+
+#: qml/ElisaMainWindow.qml:35
+#, kde-format
+msgctxt "@action:button"
+msgid "Undo"
+msgstr "செயல்நீக்கு"
+
+#: qml/ElisaMainWindow.qml:142
+#, kde-format
+msgctxt "@action:button"
+msgid "Show playlist drawer"
+msgstr "பாடல்வரிசை ஓரப்பட்டையை காட்டு"
+
+#: qml/ElisaMainWindow.qml:143
+#, kde-format
+msgctxt "@action:button"
+msgid "Hide playlist drawer"
+msgstr "பாடல்வரிசை ஓரப்பட்டையை மறை"
+
+#: qml/ElisaMainWindow.qml:179 qml/ElisaMainWindow.qml:623
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"Could not load some files. Elisa can only open audio and playlist files."
+msgstr ""
+"சில கோப்புகளை ஏற்ற முடியவில்லை. ஒலி மற்றும் பாடல்வரிசை கோப்புகளை மட்டும்தான் எலைசாவால் "
+"திறக்க முடியும்."
+
+#: qml/ElisaMainWindow.qml:238 qml/mobile/MobileSidebar.qml:21
+#, kde-format
+msgctxt "@title:window"
+msgid "Elisa"
+msgstr "எலைசா"
+
+#: qml/ElisaMainWindow.qml:238
+#, kde-format
+msgctxt "@title:window"
+msgid "%1 — Elisa"
+msgstr "%1 — எலைசா"
+
+#: qml/ElisaMainWindow.qml:290
+#, kde-format
+msgctxt ""
+"@option file type (mime type) for m3u, m3u8 playlist file formats; do not "
+"translate *.m3u*"
+msgid "m3u8, m3u Playlist File (*.m3u*)"
+msgstr "m3u8, m3u பாடல்வரிசை கோப்பு (*.m3u*)"
+
+#: qml/ElisaMainWindow.qml:290
+#, kde-format
+msgctxt ""
+"@option file type (mime type) for pls playlist file formats; do not "
+"translate *.pls"
+msgid "pls Playlist File (*.pls)"
+msgstr "pls பாடல்வரிசை கோப்பு (*.pls)"
+
+#: qml/ElisaMainWindow.qml:297
+#, kde-format
+msgctxt ""
+"@option Allow opening music and playlist files. %1 and %2 are lists of "
+"untranslated file extensions"
+msgid "Playlist files and music files (%1 %2) (%1 %2)"
+msgstr "பாடல்வரிசை கோப்புகளும் ஒலிக்கோப்புகளும் (%1 %2) (%1 %2)"
+
+#: qml/ElisaMainWindow.qml:298
+#, kde-format
+msgctxt ""
+"@option Allow opening playlist files. %1 is an untranslated list of file "
+"extensions"
+msgid "Playlist files (%1) (%1)"
+msgstr "பாடல்வரிசை கோப்புகள் (%1) (%1)"
+
+#: qml/ElisaMainWindow.qml:299
+#, kde-format
+msgctxt ""
+"@option Allow opening music files. %1 is an untranslated list of file "
+"extensions"
+msgid "Music files (%1) (%1)"
+msgstr "ஒலிக்கோப்புகள் (%1) (%1)"
+
+#: qml/ElisaMainWindow.qml:310
+#, kde-format
+msgctxt "@label"
+msgid "Saving failed"
+msgstr "சேமிப்பது தோல்வியடைந்தது"
+
+#: qml/HeaderBar.qml:247 qml/MediaPlayerControl.qml:264
+#: qml/mobile/MobileTrackPlayer.qml:298
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Playlist"
+msgstr "பாடல்வரிசை"
+
+#: qml/HeaderBar.qml:264
+#, kde-format
+msgctxt "@action:button"
+msgid "Lyrics"
+msgstr "பாடல்வரிகள்"
+
+#: qml/HeaderBar.qml:287
+#, kde-format
+msgctxt "@action:button"
+msgid "Exit Full Screen"
+msgstr "முழுத்திரை பயன்முறையில் நுழை"
+
+#: qml/HeaderBar.qml:288
+#, kde-format
+msgctxt "@action:button"
+msgid "Enter Full Screen"
+msgstr "முழுத்திரை பயன்முறையில் நுழை"
+
+#: qml/LyricsView.qml:162
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No lyrics found"
+msgstr "பாடல்வரிகளை கண்டறிய முடியவில்லை"
+
+#: qml/MediaPlayerControl.qml:91
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Exit party mode"
+msgstr "கொண்டாட்ட பயன்முறையிலிருந்து வெளியேறு"
+
+#: qml/MediaPlayerControl.qml:92
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Enter party mode"
+msgstr "கொண்டாட்ட பயன்முறையை இயக்கு"
+
+#: qml/MediaPlayerControl.qml:100
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Skip backward"
+msgstr "முந்தைய பாடலுக்கு செல்"
+
+#: qml/MediaPlayerControl.qml:109
+#, kde-format
+msgctxt ""
+"@action:button displayed as @info:tooltip Pause any media that is playing"
+msgid "Pause"
+msgstr "பொறு"
+
+#: qml/MediaPlayerControl.qml:110
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip Start playing media"
+msgid "Play"
+msgstr "இயக்கு"
+
+#: qml/MediaPlayerControl.qml:118
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip skip forward in playlists"
+msgid "Skip forward"
+msgstr "அடுத்த பாடலுக்கு செல்"
+
+#: qml/MediaPlayerControl.qml:147
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Unmute"
+msgstr "ஒலிமுடக்கத்தை நீக்கு"
+
+#: qml/MediaPlayerControl.qml:148
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Mute"
+msgstr "ஒலியை அடக்கு"
+
+#: qml/MediaPlayerControl.qml:176 qml/mobile/MobileTrackPlayer.qml:214
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: No shuffle"
+msgstr "தற்போது: கலக்க வேண்டாம்"
+
+#: qml/MediaPlayerControl.qml:177 qml/mobile/MobileTrackPlayer.qml:215
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Shuffle tracks"
+msgstr "தற்போது: பாடல்களை கலக்கு"
+
+#: qml/MediaPlayerControl.qml:178 qml/mobile/MobileTrackPlayer.qml:216
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Shuffle albums"
+msgstr "தற்போது: ஆல்பங்களை கலக்கு"
+
+#: qml/MediaPlayerControl.qml:206 qml/mobile/MobileTrackPlayer.qml:245
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Track"
+msgstr "பாடல்"
+
+#: qml/MediaPlayerControl.qml:210 qml/mobile/MobileTrackPlayer.qml:249
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Album"
+msgstr "ஆல்பம்"
+
+#: qml/MediaPlayerControl.qml:214 qml/MediaPlayerControl.qml:272
+#: qml/mobile/MobileTrackPlayer.qml:253 qml/mobile/MobileTrackPlayer.qml:306
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "None"
+msgstr "ஏதுமில்லை"
+
+#: qml/MediaPlayerControl.qml:235 qml/mobile/MobileTrackPlayer.qml:267
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Don't repeat tracks"
+msgstr "தற்போது: பாடல்களை திரும்ப இசைக்காதே"
+
+#: qml/MediaPlayerControl.qml:236 qml/mobile/MobileTrackPlayer.qml:268
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Repeat current track"
+msgstr "தற்போது: தற்போதைய பாடலை திரும்ப இசை"
+
+#: qml/MediaPlayerControl.qml:237 qml/mobile/MobileTrackPlayer.qml:269
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Repeat all tracks in playlist"
+msgstr "தற்போது: பாடல்வரிசையை திரும்ப இசை"
+
+#: qml/MediaPlayerControl.qml:268 qml/mobile/MobileTrackPlayer.qml:302
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "One track"
+msgstr "ஒரு பாடல்"
+
+#: qml/MediaPlayerControl.qml:300
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Application menu"
+msgstr "செயலியின் பட்டி"
+
+#: qml/MediaPlayListView.qml:29
+#, kde-format
+msgctxt ""
+"@title:window Title of the view of the playlist; keep this string as short "
+"as possible because horizontal space is quite scarce"
+msgid "Playlist"
+msgstr "பாடல்வரிசை"
+
+#: qml/MediaPlayListView.qml:71
+#, kde-format
+msgctxt "@action:button Show current track in playlist"
+msgid "Show Current"
+msgstr "தற்போதையதை காட்டு"
+
+#: qml/MediaPlayListView.qml:82
+#, kde-format
+msgctxt "@action:button Remove all tracks from play list"
+msgid "Clear All"
+msgstr "அனைத்தையும் நீக்கு"
+
+#: qml/MediaPlayListView.qml:92
+#, kde-format
+msgctxt "@action:button Save a playlist file"
+msgid "Save…"
+msgstr "சேமி…"
+
+#: qml/MediaPlayListView.qml:102
+#, kde-format
+msgctxt "@action:button Load a playlist file"
+msgid "Open…"
+msgstr "திற…"
+
+#: qml/MediaPlayListView.qml:103
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Open music files or saved playlists"
+msgstr "ஒலிக்கோப்புகளையோ சேமித்துள்ள பாடல்வரிசைகளையோ திறக்க உதவும்"
+
+#: qml/MediaPlayListView.qml:128
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Failed to load some tracks. Make sure that they have not been removed or "
+"renamed."
+msgstr ""
+"சில பாடல்களை ஏற்ற முடியவில்லை. அவை நீக்கப்படவில்லையெனும், அவற்றின் பெயர்கள் "
+"மாற்றப்படவில்லையெனும் சரிபாருங்கள்."
+
+#: qml/MediaPlayListView.qml:134
+#, kde-format
+msgctxt "@action:button"
+msgid "Edit Playlist File"
+msgstr "பாடல்வரிசை கோப்பை திருத்து"
+
+#: qml/MediaPlayListView.qml:304
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Playlist is empty"
+msgstr "பாடல்வரிசை காலியாக உள்ளது"
+
+#: qml/MediaPlayListView.qml:305
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Add some songs to get started. You can browse your music using the views on "
+"the left."
+msgstr ""
+"தொடங்க, சில பாடல்களை சேறுங்கள். இடதிலுள்ள காட்சிமுறைகளில் உங்கள் பாடல்களை நீங்கள் காணலாம்."
+
+#: qml/MediaPlayListView.qml:380
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Your playlist is empty."
+msgstr "இப்பாடல்வரிசையில் ஏதுமில்லை"
+
+#: qml/MediaPlayListView.qml:477 qml/MediaPlayListView.qml:486
+#, kde-format
+msgctxt "@info:status %2 is always bigger than 1"
+msgid "%1/%2 tracks remaining"
+msgid_plural "%1/%2 tracks remaining"
+msgstr[0] "%2-இல் %1 பாடல் மீதமுள்ளது"
+msgstr[1] "%2-இல் %1 பாடல்கள் மீதமுள்ளன"
+
+#: qml/MediaPlayListView.qml:478
+#, kde-format
+msgctxt "@info:status %1 and %2 are formatted like hh:mm:ss or mm:ss"
+msgid "%1 remaining, %2 total"
+msgstr "இன்னும் %1, மொத்தம் %2"
+
+#: qml/MediaPlayListView.qml:479 qml/MediaPlayListView.qml:488
+#: qml/MediaPlayListView.qml:497
+#, kde-format
+msgctxt ""
+"@info:status %1 is total tracks and tracks remaining. %2 is total time and "
+"time remaining"
+msgid "%1, %2"
+msgstr "%1; %2"
+
+#: qml/MediaPlayListView.qml:487 qml/MediaPlayListView.qml:496
+#, kde-format
+msgctxt "@info:status %1 and %2 are formatted like hh:mm:ss or mm:ss"
+msgid "%1/%2 remaining"
+msgstr "இன்னும் %1/%2"
+
+#: qml/MediaPlayListView.qml:495
+#, kde-format
+msgctxt "@info:status %2 is always bigger than 1"
+msgid "%1/%2 tracks"
+msgid_plural "%1/%2 tracks"
+msgstr[0] "%2-இல் %1 பாடல்"
+msgstr[1] "%2-இல் %1 பாடல்கள்"
+
+#: qml/MediaPlayListView.qml:504
+#, kde-format
+msgctxt "@info:status %1 is the total number of tracks of the playlist"
+msgid "%1 track"
+msgid_plural "%1 tracks"
+msgstr[0] "%1 பாடல்"
+msgstr[1] "%1 பாடல்கள்"
+
+#: qml/MediaPlayListView.qml:505
+#, kde-format
+msgctxt "@info:status %1 is the total number of radios of the playlist"
+msgid "%1 radio"
+msgid_plural "%1 radios"
+msgstr[0] "%1 வானொலி நிலையம்"
+msgstr[1] "%1 வானொலி நிலையங்கள்"
+
+#: qml/MediaPlayListView.qml:506
+#, kde-format
+msgctxt ""
+"@info:status %1 is the translation of tracks, %2 is the translation of total "
+"radios"
+msgid "%1, %2 total"
+msgstr "%1, மொத்தம் %2"
+
+#: qml/MediaPlayListView.qml:509
+#, kde-format
+msgctxt ""
+"@info:status %1 is the total tracks of the playlist. %2 is the total "
+"duration formatted like hh:mm:ss or mm:ss"
+msgid "%1 track, %2 total"
+msgid_plural "%1 tracks, %2 total"
+msgstr[0] "%1 பாடல், மொத்தம் %2"
+msgstr[1] "%1 பாடல்கள், மொத்தம் %2"
+
+#: qml/MediaPlayListView.qml:511
+#, kde-format
+msgctxt ""
+"@info:status %1 is the remaining duration of the playlist. It is formatted "
+"like hh:mm:ss or mm:ss"
+msgid "1 track, %1min remaining"
+msgstr "1 பாடல், %1நிமி மீதம்"
+
+#: qml/MediaTrackMetadataDelegate.qml:156 qml/PlayListEntry.qml:114
+#: qml/TrackBrowserDelegate.qml:105
+#, kde-format
+msgctxt "@action:button"
+msgid "Un-mark this song as a favorite"
+msgstr "இப்பாடலிலுள்ள பிடித்த‍தென்ற குறியை நீக்கு"
+
+#: qml/MediaTrackMetadataDelegate.qml:156 qml/PlayListEntry.qml:114
+#: qml/TrackBrowserDelegate.qml:105
+#, kde-format
+msgctxt "@action:button"
+msgid "Mark this song as a favorite"
+msgstr "இப்பாடலை பிடித்த‍தென்று குறி"
+
+#: qml/MediaTrackMetadataDelegate.qml:207
+#, kde-format
+msgctxt "@action:button remove a metadata tag"
+msgid "Remove this tag"
+msgstr "இக்குறிச்சொல்லை நீக்கு"
+
+#: qml/MediaTrackMetadataDelegate.qml:215
+#, kde-format
+msgctxt "@action:button"
+msgid "Add tag"
+msgstr "குறிச்சொல்லை சேர்"
+
+#: qml/MediaTrackMetadataForm.qml:66 qml/SettingsForm.qml:47
+#, kde-format
+msgctxt "@title:window"
+msgid "Warning"
+msgstr "எச்சரிக்கை"
+
+#: qml/MediaTrackMetadataForm.qml:96
+#, kde-format
+msgctxt "@label"
+msgid "Data is not valid. %1"
+msgstr "தரவு செல்லுபடியாகாத‍து. %1"
+
+#: qml/MediaTrackMetadataForm.qml:148
+#, kde-format
+msgctxt "Track metadata form label, e.g. 'Artist:'"
+msgid "%1:"
+msgstr "%1:"
+
+#: qml/MediaTrackMetadataView.qml:37
+#: qml/mobile/MobileMediaTrackMetadataView.qml:48
+#, kde-format
+msgctxt "@title:window"
+msgid "Create a Radio"
+msgstr "வானொலி மையத்தை உருவாக்கு"
+
+#: qml/MediaTrackMetadataView.qml:38
+#: qml/mobile/MobileMediaTrackMetadataView.qml:49
+#, kde-format
+msgctxt "@title:window"
+msgid "View details"
+msgstr "காட்டப்படும் விவரங்கள்"
+
+#: qml/MediaTrackMetadataView.qml:129
+#: qml/mobile/MobileMediaTrackMetadataView.qml:72
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete"
+msgstr "நீக்கு"
+
+#: qml/MediaTrackMetadataView.qml:147
+#: qml/mobile/MobileMediaTrackMetadataView.qml:54
+#, kde-format
+msgctxt "@action:button"
+msgid "Modify"
+msgstr "திருத்து"
+
+#: qml/mobile/MobileMediaTrackMetadataView.qml:60
+#: qml/mobile/MobileSettingsPage.qml:39
+#, kde-format
+msgctxt "@action:button"
+msgid "Save"
+msgstr "சேமி"
+
+#: qml/mobile/MobileMediaTrackMetadataView.qml:66
+#: qml/mobile/MobileSettingsPage.qml:45
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "ரத்து செய்"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:225
+#: qml/mobile/MobileTrackPlayer.qml:357
+#, kde-format
+msgctxt "@action:button"
+msgid "Skip Backward"
+msgstr "முந்தைய பாடலுக்கு செல்"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:239
+#: qml/mobile/MobileTrackPlayer.qml:370
+#, kde-format
+msgctxt "@action:button Pause any media that is playing"
+msgid "Pause"
+msgstr "பொறு"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:239
+#: qml/mobile/MobileTrackPlayer.qml:370
+#, kde-format
+msgctxt "@action:button Start playing media"
+msgid "Play"
+msgstr "இயக்கு"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:253
+#: qml/mobile/MobileTrackPlayer.qml:383
+#, kde-format
+msgctxt "@action:button"
+msgid "Skip Forward"
+msgstr "அடுத்த பாடலுக்கு செல்"
+
+#: qml/mobile/MobilePlayListDelegate.qml:147 qml/PlayListEntry.qml:365
+#, kde-format
+msgctxt "@action:button"
+msgid "Track Options"
+msgstr "பாடலுக்கான விருப்பங்கள்"
+
+#: qml/mobile/MobilePlayListDelegate.qml:147 qml/PlayListEntry.qml:365
+#, kde-format
+msgctxt "@action:button"
+msgid "Radio Options"
+msgstr "வானொலி விருப்பங்கள்"
+
+#: qml/mobile/MobilePlayListDelegate.qml:175 qml/PlayListEntry.qml:90
+#: qml/TrackBrowserDelegate.qml:77
+#, kde-format
+msgctxt "@action:button Show track metadata"
+msgid "View details"
+msgstr "விவரங்களைக் காட்டு"
+
+#: qml/mobile/MobilePlayListDelegate.qml:188
+#, kde-format
+msgctxt "@action:button"
+msgid "Remove from queue"
+msgstr "பாடல்வரிசையிலிருந்து நீக்கு"
+
+#: qml/mobile/MobileSettingsPage.qml:25 qml/mobile/MobileSidebar.qml:37
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: qml/mobile/MobileTrackPlayer.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Minimize Player"
+msgstr "இயக்கியை ஒதுக்கு"
+
+#: qml/mobile/MobileTrackPlayer.qml:199
+#, kde-format
+msgctxt "@action:button show track information"
+msgid "Show Info"
+msgstr "விவரங்களைக் காட்டு"
+
+#: qml/mobile/MobileVolumeButton.qml:30
+#, kde-format
+msgctxt "@action:button"
+msgid "Change Volume"
+msgstr "ஒலியளவை மாற்று"
+
+#: qml/NativeGlobalMenu.qml:18
+#, kde-format
+msgctxt "@title:menu"
+msgid "File"
+msgstr "கோப்பு"
+
+#: qml/NativeGlobalMenu.qml:21
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Save Playlist…"
+msgstr "பாடல்வரிசையை சேமி…"
+
+#: qml/NativeGlobalMenu.qml:29
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Open Playlist…"
+msgstr "பாடல்வரிசையைத் திற…"
+
+#: qml/NativeGlobalMenu.qml:61
+#, kde-format
+msgctxt "@title:menu"
+msgid "View"
+msgstr "பார்வை"
+
+#: qml/NativeGlobalMenu.qml:64
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Toggle Party Mode"
+msgstr "கொண்டாட்ட பயன்முறையை இயக்கு/முடக்கு"
+
+#: qml/NativeGlobalMenu.qml:82
+#, kde-format
+msgctxt "@title:menu"
+msgid "Controls"
+msgstr "கட்டுப்படுத்திகள்"
+
+#: qml/NativeGlobalMenu.qml:85
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Pause"
+msgstr "பொறு"
+
+#: qml/NativeGlobalMenu.qml:85
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Play"
+msgstr "இயக்கு"
+
+#: qml/NativeGlobalMenu.qml:92
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Stop"
+msgstr "நிறுத்து"
+
+#: qml/NativeGlobalMenu.qml:101
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Increase Volume"
+msgstr "ஒலியைக் கூட்டு"
+
+#: qml/NativeGlobalMenu.qml:106
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Decrease Volume"
+msgstr "ஒலியைக் குறை"
+
+#: qml/NativeGlobalMenu.qml:116
+#, kde-format
+msgctxt "@title:menu"
+msgid "Shuffle"
+msgstr "கலக்குவது"
+
+#: qml/NativeGlobalMenu.qml:123
+#, kde-format
+msgctxt "@action:inmenu shuffle all tracks in playlist"
+msgid "Track"
+msgstr "பாடல்களை"
+
+#: qml/NativeGlobalMenu.qml:127
+#, kde-format
+msgctxt "@action:inmenu shuffle albums in playlist"
+msgid "Album"
+msgstr "ஆல்பங்களை"
+
+#: qml/NativeGlobalMenu.qml:131
+#, kde-format
+msgctxt "@action:inmenu disable shuffle mode"
+msgid "Off"
+msgstr "வேண்டாம்"
+
+#: qml/NativeGlobalMenu.qml:138
+#, kde-format
+msgctxt "@title:menu"
+msgid "Repeat"
+msgstr "திரும்ப இசைப்பது"
+
+#: qml/NativeGlobalMenu.qml:145
+#, kde-format
+msgctxt "@action:inmenu repeat all songs in this playlist"
+msgid "Playlist"
+msgstr "பாடல்வரிசை"
+
+#: qml/NativeGlobalMenu.qml:149
+#, kde-format
+msgctxt "@action:inmenu repeat this one song"
+msgid "One"
+msgstr "ஒன்றுமட்டும்"
+
+#: qml/NativeGlobalMenu.qml:153
+#, kde-format
+msgctxt ""
+"@action:inmenu no repeat mode set; stop playback after last song in the "
+"playlist"
+msgid "None"
+msgstr "ஏதுமில்லை"
+
+#: qml/NativeGlobalMenu.qml:159
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "உதவி"
+
+#: qml/NavigationActionBar.qml:93
+#, kde-format
+msgctxt "@label:listbox Sort By Menu Title with no sort selected"
+msgid "Sort: %1"
+msgstr "வரிசை: %1"
+
+#: qml/NavigationActionBar.qml:94
+#, kde-format
+msgctxt "@label:listbox Sort By Menu Title with no sort selected"
+msgid "Sort"
+msgstr "வரிசைப்படுத்து"
+
+#: qml/NavigationActionBar.qml:108
+#, kde-format
+msgctxt "@action:button"
+msgid "Add Radio"
+msgstr "வானொலியை சேர்"
+
+#: qml/NavigationActionBar.qml:109
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Add radio"
+msgstr "வானொலியை சேர்"
+
+#: qml/NavigationActionBar.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Add to Playlist"
+msgstr "பாடல்வரிசையில் செர்"
+
+#: qml/NavigationActionBar.qml:122
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Add to playlist"
+msgstr "பாடல்வரிசையில் செர்"
+
+#: qml/NavigationActionBar.qml:135
+#, kde-format
+msgctxt "@action:button"
+msgid "Play Now, Replacing Current Playlist"
+msgstr "தற்போதைய பாடல்வரிசைக்கு பதிலாக இதை இசை"
+
+#: qml/NavigationActionBar.qml:136
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Play now, replacing current playlist"
+msgstr "தற்போதைய பாடல்வரிசைக்கு பதிலாக இதை இசை"
+
+#: qml/NavigationActionBar.qml:148
+#, kde-format
+msgctxt "@action:button Add as the next track(s) in the playlist"
+msgid "Play Next"
+msgstr "அடுத்த‍தை இசை"
+
+#: qml/NavigationActionBar.qml:149
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Play next in playlist"
+msgstr "தற்போதைய பாடல்வரிசையிலுள்ள அடுத்ததை இசைக்கும்"
+
+#: qml/NavigationActionBar.qml:161
+#, kde-format
+msgctxt "@action:button navigate to the view for artist of this album"
+msgid "Display Artist"
+msgstr "கலைஞரைக் காட்டு"
+
+#: qml/NavigationActionBar.qml:162
+#, kde-format
+msgctxt "@info:tooltip navigate to the view for artist of this album"
+msgid "Display Artist"
+msgstr "கலைஞரைக் காட்டு"
+
+#: qml/NavigationActionBar.qml:177
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Show playlist"
+msgstr "பாடல்வரிசையைக் காட்டு"
+
+#: qml/NavigationActionBar.qml:188
+#, kde-format
+msgctxt "@action:button"
+msgid "View as Icon Grid"
+msgstr "சின்னங்களைக் கொண்ட கிரிடாக காட்டு"
+
+#: qml/NavigationActionBar.qml:189
+#, kde-format
+msgctxt "@action:button"
+msgid "View as List"
+msgstr "பட்டியலாக காட்டு"
+
+#: qml/NavigationActionBar.qml:191
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "View as icon grid"
+msgstr "சின்னங்களைக் கொண்ட கிரிடாக காட்டு"
+
+#: qml/NavigationActionBar.qml:192
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "View as list"
+msgstr "பட்டியலாக காட்டு"
+
+#: qml/NavigationActionBar.qml:252
+#, kde-format
+msgctxt "@action:button navigate back in the view's stack"
+msgid "Back"
+msgstr "பின்னே"
+
+#: qml/NavigationActionBar.qml:333
+#, kde-format
+msgctxt ""
+"@action:button displayed as @info:tooltip Show filters in the navigation bar"
+msgid "Show search and filter toolbar"
+msgstr "தேடி வடிகட்ட உதவும் பட்டையை காட்டு"
+
+#: qml/NavigationActionBar.qml:334
+#, kde-format
+msgctxt ""
+"@action:button displayed as @info:tooltip Hide filters in the navigation bar"
+msgid "Hide search and filter toolbar"
+msgstr "தேடி வடிகட்ட உதவும் பட்டையை மறை"
+
+#: qml/NavigationActionBar.qml:427
+#, kde-format
+msgctxt "@info:placeholder radio view filter"
+msgid "Search for radio station"
+msgstr ""
+
+#: qml/NavigationActionBar.qml:429
+#, kde-format
+msgctxt "@info:placeholder track view filter single album"
+msgid "Search for track name, artist, etc."
+msgstr "பாடல்ப்பெயர், கலைஞர் போன்றவற்றால் வடிகட்டலாம்"
+
+#: qml/NavigationActionBar.qml:430
+#, kde-format
+msgctxt "@info:placeholder track view filter general"
+msgid "Search for album name, artist, etc."
+msgstr "ஆல்ப‍ப்பெயர், கலைஞர் போன்றவற்றால் வடிகட்டலாம்"
+
+#: qml/NavigationActionBar.qml:438
+#, kde-format
+msgctxt "@label:chooser"
+msgid "Filter by rating: "
+msgstr "மதிப்பீட்டின் படி வடிகட்டு: "
+
+#: qml/NavigationActionBar.qml:456
+#, kde-format
+msgctxt "@action:button"
+msgid "Only Show Favorites"
+msgstr "பிடித்தவற்றை மட்டும் காட்டு"
+
+#: qml/PlayListEntry.qml:104 qml/TrackBrowserDelegate.qml:97
+#, kde-format
+msgctxt "@action:button"
+msgid "Set track rating"
+msgstr "பாடலுக்கான மதிப்பை இடு"
+
+#: qml/PlayListEntry.qml:128
+#, kde-format
+msgctxt "@action:button Remove current track from play list"
+msgid "Remove"
+msgstr "நீக்கு"
+
+#: qml/PlayListEntry.qml:313 qml/TrackBrowserDelegate.qml:314
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel rating this track"
+msgstr "மதிப்பிடுவதை கைவிடு"
+
+#: qml/SettingsForm.qml:70
+#, kde-format
+msgctxt "@title:group"
+msgid "General:"
+msgstr "பொதுவானவை:"
+
+#: qml/SettingsForm.qml:74
+#, kde-format
+msgctxt "@option:check"
+msgid "Show background on Now Playing page"
+msgstr "'இப்போது இசைக்கப்படுவது' எனும் பக்கத்தில் பின்புலத்தை காட்டு"
+
+#: qml/SettingsForm.qml:87
+#, kde-format
+msgctxt "@option:check"
+msgid "Show progress on task manager entries"
+msgstr "பணி மேலாளி பதிவுகளில் முன்னேற்றத்தை காட்டு"
+
+#: qml/SettingsForm.qml:98
+#, kde-format
+msgctxt "@option:check"
+msgid "Keep running in system tray when main window is closed"
+msgstr "சாளரத்தை மூடியபின்னும் கணினித்தட்டில் இயங்கு"
+
+#: qml/SettingsForm.qml:109
+#, kde-format
+msgctxt "@option:check"
+msgid "Start playing on startup"
+msgstr "துவக்கும்போதே பாடலை இசைக்கச்செய்"
+
+#: qml/SettingsForm.qml:120
+#, kde-format
+msgctxt "@option:check"
+msgid "Scan for new music on startup"
+msgstr "துவக்கும்போது புதிய பாடல்களை கண்டறி"
+
+#: qml/SettingsForm.qml:139
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"When using this setting, you will need to manually refresh the music "
+"collection whenever new files are added to configured music folders. You can "
+"do this with the <interface>Scan for new music</interface> item in Elisa's "
+"hamburger menu."
+msgstr ""
+"இத்தேர்வை முடக்கினால், புதிய பாடல்களை நீங்கள் உரிய அடைவுகளில் சேர்த்தப்பின், கைமுறையாக "
+"தரவுதளத்தை புதுப்பிக வேண்டும். பட்டியிலிருந்து <interface>புதிய பாடல்களுள்ளனவா என "
+"தேடு</interface> என்ற தேர்வைப் பயன்படுத்தி நீங்கள் அவ்வாறு செய்யலாம்."
+
+#: qml/SettingsForm.qml:150
+#, kde-format
+msgctxt "@title:group"
+msgid "Song rating style:"
+msgstr "பாடல்களுக்கு மதிப்பிடும் முறை:"
+
+#: qml/SettingsForm.qml:154
+#, kde-format
+msgctxt "@option:radio"
+msgid "0-5 stars"
+msgstr "0-5 நட்சத்திரங்கள்"
+
+#: qml/SettingsForm.qml:166
+#, kde-format
+msgctxt "@option:radio"
+msgid "Favorite/not favorite"
+msgstr "பிடித்த‍து/பிடிக்காத‍து"
+
+#: qml/SettingsForm.qml:184
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Color scheme:"
+msgstr "நிறத் திட்டம்:"
+
+#: qml/SettingsForm.qml:220
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan for New Music"
+msgstr "புதிய பாடல்களுள்ளனவா என தேடு"
+
+#: qml/SettingsForm.qml:224 qml/SettingsForm.qml:235
+#, kde-format
+msgctxt "@info"
+msgid "Started scanning for music"
+msgstr "பாடல்களை கண்டறிவது துவங்கியது"
+
+#: qml/SettingsForm.qml:230
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset Database and Re-Scan Everything"
+msgstr "தரவுதளத்தை நீக்கி மீண்டும் பாடல்களை கண்டறி"
+
+#: qml/SettingsForm.qml:234
+#, kde-format
+msgctxt "@info"
+msgid "Database has been reset"
+msgstr "தரவுதளம் மீட்டமைக்கப்பட்டுள்ளது"
+
+#: qml/SettingsForm.qml:249
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Embed category in sidebar:"
+msgstr "ஓரப்பட்டையில் இவற்றை காட்டு:"
+
+#: qml/SettingsForm.qml:251
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed no category in views navigation list"
+msgid "Nothing"
+msgstr "ஏதும் வேண்டாம்"
+
+#: qml/SettingsForm.qml:252
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed all albums in views navigation list"
+msgid "Albums"
+msgstr "ஆல்பங்கள்"
+
+#: qml/SettingsForm.qml:253
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed all artists in views navigation list"
+msgid "Artists"
+msgstr "கலைஞர்கள்"
+
+#: qml/SettingsForm.qml:254
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed all genres in views navigation list"
+msgid "Genres"
+msgstr "பாடல்வகைகள்"
+
+#: qml/SettingsForm.qml:287
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Initial view on startup:"
+msgstr "துவத்தில் பயன்படுத்தும் காட்சிமுறை:"
+
+#: qml/SettingsForm.qml:289
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of the playlist"
+msgid "Now Playing"
+msgstr "இப்போது இசைக்கப்படுவது"
+
+#: qml/SettingsForm.qml:290
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of recently played tracks"
+msgid "Recently Played"
+msgstr "சமீபத்தில் இசைத்தவை"
+
+#: qml/SettingsForm.qml:291
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of frequently played tracks"
+msgid "Frequently Played"
+msgstr "அடிக்கடி இசைப்பவை"
+
+#: qml/SettingsForm.qml:292 viewmanager.cpp:216
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all albums"
+msgid "Albums"
+msgstr "ஆல்பங்கள்"
+
+#: qml/SettingsForm.qml:293 viewmanager.cpp:220
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all artists"
+msgid "Artists"
+msgstr "கலைஞர்கள்"
+
+#: qml/SettingsForm.qml:294 viewmanager.cpp:218
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all tracks"
+msgid "Tracks"
+msgstr "பாடல்கள்"
+
+#: qml/SettingsForm.qml:295
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all genres"
+msgid "Genres"
+msgstr "பாடல்வகைகள்"
+
+#: qml/SettingsForm.qml:296
+#, kde-format
+msgctxt "@item:inlistbox Title of the file browser view"
+msgid "Files"
+msgstr "கோப்புகள்"
+
+#: qml/SettingsForm.qml:297
+#, kde-format
+msgctxt "@item:inlistbox Title of the file radios browser view"
+msgid "Radio Stations"
+msgstr "வானொலி நிலையங்கள்"
+
+#: qml/SettingsForm.qml:317
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Initial location for Files view:"
+msgstr "கோப்புகள் காட்சிமுறைக்கான தொடக்க இடம்:"
+
+#: qml/SettingsForm.qml:331
+#, kde-format
+msgctxt "@action:button as in, choose a file path on disk"
+msgid "Choose…"
+msgstr "தேர்ந்தெடு…"
+
+#: qml/SettingsForm.qml:339 qml/SettingsForm.qml:464
+#, kde-format
+msgctxt "@title:window"
+msgid "Choose Folder"
+msgstr "அடைவைத் தேர்வு செய்வது"
+
+#: qml/SettingsForm.qml:362
+#, kde-format
+msgid "When saving playlist files:"
+msgstr "பாடல்வரிசைக் கோப்புகளை சேமிக்கும்போது:"
+
+#: qml/SettingsForm.qml:371
+#, kde-format
+msgctxt "@item:inlistbox Configure dialog, playlist save type"
+msgid "Prefer relative paths"
+msgstr "சார்புடைய பாதைகளை பயன்படுத்து"
+
+#: qml/SettingsForm.qml:372
+#, kde-format
+msgctxt "@item:inlistbox Configure dialog, playlist save type"
+msgid "Always use absolute paths"
+msgstr "முழுமையான பாதைகளை எப்போதும் பயன்படுத்து"
+
+#: qml/SettingsForm.qml:383
+#, kde-kuit-format
+msgctxt "@info:tooltip Playlist Relative Paths"
+msgid ""
+"When <interface>Prefer relative paths</interface> is selected, files in the "
+"same folder as the playlist will be referred with only the filename. "
+"Absolute paths are used in other cases."
+msgstr ""
+"<interface>சார்புடைய பாதைகளை பயன்படுத்து</interface> எனும் தேர்வு "
+"குறிக்கப்பட்டிருக்கும்போது, பாடல்வரிசைக்கோப்பு உள்ள அதே அடைவிலுள்ள பாடல்களுக்கு "
+"முழுமையான பாதை பயன்படுத்தப்படாது. மற்ற சூழல்களில் முழுமையான பாதைகளே எப்போதும் "
+"பயன்படுத்தப்படும்."
+
+#: qml/SettingsForm.qml:398
+#, kde-format
+msgctxt ""
+"@title The configured folders where the user's music collection can be found"
+msgid "Music folders:"
+msgstr "பாடல் அடைவுகள்:"
+
+#: qml/SettingsForm.qml:441
+#, kde-format
+msgctxt "@action:button"
+msgid "Stop looking for music here"
+msgstr "இங்குள்ள பாடல்களை கண்டறியாதே"
+
+#: qml/SettingsForm.qml:454
+#, kde-format
+msgctxt "@action:button"
+msgid "Add New Location"
+msgstr "புதிய இடத்தைச் சேர்"
+
+#: qml/shared/BasePlayListDelegate.qml:68
+#, kde-format
+msgctxt "@info:status"
+msgid "\"%1\" could not be played"
+msgstr "\"%1\" தனை இசைக்க முடியவில்லை"
+
+#: qml/SortMenu.qml:24
+#, kde-format
+msgctxt "@title:menu"
+msgid "Sort By"
+msgstr "வரிசைப்படுத்தும் முறை"
+
+#: qml/TrackBrowserDelegate.qml:92
+#, kde-format
+msgctxt "@action:button"
+msgid "Play from here, replacing current playlist"
+msgstr "தற்போதைய பாடல்வரிசைக்கு பதிலாக இங்கிருந்து இதை இசை"
+
+#: qml/TrackBrowserDelegate.qml:203 qml/TrackBrowserDelegate.qml:219
+#, kde-format
+msgctxt "@item:intable %1: track number. %2: track title."
+msgid "%1 – %2"
+msgstr "%1 – %2"
+
+#: qml/TrackBrowserDelegate.qml:214
+#, kde-format
+msgctxt "@item:intable %1: track number. %2: track title. %3: artist name"
+msgid "%1 – %2 – %3"
+msgstr "%1 – %2 – %3"
+
+#: qml/TrackBrowserDelegate.qml:226
+#, kde-format
+msgctxt "@item:intable %1: track title. %2: artist name"
+msgid "%1 – %2"
+msgstr "%1 – %2"
+
+#: qml/TrackBrowserDelegate.qml:373
+#, kde-format
+msgctxt "@action:button"
+msgid "Song Options"
+msgstr "பாடலுக்கான விருப்பங்கள்"
+
+#: qml/TrackImportNotification.qml:58 qml/TrackImportNotification.qml:76
+#, kde-format
+msgctxt "number of imported tracks"
+msgid "Imported one track"
+msgid_plural "Imported %1 tracks"
+msgstr[0] "ஒரு பாடல் இறக்குமதி செய்யப்பட்டது"
+msgstr[1] "%1 பாடல்கள் இறக்குமதி செய்யப்பட்டன"
+
+#: qml/TrackImportNotification.qml:62
+#, kde-format
+msgctxt "@info:status"
+msgid "Scanning music"
+msgstr "பாடல்கள் கண்டறியப்படுகின்றன"
+
+#: qml/TracksDiscHeader.qml:23
+#, kde-format
+msgctxt "@title:row disc header text when showing an album"
+msgid "Disc %1"
+msgstr "வட்டு %1"
+
+#: qml/VolumeSlider.qml:32
+#, kde-format
+msgctxt "@label"
+msgid "Volume"
+msgstr "ஒலியளவு"
+
+#: qml/VolumeSlider.qml:53
+#, kde-format
+msgctxt "Volume as a percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: viewmanager.cpp:41
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Track Number"
+msgstr "பாடல் எண்"
+
+#: viewmanager.cpp:41 viewmanager.cpp:69
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Title"
+msgstr "தலைப்பு"
+
+#: viewmanager.cpp:43
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Ascending"
+msgstr "ஏறுவரிசை"
+
+#: viewmanager.cpp:43
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Descending"
+msgstr "இறங்குவரிசை"
+
+#: viewmanager.cpp:44 viewmanager.cpp:57 viewmanager.cpp:71 viewmanager.cpp:85
+#: viewmanager.cpp:104 viewmanager.cpp:105 viewslistdata.cpp:63
+#: viewslistdata.cpp:77 viewslistdata.cpp:96 viewslistdata.cpp:97
+#: viewslistdata.cpp:111 viewslistdata.cpp:136
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "A–Z"
+msgstr "அ–ஃ"
+
+#: viewmanager.cpp:44 viewmanager.cpp:57 viewmanager.cpp:71 viewmanager.cpp:85
+#: viewmanager.cpp:104 viewmanager.cpp:105 viewslistdata.cpp:63
+#: viewslistdata.cpp:77 viewslistdata.cpp:96 viewslistdata.cpp:97
+#: viewslistdata.cpp:111 viewslistdata.cpp:136
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Z–A"
+msgstr "ஃ–அ"
+
+#: viewmanager.cpp:55 viewmanager.cpp:83
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Name"
+msgstr "பெயர்"
+
+#: viewmanager.cpp:69
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Genre"
+msgstr "பாடல்வகை"
+
+#: viewmanager.cpp:69
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Year"
+msgstr "ஆண்டு"
+
+#: viewmanager.cpp:71 viewmanager.cpp:105 viewmanager.cpp:106
+#: viewslistdata.cpp:63 viewslistdata.cpp:97 viewslistdata.cpp:98
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Oldest First"
+msgstr "பழையது முதலில்"
+
+#: viewmanager.cpp:71 viewmanager.cpp:105 viewmanager.cpp:106
+#: viewslistdata.cpp:63 viewslistdata.cpp:97 viewslistdata.cpp:98
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Newest First"
+msgstr "புதியது முதலில்"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:61 viewslistdata.cpp:92
+#, kde-format
+msgctxt "@title:menu"
+msgid "Title"
+msgstr "தலைப்பு"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:92
+#, kde-format
+msgctxt "@title:menu"
+msgid "Album"
+msgstr "ஆல்பம்"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:61 viewslistdata.cpp:92
+#, kde-format
+msgctxt "@title:menu"
+msgid "Artist"
+msgstr "கலைஞர்"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:61 viewslistdata.cpp:92
+#: viewslistdata.cpp:109
+#, kde-format
+msgctxt "@title:menu"
+msgid "Genre"
+msgstr "பாடல்வகை"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:61 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Year"
+msgstr "ஆண்டு"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Duration"
+msgstr "நீளம்"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Composer"
+msgstr "இசையமைப்பாளர்"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Lyricist"
+msgstr "கவிஞர்"
+
+#: viewmanager.cpp:102 viewslistdata.cpp:94
+#, kde-format
+msgctxt "@title:menu"
+msgid "Last Modified"
+msgstr "கடைசியாக மாற்றியது"
+
+#: viewmanager.cpp:105 viewslistdata.cpp:97
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Shortest First"
+msgstr "குறுகியது முதலில்"
+
+#: viewmanager.cpp:105 viewslistdata.cpp:97
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Longest First"
+msgstr "நீண்டது முதலில்"
+
+#: viewslistdata.cpp:24
+#, kde-format
+msgctxt "@title:window Title of the view of the playlist"
+msgid "Now Playing"
+msgstr "இப்போது இசைக்கப்படுவது"
+
+#: viewslistdata.cpp:27
+#, kde-format
+msgctxt "@title:window Title of the view of recently played tracks"
+msgid "Recently Played"
+msgstr "சமீபத்தில் இசைத்தவை"
+
+#: viewslistdata.cpp:35
+#, kde-format
+msgctxt "@title:menu"
+msgid "Last Played Date"
+msgstr "கடைசியாக இசைத்த தேதி"
+
+#: viewslistdata.cpp:37
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Least Recently Played First"
+msgstr "சமீபத்தில் இசைக்காதவை முதலில்"
+
+#: viewslistdata.cpp:37
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Most Recently Played First"
+msgstr "சமீபத்தில் இசைத்தவை முதலில்"
+
+#: viewslistdata.cpp:40
+#, kde-format
+msgctxt "@title:window Title of the view of frequently played tracks"
+msgid "Frequently Played"
+msgstr "அடிக்கடி இசைப்பவை"
+
+#: viewslistdata.cpp:48
+#, kde-format
+msgctxt "@title:menu"
+msgid "Play Frequency"
+msgstr "எத்தனைமுறை இசைக்கப்பட்டுள்ளது"
+
+#: viewslistdata.cpp:50
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Least Frequently Played First"
+msgstr "குறைவாக இசைத்தவை முதலில்"
+
+#: viewslistdata.cpp:50
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Most Frequently Played First"
+msgstr "அதிகமாக இசைத்தவை முதலில்"
+
+#: viewslistdata.cpp:75 viewslistdata.cpp:134
+#, kde-format
+msgctxt "@title:menu"
+msgid "Name"
+msgstr "பெயர்"
+
+#: viewslistdata.cpp:81
+#, kde-format
+msgctxt "@title:window Title of the view of all tracks"
+msgid "Tracks"
+msgstr "பாடல்கள்"
+
+#: viewslistdata.cpp:115
+#, kde-format
+msgctxt "@title:window Title of the file browser view"
+msgid "Files"
+msgstr "கோப்புகள்"
+
+#: viewslistdata.cpp:126
+#, kde-format
+msgctxt "@title:window Title of the file radios browser view"
+msgid "Radio Stations"
+msgstr "வானொலி நிலையங்கள்"
+
+#~ msgctxt "@action:button Pause current track from playlist"
+#~ msgid "Pause"
+#~ msgstr "பொறு"
+
+#~ msgctxt "@action:button Play this track from playlist"
+#~ msgid "Play"
+#~ msgstr "இயக்கு"
+
+#~ msgctxt ""
+#~ "@option file type (mime type) for m3u, m3u8 and pls playlist file "
+#~ "formats; do not translate *.m3u8 *.m3u *.pls"
+#~ msgid "m3u8, m3u, pls Playlist File (*.m3u8 *.m3u *.pls)"
+#~ msgstr "m3u8, m3u, pls பாடல்வரிசை கோப்பு (*.m3u8 *.m3u *.pls)"
+
+#~ msgctxt "@action:button Load a playlist file"
+#~ msgid "Load…"
+#~ msgstr "ஏற்று…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "One"
+#~ msgstr "ஒன்றுமட்டும்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Play next"
+#~ msgstr "அடுத்ததை இசை"
+
+#~ msgctxt "@item:intable %1: track number. %2: track title."
+#~ msgid "%1 - %2"
+#~ msgstr "%1 - %2"
+
+#~ msgctxt "@item:intable %1: track title. %2: artist name"
+#~ msgid "%1 - %2"
+#~ msgstr "%1 - %2"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "A-Z"
+#~ msgstr "அ–ஃ"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Z-A"
+#~ msgstr "ஃ–அ"
+
+#, fuzzy
+#~| msgctxt "@info:status %1 is the total number of tracks of the playlist"
+#~| msgid "%1 track"
+#~| msgid_plural "%1 tracks"
+#~ msgctxt "@item:intable %1 tracks"
+#~ msgid "%1 tracks"
+#~ msgstr "%1 பாடல்"
+
+#~ msgctxt "@action:button"
+#~ msgid "Toggle Party Mode"
+#~ msgstr "கொண்டாட்ட பயன்முறையை இயக்கு/முடக்கு"
+
+#~ msgctxt "@action:button"
+#~ msgid "Toggle Mute"
+#~ msgstr "ஒலியடக்கத்தின் நிலையை மாற்று"
+
+#~ msgctxt "@action:button"
+#~ msgid "Application Menu"
+#~ msgstr "செயலியின் பட்டி"
+
+#~ msgctxt "@action:button"
+#~ msgid "Create a radio"
+#~ msgstr "வானொலி மையத்தை உருவாக்கு"
+
+#~ msgctxt "@action:button"
+#~ msgid "Toggle View Style"
+#~ msgstr "பார்வைமுறையின் நிலையை மாற்று"
+
+#~ msgctxt ""
+#~ "@info:status %1 is the translation of track[s], %2 is the translation of "
+#~ "remaining"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "@action:button"
+#~ msgid "Toggle Shuffle"
+#~ msgstr "கலக்குவதன் நிலையை மாற்று"
+
+#~ msgctxt "@action:inmenu shuffle mode is turned on"
+#~ msgid "On"
+#~ msgstr "இயக்கு"
+
+#~ msgctxt "@action:button"
+#~ msgid "OK"
+#~ msgstr "சரி"
+
+#~ msgctxt "@action:button"
+#~ msgid "Apply"
+#~ msgstr "செயல்படுத்து"
+
+#~ msgctxt "@action:button"
+#~ msgid "Close"
+#~ msgstr "மூடு"
+
+#~ msgctxt "@label:listbox"
+#~ msgid "Music indexing:"
+#~ msgstr "பாடல் அட்டவணையாக்கம்:"
+
+#~ msgctxt "@item:inlistbox Configure dialog, indexing type"
+#~ msgid "Use fast native indexer"
+#~ msgstr "விரைவான பொது அட்டவணையாக்கியை பயன்படுத்து"
+
+#~ msgctxt "@item:inlistbox Configure dialog, indexing type"
+#~ msgid "Scan the filesystem directly"
+#~ msgstr "கோப்புகளை நேரடியாக ஆராய்"
+
+#~ msgctxt "@info"
+#~ msgid ""
+#~ "This is slower than the fast indexer. Please activate it only if Elisa "
+#~ "cannot find your music and searching for one of the missing music files "
+#~ "using your file manager also does not work. Please report this as a bug."
+#~ msgstr ""
+#~ "இயல்பிருப்பு அட்டவணையாக்கியைவிட இது மெதுவானதாகும். உங்கள் பாடல்களை எலைசாவாலும் "
+#~ "உங்கள் கோப்பு உலாவியின் தேடல் அம்சத்தாலும் கண்டுபிடிக்க முடியாத பட்சத்தில் மட்டும் இதை "
+#~ "பயன்படுத்துங்கள். தயவுசெய்து இதை ஓர் நிரலாக்க பிழையாக எங்களிடம் தெரிவியுங்கள்."
+
+#~ msgctxt "@action:button"
+#~ msgid "Report Bug"
+#~ msgstr "பிழையை தெரிவி"
+
+#~ msgctxt "@label"
+#~ msgid ""
+#~ "The fast native file indexer does not follow symbolic links. If any of "
+#~ "the locations in this list contain symbolic links to other locations, you "
+#~ "will need to add those other locations to the list as well."
+#~ msgstr ""
+#~ "விரைவான பொது அட்டவணையாக்கி, குறியிணைப்புகளை பின்தொடராது. இப்பட்டியலிலுள்ள "
+#~ "இடங்களில் குறியிணைப்புகள் இருந்தால், அக்குறியிணைப்புகளின் சேருமிடங்களையும் நீங்கள் "
+#~ "இப்பட்டியலில் சேர்க்க வேண்டும்."
+
+#~ msgctxt "@action:button"
+#~ msgid "Color Scheme"
+#~ msgstr "நிறத் திட்டம்"
+
+#~ msgctxt "@title:menu"
+#~ msgid "Color Scheme"
+#~ msgstr "நிறத் திட்டம்"
+
+#~ msgctxt ""
+#~ "@action:button Clear play list and add whole container to play list"
+#~ msgid "Play now, replacing current queue"
+#~ msgstr "தற்போதைய பாடல்வரிசைக்கு பதிலாக இதை இசை"
+
+#~ msgctxt "@action:button Add whole container to play list"
+#~ msgid "Add to queue"
+#~ msgstr "பாடல்வரிசையில் சேர்"
+
+#~ msgctxt "@action:button"
+#~ msgid "Un-mark as favorite"
+#~ msgstr "இப்பாடலிலுள்ள பிடித்த‍தென்ற குறியை நீக்கு"
+
+#~ msgctxt "@action:button"
+#~ msgid "Mark as favorite"
+#~ msgstr "இப்பாடலை பிடித்த‍தென்று குறி"
+
+#~ msgctxt "@action:button Enqueue current track"
+#~ msgid "Add to queue"
+#~ msgstr "பாடல்வரிசையில் சேர்"
+
+#~ msgctxt "@title:window"
+#~ msgid "View Details"
+#~ msgstr "விவரங்கள்"
+
+#~ msgctxt "@action:button Show track metadata"
+#~ msgid "View Details"
+#~ msgstr "விவரங்கள்"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Leave Full Screen"
+#~ msgstr "முழுத்திரை பயன்முறையிலிருந்து வெளியேறு"
+
+#~ msgctxt "@action:button"
+#~ msgid "Show the file for this song in the file manager"
+#~ msgstr "இப்பாடலுக்கான கோப்பை கோப்பு உலாவியால் காட்டு"
+
+#~ msgctxt "Track title for track metadata view"
+#~ msgid "Title"
+#~ msgstr "தலைப்பு"
+
+#~ msgctxt "Track artist for track metadata view"
+#~ msgid "Artist"
+#~ msgstr "கலைஞர்"
+
+#~ msgctxt "Album name for track metadata view"
+#~ msgid "Album"
+#~ msgstr "ஆல்பம்"
+
+#~ msgctxt "Genre label for track metadata view"
+#~ msgid "Genre"
+#~ msgstr "பாடல்வகை"
+
+#~ msgctxt "Lyricist label for track metadata view"
+#~ msgid "Lyricist"
+#~ msgstr "கவிஞர்"
+
+#~ msgctxt "Composer name for track metadata view"
+#~ msgid "Composer"
+#~ msgstr "இசையமைப்பாளர்"
+
+#~ msgctxt "Year label for track metadata view"
+#~ msgid "Year"
+#~ msgstr "ஆண்டு"
+
+#~ msgctxt "Duration label for track metadata view"
+#~ msgid "Duration"
+#~ msgstr "நீளம்"
+
+#~ msgctxt "Scan for New Music application menu entry"
+#~ msgid "Scan for New Music"
+#~ msgstr "புதிய பாடல்களுள்ளனவா என தேடு"
+
+#~ msgctxt "Reset Database and Re-Scan Everything application menu entry"
+#~ msgid "Reset Database and Re-Scan Everything"
+#~ msgstr "தரவுதளத்தை நீக்கி மீண்டும் பாடல்களை கண்டறி"
+
+#~ msgctxt "One of the 'now playing' views"
+#~ msgid "Lyrics"
+#~ msgstr "பாடல்வரிகள்"
+
+#~ msgctxt "show the playlist"
+#~ msgid "Show Playlist"
+#~ msgstr "பாடல்வரிசையைக் காட்டு"
+
+#~ msgctxt "Window title"
+#~ msgid "Elisa"
+#~ msgstr "எலைசா"
+
+#~ msgctxt "Clear play list and add whole container to play list"
+#~ msgid "Play now, replacing current playlist"
+#~ msgstr "தற்போதைய பாடல்வரிசைக்கு பதிலாக இதை இசை"
+
+#~ msgctxt "%1: track title. %2: artist name"
+#~ msgid "%1 - %2"
+#~ msgstr "%1 - %2"
+
+#~ msgctxt "Enqueue current track"
+#~ msgid "Add to playlist"
+#~ msgstr "பாடல்வரிசையில் செர்"
+
+#~ msgid "Mark this song as no longer being a favorite"
+#~ msgstr "இப்பாடலிலுள்ள பிடித்த‍தென்ற குறியை நீக்கு"
+
+#~ msgctxt "Enqueue current track"
+#~ msgid "Add to queue"
+#~ msgstr "பாடல்வரிசையில் சேர்"
+
+#~ msgctxt "toggle the party mode"
+#~ msgid "Toggle Party Mode"
+#~ msgstr "கொண்டாட்ட பயன்முறையை இயக்கு/முடக்கு"
+
+#~ msgctxt "Pause any media that is playing"
+#~ msgid "Pause"
+#~ msgstr "பொறு"
+
+#~ msgctxt "Start playing media"
+#~ msgid "Play"
+#~ msgstr "இயக்கு"
+
+#~ msgctxt ""
+#~ "@info Title of the view of the playlist; keep this string as short as "
+#~ "possible because horizontal space is quite scarce"
+#~ msgid "Playlist"
+#~ msgstr "பாடல்வரிசை"
+
+#~ msgctxt "Playlist cleared"
+#~ msgid "Playlist cleared"
+#~ msgstr "பாடல்வரிசை காலியாக்கப்பட்டுள்ளது"
+
+#~ msgctxt "menu entry"
+#~ msgid "Toggle Party Mode"
+#~ msgstr "கொண்டாட்ட பயன்முறையை இயக்கு/முடக்கு"
+
+#~ msgctxt "Show track metadata"
+#~ msgid "View Details"
+#~ msgstr "விவரங்களைக் காட்டு"
+
+#~ msgctxt "Pause current track from play list"
+#~ msgid "Pause"
+#~ msgstr "பொறு"
+
+#~ msgctxt "Play this track from play list"
+#~ msgid "Play"
+#~ msgstr "இயக்கு"
+
+#~ msgctxt "Configure dialog, embed all albums in views navigation list"
+#~ msgid "Albums"
+#~ msgstr "ஆல்பங்கள்"
+
+#~ msgctxt "Configure dialog, embed all artists in views navigation list"
+#~ msgid "Artists"
+#~ msgstr "கலைஞர்கள்"
+
+#~ msgctxt "Configure dialog, embed all genres in views navigation list"
+#~ msgid "Genres"
+#~ msgstr "பாடல்வகைகள்"
+
+#~ msgctxt "Title of the view of the playlist"
+#~ msgid "Now Playing"
+#~ msgstr "இப்போது இசைக்கப்படுவது"
+
+#~ msgctxt "Title of the file radios browser view"
+#~ msgid "Radio Stations"
+#~ msgstr "வானொலி நிலையங்கள்"

@@ -1,0 +1,52 @@
+Source code from the git repository
+-----------------------------------
+
+To compile source code obtained from the git repository,
+make sure you have installed the autoconf, automake and libtool packages.
+Execute:
+
+$ autoreconf -i
+$ ./configure
+$ make
+$ make check
+
+Required versions:
+* autoconf >= 2.69
+* automake >= 1.11.6
+* libtool >= 2.4.3
+
+Creating a new release
+----------------------
+
+0) Check the release also works on 32-bit processors (or configure GMP with
+   ABI=32 on 64-bit processors); and with tcc and clang; and with
+   --enable-valgrind-tests.
+1) Check the version number in configure.ac ("AC_INIT (mpc, _version_...)"),
+   README, src/get_version.c and src/mpc.h.in (remove suffix "dev" in
+   MPC_VERSION_STRING).
+   Check that there are no compiler warnings with
+      CFLAGS="-Wuninitialized -fsanitize=undefined -fno-sanitize-recover=all -Wall -Wextra -Wdeclaration-after-statement -Wshadow -Wstrict-prototypes -Wmissing-prototypes" ./configure; make check
+2) Check that NEWS, BUGS and TODO are up to date, and that the minimal
+   version numbers of gmp and mpfr in configure.ac, README and
+   doc/mpc.texi are correct (and check that make and make check work
+   with these minimal versions).
+3) Update the ABI version in src/Makefile.am, see
+      https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
+4) Execute
+      autoreconf -vfi
+   This updates the files in build-aux.
+   Check that the executables in build-aux are not read-only
+   (https://sympa.inria.fr/sympa/arc/mpc-discuss/2020-06/msg00000.html).
+5) Execute
+      touch doc/mpc.texi; make distcheck
+   This updates doc/version.texi and creates the tarball for distribution.
+6) Upload to GNU ftp server, see
+      https://www.gnu.org/prep/maintain/html_node/Automated-Upload-Procedure.html
+7) Update the web page on the server.
+8) Create a git tag:
+   git tag VERSION
+   git push --tags
+9) After the release, update the version number in configure.ac, README,
+   src/get_version.c and src/mpc.h.in.
+10) Commit the changes to git.
+

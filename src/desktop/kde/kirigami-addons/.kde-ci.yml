@@ -10,11 +10,17 @@ Dependencies:
     'frameworks/kguiaddons': '@latest-kf6'
     'frameworks/kcoreaddons': '@latest-kf6'
     'frameworks/kconfig': '@latest-kf6'
+    'frameworks/kcolorscheme': '@latest-kf6'
+    'frameworks/kcrash': '@latest-kf6'
 
 - 'on': ['Linux', 'FreeBSD']
   'require':
     'frameworks/kglobalaccel': '@latest-kf6'
 
-#Options:
-#  require-passing-tests-on: [ 'Linux/Qt6' ]
+- 'on': ['Linux', 'FreeBSD','Windows']
+  'require':
+    'frameworks/kiconthemes': '@latest-kf6'
 
+Options:
+  enable-lsan: True
+#  require-passing-tests-on: [ 'Linux/Qt6' ]

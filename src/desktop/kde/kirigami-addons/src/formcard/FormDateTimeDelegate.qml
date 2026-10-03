@@ -107,6 +107,19 @@ AbstractFormDelegate {
     property bool readOnly: false
 
     /*!
+       This property holds whether the user can reset the date and time to an
+       unset value.
+
+       When enabled, a "Reset" button is added to the date and time pickers.
+       Clicking it sets \l value to an invalid date, which is displayed as
+       "Not set".
+
+       \default false
+       \since 1.15.0
+     */
+    property bool resettable: false
+
+    /*!
        \brief The current date and time selected by the user.
      */
     property date value: new Date()
@@ -141,6 +154,17 @@ AbstractFormDelegate {
        If this property is not set, no \l status will be shown.
      */
     property string statusMessage: ""
+
+    /*!
+       \brief A label containing secondary text that appears under the
+       inherited text property.
+
+       This provides additional information shown in a faint gray color.
+
+       \default ""
+       \since 1.12.0
+     */
+    property string description: ""
 
     /*!
        \brief This property holds the parent used for the popups
@@ -183,6 +207,7 @@ AbstractFormDelegate {
 
             QQC2.AbstractButton {
                 id: dateButton
+                objectName: "dateButton"
 
                 property bool androidPickerActive: false
 
@@ -276,7 +301,8 @@ AbstractFormDelegate {
 
                     if (Qt.platform.os === 'android') {
                         androidPickerActive = true;
-                        DateTime.AndroidIntegration.showDatePicker(value.getTime());
+                        DateTime.AndroidIntegration.showDatePicker(value.getTime(), root.resettable,
+                            i18ndc("kirigami-addons6", "@action:button", "Reset"));
                     } else {
                         const item = datePopup.createObject(root.popupParent, {
                             value: value,
@@ -286,7 +312,7 @@ AbstractFormDelegate {
 
                         item.accepted.connect(() => {
                             if (isNaN(root.value.valueOf())) {
-                                root.value = root.initialValue;
+                                FormFieldHelper.setPropertyValue(root, "value", root.initialValue);
                             }
                             root.value.setFullYear(item.value.getFullYear());
                             root.value.setMonth(item.value.getMonth());
@@ -305,6 +331,7 @@ AbstractFormDelegate {
                 Component {
                     id: datePopup
                     DateTime.DatePopup {
+                        objectName: "datePopup"
                         x: parent ? Math.round((parent.width - width) / 2) : 0
                         y: parent ? Math.round((parent.height - height) / 2) : 0
 
@@ -313,7 +340,9 @@ AbstractFormDelegate {
                         height: Kirigami.Units.gridUnit * 20
 
                         modal: true
+                        resettable: root.resettable
 
+                        onReset: FormFieldHelper.setPropertyValue(root, "value", new Date(NaN));
                         onClosed: destroy();
                     }
                 }
@@ -326,12 +355,16 @@ AbstractFormDelegate {
                         dateButton.androidPickerActive = false;
                         if (accepted) {
                             if (isNaN(root.value.valueOf())) {
-                                root.value = root.initialValue;
+                                FormFieldHelper.setPropertyValue(root, "value", root.initialValue);
                             }
                             root.value.setFullYear(newDate.getFullYear());
                             root.value.setMonth(newDate.getMonth());
                             root.value.setDate(newDate.getDate());
                         }
+                    }
+                    function onDatePickerReset() {
+                        dateButton.androidPickerActive = false;
+                        FormFieldHelper.setPropertyValue(root, "value", new Date(NaN));
                     }
                 }
             }
@@ -378,7 +411,8 @@ AbstractFormDelegate {
 
                     if (Qt.platform.os === 'android') {
                         androidPickerActive = true;
-                        DateTime.AndroidIntegration.showTimePicker(value.getTime());
+                        DateTime.AndroidIntegration.showTimePicker(value.getTime(), root.resettable,
+                            i18ndc("kirigami-addons6", "@action:button", "Reset"));
                     } else {
                         const popup = timePopup.createObject(root.popupParent, {
                             value: value,
@@ -399,10 +433,13 @@ AbstractFormDelegate {
 
                         parent: root.popupParent.overlay
                         modal: true
+                        resettable: root.resettable
+
+                        onReset: FormFieldHelper.setPropertyValue(root, "value", new Date(NaN));
 
                         onAccepted: {
                             if (isNaN(root.value.valueOf())) {
-                                root.value = root.initialValue;
+                                FormFieldHelper.setPropertyValue(root, "value", root.initialValue);
                             }
                             root.value.setHours(popup.value.getHours(), popup.value.getMinutes());
                         }
@@ -417,10 +454,14 @@ AbstractFormDelegate {
                         timeButton.androidPickerActive = false;
                         if (accepted) {
                             if (isNaN(root.value.valueOf())) {
-                                root.value = root.initialValue;
+                                FormFieldHelper.setPropertyValue(root, "value", root.initialValue);
                             }
                             root.value.setHours(newDate.getHours(), newDate.getMinutes());
                         }
+                    }
+                    function onTimePickerReset() {
+                        timeButton.androidPickerActive = false;
+                        FormFieldHelper.setPropertyValue(root, "value", new Date(NaN));
                     }
                 }
 
@@ -458,7 +499,7 @@ AbstractFormDelegate {
             }
         }
 
-        Kirigami.InlineMessage {
+        Private.FormInlineMessage {
             id: formErrorHandler
             visible: root.statusMessage.length > 0
             Layout.topMargin: visible ? Kirigami.Units.smallSpacing : 0
@@ -468,6 +509,20 @@ AbstractFormDelegate {
             Layout.fillWidth: true
             text: root.statusMessage
             type: root.status
+        }
+
+        QQC2.Label {
+            id: internalDescriptionItem
+
+            Layout.fillWidth: true
+            Layout.topMargin: visible ? Kirigami.Units.smallSpacing : 0
+            Layout.bottomMargin: visible ? Kirigami.Units.smallSpacing : 0
+            Layout.leftMargin: Kirigami.Units.gridUnit
+            Layout.rightMargin: Kirigami.Units.gridUnit
+            text: root.description
+            color: Kirigami.Theme.disabledTextColor
+            visible: root.description !== ""
+            wrapMode: Text.Wrap
         }
     }
 }

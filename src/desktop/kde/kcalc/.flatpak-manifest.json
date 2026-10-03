@@ -1,0 +1,89 @@
+{
+    "id": "org.kde.kcalc",
+    "runtime": "org.kde.Platform",
+    "runtime-version": "6.10",
+    "sdk": "org.kde.Sdk",
+    "command": "kcalc",
+    "rename-icon": "accessories-calculator",
+    "tags": [
+        "nightly"
+    ],
+    "desktop-file-name-suffix": " (Nightly)",
+    "finish-args": [
+        "--device=dri",
+        "--share=ipc",
+        "--socket=fallback-x11",
+        "--socket=wayland"
+    ],
+    "cleanup": [
+        "/lib/*.a",
+        "/lib/*.la"
+    ],
+    "modules": [
+        {
+            "name": "mpfr",
+            "cleanup": [
+                "/include",
+                "/lib/pkgconfig",
+                "/share/doc/mpfr"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://ftpmirror.gnu.org/gnu/mpfr/mpfr-4.2.2.tar.xz",
+                    "sha256": "b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01",
+                    "gpg-key-url": "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x5831D11A0D4DB02A",
+                    "gpg-key-fingerprint": "A534BE3F83E241D918280AEB5831D11A0D4DB02A",
+                    "gpg-signature-url": "https://ftpmirror.gnu.org/gnu/mpfr/mpfr-4.2.2.tar.xz.sig",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 2019,
+                        "stable-only": true,
+                        "url-template": "https://ftpmirror.gnu.org/gnu/mpfr/mpfr-$version.tar.xz"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mpc",
+            "cleanup": [
+                "/include",
+                "/lib/pkgconfig",
+                "/share/doc/mpc"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://ftpmirror.gnu.org/gnu/mpc/mpc-1.4.1.tar.xz",
+                    "sha256": "91204cd32f164bd3b7c992d4a6a8ce6519511aadab30f78b6982d0bf8d73e931",
+                    "gpg-key-url": "https://www.multiprecision.org/downloads/enge.gpg",
+                    "gpg-key-fingerprint": "AD17A21EF8AED8F1CC02DBD9F7D5C9BF765C61E3",
+                    "gpg-signature-url": "https://ftpmirror.gnu.org/gnu/mpc/mpc-1.4.1.tar.xz.sig",
+                    "x-checker-data": {
+                        "type": "anitya",
+                        "project-id": 1667,
+                        "stable-only": true,
+                        "url-template": "https://ftpmirror.gnu.org/gnu/mpc/mpc-$version.tar.xz"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "kcalc",
+            "buildsystem": "cmake-ninja",
+            "config-opts": [
+                "-DINSTALL_ICONS=ON",
+                "-DBUILD_TESTING=OFF"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "."
+                }
+            ],
+            "cleanup": [
+                "/share/doc"
+            ]
+        }
+    ]
+}

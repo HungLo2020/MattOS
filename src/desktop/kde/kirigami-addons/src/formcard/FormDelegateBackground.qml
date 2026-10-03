@@ -32,34 +32,27 @@ Kirigami.ShadowedRectangle {
      */
     required property T.Control control
 
-    readonly property bool _roundCorners: control?.parent?._roundCorners === true
-    readonly property bool _isFirst: _roundCorners && control.parent.children[0] === control
-    readonly property bool _isLast: _roundCorners && control.parent.children[control.parent.children.length - 1] === control
+    readonly property real _cornerRadius: control?.parent?._cornerRadius ?? 0
+    readonly property real _topRadius: control?.parent?._firstVisibleItem === control ? _cornerRadius : 0
+    readonly property real _bottomRadius: control?.parent?._lastVisibleItem === control ? _cornerRadius : 0
 
-    color: {
-        let colorOpacity = 0;
+    readonly property real _colorOpacity: !control.enabled ? 0
+        : control.pressed ? 0.2
+        : control.visualFocus ? 0.1
+        : !Kirigami.Settings.tabletMode && control.hovered ? 0.07
+        : 0
 
-        if (!control.enabled) {
-            colorOpacity = 0;
-        } else if (control.pressed) {
-            colorOpacity = 0.2;
-        } else if (control.visualFocus) {
-            colorOpacity = 0.1;
-        } else if (!Kirigami.Settings.tabletMode && control.hovered) {
-            colorOpacity = 0.07;
-        }
-
-        return Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, colorOpacity)
-    }
+    color: Kirigami.Theme.textColor
+    opacity: _colorOpacity
 
     corners {
-        topLeftRadius: _isFirst ? Kirigami.Units.smallSpacing : 0
-        topRightRadius: _isFirst ? Kirigami.Units.smallSpacing : 0
-        bottomLeftRadius: _isLast ? Kirigami.Units.smallSpacing : 0
-        bottomRightRadius: _isLast ? Kirigami.Units.smallSpacing : 0
+        topLeftRadius: _topRadius
+        topRightRadius: _topRadius
+        bottomLeftRadius: _bottomRadius
+        bottomRightRadius: _bottomRadius
     }
 
-    Behavior on color {
-        ColorAnimation { duration: Kirigami.Units.shortDuration }
+    Behavior on opacity {
+        NumberAnimation { duration: Kirigami.Units.shortDuration }
     }
 }

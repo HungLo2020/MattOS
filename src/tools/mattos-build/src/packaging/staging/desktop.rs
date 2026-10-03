@@ -676,6 +676,14 @@ pub(super) fn stage_kde_module(
     // plasma_session fallback with KWin but no plasmashell.  The systemd-user
     // path remains the primary path, so this is also the correct fallback
     // payload rather than a package-specific launcher.
+    // Discover's update notifier starts with the session the same way.
+    if component == "discover" {
+        let autostart = install_root.join("etc/xdg/autostart");
+        if !autostart.join("org.kde.discover.notifier.desktop").is_file() {
+            bail!("Discover output lacks etc/xdg/autostart/org.kde.discover.notifier.desktop");
+        }
+        copy_tree_preserving(&autostart, &staging.join("etc/xdg/autostart"))?;
+    }
     if component == "plasma-workspace" {
         let autostart = install_root.join("etc/xdg/autostart");
         if autostart.is_dir() {
@@ -1045,6 +1053,7 @@ const FLATPAK_CLOSURE_PACKAGES: &[(&str, &str, &[&str], &str)] = &[
     ("libgdk-pixbuf-2.0-0", "gdk-pixbuf", &["usr/lib/x86_64-linux-gnu/libgdk_pixbuf-2.0.so.0*", "usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0", "usr/share/locale"], "src/system/libraries/gdk-pixbuf/COPYING"),
     ("libgdk-pixbuf2.0-bin", "gdk-pixbuf", &["usr/bin/gdk-pixbuf-csource", "usr/bin/gdk-pixbuf-pixdata", "usr/bin/gdk-pixbuf-query-loaders", "usr/bin/gdk-pixbuf-thumbnailer", "usr/share/thumbnailers"], "src/system/libraries/gdk-pixbuf/COPYING"),
     ("libappstream5", "appstream", &["usr/lib/x86_64-linux-gnu/libappstream.so.5", "usr/lib/x86_64-linux-gnu/libappstream.so.1*", "usr/share/appstream", "usr/share/locale"], "src/system/libraries/appstream/COPYING"),
+    ("libappstreamqt3", "appstream", &["usr/lib/x86_64-linux-gnu/libAppStreamQt.so.*"], "src/system/libraries/appstream/COPYING"),
     ("appstream", "appstream", &["usr/bin/appstreamcli", "usr/share/metainfo", "usr/share/gettext"], "src/system/libraries/appstream/COPYING"),
     ("libjson-glib-1.0-0", "json-glib", &["usr/lib/x86_64-linux-gnu/libjson-glib-1.0.so.0*", "usr/share/locale"], "src/system/libraries/json-glib/COPYING"),
     ("libxmlb2", "libxmlb", &["usr/lib/x86_64-linux-gnu/libxmlb.so.2*"], "src/system/libraries/libxmlb/LICENSE"),

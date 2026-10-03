@@ -1,0 +1,95 @@
+<!DOCTYPE kpartgui SYSTEM "kpartgui.dtd">
+<!--
+SPDX-FileCopyrightText: 2008-2010 Volker Lanz <vl@fidra.de>
+SPDX-FileCopyrightText: 2015-2016 Teo Mrnjavac <teo@kde.org>
+SPDX-FileCopyrightText: 2016 Chantara Tith <tith.chantara@gmail.com>
+SPDX-FileCopyrightText: 2016-2019 Andrius Štikonas <andrius@stikonas.eu>
+
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<gui name="KDE Partition Manager" version="11">
+    <ToolBar name="partitionToolBar">
+        <text context="@title:menu">Partition Manager Toolbar</text>
+        <Action name="applyAllOperations"/>
+        <Action name="undoOperation"/>
+        <Action name="newPartition"/>
+        <Action name="resizePartition"/>
+        <Action name="deletePartition"/>
+        <Action name="refreshDevices"/>
+        <Action name="createNewPartitionTable"/>
+    </ToolBar>
+
+    <MenuBar>
+        <Menu name="file"/>
+        <Menu name="edit">
+            <Action name="undoOperation"/>
+            <Action name="clearAllOperations"/>
+            <Action name="applyAllOperations"/>
+        </Menu>
+        <Menu name="device">
+            <text context="@title:menu">Device</text>
+            <Menu name="selectedDevice">
+                <text context="@title:menu">Select Current Device</text>
+            </Menu>
+            <Action name="refreshDevices"/>
+            <separator/>
+            <Action name="createNewPartitionTable"/>
+            <separator/>
+            <Action name="exportPartitionTable"/>
+            <Action name="importPartitionTable"/>
+            <separator/>
+            <Action name="resizeVolumeGroup"/>
+            <Action name="deactivateVolumeGroup"/>
+            <Action name="removeVolumeGroup"/>
+            <separator/>
+            <Action name="smartStatusDevice"/>
+            <Action name="propertiesDevice"/>
+        </Menu>
+        <Menu name="tools">
+            <text context="@title:menu">Tools</text>
+            <Action name="createVolumeGroup"/>
+            <separator/>
+            <Action name="fileSystemSupport"/>
+        </Menu>
+        <Menu name="partition">
+            <text context="@title:menu">Partition</text>
+            <Action name="newPartition"/>
+            <Action name="resizePartition"/>
+            <Action name="deletePartition"/>
+            <Action name="shredPartition"/>
+            <separator/>
+            <Action name="copyPartition"/>
+            <Action name="pastePartition"/>
+            <separator/>
+            <Action name="editMountPoint"/>
+            <Action name="mountPartition"/>
+            <Action name="decryptPartition"/>
+            <separator/>
+            <Action name="checkPartition"/>
+            <separator/>
+            <Action name="backupPartition"/>
+            <Action name="restorePartition"/>
+            <separator/>
+            <Action name="propertiesPartition"/>
+        </Menu>
+        <Menu name="settings">
+            <Menu name="panels" append="show_merge">
+                <text context="@title:menu">Panels Shown</text>
+                <Action name="toggleDockDevices"/>
+                <Action name="toggleDockOperations"/>
+                <Action name="toggleDockInformation"/>
+                <Action name="toggleDockLog"/>
+            </Menu>
+        </Menu>
+        <Menu name="help">
+            <Action name="aboutKPMcore" append="about_merge"/>
+        </Menu>
+    </MenuBar>
+
+    <StatusBar/>
+
+    <Menu name="log">
+        <Action name="clearLog"/>
+        <Action name="saveLog"/>
+    </Menu>
+</gui>

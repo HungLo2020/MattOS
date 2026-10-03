@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ SPDX-FileCopyrightText: 2020 George Florea Bănuș <georgefb899@gmail.com>
+
+ SPDX-License-Identifier: GPL-3.0-or-later
+ -->
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+  <kcfgfile name="haruna/haruna.conf" />
+  <include>QStandardPaths</include>
+  <group name="General">
+    <entry name="OsdFontSize" type="Int">
+      <default>25</default>
+    </entry>
+    <entry name="ShowMenuBar" type="bool">
+      <default>true</default>
+    </entry>
+    <entry name="ShowHeader" type="bool">
+      <default>true</default>
+    </entry>
+    <entry name="ShowChapterMarkers" type="bool">
+      <default>true</default>
+    </entry>
+    <entry name="ColorScheme" type="String"></entry>
+    <entry name="GuiStyle" type="String">
+        <default>Default</default>
+    </entry>
+    <entry name="LastPlayedFile" type="String"></entry>
+    <entry name="LastPlaylist" type="String"></entry>
+    <entry name="FileDialogLastLocation" type="String">
+      <code>
+        QString videoFolder = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
+      </code>
+      <default code="true">videoFolder</default>
+    </entry>
+    <entry name="LastUrl" type="String"></entry>
+    <entry name="MaxRecentFiles" type="Int">
+      <default>10</default>
+    </entry>
+    <entry name="RememberWindowGeometry" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="ShowPreviewThumbnail" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="AccuratePreviewThumbnail" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="PreviewThumbnailWidth" type="int">
+      <default>200</default>
+    </entry>
+    <entry name="ResizeWindowToVideo" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="FullscreenOnStartUp" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="UseSingleInstance" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="AppendVideoToSingleInstance" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="PlayNewFileInSingleInstance" type="bool">
+      <default>false</default>
+    </entry>
+    <entry name="FooterStyle" type="String">
+      <default>default</default>
+    </entry>
+    <entry name="FloatingFooterTrigger" type="String">
+      <default>EveryMouseMovement</default>
+    </entry>
+    <entry name="ShowTaskbarProgress" type="bool">
+      <default>false</default>
+    </entry>
+  </group>
+</kcfg>

@@ -1,0 +1,929 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % English "INCLUDE"><!-- change language only here -->
+]>
+
+<book id="gwenview" lang="&language;">
+<title>Gwenview User Manual</title>
+
+<bookinfo>
+<authorgroup>
+<author>
+<firstname>Aurélien</firstname>
+<surname>Gâteau</surname>
+<affiliation><address><email>agateau@kde.org</email></address></affiliation>
+</author>
+<author>
+<firstname>Christopher</firstname><surname>Martin</surname>
+<affiliation><address><email>chrsmrtn@debian.org</email></address></affiliation>
+</author>
+<author>
+<firstname>Henry</firstname>
+<surname>de Valence</surname>
+<affiliation><address><email>hdevalence@gmail.com</email></address></affiliation>
+</author>
+<!-- TRANS:ROLES_OF_TRANSLATORS -->
+</authorgroup>
+<copyright>
+<year>2005</year>
+<holder>Aurélien Gâteau</holder>
+</copyright>
+<copyright>
+<year>2008</year>
+<holder>Henry de Valence</holder>
+</copyright>
+<legalnotice>&FDLNotice;</legalnotice>
+
+<date>2021-06-04</date>
+<releaseinfo>KDE Gear 21.08</releaseinfo>
+<abstract>
+<para>&gwenview; is an image and video viewer.</para>
+</abstract>
+<keywordset>
+<keyword>KDE</keyword>
+<keyword>image</keyword>
+<keyword>viewer</keyword>
+<keyword>artist</keyword>
+<keyword>photo</keyword>
+<keyword>picture</keyword>
+</keywordset>
+</bookinfo>
+<!--FIXME Read devels blog on http://agateau.com/
+-->
+<chapter id="introduction">
+<title>Introduction</title>
+
+<sect1 id="what-is-gwenview">
+<title>What is &gwenview;</title>
+
+<para>
+&gwenview; is a fast and easy to use image and video viewer.
+</para>
+
+ <para>
+&gwenview; features two main modes: Browse and View. Both modes can be used
+in a normal application window and Full Screen. Browse Mode
+lets you navigate through your computer showing thumbnails of your images, View
+Mode lets you view images one at a time, and Full Screen lets you make quick
+slideshows.  There is also a start screen that displays a list of recently opened
+folders and &URL;s as well as your places and tags.
+</para>
+
+<para>Image loading is handled by the &Qt; library, so &gwenview; supports all
+image formats your &Qt; installation supports. &gwenview; correctly displays images
+with an alpha channel (transparency) as well as animations.</para>
+
+<para>&gwenview; supports the displaying and editing of EXIF comments in JPEG
+images. Lossless JPEG transforms such as rotations and mirroring are also supported.</para>
+
+<para>&gwenview; can read embedded color profiles from PNG and JPEG files.
+It can use the image color profile together with the display color profile
+to output correct colors on the screen.</para>
+</sect1>
+
+</chapter>
+
+<chapter id="interface">
+<title>The Interface</title>
+
+<sect1 id='start_page'><title>Start Page</title>
+<para>The start page lists recently opened folders and &URL;s on the left side,
+and your places and tags on the right side.</para>
+
+<screenshot>
+  <screeninfo>Start Page Screenshot</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="start-page.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+</sect1>
+
+<sect1 id='image_operations'><title>Image Operations</title>
+<para>&gwenview; has a few features which are available in both Browse, View, and
+Full Screen view. &gwenview; has the capability to do basic alteration of your
+images.</para>
+<itemizedlist>
+<listitem><para>Rotate: A rotate operation will rotate the image either to the left
+or to the right, depending on whether you do
+  <menuchoice>
+    <shortcut>
+<keycombo action="simul">&Ctrl;<keycap>R</keycap></keycombo>
+    </shortcut>
+    <guimenu>Edit</guimenu>
+    <guimenuitem>Rotate Right</guimenuitem>
+  </menuchoice>
+or
+  <menuchoice>
+    <shortcut>
+<keycombo action="simul">&Ctrl;&Shift;<keycap>R</keycap></keycombo>
+    </shortcut>
+    <guimenu>Edit</guimenu>
+    <guimenuitem>Rotate Left</guimenuitem>
+  </menuchoice> </para></listitem>
+
+<listitem><para>
+ <menuchoice>
+  <guimenu>Edit</guimenu>
+  <guimenuitem>Mirror</guimenuitem>
+ </menuchoice>:
+ This operation will reflect the image along the vertical
+axis, as if you were seeing it in a mirror.</para></listitem>
+
+<listitem><para>
+ <menuchoice>
+  <guimenu>Edit</guimenu>
+  <guimenuitem>Flip</guimenuitem>
+ </menuchoice>:
+This operation will reflect the image upside-down (a
+reflection along the horizontal axis)</para></listitem>
+
+<listitem><para>
+ <menuchoice>
+  <shortcut>
+    <keycombo action="simul">&Shift;<keycap>R</keycap></keycombo>
+  </shortcut>
+  <guimenu>Edit</guimenu>
+  <guimenuitem>Resize</guimenuitem>
+ </menuchoice>:
+This operation will allow you to shrink or expand the image. Note that if you
+increase the size of an image, it may appear
+blurry and/or pixelated.</para></listitem>
+ <!-- Crop + Red Eye Reduction are discussed in View mode sect-->
+</itemizedlist>
+
+<para>These actions are also available on the <guilabel>Operations</guilabel> tab of the sidebar.</para>
+
+<para>If you have edited one or more images a bar with additional actions is displayed at the top of the image.
+You can undo or redo your changes, go to the previous or next modified image and there are three options to save
+the changed images.
+</para>
+
+<screenshot>
+  <screeninfo>Actions bar for modified images</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="modified-bar.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+
+<!--FIXME all actions also available context menus, where to add that info -->
+
+</sect1>
+
+<sect1 id='browse_mode'><title>Browse Mode</title>
+
+<para>When in Browse Mode, you can easily navigate through your files and folders.
+  The preview window shows thumbnails of the images in the current folder, as
+  well as subfolders. </para>
+
+<screenshot>
+  <screeninfo>Browse Mode Screenshot</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="browse_mode.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+
+<para>
+Moving the mouse over an image shows buttons to select or rotate the image as well as
+a button to enter Fullscreen Mode.
+Modified images are indicated by an icon down right, click it to save the changed image.
+Clicking on an image takes you into View
+Mode.  You may select multiple images and switch to View Mode to view them side-by-side.</para>
+
+<para>The slider at the bottom right allows you to change the size of the images.
+You can also filter the images by filename, date, tag or rating using the box on the
+lower left. The toolbar appears in both Browse mode as well as View
+mode and contains the most commonly used actions. </para>
+<itemizedlist>
+<listitem><para><guiicon>Start Page</guiicon>: Open the start page.</para></listitem>
+<listitem><para><guiicon>Browse</guiicon>: Switches to Browse Mode.</para></listitem>
+<listitem><para><guiicon>View</guiicon>: Switches to View Mode.</para></listitem>
+<listitem><para><guiicon>Previous</guiicon>: Clicking this icon will go
+to the previous image in the folder.</para></listitem>
+
+<listitem><para><guiicon>Next</guiicon>: Clicking this button will go to
+the next image in the folder.</para></listitem>
+
+<listitem><para><guiicon>Show Editing Tools</guiicon>: Clicking this button toggles
+the <link linkend="sidebar">Operations sidebar tab</link>.</para></listitem>
+
+<listitem><para><guiicon>Full Screen</guiicon>: Switches to Full Screen Mode.</para></listitem>
+</itemizedlist>
+
+</sect1>
+
+<sect1 id='view_mode'><title>View Mode</title>
+<para>View Mode displays full-size images.  The same
+<link linkend="sidebar">sidebar</link> available in Browse Mode is displayed on
+the left. At the bottom, there is the Thumbnail Bar, which allows you to scroll
+through the images in the current folder. The Thumbnail Bar can be unfolded by
+clicking on the <guibutton>Show Thumbnails</guibutton> button. Clicking again will
+fold it. To change the size of the thumbnails move the splitter with the &LMB;.</para>
+
+<para>View Mode supports viewing multiple images side-by-side.  You may select
+multiple images in Browse Mode before switching to View Mode, or you may click the
+<guibutton>+</guibutton> button that appears when hovering over images in the
+Thumbnail Bar to add a pane displaying that image.  A <guibutton>-</guibutton> will
+then appear that will permit you to remove its pane.</para>
+
+<para>When multiple images are displayed, a small toolbar appears below each image
+that permits you to delete the image or remove its pane.  You may perform zoom operations
+independently for each image, or synchronize them.  Toggle this by checking the
+<guilabel>Synchronize</guilabel> to the left of the zoom slider or by pressing
+<keycombo action="simul">&Ctrl;<keycap>Y</keycap></keycombo>.  You can switch images
+by clicking on their pane, or using your keyboard.  To switch to the image on the
+right, press <keycombo action="simul">&Tab;</keycombo>.  To switch to the image
+on the left, press <keycombo action="simul">&Shift;&Tab;</keycombo>.</para>
+
+<screenshot>
+  <screeninfo>View Mode Screenshot</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="view_mode.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+
+<para>The slider at the bottom right controls the zoom of the image. The
+<guibutton>Fit</guibutton>, <guibutton>Fill</guibutton> and <guibutton>100%</guibutton>
+buttons are next to the zoom slider and are three preset zoom levels. The
+<guibutton>Fit</guibutton> button zooms the current image to fit the size
+of the window, the <guibutton>Fill</guibutton> button zooms the image to fill the window 
+by fitting width or height and the <guibutton>100%</guibutton> button zooms the image to
+the actual pixel size. The shortcut <keycap>F</keycap> toggles between <guibutton>Fit</guibutton> mode and <guibutton>100%</guibutton>, pressing <keycombo action="simul">&Shift;<keycap>F</keycap></keycombo> will toggle <guibutton>Fill</guibutton> respectively.</para>
+
+<para>When an image is in zoom-to-fit mode, you can go to the previous and next
+image with the arrow keys. When you zoom in, arrow keys are used to scroll the image.
+This is very similar to the behavior provided by phones or digital cameras.</para>
+
+<para>When an image is zoomed in, a bird's eye view appears and lets you scroll
+the image using the mouse and the arrow keys. The bird's eye view automatically hides
+itself after a short delay, showing back only while zooming or scrolling. The bird's eye view
+can be disabled from the right click context menu or from <menuchoice><guimenu>View</guimenu><guimenuitem>Show Bird's Eye View When Zoomed In</guimenuitem></menuchoice></para>
+
+<para>You can define what happens when going to image B after having zoomed in on an area of image A using the options in the <guilabel>Zoom mode</guilabel> group on the <guimenuitem>Image View</guimenuitem> page of the &gwenview; configuration window which can be reached using the <menuchoice><guimenu>Settings</guimenu><guimenuitem>Configure &gwenview;...</guimenuitem></menuchoice>.</para>
+
+<itemizedlist>
+    <listitem><para>If set to <guilabel>Autofit each image</guilabel>, image B is zoomed out to fit the screen.</para></listitem>
+    <listitem><para>If set to <guilabel>Keep same zoom and position</guilabel>, all images share the same zoom and position: image B is set to the same zoom parameters as image A (and if these are changed, image A will then be displayed with the updated zoom and position).</para></listitem>
+    <listitem><para>If set to <guilabel>Per image zoom and position</guilabel>, all images remember their own zoom and position: image B is initially set to the same zoom parameters as image A, but will then remember its own zoom and position (if these are changed, image A will <emphasis>not</emphasis> be displayed with the updated zoom and position).</para></listitem>
+</itemizedlist>
+
+<tip><para>You can start directly in View mode by starting &gwenview; from a
+context menu like <guimenuitem>Open With</guimenuitem> in another program or by
+launching it from the command line with an image as an argument.</para> </tip>
+
+<para>The following additional image operations are available only in View Mode:</para>
+
+<itemizedlist>
+<listitem><para>
+ <menuchoice>
+   <shortcut>
+        <keycombo action="simul">&Shift;<keycap>C</keycap></keycombo>
+   </shortcut>
+  <guimenu>Edit</guimenu>
+  <guimenuitem>Crop</guimenuitem>
+ </menuchoice>:
+ This operation lets you discard parts of the image you don't want.
+</para>
+<para>
+    You can access the advanced cropping parameters by ticking <guilabel>Advanced settings</guilabel> check box on the bottom popup pane. Use the corresponding fields to tune up the cropping operation.
+</para>
+<para>
+    It is also possible to adjust the cropped area by dragging the gray square handles on the borders of the image. You can move the cropped area by clicking and holding the &LMB; and drag it with the mouse pointer.
+</para>
+<para>
+    Press the <guibutton>Crop</guibutton> button to see the results when you are ready. Use the upper popup pane to save the results or undo/redo the operation.
+</para></listitem>
+
+<listitem><para>
+ <menuchoice>
+  <guimenu>Edit</guimenu>
+  <guimenuitem>Reduce Red Eye</guimenuitem>
+ </menuchoice>:
+ This operation reduces the "red eye" effect commonly found in photographs taken
+ with a flash camera.
+</para></listitem>
+</itemizedlist>
+
+</sect1>
+
+<sect1 id='fullscreen_mode'>
+<title>Full Screen Modes</title>
+
+<para>Access Full Screen by pressing the <guiicon>Full Screen</guiicon>
+button on the toolbar, or by
+  <menuchoice>
+    <shortcut>
+<keycombo action="simul">&Ctrl;&Shift;<keycap>F</keycap></keycombo>
+    </shortcut>
+    <guimenu>View</guimenu>
+    <guimenuitem>Full Screen Mode</guimenuitem>
+  </menuchoice>.
+</para>
+<para>To leave this mode press the &Esc; key.</para>
+
+<sect2>
+<title>Browse Mode Full Screen</title>
+
+<para>In Browse Mode you can switch to fullscreen also by clicking on the button that
+appears when you move the mouse over the thumbnails.
+</para>
+<screenshot>
+  <screeninfo>Full Screen View Mode Screenshot</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="fullscreen-browse.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+<para>Going fullscreen while browsing gives you a more immersive experience while
+you go through your pictures. It is quite nice on your regular computer, but makes
+even more sense when you connect your laptop to the big TV in the living room to show
+pictures to your guests.
+</para>
+</sect2>
+
+<sect2 id="fullscreen">
+<title>View Mode Full Screen</title>
+<para>The full screen View Mode shows a slideshow of your images. Access Full Screen
+Mode by clicking on the button that appears when you move the mouse over the
+thumbnails in Browse Mode, by pressing the <guiicon>Full Screen</guiicon>
+button on the taskbar.
+
+<screenshot>
+  <screeninfo>Full Screen Browse Mode Screenshot</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="fullscreen-view.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+</para>
+
+<para>The top bar will hide itself automatically; to show it simply move the
+mouse to the top of the screen. If the mouse cursor is over the top bar, it
+will not autohide. Most of the buttons on the bar are the same as the ones on
+the toolbar in Browse or View Modes, except for the <guiicon>Exit Full
+Screen Mode</guiicon> button which returns you to the &gwenview; window, the
+<guiicon>Pause/Resume Slideshow</guiicon> button, and the
+<guiicon>Configure Full Screen Mode</guiicon> button which shows a
+small settings dialog that allows you to easily and quickly configure the
+slideshow. The slideshow controls there are: </para>
+
+<itemizedlist>
+    <listitem><para>The <guilabel>Interval</guilabel> slider controls how long
+    &gwenview; will show an image before it move to the next one.</para></listitem>
+    <listitem><para>If the <guilabel>Loop</guilabel> check box is checked, when the
+    end of the slideshow is reached, it will continue from the beginning instead
+    of stopping. </para></listitem>
+    <listitem><para>If the <guilabel>Random</guilabel> check box is checked,
+    instead of progressing through the folder alphabetically, images will be
+    shown in random order.</para></listitem>
+    <listitem><para><guibutton>Select Image Information to Display</guibutton> allows
+    you to define what metadata is displayed under the buttons on the toolbar.
+    </para></listitem>
+    <listitem><para>If the <guilabel>Show thumbnails</guilabel> check box is checked,
+    thumbnails for all images in the current folder will be displayed to the right of
+    the toolbar.</para></listitem>
+    <listitem><para>The <guilabel>Height</guilabel> slider changes the size of the
+    thumbnails displayed.</para></listitem>
+</itemizedlist>
+
+<para>If enabled, an area that shows you the other images in the current folder will
+be shown on the top bar. Clicking on one will display it.</para>
+</sect2>
+</sect1>
+
+<sect1 id="sidebar">
+<title>Sidebar</title>
+
+ <para>The sidebar on the left is available in the Browse and View <!--FIXME not in Full Screen-->modes, but does
+not appear by default in Browse Mode.  Its appearance can be toggled using
+<menuchoice>
+<shortcut>
+    <keycap>F4</keycap>
+</shortcut>
+<guimenu>View</guimenu>
+<guimenuitem>Sidebar</guimenuitem>
+</menuchoice>
+or using the <guiicon>▮←</guiicon> / <guiicon>▮→</guiicon> button at the left side
+of the statusbar. When clicked it collapses or expands the sidebar.
+The sidebar contains several tabs:</para>
+
+<variablelist>
+
+<varlistentry>
+<term><guilabel>Folders</guilabel></term>
+<listitem><para>Displays a list of all folders on your system permitting you to
+switch between them.  In Browse Mode thumbnails from the folder will be displayed,
+while in View Mode the first image in the folder will appear, from which you can
+browse through the folder using the <guibutton>Previous</guibutton> and
+<guibutton>Next</guibutton> buttons or shortcuts. Clicking on a folder multiple
+times toggles between View Mode and Browse Mode.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><guilabel>Information</guilabel></term>
+<listitem><para>Displays <guilabel>Meta Information</guilabel> like the filename
+and size.  The <guilabel>More...</guilabel> link permits you to view all available
+metadata and select which data appear in the sidebar.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><guilabel>Operations</guilabel></term>
+<listitem><para>This permits you to perform the
+<link linkend="image_operations">previously described global image operations</link>
+as well as those specific to View Mode.  It also permits common file operations like
+copying, renaming, deleting, and creating new folders.</para></listitem>
+</varlistentry>
+
+</variablelist>
+</sect1>
+
+</chapter>
+<chapter id="importer">
+<title>&gwenview; Importer</title>
+
+<sect1>
+<title>Introduction</title>
+<para>The &gwenview; Importer allows you to import images from a digital camera or
+removable media.  To launch it, select <guilabel>Download Photos with &gwenview;</guilabel>
+in the &kde; Device Notifier after connecting a supported device.</para>
+
+<para>When you plug in a device the &gwenview; importer recursively lists all images and videos.
+</para>
+<para>This is not always what you expect, &eg; plugging a smartphone you do not want to list all medias
+of the device; but only the pictures you took, which are usually in a special subfolder.
+</para>
+
+<screenshot>
+  <screeninfo>Root Folder Picking</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="importer-picking-root-folder.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+<para>It is possible to select the root folder to list, and &gwenview; Importer will remember the
+last root folder for each device. This way, next time you plug a device in, only the relevant
+pictures and videos should be listed.
+</para>
+
+<sect2>
+<title>Importing Images</title>
+
+<screenshot>
+  <screeninfo>&gwenview; Importer Screenshot</screeninfo>
+  <mediaobject>
+    <imageobject>
+      <imagedata fileref="importer.png" format="PNG" />
+    </imageobject>
+  </mediaobject>
+</screenshot>
+
+<para>If you wish, you may select the images you want to import under
+<guilabel>Select the documents to import</guilabel> by pressing the <guiicon>+</guiicon>
+button that appears when hovering over an image.  You may also select the folder
+that images are imported to in the text box at the bottom of the window. When you are done, click the
+<guibutton>Import Selected</guibutton> button to import only the images you have
+selected, or click <guibutton>Import All</guibutton> to import all images found
+on the device.</para>
+</sect2>
+
+<sect2>
+<title>Automatic Renaming</title>
+<para>&gwenview; Importer can rename your files according to a specified pattern.
+To configure this, select the <guibutton>Settings</guibutton> in the lower left
+corner.  You may turn this feature on or off using the check box at the top.  The
+<guilabel>Rename Format</guilabel> supports several special parameters, which will
+be replaced by metadata such as the date the image was created or its filename.
+They are listed below the text box.  You may either click on the parameter name to
+enter it into the text box or type one manually.</para>
+</sect2>
+</sect1>
+
+</chapter>
+<chapter id="tips">
+<title>Tips</title>
+<sect1 id='mouse'><title>Using the mouse</title>
+
+<sect2 id='mouse_panning'><title>Panning with the mouse</title>
+<itemizedlist>
+  <listitem><para>Holding down the left mouse button on an image allows you to
+      scroll the image.</para></listitem>
+  <listitem><para>The mouse wheel will scroll the image up and
+      down.</para></listitem>
+</itemizedlist>
+</sect2>
+
+
+<sect2 id='mouse_zooming'><title>Zooming with the mouse</title>
+<itemizedlist>
+  <listitem><para>Clicking the middle mouse button will toggle the <guibutton>Fit</guibutton> zoom button. Hold down the &Shift; key and middle-click to toggle the <guibutton>Fill</guibutton> zoom button.</para></listitem>
+  <listitem><para>Hold down the &Ctrl; key, then either use the mouse wheel to
+      zoom in and out or left click to zoom in and right click to zoom
+      out.</para></listitem>
+
+  <listitem><para>The mouse wheel, used while holding down the &Alt; key, will
+      scroll the image horizontally.</para></listitem>
+</itemizedlist>
+</sect2>
+
+
+<sect2 id='mouse_browsing'><title>Browsing with the mouse</title>
+<itemizedlist>
+  <listitem><para>When in Browse mode, clicking an image switches into View mode and
+  shows that image.</para></listitem>
+  <listitem><para>When in Browse mode, scrolling the mouse wheel will scroll up
+  or down the thumbnail view area.</para></listitem>
+  <listitem><para>If the <guilabel>Mouse wheel behavior</guilabel> option in
+  <menuchoice><guimenu>Settings</guimenu><guimenuitem>Configure
+  &gwenview;</guimenuitem></menuchoice>
+  is set to Browse, scrolling the mouse wheel while in View Mode will
+  move you through the images in the folder.</para></listitem>
+</itemizedlist>
+</sect2>
+</sect1>
+
+<sect1 id="keybindings"> <title>Key bindings</title>
+
+<para>&gwenview; comes with a range of keyboard shortcuts, all of which can be
+viewed and remapped by selecting
+<menuchoice><guimenu>Settings</guimenu><guimenuitem>Configure
+Shortcuts...</guimenuitem></menuchoice>. Note that in the Files and Folders
+windows, all the normal &plasma; shortcuts are functional, unless otherwise
+remapped.</para>
+
+<para>A few of the most useful default bindings are:</para>
+
+<itemizedlist>
+<listitem><para><keycap>Space</keycap>: Displays the next image
+in the directory.</para></listitem>
+
+<listitem><para>&Backspace;:
+Displays the previous image in the directory.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Alt;<keycap>Up</keycap></keycombo>:
+Moves to the parent folder of the current folder.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;&Shift;<keycap>F</keycap></keycombo>:
+Switches into Full Screen Mode.</para></listitem>
+
+<listitem><para>&Esc;: Switches back to Browse Mode.
+</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;<keycap>M</keycap></keycombo>:
+Show or hide the menubar.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;<keycap>B</keycap></keycombo>:
+Show or hide the Thumbnail bar.</para></listitem>
+
+<listitem><para><keycap>F4</keycap>:
+Show or hide the Sidebar.</para></listitem>
+
+<listitem><para><keycap>F6</keycap>:
+Make the Location bar editable so that you can directly type in a file path.
+You can return to the standard Location Bar by pressing the arrow at the
+right.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;<keycap>R</keycap></keycombo>:
+Rotate the current image to the right.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;&Shift;<keycap>R</keycap></keycombo>:
+Rotate the current image to the left.</para></listitem>
+
+<listitem><para><keycombo action="simul">&Shift;<keycap>R</keycap></keycombo>:
+Resize the current image.</para></listitem>
+
+<listitem><para><keycombo action="simul">&Shift;<keycap>C</keycap></keycombo>:
+Crop the current image.</para></listitem>
+
+<listitem><para><keycombo action="simul">&Ctrl;<keycap>Y</keycap></keycombo>:
+When multiple images are displayed in View Mode, this synchronizes their views.
+</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;<keycap>S</keycap></keycombo>:
+Save any changes made to the image.</para></listitem>
+
+<listitem><para><keycap>Del</keycap>:
+Move the current image to the trash.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Shift;<keycap>Del</keycap></keycombo>:
+Permanently delete the image from the disk. Note that this operation is
+irreversible and cannot be undone.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;<keycap>P</keycap></keycombo>:
+Print the current image.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;<keycap>O</keycap></keycombo>:
+Open an image using the standard file selection dialog.</para></listitem>
+
+<listitem><para><keycap>F</keycap>:
+Pressing this shortcut toggles zoom-to-fit on and off.</para></listitem>
+
+<listitem><para><keycap>P</keycap>:
+Viewing a video this shortcut toggles playback on and off.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Ctrl;<keycap>T</keycap></keycombo>:
+Edit tags.</para></listitem>
+
+<listitem><para><keycap>F2</keycap>:
+Rename an image inline.</para></listitem>
+
+<listitem><para><keycap>Del</keycap>:
+Move an image to the trash.</para></listitem>
+
+<listitem><para><keycombo
+action="simul">&Shift;<keycap>Del</keycap></keycombo>:
+Delete an image.</para></listitem>
+
+<listitem><para><keycombo
+action="simul"><keycap>F7</keycap></keycombo>:
+Copy an image.</para></listitem>
+
+<listitem><para><keycombo
+action="simul"><keycap>F8</keycap></keycombo>:
+Move an image.</para></listitem>
+
+<listitem><para><keycombo
+action="simul"><keycap>F9</keycap></keycombo>:
+Link an image.</para></listitem>
+
+</itemizedlist>
+
+</sect1>
+</chapter>
+
+<chapter id="configure">
+    <title>Configuring &gwenview;</title>
+    <sect1 id="configindex">
+        <title>Configuration overview</title>
+        <para>
+            You can configure &gwenview; by choosing <menuchoice><guimenu>Settings</guimenu>
+                <guimenuitem>Configure &gwenview;...</guimenuitem></menuchoice>.
+            The configuration dialog is split into three sections. This chapter describes the available
+            options in detail.
+        </para>
+        <itemizedlist>
+            <listitem>
+                <para><link linkend="configgeneral">General</link></para>
+            </listitem>
+            <listitem>
+                <para><link linkend="configview">Image View</link></para>
+            </listitem>
+            <listitem>
+                <para><link linkend="configadvanced">Advanced</link></para>
+            </listitem>
+        </itemizedlist>
+    </sect1>
+    <sect1 id="configgeneral">
+        <title>General</title>
+        <variablelist>
+            <varlistentry>
+                <term><guilabel>Videos</guilabel></term>
+                <listitem>
+                    <para>Check the <guilabel>Show videos</guilabel> checkbox to allow &gwenview; to show videos among the images.</para>
+                    <para>Uncheck the <guilabel>Automatically play</guilabel> checkbox to disable autoplaying videos. This prevents video from automatically starting when browsing.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Notify after reaching the last image</guilabel></term>
+                <listitem>
+                    <para>Select the <guilabel>Never</guilabel> item to allow &gwenview; looping through the list of images without additional notifications.</para>
+                    <para>Select the <guilabel>Only during slideshows</guilabel> item if notifications about reaching the list end should be shown only in <link linkend="fullscreen">the slideshow mode</link>.</para>
+                    <para>Select the <guilabel>Always</guilabel> item if you want to receive the notifications unconditionally.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Background color</guilabel></term>
+                <listitem>
+                    <para>Move the slider to change the color of the gray background in Browse and View mode from black (the leftmost position) to white (the rightmost position).</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Fullscreen background</guilabel></term>
+                <listitem>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>Black</guilabel> &mdash; Set the background color in fullscreen mode to black.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Dark gray texture</guilabel> &mdash; Set the background in fullscreen mode to a dark gray texture.</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Lossy image save quality</guilabel></term>
+                <listitem>
+                    <para>Save/compression quality setting for lossy image formats like JPEG, WEBP, AVIF, HEIF, and HEIC, which can be temporarily overridden in the <guilabel>Save As</guilabel> dialog when saving a file in a lossy image format. When saving an existing lossy image with a new name or after performing a non-lossy edit (&eg; rotation, which only changes the EXIF rotation tag), the appearance of the file is not changed because no actual image manipulation is done.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Thumbnail actions</guilabel></term>
+                <listitem>
+                    <para>Whether the thumbnail action buttons should be shown as overlays above image thumbnails.</para>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>All buttons</guilabel> &mdash; Show all buttons</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Show selection button only</guilabel> &mdash; Show select/unselect button only</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>None</guilabel> &mdash; Do not show any thumbnail button</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </sect1>
+        <sect1 id="configview">
+        <title>Image View</title>
+        <variablelist>
+            <varlistentry>
+                <term><guilabel>Show transparency with</guilabel></term>
+                <listitem>
+                    <para>Choose how the background of transparent raster or <abbrev>SVG</abbrev> images is rendered.</para>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>Surrounding background</guilabel> &mdash; Use background color from the <link linkend="configgeneral">General page</link>.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Checkerboard background</guilabel> &mdash; Use the traditional checkerboard background.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Solid color background</guilabel> &mdash; Use a color that can be chosen using the <ulink url="help:/fundamentals/colors.html">color selector</ulink>.</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Mouse wheel behavior</guilabel></term>
+                <listitem>
+                    <para>Select how scrolling over an image in View mode behaves.</para>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>Scroll</guilabel> &mdash; When zoomed in, pan the image vertically. Otherwise, nothing will happen.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Browse</guilabel> &mdash; Switch to the next or the previous image.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Zoom</guilabel> &mdash; Use mouse wheel to zoom in/out the current image.</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Zoom mode</guilabel></term>
+                <listitem>
+                    <para>Allows choosing how zooming in View mode works.</para>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>Autofit each image</guilabel> &mdash; Automatically resize images to the view pane.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Keep same zoom and position</guilabel> &mdash; Use the same zoom level for all images.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Per image zoom and position</guilabel> &mdash; Use individual zoom levels for each image.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Enlarge smaller images</guilabel> &mdash; check this item to make &gwenview; enlarge smaller images in View mode.</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Animations</guilabel></term>
+                <listitem>
+                    <para>Allows choosing how fading between images is done in View mode.</para>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>OpenGL</guilabel> &mdash; Use hardware accelerated animations.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Software</guilabel> &mdash; Do not use hardware accelerated animations. Select this option if <guilabel>OpenGL</guilabel> does not work satisfactory, but you still want to fade between images.</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>None</guilabel> &mdash; Do not use animations when switching between images.</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Thumbnail Bar</guilabel></term>
+                <listitem>
+                    <para>Allows configuring the thumbnail bar.</para>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>Orientation</guilabel></para>
+                            <itemizedlist>
+                                <listitem>
+                                    <para><guilabel>Horizontal</guilabel> &mdash; Show a horizontal thumbnail strip below the image.</para>
+                                </listitem>
+                                <listitem>
+                                    <para><guilabel>Vertical</guilabel> &mdash; Show a vertical thumbnail strip to the right of the image.</para>
+                                </listitem>
+                            </itemizedlist>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Row count</guilabel> &mdash; Use the spin box to change the number of rows on the thumbnail bar</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </sect1>
+        <sect1 id="configadvanced">
+        <title>Advanced</title>
+        <variablelist>
+            <varlistentry>
+                <term><guilabel>Thumbnails</guilabel></term>
+                <listitem>
+                    <para>Enable the <guilabel>Low resource usage mode</guilabel> option if you do not have a lot of disk space. This will avoid storing thumbnails on disk and will prefer embedded thumbnails of lower quality that are faster to load, if available.</para>
+                    <para>Be careful: This will delete the folder named <filename>thumbnails</filename> in your <filename>.cache</filename> folder, removing all thumbnails previously generated by &gwenview; and other applications.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>History</guilabel></term>
+                <listitem>
+                    <para>Check the <guilabel>Remember folders and URLs</guilabel> to make &gwenview; remember visited folders and &URL;s and show them on the <guilabel>Recent Folders</guilabel> pane.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Rendering intent</guilabel></term>
+                <listitem>
+                    <para>Allows choosing the <ulink url="https://en.wikipedia.org/wiki/Color_management#Rendering_intent">rendering intent</ulink> for showing images.</para>
+                    <itemizedlist>
+                        <listitem>
+                            <para><guilabel>Perceptual</guilabel> &mdash; scale all colors equally to fit them within the active color profile's color gamut</para>
+                        </listitem>
+                        <listitem>
+                            <para><guilabel>Relative Colorimetric</guilabel> &mdash; squash colors that don't fit within the active color profile's color gamut, leaving other colors untouched</para>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><guilabel>Color profile</guilabel></term>
+                <listitem>
+                    <para>Allows choosing if you want to additionally apply the system-wide <ulink url="https://en.wikipedia.org/wiki/ICC_profile">color profile</ulink> to the color profile from the image file.</para>
+                    <para>If the <guilabel>Apply only the profile embedded in the image file</guilabel> item is checked &gwenview; assumes that the system-wide color correction already applies monitor profile.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </sect1>
+    <sect1 id="hidden-configuration">
+    <title>Hidden Configuration Options</title>
+    <para>
+        Some notes on hidden &gwenview; options can be found on
+        <ulink url="http://userbase.kde.org/Special:myLanguage/Gwenview/Hidden_Configuration_Options">this page</ulink>.
+    </para>
+    <important>
+        <para>
+            The options described on the above-mentioned page may help you
+            tune &gwenview; for specific needs, but please keep in mind
+            there is no warranty they will continue working from one
+            version to another.
+        </para>
+    </important>
+    </sect1>
+</chapter>
+
+<chapter id="credits">
+<title>Credits and Copyright</title>
+
+<para>&gwenview; is currently maintained by Aurélien Gâteau</para>
+
+<para>This document was written by Christopher Martin</para>
+
+<para>This document was updated for &kde; 4 by Henry de Valence</para>
+
+<!-- TRANS:CREDIT_FOR_TRANSLATORS -->
+
+&underFDL;
+&underGPL;
+</chapter>
+
+</book>

@@ -19,7 +19,7 @@ import "private" as Private
    Use the inherited \l {AbstractButton::text} {AbstractButton.text} property to define
    the main text of the button.
 
-   The trailing property (right-most side of the button) includes an arrow
+   The trailingLogo property (right-most side of the button) includes an arrow
    pointing to the right by default and cannot be overridden.
 
    \since 0.11.0
@@ -34,14 +34,14 @@ AbstractFormDelegate {
 
        This provides additional information shown in a faint gray color.
 
-       This is supposed to be a short text and the API user should avoid
+       This is supposed to be short text and the API user should avoid
        making it longer than two lines.
      */
     property string description: ""
 
     /*!
        \qmlproperty Label descriptionItem
-       \brief This property allows to override the internal description
+       \brief This property allows overriding the internal description
        item with a custom component.
      */
     property alias descriptionItem: internalDescriptionItem
@@ -52,7 +52,7 @@ AbstractFormDelegate {
 
        \default null
      */
-    property var leading: null
+    property Item leading: null
 
     /*!
        \brief This property holds the padding after the leading item.
@@ -64,9 +64,28 @@ AbstractFormDelegate {
     property real leadingPadding: Kirigami.Units.largeSpacing
 
     /*!
+       \brief This property holds an item that will be displayed to the
+       right of the delegate's contents.
+
+       \default null
+       \since 1.12.0
+     */
+    property Item trailing: null
+
+    /*!
+       \brief This property holds the padding before the trailing item.
+
+       It is recommended to use \l {Units} {Kirigami.Units} here instead of direct values.
+
+       \sa {Units} {Kirigami.Units}
+       \since 1.12.0
+     */
+    property real trailingPadding: Kirigami.Units.largeSpacing
+
+    /*!
        \brief This property holds an alias to the internal FormArrow.
 
-       This allow to hide it completely or change the direction (e.g. to
+       This allows hiding it completely or changing the direction (e.g. to
        implement a collapsible section).
 
        \since 1.7.0
@@ -75,16 +94,11 @@ AbstractFormDelegate {
 
     focusPolicy: Qt.StrongFocus
 
-    contentItem: RowLayout {
-        spacing: 0
-
-        Private.ContentItemLoader {
-            readonly property bool _visible: root.leading && root.leading.visible
-            Layout.rightMargin: _visible ? root.leadingPadding : 0
-            implicitHeight: _visible ? root.leading.implicitHeight : 0
-            implicitWidth: _visible ? root.leading.implicitWidth : 0
-            contentItem: root.leading
-        }
+    contentItem: Private.FormDelegateLayout {
+        leading: root.leading
+        trailing: root.trailing
+        leadingPadding: root.leadingPadding
+        trailingPadding: root.trailingPadding
 
         Kirigami.Icon {
             visible: root.icon.name !== ""

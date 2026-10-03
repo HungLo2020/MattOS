@@ -196,6 +196,12 @@ to, a stage's view of a file keeps every top-level function, constant and
 static reachable through identifier references across the whole crate
 (including helpers in unhashed files that call back into the recipe file),
 plus every other top-level item (imports, types, impls, macros).
+An item ends at the column-0 line that closes it (a line starting or ending
+with `}` or ending with `;`), so consecutive one-line functions, such as the
+one-line application recipes in `stages/plasma_apps.rs`, are separate items
+that each keep their own calls; merging them would hide a callee such as
+`build_qt_module` from the stages whose recipes are one-liners and silently
+drop recipe edits from their keys.
 `#[cfg(test)]` items and helpers the stage never reaches are excluded, so
 adding a test or a helper for one stage to a shared file such as
 `toolchain.rs` no longer rebuilds the others. Reachability follows the

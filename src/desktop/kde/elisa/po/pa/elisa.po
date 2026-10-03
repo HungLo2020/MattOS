@@ -1,0 +1,2397 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the elisa package.
+#
+# SPDX-FileCopyrightText: 2020, 2021, 2024 A S Alam <aalam.yellow@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: elisa\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-13 02:46+0000\n"
+"PO-Revision-Date: 2024-02-04 09:31-0600\n"
+"Last-Translator: A S Alam <aalam@punlinux.org>\n"
+"Language-Team: Punjabi <kde-i18n-doc@kde.org>\n"
+"Language: pa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 23.08.4\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "ਅਮਨਪਰੀਤ ਸਿੰਘ ਆਲਮ ੨੦੨੦-੨੦੨੪"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "aalam@punlinux.org"
+
+#: databaseinterface.cpp:8059 databaseinterface.cpp:9173
+#: databaseinterface.cpp:9258
+#, kde-format
+msgctxt "@item:intable"
+msgid "Various Artists"
+msgstr "ਕਈ ਕਲਾਕਾਰ"
+
+#: databaseinterface.cpp:8127
+#, kde-format
+msgctxt "@item:intable"
+msgid "Radio Stations"
+msgstr "ਰੇਡੀਓ ਸਟੇਸ਼ਨ"
+
+#: elisaapplication.cpp:184
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਬਦਲੋ"
+
+#: elisaapplication.cpp:190
+#, kde-format
+msgctxt "@action"
+msgid "Seek forward 10 seconds"
+msgstr "10 ਸਕਿੰਟ ਅੱਗੇ ਭੇਜੋ"
+
+#: elisaapplication.cpp:197
+#, kde-format
+msgctxt "@action"
+msgid "Scrub backwards 10 seconds"
+msgstr "10 ਸਕਿੰਟ ਪਿੱਛੇ ਲੈ ਜਾਓ"
+
+#: elisaapplication.cpp:204
+#, kde-format
+msgctxt "@action"
+msgid "Go to next track"
+msgstr "ਅਗਲੇ ਟਰੈਕ ਉੱਤੇ ਜਾਓ"
+
+#: elisaapplication.cpp:211
+#, kde-format
+msgctxt "@action"
+msgid "Go to previous track"
+msgstr "ਪਿਛਲੇ ਟਰੈਕ ਉੱਤੇ ਜਾਓ"
+
+#: elisaapplication.cpp:218
+#, kde-format
+msgctxt "@action"
+msgid "Play/pause"
+msgstr "ਚਲਾਓ/ਰੋਕੋ"
+
+#: elisaapplication.cpp:231
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Party Mode"
+msgstr "ਪਾਰਟੀ ਢੰਗ ਨੂੰ ਬਦਲੋ"
+
+#: main.cpp:113
+#, kde-format
+msgctxt "@title"
+msgid "Elisa"
+msgstr "ਇਲੀਸਾ"
+
+#: main.cpp:115
+#, kde-format
+msgctxt "@info"
+msgid "A Simple Music Player made with love by the KDE community"
+msgstr "ਕੇਡੀਈ ਕਮਿਊਨਟੀ ਵਲੋਂ ਪਿਆਰ ਨਾਲ ਬਣਾਇਆ ਸਰਲ ਸੰਗੀਤ ਪਲੇਅਰ ਹੈ"
+
+#: main.cpp:117
+#, fuzzy, kde-format
+#| msgctxt "@info"
+#| msgid "(c) 2015-2020, Elisa contributors"
+msgctxt "@info"
+msgid "© 2015–2026, Elisa contributors"
+msgstr "(c) 2015-2020, Elisa ਯੋਗਦਾਨੀ"
+
+#: main.cpp:119 models/lyricsmodel.cpp:165
+#, kde-format
+msgctxt "@label"
+msgid "Creator"
+msgstr "ਨਿਰਮਾਤਾ"
+
+#: main.cpp:120
+#, kde-format
+msgctxt "@label"
+msgid "Author"
+msgstr "ਲੇਖਕ"
+
+#: main.cpp:122
+#, kde-format
+msgctxt "@label"
+msgid "Concept and design work"
+msgstr "ਸੰਕਲਪ ਅਤੇ ਡਿਜ਼ਾਇਨ ਕੰਮ"
+
+#: main.cpp:123
+#, kde-format
+msgctxt "@label"
+msgid "Localization support"
+msgstr "ਲੋਕਾਈਜੇਸ਼ਨ ਸਹਾਇਤਾ"
+
+#: main.cpp:124
+#, kde-format
+msgctxt "@label"
+msgid "Right to left support in interface"
+msgstr "ਇੰਟਰਫੇਸ ਵਿੱਚ ਸੱਜਿਓ ਖੱਬੇ ਸਹਿਯੋਗ"
+
+#: main.cpp:125
+#, kde-format
+msgctxt "@label"
+msgid "Various improvements to the interface"
+msgstr "ਇੰਟਰਫੇਸ ਲਈ ਕਈ ਸਾਰੇ ਸੁਧਾਰ"
+
+#: main.cpp:126
+#, kde-format
+msgctxt "@label"
+msgid "Support for online radios"
+msgstr "ਆਨਲਾਈਨ ਰੇਡੀਓ ਲਈ ਸਹਿਯੋਗ"
+
+#: models/editabletrackmetadatamodel.cpp:316
+#, kde-format
+msgctxt "@info:status Error message when track URL is invalid"
+msgid "Invalid URL."
+msgstr "ਗਲਤ URL।"
+
+#: models/editabletrackmetadatamodel.cpp:326
+#, kde-format
+msgctxt "@info:status Error message when track title is empty"
+msgid "Empty title."
+msgstr "ਖਾਲੀ ਟਾਈਟਲ"
+
+#: models/lyricsmodel.cpp:162
+#, kde-format
+msgctxt "@label musical artist"
+msgid "Artist"
+msgstr "ਕਲਾਕਾਰ"
+
+#: models/lyricsmodel.cpp:163
+#, kde-format
+msgctxt "@label musical album"
+msgid "Album"
+msgstr "ਐਲਬਮ"
+
+#: models/lyricsmodel.cpp:164
+#, kde-format
+msgctxt "@label song title"
+msgid "Title"
+msgstr "ਟਾਈਟਲ"
+
+#: models/lyricsmodel.cpp:166
+#, kde-format
+msgctxt "@label song length"
+msgid "Length"
+msgstr "ਲੰਬਾਈ"
+
+#: models/lyricsmodel.cpp:167
+#, kde-format
+msgctxt "@label as in 'Created by: Joe'"
+msgid "Created by"
+msgstr "ਬਣਾਇਆ"
+
+#: models/lyricsmodel.cpp:168
+#, kde-format
+msgctxt "@label as in 'a person who edits'"
+msgid "Editor"
+msgstr "ਐਡੀਟਰ"
+
+#: models/lyricsmodel.cpp:169
+#, kde-format
+msgctxt "@label"
+msgid "Version"
+msgstr "ਵਰਜ਼ਨ"
+
+#: models/lyricsmodel.cpp:192
+#, kde-format
+msgctxt "@label this is a key => value map"
+msgid "%1: %2\n"
+msgstr "%1: %2\n"
+
+#: models/trackmetadatamodel.cpp:107
+#, kde-format
+msgctxt "bit/second"
+msgid "bit/s"
+msgstr ""
+
+#: models/trackmetadatamodel.cpp:525
+#, kde-format
+msgctxt "@label:textbox Track title for track metadata view"
+msgid "Title"
+msgstr "ਟਾਈਟਲ"
+
+#: models/trackmetadatamodel.cpp:528
+#, kde-format
+msgctxt "@label:textbox Duration label for track metadata view"
+msgid "Duration"
+msgstr "ਅੰਤਰਾਲ"
+
+#: models/trackmetadatamodel.cpp:531
+#, kde-format
+msgctxt "@label:textbox Track artist for track metadata view"
+msgid "Artist"
+msgstr "ਕਲਾਕਾਰ"
+
+#: models/trackmetadatamodel.cpp:534
+#, kde-format
+msgctxt "@label:textbox Album name for track metadata view"
+msgid "Album"
+msgstr "ਐਲਬਮ"
+
+#: models/trackmetadatamodel.cpp:537
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Album artist for track metadata view"
+#| msgid "Album Artist"
+msgctxt "@label:textbox Album artist for track metadata view"
+msgid "Album artist"
+msgstr "ਐਲਬਮ ਕਲਾਕਾਰ"
+
+#: models/trackmetadatamodel.cpp:540
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Track number for track metadata view"
+#| msgid "Track Number"
+msgctxt "@label:textbox Track number for track metadata view"
+msgid "Track number"
+msgstr "ਟਰੈਕ ਨੰਬਰ"
+
+#: models/trackmetadatamodel.cpp:543
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Disc number for track metadata view"
+#| msgid "Disc Number"
+msgctxt "@label:textbox Disc number for track metadata view"
+msgid "Disc number"
+msgstr "ਡਿਸਕ ਨੰਬਰ"
+
+#: models/trackmetadatamodel.cpp:546
+#, kde-format
+msgctxt "@label:textbox Rating label for information panel"
+msgid "Rating"
+msgstr "ਰੇਟਿੰਗ"
+
+#: models/trackmetadatamodel.cpp:549
+#, kde-format
+msgctxt "@label:textbox Genre label for track metadata view"
+msgid "Genre"
+msgstr "ਧੁਨ"
+
+#: models/trackmetadatamodel.cpp:552
+#, kde-format
+msgctxt "@label:textbox Lyricist label for track metadata view"
+msgid "Lyricist"
+msgstr "ਗੀਤਕਾਰ"
+
+#: models/trackmetadatamodel.cpp:555
+#, kde-format
+msgctxt "@label:textbox Composer name for track metadata view"
+msgid "Composer"
+msgstr "ਕੰਪੋਜ਼ਰ"
+
+#: models/trackmetadatamodel.cpp:558
+#, kde-format
+msgctxt "@label:textbox Comment label for track metadata view"
+msgid "Comment"
+msgstr "ਟਿੱਪਣੀ"
+
+#: models/trackmetadatamodel.cpp:561
+#, kde-format
+msgctxt "@label:textbox Year label for track metadata view"
+msgid "Year"
+msgstr "ਸਾਲ"
+
+#: models/trackmetadatamodel.cpp:564
+#, kde-format
+msgctxt "@label:textbox Channels label for track metadata view"
+msgid "Channels"
+msgstr "ਚੈਨਲ"
+
+#: models/trackmetadatamodel.cpp:567
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Bit rate label for track metadata view"
+#| msgid "Bit Rate"
+msgctxt "@label:textbox Bit rate label for track metadata view"
+msgid "Bit rate"
+msgstr "ਬਿੱਟ ਰੇਟ"
+
+#: models/trackmetadatamodel.cpp:570
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Sample Rate label for track metadata view"
+#| msgid "Sample Rate"
+msgctxt "@label:textbox Sample Rate label for track metadata view"
+msgid "Sample rate"
+msgstr "ਸੈਂਪਲ ਰੇਟ"
+
+#: models/trackmetadatamodel.cpp:573
+#, kde-format
+msgctxt "@label:textbox Last play date label for track metadata view"
+msgid "Last played"
+msgstr "ਆਖਰੀ ਚਲਾਏ"
+
+#: models/trackmetadatamodel.cpp:576
+#, kde-format
+msgctxt "@label:textbox First play date label for track metadata view"
+msgid "First played"
+msgstr "ਪਹਿਲਾਂ ਚਲਾਇਆ"
+
+#: models/trackmetadatamodel.cpp:579
+#, kde-format
+msgctxt "@label:textbox Play counter label for track metadata view"
+msgid "Play count"
+msgstr "ਚੱਲਣ ਗਿਣਤੀ"
+
+#: models/trackmetadatamodel.cpp:582
+#, kde-format
+msgctxt "@label:textbox Lyrics label for track metadata view"
+msgid "Lyrics"
+msgstr "ਬੋਲ"
+
+#: models/trackmetadatamodel.cpp:585
+#, kde-format
+msgctxt "@label:textbox Radio HTTP address for radio metadata view"
+msgid "Stream HTTP address"
+msgstr ""
+
+#: models/trackmetadatamodel.cpp:588
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Image address for radio metadata view"
+#| msgid "Image Address"
+msgctxt "@label:textbox Image address for radio metadata view"
+msgid "Image address"
+msgstr "ਚਿੱਤਰ ਦਾ ਐਡਰੈਸ"
+
+#: models/viewsmodel.cpp:106 viewslistdata.cpp:53
+#, kde-format
+msgctxt "@title:window Title of the view of all albums"
+msgid "Albums"
+msgstr "ਐਲਬਮਾਂ"
+
+#: models/viewsmodel.cpp:109 viewslistdata.cpp:101
+#, kde-format
+msgctxt "@title:window Title of the view of all genres"
+msgid "Genres"
+msgstr "ਸ਼ੈਲੀਆਂ"
+
+#: models/viewsmodel.cpp:112 viewslistdata.cpp:67
+#, kde-format
+msgctxt "@title:window Title of the view of all artists"
+msgid "Artists"
+msgstr "ਕਲਾਕਾਰ"
+
+#: powermanagementinterface.cpp:179
+#, kde-format
+msgctxt "@info:status  explanation for sleep inhibit during play of music"
+msgid "Playing music"
+msgstr "ਸੰਗੀਤ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#: powermanagementinterface.cpp:229
+#, kde-format
+msgctxt "@info:status explanation for sleep inhibit during play of music"
+msgid "Playing music"
+msgstr "ਸੰਗੀਤ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#: progressindicator.cpp:48
+#, kde-format
+msgctxt "duration formatted as minutes:seconds"
+msgid "%1:%2"
+msgstr ""
+
+#: progressindicator.cpp:50
+#, kde-format
+msgctxt "duration formatted as hours:minutes:seconds"
+msgid "%1:%2:%3"
+msgstr ""
+
+#: qml/AbstractBrowserDelegate.qml:43
+#, kde-format
+msgctxt "@action:button"
+msgid "Play now, replacing current playlist"
+msgstr ""
+
+#: qml/AbstractBrowserDelegate.qml:49 qml/TrackBrowserDelegate.qml:87
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Play counter label for track metadata view"
+#| msgid "Play count"
+msgctxt "@action:button"
+msgid "Play next"
+msgstr "ਚੱਲਣ ਗਿਣਤੀ"
+
+#: qml/AbstractBrowserDelegate.qml:54 qml/TrackBrowserDelegate.qml:82
+#, kde-format
+msgctxt "@action:button"
+msgid "Add to playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਵਿੱਚ ਜੋੜੋ"
+
+#: qml/AbstractBrowserDelegate.qml:63 qml/mobile/MobilePlayListDelegate.qml:169
+#: qml/TrackBrowserDelegate.qml:70
+#, kde-format
+msgctxt "@action:button Show the file for this song in the file manager"
+msgid "Show in folder"
+msgstr "ਫੋਲਡਰ ਵਿੱਚ ਵੇਖਾਓ"
+
+#: qml/AbstractBrowserDelegate.qml:85
+#, kde-format
+msgctxt "@action:button"
+msgid "Options"
+msgstr "ਚੋਣਾਂ"
+
+#: qml/AbstractDataView.qml:209
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No matches"
+msgstr "ਕੋਈ ਮੇਲ ਨਹੀਂ"
+
+#: qml/AbstractDataView.qml:209
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Nothing to display"
+msgstr "ਦਿਖਾਉਣ ਲਈ ਕੁਝ ਨਹੀਂ ਹੈ"
+
+#: qml/ApplicationMenu.qml:19 qml/NativeTrayMenu.qml:18
+#, kde-format
+msgctxt "@title:menu"
+msgid "Application Menu"
+msgstr "ਐਪਲੀਕੇਸ਼ਨ ਮੇਨੂ"
+
+#: qml/ApplicationMenu.qml:22 qml/NativeGlobalMenu.qml:70
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Exit Full Screen"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ ਤੋਂ ਬਾਹਰ ਜਾਓ"
+
+#: qml/ApplicationMenu.qml:22 qml/NativeGlobalMenu.qml:70
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Enter Full Screen"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ ਉੱਤੇ ਜਾਓ"
+
+#: qml/ApplicationMenu.qml:32 qml/NativeGlobalMenu.qml:77
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Hide Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਨੂੰ ਲੁਕਾਓ"
+
+#: qml/ApplicationMenu.qml:33 qml/NativeGlobalMenu.qml:77
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Show Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਨੂੰ ਵੇਖਾਓ"
+
+#: qml/ApplicationMenu.qml:42 qml/NativeTrayMenu.qml:21
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Scan for New Music"
+msgstr "ਨਵੇਂ ਸੰਗੀਤ ਲਈ ਸਕੈਨ ਕਰੋ"
+
+#: qml/ApplicationMenu.qml:51 qml/NativeGlobalMenu.qml:37
+#: qml/NativeTrayMenu.qml:27
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Reset Database and Re-Scan Everything"
+msgstr "ਡਾਟਾਬੇਸ ਮੁੜ-ਸੈੱਟ ਕਰੋ ਅਤੇ ਹਰ ਚੀਜ਼ ਮੁੜ-ਸਕੈਨ ਕਰੋ"
+
+#: qml/ApplicationMenu.qml:62
+#, kde-format
+msgctxt "@action:inmenu this has child menu items"
+msgid "Color Scheme"
+msgstr "ਰੰਗ ਸਕੀਮ"
+
+#: qml/ConfigurationDialog.qml:22
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure"
+msgstr "ਸੰਰਚਨਾ"
+
+#: qml/ContextView.qml:41
+#, kde-format
+msgctxt ""
+"@title:window Title of the context view related to the currently playing "
+"track"
+msgid "Now Playing"
+msgstr "ਹੁਣ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#: qml/ContextView.qml:78 qml/NavigationActionBar.qml:244
+#, kde-format
+msgctxt "@action:button"
+msgid "Open sidebar"
+msgstr "ਬਾਹੀ ਖੋਲ੍ਹੋ"
+
+#: qml/ContextView.qml:114
+#, kde-format
+msgctxt "@option:radio One of the 'now playing' views"
+msgid "Metadata"
+msgstr "ਮੇਟਾ-ਡਾਟਾ"
+
+#: qml/ContextView.qml:125
+#, kde-format
+msgctxt "@option:radio One of the 'now playing' views"
+msgid "Lyrics"
+msgstr "ਬੋਲ"
+
+#: qml/ContextView.qml:132 qml/mobile/MobileTrackPlayer.qml:397
+#: qml/NavigationActionBar.qml:176
+#, kde-format
+msgctxt "@action:button"
+msgid "Show Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਵੇਖਾਓ"
+
+#: qml/ContextView.qml:362
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Nothing playing"
+msgstr "ਕੁਝ ਨਹੀਂ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#: qml/ContextView.qml:396
+#, kde-format
+msgctxt "@action:button"
+msgid "Show In Folder"
+msgstr "ਫੋਲਡਰ ਵਿੱਚ ਵੇਖਾਓ"
+
+#: qml/DataGridView.qml:162
+#, fuzzy, kde-format
+#| msgctxt "@info:status"
+#| msgid "1 track"
+msgctxt "@item:intable View all tracks"
+msgid "All tracks"
+msgstr "1 ਟਰੈਕ"
+
+#: qml/DataGridView.qml:163
+#, fuzzy, kde-format
+#| msgctxt "@info:status"
+#| msgid "%1 track"
+#| msgid_plural "%1 tracks"
+msgctxt "@item:intable number of tracks/songs in all albums"
+msgid "%1 track"
+msgid_plural "%1 tracks"
+msgstr[0] "%1 ਟਰੈਕ"
+msgstr[1] "%1 ਟਰੈਕ"
+
+#: qml/DurationSlider.qml:71
+#, kde-format
+msgctxt ""
+"@info:placeholder This is used to preserve a fixed width for the duration "
+"text."
+msgid "00:00:00"
+msgstr "00:00:00"
+
+#: qml/DurationSlider.qml:107
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Duration label for track metadata view"
+#| msgid "Duration"
+msgctxt "@label"
+msgid "Duration"
+msgstr "ਅੰਤਰਾਲ"
+
+#: qml/ElisaMainWindow.qml:31
+#, kde-format
+msgctxt "@label"
+msgid "Loading failed"
+msgstr "ਲੋਡ ਕਰਨਾ ਅਸਫ਼ਲ ਹੈ"
+
+#: qml/ElisaMainWindow.qml:31 qml/ElisaMainWindow.qml:310
+#, kde-format
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "ਮੁੜ-ਕੋਸ਼ਿਸ਼"
+
+#: qml/ElisaMainWindow.qml:35
+#, kde-format
+msgctxt "@label"
+msgid "Playlist cleared"
+msgstr "ਪਲੇਅਲਿਸਟ ਸਾਫ਼ ਕੀਤੀ"
+
+#: qml/ElisaMainWindow.qml:35
+#, kde-format
+msgctxt "@action:button"
+msgid "Undo"
+msgstr "ਵਾਪਸ ਲਵੋ"
+
+#: qml/ElisaMainWindow.qml:142
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Show Playlist"
+msgctxt "@action:button"
+msgid "Show playlist drawer"
+msgstr "ਪਲੇਅਲਿਸਟ ਵੇਖਾਓ"
+
+#: qml/ElisaMainWindow.qml:143
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Hide Playlist"
+msgctxt "@action:button"
+msgid "Hide playlist drawer"
+msgstr "ਪਲੇਅਲਿਸਟ ਨੂੰ ਲੁਕਾਓ"
+
+#: qml/ElisaMainWindow.qml:179 qml/ElisaMainWindow.qml:623
+#, kde-format
+msgctxt "@info:status"
+msgid ""
+"Could not load some files. Elisa can only open audio and playlist files."
+msgstr ""
+"ਕੁਝ ਫਾਇਲਾਂ ਨੂੰ ਲੋਡ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਿਆ। ਇਲੀਸਾ ਸਿਰਫ਼ ਆਡੀਓ ਅਤੇ ਪਲੇਅਲਿਸਟ ਫਾਇਲਾਂ ਨੂੰ ਹੀ ਖੋਲ "
+"ਸਕਦਾ ਹੈ।"
+
+#: qml/ElisaMainWindow.qml:238 qml/mobile/MobileSidebar.qml:21
+#, kde-format
+msgctxt "@title:window"
+msgid "Elisa"
+msgstr "ਇਲੀਸਾ"
+
+#: qml/ElisaMainWindow.qml:238
+#, kde-format
+msgctxt "@title:window"
+msgid "%1 — Elisa"
+msgstr "%1 — ਇਲੀਸਾ"
+
+#: qml/ElisaMainWindow.qml:290
+#, kde-format
+msgctxt ""
+"@option file type (mime type) for m3u, m3u8 playlist file formats; do not "
+"translate *.m3u*"
+msgid "m3u8, m3u Playlist File (*.m3u*)"
+msgstr "m3u8, m3u ਪਲੇਅਲਿਸਟ ਫਾਇਲ (*.m3u*)"
+
+#: qml/ElisaMainWindow.qml:290
+#, kde-format
+msgctxt ""
+"@option file type (mime type) for pls playlist file formats; do not "
+"translate *.pls"
+msgid "pls Playlist File (*.pls)"
+msgstr "pls ਪਲੇਅਲਿਸਟ ਫਾਇਲ (*.pls)"
+
+#: qml/ElisaMainWindow.qml:297
+#, kde-format
+msgctxt ""
+"@option Allow opening music and playlist files. %1 and %2 are lists of "
+"untranslated file extensions"
+msgid "Playlist files and music files (%1 %2) (%1 %2)"
+msgstr ""
+
+#: qml/ElisaMainWindow.qml:298
+#, fuzzy, kde-format
+#| msgctxt ""
+#| "@option file type (mime type) for pls playlist file formats; do not "
+#| "translate *.pls"
+#| msgid "pls Playlist File (*.pls)"
+msgctxt ""
+"@option Allow opening playlist files. %1 is an untranslated list of file "
+"extensions"
+msgid "Playlist files (%1) (%1)"
+msgstr "pls ਪਲੇਅਲਿਸਟ ਫਾਇਲ (*.pls)"
+
+#: qml/ElisaMainWindow.qml:299
+#, kde-format
+msgctxt ""
+"@option Allow opening music files. %1 is an untranslated list of file "
+"extensions"
+msgid "Music files (%1) (%1)"
+msgstr ""
+
+#: qml/ElisaMainWindow.qml:310
+#, kde-format
+msgctxt "@label"
+msgid "Saving failed"
+msgstr "ਸੰਭਾਲਣਾ ਅਸਫ਼ਲ ਹੈ"
+
+#: qml/HeaderBar.qml:247 qml/MediaPlayerControl.qml:264
+#: qml/mobile/MobileTrackPlayer.qml:298
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ"
+
+#: qml/HeaderBar.qml:264
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Lyrics label for track metadata view"
+#| msgid "Lyrics"
+msgctxt "@action:button"
+msgid "Lyrics"
+msgstr "ਬੋਲ"
+
+#: qml/HeaderBar.qml:287
+#, kde-format
+msgctxt "@action:button"
+msgid "Exit Full Screen"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ ਤੋਂ ਬਾਹਰ ਜਾਓ"
+
+#: qml/HeaderBar.qml:288
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Enter Full Screen"
+msgctxt "@action:button"
+msgid "Enter Full Screen"
+msgstr "ਪੂਰੀ ਸਕਰੀਨ ਉੱਤੇ ਜਾਓ"
+
+#: qml/LyricsView.qml:162
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No lyrics found"
+msgstr "ਕੋਈ ਬੋਲ ਨਹੀਂ ਲੱਭੇ"
+
+#: qml/MediaPlayerControl.qml:91
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Exit party mode"
+msgstr ""
+
+#: qml/MediaPlayerControl.qml:92
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Toggle Party Mode"
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Enter party mode"
+msgstr "ਪਾਰਟੀ ਢੰਗ ਨੂੰ ਬਦਲੋ"
+
+#: qml/MediaPlayerControl.qml:100
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Skip Backward"
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Skip backward"
+msgstr "ਪਿੱਛੇ ਵੱਲ ਛੱਡੋ"
+
+#: qml/MediaPlayerControl.qml:109
+#, fuzzy, kde-format
+#| msgctxt "@action:button Pause any media that is playing"
+#| msgid "Pause"
+msgctxt ""
+"@action:button displayed as @info:tooltip Pause any media that is playing"
+msgid "Pause"
+msgstr "ਵਿਰਾਮ"
+
+#: qml/MediaPlayerControl.qml:110
+#, fuzzy, kde-format
+#| msgctxt "@action:button Start playing media"
+#| msgid "Play"
+msgctxt "@action:button displayed as @info:tooltip Start playing media"
+msgid "Play"
+msgstr "ਚਲਾਓ"
+
+#: qml/MediaPlayerControl.qml:118
+#, fuzzy, kde-format
+#| msgctxt "@action:button skip forward in playlists"
+#| msgid "Skip Forward"
+msgctxt "@action:button displayed as @info:tooltip skip forward in playlists"
+msgid "Skip forward"
+msgstr "ਛੱਡ ਕੇ ਅੱਗੇ ਜਾਓ"
+
+#: qml/MediaPlayerControl.qml:147
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Unmute"
+msgstr ""
+
+#: qml/MediaPlayerControl.qml:148
+#, kde-format
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Mute"
+msgstr ""
+
+#: qml/MediaPlayerControl.qml:176 qml/mobile/MobileTrackPlayer.qml:214
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: No shuffle"
+msgstr ""
+
+#: qml/MediaPlayerControl.qml:177 qml/mobile/MobileTrackPlayer.qml:215
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Current: Don't repeat tracks"
+msgctxt "@info:tooltip"
+msgid "Current: Shuffle tracks"
+msgstr "ਮੌਜੂਦਾ: ਟਰੈਕਾਂ ਨੂੰ ਦੁਹਰਾਓ ਨਾ"
+
+#: qml/MediaPlayerControl.qml:178 qml/mobile/MobileTrackPlayer.qml:216
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Shuffle albums"
+msgstr ""
+
+#: qml/MediaPlayerControl.qml:206 qml/mobile/MobileTrackPlayer.qml:245
+#, fuzzy, kde-format
+#| msgctxt "@item:inlistbox Title of the view of all tracks"
+#| msgid "Tracks"
+msgctxt "@action:inmenu"
+msgid "Track"
+msgstr "ਟਰੈਕ"
+
+#: qml/MediaPlayerControl.qml:210 qml/mobile/MobileTrackPlayer.qml:249
+#, fuzzy, kde-format
+#| msgctxt "@label musical album"
+#| msgid "Album"
+msgctxt "@action:inmenu"
+msgid "Album"
+msgstr "ਐਲਬਮ"
+
+#: qml/MediaPlayerControl.qml:214 qml/MediaPlayerControl.qml:272
+#: qml/mobile/MobileTrackPlayer.qml:253 qml/mobile/MobileTrackPlayer.qml:306
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "None"
+msgstr "ਕੋਈ ਨਹੀਂ"
+
+#: qml/MediaPlayerControl.qml:235 qml/mobile/MobileTrackPlayer.qml:267
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Don't repeat tracks"
+msgstr "ਮੌਜੂਦਾ: ਟਰੈਕਾਂ ਨੂੰ ਦੁਹਰਾਓ ਨਾ"
+
+#: qml/MediaPlayerControl.qml:236 qml/mobile/MobileTrackPlayer.qml:268
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Current: Repeat current track"
+msgstr "ਮੌਜੂਦਾ: ਮੌਜੂਦਾ ਟਰੈਕ ਦੁਹਰਾਓ"
+
+#: qml/MediaPlayerControl.qml:237 qml/mobile/MobileTrackPlayer.qml:269
+#, fuzzy, kde-format
+#| msgid "Current: Repeat current track"
+msgctxt "@info:tooltip"
+msgid "Current: Repeat all tracks in playlist"
+msgstr "ਮੌਜੂਦਾ: ਟਰੈਕ ਦੁਹਰਾਓ"
+
+#: qml/MediaPlayerControl.qml:268 qml/mobile/MobileTrackPlayer.qml:302
+#, fuzzy, kde-format
+#| msgctxt "@info:status"
+#| msgid "%1 track"
+#| msgid_plural "%1 tracks"
+msgctxt "@action:inmenu"
+msgid "One track"
+msgstr "%1 ਟਰੈਕ"
+
+#: qml/MediaPlayerControl.qml:300
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "Application Menu"
+msgctxt "@action:button displayed as @info:tooltip"
+msgid "Application menu"
+msgstr "ਐਪਲੀਕੇਸ਼ਨ ਮੇਨੂ"
+
+#: qml/MediaPlayListView.qml:29
+#, kde-format
+msgctxt ""
+"@title:window Title of the view of the playlist; keep this string as short "
+"as possible because horizontal space is quite scarce"
+msgid "Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ"
+
+#: qml/MediaPlayListView.qml:71
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Show Current"
+msgctxt "@action:button Show current track in playlist"
+msgid "Show Current"
+msgstr "ਮੌਜੂਦਾ ਨੂੰ ਵੇਖਾਓ"
+
+#: qml/MediaPlayListView.qml:82
+#, kde-format
+msgctxt "@action:button Remove all tracks from play list"
+msgid "Clear All"
+msgstr "ਸਭ ਸਾਫ਼ ਕਰੋ"
+
+#: qml/MediaPlayListView.qml:92
+#, kde-format
+msgctxt "@action:button Save a playlist file"
+msgid "Save…"
+msgstr "ਸੰਭਾਲੋ…"
+
+#: qml/MediaPlayListView.qml:102
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Open Playlist…"
+msgctxt "@action:button Load a playlist file"
+msgid "Open…"
+msgstr "…ਪਲੇਅਲਿਸਟ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: qml/MediaPlayListView.qml:103
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Open music files or saved playlists"
+msgstr ""
+
+#: qml/MediaPlayListView.qml:128
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Failed to load some tracks. Make sure that they have not been removed or "
+"renamed."
+msgstr ""
+"ਕੁਝ ਟਰੈਕ ਲੋਡ ਕਰਨ ਲਈ ਅਸਫ਼ਲ ਹੈ। ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਉਹਨਾਂ ਨੂੰ ਹਟਾਇਆ ਜਾਂ ਉਹਨਾਂ ਦਾ ਨਾਂ ਨਹੀਂ ਬਦਲਿਆ "
+"ਗਿਆ ਹੈ।"
+
+#: qml/MediaPlayListView.qml:134
+#, kde-format
+msgctxt "@action:button"
+msgid "Edit Playlist File"
+msgstr "ਪਲੇਅਲਿਸਟ ਫਾਇਲ ਨੂੰ ਸੋਧੋ"
+
+#: qml/MediaPlayListView.qml:304
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Playlist is empty"
+msgstr "ਪਲੇਅਲਿਸਟ ਖਾਲੀ ਹੈ"
+
+#: qml/MediaPlayListView.qml:305
+#, kde-format
+msgctxt "@info:usagetip"
+msgid ""
+"Add some songs to get started. You can browse your music using the views on "
+"the left."
+msgstr ""
+
+#: qml/MediaPlayListView.qml:380
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "Your playlist is empty."
+msgstr "ਤੁਹਾਡੀ ਪਲੇਅਲਿਸਟ ਖਾਲੀ ਹੈ।"
+
+#: qml/MediaPlayListView.qml:477 qml/MediaPlayListView.qml:486
+#, fuzzy, kde-format
+#| msgctxt "@info:status number of tracks remaining"
+#| msgid "%1 remaining"
+#| msgid_plural "%1 remaining"
+msgctxt "@info:status %2 is always bigger than 1"
+msgid "%1/%2 tracks remaining"
+msgid_plural "%1/%2 tracks remaining"
+msgstr[0] "%1 ਬਾਕੀ"
+msgstr[1] "%1 ਬਾਕੀ"
+
+#: qml/MediaPlayListView.qml:478
+#, fuzzy, kde-format
+#| msgctxt "@info:status number of tracks remaining"
+#| msgid "%1 remaining"
+#| msgid_plural "%1 remaining"
+msgctxt "@info:status %1 and %2 are formatted like hh:mm:ss or mm:ss"
+msgid "%1 remaining, %2 total"
+msgstr "%1 ਬਾਕੀ"
+
+#: qml/MediaPlayListView.qml:479 qml/MediaPlayListView.qml:488
+#: qml/MediaPlayListView.qml:497
+#, kde-format
+msgctxt ""
+"@info:status %1 is total tracks and tracks remaining. %2 is total time and "
+"time remaining"
+msgid "%1, %2"
+msgstr ""
+
+#: qml/MediaPlayListView.qml:487 qml/MediaPlayListView.qml:496
+#, fuzzy, kde-format
+#| msgctxt "@info:status number of tracks remaining"
+#| msgid "%1 remaining"
+#| msgid_plural "%1 remaining"
+msgctxt "@info:status %1 and %2 are formatted like hh:mm:ss or mm:ss"
+msgid "%1/%2 remaining"
+msgstr "%1 ਬਾਕੀ"
+
+#: qml/MediaPlayListView.qml:495
+#, fuzzy, kde-format
+#| msgctxt "@info:status"
+#| msgid "%1 track"
+#| msgid_plural "%1 tracks"
+msgctxt "@info:status %2 is always bigger than 1"
+msgid "%1/%2 tracks"
+msgid_plural "%1/%2 tracks"
+msgstr[0] "%1 ਟਰੈਕ"
+msgstr[1] "%1 ਟਰੈਕ"
+
+#: qml/MediaPlayListView.qml:504
+#, fuzzy, kde-format
+#| msgctxt "@info:status"
+#| msgid "%1 track"
+#| msgid_plural "%1 tracks"
+msgctxt "@info:status %1 is the total number of tracks of the playlist"
+msgid "%1 track"
+msgid_plural "%1 tracks"
+msgstr[0] "%1 ਟਰੈਕ"
+msgstr[1] "%1 ਟਰੈਕ"
+
+#: qml/MediaPlayListView.qml:505
+#, kde-format
+msgctxt "@info:status %1 is the total number of radios of the playlist"
+msgid "%1 radio"
+msgid_plural "%1 radios"
+msgstr[0] ""
+msgstr[1] ""
+
+#: qml/MediaPlayListView.qml:506
+#, kde-format
+msgctxt ""
+"@info:status %1 is the translation of tracks, %2 is the translation of total "
+"radios"
+msgid "%1, %2 total"
+msgstr ""
+
+#: qml/MediaPlayListView.qml:509
+#, fuzzy, kde-format
+#| msgctxt "@info:status"
+#| msgid "%1 track"
+#| msgid_plural "%1 tracks"
+msgctxt ""
+"@info:status %1 is the total tracks of the playlist. %2 is the total "
+"duration formatted like hh:mm:ss or mm:ss"
+msgid "%1 track, %2 total"
+msgid_plural "%1 tracks, %2 total"
+msgstr[0] "%1 ਟਰੈਕ"
+msgstr[1] "%1 ਟਰੈਕ"
+
+#: qml/MediaPlayListView.qml:511
+#, fuzzy, kde-format
+#| msgctxt "@info:status number of tracks remaining"
+#| msgid "%1 remaining"
+#| msgid_plural "%1 remaining"
+msgctxt ""
+"@info:status %1 is the remaining duration of the playlist. It is formatted "
+"like hh:mm:ss or mm:ss"
+msgid "1 track, %1min remaining"
+msgstr "%1 ਬਾਕੀ"
+
+#: qml/MediaTrackMetadataDelegate.qml:156 qml/PlayListEntry.qml:114
+#: qml/TrackBrowserDelegate.qml:105
+#, kde-format
+msgctxt "@action:button"
+msgid "Un-mark this song as a favorite"
+msgstr ""
+
+#: qml/MediaTrackMetadataDelegate.qml:156 qml/PlayListEntry.qml:114
+#: qml/TrackBrowserDelegate.qml:105
+#, kde-format
+msgctxt "@action:button"
+msgid "Mark this song as a favorite"
+msgstr ""
+
+#: qml/MediaTrackMetadataDelegate.qml:207
+#, kde-format
+msgctxt "@action:button remove a metadata tag"
+msgid "Remove this tag"
+msgstr "ਇਹ ਟੈਗ ਨੂੰ ਹਟਾਓ"
+
+#: qml/MediaTrackMetadataDelegate.qml:215
+#, fuzzy, kde-format
+#| msgctxt "@label:listbox"
+#| msgid "Add new tag:"
+msgctxt "@action:button"
+msgid "Add tag"
+msgstr "ਨਵਾਂ ਟੈਗ ਜੋੜੋ:"
+
+#: qml/MediaTrackMetadataForm.qml:66 qml/SettingsForm.qml:47
+#, kde-format
+msgctxt "@title:window"
+msgid "Warning"
+msgstr "ਸਾਵਾਧਾਨ"
+
+#: qml/MediaTrackMetadataForm.qml:96
+#, kde-format
+msgctxt "@label"
+msgid "Data is not valid. %1"
+msgstr "ਡਾਟਾ ਵਾਜਬ ਨਹੀਂ ਹੈ। %1"
+
+#: qml/MediaTrackMetadataForm.qml:148
+#, kde-format
+msgctxt "Track metadata form label, e.g. 'Artist:'"
+msgid "%1:"
+msgstr "%1:"
+
+#: qml/MediaTrackMetadataView.qml:37
+#: qml/mobile/MobileMediaTrackMetadataView.qml:48
+#, kde-format
+msgctxt "@title:window"
+msgid "Create a Radio"
+msgstr "ਰੇਡੀਓ ਬਣਾਓ"
+
+#: qml/MediaTrackMetadataView.qml:38
+#: qml/mobile/MobileMediaTrackMetadataView.qml:49
+#, kde-format
+msgctxt "@title:window"
+msgid "View details"
+msgstr "ਵੇਰਵੇ ਵੇਖੋ"
+
+#: qml/MediaTrackMetadataView.qml:129
+#: qml/mobile/MobileMediaTrackMetadataView.qml:72
+#, kde-format
+msgctxt "@action:button"
+msgid "Delete"
+msgstr "ਹਟਾਓ"
+
+#: qml/MediaTrackMetadataView.qml:147
+#: qml/mobile/MobileMediaTrackMetadataView.qml:54
+#, kde-format
+msgctxt "@action:button"
+msgid "Modify"
+msgstr "ਸੋਧ"
+
+#: qml/mobile/MobileMediaTrackMetadataView.qml:60
+#: qml/mobile/MobileSettingsPage.qml:39
+#, kde-format
+msgctxt "@action:button"
+msgid "Save"
+msgstr "ਸੰਭਾਲੋ"
+
+#: qml/mobile/MobileMediaTrackMetadataView.qml:66
+#: qml/mobile/MobileSettingsPage.qml:45
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel"
+msgstr "ਰੱਦ ਕਰੋ"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:225
+#: qml/mobile/MobileTrackPlayer.qml:357
+#, kde-format
+msgctxt "@action:button"
+msgid "Skip Backward"
+msgstr "ਪਿੱਛੇ ਵੱਲ ਛੱਡੋ"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:239
+#: qml/mobile/MobileTrackPlayer.qml:370
+#, kde-format
+msgctxt "@action:button Pause any media that is playing"
+msgid "Pause"
+msgstr "ਵਿਰਾਮ"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:239
+#: qml/mobile/MobileTrackPlayer.qml:370
+#, kde-format
+msgctxt "@action:button Start playing media"
+msgid "Play"
+msgstr "ਚਲਾਓ"
+
+#: qml/mobile/MobileMinimizedPlayerControl.qml:253
+#: qml/mobile/MobileTrackPlayer.qml:383
+#, kde-format
+msgctxt "@action:button"
+msgid "Skip Forward"
+msgstr "ਛੱਡ ਕੇ ਅੱਗੇ ਜਾਓ"
+
+#: qml/mobile/MobilePlayListDelegate.qml:147 qml/PlayListEntry.qml:365
+#, kde-format
+msgctxt "@action:button"
+msgid "Track Options"
+msgstr "ਟਰੈਕ ਚੋਣਾਂ"
+
+#: qml/mobile/MobilePlayListDelegate.qml:147 qml/PlayListEntry.qml:365
+#, fuzzy, kde-format
+#| msgctxt "@item:intable"
+#| msgid "Radio Stations"
+msgctxt "@action:button"
+msgid "Radio Options"
+msgstr "ਰੇਡੀਓ ਸਟੇਸ਼ਨ"
+
+#: qml/mobile/MobilePlayListDelegate.qml:175 qml/PlayListEntry.qml:90
+#: qml/TrackBrowserDelegate.qml:77
+#, kde-format
+msgctxt "@action:button Show track metadata"
+msgid "View details"
+msgstr "ਵੇਰਵੇ ਵੇਖੋ"
+
+#: qml/mobile/MobilePlayListDelegate.qml:188
+#, kde-format
+msgctxt "@action:button"
+msgid "Remove from queue"
+msgstr "ਕਤਾਰ ਵਿੱਚੋਂ ਹਟਾਓ"
+
+#: qml/mobile/MobileSettingsPage.qml:25 qml/mobile/MobileSidebar.qml:37
+#, kde-format
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "ਸੈਟਿੰਗਾਂ"
+
+#: qml/mobile/MobileTrackPlayer.qml:51
+#, kde-format
+msgctxt "@action:button"
+msgid "Minimize Player"
+msgstr "ਘੱਟੋ-ਘੱਟ ਪਲੇਅਰ"
+
+#: qml/mobile/MobileTrackPlayer.qml:199
+#, kde-format
+msgctxt "@action:button show track information"
+msgid "Show Info"
+msgstr "ਜਾਣਕਾਰੀ ਵੇਖੋ"
+
+#: qml/mobile/MobileVolumeButton.qml:30
+#, kde-format
+msgctxt "@action:button"
+msgid "Change Volume"
+msgstr "ਵਾਲੀਅਮ ਬਦਲੋ"
+
+#: qml/NativeGlobalMenu.qml:18
+#, kde-format
+msgctxt "@title:menu"
+msgid "File"
+msgstr "ਫਾਇਲ"
+
+#: qml/NativeGlobalMenu.qml:21
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Save Playlist…"
+msgstr "…ਪਲੇਅਲਿਸਟ ਨੂੰ ਸੰਭਾਲੋ"
+
+#: qml/NativeGlobalMenu.qml:29
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Open Playlist…"
+msgstr "…ਪਲੇਅਲਿਸਟ ਨੂੰ ਖੋਲ੍ਹੋ"
+
+#: qml/NativeGlobalMenu.qml:61
+#, kde-format
+msgctxt "@title:menu"
+msgid "View"
+msgstr "ਵੇਖੋ"
+
+#: qml/NativeGlobalMenu.qml:64
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Toggle Party Mode"
+msgstr "ਪਾਰਟੀ ਢੰਗ ਨੂੰ ਬਦਲੋ"
+
+#: qml/NativeGlobalMenu.qml:82
+#, kde-format
+msgctxt "@title:menu"
+msgid "Controls"
+msgstr "ਕੰਟਰੋਲ"
+
+#: qml/NativeGlobalMenu.qml:85
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Pause"
+msgstr "ਵਿਰਾਮ"
+
+#: qml/NativeGlobalMenu.qml:85
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Play"
+msgstr "ਚਲਾਓ"
+
+#: qml/NativeGlobalMenu.qml:92
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Stop"
+msgstr "ਰੋਕੋ"
+
+#: qml/NativeGlobalMenu.qml:101
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Increase Volume"
+msgstr "ਵਾਲੀਅਮ ਵਧਾਓ"
+
+#: qml/NativeGlobalMenu.qml:106
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Decrease Volume"
+msgstr "ਵਾਲੀਅਮ ਘਟਾਓ"
+
+#: qml/NativeGlobalMenu.qml:116
+#, kde-format
+msgctxt "@title:menu"
+msgid "Shuffle"
+msgstr "ਰਲਵੇਂ"
+
+#: qml/NativeGlobalMenu.qml:123
+#, fuzzy, kde-format
+#| msgctxt "@item:inlistbox Title of the view of all tracks"
+#| msgid "Tracks"
+msgctxt "@action:inmenu shuffle all tracks in playlist"
+msgid "Track"
+msgstr "ਟਰੈਕ"
+
+#: qml/NativeGlobalMenu.qml:127
+#, fuzzy, kde-format
+#| msgctxt "@label musical album"
+#| msgid "Album"
+msgctxt "@action:inmenu shuffle albums in playlist"
+msgid "Album"
+msgstr "ਐਲਬਮ"
+
+#: qml/NativeGlobalMenu.qml:131
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu shuffle mode is turned off"
+#| msgid "Off"
+msgctxt "@action:inmenu disable shuffle mode"
+msgid "Off"
+msgstr "ਬੰਦ"
+
+#: qml/NativeGlobalMenu.qml:138
+#, kde-format
+msgctxt "@title:menu"
+msgid "Repeat"
+msgstr "ਦੁਹਰਾਓ"
+
+#: qml/NativeGlobalMenu.qml:145
+#, kde-format
+msgctxt "@action:inmenu repeat all songs in this playlist"
+msgid "Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ"
+
+#: qml/NativeGlobalMenu.qml:149
+#, kde-format
+msgctxt "@action:inmenu repeat this one song"
+msgid "One"
+msgstr "ਇੱਕ"
+
+#: qml/NativeGlobalMenu.qml:153
+#, kde-format
+msgctxt ""
+"@action:inmenu no repeat mode set; stop playback after last song in the "
+"playlist"
+msgid "None"
+msgstr "ਕੋਈ ਨਹੀਂ"
+
+#: qml/NativeGlobalMenu.qml:159
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "ਮਦਦ"
+
+#: qml/NavigationActionBar.qml:93
+#, kde-format
+msgctxt "@label:listbox Sort By Menu Title with no sort selected"
+msgid "Sort: %1"
+msgstr "ਲੜੀਬੱਧ: %1"
+
+#: qml/NavigationActionBar.qml:94
+#, kde-format
+msgctxt "@label:listbox Sort By Menu Title with no sort selected"
+msgid "Sort"
+msgstr "ਲੜੀਬੱਧ"
+
+#: qml/NavigationActionBar.qml:108
+#, fuzzy, kde-format
+#| msgctxt "Title of the file radios browser view"
+#| msgid "Radios"
+msgctxt "@action:button"
+msgid "Add Radio"
+msgstr "ਰੇਡੀਓ"
+
+#: qml/NavigationActionBar.qml:109
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Add radio"
+msgstr ""
+
+#: qml/NavigationActionBar.qml:121
+#, kde-format
+msgctxt "@action:button"
+msgid "Add to Playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਵਿੱਚ ਜੋੜੋ"
+
+#: qml/NavigationActionBar.qml:122
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Add to playlist"
+msgctxt "@info:tooltip"
+msgid "Add to playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਵਿੱਚ ਜੋੜੋ"
+
+#: qml/NavigationActionBar.qml:135
+#, kde-format
+msgctxt "@action:button"
+msgid "Play Now, Replacing Current Playlist"
+msgstr ""
+
+#: qml/NavigationActionBar.qml:136
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Play now, replacing current playlist"
+msgstr ""
+
+#: qml/NavigationActionBar.qml:148
+#, fuzzy, kde-format
+#| msgctxt "@label:textbox Play counter label for track metadata view"
+#| msgid "Play count"
+msgctxt "@action:button Add as the next track(s) in the playlist"
+msgid "Play Next"
+msgstr "ਚੱਲਣ ਗਿਣਤੀ"
+
+#: qml/NavigationActionBar.qml:149
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Add to playlist"
+msgctxt "@info:tooltip"
+msgid "Play next in playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਵਿੱਚ ਜੋੜੋ"
+
+#: qml/NavigationActionBar.qml:161
+#, kde-format
+msgctxt "@action:button navigate to the view for artist of this album"
+msgid "Display Artist"
+msgstr "ਕਲਾਕਾਰ ਵੇਖਾਓ"
+
+#: qml/NavigationActionBar.qml:162
+#, fuzzy, kde-format
+#| msgctxt "@action:button navigate to the view for artist of this album"
+#| msgid "Display Artist"
+msgctxt "@info:tooltip navigate to the view for artist of this album"
+msgid "Display Artist"
+msgstr "ਕਲਾਕਾਰ ਵੇਖਾਓ"
+
+#: qml/NavigationActionBar.qml:177
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Show Playlist"
+msgctxt "@info:tooltip"
+msgid "Show playlist"
+msgstr "ਪਲੇਅਲਿਸਟ ਵੇਖਾਓ"
+
+#: qml/NavigationActionBar.qml:188
+#, kde-format
+msgctxt "@action:button"
+msgid "View as Icon Grid"
+msgstr ""
+
+#: qml/NavigationActionBar.qml:189
+#, fuzzy, kde-format
+#| msgctxt "Show track metadata"
+#| msgid "View details"
+msgctxt "@action:button"
+msgid "View as List"
+msgstr "ਵੇਰਵੇ ਵੇਖੋ"
+
+#: qml/NavigationActionBar.qml:191
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "View as icon grid"
+msgstr ""
+
+#: qml/NavigationActionBar.qml:192
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "View details"
+msgctxt "@info:tooltip"
+msgid "View as list"
+msgstr "ਵੇਰਵੇ ਵੇਖੋ"
+
+#: qml/NavigationActionBar.qml:252
+#, kde-format
+msgctxt "@action:button navigate back in the view's stack"
+msgid "Back"
+msgstr "ਪਿੱਛੇ"
+
+#: qml/NavigationActionBar.qml:333
+#, fuzzy, kde-format
+#| msgctxt "@action:button Show filters in the navigation bar"
+#| msgid "Search and Filter"
+msgctxt ""
+"@action:button displayed as @info:tooltip Show filters in the navigation bar"
+msgid "Show search and filter toolbar"
+msgstr "ਖੋਜ ਅਤੇ ਫਿਲਟਰ"
+
+#: qml/NavigationActionBar.qml:334
+#, fuzzy, kde-format
+#| msgctxt "@action:button Hide filters in the navigation bar"
+#| msgid "Hide Search and Filter"
+msgctxt ""
+"@action:button displayed as @info:tooltip Hide filters in the navigation bar"
+msgid "Hide search and filter toolbar"
+msgstr "ਖੋਜ ਅਤੇ ਫਿਲਟਰ ਨੂੰ ਓਹਲੇ ਕਰੋ"
+
+#: qml/NavigationActionBar.qml:427
+#, kde-format
+msgctxt "@info:placeholder radio view filter"
+msgid "Search for radio station"
+msgstr ""
+
+#: qml/NavigationActionBar.qml:429
+#, fuzzy, kde-format
+#| msgctxt "@info:placeholder"
+#| msgid "Search for album name, artist, etc."
+msgctxt "@info:placeholder track view filter single album"
+msgid "Search for track name, artist, etc."
+msgstr "ਐਲਬਮ ਨਾਂ, ਕਲਾਕਾਰ ਆਦਿ ਲਈ ਖੋਜ ਕਰੋ"
+
+#: qml/NavigationActionBar.qml:430
+#, fuzzy, kde-format
+#| msgctxt "@info:placeholder"
+#| msgid "Search for album name, artist, etc."
+msgctxt "@info:placeholder track view filter general"
+msgid "Search for album name, artist, etc."
+msgstr "ਐਲਬਮ ਨਾਂ, ਕਲਾਕਾਰ ਆਦਿ ਲਈ ਖੋਜ ਕਰੋ"
+
+#: qml/NavigationActionBar.qml:438
+#, kde-format
+msgctxt "@label:chooser"
+msgid "Filter by rating: "
+msgstr "ਰੇਟਿੰਗ ਲਈ ਫਿਲਟਰ: "
+
+#: qml/NavigationActionBar.qml:456
+#, kde-format
+msgctxt "@action:button"
+msgid "Only Show Favorites"
+msgstr "ਸਿਰਫ਼ ਮਨਪਸੰਦ ਹੀ ਵੇਖਾਓ"
+
+#: qml/PlayListEntry.qml:104 qml/TrackBrowserDelegate.qml:97
+#, kde-format
+msgctxt "@action:button"
+msgid "Set track rating"
+msgstr ""
+
+#: qml/PlayListEntry.qml:128
+#, kde-format
+msgctxt "@action:button Remove current track from play list"
+msgid "Remove"
+msgstr "ਹਟਾਓ"
+
+#: qml/PlayListEntry.qml:313 qml/TrackBrowserDelegate.qml:314
+#, kde-format
+msgctxt "@action:button"
+msgid "Cancel rating this track"
+msgstr ""
+
+#: qml/SettingsForm.qml:70
+#, kde-format
+msgctxt "@title:group"
+msgid "General:"
+msgstr "ਆਮ:"
+
+#: qml/SettingsForm.qml:74
+#, kde-format
+msgctxt "@option:check"
+msgid "Show background on Now Playing page"
+msgstr ""
+
+#: qml/SettingsForm.qml:87
+#, kde-format
+msgctxt "@option:check"
+msgid "Show progress on task manager entries"
+msgstr ""
+
+#: qml/SettingsForm.qml:98
+#, fuzzy, kde-format
+#| msgctxt "@option:check"
+#| msgid "Keep running in System Tray when main window is closed"
+msgctxt "@option:check"
+msgid "Keep running in system tray when main window is closed"
+msgstr "ਜਦੋਂ ਮੁੱਖ ਵਿੰਡੋ ਨੂੰ ਬੰਦ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਤਾਂ ਸਿਸਟਮ ਟਰੇ ਵਿੱਚ ਚੱਲਦਾ ਰੱਖੋ"
+
+#: qml/SettingsForm.qml:109
+#, kde-format
+msgctxt "@option:check"
+msgid "Start playing on startup"
+msgstr "ਸ਼ੁਰੂ ਵੇਲੇ ਚਲਾਉਣਾ ਸ਼ੁਰੂ"
+
+#: qml/SettingsForm.qml:120
+#, fuzzy, kde-format
+#| msgctxt "@option:check"
+#| msgid "Scan for New Music on startup"
+msgctxt "@option:check"
+msgid "Scan for new music on startup"
+msgstr "ਸ਼ੁਰੂ ਵੇਲੇ ਨਵਾਂ ਸੰਗੀਤ ਲਈ ਸਕੈਨ ਕਰੋ"
+
+#: qml/SettingsForm.qml:139
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"When using this setting, you will need to manually refresh the music "
+"collection whenever new files are added to configured music folders. You can "
+"do this with the <interface>Scan for new music</interface> item in Elisa's "
+"hamburger menu."
+msgstr ""
+
+#: qml/SettingsForm.qml:150
+#, kde-format
+msgctxt "@title:group"
+msgid "Song rating style:"
+msgstr ""
+
+#: qml/SettingsForm.qml:154
+#, kde-format
+msgctxt "@option:radio"
+msgid "0-5 stars"
+msgstr "0-5 ਤਾਰੇ"
+
+#: qml/SettingsForm.qml:166
+#, kde-format
+msgctxt "@option:radio"
+msgid "Favorite/not favorite"
+msgstr "ਮਨਪਸੰਦ/ ਨਾ ਮਨਪਸੰਦ"
+
+#: qml/SettingsForm.qml:184
+#, fuzzy, kde-format
+#| msgctxt "@label:listbox"
+#| msgid "Color Scheme:"
+msgctxt "@label:listbox"
+msgid "Color scheme:"
+msgstr "ਰੰਗ ਸਕੀਮ:"
+
+#: qml/SettingsForm.qml:220
+#, kde-format
+msgctxt "@action:button"
+msgid "Scan for New Music"
+msgstr "ਨਵੇਂ ਸੰਗੀਤ ਲਈ ਸਕੈਨ ਕਰੋ"
+
+#: qml/SettingsForm.qml:224 qml/SettingsForm.qml:235
+#, kde-format
+msgctxt "@info"
+msgid "Started scanning for music"
+msgstr "ਸੰਗੀਤ ਲਈ ਸਕੈਨ ਕਰਨਾ ਸ਼ੁਰੂ ਕੀਤਾ"
+
+#: qml/SettingsForm.qml:230
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset Database and Re-Scan Everything"
+msgstr "ਡਾਟਾਬੇਸ ਮੁੜ-ਸੈੱਟ ਕਰੋ ਅਤੇ ਹਰ ਚੀਜ਼ ਮੁੜ-ਸਕੈਨ ਕਰੋ"
+
+#: qml/SettingsForm.qml:234
+#, kde-format
+msgctxt "@info"
+msgid "Database has been reset"
+msgstr "ਡਾਟਾਬੇਸ ਨੂੰ ਮੁੜ-ਸੈੱਟ ਕੀਤਾ ਗਿਆ ਹੈ"
+
+#: qml/SettingsForm.qml:249
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Embed category in sidebar:"
+msgstr ""
+
+#: qml/SettingsForm.qml:251
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed no category in views navigation list"
+msgid "Nothing"
+msgstr "ਕੁਝ ਵੀ ਨਹੀਂ"
+
+#: qml/SettingsForm.qml:252
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed all albums in views navigation list"
+msgid "Albums"
+msgstr "ਐਲਬਮਾਂ"
+
+#: qml/SettingsForm.qml:253
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed all artists in views navigation list"
+msgid "Artists"
+msgstr "ਕਲਾਕਾਰ"
+
+#: qml/SettingsForm.qml:254
+#, kde-format
+msgctxt ""
+"@item:inlistbox Configure dialog, embed all genres in views navigation list"
+msgid "Genres"
+msgstr "ਸ਼ੈਲੀਆਂ"
+
+#: qml/SettingsForm.qml:287
+#, kde-format
+msgctxt "@label:listbox"
+msgid "Initial view on startup:"
+msgstr "ਸ਼ੁਰੂ ਵੇਲੇ ਸ਼ੁਰੂਆਤੀ ਝਲਕ:"
+
+#: qml/SettingsForm.qml:289
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of the playlist"
+msgid "Now Playing"
+msgstr "ਹੁਣ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#: qml/SettingsForm.qml:290
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of recently played tracks"
+msgid "Recently Played"
+msgstr "ਤਾਜ਼ਾ ਚਲਾਏ"
+
+#: qml/SettingsForm.qml:291
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of frequently played tracks"
+msgid "Frequently Played"
+msgstr "ਅਕਸਰ ਚਲਾਏ"
+
+#: qml/SettingsForm.qml:292 viewmanager.cpp:216
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all albums"
+msgid "Albums"
+msgstr "ਐਲਬਮਾਂ"
+
+#: qml/SettingsForm.qml:293 viewmanager.cpp:220
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all artists"
+msgid "Artists"
+msgstr "ਕਲਾਕਾਰ"
+
+#: qml/SettingsForm.qml:294 viewmanager.cpp:218
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all tracks"
+msgid "Tracks"
+msgstr "ਟਰੈਕ"
+
+#: qml/SettingsForm.qml:295
+#, kde-format
+msgctxt "@item:inlistbox Title of the view of all genres"
+msgid "Genres"
+msgstr "ਸ਼ੈਲੀਆਂ"
+
+#: qml/SettingsForm.qml:296
+#, kde-format
+msgctxt "@item:inlistbox Title of the file browser view"
+msgid "Files"
+msgstr "ਫਾਇਲਾਂ"
+
+#: qml/SettingsForm.qml:297
+#, kde-format
+msgctxt "@item:inlistbox Title of the file radios browser view"
+msgid "Radio Stations"
+msgstr "ਰੇਡੀਓ ਸਟੇਸ਼ਨ"
+
+#: qml/SettingsForm.qml:317
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Initial location for Files view:"
+msgstr "ਫਾਇਲ ਝਲਕ ਲਈ ਸ਼ੁਰੂਆਤੀ ਟਿਕਾਣਾ:"
+
+#: qml/SettingsForm.qml:331
+#, kde-format
+msgctxt "@action:button as in, choose a file path on disk"
+msgid "Choose…"
+msgstr "…ਚੁਣੋ"
+
+#: qml/SettingsForm.qml:339 qml/SettingsForm.qml:464
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Choose a Folder"
+msgctxt "@title:window"
+msgid "Choose Folder"
+msgstr "ਫੋਲਡਰ ਨੂੰ ਚੁਣੋ"
+
+#: qml/SettingsForm.qml:362
+#, kde-format
+msgid "When saving playlist files:"
+msgstr "ਜਦੋਂ ਪਲੇਅਲਿਸਟ ਫਾਇਲਾਂ ਨੂੰ ਸੰਭਾਲਣਾ ਹੋਵੇ:"
+
+#: qml/SettingsForm.qml:371
+#, kde-format
+msgctxt "@item:inlistbox Configure dialog, playlist save type"
+msgid "Prefer relative paths"
+msgstr ""
+
+#: qml/SettingsForm.qml:372
+#, kde-format
+msgctxt "@item:inlistbox Configure dialog, playlist save type"
+msgid "Always use absolute paths"
+msgstr "ਹਮੇਸ਼ਾਂ ਅਸਲ ਮਾਰਗ ਵਰਤੋਂ"
+
+#: qml/SettingsForm.qml:383
+#, kde-kuit-format
+msgctxt "@info:tooltip Playlist Relative Paths"
+msgid ""
+"When <interface>Prefer relative paths</interface> is selected, files in the "
+"same folder as the playlist will be referred with only the filename. "
+"Absolute paths are used in other cases."
+msgstr ""
+
+#: qml/SettingsForm.qml:398
+#, kde-format
+msgctxt ""
+"@title The configured folders where the user's music collection can be found"
+msgid "Music folders:"
+msgstr "ਸੰਗੀਤ ਫੋਲਡਰ:"
+
+#: qml/SettingsForm.qml:441
+#, kde-format
+msgctxt "@action:button"
+msgid "Stop looking for music here"
+msgstr "ਇੱਥੇ ਸੰਗੀਤ ਨੂੰ ਖੋਜਣਾ ਰੋਕੋ"
+
+#: qml/SettingsForm.qml:454
+#, kde-format
+msgctxt "@action:button"
+msgid "Add New Location"
+msgstr "ਨਵਾਂ ਟਿਕਾਣਾ ਜੋੜੋ"
+
+#: qml/shared/BasePlayListDelegate.qml:68
+#, kde-format
+msgctxt "@info:status"
+msgid "\"%1\" could not be played"
+msgstr "\"%1\" ਨੂੰ ਚਲਾਇਆ ਨਹੀਂ ਜਾ ਸਕਿਆ"
+
+#: qml/SortMenu.qml:24
+#, kde-format
+msgctxt "@title:menu"
+msgid "Sort By"
+msgstr "ਲੜੀਬੱਧ"
+
+#: qml/TrackBrowserDelegate.qml:92
+#, kde-format
+msgctxt "@action:button"
+msgid "Play from here, replacing current playlist"
+msgstr ""
+
+#: qml/TrackBrowserDelegate.qml:203 qml/TrackBrowserDelegate.qml:219
+#, kde-format
+msgctxt "@item:intable %1: track number. %2: track title."
+msgid "%1 – %2"
+msgstr ""
+
+#: qml/TrackBrowserDelegate.qml:214
+#, fuzzy, kde-format
+#| msgctxt "@item:intable %1: track number. %2: track title. %3: artist name"
+#| msgid "%1 - %2 - %3"
+msgctxt "@item:intable %1: track number. %2: track title. %3: artist name"
+msgid "%1 – %2 – %3"
+msgstr "%1 - %2 - %3"
+
+#: qml/TrackBrowserDelegate.qml:226
+#, kde-format
+msgctxt "@item:intable %1: track title. %2: artist name"
+msgid "%1 – %2"
+msgstr ""
+
+#: qml/TrackBrowserDelegate.qml:373
+#, kde-format
+msgctxt "@action:button"
+msgid "Song Options"
+msgstr "ਗੀਤ ਚੋਣਾਂ"
+
+#: qml/TrackImportNotification.qml:58 qml/TrackImportNotification.qml:76
+#, kde-format
+msgctxt "number of imported tracks"
+msgid "Imported one track"
+msgid_plural "Imported %1 tracks"
+msgstr[0] "ਇੱਕ ਟਰੈਕ ਦਰਾਮਦ ਕੀਤਾ"
+msgstr[1] "%1 ਟਰੈਕ ਦਰਾਮਦ ਕੀਤੇ"
+
+#: qml/TrackImportNotification.qml:62
+#, kde-format
+msgctxt "@info:status"
+msgid "Scanning music"
+msgstr "ਸੰਗੀਤ ਲਈ ਸਕੈਨ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ"
+
+#: qml/TracksDiscHeader.qml:23
+#, kde-format
+msgctxt "@title:row disc header text when showing an album"
+msgid "Disc %1"
+msgstr "ਡਿਸਕ %1"
+
+#: qml/VolumeSlider.qml:32
+#, fuzzy, kde-format
+#| msgctxt "@action:button"
+#| msgid "Change Volume"
+msgctxt "@label"
+msgid "Volume"
+msgstr "ਵਾਲੀਅਮ ਬਦਲੋ"
+
+#: qml/VolumeSlider.qml:53
+#, kde-format
+msgctxt "Volume as a percentage"
+msgid "%1%"
+msgstr "%1%"
+
+#: viewmanager.cpp:41
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Track Number"
+msgstr "ਟਰੈਕ ਨੰਬਰ"
+
+#: viewmanager.cpp:41 viewmanager.cpp:69
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Title"
+msgstr "ਟਾਈਟਲ"
+
+#: viewmanager.cpp:43
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Ascending"
+msgstr "ਵੱਧਦਾ-ਕ੍ਰਮ"
+
+#: viewmanager.cpp:43
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Descending"
+msgstr "ਘੱਟਦਾ-ਕ੍ਰਮ"
+
+#: viewmanager.cpp:44 viewmanager.cpp:57 viewmanager.cpp:71 viewmanager.cpp:85
+#: viewmanager.cpp:104 viewmanager.cpp:105 viewslistdata.cpp:63
+#: viewslistdata.cpp:77 viewslistdata.cpp:96 viewslistdata.cpp:97
+#: viewslistdata.cpp:111 viewslistdata.cpp:136
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "A–Z"
+msgstr ""
+
+#: viewmanager.cpp:44 viewmanager.cpp:57 viewmanager.cpp:71 viewmanager.cpp:85
+#: viewmanager.cpp:104 viewmanager.cpp:105 viewslistdata.cpp:63
+#: viewslistdata.cpp:77 viewslistdata.cpp:96 viewslistdata.cpp:97
+#: viewslistdata.cpp:111 viewslistdata.cpp:136
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Z–A"
+msgstr ""
+
+#: viewmanager.cpp:55 viewmanager.cpp:83
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Name"
+msgstr "ਨਾਂ"
+
+#: viewmanager.cpp:69
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Genre"
+msgstr "ਸ਼ੈਲੀ"
+
+#: viewmanager.cpp:69
+#, kde-format
+msgctxt "@title:inmenu"
+msgid "Year"
+msgstr "ਸਾਲ"
+
+#: viewmanager.cpp:71 viewmanager.cpp:105 viewmanager.cpp:106
+#: viewslistdata.cpp:63 viewslistdata.cpp:97 viewslistdata.cpp:98
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Oldest First"
+msgstr "ਸਭ ਤੋਂ ਪੁਰਾਣਾ ਪਹਿਲਾਂ"
+
+#: viewmanager.cpp:71 viewmanager.cpp:105 viewmanager.cpp:106
+#: viewslistdata.cpp:63 viewslistdata.cpp:97 viewslistdata.cpp:98
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Newest First"
+msgstr "ਸਭ ਤੋਂ ਨਵਾਂ ਪਹਿਲਾਂ"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:61 viewslistdata.cpp:92
+#, kde-format
+msgctxt "@title:menu"
+msgid "Title"
+msgstr "ਟਾਈਟਲ"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:92
+#, kde-format
+msgctxt "@title:menu"
+msgid "Album"
+msgstr "ਐਲਬਮ"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:61 viewslistdata.cpp:92
+#, kde-format
+msgctxt "@title:menu"
+msgid "Artist"
+msgstr "ਕਲਾਕਾਰ"
+
+#: viewmanager.cpp:100 viewslistdata.cpp:61 viewslistdata.cpp:92
+#: viewslistdata.cpp:109
+#, kde-format
+msgctxt "@title:menu"
+msgid "Genre"
+msgstr "ਧੁਨ"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:61 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Year"
+msgstr "ਸਾਲ"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Duration"
+msgstr "ਅੰਤਰਾਲ"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Composer"
+msgstr "ਕੰਪੋਜ਼ਰ"
+
+#: viewmanager.cpp:101 viewslistdata.cpp:93
+#, kde-format
+msgctxt "@title:menu"
+msgid "Lyricist"
+msgstr "ਗੀਤਕਾਰ"
+
+#: viewmanager.cpp:102 viewslistdata.cpp:94
+#, kde-format
+msgctxt "@title:menu"
+msgid "Last Modified"
+msgstr "ਆਖਰੀ ਸੋਧ"
+
+#: viewmanager.cpp:105 viewslistdata.cpp:97
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Shortest First"
+msgstr "ਸਭ ਤੋਂ ਛੋਟਾ ਪਹਿਲਾਂ"
+
+#: viewmanager.cpp:105 viewslistdata.cpp:97
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Longest First"
+msgstr "ਸਭ ਤੋਂ ਲੰਮਾ ਪਹਿਲਾਂ"
+
+#: viewslistdata.cpp:24
+#, kde-format
+msgctxt "@title:window Title of the view of the playlist"
+msgid "Now Playing"
+msgstr "ਹੁਣ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#: viewslistdata.cpp:27
+#, kde-format
+msgctxt "@title:window Title of the view of recently played tracks"
+msgid "Recently Played"
+msgstr "ਤਾਜ਼ਾ ਚਲਾਏ"
+
+#: viewslistdata.cpp:35
+#, kde-format
+msgctxt "@title:menu"
+msgid "Last Played Date"
+msgstr "ਆਖਰੀ ਵਾਰ ਚਲਾਉਣ ਦੀ ਤਾਰੀਖ"
+
+#: viewslistdata.cpp:37
+#, fuzzy, kde-format
+#| msgctxt "Title of the view of recently played tracks"
+#| msgid "Recently Played"
+msgctxt "@item:inmenu"
+msgid "Least Recently Played First"
+msgstr "ਤਾਜ਼ਾ ਚਲਾਏ"
+
+#: viewslistdata.cpp:37
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Most Recently Played First"
+msgstr "ਸਭ ਤੋਂ ਸੱਜਰੇ ਚਲਾਏ ਪਹਿਲਾਂ"
+
+#: viewslistdata.cpp:40
+#, kde-format
+msgctxt "@title:window Title of the view of frequently played tracks"
+msgid "Frequently Played"
+msgstr "ਅਕਸਰ ਚਲਾਏ"
+
+#: viewslistdata.cpp:48
+#, kde-format
+msgctxt "@title:menu"
+msgid "Play Frequency"
+msgstr "ਚਲਾਉਣ ਦੀ ਵਾਰੀ"
+
+#: viewslistdata.cpp:50
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Least Frequently Played First"
+msgstr "ਘੱਟ ਵਾਰ ਚਲਾਏ ਪਹਿਲਾਂ"
+
+#: viewslistdata.cpp:50
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Most Frequently Played First"
+msgstr "ਸਭ ਤੋਂ ਵੱਧ ਅਕਸਰ ਚਲਾਏ ਪਹਿਲਾਂ"
+
+#: viewslistdata.cpp:75 viewslistdata.cpp:134
+#, kde-format
+msgctxt "@title:menu"
+msgid "Name"
+msgstr "ਨਾਂ"
+
+#: viewslistdata.cpp:81
+#, kde-format
+msgctxt "@title:window Title of the view of all tracks"
+msgid "Tracks"
+msgstr "ਟਰੈਕ"
+
+#: viewslistdata.cpp:115
+#, kde-format
+msgctxt "@title:window Title of the file browser view"
+msgid "Files"
+msgstr "ਫਾਇਲਾਂ"
+
+#: viewslistdata.cpp:126
+#, kde-format
+msgctxt "@title:window Title of the file radios browser view"
+msgid "Radio Stations"
+msgstr "ਰੇਡੀਓ ਸਟੇਸ਼ਨ"
+
+#~ msgctxt "@action:button Pause current track from playlist"
+#~ msgid "Pause"
+#~ msgstr "ਵਿਰਾਮ"
+
+#~ msgctxt "@action:button Play this track from playlist"
+#~ msgid "Play"
+#~ msgstr "ਚਲਾਓ"
+
+#~ msgctxt ""
+#~ "@option file type (mime type) for m3u, m3u8 and pls playlist file "
+#~ "formats; do not translate *.m3u8 *.m3u *.pls"
+#~ msgid "m3u8, m3u, pls Playlist File (*.m3u8 *.m3u *.pls)"
+#~ msgstr "m3u8, m3u, pls ਪਲੇਅਲਿਸਟ ਫਾਇਲ (*.m3u8 *.m3u *.pls)"
+
+#~ msgctxt "@action:button Load a playlist file"
+#~ msgid "Load…"
+#~ msgstr "…ਲੋਡ"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "One"
+#~ msgstr "ਇੱਕ"
+
+#, fuzzy
+#~| msgctxt "@label:textbox Play counter label for track metadata view"
+#~| msgid "Play count"
+#~ msgctxt "@info:tooltip"
+#~ msgid "Play next"
+#~ msgstr "ਚੱਲਣ ਗਿਣਤੀ"
+
+#~ msgctxt "@item:intable %1: track number. %2: track title."
+#~ msgid "%1 - %2"
+#~ msgstr "%1 - %2"
+
+#~ msgctxt "@item:intable %1: track title. %2: artist name"
+#~ msgid "%1 - %2"
+#~ msgstr "%1 - %2"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "A-Z"
+#~ msgstr "A-Z"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Z-A"
+#~ msgstr "Z-A"
+
+#, fuzzy
+#~| msgctxt "@info:status"
+#~| msgid "%1 track"
+#~| msgid_plural "%1 tracks"
+#~ msgctxt "@item:intable %1 tracks"
+#~ msgid "%1 tracks"
+#~ msgstr "%1 ਟਰੈਕ"
+
+#~ msgctxt "@action:button"
+#~ msgid "Toggle Party Mode"
+#~ msgstr "ਪਾਰਟੀ ਢੰਗ ਨੂੰ ਬਦਲੋ"
+
+#~ msgctxt "@action:button"
+#~ msgid "Toggle Mute"
+#~ msgstr "ਮੌਨ ਨੂੰ ਬਦਲੋ"
+
+#~ msgctxt "@action:button"
+#~ msgid "Application Menu"
+#~ msgstr "ਐਪਲੀਕੇਸ਼ਨ ਮੇਨੂ"
+
+#~ msgctxt "@action:button"
+#~ msgid "Create a radio"
+#~ msgstr "ਰੇਡੀਓ ਬਣਾਓ"
+
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Toggle Shuffle"
+#~ msgctxt "@action:button"
+#~ msgid "Toggle View Style"
+#~ msgstr "ਰਲਵਾਉਣ ਨੂੰ ਬਦਲੋ"
+
+#~ msgctxt ""
+#~ "@info:status %1 is the translation of track[s], %2 is the translation of "
+#~ "remaining"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgctxt "@action:button"
+#~ msgid "Toggle Shuffle"
+#~ msgstr "ਰਲਵਾਉਣ ਨੂੰ ਬਦਲੋ"
+
+#~ msgctxt "@action:inmenu shuffle mode is turned on"
+#~ msgid "On"
+#~ msgstr "ਚਾਲੂ"
+
+#~ msgctxt "@action:button"
+#~ msgid "OK"
+#~ msgstr "ਠੀਕ ਹੈ"
+
+#~ msgctxt "@action:button"
+#~ msgid "Apply"
+#~ msgstr "ਲਾਗੂ ਕਰੋ"
+
+#, fuzzy
+#~| msgid "Close"
+#~ msgctxt "@action:button"
+#~ msgid "Close"
+#~ msgstr "ਬੰਦ ਕਰੋ"
+
+#, fuzzy
+#~| msgctxt ""
+#~| "The configured folders where the user's music collection can be found"
+#~| msgid "Music folders:"
+#~ msgctxt "@label:listbox"
+#~ msgid "Music indexing:"
+#~ msgstr "ਸੰਗੀਤ ਫੋਲਡਰ:"
+
+#, fuzzy
+#~| msgid "Color Scheme"
+#~ msgctxt "@action:button"
+#~ msgid "Color Scheme"
+#~ msgstr "ਰੰਗ ਸਕੀਮ"
+
+#, fuzzy
+#~| msgid "Color Scheme"
+#~ msgctxt "@title:menu"
+#~ msgid "Color Scheme"
+#~ msgstr "ਰੰਗ ਸਕੀਮ"
+
+#, fuzzy
+#~| msgctxt "Window title for track metadata"
+#~| msgid "View Details"
+#~ msgctxt "@title:window"
+#~ msgid "View Details"
+#~ msgstr "ਵੇਰਵੇ ਵੇਖੋ"
+
+#, fuzzy
+#~| msgctxt "Window title for track metadata"
+#~| msgid "View Details"
+#~ msgctxt "@action:button Show track metadata"
+#~ msgid "View Details"
+#~ msgstr "ਵੇਰਵੇ ਵੇਖੋ"
+
+#, fuzzy
+#~| msgctxt "menu entry"
+#~| msgid "Leave Fullscreen"
+#~ msgctxt "@action:inmenu"
+#~ msgid "Leave Full Screen"
+#~ msgstr "ਪੂਰੀ ਸਕਰੀਨ ਛੱਡੋ"
+
+#~ msgctxt "Track title for track metadata view"
+#~ msgid "Title"
+#~ msgstr "ਟਾਈਟਲ"
+
+#~ msgctxt "Track artist for track metadata view"
+#~ msgid "Artist"
+#~ msgstr "ਕਲਾਕਾਰ"
+
+#~ msgctxt "Album name for track metadata view"
+#~ msgid "Album"
+#~ msgstr "ਐਲਬਮ"
+
+#~ msgctxt "Genre label for track metadata view"
+#~ msgid "Genre"
+#~ msgstr "ਧੁਨ"
+
+#~ msgctxt "Lyricist label for track metadata view"
+#~ msgid "Lyricist"
+#~ msgstr "ਗੀਤਕਾਰ"
+
+#~ msgctxt "Composer name for track metadata view"
+#~ msgid "Composer"
+#~ msgstr "ਕੰਪੋਜ਼ਰ"
+
+#~ msgctxt "Year label for track metadata view"
+#~ msgid "Year"
+#~ msgstr "ਸਾਲ"
+
+#~ msgctxt "Duration label for track metadata view"
+#~ msgid "Duration"
+#~ msgstr "ਅੰਤਰਾਲ"
+
+#~ msgctxt "One of the 'now playing' views"
+#~ msgid "Lyrics"
+#~ msgstr "ਬੋਲ"
+
+#~ msgctxt "show the playlist"
+#~ msgid "Show Playlist"
+#~ msgstr "ਪਲੇਅਲਿਸਟ ਵੇਖਾਓ"
+
+#, fuzzy
+#~| msgid "Elisa"
+#~ msgctxt "Window title"
+#~ msgid "Elisa"
+#~ msgstr "ਇਲੀਸਾ"
+
+#~ msgctxt "%1: track title. %2: artist name"
+#~ msgid "%1 - %2"
+#~ msgstr "%1 - %2"
+
+#, fuzzy
+#~| msgctxt "Add whole container to play list"
+#~| msgid "Add to playlist"
+#~ msgctxt "Enqueue current track"
+#~ msgid "Add to playlist"
+#~ msgstr "ਪਲੇਅਲਿਸਟ ਵਿੱਚ ਜੋੜੋ"
+
+#, fuzzy
+#~| msgctxt "toggle mute mode for player"
+#~| msgid "Toggle Mute"
+#~ msgctxt "toggle the party mode"
+#~ msgid "Toggle Party Mode"
+#~ msgstr "ਮੌਨ ਨੂੰ ਬਦਲੋ"
+
+#, fuzzy
+#~| msgid "Pause"
+#~ msgctxt "Pause any media that is playing"
+#~ msgid "Pause"
+#~ msgstr "ਵਿਰਾਮ"
+
+#, fuzzy
+#~| msgid "Play"
+#~ msgctxt "Start playing media"
+#~ msgid "Play"
+#~ msgstr "ਚਲਾਓ"
+
+#~ msgctxt ""
+#~ "@info Title of the view of the playlist; keep this string as short as "
+#~ "possible because horizontal space is quite scarce"
+#~ msgid "Playlist"
+#~ msgstr "ਪਲੇਅਲਿਸਟ"
+
+#~ msgctxt "Playlist cleared"
+#~ msgid "Playlist cleared"
+#~ msgstr "ਪਲੇਅਲਿਸਟ ਸਾਫ਼ ਕੀਤੀ"
+
+#, fuzzy
+#~| msgctxt "toggle mute mode for player"
+#~| msgid "Toggle Mute"
+#~ msgctxt "menu entry"
+#~ msgid "Toggle Party Mode"
+#~ msgstr "ਮੌਨ ਨੂੰ ਬਦਲੋ"
+
+#~ msgctxt "Show track metadata"
+#~ msgid "View Details"
+#~ msgstr "ਵੇਰਵੇ ਵੇਖੋ"
+
+#~ msgctxt "Pause current track from play list"
+#~ msgid "Pause"
+#~ msgstr "ਵਿਰਾਮ"
+
+#~ msgctxt "Play this track from play list"
+#~ msgid "Play"
+#~ msgstr "ਚਲਾਓ"
+
+#~ msgctxt "Configure dialog, embed all albums in views navigation list"
+#~ msgid "Albums"
+#~ msgstr "ਐਲਬਮਾਂ"
+
+#~ msgctxt "Configure dialog, embed all artists in views navigation list"
+#~ msgid "Artists"
+#~ msgstr "ਕਲਾਕਾਰ"
+
+#~ msgctxt "Configure dialog, embed all genres in views navigation list"
+#~ msgid "Genres"
+#~ msgstr "ਸ਼ੈਲੀਆਂ"
+
+#~ msgctxt "Title of the view of the playlist"
+#~ msgid "Now Playing"
+#~ msgstr "ਹੁਣ ਚੱਲ ਰਿਹਾ ਹੈ"
+
+#, fuzzy
+#~| msgid "Radios"
+#~ msgctxt "Title of the file radios browser view"
+#~ msgid "Radio Stations"
+#~ msgstr "ਰੇਡੀਓ"
+
+#~ msgctxt "Refresh Music Collection application menu entry"
+#~ msgid "Refresh Music Collection"
+#~ msgstr "ਸੰਗੀਤ ਭੰਡਾਰ ਤਾਜ਼ਾ ਕਰੋ"
+
+#~ msgid "Refresh Music Collection"
+#~ msgstr "ਸੰਗੀਤ ਭੰਡਾਰ ਤਾਜ਼ਾ ਕਰੋ"
+
+#, fuzzy
+#~| msgid "Save"
+#~ msgctxt "Save a playlist file"
+#~ msgid "Save..."
+#~ msgstr "ਸੰਭਾਲੋ"
+
+#, fuzzy
+#~| msgctxt "Load a playlist file"
+#~| msgid "Load Playlist..."
+#~ msgctxt "Load a playlist file"
+#~ msgid "Load..."
+#~ msgstr "...ਪਲੇਅਲਿਸਟ ਲੋਡ ਕਰੋ"
+
+#~ msgctxt "Undo"
+#~ msgid "Undo"
+#~ msgstr "ਵਾਪਸ ਲਵੋ"
+
+#~ msgctxt "Save a playlist file"
+#~ msgid "Save Playlist..."
+#~ msgstr "...ਪਲੇਅਲਿਸਟ ਸੰਭਾਲੋ"
+
+#~ msgid "Last track"
+#~ msgstr "ਆਖਰੀ ਟਰੈਕ"
+
+#~ msgctxt "menu entry"
+#~ msgid "Expand Player"
+#~ msgstr "ਪਲੇਅਰ ਨੂੰ ਫੈਲਾਓ"
+
+#~ msgctxt "%1: track number. %2: track title"
+#~ msgid "%1 - %2"
+#~ msgstr "%1 - %2"

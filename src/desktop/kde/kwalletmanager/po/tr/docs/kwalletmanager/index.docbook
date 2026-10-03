@@ -1,0 +1,806 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN" "dtd/kdedbx45.dtd" [
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % Turkish "INCLUDE">
+]>
+
+<book id="kwallet5" lang="&language;">
+<bookinfo>
+<title
+>&kwallet5; El Kitabı</title>
+
+<authorgroup>
+<author
+>&George.Staikos; &George.Staikos.mail; </author>
+<author
+>&Lauri.Watts; &Lauri.Watts.mail; </author>
+<othercredit role="developer"
+><firstname
+>George</firstname
+><surname
+>Staikos</surname
+> <affiliation
+><address
+>&George.Staikos.mail;</address
+></affiliation>
+<contrib
+>Geliştirici</contrib>
+</othercredit>
+<othercredit role="translator"
+><firstname
+>Kaan</firstname
+><surname
+>Özdinçer</surname
+><affiliation
+><address
+><email
+>kaanozdincer@gmail.com</email
+></address
+></affiliation
+><contrib
+>Çeviri</contrib
+></othercredit
+> 
+</authorgroup>
+
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>2016‒07‒05</date>
+<releaseinfo
+>Uygulamalar 16.04</releaseinfo>
+
+<abstract>
+<para
+>Cüzdan alt sistemi, tüm parolalarınızı yönetmek için kullanışlı ve güvenli bir yol sağlar.</para>
+
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>K Cüzdan</keyword>
+<keyword
+>parolalar</keyword>
+<keyword
+>formlar</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title
+>Giriş</title>
+
+<para
+>Bilgisayar kullanıcılarının yönetmesi gereken çok büyük miktarda verisi vardır ve bunların bir kısmı hassastır. Özellikle, genellikle yönetmeniz gereken birçok parolanız olacaktır. Bunları hatırlamak zordur ve bunları bir kağıda veya bir metin dosyasına yazmak güvensizdir.</para>
+
+<para
+>&kwallet5;, şifreleri ve diğer gizli bilgileri saklamak için güvenli bir yol sağlar ve kullanıcının çok sayıda farklı şifre ve kimlik bilgisi yerine yalnızca tek bir şifreyi hatırlamasına olanak tanır. </para>
+
+<sect1 id="kwallet-create">
+
+<title
+>Cüzdan Oluştur</title>
+
+<para
+>Cüzdan bir şifre deposudur. Bir cüzdanın tek bir ana parola ile güvence altına alınması genellikle yeterlidir; ancak büyük parola koleksiyonunuzu &kwalletmanager5; kullanarak cüzdanlara göre düzenleyebilirsiniz.</para>
+
+<para
+>Öntanımlı olarak, parolalarınızı depolamak için <guilabel
+>kdewallet</guilabel
+> adlı bir cüzdan kullanılacaktır. Bu cüzdan, oturum açma parolanız tarafından güvence altına alınmıştır ve kwallet_pam yüklenmiş ve doğru şekilde yapılandırılmışsa oturum açma sırasında kendiliğinden açılacaktır. Belirli dağıtımlarda (örn. Archlinux) kwallet_pam öntanımlı olarak kurulu değildir</para>
+
+
+<para
+>Diğer cüzdanlar elle açılmalıdır.</para>
+
+<para
+>Yeni bir cüzdan oluşturmanın iki yolu vardır:</para>
+
+<itemizedlist>
+<listitem
+><para
+>&kwalletmanager5; içindeki <menuchoice
+><guimenu
+>Dosya</guimenu
+><guimenuitem
+>Yeni Cüzdan</guimenuitem
+></menuchoice
+> ögesini kullanın.</para
+></listitem>
+
+<listitem
+><para
+>&systemsettings; içindeki <guilabel
+>KDE Cüzdan</guilabel
+> modülünde <guibutton
+>Yeni</guibutton
+> düğmesini kullanın</para
+></listitem>
+</itemizedlist>
+
+<para
+>Henüz bir cüzdan oluşturmadıysanız <link linkend="kwallet-using"
+>&kwallet5; Kullanımı</link
+> bölümüne göz atın. </para>
+
+<para
+>&kwallet5; ile verilerinizi depolamanın iki farklı yolu vardır:</para>
+
+<screenshot>
+<screeninfo
+>Şifreleme seç</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="wallet-encryption-selection.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Şifreleme seç</phrase
+></textobject>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term
+>Blowfish şifreleme</term>
+<listitem>
+<para
+>&kwallet5; bu hassas verileri sizin için güçlü bir şekilde şifrelenmiş, tüm uygulamalar tarafından erişilebilen ve sizin belirleyeceğiniz bir ana parola ile korunan bir dosyaya kaydeder.</para>
+
+<screenshot>
+<screeninfo
+>Blowfish ile şifrelenmiş bir cüzdan oluştur</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="first-open-request.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Blowfish ile şifrelenmiş bir cüzdan oluştur</phrase
+></textobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Veri, <ulink url="http://www.schneier.com/blowfish.html"
+>Blowfish simetrik blok şifreleme algoritması</ulink
+> ile şifrelenmiştir, algoritma anahtarı parolanın <ulink url="http://www.ietf.org/rfc/rfc3174.txt"
+>SHA-1 özeti</ulink
+> üzerinden türetilmiştir, anahtar uzunluğu 156 bittir (20 bayt). Cüzdan dosyasındaki veriler ayrıca, SHA-1 ile sağlaması yapılarak veriler çözülmeden önce denetlenir ve uygulamalar tarafından erişilebilir duruma gelir. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>GPG şifreleme</term>
+<listitem>
+<para
+>GnuPG bazı çok güçlü şifreleme algoritmaları sunar ve parola korumalı uzun anahtarlar kullanır.</para>
+
+<screenshot>
+<screeninfo
+>GPG anahtarı bulunamadı</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="error-nokey.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>GPG anahtarı bulunamadı</phrase
+></textobject>
+</mediaobject>
+</screenshot>
+<para
+>Yukarıdaki ekran görüntüleri, sistemde şifreleme özellikli bir GPG anahtarının bulunmadığı durumu göstermektedir. Lütfen bir anahtar oluşturmak ve yeniden denemek için &kgpg; veya &kleopatra; gibi uygulamalar kullanın.</para>
+
+<para
+>Bir GPG anahtarı bulunursa yeni cüzdanınız için kullanmak üzere bir anahtar seçebileceğiniz bir sonraki iletişim kutusunu göreceksiniz. </para>
+<screenshot>
+<screeninfo
+>Şifreleme anahtarı seçin</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="key-selection.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Şifreleme anahtarı seçin</phrase
+></textobject>
+</mediaobject>
+</screenshot>
+
+<para
+>&kwallet5;, artık cüzdanları saklarken ve açarken GPG kullanacaktır. Parola iletişim kutusu yalnızca bir kez gösterilir. Cüzdan ilk açılıştan sonra kapatılsa bile, sonraki açılış aynı oturum sırasında sessizce gerçekleşecektir. </para>
+
+<para
+>Aynı oturum, her iki dosya biçimini aynı anda işleyebilir. &kwallet5; dosya biçimini saydam bir şekilde algılayacak ve onu işlemek için doğru arka ucu yükleyecektir.</para>
+
+<para
+>Klasik cüzdanınızdaki hassas verilerinizi yeni arka uçla kullanmak için şu adımları izleyin:</para>
+
+<itemizedlist>
+<listitem
+><para
+>GPG tabanlı yeni bir cüzdan oluşturun</para
+></listitem>
+<listitem
+><para
+>&krunner;’ı veya başka bir uygulama başlatıcıyı kullanarak &kwalletmanager5;’i başlatın (<keycombo
+>&Alt; <keycap
+>F2</keycap
+></keycombo
+>) ve eski cüzdanınızı seçin. Sonrasında, hassas verinizle bir arşiv dosyası oluşturmak için <menuchoice
+><guimenu
+>Dosya</guimenu
+> <guimenuitem
+>Şifreli Olarak Dışa Aktar</guimenuitem
+></menuchoice
+> seçeneğini kullanın. </para
+></listitem>
+<listitem
+><para
+>Yeni GPG tabanlı cüzdanı seçin ve <menuchoice
+><guimenu
+>Dosya</guimenu
+> <guimenuitem
+>Şifreliyi İçe Aktar</guimenuitem
+></menuchoice
+>’a tıklayıp biraz önce kaydettiğiniz dosyayı seçin.</para>
+</listitem>
+
+<listitem
+><para
+>&systemsettings; <menuchoice
+><guimenu
+>Hesap Ayrıntıları</guimenu
+> <guimenuitem
+>KDE Cüzdan</guimenuitem
+></menuchoice
+> yolunu izleyin ve <guilabel
+>Öntanımlı olarak kullanılacak cüzdanı seç</guilabel
+> çoklu kutusundan yeni oluşturulan GPG tabanlı cüzdanı seçin. </para
+></listitem>
+</itemizedlist>
+
+<para
+>Alternatif olarak, <guimenuitem
+>Cüzdan İçe Aktar</guimenuitem
+> seçeneğini kullanın; ancak bu durumda <userinput
+>qtpaths --paths GenericDataLocation</userinput
+> içindeki <filename class="directory"
+>kwalletd</filename
+> klasöründe eski cüzdanınıza karşılık gelen <filename class="extension"
+>.kwl</filename
+> dosyasını seçmeniz gerekir. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<tip>
+<para
+>&kwallet5; birden çok cüzdanı destekler, bu nedenle en güvenli işlem için yerel parolalar için bir cüzdan, ağ parolaları ve form verileri için başka bir cüzdan kullanmaktır. Bu davranışı &kwallet5; &systemsettings; modülünden yapılandırabilirsiniz; ancak öntanımlı ayar, her şeyi <guilabel
+>kdewallet</guilabel
+> adlı tek bir cüzdanda saklamaktır.</para>
+</tip>
+
+<para
+>Bir cüzdan öntanımlı olarak kapalıdır, bu da onu açmak için bir parola sağlamanız gerektiği anlamına gelir. Cüzdan açıldıktan sonra içerik herhangi bir kullanıcı işlemi tarafından okunabilir, dolayısıyla bu bir güvenlik sorunu olabilir.</para>
+</sect1>
+
+<sect1 id="kwallet-using">
+<title
+>&kwallet5; Kullanımı</title>
+
+<para
+>Örneğin, &kde; hata izleyicisini ziyaret edip giriş verinizi ilk kez girdiğinizde, parolayı şifreli bir cüzdan içine saklamanızı öneren bir iletişim penceresi açılır:</para>
+
+<screenshot>
+<screeninfo
+>Giriş bilgilerini kaydetme isteği</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="save-login-information.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Giriş bilgilerini kaydetme isteği</phrase
+></textobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Bu bilgiyi depolamak istiyorsanız <guibutton
+>Depola</guibutton
+> ögesini kullanın. Şimdiye kadar bir cüzdan oluşturmadıysanız bir sonraki iletişim penceresi şifreleme arka ucunu sorar ve kdewallet adlı bir cüzdan oluşturur. </para>
+
+<para
+>Aynı web sitesini yeniden ziyaret ettiğinizde, uygulama oturum açma verilerini açık bir cüzdandan alır ve formları bu gizlerle önceden doldurur.</para>
+
+<screenshot>
+<screeninfo
+>Önceden doldurulmuş giriş bilgisi</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="prefilled-forms.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Önceden doldurulmuş giriş bilgisi</phrase
+></textobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Cüzdan kapalıysa uygulama cüzdanı açma isteği gönderir. Cüzdan parolasını girin ve <guibutton
+>Aç</guibutton
+> düğmesine tıklayın.</para>
+
+<screenshot>
+<screeninfo
+>Cüzdan açma isteği</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="openwallet-request.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Cüzdan açma isteği</phrase
+></textobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Bu, uygulamayı cüzdana bağlar, cüzdandan oturum açma verilerini okumasını ve bu web sitesi için oturum açma bilgilerini geri yüklemesini sağlar. Bir uygulama cüzdana bağlandığında, cüzdanda saklanan tüm giriş bilgilerini kendiliğinden geri yükleyebilir.</para>
+
+</sect1>
+
+</chapter>
+
+<chapter id="kwalletmanager5">
+<title
+>&kwalletmanager5;</title>
+
+<para
+>&kwalletmanager5;, bir dizi işlev sağlar. Öncelikle, herhangi bir cüzdanın açık olup olmadığını, bu cüzdanı olup olmadığını ve hangi uygulamaların hangi cüzdanı kullandığını görmenizi sağlar. Bir uygulamanın &kwalletmanager5; içinden bir cüzdana erişimini kesebilirsiniz.</para>
+
+<para
+>Ayrıca sistemde kurulu olan cüzdanları yönetebilir, cüzdan oluşturabilir, silebilir ve içeriklerini düzenleyebilirsiniz (anahtar değiştirme, vb.).</para>
+
+<para
+>&kwalletmanager5;, uygulaması, başlatıcıdan <menuchoice
+> <guimenu
+>Uygulamalar</guimenu
+><guisubmenu
+>Sistem</guisubmenu
+> <guimenuitem
+>Cüzdan Yönetim Aracı</guimenuitem
+></menuchoice
+> üzerinden başlatılabilir. Alternatif olarak, <keycombo action="simul"
+>&Alt;<keycap
+>F2</keycap
+></keycombo
+> kısayolu ile &krunner; başlatabilir ve <command
+>kwalletmanager5</command
+> komutunu girebilirsiniz.</para>
+
+<para
+>&kwalletmanager5; penceresini görüntülemek için sistem tepsisindeki cüzdan simgesine bir kere tıklamanız yeterlidir.</para>
+<para>
+<screenshot>
+<screeninfo
+>Tek cüzdan içeren ana pencere</screeninfo>
+<mediaobject>
+<imageobject>
+<imagedata fileref="kwalletmanager.png"/>
+</imageobject>
+<textobject>
+<phrase
+>Tek cüzdan içeren ana pencere</phrase>
+</textobject>
+<caption
+><para
+>Tek cüzdan içeren ana pencere</para
+></caption>
+</mediaobject>
+</screenshot>
+</para>
+
+<!--FIXME
+How to get assistant "First Use"? kwalletwizardpageintro.ui
+Last code change with http://websvn.kde.org/?view=revision&revision=882694
+see also https://bugs.kde.org/show_bug.cgi?id=290309
+-->
+<sect1 id="kwalletmanager-wallet-window">
+<title
+>Cüzdan Penceresi</title>
+
+<para
+>Birden fazla cüzdanınız varsa tüm kullanılabilir cüzdanlar solda gösterilir.</para>
+
+<para
+>&kwalletmanager5; içinde bir cüzdana tıklamak penceresi o cüzdanın durumunu ve açılmış bir cüzdanın içeriğini gösterecektir. Bir cüzdan, şifre bilgilerinin saklanmasına izin veren herhangi bir sayıda klasör içerebilir. Öntanımlı olarak bir cüzdan, Form Verileri ve Parolalar adlı klasörler içerecektir. </para>
+
+<screenshot>
+<screeninfo
+>İki cüzdanlı ana pencere</screeninfo>
+<mediaobject>
+<imageobject>
+<imagedata fileref="kwallet-edit.png"/>
+</imageobject>
+<textobject>
+<phrase
+>İki cüzdanlı ana pencere</phrase>
+</textobject>
+<caption
+><para
+>İki cüzdanlı ana pencere</para
+></caption>
+</mediaobject>
+</screenshot>
+<para
+>Kapalı cüzdanın içeriğini göstermek için <guibutton
+>Aç</guibutton
+> düğmesini kullanın. Ana parolayı girmeniz istenecektir.</para>
+
+<sect2>
+<title
+>İçerik sekmesi</title>
+
+<para
+><guilabel
+>İçerik</guilabel
+> sekmesi üç bölümden oluşur:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Geçerli cüzdan ögelerini süzmek için bir arama satırı</para
+></listitem>
+<listitem
+><para
+>Cüzdanda bulunan klasörlerin ağaç görünümü. Ağaç görünümünü açıp kapatmak için <guiicon
+>&gt;</guiicon
+> / <guiicon
+>v</guiicon
+> simgelerine tıklayın.</para
+></listitem>
+<listitem
+><para
+>Seçilen klasör girdisinin içeriği sağ taraftadır. Öntanımlı olarak parola ve değeri gizlidir. Bunları görüntülemek ve düzenlemek için <guilabel
+>Değerleri göster</guilabel
+> seçeneğini etkinleştirin veya <guilabel
+>İçeriği Göster</guilabel
+> düğmesine tıklayın. </para
+></listitem>
+</itemizedlist>
+
+<para
+>Bağlam menüsü aracılığıyla klasörler eklenebilir veya silinebilir ve bir klasör seçildiğinde, klasör giriş listesi ve özet ekranı güncellenir. Klasör girişinin seçilmesi, giriş içeriği bölmesini güncelleyecek ve bu girişi düzenlemenize izin verecektir.</para>
+
+<para
+>Klasör içeriği için içerik menüsü aracılığıyla girişler oluşturulabilir, yeniden adlandırılabilir veya silinebilir.</para>
+
+<para
+>Tüm klasörler ve girişler, sırasıyla diğer cüzdanlara veya klasörlere sürüklenebilir ve bırakılabilir. Bu, bir kullanıcının başka bir ortama aktarım için yeni bir cüzdanı kolayca paketlemesine olanak tanır. Örneğin, yeni bir cüzdan oluşturulabilir ve çıkarılabilir bir USB bellek aygıtına kopyalanabilir. Önemli parolalar buralara aktarılabilir, böylece onları başka konumlarda kullanabilirsiniz.</para>
+
+<sect3 id="kwallet-import-export">
+<title
+>İçe ve Dışa Aktarma</title>
+<para
+>Gizli bilgileri başka bir aygıta veya bilgisayara aktarmak isterseniz <guimenu
+>Dosya</guimenu
+> menüsündeki işlemleri kullanabilirsiniz. <guimenuitem
+>Şifrelenmiş Olarak Dışa Aktar</guimenuitem
+>, cüzdanları, şifrelenmiş arşiv dosyası olarak dışa aktarır. Bu arşivi, <guimenuitem
+>Şifreliyi İçe Aktar</guimenuitem
+> seçeneğiyle içe aktarmak isterseniz cüzdanın ana parolasını belirtmeniz gerekir. </para>
+<para
+>Alternatif olarak, bir cüzdanı aktarmak için bir <filename class="extension"
+>.xml</filename
+> dosyası kullanılabilir. Tüm gizlerin bu dosyada düz metin olarak saklandığını unutmayın. </para>
+</sect3>
+
+<sect3 id="kwallet-adding-entries">
+<title
+>Elle Girdiler Eklemek</title>
+<para
+>Bağlam menüsünü &RMB; ile açın. <guilabel
+>Klasör</guilabel
+> ağaç görünümünden, <guilabel
+>Haritalar</guilabel
+> veya <guilabel
+>Parolalar</guilabel
+> seçeneğine tıklayın. <guimenuitem
+>Yeni</guimenuitem
+> veya <guimenuitem
+>Yeni Klasör</guimenuitem
+> ögesini seçin ve yeni girdi için bir ad seçin.</para>
+<para
+>Klasör içerikleri bölmesinden, <quote
+>Form Verisi</quote
+> veya <quote
+>Parolalar</quote
+> ögelerinin bağlam menüsünden, <guilabel
+>Yeni Klasör</guilabel
+> seçin. Parolalar için <guilabel
+>İçeriği Göster</guilabel
+> düğmesine tıklayın ve yeni parola girin. Haritalar için <guilabel
+>Anahtar</guilabel
+> ve <guilabel
+>Değer</guilabel
+> eklemelisiniz. Yeni girdileri, şifrelenmiş cüzdan dosyasında saklamak için <guilabel
+>Kaydet</guilabel
+> düğmesine basın. </para>
+</sect3>
+</sect2>
+
+<sect2>
+<title
+>Uygulamalar sekmesi</title>
+<para>
+<screenshot>
+<screeninfo
+>Uygulamalar sekmesi</screeninfo>
+<mediaobject>
+<imageobject>
+<imagedata fileref="kwallet-applications.png"/>
+</imageobject>
+<textobject>
+<phrase
+>Uygulamalar sekmesi</phrase>
+</textobject>
+<caption
+><para
+>Uygulamalar sekmesi</para
+></caption>
+</mediaobject>
+</screenshot>
+</para>
+<para
+>İlk liste, o anda seçilen cüzdana bağlı olan tüm uygulamaları gösterir. Uygulamanın bağlantısını kesmek için her girişin sağ tarafındaki düğmeyi kullanın.</para>
+
+<para
+>İkinci listede, cüzdana erişme yetkisi olan tüm uygulamalar görüntülenir. Erişimi iptal etmek için listedeki her girişin sağındaki düğmeyi kullanın. </para>
+<!-- FIXME difference to remove the policy in kwallermanager settings dialog?-->
+</sect2>
+</sect1>
+
+</chapter>
+
+<chapter id="kwallet-kcontrol-module">
+<title
+>&kwallet5; Yapılandırması</title>
+
+<sect1 id="wallet-preferences">
+<title
+>Cüzdan Tercihleri</title>
+
+<para
+>&kwallet5; &kwallet5;’i kişisel tercihlerinize göre ayarlamanıza izin veren birkaç seçeneğe sahip küçük bir yapılandırma paneli içerir. &kwallet5; öntanımlı ayarları çoğu kullanıcı için yeterlidir.</para>
+
+<para
+>&kde; cüzdan alt sistemini tamamen etkinleştirmek veya devre dışı bırakmak için kutuyu işaretleyin. Bu kutunun işareti kaldırılırs, &kwallet5; tümüyle devre dışı kalır ve burada diğer seçeneklerden hiçbirinin etkisi yoktur; bu durumda &kwallet5; herhangi bir bilgiyi kaydetmez veya sizin için formları doldurmayı teklif etmez.</para>
+
+<variablelist>
+<title
+><guilabel
+>Cüzdanı Kapat</guilabel
+></title>
+<varlistentry>
+<term
+><guilabel
+>Şu kadar kullanılmazsa kapat:</guilabel
+></term>
+<listitem>
+<para
+>Bir süre işlem yapılmadığında geçerli cüzdanı kapat. Bu seçeneği işaretlerseniz kutuda süreyi ayarlayın, öntanımlı olarak 10 dakikadır. Bir cüzdan kapatıldığında, ona yeniden erişmek için parola gerekir.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ekran koruyucu başladığında kapat</guilabel
+></term>
+<listitem>
+<para
+>Ekran koruyucu başlar başlamaz cüzdanı kapat. Bir cüzdan kapatıldığında, ona yeniden erişmek için parola gerekir.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Kullanan en son program kapatıldığında kapat</guilabel
+></term>
+<listitem>
+<para
+>Onu kullanan uygulamalar durur durmaz cüzdanı kapat. Cüzdanlarınızın yalnızca onu kullanan tüm uygulamalar durduğunda kapatılacağını unutmayın. Bir cüzdan kapatıldığında, ona yeniden erişmek için parola gerekir.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+<variablelist>
+<title
+><guilabel
+>Otomatik Cüzdan Seçimi</guilabel
+></title>
+<varlistentry>
+<term
+><guilabel
+>Öntanımlı olarak kullanılacak cüzdanı seç:</guilabel
+></term>
+<listitem>
+<para
+>Hangi cüzdanı öntanımlı cüzdan olarak kullanmak istediğinizi seçin. Yalnızca <guilabel
+>kdewallet</guilabel
+> adlı cüzdanın oturum açma sırasında bu cüzdan ve oturum açma şifreniz aynı ise.kendiliğinden açılacağını unutmayın. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Yerel parolalar için farklı cüzdan:</guilabel
+></term>
+<listitem>
+<para
+>İşaretlenirse yerel parolalar için farklı bir cüzdan seçin.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+<variablelist>
+<title
+><guilabel
+>Cüzdan Yöneticisi</guilabel
+></title>
+<varlistentry>
+<term
+><guilabel
+>Sistem tepsisinde yöneticiyi göster</guilabel
+></term>
+<listitem>
+<para
+>Cüzdan yöneticisinin simgesinin sistem tepsisinde olmasını sağlayın.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>En son cüzdan kapandığında sistem tepsisi simgesini gizle</guilabel
+></term>
+<listitem>
+<para
+>Kullanımda bir cüzdan kalmadığında, sistem tepsisindeki cüzdan simgesini kaldır.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Son olarak, <guibutton
+>Cüzdan Yöneticisini Çalıştır</guibutton
+> etiketli bir düğme vardır, bu da tam olarak bunu yapmaktadır.</para>
+<para
+>Bu düğme, yalnızca &kwalletmanager5; çalışmıyorken görünürdür</para>
+</sect1>
+
+<sect1 id="wallet-access-control">
+<title
+>Erişim Denetimi</title>
+
+<para
+>Bu sayfada yalnızca tek bir seçenek vardır:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Bir program cüzdanlardan birine erişmeye çalıştığında uyar</guilabel
+></term>
+<listitem>
+<para
+>Bir uygulama, herhangi bir cüzdana eriştiğinde sizi uyarır.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Ardından, cüzdanlarınız için erişim denetimlerinin ağaç biçemli görünümü vardır.</para>
+
+<screenshot>
+<screeninfo
+>Erişim Denetimi</screeninfo>
+<mediaobject>
+<imageobject>
+<imagedata fileref="kwallet-access-control.png"/>
+</imageobject>
+<textobject>
+<phrase
+>Erişim Denetimi</phrase>
+</textobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Ağacı genişletmek için cüzdanın yanındaki <guiicon
+>&gt;</guiicon
+> sembolüne &LMB; ile tıklayın. Cüzdana erişmek isteyen her uygulamanın adını ve bunun için belirlediğiniz politikayı göreceksiniz. Buradaki politikaları düzenleyemez veya ekleyemezsiniz; ancak bir girdiye &RMB; ile tıklayarak ve bağlam menüsünde gözüken <guimenuitem
+>Sil</guimenuitem
+> ögesini seçerek veya ögeyi seçip <keysym
+>Sil</keysym
+> düğmesine basarak silmek olanaklıdır.</para>
+
+<para
+>Bir cüzdana erişimine izin verilen bir uygulamaya, içinde saklanan tüm şifrelere erişim izni verilir.</para>
+
+<para
+>Bir uygulamayı yanlışlıkla &kwallet5; kullanmayacak şekilde yapılandırdıysanız bu uygulama için politikayı buradan silin.</para>
+<!-- FIXME difference to Revoke Authorization in kwallermanager?-->
+<para
+>Bu uygulamanın bir sonraki başlangıcında, cüzdana erişim için yeni bir politika tanımlayabilirsiniz. </para>
+<screenshot>
+<screeninfo
+>Açık bir cüzdana erişim isteği</screeninfo>
+<mediaobject>
+<imageobject>
+<imagedata fileref="application-request-to-open-wallet.png"/>
+</imageobject>
+<textobject>
+<phrase
+>Açık bir cüzdana erişim isteği</phrase>
+</textobject>
+<caption
+><para
+>Cüzdana erişim isteyen bir uygulama</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect1>
+
+</chapter>
+
+<chapter id="advanced-features">
+<title
+>Gelişmiş Özellikler</title>
+
+<para
+>Cüzdanlar &kwalletmanager5; penceresinden sürüklenebilir. Bu, cüzdanı istediğiniz gibi kopyalamanıza, taşımanıza veya bağlamayı seçebileceğiniz bir dosya tarayıcı penceresine sürükleyebilmenize izin verir.</para>
+
+<para
+>Bunu, bir cüzdanı USB anahtarlık gibi taşınabilir bir ortama kaydetmek için kullanabilirsiniz, böylece parolalarınızı işe veya tatile giderken yanınıza alabilir ve yine de önemli sitelere kolayca erişebilirsiniz.</para>
+
+</chapter>
+
+<chapter id="credits-and-license">
+<title
+>Emeği Geçenler ve Lisans</title>
+
+<para
+>&kwallet5; &copy; 2003 &George.Staikos;</para>
+<para
+>Belgelendirme &copy; &Lauri.Watts; ve &George.Staikos;</para>
+
+<para
+>Kaan ÖZDİNÇER<email
+>kaanozdincer@gmail.com</email
+></para
+> &underFDL; &underGPL; </chapter>
+
+&documentation.index;
+
+</book>
+
+<!--
+Local Variables:
+mode: sgml
+sgml-minimize-attributes:nil
+sgml-general-insert-case:lower
+sgml-indent-step:0
+sgml-indent-data:nil
+End:
+
+// vim:ts=2:sw=2:tw=78:noet
+-->

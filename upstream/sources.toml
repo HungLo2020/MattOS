@@ -1035,6 +1035,14 @@ path = "src/system/graphics/libxext"
 sync = "copy"
 
 [[component]]
+name = "libxrandr"
+repo = "https://gitlab.freedesktop.org/xorg/lib/libxrandr.git"
+branch = "libXrandr-1.5.5"
+revision = "540c3ceef2be3e513b18002a858c7a9591dd749a"
+path = "src/system/graphics/libxrandr"
+sync = "copy"
+
+[[component]]
 name = "libxfixes"
 repo = "https://gitlab.freedesktop.org/xorg/lib/libxfixes.git"
 branch = "libXfixes-6.0.2"
@@ -1804,6 +1812,30 @@ path = "src/desktop/kde/plasma-workspace"
 sync = "copy"
 
 [[component]]
+name = "discover"
+repo = "https://invent.kde.org/plasma/discover.git"
+branch = "v6.6.5"
+revision = "93627226741c8170188f1f9475b73b85bb214047"
+path = "src/desktop/kde/discover"
+sync = "copy"
+
+[[component]]
+name = "mpvqt"
+repo = "https://invent.kde.org/libraries/mpvqt.git"
+branch = "v1.2.0"
+revision = "edb1e3213e45aeec7dfcb74b1f5e722264af6636"
+path = "src/desktop/kde/mpvqt"
+sync = "copy"
+
+[[component]]
+name = "haruna"
+repo = "https://invent.kde.org/multimedia/haruna.git"
+branch = "v1.8.1"
+revision = "b7278882908338763010eb7bbb93ce4b10fb35f2"
+path = "src/desktop/kde/haruna"
+sync = "copy"
+
+[[component]]
 name = "plasma-desktop"
 repo = "https://invent.kde.org/plasma/plasma-desktop.git"
 branch = "v6.6.5"
@@ -1948,6 +1980,62 @@ path = "src/desktop/kde/kate"
 sync = "copy"
 
 [[component]]
+name = "kcalc"
+repo = "https://invent.kde.org/utilities/kcalc.git"
+branch = "v26.08.1"
+revision = "321bd94458d5de057b31c7328c325d7f61cbd440"
+path = "src/desktop/kde/kcalc"
+sync = "copy"
+
+[[component]]
+name = "kwalletmanager"
+repo = "https://invent.kde.org/utilities/kwalletmanager.git"
+branch = "v26.08.1"
+revision = "f0a3fda98f4be7aab23006fffc659a51e5daf03b"
+path = "src/desktop/kde/kwalletmanager"
+sync = "copy"
+
+[[component]]
+name = "partitionmanager"
+repo = "https://invent.kde.org/system/partitionmanager.git"
+branch = "v25.12.3"
+revision = "6dff98342e66f802de7f0360d32851ded272c068"
+path = "src/desktop/kde/partitionmanager"
+sync = "copy"
+
+[[component]]
+name = "elisa"
+repo = "https://invent.kde.org/multimedia/elisa.git"
+branch = "v26.08.1"
+revision = "536761f05b603a1763a2c613ae3b5d5f9ddde696"
+path = "src/desktop/kde/elisa"
+sync = "copy"
+
+[[component]]
+name = "gwenview"
+repo = "https://invent.kde.org/graphics/gwenview.git"
+branch = "v26.08.1"
+revision = "05bf5f98976af72b588dabf8aa7f167bfa84d0c4"
+path = "src/desktop/kde/gwenview"
+sync = "copy"
+
+[[component]]
+name = "kcolorpicker"
+repo = "https://github.com/ksnip/kColorPicker.git"
+branch = "v0.3.1"
+revision = "522e38b61e0786b97b2114c273a4551c869335be"
+path = "src/desktop/kde/kcolorpicker"
+sync = "copy"
+
+[[component]]
+name = "kimageannotator"
+repo = "https://github.com/ksnip/kImageAnnotator.git"
+branch = "v0.7.2"
+revision = "c481a8936946da6c81cd9042eca3d7aeed8d6982"
+path = "src/desktop/kde/kimageannotator"
+sync = "copy"
+
+[[component]]
 name = "ark"
 repo = "https://invent.kde.org/utilities/ark.git"
 branch = "v26.08.1"
@@ -2054,8 +2142,8 @@ sync = "copy"
 [[component]]
 name = "kirigami-addons"
 repo = "https://github.com/KDE/kirigami-addons.git"
-branch = "v1.9.0"
-revision = "d53b2b24608ae66dbaa4f09d8d7ebae6c9f642b5"
+branch = "v1.15.0"
+revision = "4668f4cad74205348f6111e8ef33b5192463fb80"
 path = "src/desktop/kde/kirigami-addons"
 sync = "copy"
 
@@ -2537,6 +2625,115 @@ repo = "https://gitlab.inria.fr/mpfr/mpfr.git"
 branch = "4.2.2"
 revision = "eaa57b856d814af32f97d5e5eb129fb986235323"
 path = "src/system/libraries/mpfr"
+sync = "copy"
+
+[[component]]
+name = "exiv2"
+repo = "https://github.com/Exiv2/exiv2.git"
+branch = "v0.28.9"
+revision = "b0859fc61fea5dedfc898aece6b15893ddf4314e"
+path = "src/system/libraries/exiv2"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/exiv2-library-selection.toml"
+
+[[component]]
+name = "libjpeg-turbo"
+repo = "https://github.com/libjpeg-turbo/libjpeg-turbo.git"
+branch = "3.2.0"
+revision = "c85e6b905bf237038faa936dab160ebfc5da0344"
+path = "src/system/libraries/libjpeg-turbo"
+sync = "copy"
+
+[[component]]
+name = "mpc"
+repo = "https://gitlab.inria.fr/mpc/mpc.git"
+branch = "1.4.1"
+revision = "532a18ae8222f928c58f7ffd1b4f0122062172bd"
+path = "src/system/libraries/mpc"
+sync = "copy"
+
+[[component]]
+name = "jansson"
+repo = "https://github.com/akheron/jansson.git"
+branch = "v2.15.1"
+revision = "dbb5fb3636e155fccfce4cd215de752779bd6971"
+path = "src/system/libraries/jansson"
+sync = "copy"
+
+[[component]]
+name = "sqlite"
+repo = "https://github.com/sqlite/sqlite.git"
+branch = "version-3.53.4"
+revision = "b09c88c14082339b66c7b7158d609a771e64ca69"
+path = "src/system/libraries/sqlite"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/sqlite-library-selection.toml"
+
+[[component]]
+name = "packagekit"
+repo = "https://github.com/PackageKit/PackageKit.git"
+branch = "v1.4.0"
+revision = "16c3c84ab4c498cefe1668314c9efc04e0c172ab"
+path = "src/system/packages/packagekit"
+sync = "copy"
+
+[[component]]
+name = "packagekit-qt"
+repo = "https://github.com/PackageKit/PackageKit-Qt.git"
+branch = "v1.1.4"
+revision = "72708dbbe4ae8ca56b9eb4d8dee72cc1ec0534b5"
+path = "src/desktop/kde/packagekit-qt"
+sync = "copy"
+
+[[component]]
+name = "harfbuzz"
+repo = "https://github.com/harfbuzz/harfbuzz.git"
+branch = "14.5.1"
+revision = "eb033319fc2ebe723597fa497d4bb4331bab8b6b"
+path = "src/system/libraries/harfbuzz"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/harfbuzz-library-selection.toml"
+
+[[component]]
+name = "fribidi"
+repo = "https://github.com/fribidi/fribidi.git"
+branch = "v1.0.17"
+revision = "b93119f5fdc7ea47672cc304c1455ffa6dfe7536"
+path = "src/system/libraries/fribidi"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/fribidi-library-selection.toml"
+
+[[component]]
+name = "libass"
+repo = "https://github.com/libass/libass.git"
+branch = "0.17.5"
+revision = "4a05d8127f525943ebf45fdc6497c9e665947f0d"
+path = "src/system/libraries/libass"
+sync = "copy"
+
+[[component]]
+name = "libplacebo"
+repo = "https://code.videolan.org/videolan/libplacebo.git"
+branch = "v7.360.1"
+revision = "cee9b076f2c63104ccfd497fa79c39a867293ec4"
+path = "src/system/multimedia/libplacebo"
+sync = "copy"
+gitlink_policy = "upstream/policies/gitlinks.toml#libplacebo"
+
+[[component]]
+name = "mpv"
+repo = "https://github.com/mpv-player/mpv.git"
+branch = "v0.41.0"
+revision = "41f6a645068483470267271e1d09966ca3b9f413"
+path = "src/system/multimedia/mpv"
+sync = "copy"
+
+[[component]]
+name = "kdsingleapplication"
+repo = "https://github.com/KDAB/KDSingleApplication.git"
+branch = "v1.2.1"
+revision = "b63420aebb78df20e37310bb090f075990a5a4f6"
+path = "src/system/libraries/kdsingleapplication"
 sync = "copy"
 
 [[component]]

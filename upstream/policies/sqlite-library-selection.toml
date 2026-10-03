@@ -1,0 +1,5 @@
+schema_version = 1
+component = "sqlite"
+upstream_commit = "b09c88c14082339b66c7b7158d609a771e64ca69"
+retained_paths = ["LICENSE.md", "Makefile.in", "Makefile.linux-generic", "README.md", "VERSION", "auto.def", "autoconf", "autosetup", "configure", "ext", "main.mk", "manifest", "manifest.tags", "manifest.uuid", "sqlite.pc.in", "sqlite3.pc.in", "sqlite3.1", "src", "tool"]
+reason = "Retain the canonical SQLite sources, extensions, code generators and autosetup build that produce libsqlite3 (for PackageKit); omit the test suite and its data, the multi-process test, documentation, artwork, contributed tooling and the Windows build files, none of which the library build reads."

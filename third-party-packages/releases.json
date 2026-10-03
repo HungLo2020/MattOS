@@ -54,17 +54,8 @@
     "imagemagick": {
       "version": "7.1.2.32",
       "release_tag": "7.1.2-32",
-      "source_sha256": "940e349f0ef394e658fd57400b83d1d7a81b954f6e7bdbfbfad31b2718c10add"
-    },
-    "libjansson4": {
-      "release_tag": "v2.15.1",
-      "source_sha256": "0c7114dc0b2d22a670724a1f95922029d7077c19dbf79a584cb8084d2f267f2f",
-      "version": "2.15.1"
-    },
-    "libjpeg62-turbo": {
-      "version": "3.2.0",
-      "release_tag": "3.2.0",
-      "source_sha256": "6f30092cef9fb839779646608f4ee14ae3cbac989c47fa05e841b0841f09878e"
+      "source_sha256": "940e349f0ef394e658fd57400b83d1d7a81b954f6e7bdbfbfad31b2718c10add",
+      "revision": 2
     },
     "libmnl0": {
       "release_tag": "libmnl-1.0.5",
@@ -99,7 +90,8 @@
     "libtiff6": {
       "version": "4.7.2",
       "release_tag": "v4.7.2",
-      "source_sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a"
+      "source_sha256": "672bd7d10aee4606171afb864f3570b83340f6a33e2c186dc0512f7145ffdf6a",
+      "revision": 2
     },
     "libwebp7": {
       "version": "1.6.0",
@@ -114,7 +106,8 @@
     "nftables": {
       "release_tag": "v1.1.7",
       "source_sha256": "a6fbf060d8d4fff001517a2b94f356bb4366bfbf0ba366366f9d27cc38caa58f",
-      "version": "1.1.7"
+      "version": "1.1.7",
+      "revision": 2
     },
     "passt": {
       "release_tag": "2026_09_25.df90211",

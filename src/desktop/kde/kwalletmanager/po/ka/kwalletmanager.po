@@ -1,0 +1,721 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the kwalletmanager package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kwalletmanager\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-03-09 00:46+0000\n"
+"PO-Revision-Date: 2025-01-21 02:45+0100\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.5\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Temuri Doghonadze"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "Temuri.doghonadze@gmail.com"
+
+#: allyourbase.cpp:215
+#, kde-format
+msgid "An entry by the name '%1' already exists. Would you like to continue?"
+msgstr "ჩანაწერი სახელით '%1' უკვე არსებობს. გნებავთ, გააგრძელოთ?"
+
+#: allyourbase.cpp:240
+#, kde-format
+msgid "A folder by the name '%1' already exists.  What would you like to do?"
+msgstr "საქაღალდე სახელით '%1' უკვე არსებობს.  რა გნებავთ, გააკეთოთ?"
+
+#: allyourbase.cpp:243
+#, kde-format
+msgid "Replace"
+msgstr "შეცვლა"
+
+#: allyourbase.cpp:349
+#, kde-format
+msgid "Folders"
+msgstr "საქაღალდეები"
+
+#: allyourbase.cpp:382
+#, kde-format
+msgid "An unexpected error occurred trying to drop the item"
+msgstr "მოულოდნელი შეცდომა ამ ჩანაწერის წაშლისას"
+
+#: allyourbase.cpp:457
+#, kde-format
+msgid "An unexpected error occurred trying to drop the entry"
+msgstr "მოულოდნელი შეცდომა ამ ელემენტის წაშლისას"
+
+#: allyourbase.cpp:482
+#, kde-format
+msgid ""
+"An unexpected error occurred trying to delete the original folder, but the "
+"folder has been copied successfully"
+msgstr ""
+"მოულოდნელი შეცდომა საწყისი საქაღალდის წაშლისას, მაგრამ საქაღალდის კოპირება "
+"წარმატებულია"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: applicationsmanager.ui:17
+#, kde-format
+msgid "These applications are currently connected to this wallet:"
+msgstr "ეს აპლიკაციები ამჟამად მიერთებულია ამ საფულესთან:"
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: applicationsmanager.ui:64
+#, kde-format
+msgid "These applications are authorized to access this wallet:"
+msgstr "ამ აპლიკაციებს აქვთ ავტორიზაცია, ეს საფულე ნახონ:"
+
+#: disconnectappbutton.cpp:17
+#, kde-format
+msgid "Disconnect"
+msgstr "გათიშვა"
+
+#. i18n: ectx: property (text), widget (QPushButton, _allowOnce)
+#: kbetterthankdialogbase.ui:43
+#, kde-format
+msgid "&Replace"
+msgstr "&ჩანაცვლება"
+
+#. i18n: ectx: property (text), widget (QPushButton, _allowAlways)
+#: kbetterthankdialogbase.ui:53
+#, kde-format
+msgid "Replace &All"
+msgstr "ყველას &ჩანაცვლება"
+
+#. i18n: ectx: property (text), widget (QPushButton, _deny)
+#: kbetterthankdialogbase.ui:60
+#, kde-format
+msgid "&Skip"
+msgstr "გამო&ტოვება"
+
+#. i18n: ectx: property (text), widget (QPushButton, _denyForever)
+#: kbetterthankdialogbase.ui:67
+#, kde-format
+msgid "Skip A&ll"
+msgstr "ყველას &გამოტოვება"
+
+#: kwalleteditor.cpp:97
+#, kde-format
+msgid "Search"
+msgstr "ძებნა"
+
+#: kwalleteditor.cpp:107
+#, kde-format
+msgctxt "@option:check"
+msgid "&Show values"
+msgstr "&მნიშვნელობების ჩვენება"
+
+#: kwalleteditor.cpp:211
+#, kde-format
+msgid "&New Folder..."
+msgstr "&ახალი საქაღალდე..."
+
+#: kwalleteditor.cpp:215
+#, kde-format
+msgid "&Delete Folder"
+msgstr "&საქაღალდის წაშლა"
+
+#: kwalleteditor.cpp:218
+#, kde-format
+msgid "&Import a wallet..."
+msgstr "საფულის &შემოტანა..."
+
+#: kwalleteditor.cpp:222
+#, kde-format
+msgid "&Import XML..."
+msgstr "XML ფაილის &შემოტანა..."
+
+#: kwalleteditor.cpp:226
+#, kde-format
+msgid "&Export as XML..."
+msgstr "XML-ის გატანა…"
+
+#: kwalleteditor.cpp:230
+#, kde-format
+msgid "&Copy"
+msgstr "&კოპირება"
+
+#: kwalleteditor.cpp:235
+#, kde-format
+msgid "&New..."
+msgstr "&ახალი..."
+
+#: kwalleteditor.cpp:240
+#, kde-format
+msgid "&Rename"
+msgstr "&გადარქმევა"
+
+#: kwalleteditor.cpp:245 kwalletpopup.cpp:62
+#, kde-format
+msgid "&Delete"
+msgstr "&წაშლა"
+
+#: kwalleteditor.cpp:250
+#, kde-format
+msgid "Always show contents"
+msgstr "შემცველობის ყოველთვის ჩვენება"
+
+#: kwalleteditor.cpp:254
+#, kde-format
+msgid "Always hide contents"
+msgstr "შემცველობის ყოველთვის დამალვა"
+
+#: kwalleteditor.cpp:369
+#, kde-format
+msgid "Passwords"
+msgstr "პაროლები"
+
+#: kwalleteditor.cpp:370
+#, kde-format
+msgid "Maps"
+msgstr "რუკები"
+
+#: kwalleteditor.cpp:371
+#, kde-format
+msgid "Binary Data"
+msgstr "ბინარული მონაცემები"
+
+#: kwalleteditor.cpp:372
+#, kde-format
+msgid "Unknown"
+msgstr "უცნობი"
+
+#: kwalleteditor.cpp:414
+#, kde-format
+msgid "Are you sure you wish to delete the folder '%1' from the wallet?"
+msgstr ""
+"დარწმუნებული ბრძანდებით, რომ გნებავთ, წაშალოთ საქაღალდე '%1' საფულიდან?"
+
+#: kwalleteditor.cpp:420
+#, kde-format
+msgid "Error deleting folder."
+msgstr "საქაღალდის წაშლის შეცდომა."
+
+#: kwalleteditor.cpp:439
+#, kde-format
+msgid "New Folder"
+msgstr "ახალი საქაღალდე"
+
+#: kwalleteditor.cpp:439
+#, kde-format
+msgid "Please choose a name for the new folder:"
+msgstr "ახალი საქაღალდის ალტერნატიული სახელი:"
+
+#: kwalleteditor.cpp:447
+#, kde-format
+msgid "Sorry, that folder name is in use. Try again?"
+msgstr "საქაღალდის სახელი უკვე გამოიყენება. ვცადო თავიდან?"
+
+#: kwalleteditor.cpp:449 kwalleteditor.cpp:811
+#, kde-format
+msgid "Try Again"
+msgstr "კიდევ სცადეთ"
+
+#: kwalleteditor.cpp:450 kwalleteditor.cpp:812 kwalletmanager.cpp:358
+#, kde-format
+msgid "Do Not Try"
+msgstr "არ სცადოთ"
+
+#: kwalleteditor.cpp:489
+#, kde-format
+msgid "Error saving entry. Error code: %1"
+msgstr "ჩანაწერის შენახვის შეცდომა. შეცდომის კოდი: %1"
+
+#: kwalleteditor.cpp:511
+#, kde-format
+msgid ""
+"The contents of the current item has changed.\n"
+"Do you want to save changes?"
+msgstr ""
+"მიმდინარე ელემენტის შემცველობა შეიცვალა.\n"
+"გნებავთ, შეინახოთ ცვლილებები?"
+
+#: kwalleteditor.cpp:564 kwalleteditor.cpp:894
+#, kde-format
+msgid "Password: %1"
+msgstr "პაროლი: %1"
+
+#: kwalleteditor.cpp:580 kwalleteditor.cpp:896
+#, kde-format
+msgid "Name-Value Map: %1"
+msgstr "სახელი-მნიშვნელობის რუკა: %1"
+
+#: kwalleteditor.cpp:590 kwalleteditor.cpp:898
+#, kde-format
+msgid "Binary Data: %1"
+msgstr "ბინარული მონაცემები: %1"
+
+#: kwalleteditor.cpp:800
+#, kde-format
+msgid "New Entry"
+msgstr "ახალი ჩანაწერი"
+
+#: kwalleteditor.cpp:800
+#, kde-format
+msgid "Please choose a name for the new entry:"
+msgstr "აირჩიეთ ახალი ჩანაწერის სახელი:"
+
+#: kwalleteditor.cpp:809
+#, kde-format
+msgid "Sorry, that entry already exists. Try again?"
+msgstr "უკაცრავად, ჩანაწერი უკვე არსებობს. ვცადო თავიდან?"
+
+#: kwalleteditor.cpp:829 kwalleteditor.cpp:838
+#, kde-format
+msgid "An unexpected error occurred trying to add the new entry"
+msgstr "მოულოდნელი შეცდომა ახალი ელემენტის დამატებისას"
+
+#: kwalleteditor.cpp:890
+#, kde-format
+msgid "An unexpected error occurred trying to rename the entry"
+msgstr "მოულოდნელი შეცდომა ჩანაწერის სახელის გადარქმევისას"
+
+#: kwalleteditor.cpp:911
+#, kde-format
+msgid "Are you sure you wish to delete the item '%1'?"
+msgstr "დარწმუნებული ხართ, რომ გსურთ წაშალოთ ელემენტი \"%1\"?"
+
+#: kwalleteditor.cpp:915
+#, kde-format
+msgid "An unexpected error occurred trying to delete the entry"
+msgstr "მოულოდნელი შეცდომა ამ ჩანაწერის წაშლისას"
+
+#: kwalleteditor.cpp:943
+#, kde-format
+msgid "Unable to open the requested wallet."
+msgstr "შეცდომა მოთხოვნილი საფულის გახნისას."
+
+#: kwalleteditor.cpp:985
+#, kde-format
+msgid "Unable to create temporary file for downloading '<b>%1</b>'."
+msgstr "გადმოსაწერად დროებითი საქაღალდის შექმნის შეცდომა '<b>%1</b>'."
+
+#: kwalleteditor.cpp:992
+#, kde-format
+msgid "Unable to access wallet '<b>%1</b>'."
+msgstr "საფულესთან წვდომის შეცდომა '<b>%1</b>'."
+
+#: kwalleteditor.cpp:1023 kwalleteditor.cpp:1055 kwalleteditor.cpp:1091
+#: kwalleteditor.cpp:1175
+#, kde-format
+msgid ""
+"Folder '<b>%1</b>' already contains an entry '<b>%2</b>'.  Do you wish to "
+"replace it?"
+msgstr ""
+"საქაღლდე '<b>%1</b>' ჩანაწერს '<b>%2</b>' უკვე შეიცავს.  გნებავთ, ჩაანაცვლოთ "
+"ის?"
+
+#: kwalleteditor.cpp:1133
+#, kde-format
+msgid "Unable to access XML file '<b>%1</b>'."
+msgstr "XML ფაილთან წვდომის შეცდომა '<b>%1</b>'."
+
+#: kwalleteditor.cpp:1139
+#, kde-format
+msgid "Error reading XML file '<b>%1</b>' for input."
+msgstr "XML ფაილის წაკითხვის შეცდომა '<b>%1</b>'."
+
+#: kwalleteditor.cpp:1145
+#, kde-format
+msgid "Error: XML file does not contain a wallet."
+msgstr "შეცდომა: XML ფაილი საფულეს არ შეიცავს."
+
+#: kwalleteditor.cpp:1298
+#, kde-format
+msgid "Unable to store to '<b>%1</b>'."
+msgstr "'<b>%1</b>'-ში შენახვის შეცდომა."
+
+#: kwalletmanager.cpp:63
+#, kde-format
+msgid ""
+"The KDE Wallet system is not enabled. Do you want me to enable it? If not, "
+"the KWalletManager will quit as it cannot work without reading the wallets."
+msgstr ""
+"KDE-ის საფულის სისტემა ჩართული არაა. გნებავთ, ჩართოთ? თუ არა, KWalletManager "
+"დაასრულებს მუშაობას, რადგან მას საფულეების წაკითხვის გარეშე მუშაობა არ "
+"შეუძლია."
+
+#: kwalletmanager.cpp:92 kwalletmanager.cpp:99 kwalletmanager.cpp:225
+#: kwalletmanager.cpp:290
+#, kde-format
+msgid "Wallet"
+msgstr "საფულე"
+
+#: kwalletmanager.cpp:92 kwalletmanager.cpp:290
+#, kde-format
+msgid "No wallets open."
+msgstr "საფულეები ღია არაა."
+
+#: kwalletmanager.cpp:99 kwalletmanager.cpp:225
+#, kde-format
+msgid "A wallet is open."
+msgstr "საფულე ღიაა."
+
+#: kwalletmanager.cpp:144 kwalletpopup.cpp:27
+#, kde-format
+msgid "&New Wallet..."
+msgstr "&ახალი საფულე..."
+
+#: kwalletmanager.cpp:149
+#, kde-format
+msgid "&Delete Wallet..."
+msgstr "საფულის &წაშლა..."
+
+#: kwalletmanager.cpp:154
+#, kde-format
+msgid "Export as encrypted"
+msgstr "დაშიფრულად გატანა"
+
+#: kwalletmanager.cpp:159
+#, kde-format
+msgid "&Import encrypted"
+msgstr "დაშიფრულის &შემოტანა"
+
+#: kwalletmanager.cpp:164
+#, kde-format
+msgid "Configure &Wallet..."
+msgstr "საფულის &დახურვა..."
+
+#: kwalletmanager.cpp:172
+#, kde-format
+msgid "Close &All Wallets"
+msgstr "&ყველა საფულის დახურვა"
+
+#: kwalletmanager.cpp:259 walletcontrolwidget.cpp:110
+#, kde-format
+msgid ""
+"Unable to close wallet cleanly. It is probably in use by other applications. "
+"Do you wish to force it closed?"
+msgstr ""
+"საფულის სუფთად დახურვის შეცდომა. ის ალბათ სხვა აპლიკაციების მიერ "
+"გამოიყენება. გნებავთ, ძალით დახუროთ ის?"
+
+#: kwalletmanager.cpp:261 walletcontrolwidget.cpp:112
+#, kde-format
+msgid "Force Closure"
+msgstr "ძალით დახურვა"
+
+#: kwalletmanager.cpp:262 walletcontrolwidget.cpp:113
+#, kde-format
+msgid "Do Not Force"
+msgstr "არ გამოიყენო ძალა"
+
+#: kwalletmanager.cpp:266 walletcontrolwidget.cpp:117
+#, kde-format
+msgid "Unable to force the wallet closed. Error code was %1."
+msgstr "საფულის ძალით დახურვის შეცდომა. შეცდომის კოდია %1."
+
+#: kwalletmanager.cpp:282
+#, kde-format
+msgid "Error opening wallet %1."
+msgstr "საფულის გახსნის შეცდომა: %1."
+
+#: kwalletmanager.cpp:321
+#, kde-format
+msgid "Please choose a name for the new wallet:"
+msgstr "აირჩიეთ სახელი ახალი საფულისთვის:"
+
+#: kwalletmanager.cpp:330
+#, kde-format
+msgctxt "@title:window"
+msgid "New Wallet"
+msgstr "ახალი საფულე"
+
+#: kwalletmanager.cpp:349
+#, kde-format
+msgid "Empty name is not supported. Please select a new one."
+msgstr "ჩანაწერის სახელი მხარდაუჭერელია. სხვა აირჩიეთ."
+
+#: kwalletmanager.cpp:349
+#, kde-format
+msgid "Create new wallet"
+msgstr "ახალი საფულის შექმნა"
+
+#: kwalletmanager.cpp:355
+#, kde-format
+msgid "Sorry, that wallet already exists. Try a new name?"
+msgstr "უკაცრავად, საფულე უკვე არსებობს. ცდით ახალ სახელს?"
+
+#: kwalletmanager.cpp:357
+#, kde-format
+msgid "Try New"
+msgstr "ახლის ცდა"
+
+#: kwalletmanager.cpp:383
+#, kde-format
+msgid "Are you sure you wish to delete the wallet '%1'?"
+msgstr "მართლა გნებავთ, საფულე '%1' წაშალოთ?"
+
+#: kwalletmanager.cpp:389
+#, kde-format
+msgid "Unable to delete the wallet. Error code was %1."
+msgstr "საფულის წაშლა შეუძლებელია. შეცდომის კოდია %1."
+
+#: kwalletmanager.cpp:436
+#, kde-format
+msgid "File name"
+msgstr "ფაილის სახელი"
+
+#: kwalletmanager.cpp:443
+#, kde-format
+msgid "Failed to open file for writing"
+msgstr "ფაილის ჩასაწერად გახსნის შეცდომა"
+
+#: kwalletmanager.cpp:454
+#, kde-format
+msgid "Select file"
+msgstr "აირჩიეთ ფაილი"
+
+#: kwalletmanager.cpp:464
+#, kde-format
+msgid "Failed to open file"
+msgstr "ფაილის გახსნის შეცდომა"
+
+#: kwalletmanager.cpp:476
+#, kde-format
+msgid "Wallet named %1 already exists, Operation aborted"
+msgstr "საფულე სახელით '%1' უკვე არსებობს. ოპერაცია გაუქმდა"
+
+#: kwalletmanager.cpp:482
+#, kde-format
+msgid "Failed to copy files"
+msgstr "ფაილების კოპირების შეცდომა"
+
+#: kwalletmanager.cpp:494 walletcontrolwidget.cpp:100
+#, kde-format
+msgid "Ignore unsaved changes?"
+msgstr "დავაიგნორო შეუნახავი ცვლილებები?"
+
+#: kwalletmanager.cpp:494 walletcontrolwidget.cpp:100
+#, kde-format
+msgid "Ignore"
+msgstr "იგნორი"
+
+#. i18n: ectx: Menu (file)
+#: kwalletmanager.rc:4
+#, kde-format
+msgid "&File"
+msgstr "&ფაილი"
+
+#. i18n: ectx: Menu (settings)
+#: kwalletmanager.rc:17
+#, kde-format
+msgid "&Settings"
+msgstr "&მორგება"
+
+#. i18n: ectx: Menu (help)
+#: kwalletmanager.rc:20
+#, kde-format
+msgid "&Help"
+msgstr "&დახმარება"
+
+#: kwalletmanagerwidget.cpp:222
+#, kde-kuit-format
+msgctxt "@info:status"
+msgid "An error occurred when connecting to the KWallet service:<nl/>%1"
+msgstr "შეცდომა KWallet-ის სერვისთან მიერთებისას:<nl/>%1"
+
+#: kwalletpopup.cpp:32 walletcontrolwidget.cpp:76
+#, kde-format
+msgid "&Open..."
+msgstr "&გახსნა..."
+
+#: kwalletpopup.cpp:38
+#, kde-format
+msgid "Change &Password..."
+msgstr "&პაროლის შეცვლა..."
+
+#: kwalletpopup.cpp:51
+#, kde-format
+msgid "Disconnec&t"
+msgstr "&გათიშვა"
+
+#: kwmapeditor.cpp:133
+#, kde-format
+msgid "Key"
+msgstr "გასაღები"
+
+#: kwmapeditor.cpp:133
+#, kde-format
+msgid "Value"
+msgstr "მნიშვნელობა"
+
+#: kwmapeditor.cpp:151 kwmapeditor.cpp:200
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Delete Entry"
+msgstr "ჩანაწერის წაშლა"
+
+#: kwmapeditor.cpp:220
+#, kde-format
+msgid "&New Entry"
+msgstr "&ახალი ჩანაწერი"
+
+#: main.cpp:26
+#, kde-format
+msgid "Wallet Manager"
+msgstr "საფულეების მმართველი"
+
+#: main.cpp:28
+#, kde-format
+msgid "KDE Wallet Management Tool"
+msgstr "KDE-ის საფულის მართვის ხელსაწყო"
+
+#: main.cpp:30
+#, kde-format
+msgid "Copyright ©2013–2017, KWallet Manager authors"
+msgstr "Copyright ©2013–2017, KWallet Manager authors"
+
+#: main.cpp:34
+#, kde-format
+msgctxt "@info:credit"
+msgid "Valentin Rusu"
+msgstr "ვალენტინ რუსუ"
+
+#: main.cpp:34
+#, kde-format
+msgid "Former Maintainer, user interface refactoring"
+msgstr "ყოფილი პროექტის წამყვანი, მომხმარებლის ინტერფეისის გადალაგება"
+
+#: main.cpp:35
+#, kde-format
+msgctxt "@info:credit"
+msgid "George Staikos"
+msgstr "George Staikos"
+
+#: main.cpp:35
+#, kde-format
+msgid "Original author and former maintainer"
+msgstr "ავტორი და ყოფილი ლიდერი"
+
+#: main.cpp:36
+#, kde-format
+msgctxt "@info:credit"
+msgid "Michael Leupold"
+msgstr "მაიკლ ლეუპოლდი"
+
+#: main.cpp:36
+#, kde-format
+msgid "Developer and former maintainer"
+msgstr "პროგრამისტი და ყოფილი წამყვანი"
+
+#: main.cpp:37
+#, kde-format
+msgctxt "@info:credit"
+msgid "Isaac Clerencia"
+msgstr "Isaac Clerencia"
+
+#: main.cpp:37
+#, kde-format
+msgid "Developer"
+msgstr "პროგრამისტი"
+
+#: main.cpp:44
+#, kde-format
+msgid "Ignored, for compatibility"
+msgstr "გამოტოვებულია. არსებობს თავსებადობისთვის"
+
+#: main.cpp:47
+#, kde-format
+msgid "For use by kwalletd only"
+msgstr "ეს მხოლოდ kwalletd-მ უნდა გამოიყენოს"
+
+#: main.cpp:48
+#, kde-format
+msgid "A wallet name"
+msgstr "საფულის სახელი"
+
+#: revokeauthbutton.cpp:16
+#, kde-format
+msgid "Revoke Authorization"
+msgstr "ავტორიზაციის გაუქმება"
+
+#: walletcontrolwidget.cpp:55
+#, kde-format
+msgid "&Close"
+msgstr "დაკე&ტვა"
+
+#: walletcontrolwidget.cpp:73
+#, kde-format
+msgctxt ""
+"the 'kdewallet' is currently open (e.g. %1 will be replaced with current "
+"wallet name)"
+msgid "The '%1' wallet is currently open."
+msgstr "საფულე '%1' ამჟამად ღიაა."
+
+#: walletcontrolwidget.cpp:90
+#, kde-format
+msgid "The wallet is currently closed."
+msgstr "საფულე ამჟამად დახურულია."
+
+#. i18n: ectx: property (text), widget (KSqueezedTextLabel, _stateLabel)
+#: walletcontrolwidget.ui:31
+#, kde-format
+msgid "KSqueezedTextLabel"
+msgstr "KSqueezedTextLabel"
+
+#. i18n: ectx: property (text), widget (QPushButton, _openClose)
+#: walletcontrolwidget.ui:54
+#, kde-format
+msgid "Open..."
+msgstr "გახსნა..."
+
+#. i18n: ectx: property (text), widget (QPushButton, _changePassword)
+#: walletcontrolwidget.ui:61
+#, kde-format
+msgid "Change Password..."
+msgstr "პაროლის შეცვლა..."
+
+#. i18n: ectx: attribute (title), widget (QWidget, _contentsTab)
+#: walletcontrolwidget.ui:80
+#, kde-format
+msgid "Contents"
+msgstr "შიგთავსი"
+
+#. i18n: ectx: attribute (title), widget (QWidget, _appsTab)
+#: walletcontrolwidget.ui:117
+#, kde-format
+msgid "Applications"
+msgstr "აპლიკაციები"
+
+#. i18n: ectx: property (text), widget (QToolButton, _hideContents)
+#: walletwidget.ui:159
+#, kde-format
+msgid "Hide &Contents"
+msgstr "&შემცველობის დამალვა"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _binaryViewShow)
+#. i18n: ectx: property (text), widget (QToolButton, _showContents)
+#: walletwidget.ui:205 walletwidget.ui:253
+#, kde-format
+msgid "Show &Contents"
+msgstr "&შემცველობის ჩვენება"
+
+#. i18n: ectx: property (text), widget (QPushButton, _undoChanges)
+#: walletwidget.ui:324
+#, kde-format
+msgid "&Undo"
+msgstr "&დაბრუნება"
+
+#. i18n: ectx: property (text), widget (QPushButton, _saveChanges)
+#: walletwidget.ui:334
+#, kde-format
+msgid "&Save"
+msgstr "&შენახვა"
+
+#~ msgid "Show window on startup"
+#~ msgstr "გაშვებისას ფანჯრის ჩვენება"

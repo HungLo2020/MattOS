@@ -1,0 +1,65 @@
+# kImageAnnotator [![Linux Build Status][github-badge-linux]][github-url-linux] [![Windows Build Status][github-badge-windows]][github-url-windows] [![Translation status][weblate-badge]][weblate-url]
+Tool for annotating images
+
+Version 0.7.2
+
+![kImageAnnotator](https://i.imgur.com/4vlPDUn.png "kImageAnnotator")
+
+### Dependencies
+
+kImageAnnotator depends on [kColorPicker](https://github.com/ksnip/kColorPicker) which needs
+to be installed before building kImageAnnotator. Install instructions can be found on the GitHub page.
+
+### Building from source
+
+1. Get the latest release from GitHub by cloning the repo:  
+    `$ git clone https://github.com/ksnip/kImageAnnotator`
+2. Change to repo directory:  
+    `$ cd kImageAnnotator`  
+3. Make new build directory and enter it:  
+    `$ mkdir build && cd build`  
+4. Create the makefile and build the project:  
+    `$ cmake .. && make`  
+   to build with Qt6, pass `-DBUILD_WITH_QT6=true` to the `cmake` command
+5. Install shared library (not required when only using the example):  
+    `$ sudo make install`
+6. Run the example application:  
+    `$ ./example/kImageAnnotator-example`
+
+### Shared vs Static
+
+You can either build the project as shared library by providing the flag `-DBUILD_SHARED_LIBS=ON`
+to cmake or `-DBUILD_SHARED_LIBS=OFF` to build as static library. When no flag is provided a 
+static library is build. For windows, we currently only support building as static library.
+
+### Integrate library
+
+1. Let cmake find the shared library, optionally with version  
+    `set(KIMAGEANNOTATOR_MIN_VERSION "0.x.x")`  
+    to build with Qt5:  
+    `find_package(kImageAnnotator-Qt5 ${KIMAGEANNOTATOR_MIN_VERSION} REQUIRED)`  
+    to build with Qt6:  
+    `find_package(kImageAnnotator-Qt6 ${KIMAGEANNOTATOR_MIN_VERSION} REQUIRED)`
+
+2. Link the library with your application  
+    `target_link_libraries(myApp kImageAnnotator)`  
+
+
+### Translations
+We are always looking for help with translations, contributors are welcome!  
+For translations, we use [Weblate](https://hosted.weblate.org/projects/kimageannotator/kimageannotator/)!  
+[![Translation status](https://hosted.weblate.org/widgets/kimageannotator/-/kimageannotator/multi-green.svg)](https://hosted.weblate.org/engage/kimageannotator/?utm_source=widget)
+
+
+### Acknowledgement
+Stickers designed by [OpenMoji](https://openmoji.org/) – the open-source emoji and icon project.
+
+
+[github-badge-linux]:        https://github.com/ksnip/kImageAnnotator/actions/workflows/linux.yml/badge.svg
+[github-url-linux]:          https://github.com/ksnip/kImageAnnotator/actions
+
+[github-badge-windows]:        https://github.com/ksnip/kImageAnnotator/actions/workflows/windows.yml/badge.svg
+[github-url-windows]:          https://github.com/ksnip/kImageAnnotator/actions
+
+[weblate-badge]:       https://hosted.weblate.org/widgets/kimageannotator/-/kimageannotator/svg-badge.svg
+[weblate-url]:         https://hosted.weblate.org/engage/kimageannotator/?utm_source=widget

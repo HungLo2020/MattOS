@@ -1,0 +1,11 @@
+/*!
+   \module KirigamiApp
+   \title Kirigami Addons App C++ Classes
+   \ingroup modules
+   \cmakepackage KF6
+   \cmakecomponent KirigamiAddons
+   \brief Helpers for setting up Kirigami applications.
+
+   Use \l KirigamiAppDefaults to apply suitable Qt defaults and load the
+   application's QML module. The older \c KirigamiApp class is deprecated.
+ */

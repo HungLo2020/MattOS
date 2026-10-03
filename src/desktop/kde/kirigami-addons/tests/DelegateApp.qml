@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15 as Controls
-import QtQuick.Layouts 1.2
-import QtQuick.Layouts 1.15
+import QtQuick
+import QtQuick.Controls as Controls
+import QtQuick.Layouts
 
-import org.kde.kirigami 2.20 as Kirigami
+import org.kde.kirigami as Kirigami
 import org.kde.kirigamiaddons.formcard as MobileForm
-import org.kde.kirigamiaddons.delegates 1.0 as Delegates
-import org.kde.kirigamiaddons.components 1.0 as Components
+import org.kde.kirigamiaddons.delegates as Delegates
+import org.kde.kirigamiaddons.components as Components
 
 Kirigami.ApplicationWindow {
     id: appwindow
@@ -156,7 +155,6 @@ Kirigami.ApplicationWindow {
                 delegate: Delegates.IndicatorItemDelegate {
                     id: delegate
 
-                    required property int index
                     required property int modelData
 
                     unread: Math.random() > 0.3
@@ -184,7 +182,6 @@ Kirigami.ApplicationWindow {
                 delegate: Delegates.IndicatorItemDelegate {
                     id: delegate
 
-                    required property int index
                     required property int modelData
 
                     unread: Math.random() > 0.3
@@ -347,19 +344,19 @@ Kirigami.ApplicationWindow {
                             }
                         },
                         MobileForm.FormGridContainer.InfoCard {
-                            title: "ReadIndicatorItemDelegate"
-                            action: Kirigami.Action {
-                                onTriggered: applicationWindow().pageStack.push(indicatorItemDelegatePageComponent);
-                            }
-                        },
-                        MobileForm.FormGridContainer.InfoCard {
                             title: "RoundedItemDelegate with subtitle"
                             action: Kirigami.Action {
                                 onTriggered: applicationWindow().pageStack.push(subtitleRoundedItemDelegatePageComponent);
                             }
                         },
                         MobileForm.FormGridContainer.InfoCard {
-                            title: "ReadIndicatorItemDelegate with subtitle"
+                            title: "IndicatorItemDelegate"
+                            action: Kirigami.Action {
+                                onTriggered: applicationWindow().pageStack.push(indicatorItemDelegatePageComponent);
+                            }
+                        },
+                        MobileForm.FormGridContainer.InfoCard {
+                            title: "IndicatorItemDelegate with subtitle"
                             action: Kirigami.Action {
                                 onTriggered: applicationWindow().pageStack.push(subtitleIndicatorItemDelegatePageComponent);
                             }
@@ -383,7 +380,7 @@ Kirigami.ApplicationWindow {
                             }
                         },
                         MobileForm.FormGridContainer.InfoCard {
-                            title: "RadiokDelegate with subtitle"
+                            title: "RadioDelegate with subtitle"
                             action: Kirigami.Action {
                                 onTriggered: applicationWindow().pageStack.push(radioDelegateSubtitleComponent);
                             }

@@ -84,11 +84,13 @@ fn build_appstream(repo_root: &Path) -> Result<()> {
         "src/system/libraries/appstream",
         &[
             "glib", "libffi", "pcre2", "libxml2", "zlib", "curl", "nghttp2", "openssl", "libfyaml", "libxmlb", "xz",
-            "zstd", "systemd", "wayland",
+            "zstd", "systemd", "wayland", "qtbase", "icu", "pcre2",
         ],
         &[
             "--prefix=/usr",
             "--libdir=lib/x86_64-linux-gnu",
+            // AppStreamQt, for Discover.
+            "-Dqt=true",
             "-Dapidocs=false",
             "-Dstemming=false",
             "-Dbash-completion=false",

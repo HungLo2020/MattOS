@@ -127,9 +127,11 @@ QtObject {
                 title: root.title,
                 window: root.window,
             })
-            root.configViewItem.backRequested.connect(() => {
-                root.configViewItem.destroy();
-                root.configViewItem = null;
+            root.configViewItem.backRequested.connect(event => {
+                if (!event.accepted) {
+                    root.configViewItem.destroy();
+                    root.configViewItem = null;
+                }
             });
         } else {
             const component = Qt.createComponent('org.kde.kirigamiaddons.settings.private', 'ConfigWindow');
@@ -137,7 +139,7 @@ QtObject {
                 console.error(component.errorString());
                 return;
             }
-            root.configViewItem = component.createObject(null, {
+            root.configViewItem = component.createObject(root.window, {
                 defaultModule: defaultModule,
                 modules: root.modules,
                 width: Kirigami.Units.gridUnit * 50,
@@ -146,9 +148,11 @@ QtObject {
                 minimumHeight: Kirigami.Units.gridUnit * 30,
                 title: root.title,
             });
-            root.configViewItem.closing.connect(() => {
-                root.configViewItem.destroy();
-                root.configViewItem = null;
+            root.configViewItem.closing.connect(event => {
+                if (event.accepted) {
+                    root.configViewItem.destroy();
+                    root.configViewItem = null;
+                }
             });
         }
     }

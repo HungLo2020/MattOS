@@ -1,0 +1,5 @@
+schema_version = 1
+component = "exiv2"
+upstream_commit = "b0859fc61fea5dedfc898aece6b15893ddf4314e"
+retained_paths = ["CMakeLists.txt", "cmake", "include", "src", "xmpsdk", "po", "man", "COPYING", "LICENSE.txt", "README.md", "AUTHORS"]
+reason = "Retain the CMake build of the Exiv2 library (with its bundled XMP SDK, translations, manual page and licensing) that Gwenview links; omit the test data and test suites, fuzzers, samples, the exiv2 command-line program, the Meson/Conan/CI tooling and design documents, none of which the library build reads."

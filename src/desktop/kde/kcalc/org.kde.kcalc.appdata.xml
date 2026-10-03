@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop-application">
+  <id>org.kde.kcalc.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <name>KCalc</name>
+  <name xml:lang="ar">حاسبة ك</name>
+  <name xml:lang="ast">KCalc</name>
+  <name xml:lang="az">KCalc</name>
+  <name xml:lang="bg">KCalc</name>
+  <name xml:lang="ca">KCalc</name>
+  <name xml:lang="ca-valencia">KCalc</name>
+  <name xml:lang="cs">KCalc</name>
+  <name xml:lang="da">KCalc</name>
+  <name xml:lang="de">KCalc</name>
+  <name xml:lang="el">KCalc</name>
+  <name xml:lang="en-GB">KCalc</name>
+  <name xml:lang="eo">KCalc</name>
+  <name xml:lang="es">KCalc</name>
+  <name xml:lang="et">KCalc</name>
+  <name xml:lang="eu">KCalc</name>
+  <name xml:lang="fi">KCalc</name>
+  <name xml:lang="fr">KCalc</name>
+  <name xml:lang="gl">KCalc</name>
+  <name xml:lang="he">KCalc</name>
+  <name xml:lang="hu">KCalc</name>
+  <name xml:lang="ia">KCalc</name>
+  <name xml:lang="id">KCalc</name>
+  <name xml:lang="is">KCalc</name>
+  <name xml:lang="it">KCalc</name>
+  <name xml:lang="ja">KCalc</name>
+  <name xml:lang="ka">KCalc</name>
+  <name xml:lang="ko">KCalc</name>
+  <name xml:lang="lv">KCalc</name>
+  <name xml:lang="nl">KCalc</name>
+  <name xml:lang="nn">KCalc</name>
+  <name xml:lang="pa">ਕੇ-ਕੈਲਕ</name>
+  <name xml:lang="pl">KCalc</name>
+  <name xml:lang="pt">KCalc</name>
+  <name xml:lang="pt-BR">KCalc</name>
+  <name xml:lang="ro">KCalc</name>
+  <name xml:lang="ru">KCalc</name>
+  <name xml:lang="sa">KCalc</name>
+  <name xml:lang="sk">KCalc</name>
+  <name xml:lang="sl">KCalc</name>
+  <name xml:lang="sq">KCalc</name>
+  <name xml:lang="sr">К‑калк</name>
+  <name xml:lang="sr-Latn">KCalc</name>
+  <name xml:lang="sr-ijekavian">К‑калк</name>
+  <name xml:lang="sr-ijekavianlatin">KCalc</name>
+  <name xml:lang="sv">Kcalc</name>
+  <name xml:lang="ta">கேக்கால்க்</name>
+  <name xml:lang="tr">K Hesap</name>
+  <name xml:lang="ug">K ھېسابلىغۇچ</name>
+  <name xml:lang="uk">KCalc</name>
+  <name xml:lang="zh-CN">KCalc 计算器</name>
+  <name xml:lang="zh-TW">KDE 計算機</name>
+  <summary>Scientific calculator</summary>
+  <summary xml:lang="ar">آلة حاسبة علمية</summary>
+  <summary xml:lang="bg">Научен калкулатор</summary>
+  <summary xml:lang="ca">Calculadora científica</summary>
+  <summary xml:lang="ca-valencia">Calculadora científica</summary>
+  <summary xml:lang="cs">Vědecká kalkulačka</summary>
+  <summary xml:lang="de">Wissenschaftlicher Taschenrechner</summary>
+  <summary xml:lang="el">Επιστημονική αριθμομηχανή</summary>
+  <summary xml:lang="en-GB">Scientific calculator</summary>
+  <summary xml:lang="eo">Scienca kalkulilo</summary>
+  <summary xml:lang="es">Calculadora científica</summary>
+  <summary xml:lang="eu">Kalkulagailu zientifikoa</summary>
+  <summary xml:lang="fi">Tieteellinen laskin</summary>
+  <summary xml:lang="fr">Calculatrice scientifique</summary>
+  <summary xml:lang="gl">Calculadora científica</summary>
+  <summary xml:lang="he">מחשבון מדעי</summary>
+  <summary xml:lang="hu">Tudományos számológép</summary>
+  <summary xml:lang="ia">Calculator scientific</summary>
+  <summary xml:lang="id">Kalkulator ilmiah</summary>
+  <summary xml:lang="is">Vísindaleg reiknivél</summary>
+  <summary xml:lang="it">Calcolatrice scientifica</summary>
+  <summary xml:lang="ja">科学電卓</summary>
+  <summary xml:lang="ka">სამეცნიერო კალკულატორი</summary>
+  <summary xml:lang="ko">공학용 계산기</summary>
+  <summary xml:lang="lv">Zinātniskais kalkulators</summary>
+  <summary xml:lang="nl">Wetenschappelijke rekenmachine</summary>
+  <summary xml:lang="nn">Vitskapleg kalkulator</summary>
+  <summary xml:lang="pl">Kalkulator naukowy</summary>
+  <summary xml:lang="pt">Calculadora científica</summary>
+  <summary xml:lang="pt-BR">Calculadora científica</summary>
+  <summary xml:lang="ro">Calculator științific</summary>
+  <summary xml:lang="ru">Калькулятор</summary>
+  <summary xml:lang="sa">वैज्ञानिक गणकयंत्र</summary>
+  <summary xml:lang="sk">Vedecká kalkulačka</summary>
+  <summary xml:lang="sl">Znanstveno računalo</summary>
+  <summary xml:lang="sq">Makina Llogaritëse Shkencore</summary>
+  <summary xml:lang="sv">Vetenskaplig miniräknare</summary>
+  <summary xml:lang="ta">அறிவியலுக்கான கணிப்பான்</summary>
+  <summary xml:lang="tr">Bilimsel hesap makinesi</summary>
+  <summary xml:lang="uk">Інженерний калькулятор</summary>
+  <summary xml:lang="zh-CN">科学计算器</summary>
+  <summary xml:lang="zh-TW">科學計算機</summary>
+  <developer id="kde.org">
+    <name translate="no">KDE</name>
+  </developer>
+  <description>
+    <p>KCalc has everything you would expect from a scientific calculator, plus:</p>
+    <p xml:lang="ar">تحوي حاسبة ك على ما تتوقعه من حاسبة عملية بالإضافة إلى:</p>
+    <p xml:lang="az">KCalc-da elmi hesablayıcıdan gözlənilən hər şey var, həmçinin:</p>
+    <p xml:lang="bg">KCalc има всичко, което бихте очаквали от научен калкулатор, плюс:</p>
+    <p xml:lang="ca">El KCalc té tot allò que espereu d'una calculadora científica, més:</p>
+    <p xml:lang="ca-valencia">KCalc té tot allò que espereu d'una calculadora científica, més:</p>
+    <p xml:lang="cs">KCalc nabízí vše, co byste od vědecké kalkulačky očekávali, a navíc:</p>
+    <p xml:lang="da">KCalc har alt hvad du forventer fra en videnskabelig lommeregner, plus:</p>
+    <p xml:lang="de">KCalc bietet alles, was Sie von einem wissenschaftlichen Taschenrechner erwarten, plus:</p>
+    <p xml:lang="el">Το KCalc έχει όλα όσα αναμένετε να βρείτε σε μία επιστημονική αριθμομηχανή, και ακόμη:</p>
+    <p xml:lang="en-GB">KCalc has everything you would expect from a scientific calculator, plus:</p>
+    <p xml:lang="eo">KCalc havas ĉion, kion vi atendus de scienca kalkulilo, krome:</p>
+    <p xml:lang="es">KCalc tiene todo lo que cabría esperar de una calculadora científica, además de:</p>
+    <p xml:lang="et">KCalc pakub kõike, mida oskad soovida ühelt teaduslikult kalkulaatorilt ja sellele lisaks veel:</p>
+    <p xml:lang="eu">KCalc-ek kalkulagailu zientifiko batean aurkituko zenukeen guztia dauka, gehi:</p>
+    <p xml:lang="fi">KCalcissä on kaikki, mitä odotat tieteelliseltä laskimelta, ja lisäksi:</p>
+    <p xml:lang="fr">KCalc dispose de tout ce que vous attendez d'une calculatrice scientifique, plus :</p>
+    <p xml:lang="gl">KCalc ten todo o que esperaría dunha calculadora científica, e ademais:</p>
+    <p xml:lang="he">ב־KCalc יש את כל מה שאפשר לצפות ממחשבון מדעי, לרבות:</p>
+    <p xml:lang="hu">A KCalc tud mindent, amit egy tudományos számológéptől elvárhat, továbbá:</p>
+    <p xml:lang="ia">KCalc ha toto que tu expectara ab un calculator scientific, plus:</p>
+    <p xml:lang="id">KCalc memiliki semua yang kamu harapkan dari kalkulator ilmiah, plus:</p>
+    <p xml:lang="is">KCalc býður upp á allt sem vísindaleg reiknivél getur boðið upp á og auk þess:</p>
+    <p xml:lang="it">KCalc ha tutto quello che ci si aspetta da una calcolatrice scientifica.</p>
+    <p xml:lang="ja">KCalc には科学電卓として求められる機能はもちろん、ほかにも以下の機能･特徴があります。</p>
+    <p xml:lang="ka">KCalc-ს ყველაფერი აქვს, რაც სამეცნიერო კალკულატორისგან შეიძლება, გჭირდებოდეთ, და კიდევ:</p>
+    <p xml:lang="ko">KCalc는 공학용 계산기에서 찾을 수 있는 기능 외에도 다음을 더 지원합니다:</p>
+    <p xml:lang="lv">„KCalc“ ir viss, kas nepieciešams zinātniskam kalkulatoram, kā arī:</p>
+    <p xml:lang="nl">KCalc heeft alles wat u verwacht van een wetenschappelijke rekenmachine, plus:</p>
+    <p xml:lang="nn">KCalc har alt du forventar av ein vitskapleg kalkulator, pluss:</p>
+    <p xml:lang="pa">ਕੇ-ਕੈਲਸ ਹਰ ਚੀਜ਼ ਕਰਦਾ ਹੈ, ਜੋ ਕਿ ਤੁਸੀਂ ਵਿਗਿਆਨਕ ਕੈਲਕੂਲੇਟਰ ਤੋਂ ਉਮੀਦ ਕਰਦੇ ਹੋ, ਇਸ ਤੋਂ ਇਲਾਵਾ:</p>
+    <p xml:lang="pl">KCalc ma wszystko czego można by oczekiwać od kalkulatora naukowego, plus:</p>
+    <p xml:lang="pt">O KCalc tem tudo o que poderá esperar de uma calculadora científica, e ainda mais:</p>
+    <p xml:lang="pt-BR">O KCalc tem tudo o necessário para uma calculadora científica e adicionalmente:</p>
+    <p xml:lang="ro">KCalc oferă tot ce puteți aștepta de la un calculator științific, plus:</p>
+    <p xml:lang="ru">В калькуляторе KCalc есть всё, что только можно ожидать от научного калькулятора, а также:</p>
+    <p xml:lang="sa">KCalc इत्यत्र सर्वं अस्ति यत् भवान् वैज्ञानिकगणकयन्त्रात् अपेक्षते, अपि च:</p>
+    <p xml:lang="sk">KCalc má všetko, čo by ste očakávali od vedeckej kalkulačky, plus:</p>
+    <p xml:lang="sl">KCalc poleg zmožnosti znanstvenega računala ponuja še naslednje zmožnosti:</p>
+    <p xml:lang="sq">Makinë llogaritëse që ofron shumë funksione matematikore si  dhe</p>
+    <p xml:lang="sr">К‑калк има све што бисте очекивали код једног научног калкулатора, плус:</p>
+    <p xml:lang="sr-Latn">KCalc ima sve što biste očekivali kod jednog naučnog kalkulatora, plus:</p>
+    <p xml:lang="sr-ijekavian">К‑калк има све што бисте очекивали код једног научног калкулатора, плус:</p>
+    <p xml:lang="sr-ijekavianlatin">KCalc ima sve što biste očekivali kod jednog naučnog kalkulatora, plus:</p>
+    <p xml:lang="sv">Miniräknaren har allt som man kan förvänta sig av en vetenskaplig räknare, samt:</p>
+    <p xml:lang="tr">K Hesap, bilimsel bir hesap makinesinden bekleyebileceğiniz her şeye sahiptir. Ayrıca:</p>
+    <p xml:lang="uk">KCalc вміє усе, що ви могли б очікувати від інженерного калькулятора, а крім того, вміє таке:</p>
+    <p xml:lang="zh-CN">KCalc 能提供一款科学计算器具备的全部功能，并且还有以下功能：</p>
+    <p xml:lang="zh-TW">KDE 計算機有所有您預期科學計算機會有的功能，再加上：</p>
+    <ul>
+      <li>Trigonometric functions, logic operations and statistical calculations</li>
+      <li xml:lang="ar">الدوال المثلثية والعمليات المنطقية والحسابات الإحصائية</li>
+      <li xml:lang="az">Tirqonometrik funksiyalar, məntiqi əməliyyatlar və statistik hesablamalar</li>
+      <li xml:lang="bg">Тригонометрични функции, логически операции и статистически изчисления</li>
+      <li xml:lang="ca">Funcions trigonomètriques, operacions lògiques i càlculs estadístics</li>
+      <li xml:lang="ca-valencia">Funcions trigonomètriques, operacions lògiques i càlculs estadístics</li>
+      <li xml:lang="cs">Trigonometrické funkce, logické operace a statistické výpočty</li>
+      <li xml:lang="de">Trigonometrische Funktionen, logische Operationen und statistische Berechnungen</li>
+      <li xml:lang="el">Τριγωνομετρικές συναρτήσεις, λογικές πράξεις και στατιστικούς υπολογισμούς</li>
+      <li xml:lang="en-GB">Trigonometric functions, logic operations and statistical calculations</li>
+      <li xml:lang="eo">Trigonometriaj funkcioj, logikaj operacioj kaj statistikaj kalkuloj</li>
+      <li xml:lang="es">Funciones trigonométricas, operaciones lógicas y cálculos estadísticos</li>
+      <li xml:lang="et">Trigonomeetrilised funktsioonid, loogikatehted ja statistilised arvutused</li>
+      <li xml:lang="eu">Funtzio trigonometrikoak, eragiketa logikoak eta kalkulu estatistikoak</li>
+      <li xml:lang="fi">Trigonometriset funktiot, loogiset operaatiot ja tilastolaskenta</li>
+      <li xml:lang="fr">Fonctions trigonométriques, opérations logiques et calculs statistiques</li>
+      <li xml:lang="gl">Funcións trigonométricas, operacións lóxicas e cálculos estatísticos</li>
+      <li xml:lang="he">פונקציות טריגונומטריות, פעולות לוגיות וחישובים סטטיסטיים</li>
+      <li xml:lang="hu">Trigonometriai függvények, logikai műveletek és statisztikai számítások</li>
+      <li xml:lang="ia">Functiones trigonometric, operationes logic e calculos statistic</li>
+      <li xml:lang="id">Fungsi trigonometri, operasi logika dan perhitungan statistik</li>
+      <li xml:lang="is">Hornafallaaðgerðir, rökfræðiaðgerðir og tölfræðiútreikninga</li>
+      <li xml:lang="it">Funzioni trigonometriche, operazioni logiche e calcoli statistici</li>
+      <li xml:lang="ja">三角関数や論理演算、統計計算</li>
+      <li xml:lang="ka">ტრიგონომეტრიული ფუნქციები, ლოგიკური ოპერაციები და სტატისტიკური გამოთვლები</li>
+      <li xml:lang="ko">삼각함수, 논리 연산 및 통계 계산입니다</li>
+      <li xml:lang="lv">Trigonometrijas funkcijas, loģiskie operatori un statistikas aprēķināšana</li>
+      <li xml:lang="nl">Goniometrische functies, logische bewerkingen en statistische berekeningen</li>
+      <li xml:lang="nn">Trigonometriske funksjonar, logiske operatorar og statistiske utrekningar</li>
+      <li xml:lang="pl">Funkcje trygonometryczne, działania logiczne i obliczenia statystyczne</li>
+      <li xml:lang="pt">Funções trigonométricas, operações lógicas e cálculos estatísticos</li>
+      <li xml:lang="pt-BR">Funções trigonométricas, operações de lógica e cálculos estatísticos</li>
+      <li xml:lang="ro">Funcții trigonometrice, operații logice și calcule statistice</li>
+      <li xml:lang="ru">Тригонометрические функции, логические операции и статистические расчёты;</li>
+      <li xml:lang="sa">त्रिकोणमितीय फलनानि, तर्कक्रियाः तथा सांख्यिकीयगणनाः</li>
+      <li xml:lang="sk">Trigonometrické funkcie, logické operácie a štatistické výpočty</li>
+      <li xml:lang="sl">Trigonometrične funkcije, logične operacije in statistične izračune</li>
+      <li xml:lang="sq">funksione trigonometrike, operacione logjike dhe lloritje statistikore</li>
+      <li xml:lang="sv">Trigonometriska funktioner, logiska operationer och statistiska beräkningar</li>
+      <li xml:lang="tr">Trigonometrik işlevler, mantık işlemleri ve istatistiksel hesaplamalar</li>
+      <li xml:lang="uk">Обчислювати тригонометричні функції, виконувати операції логіки та статистичні обчислення.</li>
+      <li xml:lang="zh-CN">三角函数、逻辑运算和统计计算</li>
+      <li xml:lang="zh-TW">三角函數，邏輯運算和統計計算</li>
+      <li>A results stack which enables convenient recall of previous calculation results</li>
+      <li xml:lang="ar">ذاكرة نتائج تتيح استدعاء نتائج الحساب السابقة بشكل ملائم</li>
+      <li xml:lang="az">Əvvəlki hesablama nəticələrinin rahat geri çağırılmasına imkan verən nəticələr yığını</li>
+      <li xml:lang="bg">Масив от резултати, който позволява удобно повторно извикване на предишни резултати от изчисления</li>
+      <li xml:lang="ca">Una pila de resultats que permet la invocació adequada dels resultats de càlculs anteriors</li>
+      <li xml:lang="ca-valencia">Una pila de resultats que permet la invocació adequada dels resultats de càlculs anteriors</li>
+      <li xml:lang="cs">Zásobník výsledků, který umožňuje pohodlné vyvolání předchozích výsledků výpočtů</li>
+      <li xml:lang="de">Ein Ergebnis-Stack, mit dem Sie bequem frühere Resultate abrufen können</li>
+      <li xml:lang="el">Μια στοίβα αποτελεσμάτων η οποία επιτρέπει τη βολική επαναφορά προηγούμενων αποτελεσμάτων υπολογισμών</li>
+      <li xml:lang="en-GB">A results stack which enables convenient recall of previous calculation results</li>
+      <li xml:lang="eo">Rezulta stako kiu ebligas oportunan revokon de antaŭaj kalkulrezultoj</li>
+      <li xml:lang="es">Una pila de resultados que permite reutilizar los resultados de cálculos anteriores</li>
+      <li xml:lang="et">Tulemuste pinu, mis lubab mugavalt kätte saada varasemaid arvutustulemusi</li>
+      <li xml:lang="eu">Emaitza-meta bat, egoki denerako, aurreko kalkulu-emaitzen itzularaztea gaitzen duena</li>
+      <li xml:lang="fi">Tulospino, jonka ansiosta aiemmat laskentatulokset on helppo palauttaa</li>
+      <li xml:lang="fr">Une pile de résultats permettant un rappel aisé des résultats des calculs précédents</li>
+      <li xml:lang="gl">Unha rima de resultados que permite recuperar comodamente os resultados de cálculos anteriores</li>
+      <li xml:lang="he">מחסנית תוצאות שמאפשרת שליפה נוחה של תוצאות חישוב קודמות</li>
+      <li xml:lang="hu">Eredménytároló, amely lehetővé teszi a korábbi számítási eredmények kényelmes előhívását</li>
+      <li xml:lang="ia">Un pila de resultatos que habilita conveniente momoration de previe  resultatos</li>
+      <li xml:lang="id">Tumpukan hasil yang memungkinkan pemanggilan ulang yang mudah dari hasil perhitungan sebelumnya</li>
+      <li xml:lang="is">Geymslu útkomu þannig að auðvelt er að kalla aftur fram fyrri útreikninga</li>
+      <li xml:lang="it">Una pila di risultati che permette di richiamare opportunamente i risultati dei calcoli precedenti</li>
+      <li xml:lang="ja">過去の計算結果をスムーズに呼び出せる履歴メモリ機能</li>
+      <li xml:lang="ka">შექმნის ნაკრებს, რომელიც წინა გამოთვლების შედეგების შესახებ წარმოდგენას შეგიქმნით</li>
+      <li xml:lang="ko">이전 계산 결과를 편리하게 호출할 수 있는 결과 스택입니다</li>
+      <li xml:lang="lv">Rezultātu tabula, kas ļauj ērti atcerēties iepriekšējos aprēķinu rezultātus</li>
+      <li xml:lang="nl">Een stapelgeheugen voor uitkomsten dat u de mogelijkheid geeft om vorige uitkomsten van berekeningen terug te halen</li>
+      <li xml:lang="nn">Resultata av alle utrekningar vert teken vare på, for seinare uthenting</li>
+      <li xml:lang="pl">Stos wyników, który umożliwia wygodne przywoływanie wyników poprzednich obliczeń</li>
+      <li xml:lang="pt">Uma pilha de resultados que permite a reposição adequada dos resultados de cálculos anteriores</li>
+      <li xml:lang="pt-BR">Uma pilha de resultados que permite a recuperação conveniente de resultados de cálculos anteriores</li>
+      <li xml:lang="ro">Stivă de rezultate ce permite preluarea convenabilă a rezultatelor calculelor anterioare</li>
+      <li xml:lang="ru">Стек результатов, который позволяет легко получать доступ к предыдущим результатам;</li>
+      <li xml:lang="sa">एकः परिणामस्य ढेरः यः पूर्वगणनापरिणामानां सुविधाजनकं स्मरणं सक्षमं करोति</li>
+      <li xml:lang="sk">Zásobník výsledkov, ktorý umožní ľahké zavolanie predošlých výsledkov výpočtov</li>
+      <li xml:lang="sl">Sklad rezultatov, ki omogoča priročen priklic prejšnjega rezultata izračuna</li>
+      <li xml:lang="sq">Një shirit i rezultateve që mundëson kthimin e vlerave llogaritjeve të mëparshme</li>
+      <li xml:lang="sv">En resultatstack som gör det möjligt att bekvämt hämta tidigare beräkningsresultat</li>
+      <li xml:lang="tr">Bir önceki hesaplama sonuçlarını size anımsatan kullanıcı dostu bir sonuçlar rafı</li>
+      <li xml:lang="uk">Має стек результатів, за допомогою якого зручно викликати результати попередніх обчислень.</li>
+      <li xml:lang="zh-CN">结果堆栈，可以方便地召回以前的计算结果</li>
+      <li xml:lang="zh-TW">有個能幫助以方便重新取得前次計算結果的結果記錄堆疊</li>
+      <li>Precision is user-definable</li>
+      <li xml:lang="ar">دقة يمكن أن يحددها المستخدم</li>
+      <li xml:lang="az">İstifadəçinin təyin edə biləcəyi dəqiqlik</li>
+      <li xml:lang="bg">Зададена от потребителя прецизност</li>
+      <li xml:lang="ca">La precisió és definible per l'usuari</li>
+      <li xml:lang="ca-valencia">La precisió és definible per l'usuari</li>
+      <li xml:lang="cs">Volitelná přesnost</li>
+      <li xml:lang="de">Benutzerdefinierbare Genauigkeit</li>
+      <li xml:lang="el">Η ακρίβεια μπορεί να ορισθεί από το χρήστη</li>
+      <li xml:lang="en-GB">Precision is user-definable</li>
+      <li xml:lang="eo">Precizeco estas uzant-difinebla</li>
+      <li xml:lang="es">El usuario puede definir la precisión</li>
+      <li xml:lang="et">Täpsuse saab määrata kasutaja</li>
+      <li xml:lang="eu">Doitasuna erabiltzaileak zehaztu dezake</li>
+      <li xml:lang="fi">Tarkkuus käyttäjän määritettävissä</li>
+      <li xml:lang="fr">Précision définie par l'utilisateur</li>
+      <li xml:lang="gl">A precisión pode personalizarse</li>
+      <li xml:lang="he">הדיוק נתון להגדרת המשתמש</li>
+      <li xml:lang="hu">Felhasználó által definiálható precizitás</li>
+      <li xml:lang="ia">Precision es definibile per le usator</li>
+      <li xml:lang="id">Presisi dapat ditentukan pengguna</li>
+      <li xml:lang="is">Notandinn getur stillt nákvæmnina</li>
+      <li xml:lang="it">La precisione è definibile dall'utente</li>
+      <li xml:lang="ja">計算精度をカスタマイズ</li>
+      <li xml:lang="ka">სიზუსტეს მომხმარებელი განსაზღვრავს</li>
+      <li xml:lang="ko">정밀도는 사용자가 정의할 수 있습니다</li>
+      <li xml:lang="lv">Lietotāja nosakāmā vēlamā precizitāte</li>
+      <li xml:lang="nl">Precisie is door de gebruiker te definiëren</li>
+      <li xml:lang="nn">Talpresisjon kan veljast av brukaren</li>
+      <li xml:lang="pl">Precyzja jest określana przez użytkownika</li>
+      <li xml:lang="pt">A precisão pode ser definida pelo utilizador</li>
+      <li xml:lang="pt-BR">A precisão é definida pelo usuário</li>
+      <li xml:lang="ro">Precizia e definită de utilizator</li>
+      <li xml:lang="ru">Задаваемая пользователем точность вычислений;</li>
+      <li xml:lang="sa">सटीकता उपयोक्तृनिर्धारणीयम् अस्ति</li>
+      <li xml:lang="sk">Presnosť je definovaná používateľom</li>
+      <li xml:lang="sl">Natančnost lahko določi uporabnik</li>
+      <li xml:lang="sq">Saktësi është e definuar nga përdoruesi</li>
+      <li xml:lang="sv">Precisionen är användardefinierbar</li>
+      <li xml:lang="ta">நுட்பத்தை பயனரே மாற்றியமைக்கலாம்</li>
+      <li xml:lang="tr">Hesaplama kesinliği kullanıcı tarafından tanımlanabilir</li>
+      <li xml:lang="uk">Точність обчислень може бути визначена користувачем.</li>
+      <li xml:lang="zh-CN">精度是用户可定义的</li>
+      <li xml:lang="zh-TW">使用者能定義精確度</li>
+      <li>The display allows cut and paste of numbers</li>
+      <li xml:lang="ar">شاشة عرض تسمح قص ولص الأرقام</li>
+      <li xml:lang="az">Rəqəmlərin kəsilməsi və yerləşdirilməsi</li>
+      <li xml:lang="bg">Екранът позволя изрязване и поставяне на числа в клипборда</li>
+      <li xml:lang="ca">La pantalla permet retallar i enganxar nombres</li>
+      <li xml:lang="ca-valencia">La pantalla permet retallar i apegar nombres</li>
+      <li xml:lang="cs">Na displeji lze čísla vyjmout a vložit</li>
+      <li xml:lang="de">In der Anzeige können Zahlen kopiert und eingefügt werden</li>
+      <li xml:lang="el">Η οθόνη επιτρέπει αποκοπή και επικόλληση αριθμών</li>
+      <li xml:lang="en-GB">The display allows cut and paste of numbers</li>
+      <li xml:lang="eo">La ekrano permesas tranĉi kaj alglui nombrojn</li>
+      <li xml:lang="es">La pantalla permite cortar y pegar números</li>
+      <li xml:lang="et">Rakendus võimaldab arve lõigata ja asetada</li>
+      <li xml:lang="eu">Bistaratzaileak zenbakiak ebakitzea eta itsastea onartzen du</li>
+      <li xml:lang="fi">Näyttö sallii lukujen leikkaamisen ja liittämisen</li>
+      <li xml:lang="fr">L'affichage permet de couper et coller des nombres</li>
+      <li xml:lang="gl">A pantalla permite cortar e pegar números</li>
+      <li xml:lang="he">התצוגה מאפשרת גזירה והדבקה של מספרים</li>
+      <li xml:lang="hu">Számok kivághatósága és beilleszthetősége</li>
+      <li xml:lang="ia">Le monstrator permitte taliar e collar de numeros</li>
+      <li xml:lang="id">Displai memungkinkan pemotongan dan penempelan angka</li>
+      <li xml:lang="is">Hægt er að klippa og líma tölur á skjánum</li>
+      <li xml:lang="it">Il display permette di copiare e incollare i numeri</li>
+      <li xml:lang="ja">計算結果の表示部分で数字の切り取りと貼り付けも</li>
+      <li xml:lang="ka">შესაძლებელია რიცხვების ამოჭრა და ჩასმა</li>
+      <li xml:lang="ko">디스플레이는 숫자의 잘라내기 및 붙여넣기를 할 수 있습니다</li>
+      <li xml:lang="lv">Displejs ļauj skaitļus griezt un ielīmēt</li>
+      <li xml:lang="nl">Het scherm biedt knippen en plakken van getallen</li>
+      <li xml:lang="nn">Kan kopiera og lim inn tal</li>
+      <li xml:lang="pl">Wyświetlacz umożliwia wycinanie i wklejanie liczb</li>
+      <li xml:lang="pt">O ecrã permite cortar e colar números</li>
+      <li xml:lang="pt-BR">O visor permite copiar e colar números</li>
+      <li xml:lang="ro">Afișajul permite tăierea și lipirea numerelor</li>
+      <li xml:lang="ru">Копирование и вставка чисел;</li>
+      <li xml:lang="sa">प्रदर्शनेन संख्यानां कटनं, पेस्ट् च भवति</li>
+      <li xml:lang="sk">Displej umožní vystrihnúť a vložiť čísla</li>
+      <li xml:lang="sl">Prikaz omogoča rezanje in lepljenje števil</li>
+      <li xml:lang="sq">Pamja lejon kapjen dhe ngjitjen e numrave</li>
+      <li xml:lang="sv">Displayen tillåter att tal klipps ut och klistras in</li>
+      <li xml:lang="ta">காட்டப்படும் எண்களை நகலெடுத்து ஒட்டலாம்</li>
+      <li xml:lang="tr">Görüntü, sayıların kesimine ve yapıştırmasına izin verir</li>
+      <li xml:lang="uk">Передбачено можливість вирізання чисел з дисплея калькулятора та вставляння чисел з буфера обміну даними.</li>
+      <li xml:lang="zh-CN">显示屏允许剪切和粘贴数字</li>
+      <li xml:lang="zh-TW">顯示畫面允許剪下數字並貼上</li>
+      <li>The display colors and font are configurable, aiding usability</li>
+      <li xml:lang="ar">تحسين الاستخدامية عن طريق تغيير ضبط ألوان العرض ونوع الخط</li>
+      <li xml:lang="az">Şriftlərin və rənglərin ayarlanması mümkünlüyü</li>
+      <li xml:lang="bg">Цветът на екрана и шрифта могат да се настройват за по-добра използваемост</li>
+      <li xml:lang="ca">Els colors i la lletra de la pantalla són configurables, ajudant a la usabilitat</li>
+      <li xml:lang="ca-valencia">Els colors i la lletra de la pantalla són configurables, ajudant a la usabilitat</li>
+      <li xml:lang="cs">Barvy a písmo na displeji lze nastavit, což přispívá k lepší použitelnosti</li>
+      <li xml:lang="de">Farbe und Zeichensatz der Anzeige können angepasst werden und verbessern damit die Lesbarkeit</li>
+      <li xml:lang="el">Τα χρώματα και η γραμματοσειρά της οθόνης είναι διαμορφώσιμα, βοηθητικά της χρηστικότητας</li>
+      <li xml:lang="en-GB">The display colours and font are configurable, aiding usability</li>
+      <li xml:lang="eo">La ekrankoloroj kaj tiparo estas agordeblaj, helpante uzeblon</li>
+      <li xml:lang="es">Puede configurar el color de la pantalla y el tipo de letra, lo que ayuda a la usabilidad</li>
+      <li xml:lang="et">Vaate värve ja fonte saab ise määrata</li>
+      <li xml:lang="eu">Bistaratzailearen koloreak eta letra-tipoak konfiguragarriak dira, erabilerraztasuna hobetuz</li>
+      <li xml:lang="fi">Näyttövärit ja -fontti ovat mukautettavissa, mikä parantaa käytettävyyttä</li>
+      <li xml:lang="fr">Les couleurs et la police d'affichage sont configurables pour une plus grande utilisabilité</li>
+      <li xml:lang="gl">Poden configurarse as cores e as fontes, para maior facilidade de uso</li>
+      <li xml:lang="he">צבעי התצוגה והגופן נתונים להגדרה ובכך משפרים את השימושיות</li>
+      <li xml:lang="hu">A színek és betűkészletek testre szabhatóak, megkönnyítve a használatóságot</li>
+      <li xml:lang="ia">Le colores e font de monstrator es configurbile, adjutante usabilitate</li>
+      <li xml:lang="id">Warna displai dan font dapat dikonfigurasi, membantu kegunaan</li>
+      <li xml:lang="is">Hægt er að breyta litum og letri á skjánum, sem eykur notagildið</li>
+      <li xml:lang="it">I colori e i caratteri del display possono essere configurati, supportando l'usabilità</li>
+      <li xml:lang="ja">表示色とフォントを変えて使いやすく</li>
+      <li xml:lang="ka">საჩვენებელი ფერები და ფონტები მორგებადია, რაც გამოყენებადობაში დაგეხმარებათ</li>
+      <li xml:lang="ko">디스플레이 색상과 글꼴을 구성할 수 있어 사용 편의성을 지원합니다</li>
+      <li xml:lang="lv">Displeja krāsas un fonts ir pielāgojums, veicinot programmas lietojamību</li>
+      <li xml:lang="nl">De kleuren en het lettertype in het scherm is aan te passen, helpt bruikbaarheid</li>
+      <li xml:lang="nn">Skrifter og fargar kan tilpassast brukarens ønskjer</li>
+      <li xml:lang="pl">Kolory i czcionka wyświetlacza jest do ustawienia, co polepsza użyteczność</li>
+      <li xml:lang="pt">As cores e tipo de letra do ecrã são configuráveis, o que ajuda à usabilidade</li>
+      <li xml:lang="pt-BR">As cores e fonte do visor são configuráveis, ajudando na usabilidade</li>
+      <li xml:lang="ru">Настраиваемые цвета и шрифты;</li>
+      <li xml:lang="sa">प्रदर्शनवर्णाः, फ़ॉन्ट् च विन्यासयोग्याः सन्ति, येन उपयोगितायां सहायता भवति</li>
+      <li xml:lang="sk">Farby a písma displeja sú nastaviteľné, čo napomáha použiteľnosti</li>
+      <li xml:lang="sl">Barve in pisava prikaza so nastavljivi, kar izboljšuje uporabnost</li>
+      <li xml:lang="sq">Fontet the ngjyrat e pamjes mund të ndryshon, gjë që rritë përdorshmërinë</li>
+      <li xml:lang="sv">Displayens färger och teckensnitt kan ställas in, för förbättrat handikappstöd</li>
+      <li xml:lang="tr">Görüntü renkleri ve yazıtipleri yapılandırılabilir, böylelikle kullanılabilirliğe katkıda bulunur</li>
+      <li xml:lang="uk">Можна налаштувати кольори та шрифт дисплея.</li>
+      <li xml:lang="zh-CN">显示颜色和字体是可配置的，有助于可用性</li>
+      <li xml:lang="zh-TW">能變更顯示的顏色和字型，有助於實用性</li>
+      <li>The use of key-bindings make it easy to use without a pointing device</li>
+      <li xml:lang="ar">يمكن استخدام اختصارات لوحة المفاتيح دون الحاجة لاستخدام الفأرة مما يسهل الاستخدام</li>
+      <li xml:lang="az">Siçan olmadan rahat işləmək üçün klaviatura qısayolları</li>
+      <li xml:lang="bg">Използването на клавишни свързвания прави възможно по-лесната му употреба без посочващо устройство</li>
+      <li xml:lang="ca">L'ús dels lligams de tecla facilita l'ús sense un dispositiu apuntador</li>
+      <li xml:lang="ca-valencia">L'ús dels lligams de tecla facilita l'ús sense un dispositiu apuntador</li>
+      <li xml:lang="cs">Díky klávesovým zkratkám je ovládání snadné i bez polohovacího zařízení</li>
+      <li xml:lang="de">Tastenbelegungen ermöglichen das Arbeiten ohne Zeigegerät</li>
+      <li xml:lang="el">Η χρήση συνδυασμών πλήκτρων διευκολύνει τη χρήση αν δεν υπάρχει συσκευή δεικτοδότησης</li>
+      <li xml:lang="en-GB">The use of key-bindings make it easy to use without a pointing device</li>
+      <li xml:lang="eo">La uzo de klavbindoj faciligas uzi sen indika aparato</li>
+      <li xml:lang="es">El uso de asignaciones de teclas facilita su uso sin un dispositivo apuntador</li>
+      <li xml:lang="et">Kiirklahvid võimaldavad rakendust kasutada isegi ilma osutusseadmeta</li>
+      <li xml:lang="eu">Tekla-konbinazioen erabilerak errazten du erakusle-gailurik gabe erabiltzea</li>
+      <li xml:lang="fi">Näppäinsidosten avulla osoitinlaitteetonkin käyttö on helppoa</li>
+      <li xml:lang="fr">L'utilisation de raccourcis claviers rend facile l'utilisation sans dispositif de pointage</li>
+      <li xml:lang="gl">O uso de atallos de teclado facilita o uso sen un dispositivo de apuntar</li>
+      <li xml:lang="he">אפשר להשתמש במקשי קיצור כדי להקל על השימוש ללא התקן הצבעה</li>
+      <li xml:lang="hu">Gyorsbillentyűk támogatása a mutatóeszköz nélküli használat megkönnyítéséhez</li>
+      <li xml:lang="ia">Le uso de ligaturas de clave face facile su uso sin dispositivo punctator </li>
+      <li xml:lang="id">Penggunaan tuts pengikat membuatnya mudah digunakan tanpa alat penunjuk</li>
+      <li xml:lang="is">Hægt er að nota flýtilykla til að auðvelda notkun reiknisins án músar</li>
+      <li xml:lang="it">L'uso di combinazioni di tastiera ne rende semplice l'uso senza un dispositivo di puntamento</li>
+      <li xml:lang="ja">ポインティングデバイスがなくても、キーボードショートカットでかんたんに操作</li>
+      <li xml:lang="ka">კლავიატურის მალსახმობები საშუალებას გაძლევთ, პროგრამა თაგუნას გარეშე გამოიყენოთ</li>
+      <li xml:lang="ko">키 바인딩을 사용하면 포인팅 장치 없이도 쉽게 사용할 수 있습니다</li>
+      <li xml:lang="lv">Taustiņu saīšņu lietojums atvieglo kalkulatora lietojumu bez peles</li>
+      <li xml:lang="nl">Het gebruik van sneltoetsen maakt het gemakkelijk om het te gebruiken zonder muis</li>
+      <li xml:lang="nn">Snøggtastar gjer kalkulatoren lett å bruka frå tastaturet</li>
+      <li xml:lang="pl">Wykorzystanie skrótów klawiszowych czyni aplikację użyteczną bez urządzenia wskazującego</li>
+      <li xml:lang="pt">O uso de combinações de teclas permite não usar um rato</li>
+      <li xml:lang="pt-BR">O uso de combinação de teclas facilita o uso sem um dispositivo apontador</li>
+      <li xml:lang="ru">Поддержка сочетаний клавиш для облечения работы без использования мыши.</li>
+      <li xml:lang="sa">कील-बन्धनस्य उपयोगेन सूचकयन्त्रं विना उपयोगः सुलभः भवति</li>
+      <li xml:lang="sk">Použitie klávesových väzieb uľahčuje použitie bez ukazovacieho zariadenia</li>
+      <li xml:lang="sl">Uporaba bližnjic s tipkami olajša uporabo kalkulatorja brez kazalne naprave</li>
+      <li xml:lang="sq">Shkurtoret ju lehtësojnë përdorimin pa maus</li>
+      <li xml:lang="sv">Användning av tangentbindningar gör det lätt att använda den utan en pekenhet</li>
+      <li xml:lang="tr">Düğme bağıntılarının kullanımı, bir işaret aygıtı olmadan rahatça kullanıma olanak verir</li>
+      <li xml:lang="uk">Використання у калькуляторі клавіатурних скорочень надає змогу користуватися ним без координатного або сенсорного пристрою.</li>
+      <li xml:lang="zh-CN">键绑定的运用可以在没有指点设备的情况下轻松使用</li>
+      <li xml:lang="zh-TW">使用按鍵綁定來讓 KDE 計算機不必指標裝置就能簡單操作</li>
+    </ul>
+  </description>
+  <url type="homepage">https://apps.kde.org/kcalc</url>
+  <url type="bugtracker">https://bugs.kde.org/enter_bug.cgi?product=kcalc</url>
+  <url type="help">https://docs.kde.org/?application=kcalc</url>
+  <url type="donation">https://www.kde.org/community/donations/?app=kcalc&amp;source=appdata</url>
+  <url type="vcs-browser">https://invent.kde.org/utilities/kcalc</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main window of KCalc</caption>
+      <caption xml:lang="ar">النافذة الرئيسة لحاسبة ك</caption>
+      <caption xml:lang="az">KCalc-ın əsas pəncərəsi</caption>
+      <caption xml:lang="bg">Основен прозорец на KCalc</caption>
+      <caption xml:lang="ca">Finestra principal del KCalc</caption>
+      <caption xml:lang="ca-valencia">Finestra principal de KCalc</caption>
+      <caption xml:lang="cs">Hlavní okno KCalc</caption>
+      <caption xml:lang="de">Hauptfenster von KCalc</caption>
+      <caption xml:lang="el">Κύριο παράθυρο του KCalc</caption>
+      <caption xml:lang="en-GB">Main window of KCalc</caption>
+      <caption xml:lang="eo">Ĉefa fenestro de KCalc</caption>
+      <caption xml:lang="es">Ventana principal de KCalc</caption>
+      <caption xml:lang="et">KCalci peaaken</caption>
+      <caption xml:lang="eu">KCalc leiho nagusia</caption>
+      <caption xml:lang="fi">KCalcin pääikkuna</caption>
+      <caption xml:lang="fr">Fenêtre principale de KCalc</caption>
+      <caption xml:lang="gl">Xanela principal de KCalc</caption>
+      <caption xml:lang="he">החלון הראשי של KCalc</caption>
+      <caption xml:lang="hu">A KCalc főablaka</caption>
+      <caption xml:lang="ia">Fenestra principal de KCalc</caption>
+      <caption xml:lang="id">Jendela utama KCalc</caption>
+      <caption xml:lang="is">Aðalgluggi KCalc</caption>
+      <caption xml:lang="it">Finestra principale di KCalc</caption>
+      <caption xml:lang="ja">KCalc のメイン画面</caption>
+      <caption xml:lang="ka">KCalc-ის მთავარი ფანჯარა</caption>
+      <caption xml:lang="ko">KCalc 주 창</caption>
+      <caption xml:lang="lv">„KCalc“ pamata logs</caption>
+      <caption xml:lang="nl">Hoofdvenster van KCalc</caption>
+      <caption xml:lang="nn">Hovudvindaugeet i KCalc</caption>
+      <caption xml:lang="pl">Główne okno KCalc</caption>
+      <caption xml:lang="pt">Janela principal do KCalc</caption>
+      <caption xml:lang="pt-BR">Janela principal do KCalc</caption>
+      <caption xml:lang="ro">Fereastra principală KCalc</caption>
+      <caption xml:lang="ru">Основное окно приложения KCalc</caption>
+      <caption xml:lang="sa">KCalc इत्यस्य मुख्यविण्डो</caption>
+      <caption xml:lang="sk">Hlavné okno KCalc</caption>
+      <caption xml:lang="sl">Glavno okno KCalc</caption>
+      <caption xml:lang="sq">Dritarja Kryesore  e KCalc</caption>
+      <caption xml:lang="sv">Huvudfönstret i miniräknaren</caption>
+      <caption xml:lang="ta">கேக்கால்க்கின் பிரதான சாளரம்</caption>
+      <caption xml:lang="tr">K Hesap ana penceresi</caption>
+      <caption xml:lang="ug">K ھېسابلىغۇچنىڭ ئاساسىي كۆزنىكى</caption>
+      <caption xml:lang="uk">Головне вікно KCalc</caption>
+      <caption xml:lang="zh-CN">KCalc 主窗口</caption>
+      <caption xml:lang="zh-TW">KDE 計算機的主視窗</caption>
+      <image>https://cdn.kde.org/screenshots/kcalc/kcalc-standard.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>KCalc window in numeral system mode</caption>
+      <caption xml:lang="ar">نافذة حاسبة ك في الوضع الرقمي</caption>
+      <caption xml:lang="az">KCalc pəncərəsi hesablama sistemi rejimində</caption>
+      <caption xml:lang="bg">Прозорец на KCalc в системен цифров режим</caption>
+      <caption xml:lang="ca">Finestra del KCalc en mode de sistema numèric</caption>
+      <caption xml:lang="ca-valencia">Finestra de KCalc en mode de sistema numèric</caption>
+      <caption xml:lang="cs">Okno KCalc v režimu číselných soustav</caption>
+      <caption xml:lang="de">KCalc-Fenster im Logik-Modus</caption>
+      <caption xml:lang="el">Παράθυρο KCalc σε λειτουργία αριθμητικού συστήματος</caption>
+      <caption xml:lang="en-GB">KCalc window in numeral system mode</caption>
+      <caption xml:lang="eo">KCalc-fenestro en numera sistemo-reĝimo</caption>
+      <caption xml:lang="es">Ventana de KCalc en el modo de sistema de numeración</caption>
+      <caption xml:lang="et">KCalci aken arvusüsteemi režiimis</caption>
+      <caption xml:lang="eu">Kcalc leihoa zenbaki-sistema moduan</caption>
+      <caption xml:lang="fi">KCalc-ikkuna numerojärjestelmätilassa</caption>
+      <caption xml:lang="fr">Fenêtre de KCalc en mode « Système numérique »</caption>
+      <caption xml:lang="gl">Xanela de KCalc en modo de sistema de numeración</caption>
+      <caption xml:lang="he">החלון של KCalc במצב מערכת מספרית</caption>
+      <caption xml:lang="hu">A KCalc számrendszer módjának ablaka</caption>
+      <caption xml:lang="ia">Fenestra de KCalc in modo de systema numeral</caption>
+      <caption xml:lang="id">Jendela KCalc dalam mode sistem numerik</caption>
+      <caption xml:lang="is">KCalc glugginn á talnakerfissniði</caption>
+      <caption xml:lang="it">Finestra di KCalc in modalità base di numerazione</caption>
+      <caption xml:lang="ja">KCalc の数値システムモードの画面</caption>
+      <caption xml:lang="ka">KCalc-ის ფანჯარა რიცხვითი სისტემის რეჟიმშია</caption>
+      <caption xml:lang="ko">진수 모드 KCalc 창</caption>
+      <caption xml:lang="lv">„KCalc“ logs skaitļu sistēmas režīmā</caption>
+      <caption xml:lang="nl">Venster van KCalc in systeemmodus numeriek</caption>
+      <caption xml:lang="nn">KCalc-vindauge i numerisk modus</caption>
+      <caption xml:lang="pl">Okno KCalc w trybie systemu numerycznego</caption>
+      <caption xml:lang="pt">A janela do KCalc no modo do sistema numeral</caption>
+      <caption xml:lang="pt-BR">Janela do KCalc no modo de sistema numérico</caption>
+      <caption xml:lang="ru">Окно KCalc в режиме систем счисления</caption>
+      <caption xml:lang="sa">संख्याप्रणालीविधाने KCalc विण्डो</caption>
+      <caption xml:lang="sk">Okno KCalc v číselnom režime</caption>
+      <caption xml:lang="sl">Okno KCalc v številskem načinu</caption>
+      <caption xml:lang="sq">Dritarja e KCalc në gjendje të sistemit të numrave</caption>
+      <caption xml:lang="sv">Kcalc-fönster i nummersystemläge</caption>
+      <caption xml:lang="ta">எண்முறைமை பயன்முறையில் கேக்கால்க்</caption>
+      <caption xml:lang="tr">Sayısal sistem kipinde K Hesap penceresi</caption>
+      <caption xml:lang="uk">Вікно KCalc у режимі системи числення</caption>
+      <caption xml:lang="zh-CN">数字系统模式下的 KCalc 窗口</caption>
+      <caption xml:lang="zh-TW">KCalc 視窗目前為數值系統模式</caption>
+      <image>https://cdn.kde.org/screenshots/kcalc/kcalc-numeral.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Kcalc window in scientific mode</caption>
+      <caption xml:lang="ar">نافذة حاسبة ك في الوضع العلمي</caption>
+      <caption xml:lang="az">KCalc pəncərəsi elmi rejimdə</caption>
+      <caption xml:lang="bg">Прозорец на KCalc в режим на научен калкулатор</caption>
+      <caption xml:lang="ca">Finestra del KCalc en mode de sistema científic</caption>
+      <caption xml:lang="ca-valencia">Finestra de KCalc en mode de sistema científic</caption>
+      <caption xml:lang="cs">Okno Kcalc ve vědeckém režimu</caption>
+      <caption xml:lang="de">KCalc-Fenster im wissenschaftlichen Modus</caption>
+      <caption xml:lang="el">Παράθυρο KCalc σε επιστημονική λειτουργία</caption>
+      <caption xml:lang="en-GB">Kcalc window in scientific mode</caption>
+      <caption xml:lang="eo">Kcalc-fenestro en scienca reĝimo</caption>
+      <caption xml:lang="es">Ventana de KCalc en el modo científico</caption>
+      <caption xml:lang="et">KCalci aken teadusrežiimis</caption>
+      <caption xml:lang="eu">Kcalc leihoa zientzia moduan</caption>
+      <caption xml:lang="fi">KCalc-ikkuna tiedelaskentatilassa</caption>
+      <caption xml:lang="fr">Fenêtre de KCalc en mode « Scientifique »</caption>
+      <caption xml:lang="gl">Xanela de KCalc en modo científico</caption>
+      <caption xml:lang="he">חלון KCalc במצב מדעי</caption>
+      <caption xml:lang="hu">A KCalc tudományos módjának ablaka</caption>
+      <caption xml:lang="ia">Fenestra de KCalc in modo scientific</caption>
+      <caption xml:lang="id">Jendela KCalc dalam mode ilmiah</caption>
+      <caption xml:lang="is">KCalc glugginn á vísindasniði</caption>
+      <caption xml:lang="it">Finestra di KCalc in modalità scientifica</caption>
+      <caption xml:lang="ja">Kcalc の科学モードの画面</caption>
+      <caption xml:lang="ka">KCalc-ის ფანჯარა სამეცნიერო რეჟიმშია</caption>
+      <caption xml:lang="ko">과학 모드 KCalc 창</caption>
+      <caption xml:lang="lv">„KCalc“ logs zinātniskā režīmā</caption>
+      <caption xml:lang="nl">Venster van Kcalc in wetenschappelijke modus</caption>
+      <caption xml:lang="nn">KCalc-vindauge i vitskapleg modus</caption>
+      <caption xml:lang="pl">Okno KCalc w trybie naukowym</caption>
+      <caption xml:lang="pt">A janela do KCalc no modo científico</caption>
+      <caption xml:lang="pt-BR">Janela do KCalc no modo científico</caption>
+      <caption xml:lang="ro">Fereastra KCalc în regim științific</caption>
+      <caption xml:lang="ru">Окно KCalc в инженерном режиме</caption>
+      <caption xml:lang="sa">वैज्ञानिकविधाने Kcalc विण्डो</caption>
+      <caption xml:lang="sk">Okno KCalc vo vedeckom režime</caption>
+      <caption xml:lang="sl">Okno KCalc v znanstvenem načinu</caption>
+      <caption xml:lang="sq">Dritarja e KCalc në gjendje shkencore </caption>
+      <caption xml:lang="sv">Kcalc-fönster i vetenskapligt läge</caption>
+      <caption xml:lang="ta">அறிவியல் பயன்முறையில் கேக்கால்க்</caption>
+      <caption xml:lang="tr">Bilimsel kipte K Hesap penceresi</caption>
+      <caption xml:lang="uk">Вікно KCalc в інженерному режимі</caption>
+      <caption xml:lang="zh-CN">科学模式下的 Kcalc 窗口</caption>
+      <caption xml:lang="zh-TW">Kcalc 視窗目前為科學模式</caption>
+      <image>https://cdn.kde.org/screenshots/kcalc/kcalc-science.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Kcalc window in statistics mode</caption>
+      <caption xml:lang="ar">نافذة حاسبة ك في الوضع الإحصائي</caption>
+      <caption xml:lang="az">KCalc pəncərəsi statistika rejimində</caption>
+      <caption xml:lang="bg">Прозорец на KCalc в статистически режим</caption>
+      <caption xml:lang="ca">Finestra del KCalc en mode de sistema estadístic</caption>
+      <caption xml:lang="ca-valencia">Finestra de KCalc en mode de sistema estadístic</caption>
+      <caption xml:lang="cs">Okno Kcalc ve statistickém režimu</caption>
+      <caption xml:lang="de">KCalc-Fenster im Statistik-Modus</caption>
+      <caption xml:lang="el">Παράθυρο KCalc σε στατιστική λειτουργία</caption>
+      <caption xml:lang="en-GB">Kcalc window in statistics mode</caption>
+      <caption xml:lang="eo">Kcalc-fenestro en statistika reĝimo</caption>
+      <caption xml:lang="es">Ventana de KCalc en el modo estadístico</caption>
+      <caption xml:lang="et">KCalci aken statistikarežiimis</caption>
+      <caption xml:lang="eu">Kcalc leihoa estatistika moduan</caption>
+      <caption xml:lang="fi">KCalc-ikkuna tilastolaskentatilassa</caption>
+      <caption xml:lang="fr">Fenêtre de KCalc en mode « Statistiques »</caption>
+      <caption xml:lang="gl">Xanela de KCalc en modo estatístico</caption>
+      <caption xml:lang="he">חלון KCalc במצב סטטיסטי</caption>
+      <caption xml:lang="hu">A KCalc statisztikai módjának ablaka</caption>
+      <caption xml:lang="ia">Fenestra de KCalc in modo statistic</caption>
+      <caption xml:lang="id">Jendela KCalc dalam mode statistik</caption>
+      <caption xml:lang="is">KCalc glugginn á tölfræðisniði</caption>
+      <caption xml:lang="it">Finestra di KCalc in modalità statistica</caption>
+      <caption xml:lang="ja">Kcalc の統計モードの画面</caption>
+      <caption xml:lang="ka">KCalc-ის ფანჯარა სტატისტიკის რეჟიმშია</caption>
+      <caption xml:lang="ko">통계 모드 KCalc 창</caption>
+      <caption xml:lang="lv">„KCalc“ logs statistikas režīmā</caption>
+      <caption xml:lang="nl">Venster van Kcalc in statistische modus</caption>
+      <caption xml:lang="nn">KCalc-vindauge i statistikkmodus</caption>
+      <caption xml:lang="pl">Okno KCalc w trybie statystycznym</caption>
+      <caption xml:lang="pt">A janela do KCalc no modo estatístico</caption>
+      <caption xml:lang="pt-BR">Janela do KCalc no modo estatístico</caption>
+      <caption xml:lang="ro">Fereastra KCalc în regim statistic</caption>
+      <caption xml:lang="ru">Окно KCalc в статистическом режиме</caption>
+      <caption xml:lang="sa">सांख्यिकीविधाने Kcalc विण्डो</caption>
+      <caption xml:lang="sk">Okno KCalc v štatistickom režime</caption>
+      <caption xml:lang="sl">Okno KCalc v statističnem načinu</caption>
+      <caption xml:lang="sq">Dritarja e KCalc në gjendje statistikore </caption>
+      <caption xml:lang="sv">Kcalc-fönster i statistikläge</caption>
+      <caption xml:lang="ta">புள்ளியியல் பயன்முறையில் கேக்கால்க்</caption>
+      <caption xml:lang="tr">İstatistik kipinde K Hesap penceresi</caption>
+      <caption xml:lang="uk">Вікно KCalc у статистичному режимі</caption>
+      <caption xml:lang="zh-CN">统计模式下的 Kcalc 窗口</caption>
+      <caption xml:lang="zh-TW">Kcalc 視窗目前為統計模式</caption>
+      <image>https://cdn.kde.org/screenshots/kcalc/kcalc-statistics.png</image>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>kcalc</binary>
+  </provides>
+  <project_group>KDE</project_group>
+  <launchable type="desktop-id">org.kde.kcalc.desktop</launchable>
+  <releases>
+    <release version="26.08.1" date="2026-09-10"/>
+    <release version="26.08.0" date="2026-08-20"/>
+    <release version="26.04.3" date="2026-07-02"/>
+    <release version="26.04.2" date="2026-06-04"/>
+    <release version="26.04.1" date="2026-05-07"/>
+    <release version="26.04.0" date="2026-04-16"/>
+    <release version="25.12.3" date="2026-03-05"/>
+    <release version="25.12.2" date="2026-02-05"/>
+    <release version="25.12.1" date="2026-01-08"/>
+    <release version="25.12.0" date="2025-12-11"/>
+    <release version="25.08.3" date="2025-11-06"/>
+    <release version="25.08.2" date="2025-10-09"/>
+    <release version="25.08.1" date="2025-09-11"/>
+    <release version="25.08.0" date="2025-08-14"/>
+    <release version="25.04.3" date="2025-07-03"/>
+    <release version="25.04.2" date="2025-06-05"/>
+    <release version="25.04.1" date="2025-05-08"/>
+    <release version="25.04.0" date="2025-04-17"/>
+    <release version="24.12.3" date="2025-03-06"/>
+    <release version="24.12.2" date="2025-02-06"/>
+    <release version="24.12.1" date="2025-01-09"/>
+    <release version="24.12.0" date="2024-12-12"/>
+    <release version="24.08.3" date="2024-11-07"/>
+    <release version="24.08.2" date="2024-10-10"/>
+    <release version="24.08.1" date="2024-09-12"/>
+    <release version="24.08.0" date="2024-08-22"/>
+    <release version="24.05.2" date="2024-07-04"/>
+    <release version="24.05.1" date="2024-06-13"/>
+    <release version="24.05.0" date="2024-05-23"/>
+    <release version="24.02.2" date="2024-04-11"/>
+    <release version="24.02.1" date="2024-03-21"/>
+    <release version="24.02.0" date="2024-02-28"/>
+    <release version="23.08.5" date="2024-02-15"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

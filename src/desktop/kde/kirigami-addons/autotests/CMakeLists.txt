@@ -10,11 +10,13 @@ endif()
 
 add_library(test-artefacts STATIC
     example_albummodel.cpp
+    testconfig.h
 )
 
 target_link_libraries(test-artefacts
     Qt6::Core
     Qt6::Gui
+    KF6::ConfigCore
 )
 
 add_executable(qmltest qmltests.cpp)
@@ -28,6 +30,7 @@ target_link_libraries(qmltest PRIVATE
     Qt6::QuickTest
     Qt6::Qml
     KF6::I18n
+    KF6::I18nQml
 )
 
 macro(kirigami_add_tests)
@@ -48,7 +51,15 @@ endmacro()
 
 kirigami_add_tests(
     tst_avatar.qml
+    tst_onboarding.qml
     tst_sounds.qml
+    tst_actioncontext.qml
+    tst_formcard.qml
+    tst_formtextfields.qml
+    tst_formdelegatebindings.qml
+    tst_messagedialog.qml
+    tst_formpathcompletion.qml
+    tst_pdfeditoractions.qml
     tst_album_qmllistmodel.qml
     tst_album_abstractlistmodel.qml
     tst_album_qmlqobjectmodel.qml

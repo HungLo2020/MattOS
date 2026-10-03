@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2022 George Florea Bănuș <georgefb899@gmail.com>
+# SPDX-License-Identifier: CC0-1.0
+
+include:
+  - project: sysadmin/ci-utilities
+    file:
+      - /gitlab-templates/reuse-lint.yml
+      - /gitlab-templates/linux-qt6.yml
+      - /gitlab-templates/freebsd-qt6.yml
+      - /gitlab-templates/craft-windows-mingw64-qt6.yml
+      - /gitlab-templates/flatpak.yml
+      - /gitlab-templates/snap-snapcraft-lxd.yml

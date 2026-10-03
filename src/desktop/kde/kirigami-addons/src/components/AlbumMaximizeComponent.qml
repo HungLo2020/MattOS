@@ -185,7 +185,8 @@ AbstractMaximizeComponent {
         id: view
         Layout.fillWidth: true
         Layout.fillHeight: true
-        interactive: !hoverHandler.hovered && count > 1
+        // Only allow swiping if we have touch input, and there's something to swipe.
+        interactive: Kirigami.Settings.hasTransientTouchInput && count > 1
         snapMode: ListView.SnapOneItem
         highlightRangeMode: ListView.StrictlyEnforceRange
         highlightMoveDuration: 0
@@ -248,10 +249,8 @@ AbstractMaximizeComponent {
                 leftMargin: Kirigami.Units.largeSpacing
                 verticalCenter: parent.verticalCenter
             }
-            width: Kirigami.Units.gridUnit * 2
-            height: width
             icon.name: "arrow-left"
-            visible: !Kirigami.Settings.isMobile && view.currentIndex > 0
+            visible: !Kirigami.Settings.hasTransientTouchInput && view.currentIndex > 0
             Keys.forwardTo: view
             Accessible.name: i18nd("kirigami-addons6", "Previous image")
             onClicked: {
@@ -268,10 +267,8 @@ AbstractMaximizeComponent {
                 rightMargin: Kirigami.Units.largeSpacing
                 verticalCenter: parent.verticalCenter
             }
-            width: Kirigami.Units.gridUnit * 2
-            height: width
             icon.name: "arrow-right"
-            visible: !Kirigami.Settings.isMobile && view.currentIndex < view.count - 1
+            visible: !Kirigami.Settings.hasTransientTouchInput && view.currentIndex < view.count - 1
             Keys.forwardTo: view
             Accessible.name: i18nd("kirigami-addons6", "Next image")
             onClicked: {
@@ -282,14 +279,13 @@ AbstractMaximizeComponent {
                 }
             }
         }
-        HoverHandler {
-            id: hoverHandler
-            acceptedDevices: PointerDevice.Mouse
-        }
     }
 
     footer: QQC2.Control {
         visible: root.showCaption && view.currentItem.caption && !root.hideCaption
+        leftPadding: root.parent.SafeArea.margins.left
+        rightPadding: root.parent.SafeArea.margins.right
+        bottomPadding: root.parent.SafeArea.margins.bottom
         contentItem: QQC2.ScrollView {
             anchors.fill: parent
             QQC2.ScrollBar.vertical.policy: QQC2.ScrollBar.AlwaysOn
@@ -299,7 +295,7 @@ AbstractMaximizeComponent {
                 width: root.width
                 height: parent.height
                 contentWidth: captionLabel.width
-                contentHeight: captionLabel.height - captionLabel.padding * 2 + Kirigami.Units.largeSpacing
+                contentHeight: captionLabel.height
 
                 Kirigami.SelectableLabel {
                     id: captionLabel

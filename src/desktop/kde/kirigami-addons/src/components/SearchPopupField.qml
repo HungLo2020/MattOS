@@ -5,17 +5,17 @@
 //
 // SPDX-License-Identifier: LGPL-2.0-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15 as QQC2
-import QtQuick.Templates 2.15 as T
-import QtQuick.Layouts 1.15
-import Qt.labs.qmlmodels 1.0
-import org.kde.kirigami 2.20 as Kirigami
+import QtQuick
+import QtQuick.Controls as QQC2
+import QtQuick.Templates as T
+import QtQuick.Layouts
+import Qt.labs.qmlmodels
+import org.kde.kirigami as Kirigami
 
 /*!
    \qmltype SearchPopupField
    \inqmlmodule org.kde.kirigamiaddons.components
-   \brief SearchField with a Popup to show autocompletion entries or search results
+   \brief SearchField with a Popup to show autocompletion entries or search results.
 
    \deprecated Use Kirigami.SearchDialog instead.
 
@@ -169,6 +169,7 @@ QQC2.Control {
                 target: root.searchField
                 anchors.left: root.searchField && root.searchField.parent ? root.searchField.parent.left : undefined
                 anchors.right: root.searchField && root.searchField.parent ? root.searchField.parent.right : undefined
+                anchors.verticalCenter:  root.searchField && root.searchField.parent ? root.searchField.parent.verticalCenter : undefined
             }
             PropertyChanges {
                 target: root.searchField ? root.searchField.KeyNavigation : null
@@ -269,6 +270,9 @@ QQC2.Control {
             }
         }
 
+        readonly property real searchFieldY: root.searchField
+                                             ? root.height/2 - root.searchField.height / 2
+                                             : 0
         readonly property real collapsedHeight: (root.searchField ? root.searchField.implicitHeight : 0)
             + topMargin + bottomMargin + topPadding + bottomPadding
 
@@ -292,7 +296,7 @@ QQC2.Control {
             if (!overlay) {
                 return 0;
             }
-            return Math.max(-root.Kirigami.ScenePosition.y, Math.min(0, overlay.height - root.Kirigami.ScenePosition.y - realisticHeight));
+            return Math.max(-root.Kirigami.ScenePosition.y, Math.min(0, overlay.height - root.Kirigami.ScenePosition.y - realisticHeight)) + searchFieldY;
         }
 
         clip: false
@@ -305,7 +309,7 @@ QQC2.Control {
         rightPadding: dialogRoundedBackground.border.width
         bottomPadding: dialogRoundedBackground.border.width
         x: -leftPadding
-        y: 0 // initial value, will be managed by enter/exit transitions
+        y: searchFieldY // initial value, will be managed by enter/exit transitions
 
         implicitWidth: root.width + leftPadding + rightPadding
         height: popup.collapsedHeight // initial binding, will be managed by enter/exit transitions
@@ -378,7 +382,7 @@ QQC2.Control {
                         property: "y"
                         easing.type: Easing.OutCubic
                         duration: Kirigami.Units.longDuration
-                        to: 0
+                        to: popup.searchFieldY
                     }
                     NumberAnimation {
                         property: "height"
@@ -412,7 +416,7 @@ QQC2.Control {
             root.searchField.background.opacity = 1;
             dialogRoundedBackground.opacity = 0;
             // Make sure height stays sensible if search field is resized while popup is closed.
-            popup.y = 0;
+            popup.y = searchFieldY;
             popup.height = Qt.binding(() => popup.collapsedHeight);
         }
 

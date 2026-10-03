@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2023 Carl Schwan <carlschwan@kde.org>
 // SPDX-License-Identifier: LGPL-2.0-or-later
 
-import QtQuick 2.15
-import QtQuick.Controls 2.15 as QQC2
-import QtQuick.Templates 2.15 as T
-import QtQuick.Layouts 1.15
-import org.kde.kirigami 2.20 as Kirigami
-import org.kde.kirigamiaddons.delegates 1.0 as Delegates
+import QtQuick
+import QtQuick.Controls as QQC2
+import QtQuick.Templates as T
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.delegates as Delegates
 
 /*!
    \qmltype SegmentedButton
@@ -24,7 +24,7 @@ RowLayout {
      */
     property list<T.Action> actions
 
-    spacing: Math.round(Kirigami.Units.smallSpacing / 2)
+    spacing: -1//Math.round(Kirigami.Units.smallSpacing / 2)
 
     Repeater {
         id: buttonRepeater
@@ -39,6 +39,7 @@ RowLayout {
 
             property bool highlightBackground: down || checked
             property bool highlightBorder: enabled && down || checked || visualFocus || hovered
+            z: highlightBorder ? 1 : 0
 
             padding: Kirigami.Units.mediumSpacing
 
@@ -80,11 +81,15 @@ RowLayout {
                 )
 
                 corners {
-                    topLeftRadius: buttonDelegate.index === 0 ? Kirigami.Units.mediumSpacing : 0
-                    bottomLeftRadius: buttonDelegate.index === 0 ? Kirigami.Units.mediumSpacing : 0
+                    topLeftRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? buttonRepeater.count - 1 : 0)
+                        ? Kirigami.Units.mediumSpacing : 0
+                    bottomLeftRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? buttonRepeater.count - 1 : 0)
+                        ? Kirigami.Units.mediumSpacing : 0
 
-                    bottomRightRadius: buttonDelegate.index === buttonRepeater.count - 1 ? Kirigami.Units.mediumSpacing : 0
-                    topRightRadius: buttonDelegate.index === buttonRepeater.count - 1 ? Kirigami.Units.mediumSpacing : 0
+                    bottomRightRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? 0 : buttonRepeater.count - 1)
+                        ? Kirigami.Units.mediumSpacing : 0
+                    topRightRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? 0 : buttonRepeater.count - 1)
+                        ? Kirigami.Units.mediumSpacing : 0
                 }
 
                 visible: !buttonDelegate.flat || buttonDelegate.editable || buttonDelegate.down || buttonDelegate.checked || buttonDelegate.highlighted || buttonDelegate.visualFocus || buttonDelegate.hovered
@@ -126,8 +131,6 @@ RowLayout {
                 }
 
                 Kirigami.ShadowedRectangle {
-                    id: root
-
                     height: buttonDelegate.height
                     z: -1
                     color: Qt.rgba(0, 0, 0, 0.1)
@@ -136,11 +139,15 @@ RowLayout {
                     visible: !buttonDelegate.editable && !buttonDelegate.flat && buttonDelegate.enabled
 
                     corners {
-                        topLeftRadius: buttonDelegate.index === 0 ? Kirigami.Units.mediumSpacing : 0
-                        bottomLeftRadius: buttonDelegate.index === 0 ? Kirigami.Units.mediumSpacing : 0
+                        topLeftRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? buttonRepeater.count - 1 : 0)
+                            ? Kirigami.Units.mediumSpacing : 0
+                        bottomLeftRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? buttonRepeater.count - 1 : 0)
+                            ? Kirigami.Units.mediumSpacing : 0
 
-                        bottomRightRadius: buttonDelegate.index === buttonRepeater.count - 1 ? Kirigami.Units.mediumSpacing : 0
-                        topRightRadius: buttonDelegate.index === buttonRepeater.count - 1 ? Kirigami.Units.mediumSpacing : 0
+                        bottomRightRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? 0 : buttonRepeater.count - 1)
+                            ? Kirigami.Units.mediumSpacing : 0
+                        topRightRadius: buttonDelegate.index === (Qt.application.layoutDirection === Qt.RightToLeft ? 0 : buttonRepeater.count - 1)
+                            ? Kirigami.Units.mediumSpacing : 0
                     }
 
                     anchors {

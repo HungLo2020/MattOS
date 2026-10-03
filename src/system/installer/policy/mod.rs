@@ -2339,6 +2339,19 @@ fn refresh_installed_local_apt_metadata(target: &Path) -> Result<()> {
     ] {
         fs::create_dir_all(target.join(relative))?;
     }
+    // APT hooks the installed packages register (PackageKit's
+    // Post-Invoke-Success, for one) redirect to /dev/null; give the chroot
+    // the live /dev for this transaction only.
+    let mut mounts = MountStack::new();
+    let dev = target.join("dev");
+    fs::create_dir_all(&dev)?;
+    mount_target_tree_if_missing(
+        &mut mounts,
+        &dev,
+        "dev",
+        &["devtmpfs", "tmpfs"],
+        &["--bind".as_ref(), Path::new("/dev").as_os_str(), dev.as_os_str()],
+    )?;
     let status = Command::new("chroot")
         .arg(target)
         .args([
@@ -2352,7 +2365,9 @@ fn refresh_installed_local_apt_metadata(target: &Path) -> Result<()> {
             "update",
         ])
         .status()
-        .context("refresh installed local MattOS APT metadata")?;
+        .context("refresh installed local MattOS APT metadata");
+    mounts.unmount_all()?;
+    let status = status?;
     if !status.success() {
         bail!("installed local MattOS APT metadata refresh failed with {status}");
     }

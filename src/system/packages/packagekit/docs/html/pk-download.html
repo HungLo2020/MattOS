@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>PackageKit - Where can I download it?</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" href="style.css" type="text/css" media="screen"/>
+</head>
+<body>
+
+<table align="center" class="title">
+<tr>
+ <td><img src="img/packagekit.png" alt=""/></td>
+ <td width="95%" valign="middle"><p class="title">Where can I download it?</p></td>
+ <td><img src="img/packagekit.png" alt=""/></td>
+</tr>
+</table>
+
+<p>Back to the <a href="index.html">main page</a></p>
+
+<h1>Where do I download it?</h1>
+
+<h2>Precompiled Packages</h2>
+<p>
+Your distribution probably has compiled packages that are much
+easier to install.
+</p>
+
+<h2>Released Versions</h2>
+<p>
+Released versions are found on
+<a href="http://www.freedesktop.org/software/PackageKit/releases/">
+http://www.freedesktop.org/software/PackageKit/releases/</a>.
+</p>
+
+<h2>Compiling the latest code</h2>
+<p>
+You can get the latest PackageKit daemon from the
+<a href="https://github.com/PackageKit/PackageKit">public git repositories</a>.
+</p>
+<pre>
+git clone https://github.com/PackageKit/PackageKit.git
+</pre>
+<p>
+If you want to commit changes or add a new backend, then please email the
+mailing list and we can give you access to a developer server.
+</p>
+
+<h2>Adding backends to PackageKit</h2>
+<p>
+PackageKit itself is an abstract daemon, the only bits that are distro
+specific are the backends.
+</p>
+<p>
+To make PackageKit work on a new distribution, you have to write a
+"backend" which is basically a shim layer from the distro tool to
+packagekitd. A backend can have one or more threads and also spawn other processes.
+</p>
+<p>
+See the developer information <a href="gtk-doc/index.html">here</a> for more
+information.
+</p>
+
+<p>
+Backends do not have to be complete; often they just contain basic
+functionality to install and remove but do not provide dependency or file
+lists for example. See the FAQ <a href="pk-faq.html">here</a> for backends status.
+</p>
+
+<p>Back to the <a href="index.html">main page</a></p>
+
+<p class="footer">
+ Copyright <a href="mailto:richard@hughsie.com">Richard Hughes 2007-2013</a><br/>
+ <a href="http://validator.w3.org/check/referer">Optimized</a>
+ for <a href="http://www.w3.org/">standards</a>.
+</p>
+
+</body>
+</html>

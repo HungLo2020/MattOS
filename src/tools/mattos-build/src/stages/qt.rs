@@ -369,10 +369,12 @@ fn qt_host_qsb(repo_root: &Path) -> Result<PathBuf> {
 /// can silently point a downstream build back into `out/build`.
 fn normalize_qt_target_metadata(repo_root: &Path, install: &Path) -> Result<()> {
     let modules = install.join("usr/mkspecs/modules");
-    // Keep this in exact lockstep with QtBase's direct target-stage closure.
-    // Each provider is installed by its own MattOS package at `/usr`.
+    // Keep this in exact lockstep with the Qt modules' direct target-stage
+    // closures.  Each provider is installed by its own MattOS package at `/usr`.
     let mut published_prefixes = [
         "libglvnd", "mesa", "wayland", "xkbcommon", "x11-compat", "freetype", "fontconfig", "expat", "libpng", "openssl", "zlib",
+        // Qt Multimedia's FFmpeg and PipeWire backends and X11 capture.
+        "ffmpeg", "pipewire", "libxrandr",
     ]
         .into_iter()
         .map(|component| {
@@ -940,11 +942,18 @@ fn build_qt_module(repo_root: &Path, component: &str) -> Result<()> {
         for (feature, value) in [
             ("alsa", "OFF"),
             ("gstreamer", "no"),
+            // Playback (Elisa, Gwenview's video) decodes with the MattOS
+            // FFmpeg and plays audio through PipeWire.  Qt loads libpipewire
+            // at runtime, so unlike the PulseAudio backend it adds no link
+            // dependency that every QtMultimedia consumer must resolve.
             ("pulseaudio", "OFF"),
-            ("pipewire", "OFF"),
-            ("ffmpeg", "OFF"),
+            ("pipewire", "ON"),
+            ("ffmpeg", "ON"),
         ] {
             command.push(format!("-DFEATURE_{feature}={value}"));
+        }
+        for component in ["ffmpeg", "pipewire"] {
+            prefixes.push(repo_root.join("out/build").join(component).join("install/usr"));
         }
         let shader_tools = repo_root.join("out/build/qtshadertools/install/usr");
         prefixes.push(shader_tools.clone());
@@ -953,6 +962,14 @@ fn build_qt_module(repo_root: &Path, component: &str) -> Result<()> {
             shader_tools.display()
         ));
         command.push(format!("-DQT_QSB_EXECUTABLE={}/bin/qsb", shader_tools.display()));
+        // QtGui is built with Xlib, so the FFmpeg backend compiles its X11
+        // screen capture (XWayland windows) against libX11/libXext/libXrandr.
+        // CMAKE_CXX_FLAGS is set explicitly, so name the headers here rather
+        // than through CXXFLAGS.
+        let includes = ["x11-compat", "libxrandr"]
+            .map(|component| repo_root.join("out/build").join(component).join("install/usr/include").display().to_string())
+            .join(";");
+        command.push(format!("-DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES={includes}"));
     }
     if component == "qtspeech" {
         // QtSpeech's required Multimedia package is a separate standalone
@@ -967,6 +984,27 @@ fn build_qt_module(repo_root: &Path, component: &str) -> Result<()> {
     command.extend(qt_target_cmake_args(repo_root, &prefixes)?);
     let refs = command.iter().map(String::as_str).collect::<Vec<_>>();
     let mut env = qt_target_environment(repo_root, &build, Some(&qt))?;
+    if component == "qtmultimedia" {
+        // The FFmpeg media backend and the PipeWire audio backend's headers
+        // are found through pkg-config, beyond QtGui's own provider closure.
+        for (key, value) in staged_library_environment(
+            repo_root,
+            &[
+                "ffmpeg", "pipewire", "dav1d", "zlib", "glib", "pcre2", "libffi", "dbus",
+                "x11-compat", "libxrandr",
+            ],
+        )? {
+            if key == "PATH" {
+                continue;
+            }
+            let separator = if key.ends_with("FLAGS") { " " } else { ":" };
+            if let Some((_, existing)) = env.iter_mut().find(|(existing, _)| *existing == key) {
+                *existing = format!("{existing}{separator}{value}");
+            } else {
+                env.push((key, value));
+            }
+        }
+    }
     if component == "qtwayland" {
         // QtWayland's EGL compositor integration includes GLVND's
         // eglplatform.h directly.  GLVND exposes the X11 branch of that

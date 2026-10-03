@@ -49,10 +49,24 @@ import './private' as Private
 AbstractFormDelegate {
     id: root
 
+    property bool _mobileEditing: false
+    property bool _mobileFinishEmitted: false
+
     /*!
        \brief A label containing primary text that appears above the text field.
      */
     required property string label
+
+    /*!
+       \brief A label containing secondary text that appears under the
+       inherited text property.
+
+       This provides additional information shown in a faint gray color.
+
+       \default ""
+       \since 1.12.0
+     */
+    property string description: ""
 
     /*!
        \qmlproperty int maximumLength
@@ -133,6 +147,49 @@ AbstractFormDelegate {
        \sa {TextInput::cursorPosition} {TextInput.cursorPosition}
      */
     property alias cursorPosition: textField.cursorPosition
+
+    /*!
+       \qmlproperty bool selectByMouse
+       \brief This property holds the \l {TextInput::selectByMouse} {selectByMouse} of the internal TextField.
+
+       Defaults to true.
+       If true, the user can use the mouse to select text in the usual way.
+
+       \sa {TextInput::selectByMouse} {TextInput.selectByMouse}
+     */
+    property alias selectByMouse: textField.selectByMouse
+
+    /*!
+       \qmlproperty string selectedText
+       \brief This property holds the \l {TextInput::selectedText} {selectedText} of the internal TextField.
+
+       This property holds the selected text in the text field.
+
+       \sa {TextInput::selectedText} {TextInput.selectedText}
+     */
+    property alias selectedText: textField.selectedText
+
+    /*!
+       \qmlproperty int selectionEnd
+       \brief This property holds the \l {TextInput::selectionEnd} {selectionEnd} of the internal TextField.
+
+       This property holds the cursor position after the last character in the current selection.
+       This property is read-only.
+
+       \sa {TextInput::selectionEnd} {TextInput.selectionEnd}
+     */
+    property alias selectionEnd: textField.selectionEnd
+
+    /*!
+       \qmlproperty int selectionStart
+       \brief This property holds the \l {TextInput::selectionStart} {selectionStart} of the internal TextField.
+
+       This property holds the cursor position before the first character in the current selection.
+       This property is read-only.
+
+       \sa {TextInput::selectionStart} {TextInput.selectionStart}
+     */
+    property alias selectionStart: textField.selectionStart
 
     /*!
        \qmlproperty var status
@@ -236,11 +293,15 @@ AbstractFormDelegate {
 
     onActiveFocusChanged: { // propagate focus to the text field
         if (activeFocus) {
+            _mobileEditing = true;
             textField.forceActiveFocus();
         }
     }
 
-    onClicked: textField.forceActiveFocus()
+    onClicked: {
+        _mobileEditing = true;
+        textField.forceActiveFocus();
+    }
     background: null
     Accessible.role: Accessible.EditableText
 
@@ -250,17 +311,18 @@ AbstractFormDelegate {
             spacing: Private.FormCardUnits.horizontalSpacing
 
             Layout.fillWidth: true
+            visible: !Kirigami.Settings.isMobile || root._mobileEditing
 
             Label {
                 Layout.fillWidth: true
-                text: label
+                text: root.label
                 elide: Text.ElideRight
                 color: root.enabled ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
                 wrapMode: Text.Wrap
                 maximumLineCount: 2
                 Accessible.ignored: true
             }
-            Label {
+            Text {
                 TextMetrics {
                     id: metrics
                     text: label(root.maximumLength, root.maximumLength)
@@ -286,27 +348,103 @@ AbstractFormDelegate {
         }
 
         RowLayout {
-            id: innerRow
-
+            Layout.fillWidth: true
             spacing: Kirigami.Units.smallSpacing
 
-            Layout.fillWidth: true
+            RowLayout {
+                id: innerRow
 
-            TextField {
-                id: textField
-                Accessible.name: root.label
+                spacing: Kirigami.Units.smallSpacing
+
                 Layout.fillWidth: true
-                placeholderText: root.placeholderText
-                text: root.text
-                onTextChanged: root.text = text
-                onAccepted: root.accepted()
-                onEditingFinished: root.editingFinished()
-                onTextEdited: root.textEdited()
-                activeFocusOnTab: false
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 0
+                    visible: Kirigami.Settings.isMobile && !root._mobileEditing
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: root.label
+                        elide: Text.ElideRight
+                        color: root.enabled ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
+                        wrapMode: Text.Wrap
+                        maximumLineCount: 2
+                        Accessible.ignored: true
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: root.text
+                        visible: text.length > 0
+                        color: Kirigami.Theme.disabledTextColor
+                        wrapMode: Text.Wrap
+                        Accessible.ignored: true
+                    }
+                }
+
+                TextField {
+                    id: textField
+                    Accessible.name: root.label
+                    Layout.fillWidth: true
+                    visible: !Kirigami.Settings.isMobile || root._mobileEditing
+                    placeholderText: root.placeholderText
+                    text: root.text
+                    onTextChanged: {
+                        if (root.text !== text) {
+                            FormFieldHelper.setText(root, text);
+                        }
+                    }
+                    onAccepted: {
+                        root.accepted();
+                        if (Kirigami.Settings.isMobile) {
+                            textField.focus = false;
+                        }
+                    }
+                    onEditingFinished: {
+                        if (!Kirigami.Settings.isMobile || !root._mobileFinishEmitted) {
+                            root.editingFinished();
+                            root._mobileFinishEmitted = true;
+                        }
+                    }
+                    onActiveFocusChanged: {
+                        if (activeFocus) {
+                            root._mobileFinishEmitted = false;
+                        }
+                        if (!activeFocus && Kirigami.Settings.isMobile) {
+                            root._mobileEditing = false;
+                        }
+                    }
+                    onTextEdited: {
+                        if (root.text !== text) {
+                            FormFieldHelper.setText(root, text);
+                        }
+                        root.textEdited();
+                    }
+                    activeFocusOnTab: false
+                }
+            }
+
+            Kirigami.Icon {
+                visible: Kirigami.Settings.isMobile && !root._mobileEditing && !root.readOnly && root.enabled
+                source: "document-edit"
+                implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                implicitHeight: Kirigami.Units.iconSizes.smallMedium
+                Accessible.ignored: true
+            }
+
+            ToolButton {
+                objectName: "_mobileDoneButton"
+                visible: Kirigami.Settings.isMobile && root._mobileEditing
+                text: i18ndc("kirigami-addons6", "@action:button", "Done")
+                icon.name: "dialog-ok"
+                display: AbstractButton.TextBesideIcon
+                focusPolicy: Qt.NoFocus
+                onClicked: textField.focus = false
             }
         }
 
-        Kirigami.InlineMessage {
+        Private.FormInlineMessage {
             id: formErrorHandler
             visible: root.statusMessage.length > 0
             Layout.topMargin: visible ? Kirigami.Units.smallSpacing : 0
@@ -314,6 +452,15 @@ AbstractFormDelegate {
             text: root.statusMessage
             type: root.status
         }
+
+        Label {
+            id: internalDescriptionItem
+
+            Layout.fillWidth: true
+            text: root.description
+            color: Kirigami.Theme.disabledTextColor
+            visible: root.description !== ""
+            wrapMode: Text.Wrap
+        }
     }
 }
-

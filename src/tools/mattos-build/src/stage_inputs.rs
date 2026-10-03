@@ -573,6 +573,50 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/kde/kate",
             "src/tools/mattos-build/src/stages/plasma_apps.rs",
         ],
+        BuildStage::KCalc => &[
+            "src/desktop/kde/kcalc",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::KWalletManager => &[
+            "src/desktop/kde/kwalletmanager",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::PartitionManager => &[
+            "src/desktop/kde/partitionmanager",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::Elisa => &[
+            "src/desktop/kde/elisa",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::KColorPicker => &[
+            "src/desktop/kde/kcolorpicker",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::KImageAnnotator => &[
+            "src/desktop/kde/kimageannotator",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::Gwenview => &[
+            "src/desktop/kde/gwenview",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::Discover => &[
+            "src/desktop/kde/discover",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::MpvQt => &[
+            "src/desktop/kde/mpvqt",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::Haruna => &[
+            "src/desktop/kde/haruna",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
+        BuildStage::PackageKitQt => &[
+            "src/desktop/kde/packagekit-qt",
+            "src/tools/mattos-build/src/stages/plasma_apps.rs",
+        ],
         BuildStage::Ark => &[
             "src/desktop/kde/ark",
             "src/tools/mattos-build/src/stages/plasma_apps.rs",
@@ -825,6 +869,58 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         ],
         BuildStage::Mpfr => &[
             "src/system/libraries/mpfr",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Libxrandr => &[
+            "src/system/graphics/libxrandr",
+            "src/tools/mattos-build/src/stages/graphics.rs",
+        ],
+        BuildStage::LibjpegTurbo => &[
+            "src/system/libraries/libjpeg-turbo",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Exiv2 => &[
+            "src/system/libraries/exiv2",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Fribidi => &[
+            "src/system/libraries/fribidi",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Harfbuzz => &[
+            "src/system/libraries/harfbuzz",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Libass => &[
+            "src/system/libraries/libass",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Libplacebo => &[
+            "src/system/multimedia/libplacebo",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Mpv => &[
+            "src/system/multimedia/mpv",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::KdSingleApplication => &[
+            "src/system/libraries/kdsingleapplication",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Jansson => &[
+            "src/system/libraries/jansson",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Sqlite => &[
+            "src/system/libraries/sqlite",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::PackageKit => &[
+            "src/system/packages/packagekit",
+            "src/tools/mattos-build/src/stages/runtime_libraries.rs",
+        ],
+        BuildStage::Mpc => &[
+            "src/system/libraries/mpc",
             "src/tools/mattos-build/src/stages/runtime_libraries.rs",
         ],
         BuildStage::LibBytesize => &[

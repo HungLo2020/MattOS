@@ -1,0 +1,185 @@
+This file describe the framework for testing MPC functions.
+===========================================================
+
+Functionality
+-------------
+The test suite usually perform 3 kinds of tests for a given function:
+
+1. it verifies that the result returned by the function matches with
+precomputed data written in a '.dat' file,
+
+2. it checks that the function computes coherent results in low and high
+precision,
+
+3. optionally, it performs additional checks specific to the function under
+test.
+
+The test suite provides support for the first two items. This ensures that all
+function tests using the framework execute a set of verifications in a
+systematic way.
+
+
+How to add a test for a new function?
+-------------------------------------
+
+1. The test framework does support only functions with exactly one output
+parameter. An ad hoc solution must be used for functions with other
+prototypes. For an adaptation to a function with two output parameters, see
+tsin_cos.c file.
+
+If you want to use the system checking against data sets or the random tests,
+you will need to describe the function prototype in a file (procedure detailed
+in 2.) and to define several macros (detailed in 3.). Then, you can call the
+data_check_template() function for checking against a data set (see 4.) or the
+tgeneric_template() function for random values (see 5.).
+
+In both cases, the 'mpc-test.h' header file must be included.
+
+
+2. First write a description of the function interface describing, in this
+order, the name of the function, the return value, the set of input
+parameters, and the set of output parameters.
+
+For instance, the description file of the mpc_add function (excerpt of
+add.dsc) is displayed below:
+
+# Description file of the function
+NAME:
+    mpc_add
+RETURN:
+    mpc_inex
+OUTPUT:
+    mpc_ptr
+INPUT:
+    mpc_srcptr
+    mpc_srcptr
+    mpc_rnd_t
+
+The integer value returned by MPC functions is usually the inexact flag. In
+that case, the return value type must be denoted as 'mpc_inex'. Other types
+are generally the C type that appears in the function prototype.
+
+The easiest way is to adapt a description file of a function with the same
+prototype.
+
+
+3. Second, define at least the MPC_FUNCTION_CALL macro.
+
+Because the framework is common to all MPC function (or so), the
+data_check_template() and the tgeneric_template() functions are written in a
+generic manner. Both function are defined in its own file that the user must
+include. They call the function under test through several macros
+defined by the user before the inclusion of the corresponding file.
+
+The definition of each macro specifies the name of the function under test and
+the parameters in use along with their type.
+
+Four macros can be of interest:
+
+In all cases, the macro MPC_FUNCTION_CALL must
+ MPC_FUNCTION_CALL: mandatory, it describes a simple call to the function,
+
+ MPC_FUNCTION_CALL_SYMMETRIC: optional, it describes a function call with a
+switch of two parameters, it is useful for automatically checking the
+consistency of symmetric functions, i. e. f(a,b) == f(b,a),
+
+ MPC_FUNCTION_CALL_REUSE_OP1
+ MPC_FUNCTION_CALL_REUSE_OP2
+ MPC_FUNCTION_CALL_REUSE_OP3
+ the last three macros can be used to check that the result is not affected by
+the reuse of an input variable as output parameter
+
+Here is how these macros are defined for the mpc_add function:
+#define MPC_FUNCTION_CALL                                               \
+  P[0].mpc_inex = mpc_add (P[1].mpc, P[2].mpc, P[3].mpc, P[4].mpc_rnd)
+#define MPC_FUNCTION_CALL_SYMMETRIC                                     \
+  P[0].mpc_inex = mpc_add (P[1].mpc, P[3].mpc, P[2].mpc, P[4].mpc_rnd)
+#define MPC_FUNCTION_CALL_REUSE_OP1                                     \
+  P[0].mpc_inex = mpc_add (P[1].mpc, P[1].mpc, P[3].mpc, P[4].mpc_rnd)
+#define MPC_FUNCTION_CALL_REUSE_OP2                                     \
+  P[0].mpc_inex = mpc_add (P[1].mpc, P[2].mpc, P[1].mpc, P[4].mpc_rnd)
+
+
+4. For precomputed values.
+
+The test framework can check the result of the function on given parameters
+against a reference value written in a file.
+
+The file "data_check.tpl" must be included after the definition of
+MPC_FUNCTION_CALL macros and the data_check_template() function can be used in
+the code.
+
+The first parameter of data_check_template() is the name of the description
+file of the function and the second is the name of the data file.
+As an example, here is the function call for testing mpc_add():
+  data_check_template ("add.dsc", "add.dat");
+
+The data file contains a sequence of input and output values in the order
+given by the function prototype. So, output values are usually first, as it is
+the case for most MPC functions.
+
+Here is an excerpt of 'add.dat' (the data set for mpc_add()):
+# special values (following ISO C99 standard)
+0 0 53 -inf 53 -inf    53 -inf 53 -inf 53 -inf 53 -inf N Z
+# pure real argument
++ 0 53  0x10000000000001p-52  53 -0    53 +1 53 -0 53 0x10000000000001p-105 53 -0 N N
+
+The ternary value associated with an mpfr_t result is described as:
+"?" it should not be checked
+"+" if the computed result is greater than the exact mathematical result
+"0" if the computed result is exactly the mathematical result
+"-" if the computed result is less than the exact mathematical result
+
+The mpc_inex value is a pair of ternary values.
+
+The values for mpfr_t and mpc_t parameters come along with their
+precision. Use prefixes "0b" for values in base two, "0x" for values in base
+sixteen, no prefix for value in base ten.  In all bases, "nan" is NaN, "inf"
+is infinity; the sign of infinity and zero is checked if it is specified in
+the data file, otherwise it is ignored.
+
+The MPFR rounding mode is denoted by
+"N" for rounding to nearest
+"Z" for rounding towards zero
+"U" for rounding towards plus infinity
+"D" for rounding towards minus infinity
+
+The MPC rounding mode is a pair of MPFR rounding mode.
+
+Thus, the following line from 'add.dat'
+0 0 53 -inf 53 -inf    53 -inf 53 -inf 53 -inf 53 -inf N Z
+indicates that
+(-inf +i * -inf) + (-inf +i * -inf)
+should be exactly
+-inf +i * -inf
+in 53-bit precision with rounding to nearest for the real part
+and rounding toward minus infinity for the imaginary part.
+
+The line
++ 0 53  0x10000000000001p-52  53 -0    53 +1 53 -0 53 0x10000000000001p-105 53 -0 N N
+indicates that
+(+1 +i * -0) + (0x10000000000001p-105 +i * -0)
+is 
+0x10000000000001p-52 +i * -0
+in 53-bit precision when rounding both part to nearest, the real part is
+actually an overestimation of the exact result (ternary value: +), while the
+imaginary part is exact.
+
+
+5. Test with random values
+
+The framework also provides generic tests with random values.
+
+The file "tgeneric.tpl" must be included after the definition of
+MPC_FUNCTION_CALL macros and the tgeneric_template() function can be used in
+the code.
+
+The first parameter of tgeneric_template() is the description file of the
+function under test. The second and third parameter are the minimum and
+maximum precision for input and output parameters. The fourth is the iteration
+step in the precision range. The last parameter is the maximum
+exponent. Usually, the range of random parameter has to be restricted for a
+reasonable testing time.
+
+As an example, here is the function call for testing mpc_add():
+  tgeneric_template ("add.dsc", 2, 1024, 7, 128);

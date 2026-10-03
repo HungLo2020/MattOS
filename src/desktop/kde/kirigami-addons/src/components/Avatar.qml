@@ -5,10 +5,10 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-import QtQuick 2.15
-import QtQuick.Window 2.15
-import org.kde.kirigami 2.15 as Kirigami
-import org.kde.kirigamiaddons.components 1.0 as Components
+import QtQuick
+import QtQuick.Window
+import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.components as Components
 
 /*!
    \qmltype Avatar
@@ -64,8 +64,6 @@ Item {
               Show the user's initials.
        \value Avatar.InitialsMode.UseIcon
               Show a generic icon.
-
-       \sa initialsMode
      */
     property int initialsMode: Avatar.InitialsMode.UseInitials
 
@@ -82,8 +80,6 @@ Item {
               Show the image if it is valid or initials if it is not.
        \value Avatar.ImageMode.AlwaysShowInitials
               Always show initials.
-
-       \sa imageMode
      */
     property int imageMode: Avatar.ImageMode.AdaptiveImageOrInitals
 
@@ -236,6 +232,7 @@ Item {
 
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
+            retainWhileLoading: true
             mipmap: true
             sourceSize {
                 width: root.__diameter * root.Screen.devicePixelRatio
@@ -243,6 +240,10 @@ Item {
             }
             layer {
                 enabled: GraphicsInfo.api !== GraphicsInfo.Software
+                textureSize: Qt.size(
+                    root.__diameter * root.Screen.devicePixelRatio,
+                    root.__diameter * root.Screen.devicePixelRatio
+                )
                 effect: Kirigami.ShadowedTexture {
                     radius: root.__diameter
                 }

@@ -1,0 +1,50 @@
+PackageKit-Qt Release Notes
+
+1. Write NEWS entries for PackageKit-Qt in the same format as usual.
+
+git shortlog v1.1.3.. | grep -i -v trivial | grep -v Merge > NEWS.new
+
+--------------------------------------------------------------------------------
+Version 1.1.4
+~~~~~~~~~~~~~
+Released: 2025-xx-xx
+
+Notes:
+
+Features:
+
+Bugfixes:
+
+Miscellaneous:
+--------------------------------------------------------------------------------
+
+2. Update library version if new ABI or API in CMakeLists.txt
+
+3. Commit changes in PackageKit-Qt git:
+
+git commit -a -m "Release version 1.1.4"
+git tag -s -f -m "Release 1.1.4" v1.1.4
+<gpg password>
+git push --tags && git push
+
+4. run './release.sh --version=1.1.4 --git-tag=v1.1.4 --sign'
+
+5. Upload tarball to:
+
+scp *.tar.* annarchy.freedesktop.org:/srv/www.freedesktop.org/www/software/PackageKit/releases/
+
+6. Do post release version bump in CMakeLists.txt, RELEASE
+
+7. Commit trivial changes:
+
+git commit -a -m "trivial: post release version bump"
+git push
+
+8. Send an email to packagekit@lists.freedesktop.org
+
+=================================================
+PackageKit-Qt 1.1.4 released!
+
+Tarballs available here: https://www.freedesktop.org/software/PackageKit/releases/
+
+=================================================

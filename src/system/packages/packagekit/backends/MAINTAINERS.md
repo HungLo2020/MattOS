@@ -1,0 +1,38 @@
+# Backend Maintainers
+
+This is a list of the respective maintainers for PackageKit backends.
+Please remove yourself from the maintainer list if your backend is unmaintained.
+
+## Backends
+
+### ALPM (Arch Linux)
+ * Aleix Pol i Gonzàlez <aleixpol@kde.org> | @aleixpol
+ * Fabien Bourigault <bourigaultfabien@gmail.com> | @fbourigault
+
+### APT (Debian)
+ * Matthias Klumpp <mak@debian.org> | @ximion
+ * Julian Andres Klode <jak@debian.org> | @julian-klode
+
+### DNF5 (Fedora)
+ * Neal Gompa <neal@gompa.dev> | @Conan-Kudo
+
+### Entropy (Sabayon)
+ * Fabio Erculiani <lxnay@sabayon.org>
+
+### Eopkg (Solus)
+ * Joey Riches <joey@getsol.us> <josephriches@gmail.com> | @joebonrichie
+
+### Nix (NixOS)
+ * Matthew Bauer <mjbauer95@gmail.com> | @matthewbauer
+
+### FreeBSD
+ * Gleb Popov <arrowd@FreeBSD.org> | @arrowd
+
+### Poldek (PLD Linux)
+ * Marcin Banasiak <megabajt@pld-linux.org>
+
+### Portage (Gentoo)
+ * Mounir Lamouri (volkmar) <mounir.lamouri@gmail.com>
+
+### Zypp (SUSE Linux)
+ * Scott Reeves <sreeves@novell.com> | @sreeves

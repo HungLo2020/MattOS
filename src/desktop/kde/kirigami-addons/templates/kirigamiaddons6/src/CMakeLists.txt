@@ -11,30 +11,17 @@ ecm_add_qml_module(%{APPNAMELC}_static
         qml/Main.qml
     DEPENDENCIES
         org.kde.kirigamiaddons.formcard
-        org.kde.kirigamiaddons.statefulapp
+        org.kde.kirigamiaddons.actions
         org.kde.kirigami
         org.kde.%{APPNAMELC}.settings
 )
 
-target_sources(%{APPNAMELC}_static PRIVATE
-    %{APPNAMELC}application.cpp
-    %{APPNAMELC}application.h
-)
-
 target_link_libraries(%{APPNAMELC}_static PUBLIC
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Qml
     Qt6::Quick
-    Qt6::QuickControls2
-    Qt6::Svg
     KF6::I18n
-    KF6::I18nQml
-    KF6::IconThemes
     KF6::CoreAddons
-    KF6::ConfigCore
     KF6::ConfigGui
-    KirigamiAddonsStatefulApp
+    KirigamiAddonsActions
 )
 target_include_directories(%{APPNAMELC}_static PUBLIC ${CMAKE_BINARY_DIR})
 
@@ -46,13 +33,17 @@ if (ANDROID)
         applications-graphics
     )
 else()
-    target_link_libraries(%{APPNAMELC}_static PUBLIC Qt::Widgets)
+    target_link_libraries(%{APPNAMELC}_static PUBLIC
+        Qt::Widgets
+        KF6::I18nQml
+    )
 endif()
 
 kconfig_add_kcfg_files(%{APPNAMELC}_static GENERATE_MOC %{APPNAMELC}config.kcfgc)
 
 add_executable(%{APPNAMELC} main.cpp)
 target_link_libraries(%{APPNAMELC} PUBLIC
+    KirigamiApp
     %{APPNAMELC}_static
     %{APPNAMELC}_staticplugin
     %{APPNAMELC}_settings

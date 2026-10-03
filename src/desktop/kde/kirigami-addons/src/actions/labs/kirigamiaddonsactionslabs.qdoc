@@ -1,0 +1,5 @@
+/*!
+   \qmlmodule org.kde.kirigamiaddons.actions.labs
+   \title Kirigami Addons Actions (Labs) QML Types
+   \brief Experimental native menu types for the Kirigami Addons actions module.
+ */

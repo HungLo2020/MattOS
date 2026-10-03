@@ -6,13 +6,13 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 
 import org.kde.kirigami as Kirigami
-import org.kde.kirigamiaddons.statefulapp as StatefulApp
+import org.kde.kirigamiaddons.actions as KirigamiActions
 import org.kde.kirigamiaddons.formcard as FormCard
 
 import org.kde.%{APPNAMELC}
 import org.kde.%{APPNAMELC}.settings as Settings
 
-StatefulApp.StatefulWindow {
+KirigamiActions.StatefulWindow {
     id: root
 
     property int counter: 0
@@ -24,15 +24,25 @@ StatefulApp.StatefulWindow {
     minimumWidth: Kirigami.Units.gridUnit * 20
     minimumHeight: Kirigami.Units.gridUnit * 20
 
-    application: %{APPNAME}Application {
+    application: KirigamiActions.Application {
         configurationView: Settings.%{APPNAME}ConfigurationView {}
     }
 
-    Connections {
-        target: root.application
+    Kirigami.Action {
+        id: incrementCounterAction
+        text: i18nc("@action:inmenu", "Increment")
+        onTriggered: root.counter += 1
+    }
 
-        function onIncrementCounter(): void {
-            root.counter += 1;
+    KirigamiActions.ActionCollection {
+        application: root.application
+        name: "main"
+
+        KirigamiActions.ActionData {
+            name: "increment_counter"
+            icon.name: "list-add-symbolic"
+            defaultShortcut: "Ctrl+I"
+            action: incrementCounterAction
         }
     }
 
@@ -40,8 +50,7 @@ StatefulApp.StatefulWindow {
         isMenu: !Kirigami.Settings.isMobile
         actions: [
             Kirigami.Action {
-                id: incrementCounterAction
-                fromQAction: root.application.action("increment_counter")
+                fromQAction: incrementCounterAction
             },
             Kirigami.Action {
                 separator: true

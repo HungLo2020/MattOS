@@ -1,0 +1,151 @@
+/*
+ *   SPDX-FileCopyrightText: 2025 Aleix Pol Gonzalez <aleixpol@kde.org>
+ *
+ *   SPDX-License-Identifier: LGPL-2.0-or-later
+ */
+
+#include "kirigamiappdefaults.h"
+#include <KAboutData>
+#include <KColorSchemeManager>
+#include <KLocalizedString>
+#include <QIcon>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QQuickStyle>
+#include <QSurfaceFormat>
+#include <QUrl>
+#include <QVariant>
+
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
+#include <QMessageBox>
+#endif
+
+#ifndef Q_OS_IOS
+#include <KCrash>
+#endif
+
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
+#include <KIconTheme>
+#include <QApplication>
+#include <QStyleFactory>
+#endif
+
+#ifdef Q_OS_WINDOWS
+#include <QFont>
+#include <Windows.h>
+#endif
+
+using namespace Qt::Literals::StringLiterals;
+
+namespace KirigamiAppDefaults
+{
+
+static const auto INITIAL_STYLE = QQuickStyle::name();
+
+void apply(QGuiApplication *app)
+{
+    Q_ASSERT(app);
+
+    using namespace Qt::Literals::StringLiterals;
+
+    auto format = QSurfaceFormat::defaultFormat();
+    format.setOption(QSurfaceFormat::ResetNotification);
+    QSurfaceFormat::setDefaultFormat(format);
+
+    // Needed when not running with the Plasma QPlatformTheme to ensure colours get initialised
+    KColorSchemeManager::instance();
+
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+    // We don't want the QtWidgets dependency on Android, so we use qqc2-breeze-style there.
+    // Icons ought to be included with the app on CMake
+    QQuickStyle::setStyle(u"org.kde.breeze"_s);
+#else
+    // Ensure breeze is the fallback, to make sure all icons are found and no awkward empty spaces.
+    QIcon::setFallbackThemeName("breeze"_L1);
+    // Default to org.kde.desktop style unless the user forces another style
+    bool handledByQPT = INITIAL_STYLE != QQuickStyle::name();
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE") && !handledByQPT) {
+        QQuickStyle::setStyle(u"org.kde.desktop"_s);
+        // TODO remove once we no longer use the org.kde.desktop style
+        qApp->setStyle(QStyleFactory::create(QStringLiteral("Breeze")));
+    }
+    KIconTheme::initTheme();
+#ifdef Q_OS_WINDOWS
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
+
+    auto font = app->font();
+    font.setPointSize(10);
+    app->setFont(font);
+#endif
+#ifndef Q_OS_IOS
+#if KCOREADDONS_VERSION >= QT_VERSION_CHECK(6, 19, 0)
+    // Embrace KCrash. If an application misbehaves, we should know as much as possible about it.
+    // Needs initialising KAboutData::setApplicationData
+    QObject::connect(KAboutDataListener::instance(), &KAboutDataListener::applicationDataChanged, app, [] {
+        KCrash::initialize();
+    });
+#endif
+#endif
+#endif
+}
+
+bool load(QAnyStringView uri, QAnyStringView typeName, QQmlApplicationEngine *engine)
+{
+    Q_ASSERT(engine);
+
+    QStringList qmlErrors;
+    QObject::connect(engine, &QQmlApplicationEngine::warnings, engine, [&qmlErrors](const QList<QQmlError> &warnings) {
+        for (const auto &warning : warnings) {
+            qmlErrors.append(warning.toString());
+        }
+    });
+
+    engine->loadFromModule(uri, typeName);
+    if (!engine->rootObjects().isEmpty()) {
+        return true;
+    }
+
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
+    QMessageBox messageBox(QMessageBox::Critical,
+                            i18nc("@title:window", "Failed to Load Application"),
+                            i18nc("@info", "Could not load the QML application. This issue might be caused by your distribution. Please report it to your distribution first."),
+                            QMessageBox::Close);
+    messageBox.setDetailedText(qmlErrors.join(u'\n'));
+    messageBox.exec();
+    return false;
+#else
+    engine->rootContext()->setContextProperty(u"qmlLoadErrorTitle"_s, i18nc("@title:window", "Failed to Load Application"));
+    engine->rootContext()->setContextProperty(u"qmlLoadErrorMessage"_s, i18nc("@info", "Could not load the QML application."));
+    engine->rootContext()->setContextProperty(u"qmlLoadErrors"_s, QVariant::fromValue(qmlErrors));
+    engine->loadData(R"qml(
+        import QtQuick
+        import QtQuick.Controls as Controls
+        import org.kde.kirigami as Kirigami
+        import org.kde.kirigamiaddons.components as Components
+
+        Kirigami.ApplicationWindow {
+            visible: true
+            width: 400
+            height: 300
+
+            Components.MessageDialog {
+                id: errorDialog
+                title: qmlLoadErrorTitle
+                dialogType: Components.MessageDialog.Error
+                subtitle: qmlLoadErrorMessage
+                    + "\n\n" + qmlLoadErrors.join("\n")
+                standardButtons: Controls.Dialog.Close
+
+                Component.onCompleted: open()
+                onRejected: Qt.quit()
+            }
+        }
+    )qml", QUrl(u"qrc:/qml-load-error.qml"_s));
+    return !engine->rootObjects().isEmpty();
+#endif
+}
+
+}

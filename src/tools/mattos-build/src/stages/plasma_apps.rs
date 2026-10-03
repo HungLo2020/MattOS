@@ -1,6 +1,20 @@
 // Source-owned Plasma desktop services and core applications. Keep these
 // products separate in the graph while sharing the strict KDE CMake builder.
 
+/// The shared KDE build helper passes `CMAKE_SKIP_RPATH=ON`, which also drops
+/// the `INSTALL_RPATH` an application sets for private libraries installed in
+/// its own directory (Discover's `plasma-discover/`, Elisa's `elisa/`).  For
+/// those applications, a post-`project()` include re-enables RPATH handling
+/// while keeping ECM's automatic RPATH settings off, so only the upstream
+/// install-time paths are recorded and no staged build path is.
+fn private_library_rpath_include(r: &Path, stage: &str, project: &str) -> Result<String> {
+    // Beside, not inside, the build directory the KDE helper recreates.
+    let stage_root = r.join("out/build").join(stage);
+    fs::create_dir_all(&stage_root)?;
+    let include = stage_root.join("mattos-private-rpath.cmake");
+    fs::write(&include, "set(CMAKE_SKIP_RPATH OFF)\nset(KDE_SKIP_RPATH_SETTINGS TRUE)\n")?;
+    Ok(format!("-DCMAKE_PROJECT_{project}_INCLUDE={}", include.display()))
+}
 fn build_plasma_app(repo_root: &Path, stage: &str, components: &[&str], options: &[&str], output: &str) -> Result<()> {
     build_kde_cmake(repo_root, stage, &format!("src/desktop/kde/{stage}"), components, options, output)
 }
@@ -122,8 +136,8 @@ fn build_ksystemstats(r: &Path) -> Result<()> { build_plasma_app(r, "ksystemstat
 fn build_plasma_systemmonitor(r: &Path) -> Result<()> { build_plasma_app(r, "plasma-systemmonitor", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","kitemmodels","kitemviews","kjobwidgets","knotifications","kservice","ktextwidgets","kwidgetsaddons","kwindowsystem","kio","solid","util-linux","knewstuff","attica","kpackage","ksysguard","ksystemstats","kirigami","kirigami-addons","breeze-icons","libffi"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/plasma-systemmonitor") }
 fn build_polkit_kde_agent(r: &Path) -> Result<()> { build_plasma_app(r, "polkit-kde-agent-1", &["qtbase","qtdeclarative","kconfig","ki18n","kwindowsystem","knotifications","kdbusaddons","kcoreaddons","kcrash","libcanberra","polkit-qt-1","polkit","glib","dbus","zlib","libffi"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1") }
 fn build_kquickimageeditor(r: &Path) -> Result<()> { build_plasma_app(r, "kquickimageeditor", &["qtbase","qtdeclarative","qtshadertools","kconfig","kirigami","highway"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/qml/org/kde/kquickimageeditor/libKQuickImageEditorplugin.so") }
-fn build_kpipewire(r: &Path) -> Result<()> { build_plasma_app(r, "kpipewire", &["qtbase","qtdeclarative","kcoreaddons","ki18n","pipewire","wayland","plasma-wayland-protocols","libglvnd","mesa","libepoxy","libdrm","ffmpeg","libva"], &["-DBUILD_TESTING=OFF","-DBUILD_EXAMPLES=OFF"], "usr/lib/x86_64-linux-gnu/libKPipeWire.so") }
-fn build_spectacle(r: &Path) -> Result<()> { build_plasma_app(r, "spectacle", &["qtbase","qtdeclarative","qtshadertools","qtmultimedia","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","kstatusnotifieritem","ktextwidgets","kwidgetsaddons","kwindowsystem","kxmlgui","solid","util-linux","kirigami","prison","zxing-cpp","layer-shell-qt","kpipewire","pipewire","ffmpeg","libva","mesa","libepoxy","libdrm","libglvnd","libcanberra","kquickimageeditor","highway","purpose","opencv","plasma-wayland-protocols","wayland","xkbcommon","libffi"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/spectacle") }
+fn build_kpipewire(r: &Path) -> Result<()> { build_plasma_app(r, "kpipewire", &["qtbase","qtdeclarative","kcoreaddons","ki18n","pipewire","wayland","plasma-wayland-protocols","libglvnd","mesa","libepoxy","libdrm","ffmpeg","dav1d","libva"], &["-DBUILD_TESTING=OFF","-DBUILD_EXAMPLES=OFF"], "usr/lib/x86_64-linux-gnu/libKPipeWire.so") }
+fn build_spectacle(r: &Path) -> Result<()> { build_plasma_app(r, "spectacle", &["qtbase","qtdeclarative","qtshadertools","qtmultimedia","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","kstatusnotifieritem","ktextwidgets","kwidgetsaddons","kwindowsystem","kxmlgui","solid","util-linux","kirigami","prison","zxing-cpp","layer-shell-qt","kpipewire","pipewire","ffmpeg","dav1d","libva","mesa","libepoxy","libdrm","libglvnd","libcanberra","kquickimageeditor","highway","purpose","opencv","plasma-wayland-protocols","wayland","xkbcommon","libffi"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/spectacle") }
 fn build_pulseaudio_qt(r: &Path) -> Result<()> { build_plasma_app(r, "pulseaudio-qt", &["qtbase","glib","pulseaudio"], &["-DBUILD_TESTING=OFF"], "usr/lib/x86_64-linux-gnu/libKF6PulseAudioQt.so") }
 fn build_plasma_pa(r: &Path) -> Result<()> { build_plasma_app(r, "plasma-pa", &["qtbase","qtdeclarative","kconfig","kconfigwidgets","kcodecs","kcolorscheme","kwidgetsaddons","kcoreaddons","kdbusaddons","kdeclarative","kglobalaccel","ki18n","kstatusnotifieritem","kcmutils","ksvg","kpackage","kirigami","kirigami-addons","kitemmodels","kwindowsystem","plasma-framework","pulseaudio-qt","pulseaudio","glib","libcanberra"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/lib/x86_64-linux-gnu/qml/org/kde/plasma/private/volume/libplasma-volume-declarative.so") }
 fn build_plasma_nm(r: &Path) -> Result<()> { build_plasma_app(r, "plasma-nm", &["qtbase","qtdeclarative","qca","qcoro","kcmutils","kconfig","kconfigwidgets","kcoreaddons","kdbusaddons","ki18n","kio","kservice","kwallet","kwidgetsaddons","kwindowsystem","kirigami","networkmanager-qt","modemmanager","modemmanager-qt","plasma-framework","networkmanager","kcolorscheme","kcompletion","kjobwidgets","knotifications","solid","ksvg","prison","kquickcharts","kpackage","karchive","kauth","kbookmarks","kcodecs","kcrash","kguiaddons","kiconthemes","kitemmodels","kitemviews","ktextwidgets","kxmlgui","util-linux","libffi","glib","dbus","pcre2","zlib","systemd","libnl"], &["-DBUILD_TESTING=OFF","-DWITH_MODEMMANAGER_SUPPORT=OFF"], "usr/lib/x86_64-linux-gnu/qml/org/kde/plasma/networkmanagement/libplasmanm_internalplugin.so") }
@@ -132,4 +146,88 @@ fn build_xdg_desktop_portal_kde(r: &Path) -> Result<()> { build_plasma_app(r, "x
 fn build_dolphin(r: &Path) -> Result<()> { build_plasma_app(r, "dolphin", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kcmutils","kio","knewstuff","attica","kpackage","kparts","kservice","ktextwidgets","kwidgetsaddons","kwindowsystem","kxmlgui","solid","sonnet","util-linux","kirigami","kfilemetadata","xkbcommon","wayland","libcanberra","libffi"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/dolphin") }
 fn build_konsole(r: &Path) -> Result<()> { build_plasma_app(r, "konsole", &["qtbase","qtdeclarative","qtmultimedia","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","kio","knewstuff","attica","knotifications","knotifyconfig","kpackage","kparts","kservice","solid","sonnet","ktextwidgets","kwidgetsaddons","kwindowsystem","kxmlgui","kpty","util-linux","xkbcommon","wayland","libcanberra","libffi","icu"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF","-DWITH_X11=OFF","-DWITH_LIBSSH=OFF","-DENABLE_PLUGIN_SSHMANAGER=OFF"], "usr/bin/konsole") }
 fn build_kate(r: &Path) -> Result<()> { build_plasma_app(r, "kate", &["qtbase","qtdeclarative","qtmultimedia","qtspeech","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemviews","kjobwidgets","kio","knotifications","kparts","kservice","solid","sonnet","ksyntaxhighlighting","ktexteditor","ktextwidgets","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/kate") }
+/// KCalc's knumber adds only GMP's include directory, relying on MPFR and MPC
+/// sharing it as in a single system prefix; name their staged headers.
+fn build_kcalc(r: &Path) -> Result<()> {
+    let includes = format!(
+        "-DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES={};{}",
+        r.join("out/build/mpfr/install/usr/include").display(),
+        r.join("out/build/mpc/install/usr/include").display()
+    );
+    build_plasma_app(r, "kcalc", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","solid","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi","gmp","mpfr","mpc"], &["-DBUILD_TESTING=OFF", "-DBUILD_DOC=OFF", &includes], "usr/bin/kcalc")
+}
+fn build_kwalletmanager(r: &Path) -> Result<()> { build_plasma_app(r, "kwalletmanager", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","solid","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi","kwallet","kcmutils","kstatusnotifieritem","kirigami","kpackage","kdeclarative"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/kwalletmanager5") }
+fn build_partitionmanager(r: &Path) -> Result<()> { build_plasma_app(r, "partitionmanager", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","solid","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi","kpmcore","polkit-qt-1","polkit","glib","pcre2","zlib","dbus"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/partitionmanager") }
+fn build_elisa(r: &Path) -> Result<()> {
+    let rpath = private_library_rpath_include(r, "elisa", "elisa")?;
+    build_plasma_app(r, "elisa", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","solid","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi","qtmultimedia","qtsvg","kfilemetadata","kirigami","qqc2-desktop-style","kpackage","kdeclarative"], &["-DBUILD_TESTING=OFF", &rpath,"-DBUILD_DOC=OFF"], "usr/bin/elisa")
+}
+fn build_kcolorpicker(r: &Path) -> Result<()> { build_plasma_app(r, "kcolorpicker", &["qtbase"], &["-DBUILD_WITH_QT6=ON","-DBUILD_SHARED_LIBS=ON","-DBUILD_EXAMPLE=OFF","-DBUILD_TESTS=OFF"], "usr/lib/x86_64-linux-gnu/cmake/kColorPicker-Qt6/kColorPicker-Qt6Config.cmake") }
+fn build_kimageannotator(r: &Path) -> Result<()> { build_plasma_app(r, "kimageannotator", &["qtbase","qtdeclarative","qtshadertools","qtsvg","qttools","kcolorpicker","x11-compat"], &["-DBUILD_WITH_QT6=ON","-DBUILD_SHARED_LIBS=ON","-DBUILD_EXAMPLE=OFF","-DBUILD_TESTS=OFF"], "usr/lib/x86_64-linux-gnu/cmake/kImageAnnotator-Qt6/kImageAnnotator-Qt6Config.cmake") }
+/// Gwenview plays video through Qt MultimediaWidgets, which the KDE CMake
+/// helper's Qt view does not name; point at the staged package directly.
+/// Its library includes <lcms2.h> without adding FindLCMS2's include
+/// directory, relying on a single system prefix; name the staged headers.
+fn build_gwenview(r: &Path) -> Result<()> {
+    let multimedia_widgets = format!(
+        "-DQt6MultimediaWidgets_DIR={}",
+        r.join("out/build/qtmultimedia/install/usr/lib/x86_64-linux-gnu/cmake/Qt6MultimediaWidgets").display()
+    );
+    let lcms2 = format!(
+        "-DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES={}",
+        r.join("out/build/lcms2/install/usr/include").display()
+    );
+    build_plasma_app(r, "gwenview", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","solid","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi","qtsvg","qtmultimedia","qtwayland","wayland-protocols","kparts","purpose","kirigami","plasma-activities","kimageannotator","kcolorpicker","exiv2","libjpeg-turbo","libpng","lcms2","zlib","x11-compat"], &["-DBUILD_TESTING=OFF", &multimedia_widgets, &lcms2,"-DBUILD_DOC=OFF","-DWITHOUT_X11=ON","-DGWENVIEW_SEMANTICINFO_BACKEND=None","-DCMAKE_DISABLE_FIND_PACKAGE_TIFF=ON","-DCMAKE_DISABLE_FIND_PACKAGE_CFitsio=ON","-DCMAKE_DISABLE_FIND_PACKAGE_KDcrawQt6=ON"], "usr/bin/gwenview")
+}
+fn build_discover(r: &Path) -> Result<()> {
+    let rpath = private_library_rpath_include(r, "discover", "discover")?;
+    build_plasma_app(r, "discover", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","solid","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi","qtsvg","kcmutils","kidletime","purpose","kstatusnotifieritem","kirigami","kirigami-addons","qcoro","appstream","flatpak","attica","knewstuff","kpackage","kdeclarative","ksvg","plasma-framework","glib","pcre2","zlib","ostree","gpgme","json-glib","libarchive","curl","systemd","libxml2","zstd","polkit","libassuan","libgpg-error","nghttp2","openssl","xz","libfyaml","libxmlb","icu","dbus","packagekit","packagekit-qt","jansson","sqlite","apt","gstreamer","gstreamer-base"], &["-DBUILD_TESTING=OFF", &rpath,"-DBUILD_DOC=OFF","-DBUILD_FlatpakBackend=ON","-DBUILD_PackageKitBackend=ON","-DBUILD_SnapBackend=OFF","-DBUILD_FwupdBackend=OFF","-DBUILD_AlpineApkBackend=OFF","-DBUILD_RpmOstreeBackend=OFF","-DCMAKE_DISABLE_FIND_PACKAGE_KF6UserFeedback=ON","-DCMAKE_DISABLE_FIND_PACKAGE_Qt6WebView=ON"], "usr/bin/plasma-discover")
+}
+/// MpvQt's FindLibmpv records `include/mpv` while its sources include
+/// `<mpv/client.h>`, relying on a system /usr/include; name the staged root.
+fn build_mpvqt(r: &Path) -> Result<()> {
+    let mpv_include = format!(
+        "-DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES={}",
+        r.join("out/build/mpv/install/usr/include").display()
+    );
+    build_plasma_app(r, "mpvqt", &["qtbase","qtdeclarative","mpv","ffmpeg","dav1d","zlib","libplacebo","lcms2","libass","fribidi","harfbuzz","freetype","fontconfig","expat","wayland","wayland-protocols","libglvnd","mesa","libdrm","pulseaudio","libsndfile","dbus","glib","pcre2","libffi","libjpeg-turbo","xkbcommon"], &["-DBUILD_TESTING=OFF", &mpv_include,"-DBUILD_EXAMPLES=OFF"], "usr/lib/x86_64-linux-gnu/libMpvQt.so")
+}
+/// Haruna includes libmpv through MpvQt's headers; see `build_mpvqt`.
+/// It is also the first application built with `qt_add_executable`, and
+/// the first to link Qt5Compat, which exposes two gaps in the shared KDE Qt
+/// view: the QML finalizer scans imports with `Qt6::qmlimportscanner`, a tool
+/// target the view's bridge does not define, and the view links Qt5Compat's
+/// package but not its headers or metatypes.  A post-`project()` include
+/// imports the verified MattOS-built scanner and resolves Qt6::Core5Compat
+/// from its own staged prefix.  It also lets the executable link resolve
+/// libpulse's private libpulsecommon (libmpv links libpulse), which lives in
+/// its own `pulseaudio/` library subdirectory, appending to the helper's
+/// linker flags rather than replacing them.
+fn build_haruna(r: &Path) -> Result<()> {
+    let mpv_include = format!(
+        "-DCMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES={}",
+        r.join("out/build/mpv/install/usr/include").display()
+    );
+    // Beside, not inside, the build directory the KDE helper recreates.
+    let stage_root = r.join("out/build/haruna");
+    fs::create_dir_all(&stage_root)?;
+    let qt_bridge = stage_root.join("mattos-haruna-qt.cmake");
+    fs::write(
+        &qt_bridge,
+        format!(
+            "if(NOT TARGET Qt6::qmlimportscanner)\n  add_executable(Qt6::qmlimportscanner IMPORTED GLOBAL)\n  set_target_properties(Qt6::qmlimportscanner PROPERTIES IMPORTED_LOCATION \"{}\")\nendif()\nset(Qt6Core5Compat_DIR \"{}\" CACHE PATH \"\" FORCE)\nstring(APPEND CMAKE_EXE_LINKER_FLAGS \" -Wl,-rpath-link,{}\")\n",
+            r.join("out/build/qtdeclarative/build/libexec/qmlimportscanner").display(),
+            r.join("out/build/qt5compat/install/usr/lib/x86_64-linux-gnu/cmake/Qt6Core5Compat").display(),
+            r.join("out/build/pulseaudio/install/usr/lib/x86_64-linux-gnu/pulseaudio").display()
+        ),
+    )?;
+    let qt_bridge = format!("-DCMAKE_PROJECT_haruna_INCLUDE={}", qt_bridge.display());
+    build_plasma_app(r, "haruna", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kio","kservice","solid","kwidgetsaddons","kwindowsystem","kxmlgui","util-linux","xkbcommon","wayland","libcanberra","libffi","qtsvg","qtshadertools","qt5compat","qtmultimedia","kfilemetadata","kirigami","kirigami-addons","breeze","mpvqt","mpv","kdsingleapplication","ffmpeg","dav1d","zlib","libplacebo","lcms2","libass","fribidi","harfbuzz","freetype","fontconfig","expat","wayland-protocols","libglvnd","mesa","libdrm","pulseaudio","libsndfile","dbus","glib","pcre2","libjpeg-turbo"], &["-DBUILD_TESTING=OFF", &mpv_include, &qt_bridge,"-DBUILD_DOC=OFF"], "usr/bin/haruna")
+}
+/// PackageKit-Qt generates its proxies from PackageKit's D-Bus interface XML;
+/// name the staged copy so the lookup cannot fall back to the host's /usr.
+fn build_packagekit_qt(r: &Path) -> Result<()> {
+    let interfaces = format!("-DPK_INTERFACES_DIR={}", r.join("out/build/packagekit/install/usr/share/dbus-1/interfaces").display());
+    build_plasma_app(r, "packagekit-qt", &["qtbase","packagekit","glib"], &["-DBUILD_TESTING=OFF", &interfaces], "usr/lib/x86_64-linux-gnu/libpackagekitqt6.so")
+}
 fn build_ark(r: &Path) -> Result<()> { build_plasma_app(r, "ark", &["qtbase","qtdeclarative","karchive","kauth","kbookmarks","kcodecs","kcolorscheme","kcompletion","kconfig","kconfigwidgets","kcoreaddons","kcrash","kdbusaddons","kglobalaccel","kguiaddons","ki18n","kiconthemes","breeze-icons","kitemmodels","kitemviews","kjobwidgets","knotifications","kfilemetadata","kio","kservice","kparts","solid","kwidgetsaddons","kwindowsystem","kxmlgui","kpty","util-linux","xkbcommon","wayland","libcanberra","libffi","libarchive"], &["-DBUILD_TESTING=OFF","-DBUILD_DOC=OFF"], "usr/bin/ark") }

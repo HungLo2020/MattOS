@@ -1,0 +1,91 @@
+<ui version="4.0" stdsetdef="1" >
+  <class>KBetterThanKDialogBase</class>
+  <widget class="QDialog" name="KBetterThanKDialogBase" >
+    <property name="geometry" >
+      <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>479</width>
+        <height>109</height>
+      </rect>
+    </property>
+    <layout class="QGridLayout" >
+      <property name="sizeConstraint" >
+        <enum>SetFixedSize</enum>
+      </property>
+      <item rowspan="1" row="0" column="0" colspan="3" >
+        <widget class="QLabel" name="_label" />
+      </item>
+      <item row="1" column="2" >
+        <spacer name="spacer1" >
+          <property name="sizeHint" >
+            <size>
+              <width>41</width>
+              <height>21</height>
+            </size>
+          </property>
+          <property name="sizeType" >
+            <enum>Expanding</enum>
+          </property>
+          <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+          </property>
+        </spacer>
+      </item>
+      <item row="1" column="1" >
+        <layout class="QHBoxLayout" >
+          <property name="margin" >
+            <number>0</number>
+          </property>
+          <item>
+            <widget class="QPushButton" name="_allowOnce" >
+              <property name="text" >
+                <string>&amp;Replace</string>
+              </property>
+              <property name="default" >
+                <bool>true</bool>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="_allowAlways" >
+              <property name="text" >
+                <string>Replace &amp;All</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="_deny" >
+              <property name="text" >
+                <string>&amp;Skip</string>
+              </property>
+            </widget>
+          </item>
+          <item>
+            <widget class="QPushButton" name="_denyForever" >
+              <property name="text" >
+                <string>Skip A&amp;ll</string>
+              </property>
+            </widget>
+          </item>
+        </layout>
+      </item>
+      <item row="1" column="0" >
+        <spacer name="spacer2" >
+          <property name="sizeHint" >
+            <size>
+              <width>61</width>
+              <height>21</height>
+            </size>
+          </property>
+          <property name="sizeType" >
+            <enum>Expanding</enum>
+          </property>
+          <property name="orientation" >
+            <enum>Qt::Horizontal</enum>
+          </property>
+        </spacer>
+      </item>
+    </layout>
+  </widget>
+</ui>

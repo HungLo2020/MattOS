@@ -1,0 +1,308 @@
+# translation of kcmkwallet.po to Finnish
+# Copyright (C) 2003, 2005, 2008 Free Software Foundation, Inc.
+# Teemu Rytilahti <teemu.rytilahti@kde-fi.org>, 2003, 2008.
+# Ilpo Kantonen <ilpo@iki.fi>, 2005.
+# Lasse Liehu <lasse.liehu@gmail.com>, 2010, 2011, 2013, 2014, 2017.
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2026 Tommi Nieminen <translator@legisign.org>
+#
+# KDE Finnish translation sprint participants:
+# Author: Artnay
+msgid ""
+msgstr ""
+"Project-Id-Version: kcmkwallet\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-14 02:47+0000\n"
+"PO-Revision-Date: 2026-02-24 19:32+0200\n"
+"Last-Translator: Tommi Nieminen <translator@legisign.org>\n"
+"Language-Team: Finnish <kde-i18n-doc@kde.org>\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.04.0\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Teemu Rytilahti, Ilpo Kantonen, Tommi Nieminen"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "teemu.rytilahti@kde-fi.org, ilpo@iki.fi, translator@legisign.org"
+
+#: konfigurator.cpp:112
+#, kde-format
+msgid "New Wallet"
+msgstr "Uusi lompakko"
+
+#: konfigurator.cpp:112
+#, kde-format
+msgid "Please choose a name for the new wallet:"
+msgstr "Syötä uuden lompakon nimi:"
+
+#: konfigurator.cpp:226 konfigurator.cpp:304
+#, kde-format
+msgid "Always Allow"
+msgstr "Salli aina"
+
+#: konfigurator.cpp:229 konfigurator.cpp:236 konfigurator.cpp:317
+#, kde-format
+msgid "Always Deny"
+msgstr "Estä aina"
+
+#: konfigurator.cpp:264
+#, kde-format
+msgid "Permission denied."
+msgstr "Käyttö estetty."
+
+# pmap: =/elat=KDE-lompakon asetusosiosta/
+#: konfigurator.cpp:264 konfigurator.cpp:266
+#, kde-format
+msgid "KDE Wallet Control Module"
+msgstr "KDE-lompakon asetusosio"
+
+#: konfigurator.cpp:266
+#, kde-format
+msgid ""
+"Error while authenticating action:\n"
+"%1"
+msgstr ""
+"Toiminnon todentaminen epäonnistui:\n"
+"%1"
+
+#: konfigurator.cpp:364
+#, kde-format
+msgid "&Delete"
+msgstr "&Poista"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab1)
+#: walletconfigwidget.ui:27
+#, kde-format
+msgid "Wallet Preferences"
+msgstr "Lompakon asetukset"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _enabled)
+#: walletconfigwidget.ui:33
+#, kde-format
+msgid ""
+"<p>The wallet subsystem provides a convenient and secure way to manage all "
+"your passwords. This option specifies whether or not you want to use it.</p>"
+msgstr ""
+"<p>Lompakkojärjestelmä tarjoaa kätevän ja turvallisen tavan hallita "
+"salasanoja. Tästä voi valita, haluaako sitä käyttää.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _enabled)
+#: walletconfigwidget.ui:36
+#, kde-format
+msgid "&Enable the KDE wallet subsystem"
+msgstr "&Käytä KDE:n lompakkojärjestelmää"
+
+#. i18n: ectx: property (whatsThis), widget (QGroupBox, groupBox2)
+#: walletconfigwidget.ui:49
+#, kde-format
+msgid ""
+"It is best to close your wallets when you are not using them to prevent "
+"others from viewing or using them."
+msgstr ""
+"Lompakot on hyvä sulkea, kun niitä ei enää käytä, jottei kukaan voisi katsoa "
+"tai käyttää niitä."
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox2)
+#: walletconfigwidget.ui:52
+#, kde-format
+msgid "Close Behavior"
+msgstr "Toiminta suljettaessa"
+
+#. i18n: ectx: property (text), widget (QLabel, closeWalletLabel)
+#: walletconfigwidget.ui:69
+#, kde-format
+msgid "Close wallet:"
+msgstr "Sulje lompakko:"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _autoclose)
+#: walletconfigwidget.ui:76
+#, kde-format
+msgid ""
+"<p><b>Close wallet as soon as applications that use it have stopped.</"
+"b><br>Note that your wallet will only be closed when all applications that "
+"use it have stopped.<br>When a wallet is closed the password is needed to "
+"access it again.</p>"
+msgstr ""
+"<p><b>Sulje lompakko heti, kun mikään ohjelma ei enää käytä sitä.</b> "
+"<br>Huomaa, että lompakot suljetaan vasta, kun kaikki niitä käyttävät "
+"ohjelmat ovat pysähtyneet.<br>Suljetun lompakon avaamiseen vaaditaan "
+"salasana.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _autoclose)
+#: walletconfigwidget.ui:79
+#, kde-format
+msgid "When last application stops using it"
+msgstr "viimeisen sovelluksen lopetettua käytön"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _screensaverLock)
+#: walletconfigwidget.ui:86
+#, kde-format
+msgid ""
+"<p><b>Close wallet as soon as the screensaver starts.</b><br>When a wallet "
+"is closed the password is needed to access it again.</p>"
+msgstr ""
+"<p><b>Sulje lompakko heti näytönsäästäjän käynnistyttyä.</b> <br>Suljetun "
+"lompakon avaamiseen vaaditaan salasana.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _screensaverLock)
+#: walletconfigwidget.ui:89
+#, kde-format
+msgid "When screensaver starts"
+msgstr "näytönsäästäjän käynnistyttyä"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _closeIdle)
+#. i18n: ectx: property (whatsThis), widget (QSpinBox, _idleTime)
+#: walletconfigwidget.ui:96 walletconfigwidget.ui:115
+#, kde-format
+msgid ""
+"<p><b>Close wallet after a period of inactivity.</b><br>When a wallet is "
+"closed the password is needed to access it again.</p>"
+msgstr ""
+"<p><b>Sulje lompakko, kun se on ollut käyttämättä tietyn ajan.</"
+"b><br>Suljetun lompakon avaamiseen vaaditaan salasana.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _closeIdle)
+#: walletconfigwidget.ui:99
+#, kde-format
+msgid "When unused for:"
+msgstr "kun käyttämättä:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, _idleTime)
+#: walletconfigwidget.ui:121
+#, kde-format
+msgid " minutes"
+msgstr " min"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox4)
+#: walletconfigwidget.ui:145
+#, kde-format
+msgid "Automatic Wallet Selection"
+msgstr "Lompakon automaattinen valinta"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _localWalletSelected)
+#: walletconfigwidget.ui:165
+#, kde-format
+msgid "Use different default wallet for local passwords"
+msgstr "Käytä paikallisille salasanoille eri oletuslompakkoa"
+
+#. i18n: ectx: property (text), widget (QPushButton, _newLocalWallet)
+#. i18n: ectx: property (text), widget (QPushButton, _newWallet)
+#: walletconfigwidget.ui:202 walletconfigwidget.ui:242
+#, kde-format
+msgid "New..."
+msgstr "Uusi…"
+
+#. i18n: ectx: property (text), widget (QLabel, selectDefaultWalletLabel)
+#: walletconfigwidget.ui:211
+#, kde-format
+msgid "Default wallet:"
+msgstr "Oletuslompakko:"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox3)
+#: walletconfigwidget.ui:256
+#, kde-format
+msgid "Wallet Manager"
+msgstr "Lompakonhallinta"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _launchManager)
+#: walletconfigwidget.ui:270
+#, kde-format
+msgid "Show manager in system tray"
+msgstr "Näytä hallinta ilmoitusalueella"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _autocloseManager)
+#: walletconfigwidget.ui:298
+#, kde-format
+msgid "Hide system tray icon when last wallet closes"
+msgstr "Piilota ilmoitusaluekuvake viimeisen lompakon sulkeuduttua"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox5)
+#: walletconfigwidget.ui:312
+#, kde-format
+msgid "Secret Service"
+msgstr "Salaisuuspalvelu"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _secretServiceAPI)
+#: walletconfigwidget.ui:331
+#, kde-format
+msgid "Use &KWallet for the Secret Service interface"
+msgstr "Käytä K&Walletia salaisuuspalvelun käyttöliittymänä"
+
+#. i18n: ectx: property (contextualHelpText), widget (KContextualHelpButton, kcontextualhelpbutton)
+#: walletconfigwidget.ui:341
+#, kde-format
+msgid ""
+"The Secret Service interface lets applications store passwords and other "
+"confidential data. Disable this to allow third-party wallet services such as "
+"KeePassXC or GNOME Keyring to manage it instead."
+msgstr ""
+"Salaisuuspalvelun käyttöliittymällä sovellukset tallentavat salasanoja ja "
+"muuta arkaluontoista tietoa. Poista tämä käytöstä, jos haluat sen sijaan "
+"käyttää kolmannen osapuolen lompakkopalvelua kuten KeePassXC:tä tai "
+"Keyringiä."
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab2)
+#: walletconfigwidget.ui:388
+#, kde-format
+msgid "Access Control"
+msgstr "Käyttöluvat"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _openPrompt)
+#: walletconfigwidget.ui:394
+#, kde-format
+msgid "&Prompt when an application accesses a wallet"
+msgstr "K&ysy sovelluksen yrittäessä käyttää lompakkoa"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, _accessList)
+#: walletconfigwidget.ui:408
+#, kde-format
+msgid "Wallet"
+msgstr "Lompakko"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, _accessList)
+#: walletconfigwidget.ui:413
+#, kde-format
+msgid "Application"
+msgstr "Sovellus"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, _accessList)
+#: walletconfigwidget.ui:418
+#, kde-format
+msgid "Policy"
+msgstr "Käytäntö"
+
+#. i18n: ectx: property (text), widget (QPushButton, _launch)
+#: walletconfigwidget.ui:451
+#, kde-format
+msgid "&Launch Wallet Manager"
+msgstr "&Käynnistä lompakonhallinta"
+
+#~ msgid "Select wallet to use as default:"
+#~ msgstr "Valitse oletuksena käytettävä lompakko:"
+
+#~ msgid "(c) 2003 George Staikos"
+#~ msgstr "© 2003 George Staikos"
+
+#~ msgid "George Staikos"
+#~ msgstr "George Staikos"
+
+#~ msgid ""
+#~ "This configuration module allows you to configure the KDE wallet system."
+#~ msgstr "Tässä voi muokata KDE:n lompakkojärjestelmän asetuksia."
+
+#~ msgid "Enable Secret Service DBus API"
+#~ msgstr "Ota käyttöön Secret Service -DBus-API"
+
+#~ msgid "kcmkwallet"
+#~ msgstr "kcmkwallet"
+
+#~ msgid ""
+#~ "Sorry, the system security policy didn't allow you to save the changes."
+#~ msgstr "Järjestelmäkäytäntö ei salli sinun tallentaa muutoksia."

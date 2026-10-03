@@ -970,6 +970,39 @@ def installed_plasma_applet_runtime_probes() -> tuple[tuple[str, str], ...]:
     )
 
 
+# The KDE applications the Plasma profile ships: (package, executable).
+INSTALLED_KDE_APPLICATIONS = (
+    ("dolphin", "dolphin"),
+    ("kate", "kate"),
+    ("plasma-discover", "plasma-discover"),
+    ("plasma-systemmonitor", "plasma-systemmonitor"),
+    ("konsole", "konsole"),
+    ("systemsettings", "systemsettings"),
+    ("haruna", "haruna"),
+    ("spectacle", "spectacle"),
+    ("kcalc", "kcalc"),
+    ("gwenview", "gwenview"),
+    ("partitionmanager", "partitionmanager"),
+    ("kwalletmanager", "kwalletmanager5"),
+    ("ark", "ark"),
+    ("elisa", "elisa"),
+)
+
+
+def installed_kde_application_probes() -> tuple[tuple[str, str], ...]:
+    """Each shipped KDE application is installed, every library it links
+    resolves, and it starts far enough to answer --version (offscreen, so the
+    probe does not depend on the session it runs beside)."""
+    return tuple(
+        (
+            f"app-{package}",
+            f"dpkg-query -W {package} >/dev/null && ! ldd /usr/bin/{executable} | grep -q 'not found' && "
+            f"QT_QPA_PLATFORM=offscreen timeout 60 /usr/bin/{executable} --version",
+        )
+        for package, executable in INSTALLED_KDE_APPLICATIONS
+    )
+
+
 def _test_install_plan(profile: str = "plasma") -> str:
     if profile not in {"cli", "plasma"}:
         raise RepoError(f"unsupported test install profile: {profile}")
@@ -1323,6 +1356,7 @@ def _verify_installed_disk_boot(
             "exit 1)",
         ),
         *installed_plasma_applet_runtime_probes(),
+        *installed_kde_application_probes(),
     )
     checks = (
         ("not-live", "test ! -e /run/mattos-live"),

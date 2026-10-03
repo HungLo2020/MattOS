@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2023 James Graham <james.h.graham@protonmail.com>
 // SPDX-License-Identifier: LGPL-2.0-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
 
-import QtQuick 2.15
-import QtTest 1.2
+import QtQuick
+import QtTest
 
-import org.kde.kirigami 2.15 as Kirigami
-import org.kde.kirigamiaddons.labs.components 1.0
+import org.kde.kirigami as Kirigami
+import org.kde.kirigamiaddons.labs.components
 
 TestCase {
     id: root
@@ -174,9 +174,9 @@ TestCase {
         tryCompare(testAlbum.content.currentItem.children[0], "status", Image.Ready)
         wait(200) // Let the image resize animation happen.
 
-        mouseClick(root, 702, 18, Qt.LeftButton)
+        testAlbum.actions[4].trigger()
         compare(testAlbum.footer.visible, false)
-        mouseClick(root, 702, 18, Qt.LeftButton)
+        testAlbum.actions[4].trigger()
         compare(testAlbum.footer.visible, true)
 
         testAlbum.destroy();

@@ -1,0 +1,32 @@
+include($KDE_DOCS/global/qt-module-defaults.qdocconf)
+
+project = KirigamiAddonsTableView
+description = Table views with configurable columns, headers, sorting, and selection.
+
+documentationinheaders = true
+
+headerdirs += .
+sourcedirs += .
+
+outputformats = HTML
+
+navigation.landingpage = "Kirigami Addons"
+
+depends += kde kirigami qtcore qtquick qtquickcontrols qtgui kirigamiaddonscomponents
+
+qhp.projects = KirigamiAddonsTableView
+
+qhp.KirigamiAddonsTableView.file          = kirigamiaddonstableview.qhp
+qhp.KirigamiAddonsTableView.namespace     = org.kde.kirigamiaddonstableview.$QT_VERSION_TAG
+qhp.KirigamiAddonsTableView.virtualFolder = kirigamiaddonstableview
+qhp.KirigamiAddonsTableView.indexTitle    = Kirigami Addons TableView
+qhp.KirigamiAddonsTableView.indexRoot     =
+
+qhp.KirigamiAddonsTableView.subprojects = tableview
+
+qhp.KirigamiAddonsTableView.subprojects.tableview.title = Kirigami Addons TableView QML Types
+qhp.KirigamiAddonsTableView.subprojects.tableview.indexTitle = Kirigami Addons TableView QML Types
+qhp.KirigamiAddonsTableView.subprojects.tableview.selectors = qmlmodule:org.kde.kirigamiaddons.tableview
+qhp.KirigamiAddonsTableView.subprojects.tableview.sortPages = true
+
+tagfile = kirigamiaddonstableview.tags

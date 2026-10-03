@@ -60,6 +60,10 @@ pub(crate) const BUILDER_IMAGE_PACKAGES: &[&str] = &[
     "libbz2-dev",
     "liblzma-dev",
     "libexpat1-dev",
+    // libjpeg-turbo's runtime package carries its development files.
+    "libjpeg62-turbo",
+    // Jansson's runtime package carries its development files (nftables).
+    "libjansson4",
     // json-c's runtime package carries its development files.
     "libjson-c5",
     "perl",

@@ -467,8 +467,12 @@ pub(crate) fn chunks(source: &str) -> Vec<Chunk> {
             if at_column_zero && !continuation && previous_ends_item {
                 texts.push(String::new());
             }
-            previous_ends_item =
-                at_column_zero && (content.starts_with('}') || content.ends_with(';'));
+            // A column-0 line closing with `}` or `;` ends an item: the close
+            // of a multi-line item, or a complete one-line item such as
+            // `fn build_x(r: &Path) -> Result<()> { build_y(r) }`, which must
+            // not absorb the one-line item after it.
+            previous_ends_item = at_column_zero
+                && (content.starts_with('}') || content.ends_with('}') || content.ends_with(';'));
         }
         if texts.is_empty() {
             texts.push(String::new());
@@ -528,6 +532,24 @@ pub(crate) fn item_name(header: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn consecutive_one_line_items_are_separate_and_keep_their_calls() {
+        let source = "fn build_a(r: &Path) -> Result<()> { shared(r, \"a\") }\n\
+                      fn build_b(r: &Path) -> Result<()> { shared(r, \"b\") }\n\
+                      fn build_c(r: &Path) -> Result<()> { other(r) }\n\
+                      \n\
+                      fn shared(r: &Path, x: &str) -> Result<()> {\n    Ok(())\n}\n";
+        let names = chunks(source)
+            .into_iter()
+            .filter_map(|chunk| match chunk.kind {
+                ChunkKind::Named(name) => Some(name),
+                ChunkKind::Other => None,
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(names, ["build_a", "build_b", "build_c", "shared"]);
+    }
+
     use super::*;
 
     const SOURCE: &str = "use x;\n\nconst SHARED: u8 = 1;\n\n/// Builds b.\n#[allow(dead_code)]\nfn build_b(r: &Path) -> Result<()> {\n    helper(r)?;\n\n    Ok(())\n}\nfn helper(\n    r: &Path,\n) -> Result<()> {\n    Ok(())\n}\n\nimpl Thing {\n    fn method(&self) {\n        callback()\n    }\n}\n\nfn callback() {}\n\nfn unused() {}\n\n#[cfg(test)]\nmod tests {\n    fn build_b_works() {}\n}\n";

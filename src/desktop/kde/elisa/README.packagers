@@ -1,0 +1,67 @@
+<!--
+SPDX-FileCopyrightText: 2017 Matthieu Gallien <matthieu_gallien@yahoo.fr>
+
+SPDX-License-Identifier: LGPL-3.0-or-later
+-->
+
+Elisa has the following dependencies:
+
+-- REQUIRED:
+
+ * ECM (required version >= 6.9)
+ * Python3
+ * Qt6Core
+ * Qt6Test (required version >= 6.5.0)
+ * Qt6Sql (required version >= 6.5.0)
+ * Qt6Multimedia (required version >= 6.5.0)
+ * Qt6Network (required version >= 6.5.0)
+ * Qt6Svg (required version >= 6.5.0)
+ * Qt6QuickTest (required version >= 6.5.0)
+ * Qt6QmlTools (required version >= 6.6.2)
+ * Qt6Qml (required version >= 6.5.0)
+ * Qt6Quick (required version >= 6.5.0)
+ * Qt6Concurrent (required version >= 6.5.0)
+ * Qt6Widgets (required version >= 6.5.0)
+ * Qt6DBus (required version >= 6.5.0), Qt6 DBus is needed to provide MPris2 interface to allow remote control by the desktop workspace.
+ * Gettext
+ * KF6I18n (required version >= 6.9), KF text internationalization library.
+ * KF6IconThemes (required version >= 6.9), Support for icon themes.
+ * KF6Config (required version >= 6.9), Persistent platform-independent application settings.
+ * KF6ColorScheme (required version >= 6.9), Allows changing the app's color scheme.
+ * KF6CoreAddons (required version >= 6.9), Qt addon library with a collection of non-GUI utilities.
+ * KF6KIO (required version >= 6.9), File management libraries used for file browsing.
+
+Android-only:
+
+ * KF6Kirigami (required version >= 6.9), Used to package icons on Android.
+
+-- RECOMMENDED:
+
+ * KFileMetaData (required version >= 6.9), Provides a simple library for extracting metadata.
+ * KXmlGui (required version >= 6.9), Framework for managing menu and toolbar actions.
+ * KPackage (required version >= 6.9), Package management library needed to get the configuration dialogs.
+ * LIBVLC, libvlc allows to play music in Elisa, <https://www.videolan.org/vlc/libvlc.html>
+
+-- OPTIONAL:
+
+ * KF6Crash (required version >= 6.9), Graceful handling of application crashes.
+ * KF6DBusAddons (required version >= 6.9), Convenience classes for D-Bus.
+
+-- RUNTIME:
+
+ * KF6QQC2DesktopStyle (required version >= 6.9), KDE QtQuick style for desktop
+
+Android-only:
+
+ * org.kde.breeze QML style, Provides the application style for mobile devices. Do not package with org.kde.desktop style on Android.
+
+-- QML MODULES:
+
+ * org.kde.kirigami (required version >= 2.20), Provides essential UI components.
+ * org.kirigamiaddons.formcard (required version >= 1.0), Provides more UI components.
+
+
+Please consider packaging Elisa with all its recommended dependencies. Even if they are not required, a nice fallback is not always implemented and user experience may suffer a lot.
+UPnP/DLNA via unreleased UPNPQT library is currently broken. Please consider not building it.
+
+Thanks in advance for your work.

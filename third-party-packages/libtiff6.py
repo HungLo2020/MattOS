@@ -22,8 +22,9 @@ class LibtiffRecipe(SourceReleaseRecipe):
     description = "Tag Image File Format (TIFF) library (library and development files)"
     depends = ("libc6",)
     provides = ("libtiff-dev",)
-    # JPEG and WebP compression come from these third-party libraries.
-    build_depends = ("libjpeg62-turbo", "libwebp7")
+    # JPEG compression comes from the MattOS libjpeg62-turbo in the builder
+    # image; WebP from the third-party libwebp7.
+    build_depends = ("libwebp7",)
     git_url = "https://gitlab.com/libtiff/libtiff.git"
     tag_pattern = r"v(4\.[0-9]+\.[0-9]+)"
     source_url = "https://download.osgeo.org/libtiff/tiff-{version}.tar.gz"

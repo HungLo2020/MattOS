@@ -1,14 +1,14 @@
 # Copyright (C) 2023 This file is copyright:
 # This file is distributed under the same license as the kirigami-addons package.
 #
-# SPDX-FileCopyrightText: 2022, 2023, 2024, 2025 Emir SARI <emir_sari@icloud.com>
+# SPDX-FileCopyrightText: 2022-2026 Emir SARI <emir_sari@icloud.com>
 # Emir SARI <emir_sari@icloud.com>, 2023.
 msgid ""
 msgstr ""
 "Project-Id-Version: kirigami-addons\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-07-03 06:55+0000\n"
-"PO-Revision-Date: 2025-03-23 17:36+0300\n"
+"POT-Creation-Date: 2026-10-01 00:43+0000\n"
+"PO-Revision-Date: 2026-09-29 19:43+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
 "Language: tr\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Lokalize 25.07.70\n"
+"X-Generator: Lokalize 26.08.0\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -28,7 +28,221 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "emir_sari@icloud.com"
 
-#: components/AbstractMaximizeComponent.qml:132
+#: actions/abstractkirigamiapplication.cpp:163
+#, kde-format
+msgid "Open Command Bar"
+msgstr "Komut Çubuğunu Aç"
+
+#: actions/abstractkirigamiapplication.cpp:185 formcard/AboutPage.qml:128
+#, kde-format
+msgid "About %1"
+msgstr "%1 Hakkında"
+
+#: actions/abstractkirigamiapplication.cpp:192 formcard/AboutKDEPage.qml:24
+#, kde-format
+msgid "About KDE"
+msgstr "KDE Hakkında"
+
+#: actions/abstractkirigamiapplication.cpp:202
+#, kde-format
+msgctxt "@title:menu"
+msgid "File"
+msgstr "Dosya"
+
+#: actions/abstractkirigamiapplication.cpp:209
+#, kde-format
+msgctxt "@title:menu"
+msgid "Settings"
+msgstr "Ayarlar"
+
+#: actions/abstractkirigamiapplication.cpp:222
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "Yardım"
+
+#: actions/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "Ayrılmış Kısayol"
+
+#: actions/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"F12 kısayolu Windows üzerinde önceden atanmış olduğundan global kısayol "
+"olarak kullanılamaz.\n"
+"Lütfen başka bir düğme seçin."
+
+#: actions/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "Global Kısayol Gölgeleme"
+
+#: actions/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr ""
+"“%1” düğme kombinasyonu, aşağıdaki global eylemler tarafından gölgeleniyor:\n"
+
+#: actions/private/keysequencehelper.cpp:148
+#: actions/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "“%2” bağlamındaki “%1” eylemi\n"
+
+#: actions/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr "“%1” düğme kombinasyonu, aşağıdaki global eylemleri gölgeliyor:\n"
+
+#: actions/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "Standart Uygulama Kısayoluyla Çakışma"
+
+#: actions/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"“%1” düğme kombinasyonu, bazı uygulamaların kullandığı “%2” standart eylemi "
+"için de kullanılıyor.\n"
+"Bunu bir global kısayol olarak kullanmayı gerçekten istiyor musunuz?"
+
+#: actions/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "Giriş"
+
+#: actions/private/KeySequenceItem.qml:131
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "Yok"
+
+#: actions/private/KeySequenceItem.qml:142
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"Düğmeye tıklayın, daha sonra programlamak istediğiniz kısayolu girin.\n"
+"Kontrol+A örneği için: Kontrol düğmesini basılı tutun ve sonrasında A’ya "
+"basın."
+
+#: actions/private/KeySequenceItem.qml:183
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "Düğme dizisini temizle"
+
+#: actions/private/KeySequenceItem.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "Düğme dizisi kaydını iptal et"
+
+#: actions/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "Bulunan sonuç yok"
+
+#: actions/private/ShortcutsEditor.qml:19 actions/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "Kısayollar"
+
+#: actions/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "Süz…"
+
+#: actions/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "Kısayol: %1"
+
+#: actions/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "Kısayol:"
+
+#: actions/private/ShortcutsEditor.qml:144
+#: actions/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "Alternatif:"
+
+#: actions/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "Bulunan kısayol yok"
+
+#: actions/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#: actions/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "%1 Hakkında"
+
+#: actions/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "KDE Hakkında"
+
+#: app/kirigamiappdefaults.cpp:113 app/kirigamiappdefaults.cpp:120
+#, kde-format
+msgctxt "@title:window"
+msgid "Failed to Load Application"
+msgstr "Uygulama Yüklenemedi"
+
+#: app/kirigamiappdefaults.cpp:114
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Could not load the QML application. This issue might be caused by your "
+"distribution. Please report it to your distribution first."
+msgstr ""
+"QML uygulama yüklenemedi. Bu sorun, dağıtımınızdan dolayı gerçekleşmiş "
+"olabilir. Bunu öncelikle dağıtımınıza bildirin."
+
+#: app/kirigamiappdefaults.cpp:121
+#, kde-format
+msgctxt "@info"
+msgid "Could not load the QML application."
+msgstr "QML uygulama yüklenemedi."
+
+#: components/AbstractMaximizeComponent.qml:137
 #, kde-format
 msgid "Close"
 msgstr "Kapat"
@@ -70,58 +284,66 @@ msgstr "Alt yazıyı gizle"
 msgid "Save as"
 msgstr "Farklı kaydet"
 
-#: components/AlbumMaximizeComponent.qml:256
+#: components/AlbumMaximizeComponent.qml:255
 #, kde-format
 msgid "Previous image"
 msgstr "Önceki görsel"
 
-#: components/AlbumMaximizeComponent.qml:276
+#: components/AlbumMaximizeComponent.qml:273
 #, kde-format
 msgid "Next image"
 msgstr "Sonraki görsel"
 
-#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#: components/Banner.qml:185 formcard/AboutPage.qml:240
+#: formcard/AboutPage.qml:354 formcard/AboutPage.qml:750
 #, kde-format
 msgctxt "@action:button"
 msgid "Close"
 msgstr "Kapat"
 
-#: components/ConvergentContextMenu.qml:274
+#: components/ConvergentContextMenu.qml:318
+#: components/ConvergentContextMenu.qml:428
 #, kde-format
 msgctxt "@action:button"
 msgid "Go Back"
 msgstr "Geri Git"
+
+#: components/ConvergentContextMenu.qml:402 formcard/FormCardDialog.qml:102
+#, kde-format
+msgctxt "@action:button close dialog"
+msgid "Close"
+msgstr "Kapat"
 
 #: components/DownloadAction.qml:40
 #, kde-format
 msgid "Download"
 msgstr "İndir"
 
-#: components/MessageDialog.qml:99
+#: components/MessageDialog.qml:179
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Success"
 msgstr "Başarılı"
 
-#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#: components/MessageDialog.qml:181 components/MessageDialog.qml:187
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Warning"
 msgstr "Uyarı"
 
-#: components/MessageDialog.qml:103
+#: components/MessageDialog.qml:183
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Error"
 msgstr "Hata"
 
-#: components/MessageDialog.qml:105
+#: components/MessageDialog.qml:185
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Information"
 msgstr "Bilgi"
 
-#: components/MessageDialog.qml:255
+#: components/MessageDialog.qml:311
 #, kde-format
 msgctxt "@label:checkbox"
 msgid "Do not show again"
@@ -133,13 +355,14 @@ msgctxt "@action:button"
 msgid "Volume"
 msgstr "Ses Düzeyi"
 
-#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#: dateandtime/DatePopup.qml:103 dateandtime/TimePopup.qml:70
+#: onboarding/private/OnboardingOverlay.qml:236
 #, kde-format
 msgctxt "@action:button"
 msgid "Cancel"
 msgstr "İptal"
 
-#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#: dateandtime/DatePopup.qml:115 dateandtime/TimePopup.qml:81
 #, kde-format
 msgctxt "@action:button"
 msgid "Select"
@@ -178,34 +401,40 @@ msgctxt "@action:button"
 msgid "Go Next"
 msgstr "Sonrakine Git"
 
-#: dateandtime/TimePicker.qml:97
+#: dateandtime/TimePicker.qml:130
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset to current time"
+msgstr "Şu anki zamana sıfırla"
+
+#: dateandtime/TimePicker.qml:155
 #, kde-format
 msgid "Hours"
 msgstr "Saat"
 
-#: dateandtime/TimePicker.qml:119
+#: dateandtime/TimePicker.qml:178
 #, kde-format
 msgctxt "Time separator"
 msgid ":"
 msgstr ":"
 
-#: dateandtime/TimePicker.qml:134
+#: dateandtime/TimePicker.qml:193
 #, kde-format
 msgid "Minutes"
 msgstr "Dakika"
 
-#: formcard/aboutcomponent.cpp:25
+#: formcard/aboutcomponent.cpp:102
 #, kde-format
 msgctxt "@info Platform name"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: formcard/aboutcomponent.cpp:29
+#: formcard/aboutcomponent.cpp:106
 #, kde-format
 msgid "KDE Frameworks"
 msgstr "KDE Frameworks"
 
-#: formcard/aboutcomponent.cpp:30
+#: formcard/aboutcomponent.cpp:107
 #, kde-format
 msgctxt "@info"
 msgid "Collection of libraries created by the KDE Community to extend Qt."
@@ -213,33 +442,51 @@ msgstr ""
 "Qt’yi genişletmek üzere KDE Topluluğu tarafından oluşturulan kitaplıklar "
 "koleksiyonu"
 
-#: formcard/aboutcomponent.cpp:35
+#: formcard/aboutcomponent.cpp:112
 #, kde-format
 msgid "Qt"
 msgstr "Qt"
 
-#: formcard/aboutcomponent.cpp:36
+#: formcard/aboutcomponent.cpp:113
 #, kde-format
 msgctxt "@info"
 msgid "Cross-platform application development framework."
 msgstr "Çapraz platform uygulama geliştirme çatısı"
 
-#: formcard/aboutcomponent.cpp:37
+#: formcard/aboutcomponent.cpp:114
 #, kde-format
 msgid "Using %1 and built against %2"
 msgstr "%1 kullanarak %2 üzerine yapılı"
 
-#: formcard/aboutcomponent.cpp:41
+#: formcard/aboutcomponent.cpp:121
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Flatpak"
+msgstr "Flatpak"
+
+#: formcard/aboutcomponent.cpp:124
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Snap"
+msgstr "Snap"
+
+#: formcard/aboutcomponent.cpp:127
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "AppImage"
+msgstr "AppImage"
+
+#: formcard/aboutcomponent.cpp:130
+#, kde-format
+msgctxt "@info"
+msgid "Distribution method."
+msgstr "Dağıtım yöntemi"
+
+#: formcard/aboutcomponent.cpp:134
 #, kde-format
 msgctxt "@info"
 msgid "Underlying platform."
 msgstr "Altındaki platform"
-
-#: formcard/AboutKDEPage.qml:24
-#: statefulapplication/abstractkirigamiapplication.cpp:174
-#, kde-format
-msgid "About KDE"
-msgstr "KDE Hakkında"
 
 #: formcard/AboutKDEPage.qml:50
 #, kde-format
@@ -275,7 +522,7 @@ msgstr ""
 "yazılımlarını oluşturma ortak ereğine ulaşmak için birlikte çalışıyoruz. Siz "
 "de dahil olmak üzere herkes KDE’ye katılıp katkıda bulunabilir."
 
-#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:403
 #, kde-format
 msgid "Homepage"
 msgstr "Ana Sayfa"
@@ -333,7 +580,7 @@ msgstr ""
 "katılabilirsiniz. İsterseniz grafikler, temalar, sesler yaratabilir ve "
 "yardım belgeleri yazıp var olanları geliştirebilirsiniz. Karar sizin!"
 
-#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:419
 #, kde-format
 msgid "Get Involved"
 msgstr "Katıl"
@@ -389,77 +636,106 @@ msgstr ""
 msgid "KDE e.V."
 msgstr "KDE e.V."
 
-#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:411
 #, kde-format
 msgid "Donate"
 msgstr "Bağış Yap"
 
-#: formcard/AboutPage.qml:91
-#: statefulapplication/abstractkirigamiapplication.cpp:167
+#: formcard/AboutPage.qml:166
 #, kde-format
-msgid "About %1"
-msgstr "%1 Hakkında"
+msgid "What's new"
+msgstr "Neler Yeni"
 
-#: formcard/AboutPage.qml:136
+#: formcard/AboutPage.qml:196
 #, kde-format
 msgid "Copyright"
 msgstr "Telif Hakkı"
 
-#: formcard/AboutPage.qml:144
+#: formcard/AboutPage.qml:204
+#, kde-format
+msgid "Release history"
+msgstr "Yayım Geçmişi"
+
+#: formcard/AboutPage.qml:278
+#, kde-format
+msgid "Show older changes…"
+msgstr "Eski Değişiklikleri Göster…"
+
+#: formcard/AboutPage.qml:290
 #, kde-format
 msgid "Description"
 msgstr "Açıklama"
 
-#: formcard/AboutPage.qml:157
+#: formcard/AboutPage.qml:303
 #, kde-format
 msgid "License"
 msgid_plural "Licenses"
 msgstr[0] "Lisans"
 msgstr[1] "Lisanslar"
 
-#: formcard/AboutPage.qml:279
+#: formcard/AboutPage.qml:439
 #, kde-format
 msgid "Report a Bug"
 msgstr "Hata Bildir"
 
-#: formcard/AboutPage.qml:285
+#: formcard/AboutPage.qml:452
+#, kde-format
+msgid "Matrix Channel"
+msgstr "Matrix Kanalı"
+
+#: formcard/AboutPage.qml:468
+#, kde-format
+msgid "Mastodon"
+msgstr "Mastodon"
+
+#: formcard/AboutPage.qml:480
+#, kde-format
+msgid "Source Code"
+msgstr "Kaynak Kodu"
+
+#: formcard/AboutPage.qml:486
 #, kde-format
 msgid "Libraries in use"
 msgstr "Kullanılan Kitaplıklar"
 
-#: formcard/AboutPage.qml:288
+#: formcard/AboutPage.qml:490
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy to Clipboard"
 msgstr "Panoya Kopyala"
 
-#: formcard/AboutPage.qml:292
+#: formcard/AboutPage.qml:494
 #, kde-format
 msgctxt "@info"
 msgid "System information copied to clipboard."
 msgstr "Sistem bilgisi panoya kopyalandı."
 
-#: formcard/AboutPage.qml:305
+#: formcard/AboutPage.qml:509
 #, kde-format
 msgid "Authors"
 msgstr "Yazarlar"
 
-#: formcard/AboutPage.qml:320
+#: formcard/AboutPage.qml:525
 #, kde-format
 msgid "Credits"
 msgstr "Emeği Geçenler"
 
-#: formcard/AboutPage.qml:335
+#: formcard/AboutPage.qml:541
 #, kde-format
 msgid "Translators"
 msgstr "Çeviriler"
 
-#: formcard/AboutPage.qml:404
+#: formcard/AboutPage.qml:592
+#, kde-format
+msgid "More information"
+msgstr "Daha Fazla Bilgi"
+
+#: formcard/AboutPage.qml:652
 #, kde-format
 msgid "Visit %1's KDE Store page"
 msgstr "KDE Store sayfasına git: %1"
 
-#: formcard/AboutPage.qml:413
+#: formcard/AboutPage.qml:661
 #, kde-format
 msgid "Send an email to %1"
 msgstr "E-posta gönder: %1"
@@ -476,48 +752,133 @@ msgctxt "Accessible description"
 msgid "Current color \"%1\""
 msgstr "Geçerli renk “%1”"
 
-#: formcard/android/FormIconDelegate.qml:43
+#: formcard/android/FormIconDelegate.qml:19
 #, kde-format
 msgctxt "@action:button"
 msgid "Icon"
 msgstr "Simge"
 
-#: formcard/FormDateTimeDelegate.qml:202
+#: formcard/FormDateTimeDelegate.qml:227
 #, kde-format
 msgctxt "Displayed in place of the date if the selected day is today"
 msgid "Today"
 msgstr "Bugün"
 
-#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#: formcard/FormDateTimeDelegate.qml:254 formcard/FormDateTimeDelegate.qml:399
 #, kde-format
 msgctxt "Date is not set"
 msgid "Not set"
 msgstr "Ayarlanmadı"
 
-#: formcard/FormLinkDelegate.qml:52
+#: formcard/FormDateTimeDelegate.qml:305 formcard/FormDateTimeDelegate.qml:415
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset"
+msgstr ""
+
+#: formcard/FormFileDelegate.qml:186
+#, kde-format
+msgctxt "@info:status"
+msgid "The path doesn't exist."
+msgstr "Yol yok."
+
+#: formcard/FormFileDelegate.qml:195
+#, kde-format
+msgctxt "@info:status"
+msgid "The file doesn't exist."
+msgstr "Dosya yok."
+
+#: formcard/FormFileDelegate.qml:243
+#, kde-format
+msgctxt "@action:button"
+msgid "Select file"
+msgstr "Dosya Seç"
+
+#: formcard/FormFileDelegate.qml:250
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No file selected"
+msgstr "Seçili dosya yok"
+
+#: formcard/FormFolderDelegate.qml:153
+#, kde-format
+msgctxt "@info:status"
+msgid "The folder doesn't exist."
+msgstr "Klasör yok."
+
+#: formcard/FormFolderDelegate.qml:200
+#, kde-format
+msgctxt "@action:button"
+msgid "Select folder"
+msgstr "Klasör Seç"
+
+#: formcard/FormFolderDelegate.qml:207
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No folder selected"
+msgstr "Seçili klasör yok"
+
+#: formcard/FormLinkDelegate.qml:54
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Open Link"
 msgstr "Bağlantıyı Aç"
 
-#: formcard/FormLinkDelegate.qml:58
+#: formcard/FormLinkDelegate.qml:60
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Copy Link to Clipboard"
 msgstr "Bağlantıyı Panoya Kopyala"
 
-#: formcard/FormLinkDelegate.qml:64
+#: formcard/FormLinkDelegate.qml:66
 #, kde-format
 msgctxt "@info:status"
 msgid "Url copied to clipboard."
 msgstr "URL panoya kopyalandı."
 
-#: formcard/FormPasswordFieldDelegate.qml:249
-#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#: formcard/FormPasswordFieldDelegate.qml:319
+#: formcard/FormTextAreaDelegate.qml:187 formcard/FormTextFieldDelegate.qml:332
 #, kde-format
 msgctxt "@label %1 is current text length, %2 is maximum length of text field"
 msgid "%1/%2"
 msgstr "%1/%2"
+
+#: formcard/FormPasswordFieldDelegate.qml:417
+#: formcard/FormTextFieldDelegate.qml:439
+#, kde-format
+msgctxt "@action:button"
+msgid "Done"
+msgstr "Bitti"
+
+#: onboarding/private/OnboardingOverlay.qml:201
+#, kde-format
+msgctxt "@action:button"
+msgid "Previous"
+msgstr "Önceki"
+
+#: onboarding/private/OnboardingOverlay.qml:202
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Previous"
+msgstr "Önceki"
+
+#: onboarding/private/OnboardingOverlay.qml:221
+#, kde-format
+msgctxt "@action:button"
+msgid "Next"
+msgstr "Sonraki"
+
+#: onboarding/private/OnboardingOverlay.qml:222
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Next"
+msgstr "Sonraki"
+
+#: onboarding/private/OnboardingOverlay.qml:237
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel"
+msgstr "İptal"
 
 #: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
 #, kde-format
@@ -653,166 +1014,6 @@ msgctxt "@action:button"
 msgid "Spell Checking"
 msgstr "Yazım Denetimi"
 
-#: statefulapplication/abstractkirigamiapplication.cpp:145
-#, kde-format
-msgid "Open Command Bar"
-msgstr "Komut Çubuğunu Aç"
-
-#: statefulapplication/private/keysequencehelper.cpp:117
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Reserved Shortcut"
-msgstr "Ayrılmış Kısayol"
-
-#: statefulapplication/private/keysequencehelper.cpp:119
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The F12 key is reserved on Windows, so cannot be used for a global "
-"shortcut.\n"
-"Please choose another one."
-msgstr ""
-"F12 düğmesi Windows’ta ayrılmıştır; bu yüzden global bir kısayol için "
-"kullanılamaz.\n"
-"Lütfen başka bir tane seçin."
-
-#: statefulapplication/private/keysequencehelper.cpp:143
-#, kde-format
-msgctxt ""
-"@title:dialog This happen when a global shortcut is already defined with the "
-"same shortcut"
-msgid "Global Shortcut Shadowing"
-msgstr "Global Kısayol Gölgelemesi"
-
-#: statefulapplication/private/keysequencehelper.cpp:146
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination is shadowed by following global actions:\n"
-msgstr ""
-"“%1” düğme kombinasyonu, aşağıdaki global eylemler tarafından gölgelenir:\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:148
-#: statefulapplication/private/keysequencehelper.cpp:154
-#, kde-format
-msgctxt "@info"
-msgid "Action '%1' in context '%2'\n"
-msgstr "“%2” bağlamındaki “%1” eylemi\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:152
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination shadows following global actions:\n"
-msgstr "“%1” düğme kombinasyonu, aşağıdaki global eylemleri gölgeler:\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:193
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Conflict with Standard Application Shortcut"
-msgstr "Standart Uygulama Kısayoluyla Çakışma"
-
-#: statefulapplication/private/keysequencehelper.cpp:195
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The '%1' key combination is also used for the standard action \"%2\" that "
-"some applications use.\n"
-"Do you really want to use it as a global shortcut as well?"
-msgstr ""
-"“%1” düğme kombinasyonu, bazı uygulamaların kullandığı “%2” standart eylemi "
-"için de kullanılıyor.\n"
-"Bunu bir global kısayol olarak kullanmayı gerçekten istiyor musunuz?"
-
-#: statefulapplication/private/KeySequenceItem.qml:129
-#, kde-format
-msgctxt "What the user inputs now will be taken as the new shortcut"
-msgid "Input"
-msgstr "Giriş"
-
-#: statefulapplication/private/KeySequenceItem.qml:130
-#, kde-format
-msgctxt "No shortcut defined"
-msgid "None"
-msgstr "Yok"
-
-#: statefulapplication/private/KeySequenceItem.qml:141
-#, kde-format
-msgid ""
-"Click on the button, then enter the shortcut like you would in the program.\n"
-"Example for Ctrl+A: hold the Ctrl key and press A."
-msgstr ""
-"Düğmeye tıklayın, sonra programda kullanmak istediğiniz kısayolu girin.\n"
-"Örneğin, Kontrol+A için Kontrol düğmesine basılı tutun ve A’ya basın."
-
-#: statefulapplication/private/KeySequenceItem.qml:182
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Clear Key Sequence"
-msgstr "Düğme dizisini temizle"
-
-#: statefulapplication/private/KeySequenceItem.qml:198
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Cancel Key Sequence Recording"
-msgstr "Düğme dizisi kaydını iptal et"
-
-#: statefulapplication/private/KQuickCommandBarPage.qml:55
-#, kde-format
-msgctxt "@info:placeholder"
-msgid "No results found"
-msgstr "Sonuç bulunamadı"
-
-#: statefulapplication/private/ShortcutsEditor.qml:19
-#: statefulapplication/StatefulWindow.qml:99
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcuts"
-msgstr "Kısayollar"
-
-#: statefulapplication/private/ShortcutsEditor.qml:23
-#, kde-format
-msgctxt "@label:textbox"
-msgid "Filter…"
-msgstr "Süz…"
-
-#: statefulapplication/private/ShortcutsEditor.qml:69
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcut: %1"
-msgstr "Kısayol: %1"
-
-#: statefulapplication/private/ShortcutsEditor.qml:89
-#, kde-format
-msgctxt "@label"
-msgid "Shortcut:"
-msgstr "Kısayol:"
-
-#: statefulapplication/private/ShortcutsEditor.qml:144
-#: statefulapplication/private/ShortcutsEditor.qml:172
-#, kde-format
-msgctxt "@label"
-msgid "Alternative:"
-msgstr "Alternatif:"
-
-#: statefulapplication/private/ShortcutsEditor.qml:210
-#, kde-format
-msgctxt "Placeholder message"
-msgid "No shortcuts found"
-msgstr "Kısayol bulunamadı"
-
-#: statefulapplication/shortcutsmodel.cpp:41
-#, kde-format
-msgctxt "List separator"
-msgid ", "
-msgstr ", "
-
-#: statefulapplication/StatefulWindow.qml:109
-#, kde-format
-msgctxt "@title:window"
-msgid "About %1"
-msgstr "%1 Hakkında"
-
-#: statefulapplication/StatefulWindow.qml:122
-#, kde-format
-msgctxt "@title:window"
-msgid "About KDE"
-msgstr "KDE Hakkında"
+#~ msgctxt "Linux packaging format"
+#~ msgid "Unknown/Default"
+#~ msgstr "Bilinmeyen/Öntanımlı"

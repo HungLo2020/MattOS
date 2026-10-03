@@ -87,6 +87,11 @@ QQC2.Popup {
 
         QQC2.Control {
             Layout.fillWidth: true
+            padding: Kirigami.Units.mediumSpacing
+            topPadding: padding + root.parent.SafeArea.margins.top
+            leftPadding: padding + root.parent.SafeArea.margins.left
+            rightPadding: padding + root.parent.SafeArea.margins.right
+            bottomPadding: padding
             contentItem: RowLayout {
                 spacing: Kirigami.Units.largeSpacing
 

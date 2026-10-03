@@ -11,6 +11,8 @@ import org.kde.kirigami as Kirigami
 import org.kde.kirigamiaddons.delegates as Delegates
 import org.kde.kirigamiaddons.components as Components
 
+import "private" as Private
+
 /*!
    \qmltype FormComboBoxDelegate
    \inqmlmodule org.kde.kirigamiaddons.formcard
@@ -146,6 +148,15 @@ AbstractFormDelegate {
      */
     property alias editText: combobox.editText
 
+    /*!
+       \brief This property holds an item that will be displayed after the
+       delegate's contents.
+
+       \default null
+       \since 1.12.0
+     */
+    property Item trailing: null
+
     enum DisplayMode {
         ComboBox,
         Dialog,
@@ -177,7 +188,7 @@ AbstractFormDelegate {
     /*!
        \brief The delegate component to use as entries in the ComboBox display mode.
      */
-    property Component comboBoxDelegate: Delegates.RoundedItemDelegate {
+    property Component comboBoxDelegate: QQC2.MenuItem {
         required property var model
         required property int index
 
@@ -199,7 +210,7 @@ AbstractFormDelegate {
         Layout.topMargin: index == 0 ? Math.round(Kirigami.Units.smallSpacing / 2) : 0
 
         onClicked: {
-            controlRoot.currentIndex = index;
+            FormFieldHelper.setPropertyValue(controlRoot, "currentIndex", index);
             controlRoot.activated(index);
             controlRoot.closeDialog();
         }
@@ -245,7 +256,7 @@ AbstractFormDelegate {
      */
     function closeDialog() {
         if (_selectionPageItem) {
-            _selectionPageItem.closeDialog();
+            _selectionPageItem.Kirigami.PageStack.closeDialog();
             _selectionPageItem = null;
         }
 
@@ -339,12 +350,17 @@ AbstractFormDelegate {
 
                 ListView {
                     id: listView
+                    objectName: "selectionList"
 
                     clip: true
                     model: controlRoot.model
                     delegate: controlRoot.dialogDelegate
                     currentIndex: controlRoot.currentIndex
-                    onCurrentIndexChanged: controlRoot.currentIndex = currentIndex
+                    onCurrentIndexChanged: {
+                        if (controlRoot.currentIndex !== currentIndex) {
+                            FormFieldHelper.setPropertyValue(controlRoot, "currentIndex", currentIndex);
+                        }
+                    }
                 }
             }
 
@@ -354,8 +370,14 @@ AbstractFormDelegate {
             }
 
             QQC2.TextField {
+                objectName: "editTextField"
                 visible: controlRoot.editable
-                onTextChanged: controlRoot.editText = text;
+                text: controlRoot.editText
+                onTextChanged: {
+                    if (controlRoot.editText !== text) {
+                        FormFieldHelper.setPropertyValue(controlRoot, "editText", text);
+                    }
+                }
                 Layout.fillWidth: true
             }
         }
@@ -376,18 +398,48 @@ AbstractFormDelegate {
             delegate: controlRoot.dialogDelegate
 
             footer: QQC2.TextField {
+                objectName: "editTextField"
                 visible: controlRoot.editable
-                onTextChanged: controlRoot.editText = text;
+                text: controlRoot.editText
+                onTextChanged: {
+                    if (controlRoot.editText !== text) {
+                        FormFieldHelper.setPropertyValue(controlRoot, "editText", text);
+                    }
+                }
                 Layout.fillWidth: true
             }
         }
     }
 
-    function indexOfValue(value) {
+    function decrementCurrentIndex() : void {
+        combobox.decrementCurrentIndex();
+    }
+
+    function find(text: string, flags: int) : int {
+        return combobox.find(text, flags);
+    }
+
+    function incrementCurrentIndex() : void {
+        combobox.incrementCurrentIndex();
+    }
+
+    function indexOfValue(value: var) : int {
         return combobox.indexOfValue(value);
     }
 
-    focusPolicy: Qt.StrongFocus
+    function selectAll() : void {
+        combobox.selectAll();
+    }
+
+    function textAt(index: int) : string {
+        return combobox.textAt(index);
+    }
+
+    function valueAt(index: int) : var {
+        return combobox.valueAt(index);
+    }
+
+    focusPolicy: displayMode === FormComboBoxDelegate.ComboBox ? Qt.NoFocus : Qt.StrongFocus
     Accessible.description: description
     Accessible.onPressAction: controlRoot.clicked()
 
@@ -425,19 +477,37 @@ AbstractFormDelegate {
                 direction: Qt.DownArrow
                 visible: controlRoot.displayMode === FormComboBoxDelegate.Dialog || controlRoot.displayMode === FormComboBoxDelegate.Page
             }
+
+            LayoutItemProxy {
+                target: controlRoot.trailing
+                visible: Kirigami.Settings.isMobile
+            }
         }
 
-        QQC2.ComboBox {
-            id: combobox
-            focusPolicy: Qt.NoFocus // provided by parent
-            model: controlRoot.model
-            visible: controlRoot.displayMode == FormComboBoxDelegate.ComboBox
-            delegate: controlRoot.comboBoxDelegate
-            currentIndex: controlRoot.currentIndex
-            onActivated: index => controlRoot.activated(index)
-            onAccepted: controlRoot.accepted()
-            popup.contentItem.clip: true
+        RowLayout {
+            id: innerRow
+
+            spacing: Kirigami.Units.smallSpacing
+
             Layout.fillWidth: true
+
+            QQC2.ComboBox {
+                id: combobox
+                focusPolicy: controlRoot.displayMode === FormComboBoxDelegate.ComboBox ? Qt.StrongFocus : Qt.NoFocus
+                model: controlRoot.model
+                visible: controlRoot.displayMode == FormComboBoxDelegate.ComboBox
+                delegate: controlRoot.comboBoxDelegate
+                currentIndex: controlRoot.currentIndex
+                onActivated: index => controlRoot.activated(index)
+                onAccepted: controlRoot.accepted()
+                popup.contentItem.clip: true
+                Layout.fillWidth: true
+            }
+
+            LayoutItemProxy {
+                target: controlRoot.trailing
+                visible: !Kirigami.Settings.isMobile
+            }
         }
 
         QQC2.Label {
@@ -449,7 +519,7 @@ AbstractFormDelegate {
             Accessible.ignored: true
         }
 
-        Kirigami.InlineMessage {
+        Private.FormInlineMessage {
             visible: controlRoot.statusMessage.length > 0
             Layout.topMargin: visible ? Kirigami.Units.smallSpacing : 0
             Layout.fillWidth: true
@@ -458,4 +528,3 @@ AbstractFormDelegate {
         }
     }
 }
-

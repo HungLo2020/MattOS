@@ -11,12 +11,11 @@
 #include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
-#include <QQuickStyle>
 #include <QUrl>
 
 #include "version-%{APPNAMELC}.h"
 #include <KAboutData>
-#include <KIconTheme>
+#include <KirigamiAppDefaults>
 #include <KLocalizedQmlContext>
 #include <KLocalizedString>
 
@@ -35,17 +34,10 @@ int main(int argc, char *argv[])
 {
 #ifdef Q_OS_ANDROID
     QGuiApplication app(argc, argv);
-    QQuickStyle::setStyle(QStringLiteral("org.kde.breeze"));
 #else
-    KIconTheme::initTheme();
-    QIcon::setFallbackThemeName("breeze"_L1);
     QApplication app(argc, argv);
-
-    // Default to org.kde.desktop style unless the user forces another style
-    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {
-        QQuickStyle::setStyle(u"org.kde.desktop"_s);
-    }
 #endif
+    KirigamiAppDefaults::apply(&app);
 
 #ifdef Q_OS_WINDOWS
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {

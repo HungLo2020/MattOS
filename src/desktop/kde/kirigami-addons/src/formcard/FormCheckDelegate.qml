@@ -51,7 +51,7 @@ T.CheckDelegate {
        \brief This property holds an item that will be displayed to the left
        of the delegate's contents.
      */
-    property var leading: null
+    property Item leading: null
 
     /*!
        \brief This property holds the padding after the leading item.
@@ -62,7 +62,7 @@ T.CheckDelegate {
        \brief This property holds an item that will be displayed to the right
        of the delegate's contents.
      */
-    property var trailing: null
+    property Item trailing: null
 
     /*!
        \brief This property holds the padding before the trailing item.
@@ -74,7 +74,7 @@ T.CheckDelegate {
        \brief This property allows to override the internal description
        item with a custom component.
      */
-    property alias descriptionItem: internalDescriptionItem
+    property alias descriptionItem: choiceLayout.descriptionItem
 
     icon {
         width: Kirigami.Units.iconSizes.smallMedium
@@ -93,26 +93,19 @@ T.CheckDelegate {
 
     Layout.fillWidth: true
 
-    contentItem: ColumnLayout {
-        spacing: Private.FormCardUnits.verticalSpacing
+    contentItem: Private.FormChoiceDelegateLayout {
+        id: choiceLayout
 
-        RowLayout {
-            id: innerRowLayout
+        leading: root.leading
+        trailing: root.trailing
+        leadingPadding: root.leadingPadding
+        trailingPadding: root.trailingPadding
+        description: root.description
 
-            spacing: 0
-
-            Private.ContentItemLoader {
-                Layout.rightMargin: visible ? root.leadingPadding : 0
-                visible: root.leading
-                implicitHeight: visible ? root.leading.implicitHeight : 0
-                implicitWidth: visible ? root.leading.implicitWidth : 0
-                contentItem: root.leading
-            }
-
-            Controls.CheckBox {
-                id: checkBoxItem
-                Layout.rightMargin: Private.FormCardUnits.horizontalSpacing
-                focusPolicy: Qt.NoFocus // provided by delegate
+        Controls.CheckBox {
+            id: checkBoxItem
+            Layout.rightMargin: Private.FormCardUnits.horizontalSpacing
+            focusPolicy: Qt.NoFocus // provided by delegate
 
                 checkState: root.checkState
                 nextCheckState: root.nextCheckState
@@ -137,19 +130,19 @@ T.CheckDelegate {
                 enabled: root.enabled
                 checked: root.checked
 
-                Accessible.ignored: true
-            }
+            Accessible.ignored: true
+        }
 
-            Kirigami.Icon {
+        Kirigami.Icon {
                 visible: root.icon.name.length > 0 || root.icon.source.toString().length > 0
                 source: root.icon.name.length > 0 ? root.icon.name : root.icon.source
                 color: root.icon.color
-                Layout.rightMargin: visible ? Private.FormCardUnits.horizonalSpacing : 0
+                Layout.rightMargin: visible ? Private.FormCardUnits.horizontalSpacing : 0
                 implicitWidth: visible ? root.icon.width : 0
                 implicitHeight: visible ? root.icon.height : 0
-            }
+        }
 
-            Controls.Label {
+        Controls.Label {
                 text: root.text
                 color: root.enabled ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
                 elide: Text.ElideRight
@@ -157,26 +150,6 @@ T.CheckDelegate {
                 maximumLineCount: 2
                 Layout.fillWidth: true
                 Accessible.ignored: true
-            }
-
-            Private.ContentItemLoader {
-                Layout.leftMargin: visible ? root.trailingPadding : 0
-                visible: root.trailing
-                implicitHeight: visible ? root.trailing.implicitHeight : 0
-                implicitWidth: visible ? root.trailing.implicitWidth : 0
-                contentItem: root.trailing
-            }
         }
-
-        Controls.Label {
-            id: internalDescriptionItem
-
-            Layout.fillWidth: true
-            text: root.description
-            color: Kirigami.Theme.disabledTextColor
-            visible: root.description !== ""
-            wrapMode: Text.Wrap
-        }
-    }
 }
-
+}

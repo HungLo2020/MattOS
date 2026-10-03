@@ -3,11 +3,13 @@
 // SPDX-License-Identifier: LGPL-2.0-or-later
 
 #include "nameutils.h"
+
 #include <QDebug>
 #include <QMap>
 #include <QQuickStyle>
 #include <QTextBoundaryFinder>
 #include <QVector>
+#include <QColor>
 
 #include <array>
 
@@ -53,11 +55,7 @@ QString NameUtils::initialsFromString(const QString &string)
 
     if (normalized.contains(QLatin1Char(' '))) {
         // "FirstName Name Name LastName" -> "FirstName" "Name" "Name" "LastName"
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
         const auto split = QStringView(normalized).split(QLatin1Char(' '));
-#else
-        const auto split = normalized.splitRef(QLatin1Char(' '));
-#endif
 
         // "FirstName"
         auto first = split.first();
@@ -169,5 +167,3 @@ auto NameUtils::isStringUnsuitableForInitials(const QString &string) -> bool
 
     return !isAllowedScript;
 }
-
-#include "moc_nameutils.cpp"

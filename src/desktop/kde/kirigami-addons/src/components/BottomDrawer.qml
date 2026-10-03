@@ -14,8 +14,8 @@ import QtQuick.Layouts
 
    Example:
    \qml
-   import org.kde.kirigamiaddons.delegates 1.0 as Delegates
-   import org.kde.kirigamiaddons.components 1.0 as Components
+   import org.kde.kirigamiaddons.delegates as Delegates
+   import org.kde.kirigamiaddons.components as Components
 
    Components.BottomDrawer {
        id: drawer
@@ -79,7 +79,8 @@ QQC2.Drawer {
 
     edge: Qt.BottomEdge
     width: QQC2.ApplicationWindow.window?.width
-    height: Math.min(contentItem.implicitHeight, Math.round(QQC2.ApplicationWindow.window?.height * 0.8))
+    height: Math.min(contentItem.implicitHeight + root.topInset + root.topPadding + root.bottomInset + root.bottomPadding,
+                     Math.round(QQC2.ApplicationWindow.window?.height * 0.8))
 
     // makes sure the drawer is not able to be opened when not trigered
     interactive : false
@@ -166,7 +167,7 @@ QQC2.Drawer {
             leftPadding: 0
             rightPadding: 0
             topPadding: 0
-            bottomPadding: 0
+            bottomPadding: parent.SafeArea.margins.bottom
 
             background: Rectangle {
                 Kirigami.Theme.colorSet: Kirigami.Theme.View

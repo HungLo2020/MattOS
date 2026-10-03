@@ -2087,6 +2087,17 @@ classification = "debian-compatible"
 known_gaps = ["Development files are not packaged"]
 
 [[package]]
+debian_name = "libappstreamqt3"
+mattos_name = "libappstreamqt3"
+source_component = "appstream"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libAppStreamQt.so.3"]
+provided_abi_or_commands = ["AppStreamQt ABI 3"]
+current_mattos_version = "1.1.6-1mattos1"
+expected_debian_role = "AppStream metadata Qt library"
+classification = "debian-compatible"
+known_gaps = ["Development files are not packaged"]
+
+[[package]]
 debian_name = "libappstream5"
 mattos_name = "libappstream5"
 source_component = "appstream"
@@ -3839,6 +3850,270 @@ current_mattos_version = "26.08.1-1mattos1"
 expected_debian_role = "MattOS source-owned runtime package"
 classification = "mattos-extension"
 known_gaps = ["Source-owned MattOS package; Debian compatibility reviewed at integration time"]
+
+[[package]]
+debian_name = "libxrandr2"
+mattos_name = "libxrandr2"
+source_component = "libxrandr"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libXrandr.so.2"]
+provided_abi_or_commands = ["libXrandr ABI 2"]
+current_mattos_version = "1.5.5-1mattos1"
+expected_debian_role = "X RandR extension client runtime ABI used by Qt Multimedia X11 screen capture"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libjpeg62-turbo"
+mattos_name = "libjpeg62-turbo"
+source_component = "libjpeg-turbo"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libjpeg.so.62", "/usr/lib/x86_64-linux-gnu/libturbojpeg.so.0"]
+provided_abi_or_commands = ["libjpeg ABI 62 and TurboJPEG ABI 0"]
+current_mattos_version = "3.2.0-1mattos1"
+expected_debian_role = "libjpeg-turbo JPEG codec with the libjpeg 6.2 ABI (library and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libexiv2-28"
+mattos_name = "libexiv2-28"
+source_component = "exiv2"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libexiv2.so.28"]
+provided_abi_or_commands = ["libexiv2 ABI 28"]
+current_mattos_version = "0.28.9-1mattos1"
+expected_debian_role = "Exiv2 image metadata library (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libfribidi0"
+mattos_name = "libfribidi0"
+source_component = "fribidi"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libfribidi.so.0"]
+provided_abi_or_commands = ["libfribidi ABI 0"]
+current_mattos_version = "1.0.17-1mattos1"
+expected_debian_role = "GNU FriBidi Unicode bidirectional algorithm library (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libharfbuzz0b"
+mattos_name = "libharfbuzz0b"
+source_component = "harfbuzz"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libharfbuzz.so.0"]
+provided_abi_or_commands = ["libharfbuzz ABI 0"]
+current_mattos_version = "14.5.1-1mattos1"
+expected_debian_role = "HarfBuzz OpenType text shaping library (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libass9"
+mattos_name = "libass9"
+source_component = "libass"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libass.so.9"]
+provided_abi_or_commands = ["libass ABI 9"]
+current_mattos_version = "0.17.5-1mattos1"
+expected_debian_role = "libass ASS/SSA subtitle rendering library (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libplacebo360"
+mattos_name = "libplacebo360"
+source_component = "libplacebo"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libplacebo.so.360"]
+provided_abi_or_commands = ["libplacebo ABI 360"]
+current_mattos_version = "7.360.1-1mattos1"
+expected_debian_role = "libplacebo GPU video rendering primitives (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libmpv2"
+mattos_name = "libmpv2"
+source_component = "mpv"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libmpv.so.2"]
+provided_abi_or_commands = ["libmpv ABI 2"]
+current_mattos_version = "0.41.0-1mattos1"
+expected_debian_role = "mpv video player library (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libkdsingleapplication-qt6-1.2"
+mattos_name = "libkdsingleapplication-qt6-1.2"
+source_component = "kdsingleapplication"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libkdsingleapplication-qt6.so.1.2"]
+provided_abi_or_commands = ["libkdsingleapplication-qt6 ABI 1.2"]
+current_mattos_version = "1.2.1-1mattos1"
+expected_debian_role = "KDAB single-instance application helper for Qt 6 (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libjansson4"
+mattos_name = "libjansson4"
+source_component = "jansson"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libjansson.so.4"]
+provided_abi_or_commands = ["libjansson ABI 4"]
+current_mattos_version = "2.15.1-1mattos1"
+expected_debian_role = "C library for JSON data (library and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libsqlite3-0"
+mattos_name = "libsqlite3-0"
+source_component = "sqlite"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libsqlite3.so.0"]
+provided_abi_or_commands = ["libsqlite3 ABI 0"]
+current_mattos_version = "3.53.4-1mattos1"
+expected_debian_role = "SQLite 3 shared library and command-line shell (runtime and development files)"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "packagekit"
+mattos_name = "packagekit"
+source_component = "packagekit"
+owned_paths = ["/usr/libexec/packagekitd", "/usr/bin/pkgcli"]
+provided_abi_or_commands = ["packagekitd and pkgcli"]
+current_mattos_version = "1.4.0-1mattos1"
+expected_debian_role = "PackageKit package-management service with the APT backend (daemon, pkgcli, libpackagekit-glib2)"
+classification = "debian-compatible"
+known_gaps = ["GStreamer comes from the xdg-desktop-portal package, which bundles it"]
+
+[[package]]
+debian_name = "libmpc3"
+mattos_name = "libmpc3"
+source_component = "mpc"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libmpc.so.3"]
+provided_abi_or_commands = ["libmpc ABI 3"]
+current_mattos_version = "1.4.1-1mattos1"
+expected_debian_role = "Multiple-precision complex arithmetic library"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "kcalc"
+mattos_name = "kcalc"
+source_component = "kcalc"
+owned_paths = ["/usr/bin/kcalc"]
+provided_abi_or_commands = ["kcalc"]
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "KDE scientific calculator"
+classification = "debian-compatible"
+known_gaps = ["Documentation is not built"]
+
+[[package]]
+debian_name = "kwalletmanager"
+mattos_name = "kwalletmanager"
+source_component = "kwalletmanager"
+owned_paths = ["/usr/bin/kwalletmanager5"]
+provided_abi_or_commands = ["kwalletmanager5"]
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "KDE wallet manager"
+classification = "debian-compatible"
+known_gaps = ["Documentation is not built"]
+
+[[package]]
+debian_name = "partitionmanager"
+mattos_name = "partitionmanager"
+source_component = "partitionmanager"
+owned_paths = ["/usr/bin/partitionmanager"]
+provided_abi_or_commands = ["partitionmanager"]
+current_mattos_version = "25.12.3-1mattos1"
+expected_debian_role = "KDE partition editor"
+classification = "debian-compatible"
+known_gaps = ["Documentation is not built"]
+
+[[package]]
+debian_name = "elisa"
+mattos_name = "elisa"
+source_component = "elisa"
+owned_paths = ["/usr/bin/elisa"]
+provided_abi_or_commands = ["elisa"]
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "KDE music player"
+classification = "debian-compatible"
+known_gaps = ["Documentation is not built"]
+
+[[package]]
+debian_name = "libkcolorpicker-qt6-0"
+mattos_name = "libkcolorpicker-qt6-0"
+source_component = "kcolorpicker"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libkColorPicker.so.0"]
+provided_abi_or_commands = ["libkColorPicker-Qt6 ABI 0"]
+current_mattos_version = "0.3.1-1mattos1"
+expected_debian_role = "Qt color picker widget library used by kImageAnnotator"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "libkimageannotator-qt6-0"
+mattos_name = "libkimageannotator-qt6-0"
+source_component = "kimageannotator"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libkImageAnnotator.so.0"]
+provided_abi_or_commands = ["libkImageAnnotator-Qt6 ABI 0"]
+current_mattos_version = "0.7.2-1mattos1"
+expected_debian_role = "Qt image annotation library used by Gwenview"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "gwenview"
+mattos_name = "gwenview"
+source_component = "gwenview"
+owned_paths = ["/usr/bin/gwenview"]
+provided_abi_or_commands = ["gwenview"]
+current_mattos_version = "26.08.1-1mattos1"
+expected_debian_role = "KDE image viewer"
+classification = "debian-compatible"
+known_gaps = ["Documentation is not built"]
+
+[[package]]
+debian_name = "plasma-discover"
+mattos_name = "plasma-discover"
+source_component = "discover"
+owned_paths = ["/usr/bin/plasma-discover"]
+provided_abi_or_commands = ["plasma-discover"]
+current_mattos_version = "6.6.5-1mattos1"
+expected_debian_role = "KDE software center (PackageKit/APT, Flatpak and KDE Store backends)"
+classification = "debian-compatible"
+known_gaps = ["Documentation is not built"]
+
+[[package]]
+debian_name = "libmpvqt3"
+mattos_name = "libmpvqt3"
+source_component = "mpvqt"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libMpvQt.so.3"]
+provided_abi_or_commands = ["libMpvQt ABI 3"]
+current_mattos_version = "1.2.0-1mattos1"
+expected_debian_role = "Qt Quick wrapper for libmpv"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
+
+[[package]]
+debian_name = "haruna"
+mattos_name = "haruna"
+source_component = "haruna"
+owned_paths = ["/usr/bin/haruna"]
+provided_abi_or_commands = ["haruna"]
+current_mattos_version = "1.8.1-1mattos1"
+expected_debian_role = "KDE video player built on mpv"
+classification = "debian-compatible"
+known_gaps = ["Documentation is not built"]
+
+[[package]]
+debian_name = "libpackagekitqt6-2"
+mattos_name = "libpackagekitqt6-2"
+source_component = "packagekit-qt"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libpackagekitqt6.so.2"]
+provided_abi_or_commands = ["libpackagekitqt6 ABI 2"]
+current_mattos_version = "1.1.4-1mattos1"
+expected_debian_role = "Qt bindings for PackageKit"
+classification = "debian-compatible"
+known_gaps = ["None known for the exported SONAME"]
 
 [[package]]
 debian_name = "ark"

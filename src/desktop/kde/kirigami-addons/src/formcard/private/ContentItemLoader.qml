@@ -5,18 +5,22 @@
 
 import QtQuick
 
-/**
- * Simple component to easily implement embed QML components without using QQC2.Control.
+/*!
+   Simple component for embedding an item and filling the loader's geometry.
  */
 Item {
     id: root
-    property var contentItem: null
+
+    property Item contentItem: null
 
     onContentItemChanged: {
-        // clear old items
-        root.children = [];
+        for (const child of root.children) {
+            if (child !== contentItem) {
+                child.parent = null;
+            }
+        }
 
-        if (contentItem instanceof Item) {
+        if (contentItem) {
             contentItem.parent = root;
             contentItem.anchors.fill = root;
         }

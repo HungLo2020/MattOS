@@ -88,8 +88,12 @@ fn build_ffmpeg(repo_root: &Path) -> Result<()> {
         repo_root,
         "ffmpeg",
         "src/system/multimedia/ffmpeg",
-        &[],
+        // zlib (PNG and compressed streams) and dav1d (AV1) are MattOS
+        // libraries; autodetection stays off, so each is enabled explicitly.
+        &["zlib", "dav1d"],
         &[
+            "--enable-zlib",
+            "--enable-libdav1d",
             "--prefix=/usr",
             "--libdir=/usr/lib/x86_64-linux-gnu",
             "--enable-shared",
@@ -569,6 +573,319 @@ fn build_mpfr(repo_root: &Path) -> Result<()> {
         &["usr/lib/x86_64-linux-gnu/libmpfr.so", "usr/include/mpfr.h"],
     )?;
     remove_path_if_exists(&repo_root.join("out/build/mpfr/install/usr/lib/x86_64-linux-gnu/libmpfr.la"))?;
+    Ok(())
+}
+
+/// libjpeg-turbo with the libjpeg 6.2 ABI (Debian's libjpeg62-turbo) and the
+/// TurboJPEG API. The SIMD extensions need NASM, which MattOS does not build.
+fn build_libjpeg_turbo(repo_root: &Path) -> Result<()> {
+    build_non_qt_cmake(
+        repo_root,
+        "libjpeg-turbo",
+        "src/system/libraries/libjpeg-turbo",
+        &[],
+        &["-DENABLE_STATIC=OFF", "-DWITH_SIMD=OFF", "-DWITH_TESTS=OFF", "-DWITH_TOOLS=OFF"],
+        "usr/lib/x86_64-linux-gnu/libjpeg.so.62",
+    )
+}
+
+/// Exiv2 image metadata library (Gwenview). The command-line tool, samples,
+/// translations and the optional inih/Brotli integrations are not built.
+fn build_exiv2(repo_root: &Path) -> Result<()> {
+    build_non_qt_cmake(
+        repo_root,
+        "exiv2",
+        "src/system/libraries/exiv2",
+        &["expat", "zlib"],
+        &[
+            "-DEXIV2_BUILD_EXIV2_COMMAND=OFF",
+            "-DEXIV2_BUILD_SAMPLES=OFF",
+            "-DEXIV2_BUILD_UNIT_TESTS=OFF",
+            "-DEXIV2_ENABLE_NLS=OFF",
+            "-DEXIV2_ENABLE_INIH=OFF",
+            "-DEXIV2_ENABLE_BROTLI=OFF",
+        ],
+        "usr/lib/x86_64-linux-gnu/libexiv2.so.28",
+    )
+}
+
+/// GNU FriBidi (Unicode bidirectional text), for libass.
+fn build_fribidi(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "fribidi",
+        "src/system/libraries/fribidi",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Ddocs=false",
+            "-Dbin=false",
+            "-Dtests=false",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libfribidi.so.0",
+        &[],
+    )
+}
+
+/// HarfBuzz text shaping (FreeType integration only), for libass. Qt keeps
+/// its bundled copy; this is the shared library mpv's subtitle renderer uses.
+fn build_harfbuzz(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "harfbuzz",
+        "src/system/libraries/harfbuzz",
+        &["freetype", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dfreetype=enabled",
+            "-Dglib=disabled",
+            "-Dgobject=disabled",
+            "-Dcairo=disabled",
+            "-Dchafa=disabled",
+            "-Dicu=disabled",
+            "-Dpng=disabled",
+            "-Dzlib=disabled",
+            "-Draster=disabled",
+            "-Dvector=disabled",
+            "-Dgpu=disabled",
+            "-Dsubset=disabled",
+            "-Dtests=disabled",
+            "-Dintrospection=disabled",
+            "-Ddocs=disabled",
+            "-Dutilities=disabled",
+            "-Dbenchmark=disabled",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libharfbuzz.so.0",
+        &[],
+    )
+}
+
+/// libass subtitle renderer, for mpv. Its x86 assembly needs NASM, which
+/// MattOS does not build.
+fn build_libass(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "libass",
+        "src/system/libraries/libass",
+        &["fribidi", "harfbuzz", "freetype", "fontconfig", "expat", "zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Ddefault_library=shared",
+            "-Dfontconfig=enabled",
+            "-Dlibunibreak=disabled",
+            "-Dasm=disabled",
+            "-Dtest=disabled",
+            "-Dcompare=disabled",
+            "-Dprofile=disabled",
+            "-Dfuzz=disabled",
+            "-Dcheckasm=disabled",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libass.so.9",
+        &[],
+    )
+}
+
+/// libplacebo's rendering primitives, which mpv requires. Its Vulkan and
+/// OpenGL renderers (and their generated loaders) are not built: libmpv
+/// renders through mpv's own OpenGL backend for MpvQt. The Vulkan API stubs
+/// still include the Vulkan headers.
+fn build_libplacebo(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "libplacebo",
+        "src/system/multimedia/libplacebo",
+        &["lcms2", "vulkan-headers"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dvulkan=disabled",
+            "-Dopengl=disabled",
+            "-Dd3d11=disabled",
+            "-Dglslang=disabled",
+            "-Dshaderc=disabled",
+            "-Dlcms=enabled",
+            "-Ddovi=enabled",
+            "-Dlibdovi=disabled",
+            "-Dunwind=disabled",
+            "-Dxxhash=disabled",
+            "-Ddemos=false",
+            "-Dtests=false",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libplacebo.so",
+        &[],
+    )
+}
+
+/// libmpv (no mpv command-line player), for MpvQt and Haruna: OpenGL/EGL
+/// rendering on Wayland, PulseAudio output (PipeWire's server) and the
+/// MattOS FFmpeg. Optional integrations are off unless named here.
+fn build_mpv(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "mpv",
+        "src/system/multimedia/mpv",
+        &["ffmpeg", "dav1d", "zlib", "libplacebo", "lcms2", "libass", "fribidi", "harfbuzz", "freetype", "fontconfig", "expat", "wayland", "wayland-protocols", "xkbcommon", "libglvnd", "mesa", "libdrm", "pulseaudio", "libsndfile", "dbus", "glib", "pcre2", "libffi", "libjpeg-turbo"],
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "-Dauto_features=disabled",
+            "-Dlibmpv=true",
+            "-Dcplayer=false",
+            "-Dbuild-date=false",
+            "-Dgpl=true",
+            "-Dgl=enabled",
+            "-Degl=enabled",
+            "-Dplain-gl=enabled",
+            "-Dwayland=enabled",
+            "-Degl-wayland=enabled",
+            "-Dpulse=enabled",
+            "-Dlcms2=enabled",
+            "-Dzlib=enabled",
+            "-Diconv=enabled",
+            "-Djpeg=enabled",
+            "-Dmanpage-build=disabled",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/lib/x86_64-linux-gnu/libmpv.so.2",
+        &[],
+    )
+}
+
+/// KDAB's single-instance helper (Qt 6), for Haruna.
+fn build_kdsingleapplication(repo_root: &Path) -> Result<()> {
+    build_kde_cmake(
+        repo_root,
+        "kdsingleapplication",
+        "src/system/libraries/kdsingleapplication",
+        &["qtbase"],
+        &["-DKDSingleApplication_QT6=ON", "-DKDSingleApplication_EXAMPLES=OFF", "-DKDSingleApplication_TESTS=OFF"],
+        "usr/lib/x86_64-linux-gnu/cmake/KDSingleApplication-qt6/KDSingleApplication-qt6Config.cmake",
+    )
+}
+
+/// Jansson JSON library, for PackageKit (and the third-party nftables).
+/// Its CMake build installs to a fixed `lib/`, so use the Autotools build.
+fn build_jansson(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "jansson",
+        "src/system/libraries/jansson",
+        &[],
+        &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static"],
+        &["usr/lib/x86_64-linux-gnu/libjansson.so.4", "usr/include/jansson.h"],
+    )?;
+    remove_path_if_exists(&repo_root.join("out/build/jansson/install/usr/lib/x86_64-linux-gnu/libjansson.la"))?;
+    Ok(())
+}
+
+/// SQLite (library and the sqlite3 shell), for PackageKit's transaction
+/// database. Built from the canonical sources with SQLite's autosetup.
+fn build_sqlite(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "sqlite",
+        "src/system/libraries/sqlite",
+        &["zlib"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+            "--disable-tcl",
+            "--disable-readline",
+            // Without this autosetup sets no SONAME, and consumers would
+            // record the library's build path; use Debian's libsqlite3.so.0.
+            "--soname=legacy",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libsqlite3.so.0", "usr/include/sqlite3.h"],
+    )
+}
+
+/// PackageKit with its APT backend, the package-management service behind
+/// Discover's system updates. GStreamer codec matching links the GStreamer
+/// libraries; introspection, the command-not-found hook and docs are off.
+fn build_packagekit(repo_root: &Path) -> Result<()> {
+    let dependencies: &[&str] = &["glib", "libffi", "pcre2", "zlib", "sqlite", "polkit", "duktape", "expat", "jansson", "systemd", "dbus", "gstreamer", "gstreamer-base", "appstream", "libxml2", "curl", "nghttp2", "openssl", "libfyaml", "libxmlb", "xz", "zstd", "apt", "dpkg", "bzip2"];
+    // msgfmt merges translations into the polkit policy with polkit's ITS
+    // rules, which the staged polkit installs rather than the host.
+    let polkit_gettext = repo_root.join("out/build/polkit/install/usr/share/gettext").display().to_string();
+    // APT's apt-pkg.pc names absolute libdir/includedir without a `prefix`
+    // variable, which the staged pkg-config overlay expects to rebase; put a
+    // copy naming the staged APT tree first on the search path.
+    let apt_usr = repo_root.join("out/build/apt/install/usr");
+    let apt_pkgconfig = repo_root.join("out/build/packagekit/apt-pkgconfig");
+    fs::create_dir_all(&apt_pkgconfig)?;
+    let apt_pc = fs::read_to_string(apt_usr.join("lib/x86_64-linux-gnu/pkgconfig/apt-pkg.pc"))?;
+    fs::write(
+        apt_pkgconfig.join("apt-pkg.pc"),
+        apt_pc
+            .replace("libdir=/usr/", &format!("libdir={}/", apt_usr.display()))
+            .replace("includedir=/usr/", &format!("includedir={}/", apt_usr.display())),
+    )?;
+    let mut env = vec![("GETTEXTDATADIRS", polkit_gettext)];
+    for (key, value) in staged_library_environment(repo_root, dependencies)? {
+        if matches!(key, "PKG_CONFIG_PATH" | "PKG_CONFIG_LIBDIR") {
+            env.push((key, format!("{}:{value}", apt_pkgconfig.display())));
+        }
+    }
+    build_meson_runtime(
+        repo_root,
+        "packagekit",
+        "src/system/packages/packagekit",
+        dependencies,
+        &[
+            "--prefix=/usr",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--sysconfdir=/etc",
+            "--localstatedir=/var",
+            "-Dpackaging_backend=apt",
+            "-Dsystemd=true",
+            "-Doffline_update=true",
+            "-Dsystemdsystemunitdir=/usr/lib/systemd/system",
+            "-Dsystemduserunitdir=/usr/lib/systemd/user",
+            "-Ddbus_sys=/usr/share/dbus-1/system.d",
+            "-Ddbus_services=/usr/share/dbus-1/system-services",
+            "-Dgobject_introspection=false",
+            "-Dbash_completion=false",
+            "-Dbash_command_not_found=false",
+            "-Dgstreamer_plugin=false",
+            "-Dgtk_module=false",
+            "-Dcron=false",
+            "-Dpython_backend=false",
+            "-Dman_pages=false",
+            "-Dgtk_doc=false",
+            "-Dlegacy_tools=false",
+            "-Ddaemon_tests=false",
+            "-Dmaintainer=false",
+            "--wrap-mode=nofallback",
+        ],
+        "usr/libexec/packagekitd",
+        &env,
+    )
+}
+
+/// GNU MPC (complex arithmetic on GMP and MPFR), which KCalc needs.
+fn build_mpc(repo_root: &Path) -> Result<()> {
+    build_autotools_import(
+        repo_root,
+        "mpc",
+        "src/system/libraries/mpc",
+        &["gmp", "mpfr"],
+        &[
+            "--prefix=/usr",
+            "--libdir=/usr/lib/x86_64-linux-gnu",
+            "--disable-static",
+            "--enable-shared",
+        ],
+        &["usr/lib/x86_64-linux-gnu/libmpc.so", "usr/include/mpc.h"],
+    )?;
+    remove_path_if_exists(&repo_root.join("out/build/mpc/install/usr/lib/x86_64-linux-gnu/libmpc.la"))?;
     Ok(())
 }
 

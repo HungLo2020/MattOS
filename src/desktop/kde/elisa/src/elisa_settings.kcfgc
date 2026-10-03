@@ -1,0 +1,10 @@
+ClassName=ElisaConfiguration
+NameSpace=Elisa
+File=elisa_core.kcfg
+Mutators=true
+Notifiers=true
+Visibility=ELISALIB_EXPORT
+Singleton=true
+MemberVariables=dpointer
+GenerateProperties=true
+IncludeFiles=elisaLib_export.h

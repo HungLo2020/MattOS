@@ -61,7 +61,11 @@ QQC2.Dialog {
 
     parent: applicationWindow().QQC2.Overlay.overlay
 
-    implicitWidth: Math.min(parent.width - Kirigami.Units.gridUnit * 2, Math.max(Kirigami.Units.gridUnit * 15, header.implicitWidth))
+    implicitWidth: if (parent.width > 576) {
+        return Math.min(parent.width - Kirigami.Units.gridUnit * 2, Math.max(Kirigami.Units.gridUnit * 15, header.implicitWidth))
+    } else {
+        return parent.width - Kirigami.Units.gridUnit * 2;
+    }
 
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              contentHeight + topPadding + bottomPadding
@@ -73,13 +77,35 @@ QQC2.Dialog {
 
     padding: 0
 
-    header: Kirigami.Heading {
-        text: root.title
-        elide: QQC2.Label.ElideRight
-        leftPadding: Private.FormCardUnits.horizontalPadding
-        rightPadding: Private.FormCardUnits.horizontalPadding
-        topPadding: Private.FormCardUnits.verticalPadding
-        bottomPadding: 0
+    header: RowLayout {
+        spacing: Kirigami.Units.smallSpacing
+
+	    Kirigami.Heading {
+            text: root.title
+            elide: QQC2.Label.ElideRight
+            leftPadding: Private.FormCardUnits.horizontalPadding
+            rightPadding: Private.FormCardUnits.horizontalPadding
+            topPadding: Private.FormCardUnits.verticalPadding
+            bottomPadding: 0
+
+            Layout.fillWidth: true
+        }
+
+        QQC2.ToolButton {
+            id: closeButton
+
+            Layout.alignment: Qt.AlignVCenter
+            Layout.rightMargin: Private.FormCardUnits.horizontalPadding
+            Layout.topMargin: Private.FormCardUnits.horizontalPadding
+
+            icon.name: hovered ? "window-close" : "window-close-symbolic"
+            text: i18ndc("kirigami-addons6", "@action:button close dialog", "Close")
+            display: QQC2.AbstractButton.IconOnly
+            visible: root.standardButtons & QQC2.Dialog.Cancel
+            enabled: visible && root.standardButton(QQC2.Dialog.Cancel).enabled
+
+            onClicked: root.reject()
+        }
     }
 
     contentItem: ColumnLayout {

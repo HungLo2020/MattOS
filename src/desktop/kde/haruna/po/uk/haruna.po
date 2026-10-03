@@ -1,0 +1,3693 @@
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the haruna package.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2021, 2022, 2023, 2024, 2025, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: haruna\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-05-19 00:43+0000\n"
+"PO-Revision-Date: 2026-05-17 12:05+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Lokalize 23.04.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Юрій Чорноіван"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "yurchor@ukr.net"
+
+#: src/application.cpp:132
+#, kde-format
+msgctxt "application title/display name"
+msgid "Haruna"
+msgstr "Haruna"
+
+#: src/application.cpp:134
+#, kde-format
+msgctxt "@title"
+msgid "Media player"
+msgstr "Мультимедійний програвач"
+
+#: src/application.cpp:136
+#, kde-format
+msgctxt ""
+"copyright statement, use copyright symbol and en dash for the year range"
+msgid "© 2019–2025"
+msgstr "© 2019-2025"
+
+#: src/application.cpp:141
+#, kde-format
+msgctxt "@info:credit"
+msgid "George Florea Bănuș"
+msgstr "George Florea Bănuș"
+
+#: src/application.cpp:142
+#, kde-format
+msgctxt "@info:credit"
+msgid "Developer"
+msgstr "Розробник"
+
+#: src/application.cpp:169
+#, kde-format
+msgid "Feature-rich command-line audio/video downloader"
+msgstr ""
+"Багатий на можливості інструмент командного рядка для отримання звукових "
+"даних та відеоданих"
+
+#: src/application.cpp:184
+#, kde-format
+msgctxt "@info:shell"
+msgid "File to open"
+msgstr "Файл, який слід відкрити"
+
+#: src/application.cpp:188
+#, kde-format
+msgctxt "@info:shell"
+msgid ""
+"Allows to temporarily override the yt-dlp format selection setting. Will be "
+"overwritten if the setting is changed through the GUI"
+msgstr ""
+"Уможливлює тимчасове перевизначення параметра вибору формату yt-dl. Буде "
+"перезаписано, якщо змінити параметр за допомогою графічного інтерфейсу."
+
+#: src/lockmanager.cpp:49
+#, kde-format
+msgctxt "@info reason for blocking sleep and screen slocking"
+msgid "Playing media file"
+msgstr "Відтворення мультимедійного файла"
+
+#: src/models/actionsmodel.cpp:25
+#, kde-format
+msgctxt "@action"
+msgid "Open Actions Dialog"
+msgstr "Відкрити вікно дій"
+
+#: src/models/actionsmodel.cpp:32
+#, kde-format
+msgctxt "@action"
+msgid "About Haruna"
+msgstr "Про Haruna"
+
+#: src/models/actionsmodel.cpp:40
+#, kde-format
+msgctxt "@action"
+msgid "Report bug"
+msgstr "Повідомити про ваду"
+
+#: src/models/actionsmodel.cpp:48
+#, kde-format
+msgctxt "@action"
+msgid "Sponsor Haruna"
+msgstr "Спонсорувати Haruna"
+
+#: src/models/actionsmodel.cpp:56
+#, kde-format
+msgctxt "@action"
+msgid "Cycle Up Audio Track"
+msgstr "Зациклити звукову доріжку вище"
+
+#: src/models/actionsmodel.cpp:64
+#, kde-format
+msgctxt "@action"
+msgid "Cycle Down Audio Track"
+msgstr "Зациклити звукову доріжку нижче"
+
+#: src/models/actionsmodel.cpp:72
+#, kde-format
+msgctxt "@action"
+msgid "Settings"
+msgstr "Параметри"
+
+#: src/models/actionsmodel.cpp:80
+#, kde-format
+msgctxt "@action"
+msgid "Configure Keyboard Shortcuts"
+msgstr "Налаштовування клавіатурних скорочень"
+
+#: src/models/actionsmodel.cpp:88
+#, kde-format
+msgctxt "@action"
+msgid "Exit Fullscreen"
+msgstr "Вийти з повноекранного режиму"
+
+#: src/models/actionsmodel.cpp:96
+#, kde-format
+msgctxt "@action"
+msgid "Step Frame Forward"
+msgstr "Перейти на кадр вперед"
+
+#: src/models/actionsmodel.cpp:104
+#, kde-format
+msgctxt "@action"
+msgid "Step Frame Backward"
+msgstr "Перейти на кадр назад"
+
+#: src/models/actionsmodel.cpp:112
+#, kde-format
+msgctxt "@action"
+msgid "Load Last Played File"
+msgstr "Завантажити останній відтворюваний файл"
+
+#: src/models/actionsmodel.cpp:120
+#, kde-format
+msgctxt "@action"
+msgid "Mute"
+msgstr "Вимкнути звук"
+
+#: src/models/actionsmodel.cpp:128
+#, kde-format
+msgctxt "@action"
+msgid "Open Context Menu"
+msgstr "Відкрити контекстне меню"
+
+#: src/models/actionsmodel.cpp:132
+#, kde-format
+msgctxt "@action"
+msgid "Opens and closes the context menu at the position of the mouse pointer"
+msgstr "Відкриває і закриває контекстне меню у позиції вказівника миші"
+
+#: src/models/actionsmodel.cpp:136
+#, kde-format
+msgctxt "@action"
+msgid "Open File"
+msgstr "Відкрити файл"
+
+#: src/models/actionsmodel.cpp:144
+#, kde-format
+msgctxt "@action"
+msgid "Add External Subtitle…"
+msgstr "Додати зовнішні субтитри…"
+
+#: src/models/actionsmodel.cpp:152
+#, kde-format
+msgctxt "@action"
+msgid "Open URL"
+msgstr "Відкрити адресу"
+
+#: src/models/actionsmodel.cpp:160
+#, kde-format
+msgctxt "@action"
+msgid "Increase Playback Speed"
+msgstr "Збільшити швидкість відтворення"
+
+#: src/models/actionsmodel.cpp:168
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Playback Speed"
+msgstr "Зменшити швидкість відтворення"
+
+#: src/models/actionsmodel.cpp:176
+#, kde-format
+msgctxt "@action"
+msgid "Reset Playback Speed"
+msgstr "Скинути швидкість відтворення"
+
+#: src/models/actionsmodel.cpp:184
+#, kde-format
+msgctxt "@action"
+msgid "Play/Pause"
+msgstr "Пуск/Пауза"
+
+#: src/models/actionsmodel.cpp:192
+#, kde-format
+msgctxt "@action"
+msgid "Stop"
+msgstr "Зупинити"
+
+#: src/models/actionsmodel.cpp:200
+#, kde-format
+msgctxt "@action"
+msgid "Play Next"
+msgstr "Відтворити наступний"
+
+#: src/models/actionsmodel.cpp:208
+#, kde-format
+msgctxt "@action"
+msgid "Play Previous"
+msgstr "Відтворити попередній"
+
+#: src/models/actionsmodel.cpp:216
+#, kde-format
+msgctxt "@action"
+msgid "Quit"
+msgstr "Вийти"
+
+#: src/models/actionsmodel.cpp:224
+#, kde-format
+msgctxt "@action"
+msgid "Restart Playback"
+msgstr "Перезапустити відтворення"
+
+#: src/models/actionsmodel.cpp:232
+#, kde-format
+msgctxt "@action"
+msgid "Seek Small Step Forward"
+msgstr "Перехід малим кроком вперед"
+
+#: src/models/actionsmodel.cpp:240
+#, kde-format
+msgctxt "@action"
+msgid "Seek Small Step Backward"
+msgstr "Перехід малим кроком назад"
+
+#: src/models/actionsmodel.cpp:248
+#, kde-format
+msgctxt "@action"
+msgid "Seek Medium Step Forward"
+msgstr "Перехід середнім кроком вперед"
+
+#: src/models/actionsmodel.cpp:256
+#, kde-format
+msgctxt "@action"
+msgid "Seek Medium Step Backward"
+msgstr "Перехід середнім кроком назад"
+
+#: src/models/actionsmodel.cpp:264
+#, kde-format
+msgctxt "@action"
+msgid "Seek Big Step Forward"
+msgstr "Перехід великим кроком вперед"
+
+#: src/models/actionsmodel.cpp:272
+#, kde-format
+msgctxt "@action"
+msgid "Seek Big Step Backward"
+msgstr "Перехід великим кроком назад"
+
+#: src/models/actionsmodel.cpp:280
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Next Chapter"
+msgstr "Перехід до наступного розділу"
+
+#: src/models/actionsmodel.cpp:288
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Previous Chapter"
+msgstr "Перехід до попереднього розділу"
+
+#: src/models/actionsmodel.cpp:296
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Next Subtitle"
+msgstr "Перехід до наступних субтитрів"
+
+#: src/models/actionsmodel.cpp:304
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Previous Subtitle"
+msgstr "Перехід до попередніх субтитрів"
+
+#: src/models/actionsmodel.cpp:312
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Watch Later Position"
+msgstr "Перейти до позиції перегляду пізніше"
+
+#: src/models/actionsmodel.cpp:320
+#, kde-format
+msgctxt "@action"
+msgid "Set Loop"
+msgstr "Встановити циклічне відтворення"
+
+#: src/models/actionsmodel.cpp:328
+#, kde-format
+msgctxt "@action"
+msgid "Screenshot"
+msgstr "Знімок вікна"
+
+#: src/models/actionsmodel.cpp:336
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Subtitles"
+msgstr "Увімкнути/Вимкнути субтитри"
+
+#: src/models/actionsmodel.cpp:344
+#, kde-format
+msgctxt "@action"
+msgid "Increase Subtitle Font Size"
+msgstr "Зменшити розмір шрифту субтитрів"
+
+#: src/models/actionsmodel.cpp:352
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Subtitle Font Size"
+msgstr "Зменшити розмір шрифту субтитрів"
+
+#: src/models/actionsmodel.cpp:360
+#, kde-format
+msgctxt "@action"
+msgid "Move Subtitle Up"
+msgstr "Пересунути субтитри вище"
+
+#: src/models/actionsmodel.cpp:368
+#, kde-format
+msgctxt "@action"
+msgid "Move Subtitle Down"
+msgstr "Пересунути субтитри нижче"
+
+#: src/models/actionsmodel.cpp:376
+#, kde-format
+msgctxt "@action"
+msgid "Show Subtitles Earlier"
+msgstr "Показати субтитри раніше"
+
+#: src/models/actionsmodel.cpp:384
+#, kde-format
+msgctxt "@action"
+msgid "Show Subtitles Later"
+msgstr "Показати субтитри пізніше"
+
+#: src/models/actionsmodel.cpp:392
+#, kde-format
+msgctxt "@action"
+msgid "Cycle Up Subtitle"
+msgstr "Зациклити субтитри вище"
+
+#: src/models/actionsmodel.cpp:400
+#, kde-format
+msgctxt "@action"
+msgid "Cycle Down Subtitle"
+msgstr "Зациклити субтитри нижче"
+
+#: src/models/actionsmodel.cpp:408
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Deinterlacing"
+msgstr "Увімкнути або вимкнути черезрядковість"
+
+#: src/models/actionsmodel.cpp:416
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Fullscreen"
+msgstr "Перемкнути повноекранний режим"
+
+#: src/models/actionsmodel.cpp:424
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Menu Bar"
+msgstr "Увімкнути або вимкнути смужку меню"
+
+#: src/models/actionsmodel.cpp:432
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Header"
+msgstr "Увімкнути або вимкнути заголовок"
+
+#: src/models/actionsmodel.cpp:440 src/qml/Settings/SettingsWindow.qml:133
+#, kde-format
+msgctxt "@action"
+msgid "Playlist"
+msgstr "Список відтворення"
+
+#: src/models/actionsmodel.cpp:448
+#, kde-format
+msgctxt "@action"
+msgid "Move Video Left"
+msgstr "Пересунути відео ліворуч"
+
+#: src/models/actionsmodel.cpp:456
+#, kde-format
+msgctxt "@action"
+msgid "Move Video Right"
+msgstr "Пересунути відео праворуч"
+
+#: src/models/actionsmodel.cpp:464
+#, kde-format
+msgctxt "@action"
+msgid "Move Video Up"
+msgstr "Пересунути відео вище"
+
+#: src/models/actionsmodel.cpp:472
+#, kde-format
+msgctxt "@action"
+msgid "Move Video Down"
+msgstr "Пересунути відео нижче"
+
+#: src/models/actionsmodel.cpp:480
+#, kde-format
+msgctxt "@action"
+msgid "Rotate clockwise"
+msgstr "Обернути за годинниковою стрілкою"
+
+#: src/models/actionsmodel.cpp:488
+#, kde-format
+msgctxt "@action"
+msgid "Rotate counter clockwise"
+msgstr "Обернути проти годинникової стрілки"
+
+#: src/models/actionsmodel.cpp:496
+#, kde-format
+msgctxt "@action"
+msgid "Volume Up"
+msgstr "Збільшити гучність"
+
+#: src/models/actionsmodel.cpp:504
+#, kde-format
+msgctxt "@action"
+msgid "Volume Down"
+msgstr "Зменшити гучність"
+
+#: src/models/actionsmodel.cpp:512
+#, kde-format
+msgctxt "@action"
+msgid "Zoom In"
+msgstr "Збільшити"
+
+#: src/models/actionsmodel.cpp:520
+#, kde-format
+msgctxt "@action"
+msgid "Zoom Out"
+msgstr "Зменшити"
+
+#: src/models/actionsmodel.cpp:528
+#, kde-format
+msgctxt "@action"
+msgid "Reset Zoom"
+msgstr "Скинути масштаб"
+
+#: src/models/actionsmodel.cpp:536
+#, kde-format
+msgctxt "@action"
+msgid "Increase Contrast"
+msgstr "Збільшити контрастність"
+
+#: src/models/actionsmodel.cpp:544
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Contrast"
+msgstr "Зменшити контрастність"
+
+#: src/models/actionsmodel.cpp:552
+#, kde-format
+msgctxt "@action"
+msgid "Reset Contrast"
+msgstr "Скинути контрастність"
+
+#: src/models/actionsmodel.cpp:560
+#, kde-format
+msgctxt "@action"
+msgid "Increase Brightness"
+msgstr "Збільшити яскравість"
+
+#: src/models/actionsmodel.cpp:568
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Brightness"
+msgstr "Зменшити яскравість"
+
+#: src/models/actionsmodel.cpp:576
+#, kde-format
+msgctxt "@action"
+msgid "Reset Brightness"
+msgstr "Скинути яскравість"
+
+#: src/models/actionsmodel.cpp:584
+#, kde-format
+msgctxt "@action"
+msgid "Increase Gamma"
+msgstr "Збільшити гамму"
+
+#: src/models/actionsmodel.cpp:592
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Gamma"
+msgstr "Зменшити гамму"
+
+#: src/models/actionsmodel.cpp:600
+#, kde-format
+msgctxt "@action"
+msgid "Reset Gamma"
+msgstr "Скинути гамму"
+
+#: src/models/actionsmodel.cpp:608
+#, kde-format
+msgctxt "@action"
+msgid "Increase Saturation"
+msgstr "Збільшити насиченість"
+
+#: src/models/actionsmodel.cpp:616
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Saturation"
+msgstr "Зменшити насиченість"
+
+#: src/models/actionsmodel.cpp:624
+#, kde-format
+msgctxt "@action"
+msgid "Reset Saturation"
+msgstr "Скинути насиченість"
+
+#: src/models/actionsmodel.cpp:775
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The chosen shortcut conflicts with the shortcut of the <b>%1</b> action."
+"<br><br>Do you want to reassign the shortcut?"
+msgstr ""
+"Вибрана комбінація клавіш конфліктує із комбінацією клавіш для дії <b>%1</b>."
+"<br><br>Хочете призначити іншу комбінацію клавіш?"
+
+#: src/models/actionsmodel.cpp:781
+#, kde-format
+msgctxt "@action:button"
+msgid "Reassign"
+msgstr "Перепризначити"
+
+#: src/models/mouseactionsmodel.cpp:263
+#, kde-format
+msgctxt "@label left mouse button"
+msgid "Left"
+msgstr "Ліва"
+
+#: src/models/mouseactionsmodel.cpp:265
+#, kde-format
+msgctxt "@label right mouse button"
+msgid "Right"
+msgstr "Права"
+
+#: src/models/mouseactionsmodel.cpp:267
+#, kde-format
+msgctxt "@label middle mouse button"
+msgid "Middle"
+msgstr "Середня"
+
+#: src/models/mouseactionsmodel.cpp:269
+#, kde-format
+msgctxt "@label forward mouse button"
+msgid "Forward"
+msgstr "Вперед"
+
+#: src/models/mouseactionsmodel.cpp:271
+#, kde-format
+msgctxt "@label back mouse button"
+msgid "Back"
+msgstr "Назад"
+
+#: src/models/mouseactionsmodel.cpp:273
+#, kde-format
+msgctxt "@label mouse scroll up"
+msgid "ScrollUp"
+msgstr "Гортання вгору"
+
+#: src/models/mouseactionsmodel.cpp:275
+#, kde-format
+msgctxt "@label mouse scroll down"
+msgid "ScrollDown"
+msgstr "Гортання вниз"
+
+#: src/models/mouseactionsmodel.cpp:323
+#, kde-format
+msgctxt "@label control modifier key"
+msgid "Control"
+msgstr "Ctrl"
+
+#: src/models/mouseactionsmodel.cpp:325
+#, kde-format
+msgctxt "@label shift modifier key"
+msgid "Shift"
+msgstr "Shift"
+
+#: src/models/mouseactionsmodel.cpp:327
+#, kde-format
+msgctxt "@label alt modifier key"
+msgid "Alt"
+msgstr "Alt"
+
+#: src/models/mouseactionsmodel.cpp:329
+#, kde-format
+msgctxt "@label meta modifier key"
+msgid "Meta"
+msgstr "Meta"
+
+#: src/mpv/mpvitem.cpp:85
+#, kde-format
+msgid "Command line video player"
+msgstr "Відеопрогравач з керуванням з командного рядка"
+
+#: src/mpv/mpvitem.cpp:92
+#, kde-format
+msgid "Cross-platform solution to record, convert and stream audio and video"
+msgstr ""
+"Багатоплатформове рішення для запису, перетворення та трансляції звукових та "
+"відеоданих"
+
+#: src/mpv/mpvitem.cpp:413
+#, kde-format
+msgctxt "@info:tooltip; %1 is a video title/filename"
+msgid "Could not play: %1"
+msgstr "Не вдалося відтворити: %1"
+
+#: src/mpv/mpvitem.cpp:535
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Subtitle timing: +%1 seconds"
+msgstr "Час субтитрів: +%1 секунд"
+
+#: src/mpv/mpvitem.cpp:537
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Subtitle timing: %1 seconds"
+msgstr "Час субтитрів: %1 секунд"
+
+#: src/mpv/mpvitem.cpp:576
+#, kde-format
+msgctxt "@info:tooltip; %1 is an absolute path"
+msgid "File doesn't exist: %1"
+msgstr "Файла не існує: %1"
+
+#: src/mpv/mpvitem.cpp:608
+#, kde-format
+msgctxt "%1 current item number, %2 total items count, %3 item name"
+msgid "[%1/%2] %3"
+msgstr "[%1 з %2] %3"
+
+#: src/mpv/mpvitem.cpp:621
+#, kde-format
+msgctxt ""
+"@action The \"None\" subtitle track is used to clear/unset selected track"
+msgid "None"
+msgstr "Немає"
+
+#: src/mpv/mpvitem.cpp:670
+#, kde-format
+msgctxt "@info:tooltip osd"
+msgid "Screenshot failed"
+msgstr "Не вдалося створити знімок"
+
+#: src/mpv/mpvitem.cpp:675
+#, kde-format
+msgctxt "@info:tooltip osd"
+msgid "Screenshot taken"
+msgstr "Знімок отримано"
+
+#: src/mpv/mpvitem.cpp:677
+#, kde-format
+msgctxt "@info:tooltip osd; %1 is a filename with path"
+msgid "Screenshot: %1"
+msgstr "Знімок вікна: %1"
+
+#: src/mpv/mpvitem.cpp:705
+#, kde-format
+msgctxt "Error message when video can't be decoded/played"
+msgid ""
+"No video track detected, most likely the video track can't be decoded/played "
+"due to missing codecs"
+msgstr ""
+"Відеоданих не виявлено. Найімовірнішою причиною неможливості декодування або "
+"відтворення відеодоріжки є нестача кодеків"
+
+#: src/mpv/mpvitem.cpp:738
+#, kde-format
+msgctxt "@info:tooltip osd"
+msgid "Skipped chapter: %1"
+msgstr "Пропущений розділ: %1"
+
+#: src/mpv/mpvitem.cpp:856
+#, kde-format
+msgctxt ""
+"@info:tooltip; %1 is the track number, %2 is a string in the form: `track."
+"title track.language track.codec`"
+msgid "Audio: %1 %2"
+msgstr "Звук: %1 %2"
+
+#: src/mpv/mpvitem.cpp:867
+#, kde-format
+msgctxt "@info:tooltip; osd message when no sub is selected"
+msgid "Subtitle: none"
+msgstr "Субтитри: немає"
+
+#: src/mpv/mpvitem.cpp:872 src/mpv/mpvitem.cpp:888
+#, kde-format
+msgctxt ""
+"@info:tooltip; %1 is the track number, %2 is a string in the form: `track."
+"title track.language track.codec`"
+msgid "Subtitle: %1 %2"
+msgstr "Субтитри: %1 %2"
+
+#: src/mpv/mpvitem.cpp:883
+#, kde-format
+msgctxt "@info:tooltip; osd message when no sub is selected"
+msgid "Secondary subtitle: none"
+msgstr "Вторинні субтитри: немає"
+
+#: src/playlist/Playlist.qml:80
+msgctxt "@action:button"
+msgid "Search"
+msgstr "Шукати"
+
+#: src/playlist/Playlist.qml:100
+msgctxt "@action:button"
+msgid "Add…"
+msgstr "Додати…"
+
+#: src/playlist/Playlist.qml:108
+msgctxt "@action:button"
+msgid "Files"
+msgstr "Файли"
+
+#: src/playlist/Playlist.qml:116
+msgctxt "@action:button"
+msgid "URL"
+msgstr "Адреса"
+
+#: src/playlist/Playlist.qml:126
+msgctxt "@action:button"
+msgid "Playlist"
+msgstr "Список відтворення"
+
+#: src/playlist/Playlist.qml:135
+msgctxt "@action:button"
+msgid "Sort"
+msgstr "Упорядкувати"
+
+#: src/playlist/Playlist.qml:144
+msgctxt "@action:button"
+msgid "Ascending"
+msgstr "За зростанням"
+
+#: src/playlist/Playlist.qml:161
+msgctxt "@action:button"
+msgid "Descending"
+msgstr "За спаданням"
+
+#: src/playlist/Playlist.qml:184
+msgctxt "@action:button"
+msgid "None"
+msgstr "Немає"
+
+#: src/playlist/Playlist.qml:194
+msgctxt "@action:button"
+msgid "File Name"
+msgstr "Назва файла"
+
+#: src/playlist/Playlist.qml:204
+msgctxt "@action:button"
+msgid "Title"
+msgstr "Заголовок"
+
+#: src/playlist/Playlist.qml:214
+msgctxt "@action:button"
+msgid "Duration"
+msgstr "Тривалість"
+
+#: src/playlist/Playlist.qml:224
+msgctxt "@action:button"
+msgid "Modified Date"
+msgstr "Дата зміни"
+
+#: src/playlist/Playlist.qml:234
+msgctxt "@action:button"
+msgid "File Size"
+msgstr "Розмір файла"
+
+#: src/playlist/Playlist.qml:244
+msgctxt "@action:button, as in 'Track no on a Audio CD', not 'subtitle track'"
+msgid "Track No"
+msgstr "Номер композиції"
+
+#: src/playlist/Playlist.qml:254
+msgctxt "@action:button"
+msgid "Sample Rate"
+msgstr "Частота дискретизації"
+
+#: src/playlist/Playlist.qml:264
+msgctxt "@action:button"
+msgid "Bitrate"
+msgstr "Бітова швидкість"
+
+#: src/playlist/Playlist.qml:279
+msgctxt "@action:button"
+msgid "Custom…"
+msgstr "Нетиповий…"
+
+#: src/playlist/Playlist.qml:290
+msgctxt "@action:button"
+msgid "Playback"
+msgstr "Відтворення"
+
+#: src/playlist/Playlist.qml:296
+msgctxt "@action:button"
+msgid "Repeat playlist"
+msgstr "Повторювати список відтворення"
+
+#: src/playlist/Playlist.qml:307
+msgctxt "@action:button"
+msgid "Stop after last item"
+msgstr "Зупинитися після останнього пункту"
+
+#: src/playlist/Playlist.qml:317
+msgctxt "@action:button"
+msgid "Repeat item"
+msgstr "Повторити пункт"
+
+#: src/playlist/Playlist.qml:328
+msgctxt "@action:button"
+msgid "Stop after item"
+msgstr "Зупинитися після пункту"
+
+#: src/playlist/Playlist.qml:338
+msgctxt "@action:button"
+msgid "Random Playback"
+msgstr "Відтворити у випадковому порядку"
+
+#: src/playlist/Playlist.qml:350
+msgctxt "@action:button"
+msgid "Clear"
+msgstr "Спорожнити"
+
+#: src/playlist/Playlist.qml:358
+msgctxt "@action:button"
+msgid "Save As"
+msgstr "Зберегти як"
+
+#: src/playlist/Playlist.qml:432
+msgctxt "@action:button"
+msgid "Add new playlist"
+msgstr "Додати новий список відтворення"
+
+#: src/playlist/Playlist.qml:447 src/playlist/Playlist.qml:829
+msgctxt "@action:inmenu"
+msgid "Rename"
+msgstr "Перейменувати"
+
+#: src/playlist/Playlist.qml:453
+msgctxt "@action:inmenu"
+msgid "Remove"
+msgstr "Вилучити"
+
+#: src/playlist/Playlist.qml:509 src/playlist/Playlist.qml:530
+msgctxt "@action:button"
+msgid "Add"
+msgstr "Додати"
+
+#: src/playlist/Playlist.qml:512 src/qml/Main.qml:493
+msgctxt "@info"
+msgid ""
+"Neither <a href=\"https://github.com/yt-dlp/yt-dlp\">yt-dlp</a> nor <a href="
+"\"https://github.com/ytdl-org/youtube-dl\">youtube-dl</a> was found."
+msgstr ""
+"Не знайдено ні <a href=\"https://github.com/yt-dlp/yt-dlp\">yt-dlp</a>, ні "
+"<a href=\"https://github.com/ytdl-org/youtube-dl\">youtube-dl</a>."
+
+#: src/playlist/Playlist.qml:529
+msgctxt "@placeholder"
+msgid "playlist name"
+msgstr "назва списку відтворення"
+
+#: src/playlist/Playlist.qml:741
+msgctxt "@action:inmenu"
+msgid "Open Containing Folder"
+msgstr "Відкрити теку файла"
+
+#: src/playlist/Playlist.qml:747
+msgctxt "@action:inmenu"
+msgid "Open in Browser"
+msgstr "Відкрити у переглядачі"
+
+#: src/playlist/Playlist.qml:756
+msgctxt "@action:inmenu"
+msgid "Open in Thumbnail Generator"
+msgstr "Відкрити у засобі створення мініатюр"
+
+#: src/playlist/Playlist.qml:772
+msgctxt "@action:inmenu %1 is 'MediaInfo' (app name)"
+msgid "Open in %1"
+msgstr "Відкрити у %1"
+
+#: src/playlist/Playlist.qml:786
+msgctxt "@action:inmenu"
+msgid "Copy Name"
+msgstr "Копіювати назву"
+
+#: src/playlist/Playlist.qml:792
+msgctxt "@action:inmenu"
+msgid "Copy Path"
+msgstr "Копіювати шлях"
+
+#: src/playlist/Playlist.qml:793
+msgctxt "@action:inmenu"
+msgid "Copy URL"
+msgstr "Копіювати адресу"
+
+#: src/playlist/Playlist.qml:803
+msgctxt "@action:inmenu"
+msgid "Select All"
+msgstr "Позначити все"
+
+#: src/playlist/Playlist.qml:807
+msgctxt "@action:inmenu"
+msgid "Deselect All"
+msgstr "Зняти позначення з усього"
+
+#: src/playlist/Playlist.qml:811
+msgctxt "@action:inmenu"
+msgid "Invert Selection"
+msgstr "Інвертувати позначення"
+
+#: src/playlist/Playlist.qml:817
+msgctxt "@action:inmenu"
+msgid "Remove from Playlist"
+msgstr "Вилучити зі списку"
+
+#: src/playlist/Playlist.qml:823
+msgctxt "@action:inmenu"
+msgid "Remove Selected from Playlist"
+msgstr "Вилучити позначене зі списку відтворення"
+
+#: src/playlist/Playlist.qml:835
+msgctxt "@action:inmenu"
+msgid "Scroll to Playing Item"
+msgstr "Гортати до запису, що відтворюється"
+
+#: src/playlist/Playlist.qml:845
+msgctxt "@action:inmenu"
+msgid "Move File to Trash"
+msgstr "Пересунути файл до смітника"
+
+#: src/playlist/Playlist.qml:851
+msgctxt "@action:inmenu"
+msgid "Move Selected Files to Trash"
+msgstr "Пересунути позначені файли до Смітника"
+
+#: src/playlist/Playlist.qml:957 src/qml/Settings/VideoSettings.qml:69
+msgctxt "@title:window"
+msgid "Select file"
+msgstr "Виберіть файл"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:26
+msgctxt "@title:configure sort window"
+msgid "Advanced Sort and Group By"
+msgstr "Розширене упорядковування та групування"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:43
+msgctxt "@label which playlist is affected, %1 is the playlist name"
+msgid "Playlist: %1"
+msgstr "Список відтворення: %1"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:50
+msgctxt "@label sort"
+msgid "Sorting"
+msgstr "Впорядкування"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:75
+#: src/playlist/PlaylistAdvancedSortWindow.qml:94
+#: src/playlist/PlaylistAdvancedSortWindow.qml:336
+#: src/playlist/PlaylistAdvancedSortWindow.qml:355
+msgctxt "@action:inmenu"
+msgid "Filter"
+msgstr "Фільтр"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:101
+#: src/playlist/PlaylistAdvancedSortWindow.qml:362
+msgctxt "@action:inmenu all"
+msgid "All"
+msgstr "Усі"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:112
+#: src/playlist/PlaylistAdvancedSortWindow.qml:373
+msgctxt "@action:inmenu file"
+msgid "File"
+msgstr "Файл"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:123
+#: src/playlist/PlaylistAdvancedSortWindow.qml:384
+msgctxt "@action:inmenu audio"
+msgid "Audio"
+msgstr "Звук"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:134
+#: src/playlist/PlaylistAdvancedSortWindow.qml:395
+msgctxt "@action:inmenu video"
+msgid "Video"
+msgstr "Відео"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:181
+msgctxt "@action:inmenu"
+msgid "Ascending"
+msgstr "За зростанням"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:194
+msgctxt "@action:inmenu"
+msgid "Descending"
+msgstr "За спаданням"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:312
+msgctxt "@label group"
+msgid "Grouping"
+msgstr "Групування"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:410
+msgctxt "@action:inmenu"
+msgid "Show Sections"
+msgstr "Показувати розділи"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:420
+msgctxt "@info:tooltip"
+msgid ""
+"Show/Hide section labels in the playlist view. <br>If the playlist is not "
+"sorted by the included group properties in the same order, then the sections "
+"might not be unique."
+msgstr ""
+"Показати або приховати мітки розділів на панелі перегляду списку відтворення."
+"<br>Якщо список відтворення не впорядковано за включеними властивостями груп "
+"у тому самому порядку, може бути порушено унікальність розділів."
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:531
+msgctxt "@action:inmenu add new line button"
+msgid "Add New Line"
+msgstr "Додати новий рядок"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:743
+msgctxt "@info:tooltip show blank"
+msgid "Property is hidden if empty or not unique."
+msgstr "Властивість буде приховано, якщо вона є порожньою або не є унікальною."
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:745
+msgctxt "@info:tooltip hide blank"
+msgid "Property is shown, if empty a placeholder will be shown."
+msgstr ""
+"Властивість буде показано; якщо вона є порожньою, буде показано заповнювач."
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:750
+msgctxt "@info:tooltip group order"
+msgid "Sort ascending"
+msgstr "Впорядкувати за зростанням"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:752
+msgctxt "@info:tooltip group order"
+msgid "Sort descending"
+msgstr "Впорядкувати за спаданням"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:754
+msgctxt "@info:tooltip group order"
+msgid "Same as primary sort order"
+msgstr "Те саме впорядкування, що і основне"
+
+#: src/playlist/playlistmultiproxiesmodel.cpp:211
+#, kde-format
+msgctxt "@info:tooltip; %1 playlist with same name"
+msgid "Playlists with same name is not allowed: %1"
+msgstr "Не можна використовувати списки відтворення з однаковими назвами: %1"
+
+#: src/playlist/playlistsortproxymodel.cpp:32
+#, kde-format
+msgctxt "@label:button file name"
+msgid "File Name"
+msgstr "Назва файла"
+
+#: src/playlist/playlistsortproxymodel.cpp:38
+#, kde-format
+msgctxt "@label:button duration"
+msgid "Duration"
+msgstr "Тривалість"
+
+#: src/playlist/playlistsortproxymodel.cpp:44
+#, kde-format
+msgctxt "@label:button date"
+msgid "Date"
+msgstr "Дата"
+
+#: src/playlist/playlistsortproxymodel.cpp:50
+#, kde-format
+msgctxt "@label:button file size"
+msgid "File Size"
+msgstr "Розмір файла"
+
+#: src/playlist/playlistsortproxymodel.cpp:56
+#, kde-format
+msgctxt "@label:button title"
+msgid "Title"
+msgstr "Заголовок"
+
+#: src/playlist/playlistsortproxymodel.cpp:62
+#, kde-format
+msgctxt "@label:button, as in 'Track no on a Audio CD', not 'subtitle track'"
+msgid "Track No"
+msgstr "Номер композиції"
+
+#: src/playlist/playlistsortproxymodel.cpp:68
+#, kde-format
+msgctxt "@label:button sample rate"
+msgid "Sample Rate"
+msgstr "Частота дискретизації"
+
+#: src/playlist/playlistsortproxymodel.cpp:74
+#, kde-format
+msgctxt "@label:button bitrate"
+msgid "Bitrate"
+msgstr "Бітова швидкість"
+
+#: src/playlist/playlistsortproxymodel.cpp:81
+#, kde-format
+msgctxt "@label:button folder"
+msgid "Folder"
+msgstr "Тека"
+
+#: src/playlist/playlistsortproxymodel.cpp:88
+#, kde-format
+msgctxt "@label:button file type"
+msgid "Type"
+msgstr "Тип"
+
+#: src/playlist/playlistsortproxymodel.cpp:95
+#, kde-format
+msgctxt "@label:button file extension"
+msgid "Extension"
+msgstr "Суфікс"
+
+#: src/playlist/playlistsortproxymodel.cpp:102
+#, kde-format
+msgctxt "@label:button disc no"
+msgid "Disc No"
+msgstr "Номер диска"
+
+#: src/playlist/playlistsortproxymodel.cpp:109
+#, kde-format
+msgctxt "@label:button release year"
+msgid "Release Year"
+msgstr "Рік випуску"
+
+#: src/playlist/playlistsortproxymodel.cpp:116
+#, kde-format
+msgctxt "@label:button genre"
+msgid "Genre"
+msgstr "Жанр"
+
+#: src/playlist/playlistsortproxymodel.cpp:123
+#, kde-format
+msgctxt "@label:button album"
+msgid "Album"
+msgstr "Альбом"
+
+#: src/playlist/playlistsortproxymodel.cpp:130
+#, kde-format
+msgctxt "@label:button artist"
+msgid "Artist"
+msgstr "Виконавець"
+
+#: src/playlist/playlistsortproxymodel.cpp:137
+#, kde-format
+msgctxt "@label:button album artist"
+msgid "Album Artist"
+msgstr "Виконавець альбому"
+
+#: src/playlist/playlistsortproxymodel.cpp:144
+#, kde-format
+msgctxt "@label:button composer"
+msgid "Composer"
+msgstr "Композитор"
+
+#: src/playlist/playlistsortproxymodel.cpp:151
+#, kde-format
+msgctxt "@label:button lyricist"
+msgid "Lyricist"
+msgstr "Автор тексту"
+
+#: src/playlist/playlistsortproxymodel.cpp:158
+#, kde-format
+msgctxt "@label:button audio codec"
+msgid "Audio Codec"
+msgstr "Аудіокодек"
+
+#: src/playlist/playlistsortproxymodel.cpp:165
+#, kde-format
+msgctxt "@label:button framerate"
+msgid "Framerate"
+msgstr "Частота кадрів"
+
+#: src/playlist/playlistsortproxymodel.cpp:172
+#, kde-format
+msgctxt "@label:button video codec"
+msgid "Video Codec"
+msgstr "Відеокодек"
+
+#: src/playlist/playlistsortproxymodel.cpp:179
+#, kde-format
+msgctxt "@label:button video orientation"
+msgid "Orientation"
+msgstr "Орієнтація"
+
+#: src/playlist/playlistsortproxymodel.cpp:186
+#, kde-format
+msgctxt "@label:button resolution"
+msgid "Resolution"
+msgstr "Роздільність"
+
+#: src/playlist/playlistsortproxymodel.cpp:327
+#, kde-format
+msgctxt "@label:button put new line"
+msgid "New Line"
+msgstr "Новий рядок"
+
+#: src/playlist/playlistsortproxymodel.cpp:499
+#, kde-format
+msgctxt "@title:group"
+msgid "No Genre"
+msgstr "Без жанру"
+
+#: src/playlist/playlistsortproxymodel.cpp:500
+#, kde-format
+msgctxt "@title:group"
+msgid "No Album"
+msgstr "Без альбому"
+
+#: src/playlist/playlistsortproxymodel.cpp:501
+#, kde-format
+msgctxt "@title:group"
+msgid "No Artist"
+msgstr "Без виконавця"
+
+#: src/playlist/playlistsortproxymodel.cpp:502
+#, kde-format
+msgctxt "@title:group"
+msgid "No Album Artist"
+msgstr "Без виконавця альбому"
+
+#: src/playlist/playlistsortproxymodel.cpp:503
+#, kde-format
+msgctxt "@title:group"
+msgid "No Composer"
+msgstr "Без композитора"
+
+#: src/playlist/playlistsortproxymodel.cpp:504
+#, kde-format
+msgctxt "@title:group"
+msgid "No Lyricist"
+msgstr "Без автора тексту"
+
+#: src/playlist/playlistsortproxymodel.cpp:505
+#, kde-format
+msgctxt "@title:group"
+msgid "No Release Year"
+msgstr "Без року випуску"
+
+#: src/playlist/playlistsortproxymodel.cpp:506
+#, kde-format
+msgctxt "@title:group"
+msgid "Not a Video"
+msgstr "Не відео"
+
+#: src/playlist/playlistsortproxymodel.cpp:507
+#, kde-format
+msgctxt "@title:group"
+msgid "No Audio Codec"
+msgstr "Без аудіокодека"
+
+#: src/playlist/playlistsortproxymodel.cpp:508
+#, kde-format
+msgctxt "@title:group"
+msgid "No Video Codec"
+msgstr "Без відеокодека"
+
+#: src/playlist/playlistsortproxymodel.cpp:530
+#, kde-format
+msgctxt "@title:group disc"
+msgid "Disc"
+msgstr "Диск"
+
+#: src/playlist/playlistsortproxymodel.cpp:585
+#, kde-format
+msgctxt "@title:group"
+msgid "Video File"
+msgstr "Файл відео"
+
+#: src/playlist/playlistsortproxymodel.cpp:588
+#, kde-format
+msgctxt "@title:group"
+msgid "Audio File"
+msgstr "Звуковий файл"
+
+#: src/playlist/playlistsortproxymodel.cpp:612
+#, kde-format
+msgctxt "@title:group"
+msgid "Landscape"
+msgstr "Альбомна"
+
+#: src/playlist/playlistsortproxymodel.cpp:616
+#, kde-format
+msgctxt "@title:group"
+msgid "Portrait"
+msgstr "Книжкова"
+
+#: src/playlist/playlistsortproxymodel.cpp:620
+#, kde-format
+msgctxt "@title:group"
+msgid "Square"
+msgstr "Квадрат"
+
+#: src/playlist/PlaylistTabDelegate.qml:160
+msgctxt "@label:title name of default playlist tab"
+msgid "Default"
+msgstr "Типовий"
+
+#: src/qml/Actions.qml:139
+msgctxt ""
+"osd message when trying to open subtitle selection dialog while no file is "
+"open"
+msgid "Can’t load subtitle when no file is open"
+msgstr "Неможливо завантажити субтитри, якщо не відкрито жодного файла"
+
+#: src/qml/Actions.qml:158 src/qml/Actions.qml:164 src/qml/Actions.qml:169
+msgctxt "@info:tooltip"
+msgid "Playback speed: %1"
+msgstr "Швидкість відтворення: %1"
+
+#: src/qml/Actions.qml:268
+msgctxt "@info:tooltip; %1 is the timestamp where the loop starts"
+msgid "Loop start: %1"
+msgstr "Початок циклу: %1"
+
+#: src/qml/Actions.qml:274
+msgctxt "@info:tooltip, use en dash for the range"
+msgid "Loop: %1–%2"
+msgstr "Цикл: %1–%2"
+
+#: src/qml/Actions.qml:280
+msgctxt "@info:tooltip"
+msgid "Loop cleared"
+msgstr "Циклічне відтворення знято"
+
+#: src/qml/Actions.qml:300
+msgctxt "@info:tooltip"
+msgid "Subtitles off"
+msgstr "Субтитри вимкнено"
+
+#: src/qml/Actions.qml:300
+msgctxt "@info:tooltip"
+msgid "Subtitles on"
+msgstr "Субтитри увімкнено"
+
+#: src/qml/Actions.qml:316 src/qml/Actions.qml:322
+msgctxt "@info:tooltip"
+msgid "Subtitle scale: %1"
+msgstr "Масштаб субтитрів: %1"
+
+#: src/qml/Actions.qml:336
+msgctxt "@info:tooltip"
+msgid "Deinterlace: %1"
+msgstr "Усування черезрядковості: %1"
+
+#: src/qml/Actions.qml:397 src/qml/Actions.qml:403
+msgctxt "@info:tooltip"
+msgid "Zoom: %1"
+msgstr "Масштаб: %1"
+
+#: src/qml/Actions.qml:408
+msgctxt "@info:tooltip"
+msgid "Zoom: 0"
+msgstr "Масштаб: 0"
+
+#: src/qml/Actions.qml:415 src/qml/Actions.qml:421
+msgctxt "@info:tooltip"
+msgid "Contrast: %1"
+msgstr "Контрастність: %1"
+
+#: src/qml/Actions.qml:426
+msgctxt "@info:tooltip"
+msgid "Contrast: 0"
+msgstr "Контрастність: 0"
+
+#: src/qml/Actions.qml:432 src/qml/Actions.qml:438
+msgctxt "@info:tooltip"
+msgid "Brightness: %1"
+msgstr "Яскравість: %1"
+
+#: src/qml/Actions.qml:443
+msgctxt "@info:tooltip"
+msgid "Brightness: 0"
+msgstr "Яскравість: 0"
+
+#: src/qml/Actions.qml:449 src/qml/Actions.qml:455
+msgctxt "@info:tooltip"
+msgid "Gamma: %1"
+msgstr "Гамма: %1"
+
+#: src/qml/Actions.qml:460
+msgctxt "@info:tooltip"
+msgid "Gamma: 0"
+msgstr "Гамма: 0"
+
+#: src/qml/Actions.qml:466 src/qml/Actions.qml:472
+msgctxt "@info:tooltip"
+msgid "Saturation: %1"
+msgstr "Насиченість: %1"
+
+#: src/qml/Actions.qml:477
+msgctxt "@info:tooltip"
+msgid "Saturation: 0"
+msgstr "Насиченість: 0"
+
+#: src/qml/Footer.qml:150
+msgctxt "@info:tooltip"
+msgid "Start playback"
+msgstr "Почати відтворення"
+
+#: src/qml/Footer.qml:150
+msgctxt "@info:tooltip"
+msgid "Pause playback"
+msgstr "Призупинити відтворення"
+
+#: src/qml/Footer.qml:167
+msgctxt "@info:tooltip"
+msgid "Play previous file"
+msgstr "Відтворити попередній файл"
+
+#: src/qml/Footer.qml:184
+msgctxt "@info:tooltip"
+msgid "Play next file"
+msgstr "Відтворити наступний файл"
+
+#: src/qml/Footer.qml:198
+msgctxt "@info:tooltip"
+msgid "Open chapters menu"
+msgstr "Відкрити меню розділів"
+
+#: src/qml/Footer.qml:262
+msgctxt "@info:tooltip"
+msgid "Remaining: %1"
+msgstr "Залишилось: %1"
+
+#: src/qml/Haruna/Components/ColorPickerButton.qml:42
+msgctxt "@info:tooltip"
+msgid "Select a color"
+msgstr "Вибір кольору"
+
+#: src/qml/Haruna/Components/ColorPickerButton.qml:49
+msgctxt "@title:window"
+msgid "Select Color"
+msgstr "Вибір кольору"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:65
+msgctxt "@action:inmenu"
+msgid "Recent Files"
+msgstr "Нещодавні файли"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:94
+#: src/qml/Menus/Global/GlobalSubtitlesMenu.qml:25
+#: src/qml/Menus/SubtitlesMenu.qml:23
+msgctxt "@title:menu"
+msgid "Primary Subtitle"
+msgstr "Основні субтитри"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:100
+#: src/qml/Menus/Global/GlobalSubtitlesMenu.qml:59
+#: src/qml/Menus/SubtitlesMenu.qml:29
+msgctxt "@title:menu"
+msgid "Secondary Subtitle"
+msgstr "Вторинні субтитри"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:109
+msgctxt "@title:menu"
+msgid "Audio Track"
+msgstr "Звукова доріжка"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:132
+msgctxt "@action:inmenu"
+msgid "&More"
+msgstr "&Більше"
+
+#: src/qml/Haruna/Components/SelectActionPopup.qml:27
+msgctxt "@info:placeholder"
+msgid "No action found."
+msgstr "Не знайдено жодної дії."
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:31
+msgctxt "@label; Below is a list of folders containing subtitles"
+msgid "Load subtitles from"
+msgstr "Завантажити субтитри з"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:34
+msgctxt "@info:tooltip;"
+msgid ""
+"When a relative folder name starts with * (asterisk) and recursive search is "
+"enabled, all folders containing that name will be searched.\n"
+"Relative folders are relative to the playing file's folder."
+msgstr ""
+"Якщо відносна назва теки починається з * (зірочки), і увімкнено рекурсивний "
+"пошук, пошук відбуватиметься в усіх теках, які містять відповідну назву.\n"
+"Відносні теки буде визначено відносно теки файла, що відтворюється."
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:113
+msgctxt "@action:button"
+msgid "Confirm Deletion"
+msgstr "Підтвердження вилучення"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:124
+msgctxt "@info:tooltip"
+msgid "Delete this folder from list"
+msgstr "Вилучити цю теку зі списку"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:140
+msgctxt "@info:tooltip"
+msgid "Save changes"
+msgstr "Зберегти зміни"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:150
+msgid "No folder set"
+msgstr "Теку не встановлено"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:168
+msgctxt "@action:button"
+msgid "Add New Folder"
+msgstr "Додати нову теку"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:176
+msgctxt "@info:tooltip add new subtitle folder setting"
+msgid "Add a folder in which to look for subtitles."
+msgstr "Додати теку, у якій слід шукати субтитри."
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:185
+msgctxt "@label:check"
+msgid "Search subtitles recursively"
+msgstr "Шукати субтитри рекурсивно"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:202
+msgctxt "@info:tooltip"
+msgid ""
+"Subtitles are searched recursively in the folders defined by the “%1” "
+"setting.\n"
+"Only relative folders are searched."
+msgstr ""
+"Пошук субтитрів буде виконано рекурсивно у теках, які визначено параметром "
+"«%1».\n"
+"Пошук відбуватиметься лише у відносних теках"
+
+#: src/qml/Header.qml:79
+msgctxt "@action:intoolbar"
+msgid "Subtitles"
+msgstr "Субтитри"
+
+#: src/qml/Header.qml:103
+msgctxt "@action:intoolbar"
+msgid "Audio"
+msgstr "Звук"
+
+#: src/qml/HProgressBar.qml:310
+msgctxt "@action:inmenu"
+msgid "Skip Chapters"
+msgstr "Пропустити розділи"
+
+#: src/qml/HProgressBar.qml:318
+msgctxt "@info:tooltip"
+msgid ""
+"Automatically skips chapters containing certain words/characters.\n"
+"Check “Playback” settings for more details."
+msgstr ""
+"Автоматично пропускає глави, що містять певні слова або символи.\n"
+"Ознайомтеся з параметрами відтворення, щоб дізнатися більше"
+
+#: src/qml/Main.qml:32
+msgctxt "@title:window"
+msgid "Haruna"
+msgstr "Haruna"
+
+#: src/qml/Main.qml:443
+msgctxt "@title:window"
+msgid "Select File"
+msgstr "Виберіть файл"
+
+#: src/qml/Main.qml:463
+msgctxt "@title:window"
+msgid "Select Subtitles File"
+msgstr "Виберіть файл субтитрів"
+
+#: src/qml/Main.qml:490
+msgctxt "@action:button"
+msgid "Open"
+msgstr "Відкрити"
+
+#: src/qml/Menus/AudioMenu.qml:18 src/qml/Menus/Global/GlobalAudioMenu.qml:20
+msgctxt "@title:menu"
+msgid "&Audio"
+msgstr "Зв&ук"
+
+#: src/qml/Menus/AudioMenu.qml:26 src/qml/Menus/Global/GlobalAudioMenu.qml:25
+msgctxt "@title:menu"
+msgid "&Track"
+msgstr "&Доріжка"
+
+#: src/qml/Menus/FileMenu.qml:20 src/qml/Menus/Global/GlobalFileMenu.qml:19
+msgctxt "@title:menu"
+msgid "&File"
+msgstr "&Файл"
+
+#: src/qml/Menus/FileMenu.qml:32 src/qml/Menus/Global/GlobalFileMenu.qml:42
+msgctxt "@title:menu"
+msgid "Recent Files"
+msgstr "Нещодавні файли"
+
+#: src/qml/Menus/FileMenu.qml:64 src/qml/Menus/Global/GlobalFileMenu.qml:71
+msgctxt "@action:inmenu"
+msgid "Clear List"
+msgstr "Спорожнити список"
+
+#: src/qml/Menus/Global/GlobalHelpMenu.qml:14 src/qml/Menus/HelpMenu.qml:14
+msgctxt "@title:menu"
+msgid "&Help"
+msgstr "&Довідка"
+
+#: src/qml/Menus/Global/GlobalPlaybackMenu.qml:14
+#: src/qml/Menus/PlaybackMenu.qml:14
+msgctxt "@title:menu"
+msgid "&Playback"
+msgstr "Від&творення"
+
+#: src/qml/Menus/Global/GlobalPlaybackMenu.qml:75
+#: src/qml/Menus/PlaybackMenu.qml:33
+msgctxt "@title:menu"
+msgid "Seek"
+msgstr "Позиціювання"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:17
+#: src/qml/Menus/SettingsMenu.qml:17
+msgctxt "@title:menu"
+msgid "&Settings"
+msgstr "П&араметри"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:20
+#: src/qml/Menus/SettingsMenu.qml:20
+msgctxt "@action:inmenu"
+msgid "General"
+msgstr "Загальне"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:26
+#: src/qml/Menus/SettingsMenu.qml:26
+msgctxt "@action:inmenu"
+msgid "Playback"
+msgstr "Відтворення"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:32
+#: src/qml/Menus/SettingsMenu.qml:32
+msgctxt "@action:inmenu"
+msgid "Video"
+msgstr "Відео"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:38
+#: src/qml/Menus/SettingsMenu.qml:38
+msgctxt "@action:inmenu"
+msgid "Audio"
+msgstr "Звук"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:44
+#: src/qml/Menus/SettingsMenu.qml:44
+msgctxt "@action:inmenu"
+msgid "Subtitles"
+msgstr "Субтитри"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:50
+#: src/qml/Menus/SettingsMenu.qml:50
+msgctxt "@action:inmenu"
+msgid "Playlist"
+msgstr "Список відтворення"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:56
+#: src/qml/Menus/SettingsMenu.qml:56
+msgctxt "@action:inmenu"
+msgid "Mouse"
+msgstr "Миша"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:62
+#: src/qml/Menus/SettingsMenu.qml:62
+msgctxt "@action:inmenu"
+msgid "Shortcuts"
+msgstr "Скорочення"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:69
+#: src/qml/Menus/SettingsMenu.qml:69
+msgctxt "@action:inmenu"
+msgid "Custom Commands"
+msgstr "Нетипові команди"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:75
+#: src/qml/Menus/SettingsMenu.qml:75
+msgctxt "@action:inmenu"
+msgid "Debug"
+msgstr "Діагностика"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:81
+#: src/qml/Menus/SettingsMenu.qml:81
+msgctxt "@action:inmenu"
+msgid "About"
+msgstr "Про програму"
+
+#: src/qml/Menus/Global/GlobalSubtitlesMenu.qml:20
+#: src/qml/Menus/SubtitlesMenu.qml:18
+msgctxt "@title:menu"
+msgid "&Subtitles"
+msgstr "&Субтитри"
+
+#: src/qml/Menus/Global/GlobalVideoMenu.qml:14 src/qml/Menus/VideoMenu.qml:14
+msgctxt "@title:menu"
+msgid "&Video"
+msgstr "&Відео"
+
+#: src/qml/Menus/Global/GlobalVideoMenu.qml:83 src/qml/Menus/VideoMenu.qml:29
+msgctxt "@title:menu"
+msgid "Adjustments"
+msgstr "Коригування"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:15 src/qml/Menus/ViewMenu.qml:15
+msgctxt "@title:menu"
+msgid "&View"
+msgstr "П&ерегляд"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:28 src/qml/Menus/ViewMenu.qml:24
+msgctxt "@action:inmenu"
+msgid "Hide Menubar"
+msgstr "Приховати смужку меню"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:30 src/qml/Menus/ViewMenu.qml:26
+msgctxt "@action:inmenu"
+msgid "Show Menubar"
+msgstr "Показати смужку меню"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:41 src/qml/Menus/ViewMenu.qml:35
+msgctxt "@action:inmenu"
+msgid "Hide Toolbar"
+msgstr "Приховати панель інструментів"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:43 src/qml/Menus/ViewMenu.qml:37
+msgctxt "@action:inmenu"
+msgid "Show Toolbar"
+msgstr "Показати панель інструментів"
+
+#: src/qml/Menus/MpvContextMenu.qml:46
+msgctxt "@title:menu"
+msgid "Playback Speed"
+msgstr "Швидкість програвання"
+
+#: src/qml/MpvVideo.qml:54
+msgctxt "@info:tooltip"
+msgid "Volume: %1"
+msgstr "Гучність: %1"
+
+#: src/qml/MpvVideo.qml:258
+msgctxt "@info:drag&drop append items"
+msgid "Add to Playlist"
+msgstr "Додати файл до списку відтворення"
+
+#: src/qml/MpvVideo.qml:307
+msgctxt "@info:drag&drop play now"
+msgid "Play Now"
+msgstr "Відтворити"
+
+#: src/qml/MpvVideo.qml:393
+msgctxt "@label:title"
+msgid "Loading…"
+msgstr "Завантаження…"
+
+#: src/qml/Settings/AudioSettings.qml:24
+#: src/qml/Settings/SubtitlesSettings.qml:50
+msgctxt "@label:textbox"
+msgid "Preferred language"
+msgstr "Бажана мова"
+
+#: src/qml/Settings/AudioSettings.qml:50
+#: src/qml/Settings/SubtitlesSettings.qml:77
+msgctxt "@label:spinbox"
+msgid "Preferred track"
+msgstr "Бажана доріжка"
+
+#: src/qml/Settings/AudioSettings.qml:67
+msgctxt "@label:spinbox"
+msgid "Volume step"
+msgstr "Крок гучності"
+
+#: src/qml/Settings/AudioSettings.qml:86
+msgctxt "@title"
+msgid "Replay gain"
+msgstr "Вирівнювання гучності"
+
+#: src/qml/Settings/AudioSettings.qml:92
+msgctxt "@label:listbox"
+msgid "Mode"
+msgstr "Режим"
+
+#: src/qml/Settings/AudioSettings.qml:104
+msgctxt "@item:listbox replay gain"
+msgid "Disabled"
+msgstr "Вимкнено"
+
+#: src/qml/Settings/AudioSettings.qml:110
+msgctxt "@item:listbox replay gain"
+msgid "Track"
+msgstr "Композиція"
+
+#: src/qml/Settings/AudioSettings.qml:116
+msgctxt "@item:listbox replay gain"
+msgid "Album"
+msgstr "Альбом"
+
+#: src/qml/Settings/AudioSettings.qml:130
+msgctxt "@info:tooltip"
+msgid ""
+"Adjust volume gain according to <i>replaygain</i> values stored in the file "
+"metadata. If set to album gain, apply album gain if present and fallback to "
+"track gain otherwise."
+msgstr ""
+"Скоригувати підсилення гучності відповідно до значень <i>replaygain</i>, які "
+"зберігаються у метаданих файла. Якщо встановлено підсилення на рівні "
+"альбому, буде застосовано підсилення для альбому, якщо таке є, і резервне "
+"підсилення на рівні композиції, якщо такого немає."
+
+#: src/qml/Settings/AudioSettings.qml:143
+msgctxt "@label:spinbox"
+msgid "Prevent clipping"
+msgstr "Запобігати обрізанню"
+
+#: src/qml/Settings/AudioSettings.qml:151
+msgctxt "@info:tooltip"
+msgid "Prevent clipping by lowering the gain"
+msgstr "Запобігати обрізанню зниженням гучності"
+
+#: src/qml/Settings/AudioSettings.qml:160
+msgctxt "@label:spinbox"
+msgid "Preamp (dB)"
+msgstr "Попереднє підсилення (дБ)"
+
+#: src/qml/Settings/AudioSettings.qml:181
+#: src/qml/Settings/AudioSettings.qml:214
+#: src/qml/Settings/SubtitlesSettings.qml:149
+#: src/qml/Settings/SubtitlesSettings.qml:245
+#: src/qml/Settings/SubtitlesSettings.qml:300
+#: src/qml/Settings/SubtitlesSettings.qml:375
+msgctxt "@info:tooltip"
+msgid "Reset to default value"
+msgstr "Відновити типове значення"
+
+#: src/qml/Settings/AudioSettings.qml:193
+msgctxt "@label:spinbox"
+msgid "Fallback (dB)"
+msgstr "Резерв (дБ)"
+
+#: src/qml/Settings/AudioSettings.qml:218
+msgctxt "@info:tooltip"
+msgid ""
+"Gain in dB to apply if the file has no replay gain tags.<br><br>This setting "
+"is in effect only when:<br>- the replaygain setting is disabled<br>- the "
+"replaygain setting is enabled and the file has no replaygain metadata<br>If "
+"this is in effect, other replaygain settings are ignored."
+msgstr ""
+"Підсилення у дБ, яке слід застосувати, якщо у файла немає міток підсилення "
+"гучності.<br><br>Цей параметр буде задіяно, лише якщо:<br>- параметр "
+"підсилення гучності вимкнено<br>- параметр підсилення гучності увімкнено і у "
+"файлі немає метаданих щодо підсилення гучності<br>Якщо задіяно, інші "
+"параметр підсилення гучності буде проігноровано."
+
+#: src/qml/Settings/CustomCommandsSettings.qml:41
+msgctxt "@label:textbox"
+msgid "No custom commands yet"
+msgstr "Нетипових команд ще немає"
+
+#: src/qml/Settings/CustomCommandsSettings.qml:43
+msgctxt "@action:button"
+msgid "&Add Command"
+msgstr "&Додати команду"
+
+#: src/qml/Settings/CustomCommandsSettings.qml:94
+msgctxt "@info:tooltip"
+msgid ""
+"Checked: property will be set at startup\n"
+"Unchecked: property will not be set at startup"
+msgstr ""
+"Позначено: значення властивості буде встановлено під час запуску\n"
+"Не позначено: значення властивості не буде встановлено під час запуску"
+
+#: src/qml/Settings/CustomCommandsSettings.qml:174
+msgctxt "@action:intoolbar"
+msgid "&Add"
+msgstr "&Додати"
+
+#: src/qml/Settings/DebugSettings.qml:26
+msgctxt "@label:textbox"
+msgid "Config file"
+msgstr "Файл налаштувань"
+
+#: src/qml/Settings/DebugSettings.qml:38
+msgctxt "@label:textbox"
+msgid "Custom commands config file"
+msgstr "Файл налаштувань нетипових команд"
+
+#: src/qml/Settings/DebugSettings.qml:50
+msgctxt "@label:textbox"
+msgid "Shortcuts config file"
+msgstr "Файл налаштувань скорочень"
+
+#: src/qml/Settings/DebugSettings.qml:62
+msgctxt "@label:textbox"
+msgid "Playlists config file"
+msgstr "Файл налаштувань списків відтворення"
+
+#: src/qml/Settings/DebugSettings.qml:74
+msgctxt "@info:usagetip"
+msgid ""
+"If fields are empty that means there is no config file/folder (e.g when "
+"using the default settings)."
+msgstr ""
+"Якщо поля не буде заповнено, програма вважатиме, що немає файла або теки "
+"налаштувань (тобто використовуватиме типові значення параметрів)."
+
+#: src/qml/Settings/DebugSettings.qml:82
+msgctxt "@option:check"
+msgid "Enable mpv logging"
+msgstr "Увімкнути журналювання mpv"
+
+#: src/qml/Settings/DebugSettings.qml:105
+msgctxt "@info:tooltip"
+msgid "Open file"
+msgstr "Відкрити файл"
+
+#: src/qml/Settings/DebugSettings.qml:114
+msgctxt "@info:tooltip"
+msgid "Open containing folder"
+msgstr "Відкрити теку файла"
+
+#: src/qml/Settings/EditCustomCommand.qml:42
+msgctxt "@label:textbox"
+msgid "Command"
+msgstr "Команда"
+
+#: src/qml/Settings/EditCustomCommand.qml:58
+msgctxt "@info:tooltip"
+msgid ""
+"What mpv command to run, see <a href=\"https://mpv.io/manual/stable/#list-of-"
+"input-commands\">MPV Commands</a> for a list of available commands.<br>Not "
+"all commands will work as some are specific for mpv.<br>Most useful are the "
+"commands to manipulate properties, like <strong>set</strong>, <strong>add</"
+"strong>, <strong>cycle</strong>.<br><strong>set</strong>: sets the value of "
+"a property <strong>set volume-max 150</strong>.<br><strong>add</strong>: "
+"increases/decreases the value of a property <strong>add volume 15</strong>, "
+"increases volume by 15. To decrease the value use <strong>add volume -15</"
+"strong>.<br><strong>cycle</strong>: cycle through the values of a property "
+"<strong>cycle aid up</strong>."
+msgstr ""
+"Команда mpv, яку слід виконати, див. <a href=\"https://mpv.io/manual/stable/"
+"#list-of-input-commands\">Команди MPV</a>, щоб дізнатися більше про доступні "
+"команди.<br>Працюватимуть не усі команди, оскільки деякі з них є "
+"специфічними для mpv.<br>Найкориснішими є команди для роботи з "
+"властивостями, зокрема <strong>set</strong>, <strong>add</strong>, "
+"<strong>cycle</strong>.<br><strong>set</strong>: встановлює значення "
+"властивості <strong>set volume-max 150</strong>.<br><strong>add</strong>: "
+"збільшує або зменшує значення властивості <strong>add volume 15</strong>, "
+"збільшує гучність на 15. Для зменшення гучності скористайтеся командою "
+"<strong>add volume -15</strong>.<br><strong>cycle</strong>: циклічний "
+"перехід значеннями властивості <strong>cycle aid up</strong>."
+
+#: src/qml/Settings/EditCustomCommand.qml:75
+msgctxt "@label:textbox"
+msgid "OSD Message"
+msgstr "Повідомлення екранної панелі"
+
+#: src/qml/Settings/EditCustomCommand.qml:85
+msgctxt "placeholder text; %1 is an example of how to display an mpv property"
+msgid "Filename: %1"
+msgstr "Назва файла: %1"
+
+#: src/qml/Settings/EditCustomCommand.qml:91
+msgctxt "@info:tooltip"
+msgid ""
+"An OSD message to display when triggering an action type custom command."
+"<br>Use ${property_name} to display the value of a property <strong>Volume: "
+"${volume}</strong>"
+msgstr ""
+"Повідомлення контекстної накладки, яке слід показати при вмиканні нетипової "
+"команди дії.<br>Скористайтеся ${property_name} для показу значення "
+"властивості, <strong>Гучність: ${volume}</strong>"
+
+#: src/qml/Settings/EditCustomCommand.qml:100
+msgctxt "@label"
+msgid "Type"
+msgstr "Тип"
+
+#: src/qml/Settings/EditCustomCommand.qml:121
+msgctxt "@option:radio"
+msgid "Keyboard shortcut"
+msgstr "Клавіатурне скорочення"
+
+#: src/qml/Settings/EditCustomCommand.qml:122
+msgctxt "@info:tooltip"
+msgid ""
+"The command will be triggered with a shortcut. The shortcut can be set after "
+"saving."
+msgstr ""
+"Команда, яку буде виконано у відповідь на натискання скорочення. Скорочення "
+"можна встановити після збереження."
+
+#: src/qml/Settings/EditCustomCommand.qml:131
+msgctxt "@option:radio"
+msgid "Run at startup"
+msgstr "Запускати при запуску програми"
+
+#: src/qml/Settings/EditCustomCommand.qml:132
+msgctxt "@info:tooltip"
+msgid "The command will be run at application startup."
+msgstr "Команду буде виконано під час запуску програми."
+
+#: src/qml/Settings/EditCustomCommand.qml:144
+msgctxt "@action:intoolbar"
+msgid "Delete"
+msgstr "Вилучити"
+
+#: src/qml/Settings/EditCustomCommand.qml:160
+msgctxt "@action:intoolbar"
+msgid "Cancel"
+msgstr "Скасувати"
+
+#: src/qml/Settings/EditCustomCommand.qml:168
+msgctxt "@action:intoolbar"
+msgid "&Save"
+msgstr "З&берегти"
+
+#: src/qml/Settings/GeneralSettings.qml:26
+msgctxt "@label:spinbox"
+msgid "OSD font size"
+msgstr "Розмір шрифту екранної панелі"
+
+#: src/qml/Settings/GeneralSettings.qml:44
+msgctxt "@label:spinbox"
+msgid "Maximum recent files"
+msgstr "Максимальна кількість нещодавніх файлів"
+
+#: src/qml/Settings/GeneralSettings.qml:62
+msgctxt "@action:button clear (delete from database) recent files"
+msgid "Clear"
+msgstr "Спорожнити"
+
+#: src/qml/Settings/GeneralSettings.qml:66
+msgctxt "@info:tooltip"
+msgid "Deletes recent files from the database"
+msgstr "Вилучає записи нещодавніх файлів з бази даних"
+
+#: src/qml/Settings/GeneralSettings.qml:71
+msgctxt "@info:tooltip"
+msgid ""
+"The number of recent files to display. Enter 0 (zero) to disable.<br>Every "
+"opened file is stored.<br>Bold entries are files opened from the open file/"
+"url actions and from external apps (command line, file manager, drag and "
+"drop etc.)."
+msgstr ""
+"Кількість записів нещодавніх файлів у показаному списку. Введіть 0 (нуль), "
+"щоб вимкнути.<br>Буде збережено записи для усіх відкритих файлів."
+"<br>Позначені напівжирним шрифтом записи є записами файлів, які відкрито за "
+"допомогою дій з відкриття файла або адреси і з зовнішніх програм (командний "
+"рядок, програма для керування файлами, перетягування зі скиданням тощо)."
+
+#: src/qml/Settings/GeneralSettings.qml:84
+msgctxt "@option:check"
+msgid "Allow only one instance"
+msgstr "Дозволяти лише один екземпляр"
+
+#: src/qml/Settings/GeneralSettings.qml:93
+msgctxt "@info:tooltip"
+msgid ""
+"Trying to open another Haruna instance will do nothing.<br>Trying to open "
+"another file with Haruna will open the file in the running instance."
+msgstr ""
+"Спроба відкриття ще одного екземпляра Haruna не призведе до ніяких наслідків."
+"<br>Спроба відкриття ще одного файла за допомогою Haruna призведе до "
+"відкриття файла у вже запущеному екземплярі."
+
+#: src/qml/Settings/GeneralSettings.qml:104
+msgctxt "@option:check"
+msgid "Add file to playlist"
+msgstr "Додати файл до списку відтворення"
+
+#: src/qml/Settings/GeneralSettings.qml:114
+msgctxt "@info:tooltip"
+msgid "File will be added to the end of the playlist."
+msgstr "Файл буде додано наприкінці списку відтворення."
+
+#: src/qml/Settings/GeneralSettings.qml:123
+msgctxt "@option:check"
+msgid "Play new file"
+msgstr "Відтворювати новий файл"
+
+#: src/qml/Settings/GeneralSettings.qml:134
+msgctxt "@title"
+msgid "Interface"
+msgstr "Інтерфейс"
+
+#: src/qml/Settings/GeneralSettings.qml:140
+msgctxt "@label:spinbox"
+msgid "Footer style"
+msgstr "Стиль нижнього колонтитула"
+
+#: src/qml/Settings/GeneralSettings.qml:152
+msgctxt "@item:listbox the footer style"
+msgid "Default"
+msgstr "Типовий"
+
+#: src/qml/Settings/GeneralSettings.qml:158
+msgctxt "@item:listbox the footer style"
+msgid "Floating"
+msgstr "Рухомий"
+
+#: src/qml/Settings/GeneralSettings.qml:172
+msgctxt "@label:listbox"
+msgid "Show floating footer on"
+msgstr "Показувати рухомий нижній колонтитул при"
+
+#: src/qml/Settings/GeneralSettings.qml:187
+msgctxt "@item:listbox how to trigger the floating footer"
+msgid "Every mouse movement"
+msgstr "Будь-якому руху мишею"
+
+#: src/qml/Settings/GeneralSettings.qml:193
+msgctxt "@item:listbox how to trigger the floating footer"
+msgid "Bottom mouse movement"
+msgstr "Руху мишею внизу"
+
+#: src/qml/Settings/GeneralSettings.qml:208
+msgctxt "@info:tooltip"
+msgid ""
+"What action shows the footer.<br><strong>Every mouse movement</strong> — "
+"every mouse movement over the video area<br><strong>Bottom mouse movement</"
+"strong> — mouse movement on the bottom of the video area"
+msgstr ""
+"Дія, у відповідь на яку буде показано нижній колонтитул.<br><strong>Будь-"
+"який рух мишею</strong> — будь-який рух миші в області відео<br><strong>Рух "
+"мишею внизу</strong> — рух мишею у нижній частині області відео"
+
+#: src/qml/Settings/GeneralSettings.qml:216
+msgctxt "@label:spinbox"
+msgid "Preview thumbnail"
+msgstr "Попередній перегляд мініатюр"
+
+#: src/qml/Settings/GeneralSettings.qml:221
+msgctxt "@option:check"
+msgid "Show preview thumbnail"
+msgstr "Показувати попередній перегляд мініатюр"
+
+#: src/qml/Settings/GeneralSettings.qml:228
+msgctxt "@info:tooltip"
+msgid "Shows a preview while hovering the seek/progress bar."
+msgstr ""
+"Показує попередній перегляд у відповідь на наведення вказівника на певну "
+"позицію на смужці позиціювання або поступу відтворення."
+
+#: src/qml/Settings/GeneralSettings.qml:237
+msgctxt "@option:check"
+msgid "Use accurate preview"
+msgstr "Точний попередній перегляд"
+
+#: src/qml/Settings/GeneralSettings.qml:247
+msgctxt "@info:tooltip"
+msgid "Generating an accurate preview is slow"
+msgstr "Створення зображень точного попереднього перегляду є повільним"
+
+#: src/qml/Settings/GeneralSettings.qml:255
+msgctxt "@label:spinbox"
+msgid "Thumbnail width"
+msgstr "Ширина мініатюри"
+
+#: src/qml/Settings/GeneralSettings.qml:273
+msgctxt "@label"
+msgid "Window"
+msgstr "Вікно"
+
+#: src/qml/Settings/GeneralSettings.qml:279
+msgctxt "@option:check"
+msgid "Resize to fit video"
+msgstr "Змінити розмір відповідно до відео"
+
+#: src/qml/Settings/GeneralSettings.qml:290
+msgctxt "@info:tooltip"
+msgid "Not supported on Wayland."
+msgstr "Немає підтримки у Wayland."
+
+#: src/qml/Settings/GeneralSettings.qml:291
+msgctxt "@info:tooltip"
+msgid ""
+"The window is resized according to the video resolution.<br>The maximum size "
+"is not constrained, this is left to the operating system."
+msgstr ""
+"%1 Розмір вікна буде змінено відповідно до роздільної здатності відео."
+"<br>Максимальний розмір не обмежено, його встановлює операційна система."
+
+#: src/qml/Settings/GeneralSettings.qml:301
+msgctxt "@option:check"
+msgid "Start in fullscreen mode"
+msgstr "Запускати в повноекранному режимі"
+
+#: src/qml/Settings/GeneralSettings.qml:310
+msgctxt "@info:tooltip"
+msgid ""
+"Enter fullscreen mode when the application starts.<br>This takes precedence "
+"over Resize to fit video, and Remember window size and position settings."
+msgstr ""
+"Увійти до повноекранного режиму після запуску програми.<br>Має вищий "
+"пріоритет за «Змінити розмір відповідно до відео» і «Запам'ятати останній "
+"розмір вікна і його позицію»."
+
+#: src/qml/Settings/GeneralSettings.qml:321
+msgctxt "@option:check"
+msgid "Remember window size and position"
+msgstr "Запам'ятати останній розмір вікна і його позицію"
+
+#: src/qml/Settings/GeneralSettings.qml:334
+msgctxt ""
+"@info:tooltip extra wayland info for the “Remember window size and position” "
+"setting"
+msgid "<b>Restoring position is not supported on Wayland.</b><br><br>"
+msgstr "<b>У Wayland підтримки відновлення позиції не передбачено.</b><br><br>"
+
+#: src/qml/Settings/GeneralSettings.qml:336
+msgctxt "@info:tooltip"
+msgid ""
+"Changes to the window’s size and position are saved and used for newly "
+"opened windows.<br><br>%1The “Resize to fit video” setting takes precedence."
+msgstr ""
+"Зміни у розмірах і розташуванні вікна буде збережено і використано для нових "
+"відкритих вікон.<br><br>%1Параметр «Змінити розмір відповідно до відео» має "
+"вищий пріоритет."
+
+#: src/qml/Settings/GeneralSettings.qml:348
+msgctxt "@option:check"
+msgid "Show menubar"
+msgstr "Показати смужку меню"
+
+#: src/qml/Settings/GeneralSettings.qml:359
+#: src/qml/Settings/PlaylistSettings.qml:172
+msgctxt "@option:check"
+msgid "Show toolbar"
+msgstr "Показати панель інструментів"
+
+#: src/qml/Settings/GeneralSettings.qml:370
+msgctxt "@option:check"
+msgid "Show chapter markers"
+msgstr "Показати позначки розділів"
+
+#: src/qml/Settings/GeneralSettings.qml:381
+msgctxt "@option:check"
+msgid "Show progress on taskbar icon"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:390
+msgctxt "@label:listbox"
+msgid "Color scheme"
+msgstr "Схема кольорів"
+
+#: src/qml/Settings/GeneralSettings.qml:435
+msgctxt "@label:listbox"
+msgid "GUI style"
+msgstr "Стиль графічного інтерфейсу"
+
+#: src/qml/Settings/GeneralSettings.qml:468
+msgctxt "@item:listbox default GUI style"
+msgid "Default"
+msgstr "Типовий"
+
+#: src/qml/Settings/MouseSettings.qml:51
+msgctxt "@label represents a mouse double click, for example `Right x2`"
+msgid "x2"
+msgstr "x2"
+
+#: src/qml/Settings/MouseSettings.qml:93
+msgctxt "@label:action change action associated with mouse event"
+msgid "Change action"
+msgstr "Змінити дію"
+
+#: src/qml/Settings/MouseSettings.qml:107
+msgctxt "@label:action delete mouse event"
+msgid "Delete"
+msgstr "Вилучити"
+
+#: src/qml/Settings/MouseSettings.qml:135
+msgctxt "@action:intoolbar add a mouse button action"
+msgid "&Add"
+msgstr "&Додати"
+
+#: src/qml/Settings/MouseSettings.qml:170
+msgctxt "@title:window"
+msgid "Add mouse button action"
+msgstr "Додати дію у відповідь на керування мишею"
+
+#: src/qml/Settings/MouseSettings.qml:183
+msgctxt "@label:listbox"
+msgid "Mouse button"
+msgstr "Кнопка миші"
+
+#: src/qml/Settings/MouseSettings.qml:200
+msgctxt "@item:listbox left mouse button"
+msgid "Left"
+msgstr "Ліва"
+
+#: src/qml/Settings/MouseSettings.qml:206
+msgctxt "@item:listbox middle mouse button"
+msgid "Middle"
+msgstr "Середня"
+
+#: src/qml/Settings/MouseSettings.qml:212
+msgctxt "@item:listbox right mouse button"
+msgid "Right"
+msgstr "Права"
+
+#: src/qml/Settings/MouseSettings.qml:218
+msgctxt "@item:listbox forward mouse button"
+msgid "Forward"
+msgstr "Вперед"
+
+#: src/qml/Settings/MouseSettings.qml:224
+msgctxt "@item:listbox back mouse button"
+msgid "Back"
+msgstr "Назад"
+
+#: src/qml/Settings/MouseSettings.qml:230
+msgctxt "@item:listbox mouse scroll up"
+msgid "Scroll up"
+msgstr "Гортання вгору"
+
+#: src/qml/Settings/MouseSettings.qml:236
+msgctxt "@item:listbox mouse scroll down"
+msgid "Scroll down"
+msgstr "Гортання вниз"
+
+#: src/qml/Settings/MouseSettings.qml:245
+msgctxt "@label:listbox"
+msgid "Modifier key"
+msgstr "Клавіша-модифікатор"
+
+#: src/qml/Settings/MouseSettings.qml:263
+msgctxt "@item:listbox no modifier key"
+msgid "No modifier"
+msgstr "Немає модифікатора"
+
+#: src/qml/Settings/MouseSettings.qml:269
+msgctxt "@item:listbox control modifier key"
+msgid "Control"
+msgstr "Ctrl"
+
+#: src/qml/Settings/MouseSettings.qml:275
+msgctxt "@item:listbox shift modifier key"
+msgid "Shift"
+msgstr "Shift"
+
+#: src/qml/Settings/MouseSettings.qml:281
+msgctxt "@item:listbox alt modifier key"
+msgid "Alt"
+msgstr "Alt"
+
+#: src/qml/Settings/MouseSettings.qml:287
+msgctxt "@item:listbox meta modifier key"
+msgid "Meta"
+msgstr "Meta"
+
+#: src/qml/Settings/MouseSettings.qml:299
+msgctxt ""
+"@label:check whether mouse button action should trigger on double click"
+msgid "Trigger on double click"
+msgstr "У відповідь на подвійне клацання"
+
+#: src/qml/Settings/MouseSettings.qml:309
+msgctxt "@label"
+msgid "Action"
+msgstr "Дія"
+
+#: src/qml/Settings/MouseSettings.qml:317
+msgctxt "@action:button select mouse button action"
+msgid "Select action"
+msgstr "Вибрати дію"
+
+#: src/qml/Settings/MouseSettings.qml:333
+msgctxt "@action:button"
+msgid "Change action"
+msgstr "Змінити дію"
+
+#: src/qml/Settings/MouseSettings.qml:344
+msgctxt "@info"
+msgid "No action selected"
+msgstr "Не вибрано жодної дії"
+
+#: src/qml/Settings/MouseSettings.qml:367
+msgctxt "@info"
+msgid "Mouse button combination is already assigned to “%1”"
+msgstr "Комбінацію кнопок миші вже пов'язано із «%1»"
+
+#: src/qml/Settings/PlaybackSettings.qml:25
+msgctxt "@label:spinbox"
+msgid "Seek small step"
+msgstr "Малий крок позиціювання."
+
+#: src/qml/Settings/PlaybackSettings.qml:45
+msgctxt "@info:tooltip seek small step setting"
+msgid ""
+"How much to seek when triggering the corresponding action. Seek mode is <a "
+"href='https://mpv.io/manual/stable/#command-interface-seek-<target>-"
+"[<flags>]'>exact</a>"
+msgstr ""
+"Наскільки слід змінити позицію при використанні відповідної дії. Режим "
+"позиціювання є <a href='https://mpv.io/manual/stable/#command-interface-seek-"
+"<target>-[<flags>]'>точним</a>"
+
+#: src/qml/Settings/PlaybackSettings.qml:52
+msgctxt "@label:spinbox"
+msgid "Seek medium step"
+msgstr "Середній крок позиціювання"
+
+#: src/qml/Settings/PlaybackSettings.qml:72
+msgctxt "@info:tooltip seek medium step setting"
+msgid ""
+"How much to seek when triggering the corresponding action. Seek mode is <a "
+"href='https://mpv.io/manual/stable/#command-interface-seek-<target>-"
+"[<flags>]'>exact</a>.<br>This is also used for mouse wheel seeking, when "
+"mouse is over the progress bar."
+msgstr ""
+"Наскільки слід змінити позицію при вмиканні відповідної дії. Режим "
+"позиціювання є <a href='https://mpv.io/manual/stable/#command-interface-seek-"
+"<target>-[<flags>]'>точним</a>.<br>Це значення буде також використано при "
+"позиціюванні за допомогою коліщатка миші, коли вказівник миші перебуває над "
+"смужкою поступу відтворення."
+
+#: src/qml/Settings/PlaybackSettings.qml:80
+msgctxt "@label:spinbox"
+msgid "Seek big step"
+msgstr "Великий крок позиціювання"
+
+#: src/qml/Settings/PlaybackSettings.qml:99
+msgctxt "@info:tooltip seek big step setting"
+msgid ""
+"How much to seek when triggering the corresponding action. Seek mode is <a "
+"href='https://mpv.io/manual/stable/#command-interface-seek-<target>-"
+"[<flags>]'>exact</a>"
+msgstr ""
+"Наскільки слід змінити позицію при використанні відповідної дії. Режим "
+"позиціювання є <a href='https://mpv.io/manual/stable/#command-interface-seek-"
+"<target>-[<flags>]'>точним</a>"
+
+#: src/qml/Settings/PlaybackSettings.qml:105
+msgctxt "@label"
+msgid "Hardware decoding"
+msgstr "Апаратне декодування"
+
+#: src/qml/Settings/PlaybackSettings.qml:147
+msgctxt "@info:tooltip hardware decoding setting"
+msgid ""
+"Specify the hardware video decoding API that should be used if possible. "
+"Whether hardware decoding is actually done depends on the video codec. If "
+"hardware decoding is not possible, mpv will fall back on software decoding."
+"<br><br><ul><li><strong>auto</strong> tries to automatically enable hardware "
+"decoding using the first available method.</li><li><strong>auto-safe</"
+"strong> similar to auto, but allows only whitelisted methods that are "
+"considered “safe”.</li><li><strong>vaapi</strong> works with Intel and AMD "
+"GPUs only. It also requires the opengl EGL backend.</li><li><strong>nvdec</"
+"strong> the newest, and recommended method to do hardware decoding on Nvidia "
+"GPUs.</li><li><strong>cuda</strong> an older implementation of hardware "
+"decoding on Nvidia GPUs.</li><li><strong>videotoolbox</strong></"
+"li><li><strong>d3d11va</strong></li></ul><br><br>You can read more about "
+"hardware decoding here: <a href='https://mpv.io/manual/stable/#options-"
+"hwdec'>https://mpv.io/manual/stable/#options-hwdec</a><br><br>You can set "
+"another hardware decoder by creating a startup custom command <strong>set "
+"hwdec <i>decoder_name</i></strong>."
+msgstr ""
+"Визначає програмний інтерфейс апаратного декодування відео, який, якщо "
+"можливо, буде використано. Те, чи буде відбуватися апаратне декодування "
+"насправді, залежить від відеокодека. Якщо апаратне декодування неможливе, "
+"mpv повернеться до програмного декодування.<br><br><ul><li><strong>auto</"
+"strong> — намагатися автоматично увімкнути апаратне декодування за допомогою "
+"першого ж доступного способу.</li><li><strong>auto-safe</strong> — подібно "
+"до auto, але із використанням лише способів із «білого» списку, які "
+"вважаються «безпечними».</li><li><strong>vaapi</strong> працює лише з "
+"графічними процесорами Intel та AMD. Також потребує модуля обробки EGL "
+"opengl.</li><li><strong>nvdec</strong> — найновіший і рекомендований спосіб "
+"для апаратного декодування на графічних процесорах Nvidia.</"
+"li><li><strong>cuda</strong> — старіша реалізація апаратного декодування на "
+"графічних процесорах Nvidia.</li><li><strong>videotoolbox</strong></"
+"li><li><strong>d3d11va</strong></li></ul><br><br>Докладніше про апаратне "
+"декодування тут: <a href='https://mpv.io/manual/stable/#options-"
+"hwdec'>https://mpv.io/manual/stable/#options-hwdec</a><br><br>Ви можете "
+"встановити інший апаратний декодер створенням нетипової команди запуску: "
+"<strong>set hwdec <i>назва_декодера</i></strong>."
+
+#: src/qml/Settings/PlaybackSettings.qml:171
+msgctxt "@option:check"
+msgid "Open last played file on startup"
+msgstr "Відкривати попередній відтворюваний файл під час запуску"
+
+#: src/qml/Settings/PlaybackSettings.qml:180
+msgctxt "@info:tooltip open last played file setting"
+msgid ""
+"On startup it opens the file that was playing when the application was "
+"closed."
+msgstr ""
+"Під час запуску відкриває файл, який відтворювався, коли вікно програми було "
+"закрито."
+
+#: src/qml/Settings/PlaybackSettings.qml:189
+msgctxt "@option:check"
+msgid "Pause on minimize"
+msgstr "Призупиняти при мінімізації"
+
+#: src/qml/Settings/PlaybackSettings.qml:198
+msgctxt "@info:tooltip pause on minimize setting"
+msgid ""
+"Pauses the player while the window is minimized, playback resumes when "
+"restored."
+msgstr ""
+"Призупиняє відтворення, якщо вікно мінімізовано. Відтворення відновиться, "
+"щойно вікно буде знову розгорнуто."
+
+#: src/qml/Settings/PlaybackSettings.qml:207
+msgctxt "@title"
+msgid "Playback position"
+msgstr "Позиція відтворення"
+
+#: src/qml/Settings/PlaybackSettings.qml:217
+msgctxt "@option:check"
+msgid "Restore playback position"
+msgstr "Відновлювати позицію відтворення"
+
+#: src/qml/Settings/PlaybackSettings.qml:226
+msgctxt "@info:tooltip save playback position"
+msgid ""
+"Saves the file position during playback, opening the same file again will "
+"seek to the saved position.\n"
+"Position is saved every %1 second, except for the last 10 seconds of the "
+"video."
+msgid_plural ""
+"Saves the file position during playback, opening the same file again will "
+"seek to the saved position.\n"
+"Position is saved every %1 seconds, except for the last 10 seconds of the "
+"video."
+msgstr[0] ""
+"Зберігає місце у файлі під час відтворення. Повторне відкриття цього файла "
+"призведе до позиціювання у збереженій позиції.\n"
+"Місце зберігатиметься кожну %1 секунду, окрім останніх 10 секунд відео."
+msgstr[1] ""
+"Зберігає місце у файлі під час відтворення. Повторне відкриття цього файла "
+"призведе до позиціювання у збереженій позиції.\n"
+"Місце зберігатиметься кожні %1 секунди, окрім останніх 10 секунд відео."
+msgstr[2] ""
+"Зберігає місце у файлі під час відтворення. Повторне відкриття цього файла "
+"призведе до позиціювання у збереженій позиції.\n"
+"Місце зберігатиметься кожні %1 секунд, окрім останніх 10 секунд відео."
+msgstr[3] ""
+"Зберігає місце у файлі під час відтворення. Повторне відкриття цього файла "
+"призведе до позиціювання у збереженій позиції.\n"
+"Місце зберігатиметься кожну секунду, окрім останніх 10 секунд відео."
+
+#: src/qml/Settings/PlaybackSettings.qml:240
+msgctxt "@option:check"
+msgid "Start playing"
+msgstr "Почати відтворення"
+
+#: src/qml/Settings/PlaybackSettings.qml:250
+msgctxt "@info:tooltip start playing setting"
+msgid "The file will be playing after restoring the playback position"
+msgstr "Файл буде відтворено після відновлення позиції відтворення"
+
+#: src/qml/Settings/PlaybackSettings.qml:273
+msgctxt "@info"
+msgid "For any duration"
+msgstr "Для будь-якої тривалості"
+
+#: src/qml/Settings/PlaybackSettings.qml:276
+msgctxt "@info"
+msgid "If duration is longer than %1 minute"
+msgid_plural "If duration is longer than %1 minutes"
+msgstr[0] "Якщо тривалість перевищує %1 хвилину"
+msgstr[1] "Якщо тривалість перевищує %1 хвилини"
+msgstr[2] "Якщо тривалість перевищує %1 хвилин"
+msgstr[3] "Якщо тривалість перевищує %1 хвилину"
+
+#: src/qml/Settings/PlaybackSettings.qml:285
+msgctxt "@info:tooltip restore playback position > duration"
+msgid "Position for remote files is restored regardless of duration."
+msgstr "Місце для віддалених файлів для відновлення, незалежно від тривалості."
+
+#: src/qml/Settings/PlaybackSettings.qml:307
+msgctxt "@info:tooltip restore playback position > save interval"
+msgid "Save position every %1 second"
+msgid_plural "Save position every %1 seconds"
+msgstr[0] "Зберігати позицію кожну %1 секунду"
+msgstr[1] "Зберігати позицію кожні %1 секунди"
+msgstr[2] "Зберігати позицію кожну %1 секунд"
+msgstr[3] "Зберігати позицію кожну %1 секунду"
+
+#: src/qml/Settings/PlaybackSettings.qml:320
+msgctxt "@title"
+msgid "Chapters"
+msgstr "Розділи"
+
+#: src/qml/Settings/PlaybackSettings.qml:329
+msgctxt "@option:check"
+msgid "Skip chapters"
+msgstr "Пропустити розділи"
+
+#: src/qml/Settings/PlaybackSettings.qml:337
+msgctxt "@info:tooltip skip chapters setting"
+msgid ""
+"When enabled it automatically skips chapters containing certain words/"
+"characters."
+msgstr "Автоматично пропускає глави, що містять певні слова або символи."
+
+#: src/qml/Settings/PlaybackSettings.qml:345
+msgctxt "@option:check"
+msgid "Show OSD message on skip"
+msgstr "Показати екранне повідомлення при пропусканні"
+
+#: src/qml/Settings/PlaybackSettings.qml:354
+msgctxt "@info:tooltip show OSD message on skip setting"
+msgid ""
+"When skipping chapters an osd message will show the title of the skipped "
+"chapter."
+msgstr ""
+"При пропусканні глав контекстне повідомлення показуватиме заголовок "
+"пропущеної глави."
+
+#: src/qml/Settings/PlaybackSettings.qml:360
+msgctxt "@label:textbox"
+msgid "Keywords"
+msgstr "Ключові слова"
+
+#: src/qml/Settings/PlaybackSettings.qml:369
+msgctxt "placeholder text"
+msgid "op, ed, chapter 1"
+msgstr "op, ed, chapter 1"
+
+#: src/qml/Settings/PlaybackSettings.qml:375
+msgctxt "@info:tooltip skip words setting"
+msgid ""
+"Skip chapters containing these words. Comma separated list. The match is not "
+"exact, meaning <strong>op</strong> will match words containing it like "
+"<strong><u>op</u>ening</strong>."
+msgstr ""
+"Пропустити глави, назви яких містять ці слова. Список слів, які відокремлено "
+"комами. Відповідність не є повною, тобто <strong>від</strong> відповідатиме "
+"усім словам, що містять цю комбінацію літер, зокрема слову <strong><u>від</"
+"u>криття</strong>."
+
+#: src/qml/Settings/PlaybackSettings.qml:399
+msgctxt "@title"
+msgid "Youtube-dl"
+msgstr "Youtube-dl"
+
+#: src/qml/Settings/PlaybackSettings.qml:405
+msgid "Format selection"
+msgstr "Вибір формату"
+
+#: src/qml/Settings/PlaybackSettings.qml:430
+msgctxt "@item:listbox the custom youtube-dl format selection"
+msgid "Custom"
+msgstr "Нетиповий"
+
+#: src/qml/Settings/PlaybackSettings.qml:436
+msgctxt "@item:listbox the default youtube-dl format selection"
+msgid "Default"
+msgstr "Типовий"
+
+#: src/qml/Settings/PlaybackSettings.qml:451
+msgctxt "@info:tooltip format selection setting"
+msgid "Selects a video source that is closest to the selected format."
+msgstr "Вибирає джерело відео, яке є найближчим до вибраного формату."
+
+#: src/qml/Settings/PlaylistSettings.qml:24
+msgctxt "@label:listbox"
+msgid "Position"
+msgstr "Позиція"
+
+#: src/qml/Settings/PlaylistSettings.qml:36
+msgctxt "@item:listbox playlist position"
+msgid "Left"
+msgstr "Ліворуч"
+
+#: src/qml/Settings/PlaylistSettings.qml:42
+msgctxt "@item:listbox playlist position"
+msgid "Right"
+msgstr "Праворуч"
+
+#: src/qml/Settings/PlaylistSettings.qml:57
+msgctxt "@label:listbox"
+msgid "Playlist style"
+msgstr "Стиль списку відтворення"
+
+#: src/qml/Settings/PlaylistSettings.qml:69
+msgctxt "@item:listbox the style of the playlist"
+msgid "Default"
+msgstr "Типовий"
+
+#: src/qml/Settings/PlaylistSettings.qml:75
+msgctxt "@item:listbox the style of the playlist"
+msgid "With thumbnails"
+msgstr "З мініатюрами"
+
+#: src/qml/Settings/PlaylistSettings.qml:81
+msgctxt "@item:listbox the style of the playlist"
+msgid "Compact"
+msgstr "Компактний"
+
+#: src/qml/Settings/PlaylistSettings.qml:95
+msgctxt "@label:listbox"
+msgid "Playback behavior"
+msgstr "Поведінка при відтворенні"
+
+#: src/qml/Settings/PlaylistSettings.qml:109
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Repeat playlist"
+msgstr "Повторювати список відтворення"
+
+#: src/qml/Settings/PlaylistSettings.qml:115
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Stop after last item"
+msgstr "Зупинитися після останнього пункту"
+
+#: src/qml/Settings/PlaylistSettings.qml:121
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Repeat item"
+msgstr "Повторити пункт"
+
+#: src/qml/Settings/PlaylistSettings.qml:127
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Stop after item"
+msgstr "Зупинитися після пункту"
+
+#: src/qml/Settings/PlaylistSettings.qml:150
+msgctxt "@info:tooltip playback description"
+msgid ""
+"<strong>Repeat playlist</strong>: playlist is repeated "
+"indefinitely<br><strong>Stop after last item</strong>: playback stops after "
+"the last item in the playlist<br><strong>Repeat item</strong>: current "
+"playing item is repeated indefinitely<br><strong>Stop after item</strong>: "
+"playback stops after the current playing item"
+msgstr ""
+"<strong>Повторювати список відтворення</strong>: список відтворення буде "
+"повторюватися до нескінченності<br><strong>Зупинитися після останнього "
+"пункту</strong>: відтворення буде зупинено після останнього пункту у списку "
+"відтворення<br><strong>Повторити пункт</strong>: поточний пункт у списку "
+"відтворення повторюватиметься нескінченно<br><strong>Зупинитися після "
+"пункту</strong>: відтворення буде зупинено після поточного пункту у списку "
+"відтворення"
+
+#: src/qml/Settings/PlaylistSettings.qml:162
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Random playback"
+msgstr "Відтворення у випадковому порядку"
+
+#: src/qml/Settings/PlaylistSettings.qml:182
+msgctxt "@option:check"
+msgid "Overlay video"
+msgstr "Накладка на відео"
+
+#: src/qml/Settings/PlaylistSettings.qml:189
+msgctxt "@info:tooltip"
+msgid ""
+"When checked the playlist goes on top of the video\n"
+"When unchecked the video is resized"
+msgstr ""
+"Якщо позначено, список відтворення буде показано поверх відео\n"
+"Якщо не позначено, буде змінено розміри відео"
+
+#: src/qml/Settings/PlaylistSettings.qml:196
+msgctxt "@option:check"
+msgid "Show media title instead of file name"
+msgstr "Показувати заголовок мультимедіа, а не назву файла"
+
+#: src/qml/Settings/PlaylistSettings.qml:206
+msgctxt "@option:check"
+msgid "Auto load videos from same folder"
+msgstr "Автоматично завантажувати відео із тієї самої теки"
+
+#: src/qml/Settings/PlaylistSettings.qml:216
+msgctxt "@option:check"
+msgid "Show row number"
+msgstr "Показати номер рядка"
+
+#: src/qml/Settings/PlaylistSettings.qml:226
+msgctxt "@option:check"
+msgid "Toggle with mouse"
+msgstr "Перемикання за допомогою миші"
+
+#: src/qml/Settings/PlaylistSettings.qml:235
+msgctxt "@option:check"
+msgid "Increase font size when fullscreen"
+msgstr "Збільшити розмір шрифту у повноекранному режимі"
+
+#: src/qml/Settings/PlaylistSettings.qml:247
+msgctxt "@option:check"
+msgid "Remember last playlist state"
+msgstr "Запам'ятовувати останній стан списку відтворення"
+
+#: src/qml/Settings/PlaylistSettings.qml:254
+msgctxt "@info:tooltip"
+msgid ""
+"When checked the playlist state (visible/hidden) is remembered across "
+"launches"
+msgstr ""
+"Якщо позначено, стан списку відтворення (видимий/прихований) буде "
+"зберігатися між запусками програми"
+
+#: src/qml/Settings/PlaylistSettings.qml:262
+msgctxt "@option:check"
+msgid "Open items with single click"
+msgstr "Відкривати записи одинарним клацанням"
+
+#: src/qml/Settings/SettingsWindow.qml:70
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "Параметри"
+
+#: src/qml/Settings/SettingsWindow.qml:87
+msgctxt "@action"
+msgid "General"
+msgstr "Загальне"
+
+#: src/qml/Settings/SettingsWindow.qml:96
+msgctxt "@action"
+msgid "Playback"
+msgstr "Відтворення"
+
+#: src/qml/Settings/SettingsWindow.qml:105
+msgctxt "@action"
+msgid "Video"
+msgstr "Відео"
+
+#: src/qml/Settings/SettingsWindow.qml:115
+msgctxt "@action"
+msgid "Audio"
+msgstr "Звук"
+
+#: src/qml/Settings/SettingsWindow.qml:124
+msgctxt "@action"
+msgid "Subtitles"
+msgstr "Субтитри"
+
+#: src/qml/Settings/SettingsWindow.qml:142
+msgctxt "@action"
+msgid "Mouse"
+msgstr "Миша"
+
+#: src/qml/Settings/SettingsWindow.qml:152
+msgctxt "@action"
+msgid "Shortcuts"
+msgstr "Скорочення"
+
+#: src/qml/Settings/SettingsWindow.qml:162
+msgctxt "@action"
+msgid "Custom Commands"
+msgstr "Нетипові команди"
+
+#: src/qml/Settings/SettingsWindow.qml:172
+msgctxt "@action"
+msgid "Debug"
+msgstr "Діагностика"
+
+#: src/qml/Settings/SettingsWindow.qml:182
+msgctxt "@action"
+msgid "About"
+msgstr "Про програму"
+
+#: src/qml/Settings/SubtitlesSettings.qml:36
+msgctxt "@label:check"
+msgid "Auto select track"
+msgstr "Вибирати доріжку автоматично"
+
+#: src/qml/Settings/SubtitlesSettings.qml:45
+msgctxt "@info:tooltip"
+msgid ""
+"When checked a subtitle track will be automatically selected and displayed"
+msgstr "Якщо позначено, доріжку субтитрів буде вибрано і показано автоматично"
+
+#: src/qml/Settings/SubtitlesSettings.qml:96
+msgctxt "@option:check"
+msgid "Allow subtitles in black borders"
+msgstr "Дозволити субтитри у чорних рамках"
+
+#: src/qml/Settings/SubtitlesSettings.qml:103
+msgctxt "@info:tooltip"
+msgid ""
+"When checked the subtitles can be rendered outside the video, in the black "
+"borders. Might not work for all .ass subtitles."
+msgstr ""
+"Якщо позначено, субтитри може бути показано поза відео у чорних рамках. Може "
+"працювати не для усіх субтитрів .ass."
+
+#: src/qml/Settings/SubtitlesSettings.qml:108
+msgctxt "@title"
+msgid "Styling"
+msgstr "Стилізація"
+
+#: src/qml/Settings/SubtitlesSettings.qml:114
+msgctxt "@label:listbox"
+msgid "Font family"
+msgstr "Гарнітура шрифту"
+
+#: src/qml/Settings/SubtitlesSettings.qml:155
+msgctxt "@label:spinbox"
+msgid "Font size"
+msgstr "Розмір шрифту"
+
+#: src/qml/Settings/SubtitlesSettings.qml:170
+msgctxt "@label"
+msgid "Font style"
+msgstr "Стиль шрифту"
+
+#: src/qml/Settings/SubtitlesSettings.qml:175
+msgctxt "@option:check"
+msgid "Bold"
+msgstr "Напівжирний"
+
+#: src/qml/Settings/SubtitlesSettings.qml:186
+msgctxt "@option:check"
+msgid "Italic"
+msgstr "Курсив"
+
+#: src/qml/Settings/SubtitlesSettings.qml:195
+msgctxt "@label:textbox"
+msgid "Font color"
+msgstr "Колір шрифту"
+
+#: src/qml/Settings/SubtitlesSettings.qml:251
+msgctxt "@label:textbox"
+msgid "Shadow color"
+msgstr "Колір тіні"
+
+#: src/qml/Settings/SubtitlesSettings.qml:306
+msgctxt "@label:spinbox"
+msgid "Shadow offset"
+msgstr "Зсув тіні"
+
+#: src/qml/Settings/SubtitlesSettings.qml:321
+#: src/qml/Settings/SubtitlesSettings.qml:396
+msgctxt "@info:tooltip"
+msgid "Set to 0 (zero) to disable."
+msgstr "Встановіть 0 (нуль), щоб вимкнути."
+
+#: src/qml/Settings/SubtitlesSettings.qml:326
+msgctxt "@label:textbox"
+msgid "Border color"
+msgstr "Колір рамки"
+
+#: src/qml/Settings/SubtitlesSettings.qml:381
+msgctxt "@label:spinbox"
+msgid "Border width"
+msgstr "Ширина рамки"
+
+#: src/qml/Settings/SubtitlesSettings.qml:401
+msgctxt "@label:listbox"
+msgid "Border style"
+msgstr "Стиль рамки"
+
+#: src/qml/Settings/SubtitlesSettings.qml:413
+msgctxt "@item:listbox border style"
+msgid "Outline and Shadow"
+msgstr "Контур і тінь"
+
+#: src/qml/Settings/SubtitlesSettings.qml:419
+msgctxt "@item:listbox border style"
+msgid "Opaque Box"
+msgstr "Непрозора панель"
+
+#: src/qml/Settings/SubtitlesSettings.qml:425
+msgctxt "@item:listbox border style"
+msgid "Background Box"
+msgstr "Панель з тлом"
+
+#: src/qml/Settings/VideoSettings.qml:28
+msgctxt "@label:listbox"
+msgid "Default cover"
+msgstr "Типова обкладинка"
+
+#: src/qml/Settings/VideoSettings.qml:37
+msgctxt "placeholder text"
+msgid "path to image"
+msgstr "шлях до зображення"
+
+#: src/qml/Settings/VideoSettings.qml:49
+msgctxt "@info:tooltip"
+msgid ""
+"Used for music files that don’t have a video track, an embedded cover image "
+"or a cover/folder image in the same folder as the played file."
+msgstr ""
+"Буде використано для музичних файлів, у яких немає відеодоріжки, вбудованого "
+"зображення обкладинки або зображення обкладинки у тій самій теці, що і "
+"відтворюваний файл."
+
+#: src/qml/Settings/VideoSettings.qml:83
+msgctxt "@title"
+msgid "Screenshots"
+msgstr "Знімки екрана"
+
+#: src/qml/Settings/VideoSettings.qml:92
+msgctxt "@label:listbox"
+msgid "Format"
+msgstr "Формат"
+
+#: src/qml/Settings/VideoSettings.qml:131
+msgctxt "@label:textbox"
+msgid "Template"
+msgstr "Шаблон"
+
+#: src/qml/Settings/VideoSettings.qml:160
+msgctxt "@info:tooltip"
+msgid ""
+"Specify the filename template used to save screenshots. The template "
+"specifies the filename without file extension, and can contain format "
+"specifiers, which will be substituted when taking a screenshot. By default, "
+"the template is “%F-%n”. <br>The template can start with a relative or "
+"absolute path, in order to specify a directory location where screenshots "
+"should be saved.<br>If the final screenshot filename points to an already "
+"existing file, the file will not be overwritten. The screenshot will either "
+"not be saved, or if the template contains %n, saved using different, newly "
+"generated filename.<br>For full info checkout <a href='https://mpv.io/manual/"
+"stable/#options-screenshot-template'>https://mpv.io/manual/stable/#options-"
+"screenshot-template</a><br><br><strong>Allowed format specifiers:</"
+"strong><br><ul><li><strong>%[#][0X]n</strong> A sequence number, padded with "
+"zeros to length X.<br><li><strong>%f</strong> Filename of the currently "
+"played video.<br><li><strong>%F</strong> Same as %f, but without the file "
+"extension.<br><li><strong>%x</strong> Directory path of the currently played "
+"video. If the video is not on the filesystem (http:// urls), this expands to "
+"an empty string.<br><li><strong>%X{fallback}</strong> Same as %x, but if the "
+"video file is not on the filesystem, return the fallback string inside the "
+"{…}.<br><li><strong>%p</strong> Current playback time. The result is a "
+"string of the form “HH:MM:SS”.<br><li><strong>%P</strong> Similar to %p, but "
+"extended with the playback time in milliseconds “HH:MM:SS.mmm”."
+"<br><li><strong>%wX</strong> Specify the current playback time using the "
+"format string X.<br>Valid format specifiers:<br><ul><li><strong>%wH</strong> "
+"hour (padded with 0 to two digits)</li><li><strong>%wh</strong> hour (not "
+"padded)</li><li><strong>%wM</strong> minutes (00–59)</li><li><strong>%wm</"
+"strong> total minutes (includes hours, unlike %wM)</li><li><strong>%wS</"
+"strong> seconds (00–59)</li><li><strong>%ws</strong> total seconds (includes "
+"hours and minutes)</li><li><strong>%wf</strong> like %ws, but as float</"
+"li><li><strong>%wT</strong> milliseconds (000–999)</li><li><strong>%%</"
+"strong> Replaced with the % character itself.</li></ul><br>"
+msgstr ""
+"Визначає шаблон назв файлів для зберігання знімків екрана. Шаблон визначає "
+"назву файла без суфікса і може містити специфікатори формату, підставляння "
+"даних для яких відбуватиметься під час збереження. Типовим форматом є «%F-"
+"%n». <br>Шаблон може розпочинатися з відносного або абсолютного шляхів, щоб "
+"можна було вказати розташування каталогу, у якому мають зберігатися знімки "
+"екрана.<br>Якщо отримана назва файла збігатиметься із назвою наявного файла, "
+"вміст файла не буде перезаписано. Знімок екрана або не буде збережено, або, "
+"якщо у шаблоні міститься %n, буде збережено із іншою, наново створеною "
+"назвою файла.<br>Повний опис можна знайти тут: <a href='https://mpv.io/"
+"manual/stable/#options-screenshot-template'>https://mpv.io/manual/stable/"
+"#options-screenshot-template</a><br><br><strong>Дозволені специфікатори "
+"формату:</strong><br><ul><li><strong>%[#][0X]n</strong> — номер у "
+"послідовності із доповненням нулями до довжини X.<br><li><strong>%f</strong> "
+"— назва файла поточного відтворюваного відео.<br><li><strong>%F</strong> — "
+"те саме, що і %f, але без суфікса назви.<br><li><strong>%x</strong> — шлях "
+"до каталогу поточного відтворюваного відео. Якщо відео не перебуває у "
+"файловій системі (адреси http://), буде розгорнуто у порожній рядок."
+"<br><li><strong>%X{резерв}</strong> — те саме, що і %x, але якщо відео не "
+"перебуває у файловій системі, повертає резервний рядок у дужках {...}."
+"<br><li><strong>%p</strong> — поточний час відтворення. Результатом є рядок "
+"у формі «ГГ:ХХ:СС».<br><li><strong>%P</strong> — те саме, що і %p, але із "
+"розширенням запису часу шляхом додавання мілісекунд, «ГГ:ХХ:СС.ммм»."
+"<br><li><strong>%wX</strong> — визначити поточний час відтворення за "
+"допомогою рядка форматування X.<br>Чинні специфікатори формату:"
+"<br><ul><li><strong>%wH</strong> — години (із доповненням 0 до двох цифр)</"
+"li><li><strong>%wh</strong> — години (без доповнення)</li><li><strong>%wM</"
+"strong> — хвилини (00-59)</li><li><strong>%wm</strong> — загалом хвилин (із "
+"годинами, на відміну від %wM)</li><li><strong>%wS</strong> — секунди "
+"(00-59)</li><li><strong>%ws</strong> — загалом секунд (разом із годинами і "
+"хвилинами)</li><li><strong>%wf</strong> — подібно до %ws, але у форматі "
+"дійсного числа</li><li><strong>%wT</strong> — мілісекунди (000-999)</"
+"li><li><strong>%%</strong> — буде замінено самим символом %.</li></ul><br>"
+
+#: src/qml/Settings/VideoSettings.qml:195
+msgctxt "@title"
+msgid "Image adjustments"
+msgstr "Коригування зображення"
+
+#: src/qml/Settings/VideoSettings.qml:205
+msgctxt "@label:slider"
+msgid "Contrast"
+msgstr "Контрастність"
+
+#: src/qml/Settings/VideoSettings.qml:224
+msgctxt "@label:slider"
+msgid "Brightness"
+msgstr "Яскравість"
+
+#: src/qml/Settings/VideoSettings.qml:243
+msgctxt "@label:slider"
+msgid "Gamma"
+msgstr "Гамма"
+
+#: src/qml/Settings/VideoSettings.qml:262
+msgctxt "@label:slider"
+msgid "Saturation"
+msgstr "Насиченість"
+
+#: src/qml/Settings/VideoSettings.qml:278
+msgctxt "@info"
+msgid "Middle click on the sliders to reset them"
+msgstr ""
+"Клацніть середньою кнопкою миші на повзунках, щоб відновити типові значення"
+
+#: src/youtube/youtube.cpp:80
+#, kde-format
+msgctxt "@info:tooltip; error when yt-dlp fails to get playlist"
+msgid ""
+"Could not retrieve playlist with id: %1\n"
+"\n"
+"%2"
+msgstr ""
+"Не вдалося отримати список відтворення з таким ідентифікатором: %1\n"
+"\n"
+"%2"
+
+#~ msgctxt "@label:button track no"
+#~ msgid "Track No"
+#~ msgstr "Номер композиції"
+
+#~ msgctxt "@info:tooltip show blank"
+#~ msgid ""
+#~ "Hide this group property in the <br> section label when it is empty <br> "
+#~ "or not unique."
+#~ msgstr ""
+#~ "Приховувати цю властивість групи у <br> мітці розділу, якщо вона порожня "
+#~ "<br> або не є унікальною."
+
+#~ msgctxt "@info:tooltip hide blank"
+#~ msgid ""
+#~ "Show the group property in the <br> section label even if it is empty."
+#~ msgstr ""
+#~ "Показувати цю властивість групи у <br> мітці розділу, навіть якщо вона "
+#~ "порожня."
+
+#~ msgctxt "@action:button"
+#~ msgid "Advanced…"
+#~ msgstr "Додатково…"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "None"
+#~ msgstr "Немає"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "File Name"
+#~ msgstr "Назва файла"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Title"
+#~ msgstr "Заголовок"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Duration"
+#~ msgstr "Тривалість"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Modified Date"
+#~ msgstr "Дата зміни"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "File Size"
+#~ msgstr "Розмір файла"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Track No"
+#~ msgstr "Номер композиції"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Sample Rate"
+#~ msgstr "Частота дискретизації"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Bitrate"
+#~ msgstr "Бітова швидкість"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid ""
+#~ "Playlist items will be grouped by the active <br>properties in the "
+#~ "provided order and each group <br>is sorted within by the primary sort "
+#~ "configuration set above."
+#~ msgstr ""
+#~ "Пункти списку відтворення буде згруповано за активними <br>властивостями "
+#~ "у вказаному порядку, а кожну групу <br>буде впорядкованою за параметрами "
+#~ "упорядкування основної групи, встановленими вище."
+
+#~ msgctxt "@label availabe grouping properties"
+#~ msgid "Available Groups"
+#~ msgstr "Доступні групи"
+
+#~ msgctxt "@label active grouping properties"
+#~ msgid "Active Groups:"
+#~ msgstr "Активні групи:"
+
+#~ msgctxt "@action:button"
+#~ msgid "Name, descending"
+#~ msgstr "Назва, за спаданням"
+
+#~ msgctxt "@label:textbox"
+#~ msgid "Config folder"
+#~ msgstr "Тека налаштувань"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Open config folder"
+#~ msgstr "Відкрити теку налаштувань"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Open custom commands config file"
+#~ msgstr "Відкрити нетиповий файл налаштувань команд"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Set default value"
+#~ msgstr "Встановити типове значення"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Remove mouse button action"
+#~ msgstr "Вилучити дію у відповідь на керування мишею"
+
+#~ msgctxt "@title:window"
+#~ msgid "Edit mouse button action"
+#~ msgstr "Зміна дії у відповідь на керування мишею"
+
+#~ msgctxt "@option:check"
+#~ msgid "Use Breeze icon theme"
+#~ msgstr "Використовувати тему піктограм Breeze"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Sets the icon theme to breeze.<br>Requires restart."
+#~ msgstr ""
+#~ "Встановити використання тему піктограм Breeze.<br>Потребує перезапуску "
+#~ "програми."
+
+#~ msgctxt "@action:button"
+#~ msgid "Open Playlist"
+#~ msgstr "Відкрити список відтворення"
+
+#~ msgctxt "@action:button"
+#~ msgid "Random"
+#~ msgstr "Випадково"
+
+#~ msgctxt "@item:listbox the playback behavior of the playlist"
+#~ msgid "Random"
+#~ msgstr "Випадково"
+
+#~ msgctxt "@option:check"
+#~ msgid "Autoplay"
+#~ msgstr "Автовідтворення"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "When checked the next video will play automatically"
+#~ msgstr "Якщо позначено, наступне відео відтворюватиметься автоматично"
+
+#~ msgctxt "@label:textbox"
+#~ msgid "File dialog location"
+#~ msgstr "Місце для вікна роботи з файлами"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid ""
+#~ "The default location of the open file dialog. If empty, the file dialog "
+#~ "will try to open to the last opened location."
+#~ msgstr ""
+#~ "Типове розташування діалогового вікна відкриття файлів. Якщо порожнє, "
+#~ "програма спробує відкрити діалогове вікно відкриття файлів в останній "
+#~ "використаній позиції."
+
+#~ msgctxt "@title:window select mouse button action"
+#~ msgid "Select action"
+#~ msgstr "Вибрати дію"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "The number of recent files to store. Enter 0 (zero) to disable."
+#~ msgstr ""
+#~ "Кількість записів нещодавніх файлів, які слід зберігати. Вкажіть 0 "
+#~ "(нуль), щоб вимкнути зберігання."
+
+#~ msgctxt "@title"
+#~ msgid "Double Click to Set Action"
+#~ msgstr "Подвійне клацання для встановлення дії"
+
+#~ msgctxt "@info:shell"
+#~ msgid "bestvideo+bestaudio/best"
+#~ msgstr "bestvideo+bestaudio/best"
+
+#~ msgctxt "@action"
+#~ msgid "Audio Cycle Down"
+#~ msgstr "Нижче у циклі звуку"
+
+#~ msgctxt "@action"
+#~ msgid "Playback Speed Increase"
+#~ msgstr "Збільшити швидкість відтворення"
+
+#~ msgctxt "@action"
+#~ msgid "Playback Speed Decrease"
+#~ msgstr "Зменшити швидкість відтворення"
+
+#~ msgctxt "@action"
+#~ msgid "Playback Speed Reset"
+#~ msgstr "Відновити початкову швидкість відтворення"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Toggle"
+#~ msgstr "Увімкнути або вимкнути субтитри"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Move Up"
+#~ msgstr "Пересунути субтитри вище"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Move Down"
+#~ msgstr "Пересунути субтитри нижче"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Quicken"
+#~ msgstr "Пришвидшення субтитрів"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Delay"
+#~ msgstr "Затримка субтитрів"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Cycle Up"
+#~ msgstr "Вище у циклі субтитрів"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Cycle Down"
+#~ msgstr "Нижче у циклі субтитрів"
+
+#~ msgctxt "@action"
+#~ msgid "Video Move Down"
+#~ msgstr "Пересунути відео нижче"
+
+#~ msgctxt "@action"
+#~ msgid "Zoom Reset"
+#~ msgstr "Відновити початковий масштаб"
+
+#~ msgctxt "@action"
+#~ msgid "Contrast Up"
+#~ msgstr "Збільшити контрастність"
+
+#~ msgctxt "@action"
+#~ msgid "Contrast Down"
+#~ msgstr "Зменшити контрастність"
+
+#~ msgctxt "@action"
+#~ msgid "Contrast Reset"
+#~ msgstr "Скинути контрастність"
+
+#~ msgctxt "@action"
+#~ msgid "Brightness Up"
+#~ msgstr "Збільшити яскравість"
+
+#~ msgctxt "@action"
+#~ msgid "Brightness Down"
+#~ msgstr "Зменшити яскравість"
+
+#~ msgctxt "@action"
+#~ msgid "Brightness Reset"
+#~ msgstr "Скинути яскравість"
+
+#~ msgctxt "@action"
+#~ msgid "Gamma Up"
+#~ msgstr "Збільшити гамму"
+
+#~ msgctxt "@action"
+#~ msgid "Gamma Down"
+#~ msgstr "Зменшити гамму"
+
+#~ msgctxt "@action"
+#~ msgid "Gamma Reset"
+#~ msgstr "Скинути гамму"
+
+#~ msgctxt "@action"
+#~ msgid "Saturation Up"
+#~ msgstr "Збільшити насиченість"
+
+#~ msgctxt "@action"
+#~ msgid "Saturation Down"
+#~ msgstr "Зменшити насиченість"
+
+#~ msgctxt "@action"
+#~ msgid "Saturation Reset"
+#~ msgstr "Скинути насиченість"
+
+#~ msgctxt "placeholder text"
+#~ msgid "eng, ger etc."
+#~ msgstr "eng, ger тощо."
+
+#~ msgctxt "placeholder text"
+#~ msgid "add volume +10"
+#~ msgstr "add volume +10"
+
+#~ msgctxt "placeholder text"
+#~ msgid "Filename: ${filename}"
+#~ msgstr "Назва файла: ${filename}"
+
+#~ msgctxt "@label:textbox"
+#~ msgid "Skip words"
+#~ msgstr "Пропустити зі словами"
+
+#~ msgctxt "placeholder text"
+#~ msgid "bestvideo+bestaudio/best"
+#~ msgstr "bestvideo+bestaudio/best"
+
+#~ msgctxt "@action:button"
+#~ msgid "Add ..."
+#~ msgstr "Додати…"
+
+#~ msgctxt "@action:button"
+#~ msgid "Url"
+#~ msgstr "Адреса"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Trash file"
+#~ msgstr "Пересунути файл до смітника"
+
+#~ msgctxt "@action"
+#~ msgid "Custom commands"
+#~ msgstr "Нетипові команди"
+
+#~ msgctxt "@option:check"
+#~ msgid "Enabled"
+#~ msgstr "Увімкнено"
+
+#~ msgctxt "@label:spinbox"
+#~ msgid "Resume playback"
+#~ msgstr "Відновлювати відтворення"
+
+#~ msgctxt "@info:tooltip seek to last playback position setting"
+#~ msgid ""
+#~ "When opening a file that was played before, seek at the position it was "
+#~ "last time."
+#~ msgstr ""
+#~ "При відкритті файла, який ви прослуховували раніше, виконувати "
+#~ "позиціювання на позицію, на якій було востаннє зупинено відтворення."
+
+#~ msgctxt "@info:tooltip start playing setting"
+#~ msgid ""
+#~ "When resuming playback and seeking to last playback position, start "
+#~ "playing it automatically."
+#~ msgstr ""
+#~ "При відкритті файла, який ви прослуховували раніше, розпочинати "
+#~ "відтворення автоматично."
+
+#~ msgctxt "@label:spinbox"
+#~ msgid "Autoload subtitles"
+#~ msgstr "Автоматичне довантаження субтитрів"
+
+#~ msgctxt "@info"
+#~ msgid "Disabled"
+#~ msgstr "Вимкнено"
+
+#~ msgctxt "@info"
+#~ msgid "For all files"
+#~ msgstr "Для усіх файлів"
+
+#~ msgctxt "@action"
+#~ msgid "Configure"
+#~ msgstr "Налаштувати"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Subtitles function on"
+#~ msgstr "Субтитри увімкнено"
+
+#~ msgctxt "@action:intoolbar"
+#~ msgid "Help"
+#~ msgstr "Довідка"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Haruna help window (english only)"
+#~ msgstr "Вікно довідки Haruna (лише англійською)"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Haruna handbook"
+#~ msgstr "Підручник з Haruna"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Don't set on next startup"
+#~ msgstr "Не встановлювати при наступному запуску"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid ""
+#~ "This is also used for mouse wheel seeking, when mouse is over the "
+#~ "progress bar"
+#~ msgstr ""
+#~ "Використовується також для позиціювання за допомогою коліщатка миші, коли "
+#~ "вказівник миші перебуває над смужкою поступу"
+
+#~ msgctxt "@label:spinbox"
+#~ msgid "Remember time position"
+#~ msgstr "Запам'ятати останню позицію"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Skip chapters containing these words. Comma separated list."
+#~ msgstr ""
+#~ "Пропустити розділи, що містять вказані слова. Слова у списку слід "
+#~ "відокремлювати комами."
+
+#~ msgctxt "@title:window"
+#~ msgid "Help"
+#~ msgstr "Довідка"
+
+#~ msgctxt "@title"
+#~ msgid "A configurable media player."
+#~ msgstr "Придатний до налаштовування мультимедійний програвач."
+
+#~ msgctxt "@title:menu"
+#~ msgid "&Primary Track"
+#~ msgstr "&Основна доріжка"
+
+#~ msgctxt "@info"
+#~ msgid "Playlist is empty"
+#~ msgstr "Список відтворення порожній"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Do not use spaces."
+#~ msgstr "Не використовувати проміжків."
+
+#~ msgctxt "@action"
+#~ msgid "Video pan y up"
+#~ msgstr "Панорамування відео вертикально вгору"
+
+#~ msgctxt "@action"
+#~ msgid "Video pan y down"
+#~ msgstr "Панорамування відео вертикально вниз"
+
+#~ msgctxt "@info"
+#~ msgid "<a href=\"https://youtube-dl.org\">Youtube-dl</a> was not found."
+#~ msgstr "<a href=\"https://youtube-dl.org\">Youtube-dl</a> не знайдено."
+
+#~ msgctxt "@info"
+#~ msgid "No title found for url %1"
+#~ msgstr "Для адреси %1 не знайдено заголовка"
+
+#~ msgctxt "@info reason for blocking sleep and screen slocking"
+#~ msgid "Playing video"
+#~ msgstr "Відтворення відео"
+
+#~ msgctxt "@action:button"
+#~ msgid "Add file"
+#~ msgstr "Додати файл"
+
+#~ msgctxt "@action:button"
+#~ msgid "Add url"
+#~ msgstr "Додати адресу"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Used for music files that don't have a video track, "
+#~ msgstr "Буде використано для музичних файлів, у яких немає відеодоріжки, "
+
+#~ msgid "Toggle Playlist"
+#~ msgstr "Перемкнути список відтворення"
+
+#~ msgid "Leave empty for default value: <i>bestvideo+bestaudio/best</i>"
+#~ msgstr ""
+#~ "Не заповнюйте, щоб використати типове значення: <i>bestvideo+bestaudio/"
+#~ "best</i>"
+
+#~ msgid "Subtitle color"
+#~ msgstr "Колір субтитрів"
+
+#~ msgid "Configure shortcuts"
+#~ msgstr "Налаштувати скорочення"
+
+#~ msgid "Move one frame forward, then pause"
+#~ msgstr "Перехід на один кадр вперед, призупинення відтворення"
+
+#~ msgid "Move one frame backward, then pause"
+#~ msgstr "Перехід на один кадр назад, призупинення відтворення"
+
+#~ msgid "Cycle Subtitle Down"
+#~ msgstr "Зациклити субтитри нижче"
+
+#~ msgid "Unmute"
+#~ msgstr "Увімкнути звук"
+
+#~ msgid "Video pan x: %1"
+#~ msgstr "Панорамування відео за x: %1"
+
+#~ msgid "Video pan y: %1"
+#~ msgstr "Панорамування відео за y: %1"
+
+#~ msgid "Type to filter..."
+#~ msgstr "Введіть щось для фільтрування…"
+
+#~ msgid "Startup"
+#~ msgstr "Запуск"
+
+#~ msgid "For files longer than %1 minutes"
+#~ msgstr "Для файлів із тривалістю відтворення, яка більше за %1 хвилин"
+
+#~ msgid "Show header"
+#~ msgstr "Показати смужку меню"
+
+#~ msgid "Volume"
+#~ msgstr "Гучність"
+
+#~ msgid "File default dialog location"
+#~ msgstr "Місце для вікна роботи з файлами"
+
+#~ msgid "File dialog last location"
+#~ msgstr "Останнє місце для вікна роботи з файлами"
+
+#~ msgid "Last url"
+#~ msgstr "Остання адреса"
+
+#~ msgid "Action for left click"
+#~ msgstr "Дія для клацання лівою кнопкою"
+
+#~ msgid "Action for middle click"
+#~ msgstr "Дія для подвійного клацання середньою кнопкою"
+
+#~ msgid "Action for middle double click"
+#~ msgstr "Дія для клацання середньою кнопкою"
+
+#~ msgid "Action for right click"
+#~ msgstr "Дія для клацання правою кнопкою"
+
+#~ msgid "Action for right double click"
+#~ msgstr "Дія для подвійного клацання правою кнопкою"
+
+#~ msgid "Action for scroll up"
+#~ msgstr "Дія для гортання вгору"
+
+#~ msgid "Chapters to skip"
+#~ msgstr "Розділи, які слід пропустити"
+
+#~ msgid "Show osd on skip chapters"
+#~ msgstr "Показувати екранну панель при пропусканні розділів"
+
+#~ msgid "Ytdl format selection"
+#~ msgstr "Вибір формату Ytdl"
+
+#~ msgid "Screenshot format"
+#~ msgstr "Формат знімків вікон"
+
+#~ msgid "Haruna Settings"
+#~ msgstr "Параметри Haruna"
+
+#~ msgid "Show Menu Bar"
+#~ msgstr "Показати смужку меню"
+
+#~ msgid "Help!"
+#~ msgstr "Довідка!"
+
+#~ msgid "KHelpCenter"
+#~ msgstr "KHelpCenter"
+
+#~ msgid "Separate words with a comma"
+#~ msgstr "Слова слід розділяти комами"

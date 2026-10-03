@@ -21,6 +21,8 @@ Kirigami.ApplicationWindow {
     // Do not use Map, it crashes very frequently
     property var pageCache: Object.create(null)
 
+    modality: Qt.WindowModal
+
     pageStack {
         columnView.columnWidth: Kirigami.Units.gridUnit * 13
 
@@ -58,16 +60,15 @@ Kirigami.ApplicationWindow {
                 Layout.fillWidth: true
                 Layout.preferredHeight: pageStack.globalToolBar.preferredHeight
 
-                leftPadding: 3
-                rightPadding: 3
-                topPadding: 3
-                bottomPadding: 3
-
                 visible: !Kirigami.Settings.isMobile
 
-                contentItem: Kirigami.SearchField {
-                    Layout.fillWidth: true
+                Kirigami.SearchField {
                     onTextChanged: listview.filterText = text.toLowerCase();
+                    anchors {
+                        verticalCenter: parent.verticalCenter
+                        left: parent.left
+                        right: parent.right
+                    }
                 }
             }
 
@@ -123,6 +124,10 @@ Kirigami.ApplicationWindow {
                             const page = pageForModule(modelData);
                             if (ListView.view.currentIndex === settingDelegate.index) {
                                 return;
+                            }
+
+                            while (root.pageStack.length > 1) {
+                                root.pageStack.pop(null);
                             }
                             root.pageStack.replace(page);
 

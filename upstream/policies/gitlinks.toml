@@ -456,3 +456,43 @@ path = "third-party/urlparse"
 upstream_commit = "59b068a7618a256c6823b0b9801b61d1d04677a3"
 action = "exclude"
 reason = "URL parser for nghttp2's command-line applications; MattOS builds only libnghttp2 (ENABLE_LIB_ONLY), which never compiles third-party/."
+
+[[component]]
+name = "libplacebo"
+upstream_commit = "cee9b076f2c63104ccfd497fa79c39a867293ec4"
+
+[[component.gitlink]]
+path = "3rdparty/Vulkan-Headers"
+upstream_commit = "450bd2232225d6c7728a4108055ac2e37cef6475"
+action = "exclude"
+reason = "MattOS builds libplacebo without its Vulkan renderer (-Dvulkan=disabled); Vulkan headers are the separately pinned vulkan-headers component where needed."
+
+[[component.gitlink]]
+path = "3rdparty/fast_float"
+upstream_commit = "97b54ca9e75f5303507699d27c6b4f4efe4641a1"
+action = "exclude"
+reason = "Optional: convert.cc falls back to the C library's number parsing when fast_float is absent."
+
+[[component.gitlink]]
+path = "3rdparty/glad"
+upstream_commit = "73db193f853e2ee079bf3ca8a64aa2eaf6459043"
+action = "exclude"
+reason = "Only the OpenGL renderer's generated loader uses glad; MattOS builds libplacebo with -Dopengl=disabled (mpv renders through its own OpenGL backend for libmpv)."
+
+[[component.gitlink]]
+path = "3rdparty/jinja"
+upstream_commit = "15206881c006c79667fe5154fe80c01c65410679"
+action = "exclude"
+reason = "Build-time template engine for the disabled Vulkan and OpenGL loader generators."
+
+[[component.gitlink]]
+path = "3rdparty/markupsafe"
+upstream_commit = "297fc8e356e6836a62087949245d09a28e9f1b13"
+action = "exclude"
+reason = "Jinja dependency; see 3rdparty/jinja."
+
+[[component.gitlink]]
+path = "demos/3rdparty/nuklear"
+upstream_commit = "242f35efa067a46c595645eeda7b1771ea1f83b1"
+action = "exclude"
+reason = "Demo programs are not built."

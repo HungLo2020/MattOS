@@ -1,0 +1,5 @@
+schema_version = 1
+component = "fribidi"
+upstream_commit = "b93119f5fdc7ea47672cc304c1455ffa6dfe7536"
+retained_paths = ["meson.build", "meson_options.txt", "gen.tab", "lib", "COPYING", "AUTHORS", "README.md", "NEWS", "THANKS", "fribidi.pc.in"]
+reason = "Retain the Meson build of the GNU FriBidi library and its Unicode table generators that libass links; omit the conformance test data, the fribidi command-line program, documentation and the Autotools build, none of which the library build reads."

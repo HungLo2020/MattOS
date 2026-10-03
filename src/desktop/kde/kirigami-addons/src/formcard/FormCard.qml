@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Layouts
 
 import org.kde.kirigami as Kirigami
@@ -48,6 +49,18 @@ Item {
     default property alias delegates: internalColumn.data
 
     /*!
+       \brief Whether to insert a FormDelegateSeparator between visible delegates.
+
+       This also works for delegates created by a Repeater. Do not add explicit
+       separators when this property is enabled.
+
+       \default false
+     */
+    property bool autoSeparators: false
+
+    readonly property list<Item> _visibleDelegates: internalColumn.visibleChildren.filter(child => child.height !== 0)
+
+    /*!
        \brief The maximum width of the card.
 
        This can be set to a specific value to force its delegates to wrap
@@ -83,33 +96,16 @@ Item {
      */
     readonly property bool cardWidthRestricted: root.width > root.maximumWidth
 
-    Kirigami.Theme.colorSet: Kirigami.Theme.View
-    Kirigami.Theme.inherit: false
-
     Layout.fillWidth: true
 
     implicitHeight: topPadding + bottomPadding + internalColumn.implicitHeight + rectangle.borderWidth * 2
+    implicitWidth: visible ? leftPadding + rightPadding + internalColumn.implicitWidth + rectangle.borderWidth * 2 : 0.0
 
-    Kirigami.ShadowedRectangle {
+    Private.FormCardBackground {
         id: rectangle
 
-        readonly property real borderWidth: 1
-        readonly property bool isDarkColor: {
-            const temp = Qt.darker(Kirigami.Theme.backgroundColor, 1);
-            return temp.a > 0 && getDarkness(Kirigami.Theme.backgroundColor) >= 0.4;
-        }
-
-        // only have card radius if it isn't filling the entire width
-        radius: root.cardWidthRestricted ? Kirigami.Units.cornerRadius : 0
-        color: Kirigami.Theme.backgroundColor
-
-        function getDarkness(background: color): real {
-            // Thanks to Gojir4 from the Qt forum
-            // https://forum.qt.io/topic/106362/best-way-to-set-text-color-for-maximum-contrast-on-background-color/
-            var temp = Qt.darker(background, 1);
-            var a = 1 - ( 0.299 * temp.r + 0.587 * temp.g + 0.114 * temp.b);
-            return a;
-        }
+        // Only have card radius if it isn't filling the entire width.
+        rounded: root.cardWidthRestricted
 
         anchors {
             top: parent.top
@@ -121,23 +117,16 @@ Item {
             rightMargin: root.cardWidthRestricted ? Math.round((root.width - root.maximumWidth) / 2) : -1
         }
 
-        border {
-            color: isDarkColor ? Qt.darker(Kirigami.Theme.backgroundColor, 1.2) : Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, 0.15)
-            width: borderWidth
-        }
-
-        shadow {
-            size: isDarkColor ? Kirigami.Units.smallSpacing : Kirigami.Units.largeSpacing
-            color: Qt.alpha(Kirigami.Theme.textColor, 0.10)
-        }
-
         ColumnLayout {
             id: internalColumn
 
-            // used in FormDelegateBackground to determine whether to round corners of the background
-            readonly property bool _roundCorners: root.cardWidthRestricted
+            // Shared geometry for the delegate backgrounds in this card.
+            readonly property real _cornerRadius: root.cardWidthRestricted ? Kirigami.Units.cornerRadius : 0
+            readonly property list<Item> _visibleItems: visibleChildren.filter(child => child.height !== 0)
+            readonly property Item _firstVisibleItem: _visibleItems[0] ?? null
+            readonly property Item _lastVisibleItem: _visibleItems[_visibleItems.length - 1] ?? null
 
-            spacing: 0
+            spacing: root.autoSeparators && separatorRepeater.count > 0 ? separatorRepeater.itemAt(0).implicitHeight : 0
 
             // add 1 to margins to account for the border (so content doesn't overlap it)
             anchors {
@@ -146,6 +135,27 @@ Item {
                 rightMargin: root.rightPadding + rectangle.borderWidth
                 topMargin: root.topPadding + rectangle.borderWidth
                 bottomMargin: root.bottomPadding + rectangle.borderWidth
+            }
+        }
+
+        Repeater {
+            id: separatorRepeater
+
+            model: root.autoSeparators ? Math.max(0, root._visibleDelegates.length - 1) : 0
+
+            FormDelegateSeparator {
+                required property int index
+
+                objectName: "automaticSeparator"
+
+                above: root._visibleDelegates[index] ?? null
+                below: root._visibleDelegates[index + 1] ?? null
+                hMargins: Kirigami.Units.largeSpacing
+
+                x: internalColumn.x + hMargins
+                width: Math.max(0, internalColumn.width - 2 * hMargins)
+                height: implicitHeight
+                y: above ? internalColumn.y + above.y + above.height + (internalColumn.spacing - height) / 2 : 0
             }
         }
     }

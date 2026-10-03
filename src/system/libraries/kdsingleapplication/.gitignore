@@ -1,0 +1,7 @@
+*.pro.user
+Makefile
+.cmake/
+CMakeLists.txt.*
+/build*/
+compile_commands.json
+.cache

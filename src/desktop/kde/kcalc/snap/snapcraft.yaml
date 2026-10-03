@@ -1,0 +1,69 @@
+# SPDX-FileCopyrightText: 2023-2026 Scarlett Moore <sgmoore@kde.org>
+#
+# SPDX-License-Identifier: CC0-1.0
+---
+name: kcalc
+confinement: strict
+grade: stable
+base: core24
+adopt-info: kcalc
+apps:
+  kcalc:
+    extensions:
+      - kde-neon-6
+    common-id: org.kde.kcalc.desktop
+    desktop: usr/share/applications/org.kde.kcalc.desktop
+    command: usr/bin/kcalc
+parts:
+  kcalc:
+    parse-info:
+      - usr/share/metainfo/org.kde.kcalc.appdata.xml
+    plugin: cmake
+    build-packages:
+      - libmpfr-dev
+      - libgmp-dev
+      - docbook-xml
+      - docbook-xsl
+      - gettext
+      - libxkbcommon-dev
+      - libmpc-dev
+      - libpulse0
+    stage-packages:
+      - libmpfr6
+      - libgmp10
+      - libxkbcommon0
+      - manpages
+      - libmpc3
+    source: .
+    source-type: local
+    build-snaps:
+      - kde-qt6-core24-sdk/latest/beta
+      - kf6-core24-sdk/latest/beta
+    cmake-parameters:
+      - "--log-level=STATUS"
+      - "-DBUILD_TESTING=OFF"
+      - "-DBUILD_WITH_QT6=ON"
+      - "-DCMAKE_BUILD_TYPE=Release"
+    prime:
+      - "-usr/lib/*/cmake/*"
+      - "-usr/include/*"
+      - "-usr/share/ECM/*"
+      - "-usr/share/man/*"
+      - "-usr/bin/X11"
+      - "-usr/lib/gcc/$CRAFT_ARCH_TRIPLET_BUILD_FOR/6.0.0"
+      - "-usr/lib/aspell/*"
+      - "-usr/share/lintian"
+      - "-usr/share/kglobalaccel/org.kde.kcalc.desktop"
+  cleanup:
+    after:
+      - kcalc
+    plugin: nil
+    build-snaps:
+      - core24
+      - kf6-core24
+    override-prime: |
+      set -eux
+      for snap in "core24" "kf6-core24"
+        do
+        cd "/snap/$snap/current" && find . -type f,l -exec rm -rf "$CRAFT_PRIME/{}" \;
+      done

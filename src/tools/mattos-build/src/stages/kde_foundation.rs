@@ -2131,7 +2131,8 @@ fn build_kirigami_addons(repo_root: &Path) -> Result<()> {
         repo_root,
         "kirigami-addons",
         "src/desktop/kde/kirigami-addons",
-        &["qtdeclarative", "kconfig", "kcoreaddons", "kguiaddons", "ki18n", "kglobalaccel", "kirigami"],
+        // 1.15 also links KColorScheme, KCrash and KIconThemes.
+        &["qtdeclarative", "kconfig", "kcoreaddons", "kguiaddons", "ki18n", "kglobalaccel", "kirigami", "kcolorscheme", "kcrash", "kdbusaddons", "kiconthemes", "karchive", "kwidgetsaddons", "kconfigwidgets", "breeze-icons"],
         &["-DBUILD_TESTING=OFF", "-DBUILD_EXAMPLES=OFF"],
         "usr/lib/x86_64-linux-gnu/cmake/KF6KirigamiAddons/KF6KirigamiAddonsConfig.cmake",
     )
@@ -2195,7 +2196,8 @@ fn build_qcoro(repo_root: &Path) -> Result<()> {
             // wrappers.  Keep this target-owned instead of allowing a host
             // QCoro component to satisfy the downstream CMake lookup.
             "-DQCORO_WITH_QTDBUS=ON",
-            "-DQCORO_WITH_QTNETWORK=OFF",
+            // Discover consumes QCoro's network coroutine wrappers.
+            "-DQCORO_WITH_QTNETWORK=ON",
             "-DQCORO_WITH_QTWEBSOCKETS=OFF",
             "-DQCORO_WITH_QTQUICK=OFF",
             "-DQCORO_WITH_QML=OFF",

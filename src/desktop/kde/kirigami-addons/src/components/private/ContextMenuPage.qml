@@ -19,10 +19,12 @@ QQC2.ScrollView {
 
     required property list<T.Action> actions
     required property T.StackView stackView
-    required property KirigamiComponents.BottomDrawer drawer
+    // this is a popup but changing to T.Popup create the following error message:
+    // Cannot assign QObject* to Popup_QMLTYPE_402*
+    required property QtObject popup 
     property string title
 
-    Layout.fillWidth: true
+    QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
     property Component itemDelegate: FormCard.FormButtonDelegate {
         id: button
@@ -88,11 +90,11 @@ QQC2.ScrollView {
                     stackView: root.stackView,
                     actions: modelData.children,
                     title: modelData.text,
-                    drawer: root.drawer,
+                    popup: root.popup,
                 });
                 return;
             }
-            drawer.close();
+            root.popup.close();
         }
     }
     property Component separatorDelegate: FormCard.FormDelegateSeparator {
@@ -101,12 +103,11 @@ QQC2.ScrollView {
     }
     property Component loaderDelegate: Loader {
         property T.Action action
+        active: action.visible === undefined || action.visible
         Layout.fillWidth: item?.Layout.fillWidth ?? true
     }
 
-    Instantiator {
-        id: actionsInstantiator
-
+    property Instantiator actionsInstantiator: Instantiator {
         model: root.actions
         delegate: QtObject {
             id: delegate
@@ -115,7 +116,6 @@ QQC2.ScrollView {
             readonly property T.Action action: modelData
 
             property QtObject item: null
-            property bool isSubMenu: false
 
             Component.onCompleted: {
                 const isKirigamiAction = delegate.action instanceof Kirigami.Action;
@@ -123,7 +123,7 @@ QQC2.ScrollView {
                     item = root.separatorDelegate.createObject(null, { action: delegate.action });
                 } else if (delegate.action.displayComponent) {
                     item = root.loaderDelegate.createObject(null, {
-                        actions: delegate.action,
+                        action: delegate.action,
                         sourceComponent: action.displayComponent,
                     });
                 } else {
@@ -137,7 +137,7 @@ QQC2.ScrollView {
     ColumnLayout {
         id: columnLayout
 
-        width: root.availableWidth
         spacing: 0
+        width: root.availableWidth
     }
 }

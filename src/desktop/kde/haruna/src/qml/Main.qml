@@ -1,0 +1,555 @@
+/*
+ * SPDX-FileCopyrightText: 2020 George Florea Bănuș <georgefb899@gmail.com>
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Dialogs
+
+import org.kde.kirigami as Kirigami
+import org.kde.config as KConfig
+
+import org.kde.haruna
+import org.kde.haruna.playlist
+import org.kde.haruna.utilities
+import org.kde.haruna.settings
+import org.kde.haruna.youtube
+
+ApplicationWindow {
+    id: window
+
+    property bool containsMouse: false
+
+    property int previousVisibility: Window.Windowed
+    property var acceptedSubtitleTypes: ["application/x-subrip", "text/x-ssa", "text/x-microdvd"]
+
+    visible: true
+    title: mpv.mediaTitle || i18nc("@title:window", "Haruna")
+    width: 1000
+    height: 600
+    minimumWidth: 400
+    minimumHeight: 200
+    color: Kirigami.Theme.backgroundColor
+
+    onVisibilityChanged: function(visibility) {
+        if (PlaybackSettings.pauseWhileMinimized) {
+            if (visibility === Window.Minimized) {
+                if (mpv.pause) {
+                    mpv.preMinimizePlaybackState = MpvVideo.PlaybackState.Paused
+                } else {
+                    mpv.preMinimizePlaybackState = MpvVideo.PlaybackState.Playing
+                }
+                mpv.pause = true
+            }
+            if (previousVisibility === Window.Minimized
+                    && visibility === Window.Windowed | Window.Maximized | Window.FullScreen) {
+                if (mpv.preMinimizePlaybackState === MpvVideo.PlaybackState.Playing) {
+                    mpv.pause = false
+                }
+            }
+        }
+
+        // used to restore window state, when exiting fullscreen,
+        // to the one it had before going fullscreen
+        if (visibility !== Window.FullScreen) {
+            previousVisibility = visibility
+        }
+    }
+
+    onClosing: {
+        const settingsWindow = settingsLoader.item as Window
+        const sortConfigWindow = advancedSortWindowLoader.item as PlaylistAdvancedSortWindow
+        settingsWindow?.close()
+        sortConfigWindow?.close()
+    }
+
+    header: Header {
+        id: header
+
+        m_mpv: mpv
+        m_menuBarLoader: menuBarLoader
+        m_recentFilesModel: recentFilesModel
+        m_settingsLoader: settingsLoader
+    }
+
+    menuBar: MenuBarLoader {
+        id: menuBarLoader
+
+        m_mpv: mpv
+        m_recentFilesModel: recentFilesModel
+        m_settingsLoader: settingsLoader
+    }
+
+    Connections {
+        target: GeneralSettings
+        function onOsdFontSizeChanged() {
+            osd.message("Test osd font size")
+        }
+        function onMaxRecentFilesChanged() {
+            recentFilesModel.getItems()
+        }
+        function onResizeWindowToVideoChanged() {
+            window.resizeWindow()
+        }
+        function onColorSchemeChanged() {
+            HarunaApp.activateColorScheme(GeneralSettings.colorScheme)
+        }
+    }
+    Connections {
+        target: AudioSettings
+        function onPreferredTrackChanged() {
+            mpv.audioId = AudioSettings.preferredTrack === 0
+                    ? "auto"
+                    : AudioSettings.preferredTrack
+        }
+        function onPreferredLanguageChanged() {
+            mpv.setProperty(MpvProperties.AudioLanguage, AudioSettings.preferredLanguage.replace(/\s+/g, ''))
+        }
+        function onReplayGainChanged() {
+            mpv.setProperty(MpvProperties.ReplayGain, AudioSettings.replayGain)
+        }
+        function onReplayGainPreampChanged() {
+            mpv.setProperty(MpvProperties.ReplayGainPreamp, AudioSettings.replayGainPreamp)
+        }
+        function onReplayGainPreventClipChanged() {
+            mpv.setProperty(MpvProperties.ReplayGainClip, !AudioSettings.replayGainPreventClip)
+        }
+        function onReplayGainFallbackChanged() {
+            mpv.setProperty(MpvProperties.ReplayGainFallback, AudioSettings.replayGainFallback)
+        }
+    }
+    Connections {
+        target: PlaybackSettings
+        function onYtdlFormatChanged() {
+            mpv.setProperty(MpvProperties.YtdlFormat, PlaybackSettings.ytdlFormat)
+        }
+        function onHWDecodingChanged() {
+            mpv.setProperty(MpvProperties.HardwareDecoding, PlaybackSettings.hWDecoding)
+        }
+    }
+    Connections {
+        target: SubtitlesSettings
+        function onAutoSelectSubtitlesChanged() {
+            mpv.selectSubtitleTrack()
+        }
+        function onPreferredLanguageChanged() {
+            mpv.setProperty(MpvProperties.SubtitleLanguage, SubtitlesSettings.preferredLanguage.replace(/\s+/g, ''))
+        }
+        function onPreferredTrackChanged() {
+            mpv.subtitleId = SubtitlesSettings.preferredTrack === 0
+                    ? "auto"
+                    : SubtitlesSettings.preferredTrack
+        }
+        function onAllowOnBlackBordersChanged() {
+            mpv.setProperty(MpvProperties.SubtitleUseMargins, SubtitlesSettings.allowOnBlackBorders ? "yes" : "no")
+            mpv.setProperty(MpvProperties.SubtitleAssForceMargins, SubtitlesSettings.allowOnBlackBorders ? "yes" : "no")
+        }
+        function onFontFamilyChanged() {
+            mpv.setProperty(MpvProperties.SubtitleFont, SubtitlesSettings.fontFamily)
+        }
+        function onFontSizeChanged() {
+            mpv.setProperty(MpvProperties.SubtitleFontSize, SubtitlesSettings.fontSize)
+        }
+        function onIsBoldChanged() {
+            mpv.setProperty(MpvProperties.SubtitleBold, SubtitlesSettings.isBold)
+        }
+        function onIsItalicChanged() {
+            mpv.setProperty(MpvProperties.SubtitleItalic, SubtitlesSettings.isItalic)
+        }
+        function onFontColorChanged() {
+            mpv.setProperty(MpvProperties.SubtitleColor, SubtitlesSettings.fontColor)
+        }
+        function onShadowColorChanged() {
+            mpv.setProperty(MpvProperties.SubtitleShadowColor, SubtitlesSettings.shadowColor)
+        }
+        function onShadowOffsetChanged() {
+            mpv.setProperty(MpvProperties.SubtitleShadowOffset, SubtitlesSettings.shadowOffset)
+        }
+        function onBorderColorChanged() {
+            mpv.setProperty(MpvProperties.SubtitleBorderColor, SubtitlesSettings.borderColor)
+        }
+        function onBorderSizeChanged() {
+            mpv.setProperty(MpvProperties.SubtitleBorderSize, SubtitlesSettings.borderSize)
+        }
+        function onBorderStyleChanged() {
+            mpv.setProperty(MpvProperties.SubtitleBorderStyle, SubtitlesSettings.borderStyle)
+        }
+    }
+    Connections {
+        target: VideoSettings
+        function onScreenshotTemplateChanged() {
+            mpv.setProperty(MpvProperties.ScreenshotTemplate, VideoSettings.screenshotTemplate)
+        }
+        function onScreenshotFormatChanged() {
+            mpv.setProperty(MpvProperties.ScreenshotFormat, VideoSettings.screenshotFormat)
+        }
+    }
+
+    Loader {
+        active: false
+        sourceComponent: KConfig.WindowStateSaver {
+            configGroupName: "MainWindow"
+        }
+        Component.onCompleted: active = GeneralSettings.rememberWindowGeometry
+    }
+
+    MpvVideo {
+        id: mpv
+
+        osd: osd
+        mouseActionsModel: mouseActionsModel
+
+        width: window.contentItem.width
+        height: window.isFullScreen()
+                ? window.contentItem.height
+                : window.contentItem.height - (footer.isFloating ? 0 : footer.height)
+        anchors.left: PlaylistSettings.overlayVideo
+                      ? window.contentItem.left
+                      : (PlaylistSettings.position === "left" ? playlist.right : window.contentItem.left)
+        anchors.right: PlaylistSettings.overlayVideo
+                       ? window.contentItem.right
+                       : (PlaylistSettings.position === "right" ? playlist.left : window.contentItem.right)
+        anchors.top: window.contentItem.top
+
+        onVideoReconfig: {
+            window.resizeWindow()
+        }
+
+        onAddToRecentFiles: function(url, openedFrom, name) {
+            recentFilesModel.addRecentFile(url, openedFrom, name)
+        }
+
+        Osd {
+            id: osd
+
+            active: mpv.isReady
+            maxWidth: mpv.width
+        }
+
+        SelectActionPopup {
+            id: triggerActionPopup
+
+            onActionSelected: function(actionName) {
+                HarunaApp.actions[actionName].trigger()
+            }
+        }
+    }
+
+    // extra space outside the playlist so that the playlist is not closed
+    // when the mouse leaves it by mistake (dragging items, resizing the playlist)
+    Item {
+        // when window width is very small, there is only 50 pixels not covered by the playlist
+        // in that case the extra space is reduced to 30 to allow the playlist to be closed with the mouse
+        width: playlist.width >= Window.window.width - 70 ? 30 : 50
+        height: playlist.height
+        anchors.right: PlaylistSettings.position === "right" ? playlist.left : undefined
+        anchors.left: PlaylistSettings.position === "left" ? playlist.right : undefined
+        visible: playlist.visible
+        HoverHandler {}
+    }
+
+    Playlist {
+        id: playlist
+
+        m_mpv: mpv
+        m_advancedSortWindowLoader: advancedSortWindowLoader
+        height: mpv.height
+        mainWindowWidth: window.width
+        fsScale: window.isFullScreen() && PlaylistSettings.bigFontFullscreen ? 1.36 : 1
+
+        Connections {
+            target: actions
+            function onTogglePlaylist() {
+                if (playlist.state === "visible") {
+                    playlist.state = "hidden"
+                } else {
+                    playlist.state = "visible"
+                }
+            }
+        }
+
+        Connections {
+            target: HarunaApp
+            function onQmlApplicationMouseLeave() {
+                if (PlaylistSettings.canToggleWithMouse && (window.isFullScreen() || window.isMaximized())) {
+                    playlist.state = "hidden"
+                }
+            }
+        }
+
+        Connections {
+            target: mpv
+            function onOpenPlaylist() {
+                playlist.state = "visible"
+            }
+            function onClosePlaylist() {
+                playlist.state = "hidden"
+            }
+        }
+    }
+
+    Footer {
+        id: footer
+
+        anchors.bottom: window.contentItem.bottom
+
+        m_mpv: mpv
+        m_menuBarLoader: menuBarLoader
+        m_header: header
+        m_recentFilesModel: recentFilesModel
+        m_settingsLoader: settingsLoader
+    }
+
+    Actions {
+        id: actions
+
+        m_actionsModel: actionsModel
+        m_mpv: mpv
+        m_mpvContextMenuLoader: mpvContextMenuLoader
+        m_osd: osd
+        m_footer: footer
+        m_settingsLoader: settingsLoader
+        m_triggerActionPopup: triggerActionPopup
+        m_openUrlPopup: openUrlPopup
+
+        onOpenFileDialog: fileDialog.open()
+        onOpenSubtitleDialog: subtitlesFileDialog.open()
+    }
+
+    MouseActionsModel {
+        id: mouseActionsModel
+    }
+
+    ActionsModel {
+        id: actionsModel
+    }
+
+    ProxyActionsModel {
+        id: proxyActionsModel
+
+        sourceModel: actionsModel
+    }
+
+    CustomCommandsModel {
+        id: customCommandsModel
+
+        appActionsModel: actionsModel
+        Component.onCompleted: init()
+    }
+
+    RecentFilesModel {
+        id: recentFilesModel
+    }
+
+    RowLayout {
+        width: window.width * 0.8 > Kirigami.Units.gridUnit * 50
+               ? Kirigami.Units.gridUnit * 50
+               : window.width * 0.8
+        anchors.centerIn: parent
+
+        Kirigami.InlineMessage {
+            id: messageBox
+
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            type: Kirigami.MessageType.Error
+            showCloseButton: true
+
+            Connections {
+                target: MiscUtils
+                function onError(message) {
+                    messageBox.visible = true
+                    messageBox.text = message
+                }
+            }
+        }
+    }
+
+    MpvContextMenu {
+        id: mpvContextMenuLoader
+
+        m_mpv: mpv
+    }
+
+    SettingsWindow {
+        id: settingsLoader
+
+        m_mpv: mpv
+        m_proxyActionsModel: proxyActionsModel
+        m_customCommandsModel: customCommandsModel
+        m_mouseActionsModel: mouseActionsModel
+    }
+
+    Loader {
+        id: advancedSortWindowLoader
+        active: false
+        asynchronous: true
+        sourceComponent: PlaylistAdvancedSortWindow {
+            m_mpv: mpv
+        }
+
+        function openSortWindow() : void {
+            if (!advancedSortWindowLoader.active) {
+                advancedSortWindowLoader.active = true
+                advancedSortWindowLoader.loaded.connect(function() {
+                    advancedSortWindowLoader.openSortWindow()
+                    advancedSortWindowLoader.item.calculatePostLayout()
+                })
+                return
+            }
+
+            const advancedSortWindow = advancedSortWindowLoader.item as PlaylistAdvancedSortWindow
+            if (advancedSortWindow.visible) {
+                advancedSortWindow.raise()
+            } else {
+                advancedSortWindow.visible = true
+            }
+        }
+    }
+
+    Connections {
+        target: HarunaApp
+        function onQmlApplicationMouseLeave() {
+            window.containsMouse = false
+        }
+        function onQmlApplicationMouseEnter() {
+            window.containsMouse = true
+        }
+        function onOpenUrl(url) {
+            if (GeneralSettings.appendVideoToSingleInstance) {
+                let behavior = GeneralSettings.playNewFileInSingleInstance
+                    ? PlaylistModel.AppendAndPlay
+                    : PlaylistModel.Append
+
+                mpv.defaultFilterProxyModel.addItem(url.toString(), behavior)
+                return
+            }
+
+            window.openFile(url, RecentFilesModel.OpenedFrom.ExternalApp)
+        }
+        function onOpenRecentFile(url) {
+            window.openFile(url, RecentFilesModel.OpenedFrom.Other)
+        }
+    }
+
+    FileDialog {
+        id: fileDialog
+
+        title: i18nc("@title:window", "Select File")
+        currentFolder: GeneralSettings.fileDialogLastLocation
+        fileMode: FileDialog.OpenFile
+
+        onAccepted: {
+            window.openFile(fileDialog.selectedFile, RecentFilesModel.OpenedFrom.OpenAction)
+            mpv.focus = true
+
+            GeneralSettings.fileDialogLastLocation = PathUtils.parentUrl(fileDialog.selectedFile)
+            GeneralSettings.save()
+        }
+        onRejected: mpv.focus = true
+        onVisibleChanged: {
+            HarunaApp.actionsEnabled = !visible
+        }
+    }
+
+    FileDialog {
+        id: subtitlesFileDialog
+
+        title: i18nc("@title:window", "Select Subtitles File")
+        currentFolder: PathUtils.parentUrl(mpv.currentUrl)
+        fileMode: FileDialog.OpenFile
+        nameFilters: ["Subtitles (*.srt *.ssa *.ass *.sub)"]
+
+        onAccepted: {
+            if (window.acceptedSubtitleTypes.includes(MiscUtils.mimeType(subtitlesFileDialog.selectedFile))) {
+                mpv.addSubtitles(subtitlesFileDialog.selectedFile)
+            }
+        }
+        onRejected: mpv.focus = true
+        onVisibleChanged: {
+            HarunaApp.actionsEnabled = !visible
+        }
+    }
+
+    YouTube {
+        id: youtube
+    }
+
+    InputPopup {
+        id: openUrlPopup
+
+        x: 10
+        y: 10
+        width: Math.min(window.width * 0.9, 600)
+        lastText: GeneralSettings.lastUrl
+        buttonText: i18nc("@action:button", "Open")
+        warningText: youtube.hasYoutubeDl()
+                     ? ""
+                     : i18nc("@info", "Neither <a href=\"https://github.com/yt-dlp/yt-dlp\">yt-dlp</a> nor <a href=\"https://github.com/ytdl-org/youtube-dl\">youtube-dl</a> was found.")
+
+        onSubmitted: function(url) {
+            window.openFile(youtube.normalizeUrl(url), RecentFilesModel.OpenedFrom.OpenAction)
+
+            GeneralSettings.lastUrl = url
+            GeneralSettings.save()
+        }
+    }
+
+    Component.onCompleted: {
+        HarunaApp.activateColorScheme(GeneralSettings.colorScheme)
+
+        const hasCommandLineFile = HarunaApp.url(0).toString() !== ""
+        const hasLastPlayedFile = GeneralSettings.lastPlayedFile !== ""
+        const hasFileToOpen = hasCommandLineFile || (PlaybackSettings.openLastPlayedFile && hasLastPlayedFile)
+        if (GeneralSettings.fullscreenOnStartUp && hasFileToOpen) {
+            toggleFullScreen()
+        }
+    }
+
+    function openFile(path: string, openedFrom: int) : void {
+        recentFilesModel.addRecentFile(path, openedFrom)
+        mpv.defaultFilterProxyModel.addItem(path, PlaylistModel.Clear)
+    }
+
+    function isFullScreen() : bool {
+        return window.visibility === Window.FullScreen
+    }
+
+    function isMaximized() : bool {
+        return window.visibility === Window.Maximized
+    }
+
+    function toggleFullScreen() : void {
+        if (!isFullScreen()) {
+            window.showFullScreen()
+        } else {
+            exitFullscreen()
+        }
+    }
+
+    function exitFullscreen() : void {
+        if (window.previousVisibility === Window.Maximized) {
+            window.show()
+            window.showMaximized()
+        } else {
+            window.showNormal()
+        }
+    }
+
+    function resizeWindow() : void {
+        if (SystemUtils.isPlatformWayland() || !GeneralSettings.resizeWindowToVideo || isFullScreen()) {
+            return
+        }
+
+        window.width = mpv.videoWidth
+        window.height = mpv.videoHeight
+                + (footer.isFloating ? 0 : footer.height)
+                + (header.visible ? header.height : 0)
+                + (menuBar.visible ? menuBar.height : 0)
+    }
+}

@@ -1,0 +1,10 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/kxmlgui5/kcalc">
+        <file>kcalcui.rc</file>
+    </qresource>
+    <qresource prefix="/kcalc">
+        <file>scienceconstants.xml</file>
+    </qresource>
+</RCC>
+

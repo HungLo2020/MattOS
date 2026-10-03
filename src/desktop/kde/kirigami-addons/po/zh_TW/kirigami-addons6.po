@@ -4,13 +4,13 @@
 # This file is distributed under the same license as the kirigami-addons package.
 #
 # Automatically generated, 2022.
-# SPDX-FileCopyrightText: 2023, 2024, 2025 Kisaragi Hiu <mail@kisaragi-hiu.com>
+# SPDX-FileCopyrightText: 2023-2026 Kisaragi Hiu <mail@kisaragi-hiu.com>
 msgid ""
 msgstr ""
 "Project-Id-Version: kirigami-addons\n"
 "Report-Msgid-Bugs-To: https://bugs.kde.org\n"
-"POT-Creation-Date: 2025-07-03 06:55+0000\n"
-"PO-Revision-Date: 2025-03-24 20:00+0900\n"
+"POT-Creation-Date: 2026-10-01 00:43+0000\n"
+"PO-Revision-Date: 2026-10-01 01:05+0900\n"
 "Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Traditional Chinese <zh-l10n@lists.slat.org>\n"
 "Language: zh_TW\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Lokalize 24.12.3\n"
+"X-Generator: Lokalize 26.11.70\n"
 
 #, kde-format
 msgctxt "NAME OF TRANSLATORS"
@@ -30,7 +30,216 @@ msgctxt "EMAIL OF TRANSLATORS"
 msgid "Your emails"
 msgstr "mail@kisaragi-hiu.com"
 
-#: components/AbstractMaximizeComponent.qml:132
+#: actions/abstractkirigamiapplication.cpp:163
+#, kde-format
+msgid "Open Command Bar"
+msgstr "開啟命令列"
+
+#: actions/abstractkirigamiapplication.cpp:185 formcard/AboutPage.qml:128
+#, kde-format
+msgid "About %1"
+msgstr "關於 %1"
+
+#: actions/abstractkirigamiapplication.cpp:192 formcard/AboutKDEPage.qml:24
+#, kde-format
+msgid "About KDE"
+msgstr "關於 KDE"
+
+#: actions/abstractkirigamiapplication.cpp:202
+#, kde-format
+msgctxt "@title:menu"
+msgid "File"
+msgstr "檔案"
+
+#: actions/abstractkirigamiapplication.cpp:209
+#, kde-format
+msgctxt "@title:menu"
+msgid "Settings"
+msgstr "設定"
+
+#: actions/abstractkirigamiapplication.cpp:222
+#, kde-format
+msgctxt "@title:menu"
+msgid "Help"
+msgstr "說明"
+
+#: actions/private/keysequencehelper.cpp:117
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Reserved Shortcut"
+msgstr "保留的捷徑"
+
+#: actions/private/keysequencehelper.cpp:119
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The F12 key is reserved on Windows, so cannot be used for a global "
+"shortcut.\n"
+"Please choose another one."
+msgstr ""
+"F12 鍵是 Windows 的保留鍵，無法做為全域捷徑。\n"
+"請另外選一個鍵。"
+
+#: actions/private/keysequencehelper.cpp:143
+#, kde-format
+msgctxt ""
+"@title:dialog This happen when a global shortcut is already defined with the "
+"same shortcut"
+msgid "Global Shortcut Shadowing"
+msgstr "全域快捷鍵覆蓋"
+
+#: actions/private/keysequencehelper.cpp:146
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination is shadowed by following global actions:\n"
+msgstr "%1 組合鍵已被以下全域動作覆蓋：\n"
+
+#: actions/private/keysequencehelper.cpp:148
+#: actions/private/keysequencehelper.cpp:154
+#, kde-format
+msgctxt "@info"
+msgid "Action '%1' in context '%2'\n"
+msgstr "內文 %2 中的動作 %1\n"
+
+#: actions/private/keysequencehelper.cpp:152
+#, kde-format
+msgctxt "@info"
+msgid "The '%1' key combination shadows following global actions:\n"
+msgstr "%1 組合鍵會覆蓋以下全域動作：\n"
+
+#: actions/private/keysequencehelper.cpp:193
+#, kde-format
+msgctxt "@title:dialog"
+msgid "Conflict with Standard Application Shortcut"
+msgstr "與標準的應用程式快捷鍵定義衝突"
+
+#: actions/private/keysequencehelper.cpp:195
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The '%1' key combination is also used for the standard action \"%2\" that "
+"some applications use.\n"
+"Do you really want to use it as a global shortcut as well?"
+msgstr ""
+"%1 組合鍵已經用於許多應用程式會用到的標準動作「%2」了。您確定要使用它做為全域"
+"的快捷鍵嗎？"
+
+#: actions/private/KeySequenceItem.qml:130
+#, kde-format
+msgctxt "What the user inputs now will be taken as the new shortcut"
+msgid "Input"
+msgstr "輸入"
+
+#: actions/private/KeySequenceItem.qml:131
+#, kde-format
+msgctxt "No shortcut defined"
+msgid "None"
+msgstr "無"
+
+#: actions/private/KeySequenceItem.qml:142
+#, kde-format
+msgid ""
+"Click on the button, then enter the shortcut like you would in the program.\n"
+"Example for Ctrl+A: hold the Ctrl key and press A."
+msgstr ""
+"點擊此按鍵，並輸入您要在程式裡做的動作。\n"
+"例如 Ctrl+A：按住 Ctrl 鍵並按 A。"
+
+#: actions/private/KeySequenceItem.qml:183
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Clear Key Sequence"
+msgstr "清除按鍵"
+
+#: actions/private/KeySequenceItem.qml:199
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel Key Sequence Recording"
+msgstr "取消按鍵記錄"
+
+#: actions/private/KQuickCommandBarPage.qml:55
+#, kde-format
+msgctxt "@info:placeholder"
+msgid "No results found"
+msgstr "找不到結果"
+
+#: actions/private/ShortcutsEditor.qml:19 actions/StatefulWindow.qml:99
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcuts"
+msgstr "快捷鍵"
+
+#: actions/private/ShortcutsEditor.qml:23
+#, kde-format
+msgctxt "@label:textbox"
+msgid "Filter…"
+msgstr "過濾…"
+
+#: actions/private/ShortcutsEditor.qml:69
+#, kde-format
+msgctxt "@title:window"
+msgid "Shortcut: %1"
+msgstr "快捷鍵：%1"
+
+#: actions/private/ShortcutsEditor.qml:89
+#, kde-format
+msgctxt "@label"
+msgid "Shortcut:"
+msgstr "快捷鍵："
+
+#: actions/private/ShortcutsEditor.qml:144
+#: actions/private/ShortcutsEditor.qml:172
+#, kde-format
+msgctxt "@label"
+msgid "Alternative:"
+msgstr "替代："
+
+#: actions/private/ShortcutsEditor.qml:210
+#, kde-format
+msgctxt "Placeholder message"
+msgid "No shortcuts found"
+msgstr "未找到快捷鍵"
+
+#: actions/shortcutsmodel.cpp:41
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr "、"
+
+#: actions/StatefulWindow.qml:109
+#, kde-format
+msgctxt "@title:window"
+msgid "About %1"
+msgstr "關於 %1"
+
+#: actions/StatefulWindow.qml:122
+#, kde-format
+msgctxt "@title:window"
+msgid "About KDE"
+msgstr "關於 KDE"
+
+#: app/kirigamiappdefaults.cpp:113 app/kirigamiappdefaults.cpp:120
+#, kde-format
+msgctxt "@title:window"
+msgid "Failed to Load Application"
+msgstr "載入應用程式失敗"
+
+#: app/kirigamiappdefaults.cpp:114
+#, kde-format
+msgctxt "@info"
+msgid ""
+"Could not load the QML application. This issue might be caused by your "
+"distribution. Please report it to your distribution first."
+msgstr ""
+"無法載入 QML 應用程式。這有可能是您的發行版的問題，請先向您的發行版回報。"
+
+#: app/kirigamiappdefaults.cpp:121
+#, kde-format
+msgctxt "@info"
+msgid "Could not load the QML application."
+msgstr "無法載入 QML 應用程式。"
+
+#: components/AbstractMaximizeComponent.qml:137
 #, kde-format
 msgid "Close"
 msgstr "關閉"
@@ -72,58 +281,66 @@ msgstr "隱藏簡短說明"
 msgid "Save as"
 msgstr "另存新檔"
 
-#: components/AlbumMaximizeComponent.qml:256
+#: components/AlbumMaximizeComponent.qml:255
 #, kde-format
 msgid "Previous image"
 msgstr "前一個影像"
 
-#: components/AlbumMaximizeComponent.qml:276
+#: components/AlbumMaximizeComponent.qml:273
 #, kde-format
 msgid "Next image"
 msgstr "下一個影像"
 
-#: components/Banner.qml:185 formcard/AboutPage.qml:502
+#: components/Banner.qml:185 formcard/AboutPage.qml:240
+#: formcard/AboutPage.qml:354 formcard/AboutPage.qml:750
 #, kde-format
 msgctxt "@action:button"
 msgid "Close"
 msgstr "關閉"
 
-#: components/ConvergentContextMenu.qml:274
+#: components/ConvergentContextMenu.qml:318
+#: components/ConvergentContextMenu.qml:428
 #, kde-format
 msgctxt "@action:button"
 msgid "Go Back"
 msgstr "返回"
+
+#: components/ConvergentContextMenu.qml:402 formcard/FormCardDialog.qml:102
+#, kde-format
+msgctxt "@action:button close dialog"
+msgid "Close"
+msgstr "關閉"
 
 #: components/DownloadAction.qml:40
 #, kde-format
 msgid "Download"
 msgstr "下載"
 
-#: components/MessageDialog.qml:99
+#: components/MessageDialog.qml:179
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Success"
 msgstr "成功"
 
-#: components/MessageDialog.qml:101 components/MessageDialog.qml:107
+#: components/MessageDialog.qml:181 components/MessageDialog.qml:187
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Warning"
 msgstr "警告"
 
-#: components/MessageDialog.qml:103
+#: components/MessageDialog.qml:183
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Error"
 msgstr "錯誤"
 
-#: components/MessageDialog.qml:105
+#: components/MessageDialog.qml:185
 #, kde-format
 msgctxt "@title:dialog"
 msgid "Information"
 msgstr "資訊"
 
-#: components/MessageDialog.qml:255
+#: components/MessageDialog.qml:311
 #, kde-format
 msgctxt "@label:checkbox"
 msgid "Do not show again"
@@ -135,13 +352,14 @@ msgctxt "@action:button"
 msgid "Volume"
 msgstr "音量"
 
-#: dateandtime/DatePopup.qml:87 dateandtime/TimePopup.qml:46
+#: dateandtime/DatePopup.qml:103 dateandtime/TimePopup.qml:70
+#: onboarding/private/OnboardingOverlay.qml:236
 #, kde-format
 msgctxt "@action:button"
 msgid "Cancel"
 msgstr "取消"
 
-#: dateandtime/DatePopup.qml:99 dateandtime/TimePopup.qml:57
+#: dateandtime/DatePopup.qml:115 dateandtime/TimePopup.qml:81
 #, kde-format
 msgctxt "@action:button"
 msgid "Select"
@@ -180,66 +398,90 @@ msgctxt "@action:button"
 msgid "Go Next"
 msgstr "下一個"
 
-#: dateandtime/TimePicker.qml:97
+#: dateandtime/TimePicker.qml:130
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset to current time"
+msgstr "回到目前時間"
+
+#: dateandtime/TimePicker.qml:155
 #, kde-format
 msgid "Hours"
 msgstr "小時"
 
-#: dateandtime/TimePicker.qml:119
+#: dateandtime/TimePicker.qml:178
 #, kde-format
 msgctxt "Time separator"
 msgid ":"
 msgstr ":"
 
-#: dateandtime/TimePicker.qml:134
+#: dateandtime/TimePicker.qml:193
 #, kde-format
 msgid "Minutes"
 msgstr "分鐘"
 
-#: formcard/aboutcomponent.cpp:25
+#: formcard/aboutcomponent.cpp:102
 #, kde-format
 msgctxt "@info Platform name"
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
-#: formcard/aboutcomponent.cpp:29
+#: formcard/aboutcomponent.cpp:106
 #, kde-format
 msgid "KDE Frameworks"
 msgstr "KDE Frameworks"
 
-#: formcard/aboutcomponent.cpp:30
+#: formcard/aboutcomponent.cpp:107
 #, kde-format
 msgctxt "@info"
 msgid "Collection of libraries created by the KDE Community to extend Qt."
 msgstr "擴展 Qt 的多個函式庫的集合，由 KDE 社群所開發。"
 
-#: formcard/aboutcomponent.cpp:35
+#: formcard/aboutcomponent.cpp:112
 #, kde-format
 msgid "Qt"
 msgstr "Qt"
 
-#: formcard/aboutcomponent.cpp:36
+#: formcard/aboutcomponent.cpp:113
 #, kde-format
 msgctxt "@info"
 msgid "Cross-platform application development framework."
 msgstr "跨平台的應用程式開發框架。"
 
-#: formcard/aboutcomponent.cpp:37
+#: formcard/aboutcomponent.cpp:114
 #, kde-format
 msgid "Using %1 and built against %2"
 msgstr "使用 %1 並建置於 %2 之上"
 
-#: formcard/aboutcomponent.cpp:41
+#: formcard/aboutcomponent.cpp:121
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Flatpak"
+msgstr "Flatpak"
+
+#: formcard/aboutcomponent.cpp:124
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "Snap"
+msgstr "Snap"
+
+#: formcard/aboutcomponent.cpp:127
+#, kde-format
+msgctxt "Linux packaging format"
+msgid "AppImage"
+msgstr "AppImage"
+
+#: formcard/aboutcomponent.cpp:130
+#, kde-format
+msgctxt "@info"
+msgid "Distribution method."
+msgstr "發佈方式。"
+
+#: formcard/aboutcomponent.cpp:134
 #, kde-format
 msgctxt "@info"
 msgid "Underlying platform."
 msgstr "基底平台。"
-
-#: formcard/AboutKDEPage.qml:24
-#: statefulapplication/abstractkirigamiapplication.cpp:174
-#, kde-format
-msgid "About KDE"
-msgstr "關於 KDE"
 
 #: formcard/AboutKDEPage.qml:50
 #, kde-format
@@ -271,7 +513,7 @@ msgstr ""
 "KDE 是個合作企業：沒有任何人操控 KDE 的目標和產品，取而代之的是一起達到建立世"
 "界上最好自由軟體的共同目標。歡迎任何人 -- 包括您。"
 
-#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:225
+#: formcard/AboutKDEPage.qml:77 formcard/AboutPage.qml:403
 #, kde-format
 msgid "Homepage"
 msgstr "首頁"
@@ -324,7 +566,7 @@ msgstr ""
 "您不需要是軟體工程師也可以成為 KDE 團隊的一份子。您可以加入翻譯團隊來翻譯程式"
 "的介面。您可以提供圖形、佈景主題、音效，或幫忙撰寫文件，看您喜歡做哪一項。"
 
-#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:253
+#: formcard/AboutKDEPage.qml:129 formcard/AboutPage.qml:419
 #, kde-format
 msgid "Get Involved"
 msgstr "參與"
@@ -362,7 +604,7 @@ msgstr ""
 "KDE 是可免費取得的，但建立 KDE 的工作並不是免費的！\n"
 "\n"
 "因此，KDE 社群組織了 KDE eV，一個在德國創辦的非營利組織。KDE e.V. 是 KDE 社群"
-"在法津和財政方面的代表。\n"
+"在法律和財政方面的代表。\n"
 "\n"
 "KDE 團隊需要各種支持，包含財政上的支持。大部分捐獻是用作補償成員和其他人在貢"
 "獻 KDE 時所用的經費，此外還有用於法律支持與大型研討會等等的經費。\n"
@@ -376,76 +618,105 @@ msgstr ""
 msgid "KDE e.V."
 msgstr "KDE e.V."
 
-#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:239
+#: formcard/AboutKDEPage.qml:173 formcard/AboutPage.qml:411
 #, kde-format
 msgid "Donate"
 msgstr "贊助"
 
-#: formcard/AboutPage.qml:91
-#: statefulapplication/abstractkirigamiapplication.cpp:167
+#: formcard/AboutPage.qml:166
 #, kde-format
-msgid "About %1"
-msgstr "關於 %1"
+msgid "What's new"
+msgstr "新功能"
 
-#: formcard/AboutPage.qml:136
+#: formcard/AboutPage.qml:196
 #, kde-format
 msgid "Copyright"
 msgstr "版權"
 
-#: formcard/AboutPage.qml:144
+#: formcard/AboutPage.qml:204
+#, kde-format
+msgid "Release history"
+msgstr "發佈歷史"
+
+#: formcard/AboutPage.qml:278
+#, kde-format
+msgid "Show older changes…"
+msgstr "顯示更舊的變更…"
+
+#: formcard/AboutPage.qml:290
 #, kde-format
 msgid "Description"
 msgstr "描述"
 
-#: formcard/AboutPage.qml:157
+#: formcard/AboutPage.qml:303
 #, kde-format
 msgid "License"
 msgid_plural "Licenses"
 msgstr[0] "授權"
 
-#: formcard/AboutPage.qml:279
+#: formcard/AboutPage.qml:439
 #, kde-format
 msgid "Report a Bug"
 msgstr "回報問題"
 
-#: formcard/AboutPage.qml:285
+#: formcard/AboutPage.qml:452
+#, kde-format
+msgid "Matrix Channel"
+msgstr "Matrix 頻道"
+
+#: formcard/AboutPage.qml:468
+#, kde-format
+msgid "Mastodon"
+msgstr "Mastodon"
+
+#: formcard/AboutPage.qml:480
+#, kde-format
+msgid "Source Code"
+msgstr "原始碼"
+
+#: formcard/AboutPage.qml:486
 #, kde-format
 msgid "Libraries in use"
 msgstr "使用函式庫"
 
-#: formcard/AboutPage.qml:288
+#: formcard/AboutPage.qml:490
 #, kde-format
 msgctxt "@action:button"
 msgid "Copy to Clipboard"
 msgstr "複製到剪貼簿"
 
-#: formcard/AboutPage.qml:292
+#: formcard/AboutPage.qml:494
 #, kde-format
 msgctxt "@info"
 msgid "System information copied to clipboard."
 msgstr "已將系統資訊複製到剪貼簿。"
 
-#: formcard/AboutPage.qml:305
+#: formcard/AboutPage.qml:509
 #, kde-format
 msgid "Authors"
 msgstr "作者群"
 
-#: formcard/AboutPage.qml:320
+#: formcard/AboutPage.qml:525
 #, kde-format
 msgid "Credits"
 msgstr "致謝"
 
-#: formcard/AboutPage.qml:335
+#: formcard/AboutPage.qml:541
 #, kde-format
 msgid "Translators"
 msgstr "翻譯者"
 
-#: formcard/AboutPage.qml:404
+#: formcard/AboutPage.qml:592
+#, kde-format
+msgid "More information"
+msgstr "更多資訊"
+
+#: formcard/AboutPage.qml:652
 #, kde-format
 msgid "Visit %1's KDE Store page"
 msgstr "造訪 %1 在 KDE Store 的頁面"
 
-#: formcard/AboutPage.qml:413
+#: formcard/AboutPage.qml:661
 #, kde-format
 msgid "Send an email to %1"
 msgstr "傳送電子郵件給 %1"
@@ -462,48 +733,133 @@ msgctxt "Accessible description"
 msgid "Current color \"%1\""
 msgstr "目前顏色「%1」"
 
-#: formcard/android/FormIconDelegate.qml:43
+#: formcard/android/FormIconDelegate.qml:19
 #, kde-format
 msgctxt "@action:button"
 msgid "Icon"
 msgstr "圖示"
 
-#: formcard/FormDateTimeDelegate.qml:202
+#: formcard/FormDateTimeDelegate.qml:227
 #, kde-format
 msgctxt "Displayed in place of the date if the selected day is today"
 msgid "Today"
 msgstr "今天"
 
-#: formcard/FormDateTimeDelegate.qml:229 formcard/FormDateTimeDelegate.qml:366
+#: formcard/FormDateTimeDelegate.qml:254 formcard/FormDateTimeDelegate.qml:399
 #, kde-format
 msgctxt "Date is not set"
 msgid "Not set"
 msgstr "未設定"
 
-#: formcard/FormLinkDelegate.qml:52
+#: formcard/FormDateTimeDelegate.qml:305 formcard/FormDateTimeDelegate.qml:415
+#, kde-format
+msgctxt "@action:button"
+msgid "Reset"
+msgstr ""
+
+#: formcard/FormFileDelegate.qml:186
+#, kde-format
+msgctxt "@info:status"
+msgid "The path doesn't exist."
+msgstr "路徑不存在。"
+
+#: formcard/FormFileDelegate.qml:195
+#, kde-format
+msgctxt "@info:status"
+msgid "The file doesn't exist."
+msgstr "檔案不存在。"
+
+#: formcard/FormFileDelegate.qml:243
+#, kde-format
+msgctxt "@action:button"
+msgid "Select file"
+msgstr "選擇檔案"
+
+#: formcard/FormFileDelegate.qml:250
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No file selected"
+msgstr "沒有選取檔案"
+
+#: formcard/FormFolderDelegate.qml:153
+#, kde-format
+msgctxt "@info:status"
+msgid "The folder doesn't exist."
+msgstr "資料夾不存在。"
+
+#: formcard/FormFolderDelegate.qml:200
+#, kde-format
+msgctxt "@action:button"
+msgid "Select folder"
+msgstr "選擇資料夾"
+
+#: formcard/FormFolderDelegate.qml:207
+#, kde-format
+msgctxt "@info:placeholderwrapMode"
+msgid "No folder selected"
+msgstr "沒有選擇任何資料夾"
+
+#: formcard/FormLinkDelegate.qml:54
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Open Link"
 msgstr "開啟連結"
 
-#: formcard/FormLinkDelegate.qml:58
+#: formcard/FormLinkDelegate.qml:60
 #, kde-format
 msgctxt "@action:inmnenu"
 msgid "Copy Link to Clipboard"
 msgstr "複製連結至剪貼簿"
 
-#: formcard/FormLinkDelegate.qml:64
+#: formcard/FormLinkDelegate.qml:66
 #, kde-format
 msgctxt "@info:status"
 msgid "Url copied to clipboard."
 msgstr "URL 已複製到剪貼簿。"
 
-#: formcard/FormPasswordFieldDelegate.qml:249
-#: formcard/FormTextAreaDelegate.qml:174 formcard/FormTextFieldDelegate.qml:271
+#: formcard/FormPasswordFieldDelegate.qml:319
+#: formcard/FormTextAreaDelegate.qml:187 formcard/FormTextFieldDelegate.qml:332
 #, kde-format
 msgctxt "@label %1 is current text length, %2 is maximum length of text field"
 msgid "%1/%2"
 msgstr "%1/%2"
+
+#: formcard/FormPasswordFieldDelegate.qml:417
+#: formcard/FormTextFieldDelegate.qml:439
+#, kde-format
+msgctxt "@action:button"
+msgid "Done"
+msgstr "完成"
+
+#: onboarding/private/OnboardingOverlay.qml:201
+#, kde-format
+msgctxt "@action:button"
+msgid "Previous"
+msgstr "上一步"
+
+#: onboarding/private/OnboardingOverlay.qml:202
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Previous"
+msgstr "上一步"
+
+#: onboarding/private/OnboardingOverlay.qml:221
+#, kde-format
+msgctxt "@action:button"
+msgid "Next"
+msgstr "下一步"
+
+#: onboarding/private/OnboardingOverlay.qml:222
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Next"
+msgstr "下一步"
+
+#: onboarding/private/OnboardingOverlay.qml:237
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Cancel"
+msgstr "取消"
 
 #: settings/CategorizedSettings.qml:46 settings/ConfigurationView.qml:83
 #, kde-format
@@ -637,166 +993,9 @@ msgctxt "@action:button"
 msgid "Spell Checking"
 msgstr "拼字檢查"
 
-#: statefulapplication/abstractkirigamiapplication.cpp:145
-#, kde-format
-msgid "Open Command Bar"
-msgstr "開啟命令列"
-
-#: statefulapplication/private/keysequencehelper.cpp:117
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Reserved Shortcut"
-msgstr "保留的捷徑"
-
-#: statefulapplication/private/keysequencehelper.cpp:119
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The F12 key is reserved on Windows, so cannot be used for a global "
-"shortcut.\n"
-"Please choose another one."
-msgstr ""
-"F12 鍵是 Windows 的保留鍵，無法做為全域捷徑。\n"
-"請另外選一個鍵。"
-
-#: statefulapplication/private/keysequencehelper.cpp:143
-#, kde-format
-msgctxt ""
-"@title:dialog This happen when a global shortcut is already defined with the "
-"same shortcut"
-msgid "Global Shortcut Shadowing"
-msgstr "全域快捷鍵覆蓋"
-
-#: statefulapplication/private/keysequencehelper.cpp:146
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination is shadowed by following global actions:\n"
-msgstr "%1 組合鍵已被以下全域動作覆蓋：\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:148
-#: statefulapplication/private/keysequencehelper.cpp:154
-#, kde-format
-msgctxt "@info"
-msgid "Action '%1' in context '%2'\n"
-msgstr "內文 %2 中的動作 %1\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:152
-#, kde-format
-msgctxt "@info"
-msgid "The '%1' key combination shadows following global actions:\n"
-msgstr "%1 組合鍵會覆蓋以下全域動作：\n"
-
-#: statefulapplication/private/keysequencehelper.cpp:193
-#, kde-format
-msgctxt "@title:dialog"
-msgid "Conflict with Standard Application Shortcut"
-msgstr "與標準的應用程式快捷鍵定義衝突"
-
-#: statefulapplication/private/keysequencehelper.cpp:195
-#, kde-format
-msgctxt "@info"
-msgid ""
-"The '%1' key combination is also used for the standard action \"%2\" that "
-"some applications use.\n"
-"Do you really want to use it as a global shortcut as well?"
-msgstr ""
-"%1 組合鍵已經用於許多應用程式會用到的標準動作「%2」了。您確定要使用它做為全域"
-"的快捷鍵嗎？"
-
-#: statefulapplication/private/KeySequenceItem.qml:129
-#, kde-format
-msgctxt "What the user inputs now will be taken as the new shortcut"
-msgid "Input"
-msgstr "輸入"
-
-#: statefulapplication/private/KeySequenceItem.qml:130
-#, kde-format
-msgctxt "No shortcut defined"
-msgid "None"
-msgstr "無"
-
-#: statefulapplication/private/KeySequenceItem.qml:141
-#, kde-format
-msgid ""
-"Click on the button, then enter the shortcut like you would in the program.\n"
-"Example for Ctrl+A: hold the Ctrl key and press A."
-msgstr ""
-"點擊此按鍵，並輸入您要在程式裡做的動作。\n"
-"例如 Ctrl+A：按住 Ctrl 鍵並按 A。"
-
-#: statefulapplication/private/KeySequenceItem.qml:182
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Clear Key Sequence"
-msgstr "清除按鍵"
-
-#: statefulapplication/private/KeySequenceItem.qml:198
-#, kde-format
-msgctxt "@info:tooltip"
-msgid "Cancel Key Sequence Recording"
-msgstr "取消按鍵記錄"
-
-#: statefulapplication/private/KQuickCommandBarPage.qml:55
-#, kde-format
-msgctxt "@info:placeholder"
-msgid "No results found"
-msgstr "找不到結果"
-
-#: statefulapplication/private/ShortcutsEditor.qml:19
-#: statefulapplication/StatefulWindow.qml:99
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcuts"
-msgstr "快捷鍵"
-
-#: statefulapplication/private/ShortcutsEditor.qml:23
-#, kde-format
-msgctxt "@label:textbox"
-msgid "Filter…"
-msgstr "過濾…"
-
-#: statefulapplication/private/ShortcutsEditor.qml:69
-#, kde-format
-msgctxt "@title:window"
-msgid "Shortcut: %1"
-msgstr "快捷鍵：%1"
-
-#: statefulapplication/private/ShortcutsEditor.qml:89
-#, kde-format
-msgctxt "@label"
-msgid "Shortcut:"
-msgstr "快捷鍵："
-
-#: statefulapplication/private/ShortcutsEditor.qml:144
-#: statefulapplication/private/ShortcutsEditor.qml:172
-#, kde-format
-msgctxt "@label"
-msgid "Alternative:"
-msgstr "替代："
-
-#: statefulapplication/private/ShortcutsEditor.qml:210
-#, kde-format
-msgctxt "Placeholder message"
-msgid "No shortcuts found"
-msgstr "未找到快捷鍵"
-
-#: statefulapplication/shortcutsmodel.cpp:41
-#, kde-format
-msgctxt "List separator"
-msgid ", "
-msgstr "、"
-
-#: statefulapplication/StatefulWindow.qml:109
-#, kde-format
-msgctxt "@title:window"
-msgid "About %1"
-msgstr "關於 %1"
-
-#: statefulapplication/StatefulWindow.qml:122
-#, kde-format
-msgctxt "@title:window"
-msgid "About KDE"
-msgstr "關於 KDE"
+#~ msgctxt "Linux packaging format"
+#~ msgid "Unknown/Default"
+#~ msgstr "未知/預設"
 
 #~ msgctxt "time in hour (PM)"
 #~ msgid "%1 PM"

@@ -1,0 +1,266 @@
+/*
+ *   SPDX-FileCopyrightText: 2015 Aleix Pol Gonzalez <aleixpol@blue-systems.com>
+ *
+ *   SPDX-License-Identifier: GPL-2.0-only OR GPL-3.0-only OR LicenseRef-KDE-Accepted-GPL
+ */
+
+import QtQuick
+import QtQuick.Controls as QQC2
+import QtQuick.Layouts
+import org.kde.discover as Discover
+import org.kde.kirigami as Kirigami
+
+Kirigami.GlobalDrawer {
+    id: drawer
+
+    property bool wideScreen: false
+    property string currentSearchText
+
+    function suggestSearchText(text) {
+        if (searchField.visible) {
+            searchField.text = text
+            forceSearchFieldFocus()
+        }
+    }
+
+    function forceSearchFieldFocus() {
+        if (searchField.visible && wideScreen) {
+            searchField.forceActiveFocus();
+        }
+    }
+
+    function createCategoryActions(categories /*list<Discover.Category>*/) /*list<Kirigami.Action>*/ {
+        const ret = []
+        for (const c of categories) {
+            const category = Discover.CategoryModel.get(c)
+            const categoryAction = categoryActionComponent.createObject(drawer, { category: category, categoryPtr: c })
+            categoryAction.children = createCategoryActions(category.subcategories)
+            ret.push(categoryAction)
+        }
+        return ret;
+    }
+    actions: createCategoryActions(Discover.CategoryModel.rootCategories)
+
+    interactiveResizeEnabled: true
+    Component.onCompleted: {
+        if (app.sidebarWidth > 0) {
+            preferredSize = app.sidebarWidth
+        } else {
+            preferredSize =  Kirigami.Units.gridUnit * 14
+        }
+    }
+
+    onPreferredSizeChanged: app.sidebarWidth = preferredSize
+
+    padding: 0
+    topPadding: undefined
+    leftPadding: undefined
+    rightPadding: undefined
+    bottomPadding: undefined
+    verticalPadding: undefined
+    horizontalPadding: undefined
+
+    resetMenuOnTriggered: false
+    modal: !drawer.wideScreen
+
+    onCurrentSubMenuChanged: {
+        if (currentSubMenu) {
+            currentSubMenu.trigger()
+        } else if (currentSearchText.length > 0) {
+            window.leftPage.category = null
+        }
+    }
+
+    header: Kirigami.AbstractApplicationHeader {
+        visible: drawer.wideScreen
+
+        contentItem: SearchField {
+            id: searchField
+
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+
+            // Give the search field keyboard focus by default, unless it would
+            // make the virtual keyboard appear, because we don't want that
+            focus: !Kirigami.InputMethod.willShowOnActive
+
+            visible: window.leftPage && (window.leftPage.searchFor !== null || window.leftPage.hasOwnProperty("search"))
+
+            page: window.leftPage
+
+            onCurrentSearchTextChanged: {
+                var curr = window.leftPage;
+
+                if (pageStack.depth > 1) {
+                    pageStack.pop()
+                }
+
+                if (currentSearchText === "" && window.currentTopLevel === "" && !window.leftPage.category) {
+                    Navigation.openHome()
+                } else if (!curr.hasOwnProperty("search")) {
+                    if (currentSearchText) {
+                        Navigation.clearStack()
+                        Navigation.openApplicationList({ search: currentSearchText })
+                    }
+                } else {
+                    curr.search = currentSearchText;
+                    curr.forceActiveFocus()
+                }
+                drawer.currentSearchText = currentSearchText
+            }
+
+            Keys.onDownPressed: featuredActionListItem.forceActiveFocus(Qt.TabFocusReason)
+        }
+    }
+
+    topContent: [
+        ActionListItem {
+            id: featuredActionListItem
+            action: featuredAction
+            visible: enabled && drawer.wideScreen
+            Keys.onUpPressed: searchField.forceActiveFocus(Qt.TabFocusReason)
+        },
+        ActionListItem {
+            action: installedAction
+            visible: enabled && drawer.wideScreen
+        },
+        ActionListItem {
+            objectName: "updateButton"
+            action: updateAction
+            visible: enabled && drawer.wideScreen
+
+            stateObject: Discover.ResourcesModel.fetchingUpdatesProgress < 100 ? updatesIcon : updatesCountLabel
+
+            Component {
+                id: updatesIcon
+
+                Kirigami.Icon {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    source: "view-refresh"
+                    implicitWidth: Kirigami.Units.iconSizes.sizeForLabels
+                    implicitHeight: Kirigami.Units.iconSizes.sizeForLabels
+                }
+            }
+
+            Component {
+                id: updatesCountLabel
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    implicitWidth: Math.max(Kirigami.Units.gridUnit * 1.5, badgeLabel.implicitWidth + Kirigami.Units.smallSpacing * 1.5)
+                    implicitHeight: badgeLabel.implicitHeight
+                    visible: Discover.ResourcesModel.updatesCount > 0
+
+                    color: Kirigami.Theme.neutralTextColor
+
+                    radius: height / 4
+                    border.width: 1
+                    border.color: Kirigami.Theme.backgroundColor
+
+                    HoverHandler { id: hoverHandler }
+
+                    QQC2.ToolTip.text: Discover.ResourcesModel.hasSecurityUpdates
+                        ? i18n("Security updates available")
+                        : i18n("Updates available")
+
+                    QQC2.ToolTip.visible: hoverHandler.hovered
+
+                    QQC2.Label {
+                        id: badgeLabel
+                        anchors.fill: parent
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+
+                        text: Discover.ResourcesModel.updatesCount
+                        color: "black"
+                        font: Kirigami.Theme.defaultFont
+                    }
+                }
+            }
+        },
+        ActionListItem {
+            action: sourcesAction
+        },
+        ActionListItem {
+            action: aboutAction
+        },
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            Layout.topMargin: Kirigami.Units.smallSpacing
+            Layout.leftMargin: Kirigami.Units.largeSpacing
+            Layout.rightMargin: Kirigami.Units.largeSpacing
+        }
+    ]
+
+    footer: QQC2.Control {
+        readonly property int transactions: Discover.TransactionModel.count
+        readonly property bool currentPageShowsTransactionProgressInline:
+               applicationWindow().pageStack.currentItem instanceof ApplicationPage
+            || applicationWindow().pageStack.currentItem instanceof ApplicationsListPage
+            || applicationWindow().pageStack.currentItem instanceof UpdatesPage
+
+        visible: transactions > 1 || (transactions === 1 && !currentPageShowsTransactionProgressInline)
+        padding: Kirigami.Units.largeSpacing
+        Kirigami.Separator {
+            Layout.fillWidth: true
+        }
+
+        contentItem: ProgressView {}
+        Kirigami.Separator {
+            anchors {
+                left:parent.left
+                top: parent.top
+                right:parent.right
+            }
+        }
+
+        states: [
+            State {
+                name: "full"
+                when: drawer.wideScreen
+                PropertyChanges { drawer.drawerOpen: true }
+            },
+            State {
+                name: "compact"
+                when: !drawer.wideScreen
+                PropertyChanges { drawer.drawerOpen: false }
+            }
+        ]
+    }
+
+    Component {
+        id: categoryActionComponent
+        Kirigami.Action {
+            required property Discover.Category category
+            required property var categoryPtr
+            readonly property var windowCategory: window?.leftPage?.category
+            readonly property bool itsMe: (windowCategory && category) ? category.contains(windowCategory) : false
+
+            text: category?.name ?? ""
+            icon.name: category?.icon + "-symbolic" ?? ""
+            checked: itsMe
+            enabled: (currentSearchText.length === 0
+                      || (category?.contains(window?.leftPage?.model?.subcategories) ?? false))
+
+            visible: category?.visible
+            onTriggered: {
+                if (!window.leftPage.canNavigate) {
+                    Navigation.openCategory(categoryPtr, currentSearchText)
+                } else {
+                    if (pageStack.depth > 1) {
+                        pageStack.pop()
+                    }
+                    pageStack.currentIndex = 0
+                    window.leftPage.category = categoryPtr
+                }
+
+                if (!drawer.wideScreen && category.subcategories.length === 0) {
+                    drawer.close();
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,19 @@
+FROM debian:trixie
+
+# prepare
+RUN apt-get update -qq
+
+# install essentials
+RUN apt-get install -yq eatmydata build-essential
+
+# install build dependencies
+RUN eatmydata apt-get install -yq --no-install-recommends \
+	cmake \
+	ninja-build \
+	packagekit \
+	pkgconf \
+	qt6-base-dev
+
+# finish
+RUN mkdir /build
+WORKDIR /build

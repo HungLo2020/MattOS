@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+SPDX-FileCopyrightText: 2016 Matthieu Gallien <matthieu_gallien@yahoo.fr>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+<component type="desktop">
+  <id>org.kde.elisa.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LGPL-3.0</project_license>
+  <developer id="org.kde">
+    <name translate="no">KDE</name>
+    <url>https://kde.org</url>
+  </developer>
+  <name>Elisa</name>
+  <name xml:lang="ar">إليسّا</name>
+  <name xml:lang="ast">Elisa</name>
+  <name xml:lang="az">Elisa</name>
+  <name xml:lang="be">Elisa</name>
+  <name xml:lang="bg">Elisa</name>
+  <name xml:lang="ca">Elisa</name>
+  <name xml:lang="ca-valencia">Elisa</name>
+  <name xml:lang="cs">Elisa</name>
+  <name xml:lang="da">Elisa</name>
+  <name xml:lang="de">Elisa</name>
+  <name xml:lang="el">Elisa</name>
+  <name xml:lang="en-GB">Elisa</name>
+  <name xml:lang="eo">Elisa</name>
+  <name xml:lang="es">Elisa</name>
+  <name xml:lang="et">Elisa</name>
+  <name xml:lang="eu">Elisa</name>
+  <name xml:lang="fi">Elisa</name>
+  <name xml:lang="fr">Elisa</name>
+  <name xml:lang="gl">Elisa</name>
+  <name xml:lang="he">אליסה</name>
+  <name xml:lang="hi">एलिसा</name>
+  <name xml:lang="hu">Elisa</name>
+  <name xml:lang="ia">Elisa</name>
+  <name xml:lang="id">Elisa</name>
+  <name xml:lang="is">Elisa</name>
+  <name xml:lang="it">Elisa</name>
+  <name xml:lang="ja">Elisa</name>
+  <name xml:lang="ka">Elisa</name>
+  <name xml:lang="ko">Elisa</name>
+  <name xml:lang="lt">Elisa</name>
+  <name xml:lang="lv">Elisa</name>
+  <name xml:lang="nl">Elisa</name>
+  <name xml:lang="nn">Elisa</name>
+  <name xml:lang="pa">ਇਲੀਸਾ</name>
+  <name xml:lang="pl">Elisa</name>
+  <name xml:lang="pt">Elisa</name>
+  <name xml:lang="pt-BR">Elisa</name>
+  <name xml:lang="ro">Elisa</name>
+  <name xml:lang="ru">Elisa</name>
+  <name xml:lang="sa">एलिसा</name>
+  <name xml:lang="sk">Elisa</name>
+  <name xml:lang="sl">Elisa</name>
+  <name xml:lang="sv">Elisa</name>
+  <name xml:lang="ta">எலைசா</name>
+  <name xml:lang="th">Elisa</name>
+  <name xml:lang="tr">Elisa</name>
+  <name xml:lang="ug">Elisa نەغمە ياڭراتقۇچ</name>
+  <name xml:lang="uk">Elisa</name>
+  <name xml:lang="zh-CN">Elisa 音乐播放器</name>
+  <name xml:lang="zh-TW">Elisa</name>
+  <summary>Play local music and listen to online radio</summary>
+  <summary xml:lang="ar">شغل الصوتيات المحلية واستمع لمحطات الإذاعة على الإنترنت</summary>
+  <summary xml:lang="bg">Възпроизвеждане на локални музикални файлове и слушане на онлайн радиостанции</summary>
+  <summary xml:lang="ca">Reproduïu música local i escolteu ràdio en línia</summary>
+  <summary xml:lang="ca-valencia">Reproduïu música local i escolteu ràdio en línia</summary>
+  <summary xml:lang="cs">Přehrávejte místní hudbu a poslouchejte online rádio</summary>
+  <summary xml:lang="da">Afspil lokal musik og lyt til onlineradioer</summary>
+  <summary xml:lang="de">Lokal gespeicherte Musik wiedergeben und Online-Radio hören</summary>
+  <summary xml:lang="en-GB">Play local music and listen to online radio</summary>
+  <summary xml:lang="eo">Ludi lokan muzikon kaj aŭskulti enretan radion</summary>
+  <summary xml:lang="es">Reproduzca música en local y escuche radios en línea</summary>
+  <summary xml:lang="eu">Musika lokala jotzea eta lerroko irrati-kateak entzutea</summary>
+  <summary xml:lang="fi">Soita paikallista musiikkia ja kuuntele verkkoradioasemia</summary>
+  <summary xml:lang="fr">Lire de la musique en local et écouter des stations de radios en ligne</summary>
+  <summary xml:lang="gl">Reproduza música local e escoite a radio por Internet</summary>
+  <summary xml:lang="he">לנגן מוזיקה מקומית ולהאזין לרדיו מקוון</summary>
+  <summary xml:lang="hu">Helyi zene lejátszása és online rádiók hallgatása</summary>
+  <summary xml:lang="ia">Reproduce musica local e ascolta stationes radio in linea</summary>
+  <summary xml:lang="is">Spilaðu tónlist og hlustaðu á netútvarp</summary>
+  <summary xml:lang="it">Riproduci musica locale e ascolta stazioni radio online</summary>
+  <summary xml:lang="ka">დაუკარით მუსიკა და მოუსმინეთ რადიოსადგურებს ინტერნეტში</summary>
+  <summary xml:lang="ko">로컬 음악 재생 및 온라인 라디오 듣기</summary>
+  <summary xml:lang="lt">Atkurti vietinę muziką ir klausytis internetinio radijo</summary>
+  <summary xml:lang="lv">Atskaņojiet ierīcē esošo mūziku un klausieties tiešsaistes radiostacijas</summary>
+  <summary xml:lang="nl">Speel lokaal muziek en luister naar online radio</summary>
+  <summary xml:lang="nn">Spel av lokal musikk og lytt på nettradio</summary>
+  <summary xml:lang="pl">Odtwarzaj muzykę lokalnie i słuchaj radia z sieci</summary>
+  <summary xml:lang="pt">Reproduzir música local e ouvir rádio pela Internet</summary>
+  <summary xml:lang="pt-BR">Reproduza músicas locais e ouça rádios online</summary>
+  <summary xml:lang="ro">Redă muzică locală și ascultă stații radio prin Internet</summary>
+  <summary xml:lang="ru">Воспроизведение хранящейся локально музыки и прослушивание интернет-радиостанций</summary>
+  <summary xml:lang="sa">स्थानीयसङ्गीतं वादयन्तु, ऑनलाइन रेडियो शृणुत च</summary>
+  <summary xml:lang="sk">Prehrávajte lokálnu hudbu a počúvajte online rádio</summary>
+  <summary xml:lang="sl">Predvajajte glasbo in poslušajte spletni radio</summary>
+  <summary xml:lang="sv">Spela lokal musik och lyssna på nätradiostationer</summary>
+  <summary xml:lang="ta">பாடல்களையும் இணைய வானொலி நிலையங்களையும் கேட்கலாம்</summary>
+  <summary xml:lang="th">เล่นเพลงบนเครื่องและฟังวิทยุออนไลน์</summary>
+  <summary xml:lang="tr">Kendi müziğinizi çalın ve çevrim içi radyo dinleyin</summary>
+  <summary xml:lang="ug">يەرلىكتىكى نەغمىنى ياڭرىتىدۇ ۋە توردىكى رادىيونى تىڭشىتىدۇ</summary>
+  <summary xml:lang="uk">Відтворення музичних творів з комп'ютера та прослуховування інтернет-радіостанцій</summary>
+  <summary xml:lang="zh-CN">播放本地音乐并收听在线广播</summary>
+  <summary xml:lang="zh-TW">播放本機音樂或聆聽線上廣播</summary>
+  <description>
+    <p>The Elisa music player is developed by the KDE community and strives to be simple and pleasant to use.</p>
+    <p xml:lang="ar">طور مشغل الصوتيات إليسا بواسطة مجتمع كيدي ويسعى جاهدًا ليكون سهل الاستخدام وممتعًا.</p>
+    <p xml:lang="be">Музычны прайгравальнік Elisa распрацаваны супольнасцю KDE, каб быць простым і прыемным у выкарыстанні.</p>
+    <p xml:lang="bg">Elisa е музикален плеър, разработен от Общността на  KDE и се стреми да бъде лесен и приятен за употреба.</p>
+    <p xml:lang="ca">El reproductor de música Elisa és desenvolupat per la comunitat KDE i s'esforça per ser senzill i agradable d'utilitzar.</p>
+    <p xml:lang="ca-valencia">El reproductor de música Elisa és desenvolupat per la comunitat KDE i s'esforça per a ser senzill i agradable d'utilitzar.</p>
+    <p xml:lang="cs">Hudební přehrávač Elisa je vyvíjen komunitou KDE a snaží se být jednoduchý a příjemný na používání.</p>
+    <p xml:lang="da">Elisa musikafspilleren er udviklet af KDE-fællesskabet og stræber efter at være simpel og rar at bruge.</p>
+    <p xml:lang="de">Die Elisa-Musikwiedergabe wird von der KDE-Gemeinschaft entwickelt und soll einfach und angenehm zu bedienen sein.</p>
+    <p xml:lang="en-GB">The Elisa music player is developed by the KDE community and strives to be simple and pleasant to use.</p>
+    <p xml:lang="eo">La muzikludilo Elisa estas evoluigita de la KDE-komunumo kaj klopodas esti simpla kaj agrabla por uzi.</p>
+    <p xml:lang="es">El reproductor musical Elisa es desarrollado por la comunidad KDE y pretende ser simple y placentero de usar.</p>
+    <p xml:lang="eu">Elisa musika-jotzailea KDE Komunitateak garatzen du eta erabiltzeko erraza eta atsegina izaten saiatzen da.</p>
+    <p xml:lang="fi">Elisa-musiikkisoittimen on kehittänyt KDE-yhteisö, ja sen tavoitteena on olla yksinkertainen ja miellyttävä käyttää.</p>
+    <p xml:lang="fr">Le lecteur de musique Elisa est développé par la communauté de KDE. Il s'efforce d'être simple et agréable à utiliser.</p>
+    <p xml:lang="gl">O reprodutor de música Elisa desenvólveo a comunidade KDE e busca ser o máis simple e agradábel posíbel de usar.</p>
+    <p xml:lang="he">נגן המוזיקה אליסה מפותח על ידי קהילת KDE ושואף להיות פשוט ונעים לשימוש.</p>
+    <p xml:lang="hu">Az Elisa zenelejátszót a KDE közösség fejleszti, és egyszerű és kellemes használatra törekszik.</p>
+    <p xml:lang="ia">Le reproductor de musica Elisa es disveloppate per le communitate de KDE e lucta pro esser simple e agradabile a usar. </p>
+    <p xml:lang="id">Pemutar musik Elisa adalah dikembangkan oleh komunitas KDE dan berusaha untuk menjadi sederhana dan menyenangkan untuk digunakan.</p>
+    <p xml:lang="is">Elisa tónlistarspilarinn, þróaður af KDE-samfélaginu, er einfaldur og þægilegur í notkun.</p>
+    <p xml:lang="it">Il riproduttore multimediale Elisa è sviluppato dalla comunità KDE e cerca di essere semplice e piacevole da usare.</p>
+    <p xml:lang="ka">მუსიკის დამკვრელი Elisa შეიქმნა KDE-ის საზოგადოების მიერ და მიიღწვის, რათა სასიამოვნო და მარტივი იყოს.</p>
+    <p xml:lang="ko">Elisa 음악 재생기는 KDE 커뮤니티에서 개발했으며 간단함과 사용의 편안함을 중점에 두었습니다.</p>
+    <p xml:lang="lt">Elisa muzikos grotuvą plėtoja KDE bendruomenė. Grotuvas siekia būti paprastas ir malonus naudoti.</p>
+    <p xml:lang="lv">„Elisa“ ir izstrādājusi KDE kopiena ar mērķi izveidot vienkāršu un ērtu mūzikas atskaņotāju.</p>
+    <p xml:lang="nl">De Elisa muziekspeler is ontwikkeld door de KDE gemeenschap en streeft er naar om eenvoudig en plezierig in gebruik te zijn.</p>
+    <p xml:lang="nn">Musikkspelaren Elisa er utvikla av KDE-fellesskapet, som prøver å gjera han både enkel og kjekk å bruka.</p>
+    <p xml:lang="pl">Odtwarzacz muzyki Elisa jest rozwijany przez Społeczność KDE i dąży do bycia prostym i przyjemnym w użyciu.</p>
+    <p xml:lang="pt">O leitor de música Elisa é desenvolvido pela comunidade KDE e procura ser simples e agradável de utilizar.</p>
+    <p xml:lang="pt-BR">O reprodutor de música Elisa é desenvolvido pela comunidade KDE e se esforça para ser simples e agradável de usar.</p>
+    <p xml:lang="ro">Lectorul de muzică Elisa e dezvoltat de către comunitatea KDE și tinde să fie simplu și plăcut de utilizat.</p>
+    <p xml:lang="ru">Elisa — это музыкальный проигрыватель, созданный сообществом KDE, призванный быть простым и удобным в использовании.</p>
+    <p xml:lang="sa">एलिसा संगीतवादकः KDE समुदायेन विकसितः अस्ति तथा च सरलः, उपयोगाय च सुखदः भवितुम् प्रयतते ।</p>
+    <p xml:lang="sk">Hudobný prehrávač Elisa je vyvíjaný komunitou KDE a jeho cieľom je byť jednoduchý a príjemný na používanie.</p>
+    <p xml:lang="sl">Predvajalnik glasbe Elisa je razvila skupnost KDE in si prizadeva, da bi bil preprost in prijeten za uporabo.</p>
+    <p xml:lang="sv">Musikspelaren Elisa utvecklas av KDE-gemenskapen och strävar efter att vara enkel och trevlig att använda.</p>
+    <p xml:lang="ta">எலைசா என்பது, கே.டீ.யீ.யால் உருவாக்கப்பட்டுள்ள ஓர் எளிய பாடல் இசைப்பி</p>
+    <p xml:lang="th">เครื่องเล่นเพลง Elisa ได้รับการพัฒนาโดยชาว KDE และมุ่งมั่นที่จะให้ใช้งานง่ายและน่าพึงพอใจ</p>
+    <p xml:lang="tr">Elisa müzikçalar, KDE topluluğu tarafından geliştirilir ve yalın ve kullanımı kolay bir deneyim sunmaya çalışır.</p>
+    <p xml:lang="uk">Elisa — музичний програвач, який розроблено спільнотою KDE. Автори програми прагнуть зробити її простою та приємною у користуванні.</p>
+    <p xml:lang="zh-CN">Elisa 是 KDE 社区开发的一款以简单易用为出发点的音乐播放器。</p>
+    <p xml:lang="zh-TW">Elisa 音樂播放器由 KDE 社群所開發，以簡潔好用為目標。</p>
+    <p>With Elisa, you can browse your local music collection by genre, artist, album, or track, listen to online radio, create and manage playlists, display lyrics, and more.</p>
+    <p xml:lang="ar">مع برنامج أليسا يمكنك تصفح مجموعتك الصوتية المحلية حسب النوع أو الفنان أو الألبوم أو المسار، والاستماع إلى الراديو عبر الإنترنت، وإنشاء قوائم التشغيل وإدارتها، وعرض كلمات الأغاني، والمزيد.</p>
+    <p xml:lang="be">З дапамогай Elisa вы можаце праглядаць сваю лакальную музычную калекцыю па жанрах, выканаўцах, альбомах або кампазіцыях, слухаць сеціўнае радыё, ствараць спісы прайгравання і кіраваць імі, глядзець тэксты песень і многае іншае.</p>
+    <p xml:lang="bg">С Elisa  можете да преглеждате местната си музикална колекция по жанр, изпълнител, албум или песен, да слушате онлайн радио, да създавате и управлявате списъци за изпълнение, да показвате текстове на песни и др.</p>
+    <p xml:lang="ca">Amb l'Elisa, podeu navegar per la vostra col·lecció de música local per gènere, artista, àlbum o peça, escoltar ràdio en línia, crear i gestionar llistes de reproducció, mostrar les lletres i més.</p>
+    <p xml:lang="ca-valencia">Amb Elisa, podeu navegar per la vostra col·lecció de música local per gènere, artista, àlbum o peça, escoltar ràdio en línia, crear i gestionar llistes de reproducció, mostrar les lletres i més.</p>
+    <p xml:lang="cs">S aplikací Elisa můžete procházet svou místní hudební sbírku podle žánru, interpreta, alba nebo skladby, poslouchat online rádio, vytvářet a spravovat seznamy skladeb, zobrazovat texty písní a mnoho dalšího.</p>
+    <p xml:lang="da">Med Elisa kan du gennemse din lokale musiksamling efter genre, kunstner album eller nummer, lytte til online radio, opret og adminstrere spillelister, vise sangtekster og mere.</p>
+    <p xml:lang="de">Mit Elisa können Sie Ihre lokale Musiksammlung nach Genres, Interpreten, Alben oder Titeln durchsuchen, Online-Radio hören, Wiedergabelisten erstellen und verwalten, Liedtexte anzeigen und mehr.</p>
+    <p xml:lang="el">Με το Elisa, μπορείτε να περιηγηθείτε στην τοπική μουσική σας συλλογή ανά είδος, καλλιτέχνη, άλμπουμ ή κομμάτι, να ακούτε διαδικτυακό ραδιόφωνο, να δημιουργείτε και να διαχειρίζεστε λίστες αναπαραγωγής, να εμφανίζετε στίχους και πολλά άλλα.</p>
+    <p xml:lang="en-GB">With Elisa, you can browse your local music collection by genre, artist, album, or track, listen to online radio, create and manage playlists, display lyrics, and more.</p>
+    <p xml:lang="eo">Kun Elisa, vi povas foliumi vian lokan muzikkolekton laŭ ĝenro, artisto, albumo, aŭ trako, aŭskulti interretan radion, krei kaj administri ludlistojn, montri kantotekstojn, kaj pli.</p>
+    <p xml:lang="es">Con Elisa, puede navegar por su colección de música por género, artista, álbum o pista, escuchar radios en línea, crear y gestionar listas de reproducción, mostrar letras y mucho más.</p>
+    <p xml:lang="eu">Elisarekin lokalean duzun musika, generoaren, artistaren, albumaren, edo pistaren arabera araka dezakezu, lerroko irratiak entzun, jotze-zerrendak sortu eta kudeatu, letrak azaldu, eta gehiago.</p>
+    <p xml:lang="fi">Elisalla voi selata musiikkikokoelmaa tyylilajeittain, artisteittain, albumeittain tai raidoittain, kuunnella verkkoradiota, luoda ja hallita soittolistoja, näyttää sanoitukset ja paljon muuta.</p>
+    <p xml:lang="fr">Avec Elisa, vous pouvez parcourir votre collection locale de musique par genre, par artiste, par album ou par piste, écouter la radio en ligne, créer et gérer des listes de lecture, afficher les paroles et plus encore.</p>
+    <p xml:lang="gl">Con Elisa pode examinar a súa colección local de música por xénero, intérprete, álbum ou pista, escoitar radios por Internet, crear e xestionar listas de reprodución, amosar as letras, e máis.</p>
+    <p xml:lang="he">עם אליסה, אפשר לעיין באוסף המוזיקה המקומי שלך לפי סוגה, אומנים, אלבומים, או רצועות, האזנה לרדיו מקוון, יצירה וניהול של רשימות נגינה, הצגת מילות שירים ועוד.</p>
+    <p xml:lang="hu">Az Elisa segítségével böngészheti zenei gyűjteményét műfajok, előadók, album vagy zeneszám alapján, hallgathat online rádiót, lejátszási listákat hozhat létre és kezelhet, dalszövegek jeleníthet meg, és még sok mást is megtehet.</p>
+    <p xml:lang="ia">Con Elisa, tu pote navigar in tu collection local de musica per genere, artista, album, o tracia, ascolatr radio in linea, crear e gerer listas de reproduction, monstrar lyricas, e plus.</p>
+    <p xml:lang="id">Dengan Elisa, Anda bisa menelusuri koleksi musik lokal Anda berdasarkan genre, artis, album, atau trek, mendengarkan radio online, membuat dan mengelola playlist, menampilkan lirik, dan lebih banyak lagi.</p>
+    <p xml:lang="is">Þú getur flett í tónlistarsafninu þínu í Elisa eftir tónlistartegund, flytjanda, plötu eða lagi, hlustað á netútvarp, búið til og sett upp  spilunarlista, birt lagatexta og fleira.</p>
+    <p xml:lang="it">Con Elisa puoi navigare la raccolta di musica locale per genere, artista, album o traccia, ascolta le radio in linea, crea e gestisci scalette, mostra testi, e altro.</p>
+    <p xml:lang="ka">Elisa-სთან ერთად შეგიძლიათ ლოკალური მუსიკის კოლექცია ჟანრის, შემსრულებლის, ალბომის ან ტრეკების მიხედვით დაალაგოთ, მოუსმინოთ ონლაინ-რადიოს, შექმნათ და მართოთ დასაკრავი სიები, აჩვენოთ ლირიკა და სხვ.</p>
+    <p xml:lang="ko">Elisa를 사용하여 로컬 음악 모음집을 장르, 아티스트, 앨범, 트랙 단위로 탐색하고, 온라인 라디오를 듣고, 재생 목록을 생성 및 관리하고, 가사를 표시할 수 있습니다.</p>
+    <p xml:lang="lt">Naudodami Elisa galite naršyti savo vietinę muzikos kolekciją pagal žanrą, atlikėją, albumą ar takelį, galite klausytis internetinių radijų, kurti ir tvarkyti grojaraščius, žiūrėti dainų žodžius ir kt.</p>
+    <p xml:lang="lv">Ar „Elisa“ varat pārlūkot savā datorā esošo mūzikas kolekciju pēc žanra, izpildītāja, albuma vai dziesmas, klausīties interneta radiostacijas un pārvaldīt atskaņošanas sarakstus, parādīt dziesmu vārdus un daudz ko citu.</p>
+    <p xml:lang="nl">Met Elisa kunt u in uw lokale muziekverzameling bladeren op genre, artiest, album of track, luisteren naar online radio, afspeellijsten aanmaken en beheren, liedteksten tonen en meer.</p>
+    <p xml:lang="nn">Med Elisa kan du blant anna finna fram i musikksamlinga di etter sjanger, artist, album og spor, lytta til nettradio, organisera spelelister og visa songtekstar.</p>
+    <p xml:lang="pl">Dzięki Elisie, możesz przeglądać swój miejscowy zbiór muzyki po rodzaju, wykonawcy, albumie lub utworze, słuchać radia z sieci, tworzyć i zarządzać listami odtwarzania, wyświetlać napisy i więcej.</p>
+    <p xml:lang="pt">Com o Elisa, pode navegar pela sua coleção de música local por género, artista, álbum ou faixa, ouvir rádio online, criar e gerir listas de reprodução, exibir letras e muito mais.</p>
+    <p xml:lang="pt-BR">Com Elisa, você pode navegar em sua coleção de música local por gênero, artista, álbum ou faixa, ouvir rádio online, criar e gerenciar listas de reprodução, exibir letras e muito mais.</p>
+    <p xml:lang="ro">Cu Elisa, vă puteți răsfoi colecția locală de muzică după gen, interpret, album sau piesă, puteți asculta radio prin Internet, crea și gestiona liste de redare, afișa versuri, și altele.</p>
+    <p xml:lang="ru">Приложение позволяет просматривать коллекцию музыки, используя упорядочивание по жанру, исполнителю, альбомам или дорожкам. Проигрыватель позволяет прослушивать интернет-радиостанции, создавать списки воспроизведения и управлять ими, просматривать тексты песен и многое другое.</p>
+    <p xml:lang="sa">एलिसा इत्यनेन सह, भवान् विधायाः, कलाकारस्य, सङ्गीतराशिस्य, अथवा संगीतपङ्क्तस्य आधारेण स्वस्य स्थानीयसङ्गीतसङ्ग्रहं गवेषय कर्तुं, साङ्गणिक आकाशवाणी श्रोतुं, वादनीयसूची निर्मातुं प्रबन्धयितुं च, गीतं प्रदर्शयितुं, इत्यादीनि च कर्तुं शक्नोति।.</p>
+    <p xml:lang="sk">S Elisa môžete prehľadávať svoju lokálnu zbierku hudby podľa žánru, interpreta, albumu alebo skladby, počúvať online rádio, vytvárať a spravovať zoznamy skladieb, zobrazovať texty piesní a oveľa viac.</p>
+    <p xml:lang="sl">Z Eliso lahko brskate po lokalni glasbeni zbirki po zvrsti, izvajalcu, albumu ali skladbi, poslušate spletni radio, ustvarjate in upravljate sezname predvajanja, prikazujete besedila in drugo.</p>
+    <p xml:lang="sv">Med Elisa kan du bläddra i din lokala musiksamling efter genre, artist, album eller spår, lyssna på nätradio, skapa och hantera spellistor,visa texter, med mera.</p>
+    <p xml:lang="th">ด้วย Elisa คุณสามารถค้นหาคอลเลกชันเพลงบนเครื่องของคุณตามประเภท ศิลปิน อัลบั้ม หรือเพลง ฟังวิทยุออนไลน์ สร้างและจัดการรายการเพลง แสดงเนื้อเพลง และอื่นๆ อีกมากมาย</p>
+    <p xml:lang="tr">Elisa ile yerel müzik koleksiyonunuza türe, sanatçıya, albüme veya parçaya göre göz atabilir, çevrim içi radyo dinleyebilir, çalma listeleri oluşturabilir ve yönetebilir, şarkı sözlerini görüntüleyebilir ve daha fazlasını yapabilirsiniz.</p>
+    <p xml:lang="uk">За допомогою Elisa ви можете здійснювати навігацію вашою музичною збіркою за жанром, виконавцем, альбомом або композицією, прослуховувати інтернет-радіо, створювати списки відтворення та керувати ними, переглядати тексти пісень тощо.</p>
+    <p xml:lang="zh-CN">您可以通过 Elisa 按照流派、艺人、专辑、曲目等条件浏览您的本地音乐。它还支持收听网络电台、创建并管理播放列表、显示歌词等功能。</p>
+    <p xml:lang="zh-TW">利用 Elisa，您可以依曲風、藝人、專輯，或音軌來瀏覽您的本機音樂收藏、聆聽線上廣播電台、建立與管理播放清單、檢視歌詞，還有更多功能。</p>
+    <p>Elisa supports your full KDE color scheme when used on the Plasma desktop, or else the standard light and dark modes.</p>
+    <p xml:lang="ar">يدعم برنامج أليسا نظام ألوان كيدي الكامل الخاص بك عند استخدامه على سطح مكتب بلازما، أو الأوضاع الفاتحة والداكنة القياسية.</p>
+    <p xml:lang="be">Elisa цалкам падтрымлівае вашу колеравую схему KDE пры выкарыстанні ў Plasma або стандартныя светлы і цёмны рэжымы.</p>
+    <p xml:lang="bg">Elisa поддържа пълната цветова схема на KDE, когато се използва на работния плот Plasma или стандартните светли и тъмни режими.</p>
+    <p xml:lang="ca">L'Elisa admet l'esquema de color KDE complet quan s'utilitza a l'escriptori Plasma, o els modes clars i foscos estàndard.</p>
+    <p xml:lang="ca-valencia">Elisa admet l'esquema de color KDE complet quan s'utilitza en l'escriptori Plasma, o els modes clars i foscos estàndard.</p>
+    <p xml:lang="cs">Elisa podporuje vaše kompletní barevné schéma KDE při použití na ploše Plasma, nebo standardní světlý a tmavý režim.</p>
+    <p xml:lang="da">Elisa understøtter dit fulde KDE-farvetema, når den er brugt på Plasma-skrivebordet ellers understøtter de standard lys- og mørktilstande.</p>
+    <p xml:lang="de">Elisa unterstützt bei Verwendung der Plasma-Umgebung Ihr gesamtes KDE-Farbschema, andernfalls die hellen und dunklen Standarddesigns.</p>
+    <p xml:lang="en-GB">Elisa supports your full KDE colour scheme when used on the Plasma desktop, or else the standard light and dark modes.</p>
+    <p xml:lang="eo">Elisa subtenas vian plenan KDE-kolorskemon kiam ĝi estas uzata sur la Plasma labortablo, aŭ alie la normajn helajn kaj malhelajn reĝimojn</p>
+    <p xml:lang="es">Elisa reconoce el esquema de color completo de KDE cuando se usa en el escritorio Plasma, o si no los modos estándar claro y oscuro.</p>
+    <p xml:lang="eu">«Elisa»k, Plasma mahaigainean erabiltzean, KDEren kolore-antolaera osoa  onartzen du, bestelakoan modu argi eta ilun estandarrak.</p>
+    <p xml:lang="fi">Plasma-työpöydällä Elisa tukee KDE-värimallejasi täysin, muuten vaaleaa ja tummaa tilaa.</p>
+    <p xml:lang="fr">Elisa prend en charge la totalité du thème de couleurs de KDE, lors de son utilisation avec le bureau Plasma, ou sinon les modes classiques clair et sombre.</p>
+    <p xml:lang="gl">Elisa é compatíbel co seu esquema de cores de KDE cando a usa no escritorio Plasma, ou cos modos claros e escuros estándar no resto de escritorios.</p>
+    <p xml:lang="he">באליסה יש תמיכה בערכת הצבעים המלאה של KDE בעת שימוש בשולחן העבודה פלזמה, ובמקרה שלא אז המצבים הכהה והבהיר הרגילים.</p>
+    <p xml:lang="hu">Az Elisa támogatja a teljes KDE színsémát, ha a Plasma asztali környezetben használja, vagy a standard világos és sötét üzemmódot.</p>
+    <p xml:lang="ia">Elisa supporta tu schema de color  complete de KDE quando usate sur le scriptorio Plasma, o alteremente le modos standard ligier e obscur.</p>
+    <p xml:lang="id">Elisa mendukung Anda penuh skema warna KDE ketika digunakan di desktop Plasma, atau bahkan mode standar terang dan gelap.</p>
+    <p xml:lang="is">Elisa styður litastefið í KDE þegar forritið er notað í Plasma skjáborðinu, en annars eru hefðbundin ljós eða dökk litasnið í boði.</p>
+    <p xml:lang="it">Elisa supporta lo schema di colori completo di KDE quando usato nel desktop Plasma, e altrimenti le modalità chiara e scura standard.</p>
+    <p xml:lang="ka">Elisa-ს აქვს KDE-ის ფერის თემების სრული მხარდაჭერა, როცა ის Plasma-ის სამუშაო გარემოშია გაშვებული ისევე, როგორც ღია და მუქი რეჟიმების.</p>
+    <p xml:lang="ko">Plasma 데스크톱에서 사용 시에는 KDE 색 구성표를 지원하며, 다른 환경에서는 밝음과 어두움 모드를 지원합니다.</p>
+    <p xml:lang="lt">Elisa, kai yra naudojama Plasma darbalaukyje, visiškai palaiko KDE spalvų rinkinį, o kitose sistemose palaiko standartinę šviesią ir tamsią veikseną.</p>
+    <p xml:lang="lv">„Elisa“ atbalsta pilnu KDE krāsu shēmu, ja to izmanto ar „Plasma“ darbvirsmu, vai citos gadījumos standarta gaišo un tumšo motīvu.</p>
+    <p xml:lang="nl">Elisa ondersteunt uw volledige KDE kleurenschema bij gebruik op het Plasma bureaublad of anders de standaard lichte en donkere modi.</p>
+    <p xml:lang="nn">Ved bruk i Plasma støttar Elisa standard fargeoppsett, og elles kan du velja mellom eit lyst og eit mørkt tema.</p>
+    <p xml:lang="pl">Elisa obsłuży w pełni twój zestaw barw KDE, gdy zostanie uruchomiona na Pulpicie Plazmy lub obsłuży tylko tryb jasny i ciemny.</p>
+    <p xml:lang="pt">O Elisa suporta o seu esquema de cores completo do KDE quando utilizado no ambiente de trabalho Plasma, ou, em alternativa, os modos claro e escuro padrão.</p>
+    <p xml:lang="pt-BR">Elisa suporta todo o esquema de cores do KDE quando usado na área de trabalho do Plasma, ou então nos modos claro e escuro padrão.</p>
+    <p xml:lang="ro">Elisa susține deplin schema de culori KDE când e folosită pe biroul Plasma, iar în caz contrar oferă regimul luminos și întunecat.</p>
+    <p xml:lang="ru">При работе в среде Plasma музыкальный проигрыватель Elisa полностью поддерживает цветовые схемы рабочего стола, а при работе в других окружениях — стандартные тёмное и светлое оформления.</p>
+    <p xml:lang="sa">Elisa भवतः पूर्णं KDE वर्णयोजनां समर्थयति यदा Plasma डेस्कटॉप् मध्ये उपयुज्यते, अन्यथा मानकप्रकाशः अन्धकारः च मोडाः ।</p>
+    <p xml:lang="sk">Elisa podporuje úplnú farebnú schému KDE pri použití na ploche Plasma, alebo štandardný svetlý a tmavý režim.</p>
+    <p xml:lang="sl">Elisa podpira vašo celotno barvno shemo KDE, ko jo uporabljate na namizju Plasma, oziroma standardna svetla in temna načina.</p>
+    <p xml:lang="sv">Elisa stöder KDE:s fullständiga färgschema när det används på Plasma-skrivbordet, eller annars standardmässiga ljusa och mörka lägen.</p>
+    <p xml:lang="th">Elisa รองรับชุดสีของ KDE เต็มรูปแบบเมื่อใช้บนเดสก์ท็อป Plasma หรือโหมดสว่างและมืดมาตรฐาน</p>
+    <p xml:lang="tr">Elisa, Plasma masaüstünde kullanıldığında tam KDE renk şemanızı veya standart açık ve koyu kipleri destekler.</p>
+    <p xml:lang="uk">В Elisa передбачено підтримку усієї вашої схеми кольорів KDE, якщо програму запущено у стільниці Плазми. Інакше буде використано стандартні світлий або темний режими.</p>
+    <p xml:lang="zh-CN">Elisa 在 Plasma 桌面环境下支持完整的 KDE 配色方案，在其他环境下也能支持标准的浅色和深色模式。</p>
+    <p xml:lang="zh-TW">Elisa 在 Plasma 桌面上使用時支援您的完整 KDE 配色方案，其他時候也支援標準的亮色與暗色模式。</p>
+    <p>Chill out with Party Mode, which puts your music's album art front and center.</p>
+    <p xml:lang="ar">استمتع بالاسترخاء مع وضع الحفلة، الذي يضع صورة ألبوم الخاصة بك في المقدمة وفي المنتصف.</p>
+    <p xml:lang="be">Адпачніце з рэжымам гулянкі, у якім вокладка альбома вашай музыкі паказваецца на першым плане.</p>
+    <p xml:lang="bg">Отпуснете се с режима Парти, който поставя обложката на албума ви на преден план и в центъра.</p>
+    <p xml:lang="ca">Gaudiu amb el mode festa, que posa l'art dels àlbums de la música al davant de tot.</p>
+    <p xml:lang="ca-valencia">Gaudiu amb el mode festa, el qual posa l'art dels àlbums de música al davant de tot.</p>
+    <p xml:lang="cs">Uvolněte se s párty režimem, který zobrazuje obaly alb vaší hudby v popředí a uprostřed.</p>
+    <p xml:lang="da">Slap af med Party Mode, som sætter din musiks albumcover i centrum.</p>
+    <p xml:lang="de">Entspannen Sie mit dem Party-Modus, der die Albumcover ins Rampenlicht rückt.</p>
+    <p xml:lang="el">Χαλαρώστε με τη λειτουργία Party, η οποία βάζει το εξώφυλλο του άλμπουμ της μουσικής σας μπροστά και κέντρο.</p>
+    <p xml:lang="en-GB">Chill out with Party Mode, which puts your music's album art front and centre.</p>
+    <p xml:lang="eo">Malstreĉiĝu kun Party Mode, kiu elstarigas la albumarton de via muziko fronte kaj centre.</p>
+    <p xml:lang="es">Relájese con el modo fiesta, el cual pone el arte del álbum que está escuchando al frente y centrado.</p>
+    <p xml:lang="eu">Erlaxatu gure festa-moduarekin, zeinek zure musika-albumaren artea aurrealdean eta erdian ipintzen duen.</p>
+    <p xml:lang="fi">Rentoutuminen onnistuu juhlatilassa, jossa etusijalle asettuu albumin kansitaide.</p>
+    <p xml:lang="fr">Détendez-vous avec le mode « Fête » mettant la pochette d'album de votre musique au premier plan et au centre.</p>
+    <p xml:lang="gl">Pase un bo rato co modo de festa, que pon as portadas da música en primeiro plano.</p>
+    <p xml:lang="he">לחגוג עם מצב מסיבה שמציב את עטיפת האלבומים של המוזיקה שלך במרכז הבמה.</p>
+    <p xml:lang="hu">Lazítson a Parti móddal, amely a zenei albumok borítóit helyezi előre és a középpontba.</p>
+    <p xml:lang="ia">Quieta con Party Mode (modo de Festa) que pone tu illustration de album Fronte e Central.</p>
+    <p xml:lang="id">Bersantai dengan Mode Party, dengan mengambil tengah atau depan seni album musik Anda.</p>
+    <p xml:lang="is">Skemmtu þér í Partísniði þar sem plötuumslögin eru í fyrirrúmi.</p>
+    <p xml:lang="it">Rilassati con la modalità party, che mette in evidenza la grafica degli album della tua musica.</p>
+    <p xml:lang="ka">დაისვენეთ წვეულების რეჟიმში, რომელიც მუსიკის ალბომის ყდას ეკრანზე გაჩვენებთ.</p>
+    <p xml:lang="ko">파티 모드를 사용하면 앨범 아트를 가운데에 표시합니다.</p>
+    <p xml:lang="lt">Atsipalaiduokite naudodami vakarėlio veikseną, kuri jūsų muzikos albumų viršelius patalpina priekyje viduryje.</p>
+    <p xml:lang="lv">Relaksējieties ballītes režīmā, priekšplānā un centrā parādot atskaņoto albumu.</p>
+    <p xml:lang="nl">Ontspan met Party modus, die de illustraties van uw muziekalbum voorop en gecentreerd plaatst.</p>
+    <p xml:lang="nn">Slapp av med festmodusen, som framhevar omslagsbileta til albuma dine.</p>
+    <p xml:lang="pl">Wyluzuj się w Trybie Imprezy, co umieszcza okładkę twojego albumu na środku.</p>
+    <p xml:lang="pt">Descontraia com o Modo Festa, que coloca a capa do álbum da sua música em destaque.</p>
+    <p xml:lang="pt-BR">Relaxe com o Modo Festa, que coloca a arte do álbum da sua música na frente e no centro.</p>
+    <p xml:lang="ro">Relaxați-vă cu regimul de petrecere ce pune coperțile albumelor în evidență.</p>
+    <p xml:lang="ru">Музыкальный проигрыватель Elisa поддерживает режим вечеринки, в котором на первом плане выводится обложка альбома проигрываемого трека.</p>
+    <p xml:lang="sa">उत्सवस्य पद्धति इत्यनेन सह अभिशीतम्‌ कुर्वन्तु, यत् भवतः सङ्गीतराशि चित्र अग्रे केन्द्रे च स्थापयति।.</p>
+    <p xml:lang="sk">Oddýchnite si s režimom Party, ktorý umiestni obal albumu Vašej hudby do popredia a stredu.</p>
+    <p xml:lang="sl">Sprostite se s party načinom, ki postavi sliko albuma vaše glasbe v ospredje in v center.</p>
+    <p xml:lang="sv">Slappna av med party-läge, som placerar musikens skivomslag i fokus.</p>
+    <p xml:lang="th">ผ่อนคลายไปกับโหมดปาร์ตี้ที่จะแสดงภาพปกอัลบั้มเพลงของคุณไว้ตรงจุดสนใจ</p>
+    <p xml:lang="tr">Müziğinizin albüm kapağını öne ve merkeze koyan Parti Kipi ile kendinize bir mola verin.</p>
+    <p xml:lang="uk">Розслабтеся у режимі вечірки, коли супровідні зображення вашого музичного альбому буде розташовано спереду і у центрі.</p>
+    <p xml:lang="zh-CN">在聚会模式下，Elisa 将把专辑封面显示在画面中间最显眼的位置。</p>
+    <p xml:lang="zh-TW">用派對模式放鬆，這個模式將您的音樂的專輯封面最大化。</p>
+  </description>
+  <url type="homepage">https://apps.kde.org/elisa</url>
+  <url type="bugtracker">https://bugs.kde.org/enter_bug.cgi?product=elisa</url>
+  <url type="donation">https://www.kde.org/community/donations/?app=elisa&amp;source=appdata</url>
+  <url type="vcs-browser">https://invent.kde.org/multimedia/elisa</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The Elisa music player</caption>
+      <caption xml:lang="ar">مشغّل الموسيقى إليسّا</caption>
+      <caption xml:lang="ast">El reproductor de música Elisa</caption>
+      <caption xml:lang="az">Elisa musiqi pleyeri</caption>
+      <caption xml:lang="be">Музычны прайгравальнік Elisa</caption>
+      <caption xml:lang="bg">Слушане на музика с Elisa</caption>
+      <caption xml:lang="ca">El reproductor de música Elisa</caption>
+      <caption xml:lang="ca-valencia">El reproductor de música Elisa</caption>
+      <caption xml:lang="cs">Přehrávač hudby Elisa</caption>
+      <caption xml:lang="da">Elisa-musikafspilleren</caption>
+      <caption xml:lang="de">Elisa-Musikwiedergabe</caption>
+      <caption xml:lang="el">Η συσκευή αναπαραγωγής μουσικής Elisa</caption>
+      <caption xml:lang="en-GB">The Elisa music player</caption>
+      <caption xml:lang="eo">La muzikludilo Elisa</caption>
+      <caption xml:lang="es">El reproductor de música Elisa</caption>
+      <caption xml:lang="et">Muusikamängija Elisa</caption>
+      <caption xml:lang="eu">Elisa musika jotzailea</caption>
+      <caption xml:lang="fi">Elisa-musiikkisoitin</caption>
+      <caption xml:lang="fr">Le lecteur de musique Elisa</caption>
+      <caption xml:lang="gl">O reprodutor de música Elisa.</caption>
+      <caption xml:lang="he">נגן המוזיקה אליסה</caption>
+      <caption xml:lang="hi">एलिसा संगीत वादक</caption>
+      <caption xml:lang="hu">Az Elisa zenelejátszó</caption>
+      <caption xml:lang="ia">Le reproductor de music Elisa</caption>
+      <caption xml:lang="id">Elisa si pemutar musik</caption>
+      <caption xml:lang="is">Elisa tónlistarspilari</caption>
+      <caption xml:lang="it">Il lettore musicale Elisa</caption>
+      <caption xml:lang="ja">Elisa 音楽プレーヤー</caption>
+      <caption xml:lang="ka">Elisa მუსიკალური დაკვრელი</caption>
+      <caption xml:lang="ko">Elisa 음악 재생기</caption>
+      <caption xml:lang="lt">Elisa muzikos grotuvas</caption>
+      <caption xml:lang="lv">„Elisa“ mūzikas atskaņotājs</caption>
+      <caption xml:lang="nl">De muziekspeler Elisa</caption>
+      <caption xml:lang="nn">Musikkspelaren Elisa</caption>
+      <caption xml:lang="pa">ਇਲੀਸਾ ਸੰਗੀਤ ਪਲੇਅਰ</caption>
+      <caption xml:lang="pl">Odtwarzacz muzyki Elisa</caption>
+      <caption xml:lang="pt">O leitor de música Elisa</caption>
+      <caption xml:lang="pt-BR">O reprodutor de músicas Elisa</caption>
+      <caption xml:lang="ro">Lectorul de muzică Elisa</caption>
+      <caption xml:lang="ru">Музыкальный проигрыватель Elisa</caption>
+      <caption xml:lang="sa">एलिसा सङ्गीतवादकः</caption>
+      <caption xml:lang="sk">Hudobný prehrávač Elisa</caption>
+      <caption xml:lang="sl">Glasbeni predvajalnik Elisa</caption>
+      <caption xml:lang="sv">Elisa musikspelare</caption>
+      <caption xml:lang="ta">எலைசா பாடல் இசைப்பி</caption>
+      <caption xml:lang="th">เครื่องเล่นเพลง Elisa</caption>
+      <caption xml:lang="tr">Elisa müzikçalar</caption>
+      <caption xml:lang="uk">Музичний програвач Elisa</caption>
+      <caption xml:lang="zh-CN">Elisa 音乐播放器</caption>
+      <caption xml:lang="zh-TW">Elisa 音樂播放器</caption>
+      <image>https://cdn.kde.org/screenshots/elisa/elisa.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Elisa on Plasma Mobile</caption>
+      <caption xml:lang="ar">إليسا على بلازما موبايل</caption>
+      <caption xml:lang="az">Elisa Plasma Mobile-da</caption>
+      <caption xml:lang="be">Elisa для Plasma Mobile</caption>
+      <caption xml:lang="bg">Elisa на Plasma Mobile</caption>
+      <caption xml:lang="ca">Elisa al Plasma Mobile</caption>
+      <caption xml:lang="ca-valencia">Elisa en Plasma Mobile</caption>
+      <caption xml:lang="cs">Elisa v Plasma Mobile</caption>
+      <caption xml:lang="da">Elisa på Plasma Mobile</caption>
+      <caption xml:lang="de">Elisa auf Plasma Mobile</caption>
+      <caption xml:lang="el">Η Elisa στο Plasma Mobile</caption>
+      <caption xml:lang="en-GB">Elisa on Plasma Mobile</caption>
+      <caption xml:lang="eo">Elisa sur Plasma Mobile</caption>
+      <caption xml:lang="es">Elisa en Plasma Mobile</caption>
+      <caption xml:lang="eu">Elisa Plasma Mugikorrean</caption>
+      <caption xml:lang="fi">Elisa Plasma Mobilessa</caption>
+      <caption xml:lang="fr">Elisa sur Plasma Mobile</caption>
+      <caption xml:lang="gl">Elisa en Plasma Mobile.</caption>
+      <caption xml:lang="he">אליסה על פלזמה לניידים</caption>
+      <caption xml:lang="hi">एलिसा प्लास्मा मोबाइल पर</caption>
+      <caption xml:lang="hu">Elisa a Plasma Mobile-on</caption>
+      <caption xml:lang="ia">Elisa sur Plasma Mobile</caption>
+      <caption xml:lang="id">Elisa di Plasma Mobile</caption>
+      <caption xml:lang="is">Elisa á Plasma Mobile</caption>
+      <caption xml:lang="it">Elisa su Plasma Mobile</caption>
+      <caption xml:lang="ja">Plasma モバイルの Elisa</caption>
+      <caption xml:lang="ka">Elisa მობილურ Plasma-ზე</caption>
+      <caption xml:lang="ko">Plasma 모바일의 Elisa</caption>
+      <caption xml:lang="lt">Elisa Plasma mobiliuosiuose</caption>
+      <caption xml:lang="lv">„Elisa“ „Plasma Mobile“ sistēmā</caption>
+      <caption xml:lang="nl">Elisa op Plasma Mobile</caption>
+      <caption xml:lang="nn">Elisa på Plasma Mobile</caption>
+      <caption xml:lang="pa">ਪਲਾਜ਼ਮਾ ਮੋਬਾਇਲ ਲਈ ਇਲੀਸਾ</caption>
+      <caption xml:lang="pl">Elisa na Przenośną Plazmę</caption>
+      <caption xml:lang="pt">O Elisa no Plasma Móvel</caption>
+      <caption xml:lang="pt-BR">Elisa no Plasma Mobile</caption>
+      <caption xml:lang="ro">Elisa pe Plasma Mobile</caption>
+      <caption xml:lang="ru">Проигрыватель Elisa на Plasma Mobile</caption>
+      <caption xml:lang="sa">प्लाज्मा मोबाईले एलिसा</caption>
+      <caption xml:lang="sk">Elisa na Plasma Mobile</caption>
+      <caption xml:lang="sl">Elisa na Plasma Mobile</caption>
+      <caption xml:lang="sv">Elisa på Plasma Mobil</caption>
+      <caption xml:lang="ta">பிளாஸ்மா மொபைலில் எலைசா</caption>
+      <caption xml:lang="th">Elisa บน Plasma Mobile</caption>
+      <caption xml:lang="tr">Plasma Cep Üzerinde Elisa</caption>
+      <caption xml:lang="uk">Elisa на мобільній Плазмі</caption>
+      <caption xml:lang="zh-CN">Elisa 运行于 Plasma Mobile 平台</caption>
+      <caption xml:lang="zh-TW">Plasma Mobile 上的 Elisa</caption>
+      <image>https://cdn.kde.org/screenshots/elisa/elisa-mobile.png</image>
+    </screenshot>
+  </screenshots>
+  <provides>
+    <binary>elisa</binary>
+  </provides>
+  <launchable type="desktop-id">org.kde.elisa.desktop</launchable>
+  <project_group>KDE</project_group>
+  <content_rating type="oars-1.0"/>
+  <branding>
+    <color type="primary" scheme_preference="light">#5ebfa2</color>
+    <color type="primary" scheme_preference="dark">#619d8b</color>
+  </branding>
+  <releases>
+    <release version="26.08.1" date="2026-09-10"/>
+    <release version="26.08.0" date="2026-08-20"/>
+    <release version="26.04.3" date="2026-07-02"/>
+    <release version="26.04.2" date="2026-06-04"/>
+    <release version="26.04.1" date="2026-05-07"/>
+    <release version="26.04.0" date="2026-04-16"/>
+    <release version="25.12.3" date="2026-03-05"/>
+    <release version="25.12.2" date="2026-02-05"/>
+    <release version="25.12.1" date="2026-01-08"/>
+    <release version="25.12.0" date="2025-12-11"/>
+    <release version="25.08.3" date="2025-11-06"/>
+    <release version="25.08.2" date="2025-10-09"/>
+    <release version="25.08.1" date="2025-09-11"/>
+    <release version="25.08.0" date="2025-08-14"/>
+    <release version="25.04.3" date="2025-07-03"/>
+    <release version="25.04.2" date="2025-06-05"/>
+    <release version="25.04.1" date="2025-05-08"/>
+    <release version="25.04.0" date="2025-04-17"/>
+    <release version="24.12.3" date="2025-03-06"/>
+    <release version="24.12.2" date="2025-02-06"/>
+    <release version="24.12.1" date="2025-01-09"/>
+    <release version="24.12.0" date="2024-12-12"/>
+    <release version="24.08.3" date="2024-11-07"/>
+    <release version="24.08.2" date="2024-10-10"/>
+    <release version="24.08.1" date="2024-09-12"/>
+    <release version="24.08.0" date="2024-08-22"/>
+    <release version="24.05.2" date="2024-07-04"/>
+    <release version="24.05.1" date="2024-06-13"/>
+    <release version="24.05.0" date="2024-05-23"/>
+    <release version="24.02.2" date="2024-04-11"/>
+    <release version="24.02.1" date="2024-03-21"/>
+    <release version="24.02.0" date="2024-02-28"/>
+    <release version="23.08.5" date="2024-02-15"/>
+  </releases>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
+  <custom>
+    <value key="KDE::windows_store">https://www.microsoft.com/p/elisa/9pb5md7zh8tl</value>
+    <value key="KDE::f_droid">https://community.kde.org/Android/FDroid</value>
+  </custom>
+</component>

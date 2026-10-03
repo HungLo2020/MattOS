@@ -40,6 +40,17 @@ AbstractFormDelegate {
     required property string label
 
     /*!
+       \brief A label containing secondary text that appears under the
+       inherited text property.
+
+       This provides additional information shown in a faint gray color.
+
+       \default ""
+       \since 1.12.0
+     */
+    property string description: ""
+
+    /*!
        \qmlproperty int value
        \brief This property holds the \l {SpinBox::value} {value} of the internal spinbox.
      */
@@ -82,6 +93,30 @@ AbstractFormDelegate {
     property alias displayText: spinbox.displayText
 
     /*!
+       \qmlproperty bool inputMethodComposing
+       \brief This property holds the \l {SpinBox::inputMethodComposing} {inputMethodComposing} of the internal spinbox.
+     */
+    property alias inputMethodComposing: spinbox.inputMethodComposing
+
+    /*!
+       \qmlproperty enumeration inputMethodHints
+       \brief This property holds the \l {SpinBox::inputMethodHints} {inputMethodHints} of the internal spinbox.
+     */
+    property alias inputMethodHints: spinbox.inputMethodHints
+
+    /*!
+       \qmlproperty bool wrap
+       \brief This property holds the \l {SpinBox::wrap} {wrap} of the internal spinbox.
+     */
+    property alias wrap: spinbox.wrap
+
+    /*!
+       \qmlproperty bool fieldActiveFocus
+       \brief The \l {Item::activeFocus} {activeFocus} state of the internal spinbox.
+    */
+    property alias fieldActiveFocus: spinbox.activeFocus
+
+    /*!
        \qmlproperty Validator validator
        \brief This property holds the \l {SpinBox::validator} {validator} of the internal spinbox.
      */
@@ -112,6 +147,32 @@ AbstractFormDelegate {
     property string statusMessage: ""
 
     /*!
+       \brief This property holds an item that will be displayed before the
+       spinbox.
+
+       \default null
+    */
+    property Item leading: null
+
+    /*!
+       \brief This property holds an item that will be displayed after the
+       delegate's contents.
+
+       \default null
+       \since 1.12.0
+     */
+    property Item trailing: null
+
+    /*!
+       \brief This signal is emitted when the spin box value has been interactively modified by the user.
+
+       By either touch, mouse, wheel, or keys. In the case of interaction via keyboard, the signal is only emitted
+       when the text has been accepted; meaning when the enter or return keys are pressed, or the input field loses
+       focus.
+     */
+    signal valueModified()
+
+    /*!
        Increases the value by stepSize, or 1 if stepSize is not defined.
      */
     function increase() {
@@ -126,6 +187,13 @@ AbstractFormDelegate {
     }
 
     focusPolicy: Kirigami.Settings.isMobile ? Qt.StrongFocus : Qt.NoFocus
+    Accessible.description: description
+
+    onActiveFocusChanged: { // propagate focus to the spinbox
+        if (activeFocus) {
+            spinbox.forceActiveFocus();
+        }
+    }
 
     onClicked: spinbox.forceActiveFocus()
     background: null
@@ -133,88 +201,59 @@ AbstractFormDelegate {
     contentItem: ColumnLayout {
         spacing: Private.FormCardUnits.verticalSpacing
 
+        QQC2.Label {
+            Layout.fillWidth: true
+            text: label
+            elide: Text.ElideRight
+            color: root.enabled ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
+            wrapMode: Text.Wrap
+            maximumLineCount: 2
+        }
+
         RowLayout {
-            Layout.fillWidth: true
-            spacing: 0
+            id: innerRow
 
-            QQC2.Label {
+            spacing: Kirigami.Units.smallSpacing
+
+            Layout.fillWidth: true
+
+            LayoutItemProxy {
+                target: root.leading
+                visible: target && target.visible
+                Layout.rightMargin: visible ? Kirigami.Units.smallSpacing : 0
+            }
+
+            QQC2.SpinBox {
+                id: spinbox
                 Layout.fillWidth: true
-                text: label
-                elide: Text.ElideRight
-                color: root.enabled ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
-                wrapMode: Text.Wrap
-                maximumLineCount: 2
+                locale: root.locale
+                onValueModified: root.valueModified()
             }
 
-            Private.SpinButton {
-                onClicked: root.decrease()
-                icon.name: 'arrow-down'
-                visible: Kirigami.Settings.isMobile
-
-                isStart: true
-                isEnd: false
-            }
-
-            QQC2.Pane {
-                focusPolicy: Qt.NoFocus
-                topPadding: 0
-                bottomPadding: 0
-                leftPadding: Kirigami.Units.largeSpacing * 2
-                rightPadding: Kirigami.Units.largeSpacing * 2
-                visible: Kirigami.Settings.isMobile
-                contentItem: QQC2.Label {
-                    verticalAlignment: Text.AlignVCenter
-                    height: Kirigami.Units.gridUnit * 2
-                    text: root.textFromValue(root.value, root.locale)
-                }
-                background: Item {
-                    implicitHeight: Kirigami.Units.gridUnit * 2
-                    Rectangle {
-                        color: Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, Kirigami.Theme.frameContrast)
-                        height: 1
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            top: parent.top
-                        }
-                    }
-
-                    Rectangle {
-                        color: Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, Kirigami.Theme.frameContrast)
-                        height: 1
-                        anchors {
-                            left: parent.left
-                            right: parent.right
-                            bottom: parent.bottom
-                        }
-                    }
-                }
-            }
-
-            Private.SpinButton {
-                onClicked: root.increase()
-                visible: Kirigami.Settings.isMobile
-                icon.name: 'arrow-up'
-
-                isStart: false
-                isEnd: true
+            LayoutItemProxy {
+                target: root.trailing
+                visible: target && target.visible
+                Layout.leftMargin: visible ? Kirigami.Units.smallSpacing : 0
             }
         }
 
-        QQC2.SpinBox {
-            id: spinbox
-            Layout.fillWidth: true
-            visible: !Kirigami.Settings.isMobile
-            locale: root.locale
-        }
-
-        Kirigami.InlineMessage {
+        Private.FormInlineMessage {
             id: formErrorHandler
             visible: root.statusMessage.length > 0
             Layout.topMargin: visible ? Kirigami.Units.smallSpacing : 0
             Layout.fillWidth: true
             text: root.statusMessage
             type: root.status
+        }
+
+        QQC2.Label {
+            id: internalDescriptionItem
+
+            Layout.fillWidth: true
+            text: root.description
+            color: Kirigami.Theme.disabledTextColor
+            visible: root.description !== ""
+            wrapMode: Text.Wrap
         }
     }
 }

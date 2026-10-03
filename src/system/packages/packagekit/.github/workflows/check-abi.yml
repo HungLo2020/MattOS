@@ -1,0 +1,31 @@
+name: Check ABI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+env:
+  LAST_ABI_BREAK: ec3055d66afe3020c6e88f23f0a22a6c89986782
+
+jobs:
+  check-abi:
+    name: Check ABI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get this version
+        uses: actions/checkout@v7
+
+      - name: Get version from last ABI break
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.LAST_ABI_BREAK }}
+          path: original-version
+
+      - name: Create Build Environment
+        run: podman build -t packagekit-debian -f tests/ci/Dockerfile-debian
+
+      - name: Build & Test
+        run: podman run -t -v `pwd`:/build packagekit-debian
+             ./tests/ci/check-abi.sh -Dpackaging_backend=apt

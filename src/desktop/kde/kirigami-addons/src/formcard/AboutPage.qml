@@ -63,6 +63,14 @@ FormCardPage {
                   "spdx" : "GPL-2.0"
               }
           ],
+          "releases" : [
+              {
+                  "version" : "1.0.0",
+                  "date" : "2025-01-01",
+                  "description" : "Initial release.",
+                  "url" : "https://example.org/releases/1.0.0"
+              }
+          ],
           "copyrightStatement" : "© 2010-2018 Plasma Development Team",
           "desktopFileName" : "org.kde.kirigamiapp"
        }
@@ -78,7 +86,11 @@ FormCardPage {
        Default: "https://community.kde.org/Get_Involved" when the
        application ID starts with "org.kde.", otherwise empty.
      */
-    property url getInvolvedUrl: aboutData.desktopFileName.startsWith("org.kde.") ? "https://community.kde.org/Get_Involved" : ""
+    property url getInvolvedUrl: {
+        if (aboutData.hasOwnProperty("url") && aboutData.url(Core.AboutUrlType?.Contribute) !== "")
+            return aboutData.url(Core.AboutUrlType?.Contribute);
+        return aboutData.desktopFileName.startsWith("org.kde.") ? "https://community.kde.org/Get_Involved" : "";
+    }
 
     /*!
        \brief This property holds a link to a "Donate" page.
@@ -86,7 +98,32 @@ FormCardPage {
        Default: "https://www.kde.org/donate" when the
        application ID starts with "org.kde.", otherwise empty.
      */
-    property url donateUrl: aboutData.desktopFileName.startsWith("org.kde.") ? "https://www.kde.org/donate" : ""
+    property url donateUrl: {
+        if (page.aboutData.hasOwnProperty("url") && aboutData.url(Core.AboutUrlType?.Donation) !== "")
+            return aboutData.url(Core.AboutUrlType?.Donation);
+        return aboutData.desktopFileName.startsWith("org.kde.") ? "https://www.kde.org/donate" : ""
+    }
+
+    /*!
+       \brief This property defines whether to show "Libraries in use".
+
+       Default: true
+     */
+    property bool showLibraries: true
+
+    property bool _showOnlyNewReleases: false
+
+    Binding {
+        target: FormCardModule.AboutComponent
+        property: "currentVersion"
+        value: page.aboutData.version
+    }
+
+    Binding {
+        target: FormCardModule.AboutComponent
+        property: "releaseVersions"
+        value: page.aboutData.releases ? page.aboutData.releases.map(release => release.version) : []
+    }
 
     title: i18nd("kirigami-addons6", "About %1", page.aboutData.displayName)
 
@@ -96,7 +133,10 @@ FormCardPage {
         AbstractFormDelegate {
             id: generalDelegate
             Layout.fillWidth: true
-            background: null
+            background: FormDelegateBackground {
+                control: generalDelegate
+                visible: page.aboutData.releases && page.aboutData.releases.length > 0
+            }
             contentItem: RowLayout {
                 spacing: Kirigami.Units.smallSpacing * 2
 
@@ -105,18 +145,29 @@ FormCardPage {
                     Layout.preferredWidth: height
                     Layout.maximumWidth: page.width / 3;
                     Layout.rightMargin: Kirigami.Units.largeSpacing
-                    source: Kirigami.Settings.applicationWindowIcon || page.aboutData.programLogo || page.aboutData.programIconName || page.aboutData.componentName
+                    source: page.aboutData.programLogo || Kirigami.Settings.applicationWindowIcon || page.aboutData.componentName
                 }
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing
 
-                    Kirigami.Heading {
-                        Layout.fillWidth: true
-                        text: page.aboutData.displayName + " " + page.aboutData.version
-                        wrapMode: Text.WordWrap
+                    RowLayout {
+                        spacing: Kirigami.Units.smallSpacing
+
+                        Kirigami.Heading {
+                            Layout.fillWidth: true
+                            text: page.aboutData.displayName + " " + page.aboutData.version
+                            wrapMode: Text.WordWrap
+                        }
+
+                        Kirigami.Badge {
+                            visible: FormCardModule.AboutComponent.hasNewReleases
+                            text: i18nd("kirigami-addons6", "What's new")
+                            type: Kirigami.Badge.Type.Positive
+                        }
                     }
+
 
                     Kirigami.Heading {
                         Layout.fillWidth: true
@@ -127,15 +178,110 @@ FormCardPage {
                     }
                 }
             }
+
+            onClicked: {
+                if (page.aboutData.releases && page.aboutData.releases.length > 0) {
+                    page._showOnlyNewReleases = FormCardModule.AboutComponent.hasNewReleases;
+                    releasesSheet.open();
+                    FormCardModule.AboutComponent.updateLastSeenVersion();
+                }
+            }
         }
 
         FormDelegateSeparator {}
 
         FormTextDelegate {
             id: copyrightDelegate
+            visible: aboutData.copyrightStatement.length > 0
             text: i18nd("kirigami-addons6", "Copyright")
             descriptionItem.textFormat: Text.PlainText
             description: aboutData.copyrightStatement
+        }
+
+        data: QQC2.Dialog {
+            id: releasesSheet
+
+            title: i18nd("kirigami-addons6", "Release history")
+            parent: QQC2.Overlay.overlay
+            x: Math.round((parent.width - width) / 2)
+            y: Math.round((parent.height - height) / 2)
+            implicitWidth: parent ? Math.min(parent.width - Kirigami.Units.gridUnit * 2, Kirigami.Units.gridUnit * 30) : Kirigami.Units.gridUnit * 30
+            implicitHeight: Math.min(parent ? parent.height - Kirigami.Units.gridUnit * 2 : Kirigami.Units.gridUnit * 32,
+                                     Kirigami.Units.gridUnit * 32,
+                                     releaseDialogHeader.implicitHeight + releasesColumn.implicitHeight + Kirigami.Units.gridUnit * 2)
+            modal: true
+            focus: true
+            background: KirigamiComponents.DialogRoundedBackground {}
+
+            leftPadding: 0
+            rightPadding: 0
+            bottomPadding: 0
+            topPadding: 0
+
+            header: QQC2.Control {
+                id: releaseDialogHeader
+                padding: releasesSheet.padding
+                topPadding: Kirigami.Units.largeSpacing
+                bottomPadding: Kirigami.Units.largeSpacing
+
+                contentItem: RowLayout {
+                    spacing: Kirigami.Units.largeSpacing
+
+                    Kirigami.Heading {
+                        text: releasesSheet.title
+                        elide: QQC2.Label.ElideRight
+                        padding: 0
+                        leftPadding: Kirigami.Units.largeSpacing
+                        Layout.fillWidth: true
+                    }
+
+                    QQC2.ToolButton {
+                        icon.name: hovered ? "window-close" : "window-close-symbolic"
+                        text: i18ndc("kirigami-addons6", "@action:button", "Close")
+                        display: QQC2.ToolButton.IconOnly
+                        onClicked: releasesSheet.close()
+                    }
+                }
+
+                Kirigami.Separator {
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        bottom: parent.bottom
+                    }
+                }
+            }
+
+            contentItem: QQC2.ScrollView {
+                id: releasesScrollView
+                contentWidth: availableWidth
+                contentHeight: releasesColumn.implicitHeight + Kirigami.Units.gridUnit * 2
+                QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
+
+                ColumnLayout {
+                    id: releasesColumn
+                    x: Kirigami.Units.gridUnit
+                    y: Kirigami.Units.gridUnit
+                    width: releasesScrollView.availableWidth - Kirigami.Units.gridUnit * 2
+                    spacing: Kirigami.Units.largeSpacing * 2
+
+                    Repeater {
+                        model: page._showOnlyNewReleases
+                            ? page.aboutData.releases.filter((release, index) => FormCardModule.AboutComponent.newReleaseIndexes.includes(index))
+                            : page.aboutData.releases
+                        delegate: releaseDelegate
+                    }
+
+                    QQC2.Button {
+                        Layout.alignment: Qt.AlignHCenter
+                        visible: page._showOnlyNewReleases
+                        text: i18nd("kirigami-addons6", "Show older changes…")
+                        onClicked: page._showOnlyNewReleases = false
+                    }
+                }
+            }
+
+            footer: null
         }
     }
 
@@ -180,18 +326,36 @@ FormCardPage {
             property alias text: bodyLabel.text
 
             parent: QQC2.Overlay.overlay
+            implicitWidth: parent ? Math.min(parent.width - Kirigami.Units.gridUnit * 2, Kirigami.Units.gridUnit * 30) : Kirigami.Units.gridUnit * 30
 
             leftPadding: 0
             rightPadding: 0
             bottomPadding: 0
             topPadding: 0
 
-            header: Kirigami.Heading {
-                text: licenseSheet.title
-                elide: QQC2.Label.ElideRight
+            header: QQC2.Control {
                 padding: licenseSheet.padding
                 topPadding: Kirigami.Units.largeSpacing
                 bottomPadding: Kirigami.Units.largeSpacing
+
+                contentItem: RowLayout {
+                    spacing: Kirigami.Units.largeSpacing
+
+                    Kirigami.Heading {
+                        text: licenseSheet.title
+                        elide: QQC2.Label.ElideRight
+                        padding: 0
+                        leftPadding: Kirigami.Units.largeSpacing
+                        Layout.fillWidth: true
+                    }
+
+                    QQC2.ToolButton {
+                        icon.name: hovered ? "window-close" : "window-close-symbolic"
+                        text: i18ndc("kirigami-addons6", "@action:button", "Close")
+                        display: QQC2.ToolButton.IconOnly
+                        onClicked: licenseSheet.close()
+                    }
+                }
 
                 Kirigami.Separator {
                     anchors {
@@ -204,11 +368,15 @@ FormCardPage {
 
             contentItem: QQC2.ScrollView {
                 id: scrollView
+                contentWidth: availableWidth
+                QQC2.ScrollBar.horizontal.policy: QQC2.ScrollBar.AlwaysOff
 
                 Kirigami.SelectableLabel {
                     id: bodyLabel
+                    width: scrollView.availableWidth
                     text: licenseSheet.text
                     textMargin: Kirigami.Units.gridUnit
+                    wrapMode: Text.WordWrap
                 }
             }
 
@@ -216,20 +384,24 @@ FormCardPage {
         }
     }
 
-    FormCard {
+    FormGridContainer {
         Layout.topMargin: Kirigami.Units.gridUnit
+        Layout.fillWidth: true
+
+        // hide the container if all contents are not visible
+        visible: getInvolvedDelegate.visible
+              || donateDelegate.visible
+              || homepageDelegate.visible
+              || bugDelegate.visible
+              || matrixRoomDelegate.visible
+              || mastodonDelegate.visible
+              || sourceCodeDelegate.visible
 
         FormLinkDelegate {
             id: getInvolvedDelegate
             icon.name: "globe-symbolic"
             text: i18nd("kirigami-addons6", "Homepage")
             url: aboutData.homepage
-            visible: aboutData.homepage.length > 0
-        }
-
-        FormDelegateSeparator {
-            above: getInvolvedDelegate
-            below: donateDelegate
             visible: aboutData.homepage.length > 0
         }
 
@@ -241,23 +413,11 @@ FormCardPage {
             visible: donateUrl.toString().length > 0
         }
 
-        FormDelegateSeparator {
-            above: donateDelegate
-            below: homepageDelegate
-            visible: donateUrl.toString().length > 0
-        }
-
         FormLinkDelegate {
             id: homepageDelegate
             icon.name: "applications-development-symbolic"
             text: i18nd("kirigami-addons6", "Get Involved")
             url: page.getInvolvedUrl
-            visible: page.getInvolvedUrl != ""
-        }
-
-        FormDelegateSeparator {
-            above: homepageDelegate
-            below: bugDelegate
             visible: page.getInvolvedUrl != ""
         }
 
@@ -279,10 +439,52 @@ FormCardPage {
             text: i18nd("kirigami-addons6", "Report a Bug")
             visible: url.length > 0
         }
+
+        FormLinkDelegate {
+            id: matrixRoomDelegate
+            url: {
+                if (!page.aboutData.hasOwnProperty("url")) // since KF 6.29
+                    return "";
+                const s = page.aboutData.url(Core.AboutUrlType?.XKDEMatrixRoom);
+                return s.startsWith("http") ? s : s != "" ? "https://matrix.to/#/" + s : "";
+            }
+            icon.name: "im-matrix"
+            text: i18nd("kirigami-addons6", "Matrix Channel")
+            visible: url.length > 0
+        }
+
+        FormLinkDelegate {
+            id: mastodonDelegate
+            url: {
+                if (!page.aboutData.hasOwnProperty("url")) // since KF 6.29
+                    return "";
+                const s = page.aboutData.url(Core.AboutUrlType?.XKDEMastodon);
+                if (s == "" || s.startsWith("http"))
+                    return s;
+                const m = s.match(/^(@\S*)@(\S+)$/);
+                return m ? ("https://" + m[2] + "/" + m[1]) : ""
+            }
+            icon.name: "im-mastodon"
+            text: i18nd("kirigami-addons6", "Mastodon")
+            visible: url.length > 0
+        }
+
+        FormLinkDelegate {
+            id: sourceCodeDelegate
+            url: {
+                if (!page.aboutData.hasOwnProperty("url")) // since KF 6.29
+                    return "";
+                page.aboutData.url(Core.AboutUrlType?.VCSBrowser)
+            }
+            icon.name: "code-context-symbolic"
+            text: i18nd("kirigami-addons6", "Source Code")
+            visible: url.length > 0
+        }
     }
 
     FormHeader {
         title: i18nd("kirigami-addons6", "Libraries in use")
+        visible: page.showLibraries
 
         actions: QQC2.Action {
             text: i18ndc("kirigami-addons6", "@action:button", "Copy to Clipboard")
@@ -295,8 +497,10 @@ FormCardPage {
     }
 
     FormCard {
+        visible: page.showLibraries
+        autoSeparators: true
         Repeater {
-            model: FormCardModule.AboutComponent.components
+            model: page.showLibraries ? FormCardModule.AboutComponent.components : null
             delegate: libraryDelegate
         }
     }
@@ -308,6 +512,7 @@ FormCardPage {
 
     FormCard {
         visible: aboutData.authors !== undefined && aboutData.authors.length > 0
+        autoSeparators: true
 
         Repeater {
             id: authorsRepeater
@@ -323,6 +528,7 @@ FormCardPage {
 
     FormCard {
         visible: aboutData.credits !== undefined && aboutData.credits.length > 0
+        autoSeparators: true
 
         Repeater {
             id: repCredits
@@ -338,6 +544,7 @@ FormCardPage {
 
     FormCard {
         visible: aboutData.translators !== undefined && aboutData.translators.length > 0
+        autoSeparators: true
 
         Repeater {
             id: repTranslators
@@ -347,6 +554,47 @@ FormCardPage {
     }
 
     data: [
+        Component {
+            id: releaseDelegate
+
+            ColumnLayout {
+                required property var modelData
+
+                Layout.fillWidth: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 30
+                spacing: Kirigami.Units.smallSpacing
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: modelData.version
+                    font.bold: true
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    text: modelData.date.toLocaleDateString()
+                    color: Kirigami.Theme.disabledTextColor
+                    visible: modelData.date && modelData.date.getTime() !== 0
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: modelData.description
+                    textFormat: Text.RichText
+                    wrapMode: Text.WordWrap
+                    onLinkActivated: (link) => Qt.openUrlExternally(link)
+                    visible: text.length > 0
+                }
+
+                FormLinkDelegate {
+                    Layout.fillWidth: true
+                    text: i18nd("kirigami-addons6", "More information")
+                    url: modelData.url
+                    visible: url.toString().length > 0
+                }
+            }
+        },
         Component {
             id: personDelegate
 
@@ -474,7 +722,7 @@ FormCardPage {
                             title: delegate.modelData.name
 
                             parent: licenseButton.QQC2.Overlay.overlay
-                            implicitWidth: Math.min(parent.width - Kirigami.Units.gridUnit * 2, implicitContentWidth)
+                            implicitWidth: parent ? Math.min(parent.width - Kirigami.Units.gridUnit * 2, implicitContentWidth) : implicitContentWidth
 
                             leftPadding: 0
                             rightPadding: 0
@@ -519,6 +767,8 @@ FormCardPage {
                                     id: bodyLabel
                                     text: delegate.modelData.licenses.text
                                     textMargin: Kirigami.Units.gridUnit
+                                    wrapMode: Text.WordWrap
+                                    onLinkActivated: (link) => { Qt.openUrlExternally(link); }
                                 }
                             }
 
@@ -530,7 +780,7 @@ FormCardPage {
 
                     QQC2.ToolButton {
                         visible: typeof(modelData.webAddress) !== "undefined" && modelData.webAddress.length > 0
-                        icon.name: "globe"
+                        icon.name: "globe-symbolic"
                         QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         QQC2.ToolTip.visible: hovered
                         QQC2.ToolTip.text: (typeof(modelData.webAddress) === "undefined" && modelData.webAddress.length > 0) ? "" : modelData.webAddress

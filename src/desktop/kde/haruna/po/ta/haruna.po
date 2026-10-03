@@ -1,0 +1,3624 @@
+# Copyright (C) 2023 This file is copyright:
+# This file is distributed under the same license as the haruna package.
+#
+# SPDX-FileCopyrightText: 2021, 2022, 2023, 2024, 2025 Kishore G <kishore96@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: haruna\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-05-19 00:43+0000\n"
+"PO-Revision-Date: 2025-09-21 13:42+0530\n"
+"Last-Translator: Kishore G <kishore96@gmail.com>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.08.1\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "கோ. கிஷோர்"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "Kde-l10n-ta@kde.org"
+
+#: src/application.cpp:132
+#, kde-format
+msgctxt "application title/display name"
+msgid "Haruna"
+msgstr "ஹருணா"
+
+#: src/application.cpp:134
+#, kde-format
+msgctxt "@title"
+msgid "Media player"
+msgstr "நிகழ்பட இயக்கி"
+
+#: src/application.cpp:136
+#, kde-format
+msgctxt ""
+"copyright statement, use copyright symbol and en dash for the year range"
+msgid "© 2019–2025"
+msgstr "© 2019-2025"
+
+#: src/application.cpp:141
+#, kde-format
+msgctxt "@info:credit"
+msgid "George Florea Bănuș"
+msgstr "ஜார்ஜ் ஃபுலோரியா பானுசு"
+
+#: src/application.cpp:142
+#, kde-format
+msgctxt "@info:credit"
+msgid "Developer"
+msgstr "நிரலாளர்"
+
+#: src/application.cpp:169
+#, kde-format
+msgid "Feature-rich command-line audio/video downloader"
+msgstr "முனைய பாடல்/நிகழ்பட பதிவிறக்கி"
+
+#: src/application.cpp:184
+#, kde-format
+msgctxt "@info:shell"
+msgid "File to open"
+msgstr "திறக்க வேண்டிய கோப்பு"
+
+#: src/application.cpp:188
+#, fuzzy, kde-format
+#| msgctxt "@info:shell"
+#| msgid ""
+#| "Allows to temporarily override the ytdl format selection setting. Will be "
+#| "overwritten if the setting is changed through the GUI"
+msgctxt "@info:shell"
+msgid ""
+"Allows to temporarily override the yt-dlp format selection setting. Will be "
+"overwritten if the setting is changed through the GUI"
+msgstr ""
+"ytdl கோப்புவகைத் தேர்வை தற்காலிகமாக மாற்றியமைக்கும். வரைபட இடைமுகப்பில் மாற்றினால் "
+"இத்தேர்வு பொருட்படுத்தப்படாது"
+
+#: src/lockmanager.cpp:49
+#, kde-format
+msgctxt "@info reason for blocking sleep and screen slocking"
+msgid "Playing media file"
+msgstr "ஊடக‍க்கோப்பு இயக்கப்படுகிறது"
+
+#: src/models/actionsmodel.cpp:25
+#, kde-format
+msgctxt "@action"
+msgid "Open Actions Dialog"
+msgstr "செயல் அமைப்புச்சாளரத்தை திற ..."
+
+#: src/models/actionsmodel.cpp:32
+#, kde-format
+msgctxt "@action"
+msgid "About Haruna"
+msgstr "ஹருணா பற்றி"
+
+#: src/models/actionsmodel.cpp:40
+#, kde-format
+msgctxt "@action"
+msgid "Report bug"
+msgstr "பிழையை தெரிவி"
+
+#: src/models/actionsmodel.cpp:48
+#, kde-format
+msgctxt "@action"
+msgid "Sponsor Haruna"
+msgstr "ஹருணாவை ஆதரிக்க"
+
+#: src/models/actionsmodel.cpp:56
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@action"
+msgid "Cycle Up Audio Track"
+msgstr "&ஒலி"
+
+#: src/models/actionsmodel.cpp:64
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@action"
+msgid "Cycle Down Audio Track"
+msgstr "&ஒலி"
+
+#: src/models/actionsmodel.cpp:72
+#, kde-format
+msgctxt "@action"
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: src/models/actionsmodel.cpp:80
+#, kde-format
+msgctxt "@action"
+msgid "Configure Keyboard Shortcuts"
+msgstr "விசை சுருக்குவழிகளை அமை"
+
+#: src/models/actionsmodel.cpp:88
+#, kde-format
+msgctxt "@action"
+msgid "Exit Fullscreen"
+msgstr "முழுத்திரை பயன்முறையிலிருந்து வெளியேறு"
+
+#: src/models/actionsmodel.cpp:96
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Seek Small Step Forward"
+msgctxt "@action"
+msgid "Step Frame Forward"
+msgstr "சிறுபடியாக முன்னே செல்"
+
+#: src/models/actionsmodel.cpp:104
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Seek Small Step Backward"
+msgctxt "@action"
+msgid "Step Frame Backward"
+msgstr "சிறுபடியாக பின்னே செல்"
+
+#: src/models/actionsmodel.cpp:112
+#, kde-format
+msgctxt "@action"
+msgid "Load Last Played File"
+msgstr "கடைசியாக இயக்கிய கோப்பை ஏற்று"
+
+#: src/models/actionsmodel.cpp:120
+#, kde-format
+msgctxt "@action"
+msgid "Mute"
+msgstr "ஒலியை அடக்கு"
+
+#: src/models/actionsmodel.cpp:128
+#, kde-format
+msgctxt "@action"
+msgid "Open Context Menu"
+msgstr "வலது-க்ளிக் பட்டியை திற"
+
+#: src/models/actionsmodel.cpp:132
+#, kde-format
+msgctxt "@action"
+msgid "Opens and closes the context menu at the position of the mouse pointer"
+msgstr "சுட்டிக்குறியின் இருப்பிடத்தில் வலது-க்ளிக் பட்டியை திறக்கும் அல்லது மூடும்"
+
+#: src/models/actionsmodel.cpp:136
+#, kde-format
+msgctxt "@action"
+msgid "Open File"
+msgstr "கோப்பை திற"
+
+#: src/models/actionsmodel.cpp:144
+#, kde-format
+msgctxt "@action"
+msgid "Add External Subtitle…"
+msgstr "துணை உரையை வேறு கோப்பிலிருந்து சேர்…"
+
+#: src/models/actionsmodel.cpp:152
+#, kde-format
+msgctxt "@action"
+msgid "Open URL"
+msgstr "முகவரியை திற"
+
+#: src/models/actionsmodel.cpp:160
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "Playback speed"
+msgctxt "@action"
+msgid "Increase Playback Speed"
+msgstr "இயக்கும் வேகம்"
+
+#: src/models/actionsmodel.cpp:168
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "Playback speed"
+msgctxt "@action"
+msgid "Decrease Playback Speed"
+msgstr "இயக்கும் வேகம்"
+
+#: src/models/actionsmodel.cpp:176
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "Playback speed"
+msgctxt "@action"
+msgid "Reset Playback Speed"
+msgstr "இயக்கும் வேகம்"
+
+#: src/models/actionsmodel.cpp:184
+#, kde-format
+msgctxt "@action"
+msgid "Play/Pause"
+msgstr "இயக்கு/பொறு"
+
+#: src/models/actionsmodel.cpp:192
+#, kde-format
+msgctxt "@action"
+msgid "Stop"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:200
+#, kde-format
+msgctxt "@action"
+msgid "Play Next"
+msgstr "அடுத்த‍தை இயக்கு"
+
+#: src/models/actionsmodel.cpp:208
+#, kde-format
+msgctxt "@action"
+msgid "Play Previous"
+msgstr "முந்தையதை இயக்கு"
+
+#: src/models/actionsmodel.cpp:216
+#, kde-format
+msgctxt "@action"
+msgid "Quit"
+msgstr "வெளியேறு"
+
+#: src/models/actionsmodel.cpp:224
+#, kde-format
+msgctxt "@action"
+msgid "Restart Playback"
+msgstr "இயக்குவதை மீள்துவக்கு"
+
+#: src/models/actionsmodel.cpp:232
+#, kde-format
+msgctxt "@action"
+msgid "Seek Small Step Forward"
+msgstr "சிறுபடியாக முன்னே செல்"
+
+#: src/models/actionsmodel.cpp:240
+#, kde-format
+msgctxt "@action"
+msgid "Seek Small Step Backward"
+msgstr "சிறுபடியாக பின்னே செல்"
+
+#: src/models/actionsmodel.cpp:248
+#, kde-format
+msgctxt "@action"
+msgid "Seek Medium Step Forward"
+msgstr "நடுத்தரப்படியாக முன்னே செல்"
+
+#: src/models/actionsmodel.cpp:256
+#, kde-format
+msgctxt "@action"
+msgid "Seek Medium Step Backward"
+msgstr "நடுத்தரப்படியாக பின்னே செல்"
+
+#: src/models/actionsmodel.cpp:264
+#, kde-format
+msgctxt "@action"
+msgid "Seek Big Step Forward"
+msgstr "பெரும்படியாக முன்னே செல்"
+
+#: src/models/actionsmodel.cpp:272
+#, kde-format
+msgctxt "@action"
+msgid "Seek Big Step Backward"
+msgstr "பெரும்படியாக பின்னே செல்"
+
+#: src/models/actionsmodel.cpp:280
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Seek Next Chapter"
+msgctxt "@action"
+msgid "Seek To Next Chapter"
+msgstr "அடுத்த பகுதிக்கு செல்"
+
+#: src/models/actionsmodel.cpp:288
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Seek Previous Chapter"
+msgctxt "@action"
+msgid "Seek To Previous Chapter"
+msgstr "முந்தைய பகுதிக்கு செல்"
+
+#: src/models/actionsmodel.cpp:296
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Next Subtitle"
+msgstr "அடுத்த துணையுரைக்குச் செல்"
+
+#: src/models/actionsmodel.cpp:304
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Previous Subtitle"
+msgstr "முந்தைய துணையுரைக்குச் செல்"
+
+#: src/models/actionsmodel.cpp:312
+#, kde-format
+msgctxt "@action"
+msgid "Seek To Watch Later Position"
+msgstr "பிறகு பார்க்கவேண்டிய இடத்திற்கு செல்"
+
+#: src/models/actionsmodel.cpp:320
+#, kde-format
+msgctxt "@action"
+msgid "Set Loop"
+msgstr "சுழற்சியை அமை"
+
+#: src/models/actionsmodel.cpp:328
+#, kde-format
+msgctxt "@action"
+msgid "Screenshot"
+msgstr "திரைப்பிடிப்பு"
+
+#: src/models/actionsmodel.cpp:336
+#, fuzzy, kde-format
+#| msgctxt "@action:intoolbar"
+#| msgid "Subtitles"
+msgctxt "@action"
+msgid "Toggle Subtitles"
+msgstr "துணையுரை"
+
+#: src/models/actionsmodel.cpp:344
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Subtitle Increase Font Size"
+msgctxt "@action"
+msgid "Increase Subtitle Font Size"
+msgstr "துணையுரையைப் பெரிதாக்கு"
+
+#: src/models/actionsmodel.cpp:352
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Subtitle Decrease Font Size"
+msgctxt "@action"
+msgid "Decrease Subtitle Font Size"
+msgstr "துணையுரையை சிறிதாக்கு"
+
+#: src/models/actionsmodel.cpp:360
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Subtitle Move Up"
+msgctxt "@action"
+msgid "Move Subtitle Up"
+msgstr "துணையுரையை மேலே நகர்த்து"
+
+#: src/models/actionsmodel.cpp:368
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Subtitles on"
+msgctxt "@action"
+msgid "Move Subtitle Down"
+msgstr "துணை உரையை இயக்கு"
+
+#: src/models/actionsmodel.cpp:376
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Select subtitles file"
+msgctxt "@action"
+msgid "Show Subtitles Earlier"
+msgstr "துணையுரை கோப்பைத் தேர்ந்தெடுப்பது"
+
+#: src/models/actionsmodel.cpp:384
+#, fuzzy, kde-format
+#| msgctxt "@title:window"
+#| msgid "Select subtitles file"
+msgctxt "@action"
+msgid "Show Subtitles Later"
+msgstr "துணையுரை கோப்பைத் தேர்ந்தெடுப்பது"
+
+#: src/models/actionsmodel.cpp:392
+#, fuzzy, kde-format
+#| msgctxt "@action:intoolbar"
+#| msgid "Subtitles"
+msgctxt "@action"
+msgid "Cycle Up Subtitle"
+msgstr "துணையுரை"
+
+#: src/models/actionsmodel.cpp:400
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "Secondary Subtitle"
+msgctxt "@action"
+msgid "Cycle Down Subtitle"
+msgstr "இரண்டாம்நிலை துணை உரை"
+
+#: src/models/actionsmodel.cpp:408
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Deinterlacing"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:416
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Fullscreen"
+msgstr "முழுத்திரை பயன்முறையை நிலைமாற்று"
+
+#: src/models/actionsmodel.cpp:424
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Menu Bar"
+msgstr "பட்டிப் பட்டையை காட்டு/மறை"
+
+#: src/models/actionsmodel.cpp:432
+#, kde-format
+msgctxt "@action"
+msgid "Toggle Header"
+msgstr "தலைப்பை காட்டு/மறை"
+
+#: src/models/actionsmodel.cpp:440 src/qml/Settings/SettingsWindow.qml:133
+#, kde-format
+msgctxt "@action"
+msgid "Playlist"
+msgstr "பாடல்வரிசை"
+
+#: src/models/actionsmodel.cpp:448
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Video Move Left"
+msgctxt "@action"
+msgid "Move Video Left"
+msgstr "நிகழ்படத்தை இடதாக நகர்த்து"
+
+#: src/models/actionsmodel.cpp:456
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Video Move Right"
+msgctxt "@action"
+msgid "Move Video Right"
+msgstr "நிகழ்படத்தை வலதாக நகர்த்து"
+
+#: src/models/actionsmodel.cpp:464
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Video Move Up"
+msgctxt "@action"
+msgid "Move Video Up"
+msgstr "நிகழ்படத்தை மேலே நகர்த்து"
+
+#: src/models/actionsmodel.cpp:472
+#, fuzzy, kde-format
+#| msgctxt "@action"
+#| msgid "Video Move Down"
+msgctxt "@action"
+msgid "Move Video Down"
+msgstr "நிகழ்படத்தை கீழே நகர்த்து"
+
+#: src/models/actionsmodel.cpp:480
+#, kde-format
+msgctxt "@action"
+msgid "Rotate clockwise"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:488
+#, kde-format
+msgctxt "@action"
+msgid "Rotate counter clockwise"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:496
+#, kde-format
+msgctxt "@action"
+msgid "Volume Up"
+msgstr "ஒலி அளவை கூட்டு"
+
+#: src/models/actionsmodel.cpp:504
+#, kde-format
+msgctxt "@action"
+msgid "Volume Down"
+msgstr "ஒலி அளவை குறை"
+
+#: src/models/actionsmodel.cpp:512
+#, kde-format
+msgctxt "@action"
+msgid "Zoom In"
+msgstr "பெரிதாக்கு"
+
+#: src/models/actionsmodel.cpp:520
+#, kde-format
+msgctxt "@action"
+msgid "Zoom Out"
+msgstr "சிறிதாக்கு"
+
+#: src/models/actionsmodel.cpp:528
+#, kde-format
+msgctxt "@action"
+msgid "Reset Zoom"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:536
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Contrast"
+msgctxt "@action"
+msgid "Increase Contrast"
+msgstr "நிறமாறுபாட்டை கூட்டு"
+
+#: src/models/actionsmodel.cpp:544
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Contrast"
+msgctxt "@action"
+msgid "Decrease Contrast"
+msgstr "நிறமாறுபாட்டை கூட்டு"
+
+#: src/models/actionsmodel.cpp:552
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Contrast"
+msgctxt "@action"
+msgid "Reset Contrast"
+msgstr "நிறமாறுபாட்டை கூட்டு"
+
+#: src/models/actionsmodel.cpp:560
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Brightness"
+msgctxt "@action"
+msgid "Increase Brightness"
+msgstr "பிரகாசத்தை கூட்டு"
+
+#: src/models/actionsmodel.cpp:568
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Brightness"
+msgctxt "@action"
+msgid "Decrease Brightness"
+msgstr "பிரகாசத்தை கூட்டு"
+
+#: src/models/actionsmodel.cpp:576
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Brightness"
+msgctxt "@action"
+msgid "Reset Brightness"
+msgstr "பிரகாசத்தை கூட்டு"
+
+#: src/models/actionsmodel.cpp:584
+#, kde-format
+msgctxt "@action"
+msgid "Increase Gamma"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:592
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Gamma"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:600
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Gamma"
+msgctxt "@action"
+msgid "Reset Gamma"
+msgstr "காமாவை கூட்டு"
+
+#: src/models/actionsmodel.cpp:608
+#, kde-format
+msgctxt "@action"
+msgid "Increase Saturation"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:616
+#, kde-format
+msgctxt "@action"
+msgid "Decrease Saturation"
+msgstr ""
+
+#: src/models/actionsmodel.cpp:624
+#, fuzzy, kde-format
+#| msgid "Contrast Down"
+msgctxt "@action"
+msgid "Reset Saturation"
+msgstr "நிறமாறுபாட்டை குறை"
+
+#: src/models/actionsmodel.cpp:775
+#, kde-format
+msgctxt "@info"
+msgid ""
+"The chosen shortcut conflicts with the shortcut of the <b>%1</b> action."
+"<br><br>Do you want to reassign the shortcut?"
+msgstr ""
+"தேர்ந்தெடுத்துள்ள சுருக்குவழி, <b>%1</b> எனும் செயலுக்கான சுருக்குவழியுடன் "
+"முரண்படுகிறது.<br><br>சுருக்குவழியை மீளமர்த்த வேண்டுமா?"
+
+#: src/models/actionsmodel.cpp:781
+#, kde-format
+msgctxt "@action:button"
+msgid "Reassign"
+msgstr "இதற்கே அமர்த்து"
+
+#: src/models/mouseactionsmodel.cpp:263
+#, kde-format
+msgctxt "@label left mouse button"
+msgid "Left"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:265
+#, kde-format
+msgctxt "@label right mouse button"
+msgid "Right"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:267
+#, kde-format
+msgctxt "@label middle mouse button"
+msgid "Middle"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:269
+#, kde-format
+msgctxt "@label forward mouse button"
+msgid "Forward"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:271
+#, kde-format
+msgctxt "@label back mouse button"
+msgid "Back"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:273
+#, kde-format
+msgctxt "@label mouse scroll up"
+msgid "ScrollUp"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:275
+#, kde-format
+msgctxt "@label mouse scroll down"
+msgid "ScrollDown"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:323
+#, fuzzy, kde-format
+#| msgctxt "@label:slider"
+#| msgid "Contrast"
+msgctxt "@label control modifier key"
+msgid "Control"
+msgstr "நிறமாறுபாட்டை கூட்டு"
+
+#: src/models/mouseactionsmodel.cpp:325
+#, kde-format
+msgctxt "@label shift modifier key"
+msgid "Shift"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:327
+#, kde-format
+msgctxt "@label alt modifier key"
+msgid "Alt"
+msgstr ""
+
+#: src/models/mouseactionsmodel.cpp:329
+#, kde-format
+msgctxt "@label meta modifier key"
+msgid "Meta"
+msgstr ""
+
+#: src/mpv/mpvitem.cpp:85
+#, kde-format
+msgid "Command line video player"
+msgstr "முனைய நிகழ்பட இயக்கி"
+
+#: src/mpv/mpvitem.cpp:92
+#, kde-format
+msgid "Cross-platform solution to record, convert and stream audio and video"
+msgstr ""
+
+#: src/mpv/mpvitem.cpp:413
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Could not play: %1"
+msgctxt "@info:tooltip; %1 is a video title/filename"
+msgid "Could not play: %1"
+msgstr "இதனை இயக்க முடியவில்லை: %1"
+
+#: src/mpv/mpvitem.cpp:535
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Subtitles on"
+msgctxt "@info:tooltip"
+msgid "Subtitle timing: +%1 seconds"
+msgstr "துணை உரையை காட்டு"
+
+#: src/mpv/mpvitem.cpp:537
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Subtitles on"
+msgctxt "@info:tooltip"
+msgid "Subtitle timing: %1 seconds"
+msgstr "துணை உரையை காட்டு"
+
+#: src/mpv/mpvitem.cpp:576
+#, kde-format
+msgctxt "@info:tooltip; %1 is an absolute path"
+msgid "File doesn't exist: %1"
+msgstr ""
+
+#: src/mpv/mpvitem.cpp:608
+#, kde-format
+msgctxt "%1 current item number, %2 total items count, %3 item name"
+msgid "[%1/%2] %3"
+msgstr ""
+
+#: src/mpv/mpvitem.cpp:621
+#, kde-format
+msgctxt ""
+"@action The \"None\" subtitle track is used to clear/unset selected track"
+msgid "None"
+msgstr "ஏதுமில்லை"
+
+#: src/mpv/mpvitem.cpp:670
+#, kde-format
+msgctxt "@info:tooltip osd"
+msgid "Screenshot failed"
+msgstr "திரைப்பிடிப்பு தோல்வியடைந்தது"
+
+#: src/mpv/mpvitem.cpp:675
+#, kde-format
+msgctxt "@info:tooltip osd"
+msgid "Screenshot taken"
+msgstr "திரைப்பிடிப்பு எடுக்கப்பட்டது"
+
+#: src/mpv/mpvitem.cpp:677
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip osd"
+#| msgid "Screenshot: %1"
+msgctxt "@info:tooltip osd; %1 is a filename with path"
+msgid "Screenshot: %1"
+msgstr "திரைப்பிடிப்பு: %1"
+
+#: src/mpv/mpvitem.cpp:705
+#, kde-format
+msgctxt "Error message when video can't be decoded/played"
+msgid ""
+"No video track detected, most likely the video track can't be decoded/played "
+"due to missing codecs"
+msgstr ""
+
+#: src/mpv/mpvitem.cpp:738
+#, kde-format
+msgctxt "@info:tooltip osd"
+msgid "Skipped chapter: %1"
+msgstr "பகுதி தவிர்க்கப்பட்டது: %1"
+
+#: src/mpv/mpvitem.cpp:856
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Audio: %1 %2"
+msgctxt ""
+"@info:tooltip; %1 is the track number, %2 is a string in the form: `track."
+"title track.language track.codec`"
+msgid "Audio: %1 %2"
+msgstr "ஒலி: %1 %2"
+
+#: src/mpv/mpvitem.cpp:867
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Subtitle: None"
+msgctxt "@info:tooltip; osd message when no sub is selected"
+msgid "Subtitle: none"
+msgstr "துணையுரை: ஏதுமில்லை"
+
+#: src/mpv/mpvitem.cpp:872 src/mpv/mpvitem.cpp:888
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Subtitle: %1 %2"
+msgctxt ""
+"@info:tooltip; %1 is the track number, %2 is a string in the form: `track."
+"title track.language track.codec`"
+msgid "Subtitle: %1 %2"
+msgstr "துணையுரை: %1 %2"
+
+#: src/mpv/mpvitem.cpp:883
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "Secondary Subtitle"
+msgctxt "@info:tooltip; osd message when no sub is selected"
+msgid "Secondary subtitle: none"
+msgstr "இரண்டாம்நிலை துணை உரை"
+
+#: src/playlist/Playlist.qml:80
+msgctxt "@action:button"
+msgid "Search"
+msgstr ""
+
+#: src/playlist/Playlist.qml:100
+msgctxt "@action:button"
+msgid "Add…"
+msgstr ""
+
+#: src/playlist/Playlist.qml:108
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "File"
+msgctxt "@action:button"
+msgid "Files"
+msgstr "கோப்பு"
+
+#: src/playlist/Playlist.qml:116
+msgctxt "@action:button"
+msgid "URL"
+msgstr ""
+
+#: src/playlist/Playlist.qml:126
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Playlist"
+msgctxt "@action:button"
+msgid "Playlist"
+msgstr "பாடல்வரிசை"
+
+#: src/playlist/Playlist.qml:135
+msgctxt "@action:button"
+msgid "Sort"
+msgstr "வரிசைப்படுத்து"
+
+#: src/playlist/Playlist.qml:144
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Name ascending"
+msgctxt "@action:button"
+msgid "Ascending"
+msgstr "பெயர், ஏறுவரிசை"
+
+#: src/playlist/Playlist.qml:161
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Name ascending"
+msgctxt "@action:button"
+msgid "Descending"
+msgstr "பெயர், ஏறுவரிசை"
+
+#: src/playlist/Playlist.qml:184
+#, fuzzy
+#| msgctxt ""
+#| "@action The \"None\" subtitle track is used to clear/unset selected track"
+#| msgid "None"
+msgctxt "@action:button"
+msgid "None"
+msgstr "ஏதுமில்லை"
+
+#: src/playlist/Playlist.qml:194
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Volume: %1"
+msgctxt "@action:button"
+msgid "File Name"
+msgstr "ஒலி அளவு: %1"
+
+#: src/playlist/Playlist.qml:204
+msgctxt "@action:button"
+msgid "Title"
+msgstr ""
+
+#: src/playlist/Playlist.qml:214
+msgctxt "@action:button"
+msgid "Duration"
+msgstr ""
+
+#: src/playlist/Playlist.qml:224
+msgctxt "@action:button"
+msgid "Modified Date"
+msgstr ""
+
+#: src/playlist/Playlist.qml:234
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "File"
+msgctxt "@action:button"
+msgid "File Size"
+msgstr "கோப்பு"
+
+#: src/playlist/Playlist.qml:244
+#, fuzzy
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@action:button, as in 'Track no on a Audio CD', not 'subtitle track'"
+msgid "Track No"
+msgstr "&ஒலி"
+
+#: src/playlist/Playlist.qml:254
+msgctxt "@action:button"
+msgid "Sample Rate"
+msgstr ""
+
+#: src/playlist/Playlist.qml:264
+msgctxt "@action:button"
+msgid "Bitrate"
+msgstr ""
+
+#: src/playlist/Playlist.qml:279
+msgctxt "@action:button"
+msgid "Custom…"
+msgstr ""
+
+#: src/playlist/Playlist.qml:290
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Playback"
+msgctxt "@action:button"
+msgid "Playback"
+msgstr "இயக்குதல்"
+
+#: src/playlist/Playlist.qml:296
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Open playlist"
+msgctxt "@action:button"
+msgid "Repeat playlist"
+msgstr "பாடல்வரிசையை திற"
+
+#: src/playlist/Playlist.qml:307
+msgctxt "@action:button"
+msgid "Stop after last item"
+msgstr ""
+
+#: src/playlist/Playlist.qml:317
+msgctxt "@action:button"
+msgid "Repeat item"
+msgstr ""
+
+#: src/playlist/Playlist.qml:328
+msgctxt "@action:button"
+msgid "Stop after item"
+msgstr ""
+
+#: src/playlist/Playlist.qml:338
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Restart Playback"
+msgctxt "@action:button"
+msgid "Random Playback"
+msgstr "இயக்குவதை மீள்துவக்கு"
+
+#: src/playlist/Playlist.qml:350
+msgctxt "@action:button"
+msgid "Clear"
+msgstr "காலியாக்கு"
+
+#: src/playlist/Playlist.qml:358
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Save as"
+msgctxt "@action:button"
+msgid "Save As"
+msgstr "வேறு பெயரில் சேமி"
+
+#: src/playlist/Playlist.qml:432
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Open playlist"
+msgctxt "@action:button"
+msgid "Add new playlist"
+msgstr "பாடல்வரிசையை திற"
+
+#: src/playlist/Playlist.qml:447 src/playlist/Playlist.qml:829
+msgctxt "@action:inmenu"
+msgid "Rename"
+msgstr "மறுபெயரிடு"
+
+#: src/playlist/Playlist.qml:453
+msgctxt "@action:inmenu"
+msgid "Remove"
+msgstr ""
+
+#: src/playlist/Playlist.qml:509 src/playlist/Playlist.qml:530
+msgctxt "@action:button"
+msgid "Add"
+msgstr "சேர்"
+
+#: src/playlist/Playlist.qml:512 src/qml/Main.qml:493
+msgctxt "@info"
+msgid ""
+"Neither <a href=\"https://github.com/yt-dlp/yt-dlp\">yt-dlp</a> nor <a href="
+"\"https://github.com/ytdl-org/youtube-dl\">youtube-dl</a> was found."
+msgstr ""
+"<a href=\"https://github.com/yt-dlp/yt-dlp\">yt-dlp</a>, <a href=\"https://"
+"github.com/ytdl-org/youtube-dl\">youtube-dl</a> ஆகியவற்றில் ஒன்றுகூட "
+"கிடைக்கவில்லை."
+
+#: src/playlist/Playlist.qml:529
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Playlist"
+msgctxt "@placeholder"
+msgid "playlist name"
+msgstr "பாடல்வரிசை"
+
+#: src/playlist/Playlist.qml:741
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Open containing folder"
+msgctxt "@action:inmenu"
+msgid "Open Containing Folder"
+msgstr "கொண்டுள்ள அடைவைத் திற"
+
+#: src/playlist/Playlist.qml:747
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Open in browser"
+msgctxt "@action:inmenu"
+msgid "Open in Browser"
+msgstr "உலாவியில் திற"
+
+#: src/playlist/Playlist.qml:756
+msgctxt "@action:inmenu"
+msgid "Open in Thumbnail Generator"
+msgstr ""
+
+#: src/playlist/Playlist.qml:772
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Open in browser"
+msgctxt "@action:inmenu %1 is 'MediaInfo' (app name)"
+msgid "Open in %1"
+msgstr "உலாவியில் திற"
+
+#: src/playlist/Playlist.qml:786
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Copy name"
+msgctxt "@action:inmenu"
+msgid "Copy Name"
+msgstr "பெயரை நகலெடு"
+
+#: src/playlist/Playlist.qml:792
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Copy path"
+msgctxt "@action:inmenu"
+msgid "Copy Path"
+msgstr "பாதையை நகலெடு"
+
+#: src/playlist/Playlist.qml:793
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Copy url"
+msgctxt "@action:inmenu"
+msgid "Copy URL"
+msgstr "முகவரியை நகலெடு"
+
+#: src/playlist/Playlist.qml:803
+#, fuzzy
+#| msgctxt "@title:window"
+#| msgid "Select file"
+msgctxt "@action:inmenu"
+msgid "Select All"
+msgstr "கோப்பை தேர்ந்தெடு"
+
+#: src/playlist/Playlist.qml:807
+#, fuzzy
+#| msgctxt "@title:window"
+#| msgid "Select file"
+msgctxt "@action:inmenu"
+msgid "Deselect All"
+msgstr "கோப்பை தேர்ந்தெடு"
+
+#: src/playlist/Playlist.qml:811
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Confirm deletion"
+msgctxt "@action:inmenu"
+msgid "Invert Selection"
+msgstr "நீக்குவதை உறுதி செய்"
+
+#: src/playlist/Playlist.qml:817
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Remove from playlist"
+msgctxt "@action:inmenu"
+msgid "Remove from Playlist"
+msgstr "பாடல்வரிசையிலிருந்து நீக்கு"
+
+#: src/playlist/Playlist.qml:823
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Remove from playlist"
+msgctxt "@action:inmenu"
+msgid "Remove Selected from Playlist"
+msgstr "பாடல்வரிசையிலிருந்து நீக்கு"
+
+#: src/playlist/Playlist.qml:835
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Scroll to playing item"
+msgctxt "@action:inmenu"
+msgid "Scroll to Playing Item"
+msgstr "தற்போதைய உருப்படிக்கு உருள்"
+
+#: src/playlist/Playlist.qml:845
+msgctxt "@action:inmenu"
+msgid "Move File to Trash"
+msgstr ""
+
+#: src/playlist/Playlist.qml:851
+msgctxt "@action:inmenu"
+msgid "Move Selected Files to Trash"
+msgstr ""
+
+#: src/playlist/Playlist.qml:957 src/qml/Settings/VideoSettings.qml:69
+msgctxt "@title:window"
+msgid "Select file"
+msgstr "கோப்பை தேர்ந்தெடு"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:26
+msgctxt "@title:configure sort window"
+msgid "Advanced Sort and Group By"
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:43
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Playlist"
+msgctxt "@label which playlist is affected, %1 is the playlist name"
+msgid "Playlist: %1"
+msgstr "பாடல்வரிசை"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:50
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Sort"
+msgctxt "@label sort"
+msgid "Sorting"
+msgstr "வரிசைப்படுத்து"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:75
+#: src/playlist/PlaylistAdvancedSortWindow.qml:94
+#: src/playlist/PlaylistAdvancedSortWindow.qml:336
+#: src/playlist/PlaylistAdvancedSortWindow.qml:355
+msgctxt "@action:inmenu"
+msgid "Filter"
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:101
+#: src/playlist/PlaylistAdvancedSortWindow.qml:362
+msgctxt "@action:inmenu all"
+msgid "All"
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:112
+#: src/playlist/PlaylistAdvancedSortWindow.qml:373
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "File"
+msgctxt "@action:inmenu file"
+msgid "File"
+msgstr "கோப்பு"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:123
+#: src/playlist/PlaylistAdvancedSortWindow.qml:384
+#, fuzzy
+#| msgctxt "@action:intoolbar"
+#| msgid "Audio"
+msgctxt "@action:inmenu audio"
+msgid "Audio"
+msgstr "ஒலி"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:134
+#: src/playlist/PlaylistAdvancedSortWindow.qml:395
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Video"
+msgctxt "@action:inmenu video"
+msgid "Video"
+msgstr "நிகழ்படம்"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:181
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Name ascending"
+msgctxt "@action:inmenu"
+msgid "Ascending"
+msgstr "பெயர், ஏறுவரிசை"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:194
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Name ascending"
+msgctxt "@action:inmenu"
+msgid "Descending"
+msgstr "பெயர், ஏறுவரிசை"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:312
+msgctxt "@label group"
+msgid "Grouping"
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:410
+msgctxt "@action:inmenu"
+msgid "Show Sections"
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:420
+msgctxt "@info:tooltip"
+msgid ""
+"Show/Hide section labels in the playlist view. <br>If the playlist is not "
+"sorted by the included group properties in the same order, then the sections "
+"might not be unique."
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:531
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Add new folder"
+msgctxt "@action:inmenu add new line button"
+msgid "Add New Line"
+msgstr "புதிய அடைவை சேர்க்கும்"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:743
+msgctxt "@info:tooltip show blank"
+msgid "Property is hidden if empty or not unique."
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:745
+msgctxt "@info:tooltip hide blank"
+msgid "Property is shown, if empty a placeholder will be shown."
+msgstr ""
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:750
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Duration ascending"
+msgctxt "@info:tooltip group order"
+msgid "Sort ascending"
+msgstr "நீளம், ஏறுவரிசை"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:752
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Duration descending"
+msgctxt "@info:tooltip group order"
+msgid "Sort descending"
+msgstr "நீளம், இறங்குவரிசை"
+
+#: src/playlist/PlaylistAdvancedSortWindow.qml:754
+msgctxt "@info:tooltip group order"
+msgid "Same as primary sort order"
+msgstr ""
+
+#: src/playlist/playlistmultiproxiesmodel.cpp:211
+#, kde-format
+msgctxt "@info:tooltip; %1 playlist with same name"
+msgid "Playlists with same name is not allowed: %1"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:32
+#, fuzzy, kde-format
+#| msgctxt "@info:tooltip"
+#| msgid "Volume: %1"
+msgctxt "@label:button file name"
+msgid "File Name"
+msgstr "ஒலி அளவு: %1"
+
+#: src/playlist/playlistsortproxymodel.cpp:38
+#, kde-format
+msgctxt "@label:button duration"
+msgid "Duration"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:44
+#, kde-format
+msgctxt "@label:button date"
+msgid "Date"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:50
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "File"
+msgctxt "@label:button file size"
+msgid "File Size"
+msgstr "கோப்பு"
+
+#: src/playlist/playlistsortproxymodel.cpp:56
+#, kde-format
+msgctxt "@label:button title"
+msgid "Title"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:62
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@label:button, as in 'Track no on a Audio CD', not 'subtitle track'"
+msgid "Track No"
+msgstr "&ஒலி"
+
+#: src/playlist/playlistsortproxymodel.cpp:68
+#, kde-format
+msgctxt "@label:button sample rate"
+msgid "Sample Rate"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:74
+#, kde-format
+msgctxt "@label:button bitrate"
+msgid "Bitrate"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:81
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Folder"
+msgctxt "@label:button folder"
+msgid "Folder"
+msgstr "அடைவு"
+
+#: src/playlist/playlistsortproxymodel.cpp:88
+#, fuzzy, kde-format
+#| msgctxt "@label"
+#| msgid "Type"
+msgctxt "@label:button file type"
+msgid "Type"
+msgstr "வகை"
+
+#: src/playlist/playlistsortproxymodel.cpp:95
+#, kde-format
+msgctxt "@label:button file extension"
+msgid "Extension"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:102
+#, kde-format
+msgctxt "@label:button disc no"
+msgid "Disc No"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:109
+#, kde-format
+msgctxt "@label:button release year"
+msgid "Release Year"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:116
+#, kde-format
+msgctxt "@label:button genre"
+msgid "Genre"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:123
+#, kde-format
+msgctxt "@label:button album"
+msgid "Album"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:130
+#, kde-format
+msgctxt "@label:button artist"
+msgid "Artist"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:137
+#, kde-format
+msgctxt "@label:button album artist"
+msgid "Album Artist"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:144
+#, kde-format
+msgctxt "@label:button composer"
+msgid "Composer"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:151
+#, kde-format
+msgctxt "@label:button lyricist"
+msgid "Lyricist"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:158
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@label:button audio codec"
+msgid "Audio Codec"
+msgstr "&ஒலி"
+
+#: src/playlist/playlistsortproxymodel.cpp:165
+#, kde-format
+msgctxt "@label:button framerate"
+msgid "Framerate"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:172
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Video"
+msgctxt "@label:button video codec"
+msgid "Video Codec"
+msgstr "நிகழ்படம்"
+
+#: src/playlist/playlistsortproxymodel.cpp:179
+#, kde-format
+msgctxt "@label:button video orientation"
+msgid "Orientation"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:186
+#, fuzzy, kde-format
+#| msgid "Contrast Down"
+msgctxt "@label:button resolution"
+msgid "Resolution"
+msgstr "நிறமாறுபாட்டை குறை"
+
+#: src/playlist/playlistsortproxymodel.cpp:327
+#, kde-format
+msgctxt "@label:button put new line"
+msgid "New Line"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:499
+#, kde-format
+msgctxt "@title:group"
+msgid "No Genre"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:500
+#, kde-format
+msgctxt "@title:group"
+msgid "No Album"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:501
+#, kde-format
+msgctxt "@title:group"
+msgid "No Artist"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:502
+#, kde-format
+msgctxt "@title:group"
+msgid "No Album Artist"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:503
+#, kde-format
+msgctxt "@title:group"
+msgid "No Composer"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:504
+#, kde-format
+msgctxt "@title:group"
+msgid "No Lyricist"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:505
+#, kde-format
+msgctxt "@title:group"
+msgid "No Release Year"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:506
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Video"
+msgctxt "@title:group"
+msgid "Not a Video"
+msgstr "நிகழ்படம்"
+
+#: src/playlist/playlistsortproxymodel.cpp:507
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@title:group"
+msgid "No Audio Codec"
+msgstr "&ஒலி"
+
+#: src/playlist/playlistsortproxymodel.cpp:508
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Video"
+msgctxt "@title:group"
+msgid "No Video Codec"
+msgstr "நிகழ்படம்"
+
+#: src/playlist/playlistsortproxymodel.cpp:530
+#, kde-format
+msgctxt "@title:group disc"
+msgid "Disc"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:585
+#, fuzzy, kde-format
+#| msgctxt "@action:inmenu"
+#| msgid "Video"
+msgctxt "@title:group"
+msgid "Video File"
+msgstr "நிகழ்படம்"
+
+#: src/playlist/playlistsortproxymodel.cpp:588
+#, fuzzy, kde-format
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@title:group"
+msgid "Audio File"
+msgstr "&ஒலி"
+
+#: src/playlist/playlistsortproxymodel.cpp:612
+#, kde-format
+msgctxt "@title:group"
+msgid "Landscape"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:616
+#, kde-format
+msgctxt "@title:group"
+msgid "Portrait"
+msgstr ""
+
+#: src/playlist/playlistsortproxymodel.cpp:620
+#, kde-format
+msgctxt "@title:group"
+msgid "Square"
+msgstr ""
+
+#: src/playlist/PlaylistTabDelegate.qml:160
+msgctxt "@label:title name of default playlist tab"
+msgid "Default"
+msgstr ""
+
+#: src/qml/Actions.qml:139
+msgctxt ""
+"osd message when trying to open subtitle selection dialog while no file is "
+"open"
+msgid "Can’t load subtitle when no file is open"
+msgstr ""
+
+#: src/qml/Actions.qml:158 src/qml/Actions.qml:164 src/qml/Actions.qml:169
+msgctxt "@info:tooltip"
+msgid "Playback speed: %1"
+msgstr "இயக்கும் வேகம்: %1"
+
+#: src/qml/Actions.qml:268
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Loop start: %1"
+msgctxt "@info:tooltip; %1 is the timestamp where the loop starts"
+msgid "Loop start: %1"
+msgstr "சுழற்சியின் துவக்கம்: %1"
+
+#: src/qml/Actions.qml:274
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Loop: %1 - %2"
+msgctxt "@info:tooltip, use en dash for the range"
+msgid "Loop: %1–%2"
+msgstr "சுழற்சி: %1 - %2"
+
+#: src/qml/Actions.qml:280
+msgctxt "@info:tooltip"
+msgid "Loop cleared"
+msgstr "சுழற்சி நீக்கப்பட்டது"
+
+#: src/qml/Actions.qml:300
+msgctxt "@info:tooltip"
+msgid "Subtitles off"
+msgstr "துணை உரையை முடக்கு"
+
+#: src/qml/Actions.qml:300
+msgctxt "@info:tooltip"
+msgid "Subtitles on"
+msgstr "துணை உரையை இயக்கு"
+
+#: src/qml/Actions.qml:316 src/qml/Actions.qml:322
+msgctxt "@info:tooltip"
+msgid "Subtitle scale: %1"
+msgstr "துணை உரையின் அளவு: %1"
+
+#: src/qml/Actions.qml:336
+msgctxt "@info:tooltip"
+msgid "Deinterlace: %1"
+msgstr ""
+
+#: src/qml/Actions.qml:397 src/qml/Actions.qml:403
+msgctxt "@info:tooltip"
+msgid "Zoom: %1"
+msgstr "உருப்பெருக்கம்: %1"
+
+#: src/qml/Actions.qml:408
+msgctxt "@info:tooltip"
+msgid "Zoom: 0"
+msgstr "உருப்பெருக்கம்: 0"
+
+#: src/qml/Actions.qml:415 src/qml/Actions.qml:421
+msgctxt "@info:tooltip"
+msgid "Contrast: %1"
+msgstr "நிறமாறுபாடு: %1"
+
+#: src/qml/Actions.qml:426
+msgctxt "@info:tooltip"
+msgid "Contrast: 0"
+msgstr "நிறமாறுபாடு: 0"
+
+#: src/qml/Actions.qml:432 src/qml/Actions.qml:438
+msgctxt "@info:tooltip"
+msgid "Brightness: %1"
+msgstr "பிரகாசம்: %1"
+
+#: src/qml/Actions.qml:443
+msgctxt "@info:tooltip"
+msgid "Brightness: 0"
+msgstr "பிரகாசம்: 0"
+
+#: src/qml/Actions.qml:449 src/qml/Actions.qml:455
+msgctxt "@info:tooltip"
+msgid "Gamma: %1"
+msgstr "காமா: %1"
+
+#: src/qml/Actions.qml:460
+msgctxt "@info:tooltip"
+msgid "Gamma: 0"
+msgstr "காமா: 0"
+
+#: src/qml/Actions.qml:466 src/qml/Actions.qml:472
+msgctxt "@info:tooltip"
+msgid "Saturation: %1"
+msgstr ""
+
+#: src/qml/Actions.qml:477
+msgctxt "@info:tooltip"
+msgid "Saturation: 0"
+msgstr ""
+
+#: src/qml/Footer.qml:150
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Start Playback"
+msgctxt "@info:tooltip"
+msgid "Start playback"
+msgstr "வாசிப்பதை துவக்கும்"
+
+#: src/qml/Footer.qml:150
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Pause Playback"
+msgctxt "@info:tooltip"
+msgid "Pause playback"
+msgstr "வாசிப்பதை இடைநிறுத்தும்"
+
+#: src/qml/Footer.qml:167
+msgctxt "@info:tooltip"
+msgid "Play previous file"
+msgstr "முந்தைய கோப்பை இயக்கும்"
+
+#: src/qml/Footer.qml:184
+msgctxt "@info:tooltip"
+msgid "Play next file"
+msgstr "அடுத்த கோப்பை இயக்கும்"
+
+#: src/qml/Footer.qml:198
+#, fuzzy
+#| msgctxt "@label"
+#| msgid "Skip chapters"
+msgctxt "@info:tooltip"
+msgid "Open chapters menu"
+msgstr "பகுதிகளை தவிர்"
+
+#: src/qml/Footer.qml:262
+msgctxt "@info:tooltip"
+msgid "Remaining: %1"
+msgstr "மீதம்: %1"
+
+#: src/qml/Haruna/Components/ColorPickerButton.qml:42
+msgctxt "@info:tooltip"
+msgid "Select a color"
+msgstr "நிறத்தைத் தேர்ந்தெடுக்கவும்"
+
+#: src/qml/Haruna/Components/ColorPickerButton.qml:49
+#, fuzzy
+#| msgctxt "@title:window"
+#| msgid "Select a color"
+msgctxt "@title:window"
+msgid "Select Color"
+msgstr "நிறத்தைத் தேர்ந்தெடுப்பது"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:65
+msgctxt "@action:inmenu"
+msgid "Recent Files"
+msgstr "சமீப கோப்புகள்"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:94
+#: src/qml/Menus/Global/GlobalSubtitlesMenu.qml:25
+#: src/qml/Menus/SubtitlesMenu.qml:23
+msgctxt "@title:menu"
+msgid "Primary Subtitle"
+msgstr "முதல்நிலை துணை உரை"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:100
+#: src/qml/Menus/Global/GlobalSubtitlesMenu.qml:59
+#: src/qml/Menus/SubtitlesMenu.qml:29
+msgctxt "@title:menu"
+msgid "Secondary Subtitle"
+msgstr "இரண்டாம்நிலை துணை உரை"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:109
+#, fuzzy
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@title:menu"
+msgid "Audio Track"
+msgstr "&ஒலி"
+
+#: src/qml/Haruna/Components/HamburgerMenu.qml:132
+msgctxt "@action:inmenu"
+msgid "&More"
+msgstr "&மேலும்"
+
+#: src/qml/Haruna/Components/SelectActionPopup.qml:27
+#, fuzzy
+#| msgid "Contrast Reset"
+msgctxt "@info:placeholder"
+msgid "No action found."
+msgstr "நிறமாறுபாட்டை மீட்டமை"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:31
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Subtitles on"
+msgctxt "@label; Below is a list of folders containing subtitles"
+msgid "Load subtitles from"
+msgstr "துணை உரையை இயக்கு"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:34
+msgctxt "@info:tooltip;"
+msgid ""
+"When a relative folder name starts with * (asterisk) and recursive search is "
+"enabled, all folders containing that name will be searched.\n"
+"Relative folders are relative to the playing file's folder."
+msgstr ""
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:113
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Confirm deletion"
+msgctxt "@action:button"
+msgid "Confirm Deletion"
+msgstr "நீக்குவதை உறுதி செய்"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:124
+msgctxt "@info:tooltip"
+msgid "Delete this folder from list"
+msgstr "பட்டியலிலிருந்து இந்த அடைவை நீக்கும்"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:140
+msgctxt "@info:tooltip"
+msgid "Save changes"
+msgstr "மாற்றங்களை சேமிக்கும்"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:150
+#, fuzzy
+#| msgctxt "@label:textbox"
+#| msgid "Config folder"
+msgid "No folder set"
+msgstr "அமைப்புகளுக்கான அடைவு"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:168
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Add new folder"
+msgctxt "@action:button"
+msgid "Add New Folder"
+msgstr "புதிய அடைவை சேர்க்கும்"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:176
+msgctxt "@info:tooltip add new subtitle folder setting"
+msgid "Add a folder in which to look for subtitles."
+msgstr ""
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:185
+#, fuzzy
+#| msgctxt "@title:window"
+#| msgid "Select subtitles file"
+msgctxt "@label:check"
+msgid "Search subtitles recursively"
+msgstr "துணையுரை கோப்பைத் தேர்ந்தெடுப்பது"
+
+#: src/qml/Haruna/Components/SubtitlesFolders.qml:202
+msgctxt "@info:tooltip"
+msgid ""
+"Subtitles are searched recursively in the folders defined by the “%1” "
+"setting.\n"
+"Only relative folders are searched."
+msgstr ""
+
+#: src/qml/Header.qml:79
+msgctxt "@action:intoolbar"
+msgid "Subtitles"
+msgstr "துணையுரை"
+
+#: src/qml/Header.qml:103
+msgctxt "@action:intoolbar"
+msgid "Audio"
+msgstr "ஒலி"
+
+#: src/qml/HProgressBar.qml:310
+msgctxt "@action:inmenu"
+msgid "Skip Chapters"
+msgstr "பகுதிகளை தவிர்"
+
+#: src/qml/HProgressBar.qml:318
+msgctxt "@info:tooltip"
+msgid ""
+"Automatically skips chapters containing certain words/characters.\n"
+"Check “Playback” settings for more details."
+msgstr ""
+
+#: src/qml/Main.qml:32
+msgctxt "@title:window"
+msgid "Haruna"
+msgstr "ஹருணா"
+
+#: src/qml/Main.qml:443
+#, fuzzy
+#| msgctxt "@title:window"
+#| msgid "Select file"
+msgctxt "@title:window"
+msgid "Select File"
+msgstr "கோப்பை தேர்ந்தெடு"
+
+#: src/qml/Main.qml:463
+#, fuzzy
+#| msgctxt "@title:window"
+#| msgid "Select subtitles file"
+msgctxt "@title:window"
+msgid "Select Subtitles File"
+msgstr "துணையுரை கோப்பைத் தேர்ந்தெடுப்பது"
+
+#: src/qml/Main.qml:490
+msgctxt "@action:button"
+msgid "Open"
+msgstr "திற"
+
+#: src/qml/Menus/AudioMenu.qml:18 src/qml/Menus/Global/GlobalAudioMenu.qml:20
+msgctxt "@title:menu"
+msgid "&Audio"
+msgstr "&ஒலி"
+
+#: src/qml/Menus/AudioMenu.qml:26 src/qml/Menus/Global/GlobalAudioMenu.qml:25
+#, fuzzy
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@title:menu"
+msgid "&Track"
+msgstr "&ஒலி"
+
+#: src/qml/Menus/FileMenu.qml:20 src/qml/Menus/Global/GlobalFileMenu.qml:19
+msgctxt "@title:menu"
+msgid "&File"
+msgstr "&கோப்பு"
+
+#: src/qml/Menus/FileMenu.qml:32 src/qml/Menus/Global/GlobalFileMenu.qml:42
+msgctxt "@title:menu"
+msgid "Recent Files"
+msgstr "சமீப கோப்புகள்"
+
+#: src/qml/Menus/FileMenu.qml:64 src/qml/Menus/Global/GlobalFileMenu.qml:71
+msgctxt "@action:inmenu"
+msgid "Clear List"
+msgstr "பட்டியலை காலியாக்கு"
+
+#: src/qml/Menus/Global/GlobalHelpMenu.qml:14 src/qml/Menus/HelpMenu.qml:14
+msgctxt "@title:menu"
+msgid "&Help"
+msgstr "&உதவி"
+
+#: src/qml/Menus/Global/GlobalPlaybackMenu.qml:14
+#: src/qml/Menus/PlaybackMenu.qml:14
+msgctxt "@title:menu"
+msgid "&Playback"
+msgstr "&இயக்குதல்"
+
+#: src/qml/Menus/Global/GlobalPlaybackMenu.qml:75
+#: src/qml/Menus/PlaybackMenu.qml:33
+msgctxt "@title:menu"
+msgid "Seek"
+msgstr ""
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:17
+#: src/qml/Menus/SettingsMenu.qml:17
+msgctxt "@title:menu"
+msgid "&Settings"
+msgstr "&அமைப்புகள்"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:20
+#: src/qml/Menus/SettingsMenu.qml:20
+msgctxt "@action:inmenu"
+msgid "General"
+msgstr "பொதுவானவை"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:26
+#: src/qml/Menus/SettingsMenu.qml:26
+msgctxt "@action:inmenu"
+msgid "Playback"
+msgstr "இயக்குதல்"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:32
+#: src/qml/Menus/SettingsMenu.qml:32
+msgctxt "@action:inmenu"
+msgid "Video"
+msgstr "நிகழ்படம்"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:38
+#: src/qml/Menus/SettingsMenu.qml:38
+msgctxt "@action:inmenu"
+msgid "Audio"
+msgstr "ஒலி"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:44
+#: src/qml/Menus/SettingsMenu.qml:44
+msgctxt "@action:inmenu"
+msgid "Subtitles"
+msgstr "துணை உரை"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:50
+#: src/qml/Menus/SettingsMenu.qml:50
+msgctxt "@action:inmenu"
+msgid "Playlist"
+msgstr "பாடல்வரிசை"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:56
+#: src/qml/Menus/SettingsMenu.qml:56
+msgctxt "@action:inmenu"
+msgid "Mouse"
+msgstr "சுட்டி"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:62
+#: src/qml/Menus/SettingsMenu.qml:62
+msgctxt "@action:inmenu"
+msgid "Shortcuts"
+msgstr "சுருக்குவழிகள்"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:69
+#: src/qml/Menus/SettingsMenu.qml:69
+msgctxt "@action:inmenu"
+msgid "Custom Commands"
+msgstr "தனிப்பயன் கட்டளைகள்"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:75
+#: src/qml/Menus/SettingsMenu.qml:75
+msgctxt "@action:inmenu"
+msgid "Debug"
+msgstr "பிழைநீக்கம்"
+
+#: src/qml/Menus/Global/GlobalSettingsMenu.qml:81
+#: src/qml/Menus/SettingsMenu.qml:81
+msgctxt "@action:inmenu"
+msgid "About"
+msgstr "இதுபற்றி"
+
+#: src/qml/Menus/Global/GlobalSubtitlesMenu.qml:20
+#: src/qml/Menus/SubtitlesMenu.qml:18
+msgctxt "@title:menu"
+msgid "&Subtitles"
+msgstr "&துணையுரை"
+
+#: src/qml/Menus/Global/GlobalVideoMenu.qml:14 src/qml/Menus/VideoMenu.qml:14
+msgctxt "@title:menu"
+msgid "&Video"
+msgstr "&நிகழ்படம்"
+
+#: src/qml/Menus/Global/GlobalVideoMenu.qml:83 src/qml/Menus/VideoMenu.qml:29
+msgctxt "@title:menu"
+msgid "Adjustments"
+msgstr "சீரைமைப்புகள்"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:15 src/qml/Menus/ViewMenu.qml:15
+msgctxt "@title:menu"
+msgid "&View"
+msgstr "&பார்வை"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:28 src/qml/Menus/ViewMenu.qml:24
+msgctxt "@action:inmenu"
+msgid "Hide Menubar"
+msgstr "பட்டிப் பட்டையை மறை"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:30 src/qml/Menus/ViewMenu.qml:26
+msgctxt "@action:inmenu"
+msgid "Show Menubar"
+msgstr "பட்டிப் பட்டையை காட்டு"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:41 src/qml/Menus/ViewMenu.qml:35
+msgctxt "@action:inmenu"
+msgid "Hide Toolbar"
+msgstr "கருவிப்பட்டையை மறை"
+
+#: src/qml/Menus/Global/GlobalViewMenu.qml:43 src/qml/Menus/ViewMenu.qml:37
+msgctxt "@action:inmenu"
+msgid "Show Toolbar"
+msgstr "கருவிப்பட்டையை காட்டு"
+
+#: src/qml/Menus/MpvContextMenu.qml:46
+#, fuzzy
+#| msgctxt "@title:menu"
+#| msgid "Playback speed"
+msgctxt "@title:menu"
+msgid "Playback Speed"
+msgstr "இயக்கும் வேகம்"
+
+#: src/qml/MpvVideo.qml:54
+msgctxt "@info:tooltip"
+msgid "Volume: %1"
+msgstr "ஒலி அளவு: %1"
+
+#: src/qml/MpvVideo.qml:258
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Open playlist"
+msgctxt "@info:drag&drop append items"
+msgid "Add to Playlist"
+msgstr "பாடல்வரிசையை திற"
+
+#: src/qml/MpvVideo.qml:307
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Play Next"
+msgctxt "@info:drag&drop play now"
+msgid "Play Now"
+msgstr "அடுத்த‍தை இயக்கு"
+
+#: src/qml/MpvVideo.qml:393
+msgctxt "@label:title"
+msgid "Loading…"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:24
+#: src/qml/Settings/SubtitlesSettings.qml:50
+msgctxt "@label:textbox"
+msgid "Preferred language"
+msgstr "முதன்மையான மொழி"
+
+#: src/qml/Settings/AudioSettings.qml:50
+#: src/qml/Settings/SubtitlesSettings.qml:77
+#, fuzzy
+#| msgid "Preferred language"
+msgctxt "@label:spinbox"
+msgid "Preferred track"
+msgstr "முதன்மையான மொழி"
+
+#: src/qml/Settings/AudioSettings.qml:67
+msgctxt "@label:spinbox"
+msgid "Volume step"
+msgstr "ஒலியளவை மாற்றுவதற்கான படி"
+
+#: src/qml/Settings/AudioSettings.qml:86
+msgctxt "@title"
+msgid "Replay gain"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:92
+msgctxt "@label:listbox"
+msgid "Mode"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:104
+#, fuzzy
+#| msgctxt "@option:check"
+#| msgid "Disabled"
+msgctxt "@item:listbox replay gain"
+msgid "Disabled"
+msgstr "முடக்கு"
+
+#: src/qml/Settings/AudioSettings.qml:110
+#, fuzzy
+#| msgctxt "@title:menu"
+#| msgid "&Audio"
+msgctxt "@item:listbox replay gain"
+msgid "Track"
+msgstr "&ஒலி"
+
+#: src/qml/Settings/AudioSettings.qml:116
+msgctxt "@item:listbox replay gain"
+msgid "Album"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:130
+msgctxt "@info:tooltip"
+msgid ""
+"Adjust volume gain according to <i>replaygain</i> values stored in the file "
+"metadata. If set to album gain, apply album gain if present and fallback to "
+"track gain otherwise."
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:143
+msgctxt "@label:spinbox"
+msgid "Prevent clipping"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:151
+msgctxt "@info:tooltip"
+msgid "Prevent clipping by lowering the gain"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:160
+msgctxt "@label:spinbox"
+msgid "Preamp (dB)"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:181
+#: src/qml/Settings/AudioSettings.qml:214
+#: src/qml/Settings/SubtitlesSettings.qml:149
+#: src/qml/Settings/SubtitlesSettings.qml:245
+#: src/qml/Settings/SubtitlesSettings.qml:300
+#: src/qml/Settings/SubtitlesSettings.qml:375
+msgctxt "@info:tooltip"
+msgid "Reset to default value"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:193
+msgctxt "@label:spinbox"
+msgid "Fallback (dB)"
+msgstr ""
+
+#: src/qml/Settings/AudioSettings.qml:218
+msgctxt "@info:tooltip"
+msgid ""
+"Gain in dB to apply if the file has no replay gain tags.<br><br>This setting "
+"is in effect only when:<br>- the replaygain setting is disabled<br>- the "
+"replaygain setting is enabled and the file has no replaygain metadata<br>If "
+"this is in effect, other replaygain settings are ignored."
+msgstr ""
+
+#: src/qml/Settings/CustomCommandsSettings.qml:41
+msgctxt "@label:textbox"
+msgid "No custom commands yet"
+msgstr "தனிப்பயன் கட்டளைகள் இல்லை"
+
+#: src/qml/Settings/CustomCommandsSettings.qml:43
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "&Add command"
+msgctxt "@action:button"
+msgid "&Add Command"
+msgstr "&கட்டளையை சேர்"
+
+#: src/qml/Settings/CustomCommandsSettings.qml:94
+msgctxt "@info:tooltip"
+msgid ""
+"Checked: property will be set at startup\n"
+"Unchecked: property will not be set at startup"
+msgstr ""
+
+#: src/qml/Settings/CustomCommandsSettings.qml:174
+msgctxt "@action:intoolbar"
+msgid "&Add"
+msgstr "&சேர்"
+
+#: src/qml/Settings/DebugSettings.qml:26
+msgctxt "@label:textbox"
+msgid "Config file"
+msgstr "அமைப்புக்கோப்பு"
+
+#: src/qml/Settings/DebugSettings.qml:38
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Custom commands"
+msgctxt "@label:textbox"
+msgid "Custom commands config file"
+msgstr "தனிப்பயன் கட்டளைகள்"
+
+#: src/qml/Settings/DebugSettings.qml:50
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Open config file"
+msgctxt "@label:textbox"
+msgid "Shortcuts config file"
+msgstr "அமைப்புக்கோப்பைத் திறக்கும்"
+
+#: src/qml/Settings/DebugSettings.qml:62
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Open config file"
+msgctxt "@label:textbox"
+msgid "Playlists config file"
+msgstr "அமைப்புக்கோப்பைத் திறக்கும்"
+
+#: src/qml/Settings/DebugSettings.qml:74
+msgctxt "@info:usagetip"
+msgid ""
+"If fields are empty that means there is no config file/folder (e.g when "
+"using the default settings)."
+msgstr ""
+
+#: src/qml/Settings/DebugSettings.qml:82
+msgctxt "@option:check"
+msgid "Enable mpv logging"
+msgstr ""
+
+#: src/qml/Settings/DebugSettings.qml:105
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Open File"
+msgctxt "@info:tooltip"
+msgid "Open file"
+msgstr "கோப்பை திற"
+
+#: src/qml/Settings/DebugSettings.qml:114
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Open containing folder"
+msgctxt "@info:tooltip"
+msgid "Open containing folder"
+msgstr "கொண்டுள்ள அடைவைத் திற"
+
+#: src/qml/Settings/EditCustomCommand.qml:42
+msgctxt "@label:textbox"
+msgid "Command"
+msgstr "கட்டளை"
+
+#: src/qml/Settings/EditCustomCommand.qml:58
+msgctxt "@info:tooltip"
+msgid ""
+"What mpv command to run, see <a href=\"https://mpv.io/manual/stable/#list-of-"
+"input-commands\">MPV Commands</a> for a list of available commands.<br>Not "
+"all commands will work as some are specific for mpv.<br>Most useful are the "
+"commands to manipulate properties, like <strong>set</strong>, <strong>add</"
+"strong>, <strong>cycle</strong>.<br><strong>set</strong>: sets the value of "
+"a property <strong>set volume-max 150</strong>.<br><strong>add</strong>: "
+"increases/decreases the value of a property <strong>add volume 15</strong>, "
+"increases volume by 15. To decrease the value use <strong>add volume -15</"
+"strong>.<br><strong>cycle</strong>: cycle through the values of a property "
+"<strong>cycle aid up</strong>."
+msgstr ""
+
+#: src/qml/Settings/EditCustomCommand.qml:75
+msgctxt "@label:textbox"
+msgid "OSD Message"
+msgstr "திரையில் காட்டப்படும் தகவல்"
+
+#: src/qml/Settings/EditCustomCommand.qml:85
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Volume: %1"
+msgctxt "placeholder text; %1 is an example of how to display an mpv property"
+msgid "Filename: %1"
+msgstr "ஒலி அளவு: %1"
+
+#: src/qml/Settings/EditCustomCommand.qml:91
+msgctxt "@info:tooltip"
+msgid ""
+"An OSD message to display when triggering an action type custom command."
+"<br>Use ${property_name} to display the value of a property <strong>Volume: "
+"${volume}</strong>"
+msgstr ""
+
+#: src/qml/Settings/EditCustomCommand.qml:100
+msgctxt "@label"
+msgid "Type"
+msgstr "வகை"
+
+#: src/qml/Settings/EditCustomCommand.qml:121
+msgctxt "@option:radio"
+msgid "Keyboard shortcut"
+msgstr "விசைப்பலகை சுருக்குவழி"
+
+#: src/qml/Settings/EditCustomCommand.qml:122
+msgctxt "@info:tooltip"
+msgid ""
+"The command will be triggered with a shortcut. The shortcut can be set after "
+"saving."
+msgstr ""
+
+#: src/qml/Settings/EditCustomCommand.qml:131
+msgctxt "@option:radio"
+msgid "Run at startup"
+msgstr "துவங்கும்போது இயக்கு"
+
+#: src/qml/Settings/EditCustomCommand.qml:132
+msgctxt "@info:tooltip"
+msgid "The command will be run at application startup."
+msgstr ""
+
+#: src/qml/Settings/EditCustomCommand.qml:144
+msgctxt "@action:intoolbar"
+msgid "Delete"
+msgstr "நீக்கு"
+
+#: src/qml/Settings/EditCustomCommand.qml:160
+msgctxt "@action:intoolbar"
+msgid "Cancel"
+msgstr "ரத்து செய்"
+
+#: src/qml/Settings/EditCustomCommand.qml:168
+msgctxt "@action:intoolbar"
+msgid "&Save"
+msgstr "&சேமி"
+
+#: src/qml/Settings/GeneralSettings.qml:26
+msgctxt "@label:spinbox"
+msgid "OSD font size"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:44
+msgctxt "@label:spinbox"
+msgid "Maximum recent files"
+msgstr "சமீப கோப்புகளின் அதிகபட்ச எண்ணிக்கை"
+
+#: src/qml/Settings/GeneralSettings.qml:62
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Clear"
+msgctxt "@action:button clear (delete from database) recent files"
+msgid "Clear"
+msgstr "காலியாக்கு"
+
+#: src/qml/Settings/GeneralSettings.qml:66
+msgctxt "@info:tooltip"
+msgid "Deletes recent files from the database"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:71
+msgctxt "@info:tooltip"
+msgid ""
+"The number of recent files to display. Enter 0 (zero) to disable.<br>Every "
+"opened file is stored.<br>Bold entries are files opened from the open file/"
+"url actions and from external apps (command line, file manager, drag and "
+"drop etc.)."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:84
+msgctxt "@option:check"
+msgid "Allow only one instance"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:93
+msgctxt "@info:tooltip"
+msgid ""
+"Trying to open another Haruna instance will do nothing.<br>Trying to open "
+"another file with Haruna will open the file in the running instance."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:104
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Open playlist"
+msgctxt "@option:check"
+msgid "Add file to playlist"
+msgstr "பாடல்வரிசையை திற"
+
+#: src/qml/Settings/GeneralSettings.qml:114
+msgctxt "@info:tooltip"
+msgid "File will be added to the end of the playlist."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:123
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Play next file"
+msgctxt "@option:check"
+msgid "Play new file"
+msgstr "அடுத்த கோப்பை இயக்கும்"
+
+#: src/qml/Settings/GeneralSettings.qml:134
+msgctxt "@title"
+msgid "Interface"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:140
+#, fuzzy
+#| msgctxt "@label"
+#| msgid "Font style"
+msgctxt "@label:spinbox"
+msgid "Footer style"
+msgstr "எழுத்துருப் பாங்கு"
+
+#: src/qml/Settings/GeneralSettings.qml:152
+msgctxt "@item:listbox the footer style"
+msgid "Default"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:158
+msgctxt "@item:listbox the footer style"
+msgid "Floating"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:172
+msgctxt "@label:listbox"
+msgid "Show floating footer on"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:187
+msgctxt "@item:listbox how to trigger the floating footer"
+msgid "Every mouse movement"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:193
+msgctxt "@item:listbox how to trigger the floating footer"
+msgid "Bottom mouse movement"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:208
+msgctxt "@info:tooltip"
+msgid ""
+"What action shows the footer.<br><strong>Every mouse movement</strong> — "
+"every mouse movement over the video area<br><strong>Bottom mouse movement</"
+"strong> — mouse movement on the bottom of the video area"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:216
+msgctxt "@label:spinbox"
+msgid "Preview thumbnail"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:221
+msgctxt "@option:check"
+msgid "Show preview thumbnail"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:228
+msgctxt "@info:tooltip"
+msgid "Shows a preview while hovering the seek/progress bar."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:237
+msgctxt "@option:check"
+msgid "Use accurate preview"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:247
+msgctxt "@info:tooltip"
+msgid "Generating an accurate preview is slow"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:255
+msgctxt "@label:spinbox"
+msgid "Thumbnail width"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:273
+msgctxt "@label"
+msgid "Window"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:279
+msgctxt "@option:check"
+msgid "Resize to fit video"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:290
+msgctxt "@info:tooltip"
+msgid "Not supported on Wayland."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:291
+msgctxt "@info:tooltip"
+msgid ""
+"The window is resized according to the video resolution.<br>The maximum size "
+"is not constrained, this is left to the operating system."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:301
+msgctxt "@option:check"
+msgid "Start in fullscreen mode"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:310
+msgctxt "@info:tooltip"
+msgid ""
+"Enter fullscreen mode when the application starts.<br>This takes precedence "
+"over Resize to fit video, and Remember window size and position settings."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:321
+msgctxt "@option:check"
+msgid "Remember window size and position"
+msgstr "சாளர இருப்பிடத்தையும் அளவையும் நினைவில் கொள்"
+
+#: src/qml/Settings/GeneralSettings.qml:334
+msgctxt ""
+"@info:tooltip extra wayland info for the “Remember window size and position” "
+"setting"
+msgid "<b>Restoring position is not supported on Wayland.</b><br><br>"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:336
+msgctxt "@info:tooltip"
+msgid ""
+"Changes to the window’s size and position are saved and used for newly "
+"opened windows.<br><br>%1The “Resize to fit video” setting takes precedence."
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:348
+msgctxt "@option:check"
+msgid "Show menubar"
+msgstr "பட்டிப் பட்டையை காட்டு"
+
+#: src/qml/Settings/GeneralSettings.qml:359
+#: src/qml/Settings/PlaylistSettings.qml:172
+msgctxt "@option:check"
+msgid "Show toolbar"
+msgstr "கருவிப்பட்டையை காட்டு"
+
+#: src/qml/Settings/GeneralSettings.qml:370
+msgctxt "@option:check"
+msgid "Show chapter markers"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:381
+msgctxt "@option:check"
+msgid "Show progress on taskbar icon"
+msgstr ""
+
+#: src/qml/Settings/GeneralSettings.qml:390
+msgctxt "@label:listbox"
+msgid "Color scheme"
+msgstr "நிறத்திட்டம்"
+
+#: src/qml/Settings/GeneralSettings.qml:435
+msgctxt "@label:listbox"
+msgid "GUI style"
+msgstr "இடைமுகப்பின் பாங்கு"
+
+#: src/qml/Settings/GeneralSettings.qml:468
+msgctxt "@item:listbox default GUI style"
+msgid "Default"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:51
+msgctxt "@label represents a mouse double click, for example `Right x2`"
+msgid "x2"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:93
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Clear current action"
+msgctxt "@label:action change action associated with mouse event"
+msgid "Change action"
+msgstr "தற்போதைய செயலை நீக்கு"
+
+#: src/qml/Settings/MouseSettings.qml:107
+#, fuzzy
+#| msgctxt "@action:intoolbar"
+#| msgid "Delete"
+msgctxt "@label:action delete mouse event"
+msgid "Delete"
+msgstr "நீக்கு"
+
+#: src/qml/Settings/MouseSettings.qml:135
+#, fuzzy
+#| msgctxt "@action:intoolbar"
+#| msgid "&Add"
+msgctxt "@action:intoolbar add a mouse button action"
+msgid "&Add"
+msgstr "&சேர்"
+
+#: src/qml/Settings/MouseSettings.qml:170
+msgctxt "@title:window"
+msgid "Add mouse button action"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:183
+msgctxt "@label:listbox"
+msgid "Mouse button"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:200
+msgctxt "@item:listbox left mouse button"
+msgid "Left"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:206
+msgctxt "@item:listbox middle mouse button"
+msgid "Middle"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:212
+msgctxt "@item:listbox right mouse button"
+msgid "Right"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:218
+msgctxt "@item:listbox forward mouse button"
+msgid "Forward"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:224
+msgctxt "@item:listbox back mouse button"
+msgid "Back"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:230
+msgctxt "@item:listbox mouse scroll up"
+msgid "Scroll up"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:236
+msgctxt "@item:listbox mouse scroll down"
+msgid "Scroll down"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:245
+msgctxt "@label:listbox"
+msgid "Modifier key"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:263
+msgctxt "@item:listbox no modifier key"
+msgid "No modifier"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:269
+#, fuzzy
+#| msgctxt "@label:slider"
+#| msgid "Contrast"
+msgctxt "@item:listbox control modifier key"
+msgid "Control"
+msgstr "நிறமாறுபாட்டை கூட்டு"
+
+#: src/qml/Settings/MouseSettings.qml:275
+msgctxt "@item:listbox shift modifier key"
+msgid "Shift"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:281
+msgctxt "@item:listbox alt modifier key"
+msgid "Alt"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:287
+msgctxt "@item:listbox meta modifier key"
+msgid "Meta"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:299
+msgctxt ""
+"@label:check whether mouse button action should trigger on double click"
+msgid "Trigger on double click"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:309
+msgctxt "@label"
+msgid "Action"
+msgstr ""
+
+#: src/qml/Settings/MouseSettings.qml:317
+#, fuzzy
+#| msgctxt "@info:tooltip"
+#| msgid "Select a color"
+msgctxt "@action:button select mouse button action"
+msgid "Select action"
+msgstr "நிறத்தைத் தேர்ந்தெடுக்கவும்"
+
+#: src/qml/Settings/MouseSettings.qml:333
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Clear current action"
+msgctxt "@action:button"
+msgid "Change action"
+msgstr "தற்போதைய செயலை நீக்கு"
+
+#: src/qml/Settings/MouseSettings.qml:344
+#, fuzzy
+#| msgid "Contrast Reset"
+msgctxt "@info"
+msgid "No action selected"
+msgstr "நிறமாறுபாட்டை மீட்டமை"
+
+#: src/qml/Settings/MouseSettings.qml:367
+msgctxt "@info"
+msgid "Mouse button combination is already assigned to “%1”"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:25
+msgctxt "@label:spinbox"
+msgid "Seek small step"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:45
+msgctxt "@info:tooltip seek small step setting"
+msgid ""
+"How much to seek when triggering the corresponding action. Seek mode is <a "
+"href='https://mpv.io/manual/stable/#command-interface-seek-<target>-"
+"[<flags>]'>exact</a>"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:52
+msgctxt "@label:spinbox"
+msgid "Seek medium step"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:72
+msgctxt "@info:tooltip seek medium step setting"
+msgid ""
+"How much to seek when triggering the corresponding action. Seek mode is <a "
+"href='https://mpv.io/manual/stable/#command-interface-seek-<target>-"
+"[<flags>]'>exact</a>.<br>This is also used for mouse wheel seeking, when "
+"mouse is over the progress bar."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:80
+msgctxt "@label:spinbox"
+msgid "Seek big step"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:99
+msgctxt "@info:tooltip seek big step setting"
+msgid ""
+"How much to seek when triggering the corresponding action. Seek mode is <a "
+"href='https://mpv.io/manual/stable/#command-interface-seek-<target>-"
+"[<flags>]'>exact</a>"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:105
+msgctxt "@label"
+msgid "Hardware decoding"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:147
+msgctxt "@info:tooltip hardware decoding setting"
+msgid ""
+"Specify the hardware video decoding API that should be used if possible. "
+"Whether hardware decoding is actually done depends on the video codec. If "
+"hardware decoding is not possible, mpv will fall back on software decoding."
+"<br><br><ul><li><strong>auto</strong> tries to automatically enable hardware "
+"decoding using the first available method.</li><li><strong>auto-safe</"
+"strong> similar to auto, but allows only whitelisted methods that are "
+"considered “safe”.</li><li><strong>vaapi</strong> works with Intel and AMD "
+"GPUs only. It also requires the opengl EGL backend.</li><li><strong>nvdec</"
+"strong> the newest, and recommended method to do hardware decoding on Nvidia "
+"GPUs.</li><li><strong>cuda</strong> an older implementation of hardware "
+"decoding on Nvidia GPUs.</li><li><strong>videotoolbox</strong></"
+"li><li><strong>d3d11va</strong></li></ul><br><br>You can read more about "
+"hardware decoding here: <a href='https://mpv.io/manual/stable/#options-"
+"hwdec'>https://mpv.io/manual/stable/#options-hwdec</a><br><br>You can set "
+"another hardware decoder by creating a startup custom command <strong>set "
+"hwdec <i>decoder_name</i></strong>."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:171
+msgctxt "@option:check"
+msgid "Open last played file on startup"
+msgstr "நிரல் துவக்கத்தின்போது, கடைசியாக இயக்கிய கோப்பை திற"
+
+#: src/qml/Settings/PlaybackSettings.qml:180
+msgctxt "@info:tooltip open last played file setting"
+msgid ""
+"On startup it opens the file that was playing when the application was "
+"closed."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:189
+msgctxt "@option:check"
+msgid "Pause on minimize"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:198
+msgctxt "@info:tooltip pause on minimize setting"
+msgid ""
+"Pauses the player while the window is minimized, playback resumes when "
+"restored."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:207
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Playback Speed Reset"
+msgctxt "@title"
+msgid "Playback position"
+msgstr "இயக்கவேகத்தை மீட்டமை"
+
+#: src/qml/Settings/PlaybackSettings.qml:217
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Playback Speed Reset"
+msgctxt "@option:check"
+msgid "Restore playback position"
+msgstr "இயக்கவேகத்தை மீட்டமை"
+
+#: src/qml/Settings/PlaybackSettings.qml:226
+msgctxt "@info:tooltip save playback position"
+msgid ""
+"Saves the file position during playback, opening the same file again will "
+"seek to the saved position.\n"
+"Position is saved every %1 second, except for the last 10 seconds of the "
+"video."
+msgid_plural ""
+"Saves the file position during playback, opening the same file again will "
+"seek to the saved position.\n"
+"Position is saved every %1 seconds, except for the last 10 seconds of the "
+"video."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/qml/Settings/PlaybackSettings.qml:240
+msgctxt "@option:check"
+msgid "Start playing"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:250
+msgctxt "@info:tooltip start playing setting"
+msgid "The file will be playing after restoring the playback position"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:273
+msgctxt "@info"
+msgid "For any duration"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:276
+#, fuzzy
+#| msgctxt "@info"
+#| msgid "For files longer than %1 minute"
+#| msgid_plural "For files longer than %1 minutes"
+msgctxt "@info"
+msgid "If duration is longer than %1 minute"
+msgid_plural "If duration is longer than %1 minutes"
+msgstr[0] "%1 நிமிடங்களைவிட நீளமான கோப்பு"
+msgstr[1] "%1 நிமிடங்களைவிட நீளமான கோப்பு"
+
+#: src/qml/Settings/PlaybackSettings.qml:285
+msgctxt "@info:tooltip restore playback position > duration"
+msgid "Position for remote files is restored regardless of duration."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:307
+msgctxt "@info:tooltip restore playback position > save interval"
+msgid "Save position every %1 second"
+msgid_plural "Save position every %1 seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/qml/Settings/PlaybackSettings.qml:320
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Skip Chapters"
+msgctxt "@title"
+msgid "Chapters"
+msgstr "பகுதிகளை தவிர்"
+
+#: src/qml/Settings/PlaybackSettings.qml:329
+#, fuzzy
+#| msgctxt "@label"
+#| msgid "Skip chapters"
+msgctxt "@option:check"
+msgid "Skip chapters"
+msgstr "பகுதிகளை தவிர்"
+
+#: src/qml/Settings/PlaybackSettings.qml:337
+msgctxt "@info:tooltip skip chapters setting"
+msgid ""
+"When enabled it automatically skips chapters containing certain words/"
+"characters."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:345
+#, fuzzy
+#| msgctxt "@option:check"
+#| msgid "Show osd message on skip"
+msgctxt "@option:check"
+msgid "Show OSD message on skip"
+msgstr "தவிர்க்கும்போது திரையில் தகவல் காட்டு"
+
+#: src/qml/Settings/PlaybackSettings.qml:354
+msgctxt "@info:tooltip show OSD message on skip setting"
+msgid ""
+"When skipping chapters an osd message will show the title of the skipped "
+"chapter."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:360
+msgctxt "@label:textbox"
+msgid "Keywords"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:369
+msgctxt "placeholder text"
+msgid "op, ed, chapter 1"
+msgstr "op, ed, chapter 1"
+
+#: src/qml/Settings/PlaybackSettings.qml:375
+msgctxt "@info:tooltip skip words setting"
+msgid ""
+"Skip chapters containing these words. Comma separated list. The match is not "
+"exact, meaning <strong>op</strong> will match words containing it like "
+"<strong><u>op</u>ening</strong>."
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:399
+msgctxt "@title"
+msgid "Youtube-dl"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:405
+msgid "Format selection"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:430
+msgctxt "@item:listbox the custom youtube-dl format selection"
+msgid "Custom"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:436
+msgctxt "@item:listbox the default youtube-dl format selection"
+msgid "Default"
+msgstr ""
+
+#: src/qml/Settings/PlaybackSettings.qml:451
+msgctxt "@info:tooltip format selection setting"
+msgid "Selects a video source that is closest to the selected format."
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:24
+msgctxt "@label:listbox"
+msgid "Position"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:36
+msgctxt "@item:listbox playlist position"
+msgid "Left"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:42
+msgctxt "@item:listbox playlist position"
+msgid "Right"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:57
+msgctxt "@label:listbox"
+msgid "Playlist style"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:69
+msgctxt "@item:listbox the style of the playlist"
+msgid "Default"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:75
+msgctxt "@item:listbox the style of the playlist"
+msgid "With thumbnails"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:81
+msgctxt "@item:listbox the style of the playlist"
+msgid "Compact"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:95
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Playback Speed Reset"
+msgctxt "@label:listbox"
+msgid "Playback behavior"
+msgstr "இயக்கவேகத்தை மீட்டமை"
+
+#: src/qml/Settings/PlaylistSettings.qml:109
+#, fuzzy
+#| msgctxt "@action:button"
+#| msgid "Open playlist"
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Repeat playlist"
+msgstr "பாடல்வரிசையை திற"
+
+#: src/qml/Settings/PlaylistSettings.qml:115
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Stop after last item"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:121
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Repeat item"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:127
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Stop after item"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:150
+msgctxt "@info:tooltip playback description"
+msgid ""
+"<strong>Repeat playlist</strong>: playlist is repeated "
+"indefinitely<br><strong>Stop after last item</strong>: playback stops after "
+"the last item in the playlist<br><strong>Repeat item</strong>: current "
+"playing item is repeated indefinitely<br><strong>Stop after item</strong>: "
+"playback stops after the current playing item"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:162
+#, fuzzy
+#| msgctxt "@action"
+#| msgid "Restart Playback"
+msgctxt "@item:listbox the playback behavior of the playlist"
+msgid "Random playback"
+msgstr "இயக்குவதை மீள்துவக்கு"
+
+#: src/qml/Settings/PlaylistSettings.qml:182
+msgctxt "@option:check"
+msgid "Overlay video"
+msgstr "நிகழ்படத்தை மேலே காட்டு"
+
+#: src/qml/Settings/PlaylistSettings.qml:189
+msgctxt "@info:tooltip"
+msgid ""
+"When checked the playlist goes on top of the video\n"
+"When unchecked the video is resized"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:196
+msgctxt "@option:check"
+msgid "Show media title instead of file name"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:206
+msgctxt "@option:check"
+msgid "Auto load videos from same folder"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:216
+msgctxt "@option:check"
+msgid "Show row number"
+msgstr "வரி எண்ணைக் காட்டு"
+
+#: src/qml/Settings/PlaylistSettings.qml:226
+msgctxt "@option:check"
+msgid "Toggle with mouse"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:235
+msgctxt "@option:check"
+msgid "Increase font size when fullscreen"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:247
+msgctxt "@option:check"
+msgid "Remember last playlist state"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:254
+msgctxt "@info:tooltip"
+msgid ""
+"When checked the playlist state (visible/hidden) is remembered across "
+"launches"
+msgstr ""
+
+#: src/qml/Settings/PlaylistSettings.qml:262
+msgctxt "@option:check"
+msgid "Open items with single click"
+msgstr ""
+
+#: src/qml/Settings/SettingsWindow.qml:70
+msgctxt "@title:window"
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: src/qml/Settings/SettingsWindow.qml:87
+msgctxt "@action"
+msgid "General"
+msgstr "பொதுவானவை"
+
+#: src/qml/Settings/SettingsWindow.qml:96
+msgctxt "@action"
+msgid "Playback"
+msgstr "இயக்குதல்"
+
+#: src/qml/Settings/SettingsWindow.qml:105
+msgctxt "@action"
+msgid "Video"
+msgstr "நிகழ்படம்"
+
+#: src/qml/Settings/SettingsWindow.qml:115
+msgctxt "@action"
+msgid "Audio"
+msgstr "ஒலி"
+
+#: src/qml/Settings/SettingsWindow.qml:124
+msgctxt "@action"
+msgid "Subtitles"
+msgstr ""
+
+#: src/qml/Settings/SettingsWindow.qml:142
+msgctxt "@action"
+msgid "Mouse"
+msgstr "சுட்டி"
+
+#: src/qml/Settings/SettingsWindow.qml:152
+msgctxt "@action"
+msgid "Shortcuts"
+msgstr "சுருக்குவழிகள்"
+
+#: src/qml/Settings/SettingsWindow.qml:162
+#, fuzzy
+#| msgctxt "@action:inmenu"
+#| msgid "Custom Commands"
+msgctxt "@action"
+msgid "Custom Commands"
+msgstr "தனிப்பயன் கட்டளைகள்"
+
+#: src/qml/Settings/SettingsWindow.qml:172
+msgctxt "@action"
+msgid "Debug"
+msgstr ""
+
+#: src/qml/Settings/SettingsWindow.qml:182
+msgctxt "@action"
+msgid "About"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:36
+msgctxt "@label:check"
+msgid "Auto select track"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:45
+msgctxt "@info:tooltip"
+msgid ""
+"When checked a subtitle track will be automatically selected and displayed"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:96
+msgctxt "@option:check"
+msgid "Allow subtitles in black borders"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:103
+msgctxt "@info:tooltip"
+msgid ""
+"When checked the subtitles can be rendered outside the video, in the black "
+"borders. Might not work for all .ass subtitles."
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:108
+msgctxt "@title"
+msgid "Styling"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:114
+msgctxt "@label:listbox"
+msgid "Font family"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:155
+msgctxt "@label:spinbox"
+msgid "Font size"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:170
+msgctxt "@label"
+msgid "Font style"
+msgstr "எழுத்துருப் பாங்கு"
+
+#: src/qml/Settings/SubtitlesSettings.qml:175
+msgctxt "@option:check"
+msgid "Bold"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:186
+msgctxt "@option:check"
+msgid "Italic"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:195
+msgctxt "@label:textbox"
+msgid "Font color"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:251
+msgctxt "@label:textbox"
+msgid "Shadow color"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:306
+msgctxt "@label:spinbox"
+msgid "Shadow offset"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:321
+#: src/qml/Settings/SubtitlesSettings.qml:396
+msgctxt "@info:tooltip"
+msgid "Set to 0 (zero) to disable."
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:326
+msgctxt "@label:textbox"
+msgid "Border color"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:381
+msgctxt "@label:spinbox"
+msgid "Border width"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:401
+#, fuzzy
+#| msgctxt "@label"
+#| msgid "Font style"
+msgctxt "@label:listbox"
+msgid "Border style"
+msgstr "எழுத்துருப் பாங்கு"
+
+#: src/qml/Settings/SubtitlesSettings.qml:413
+msgctxt "@item:listbox border style"
+msgid "Outline and Shadow"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:419
+msgctxt "@item:listbox border style"
+msgid "Opaque Box"
+msgstr ""
+
+#: src/qml/Settings/SubtitlesSettings.qml:425
+msgctxt "@item:listbox border style"
+msgid "Background Box"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:28
+msgctxt "@label:listbox"
+msgid "Default cover"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:37
+msgctxt "placeholder text"
+msgid "path to image"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:49
+msgctxt "@info:tooltip"
+msgid ""
+"Used for music files that don’t have a video track, an embedded cover image "
+"or a cover/folder image in the same folder as the played file."
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:83
+msgctxt "@title"
+msgid "Screenshots"
+msgstr "திரைப்பிடிப்புகள்"
+
+#: src/qml/Settings/VideoSettings.qml:92
+msgctxt "@label:listbox"
+msgid "Format"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:131
+msgctxt "@label:textbox"
+msgid "Template"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:160
+msgctxt "@info:tooltip"
+msgid ""
+"Specify the filename template used to save screenshots. The template "
+"specifies the filename without file extension, and can contain format "
+"specifiers, which will be substituted when taking a screenshot. By default, "
+"the template is “%F-%n”. <br>The template can start with a relative or "
+"absolute path, in order to specify a directory location where screenshots "
+"should be saved.<br>If the final screenshot filename points to an already "
+"existing file, the file will not be overwritten. The screenshot will either "
+"not be saved, or if the template contains %n, saved using different, newly "
+"generated filename.<br>For full info checkout <a href='https://mpv.io/manual/"
+"stable/#options-screenshot-template'>https://mpv.io/manual/stable/#options-"
+"screenshot-template</a><br><br><strong>Allowed format specifiers:</"
+"strong><br><ul><li><strong>%[#][0X]n</strong> A sequence number, padded with "
+"zeros to length X.<br><li><strong>%f</strong> Filename of the currently "
+"played video.<br><li><strong>%F</strong> Same as %f, but without the file "
+"extension.<br><li><strong>%x</strong> Directory path of the currently played "
+"video. If the video is not on the filesystem (http:// urls), this expands to "
+"an empty string.<br><li><strong>%X{fallback}</strong> Same as %x, but if the "
+"video file is not on the filesystem, return the fallback string inside the "
+"{…}.<br><li><strong>%p</strong> Current playback time. The result is a "
+"string of the form “HH:MM:SS”.<br><li><strong>%P</strong> Similar to %p, but "
+"extended with the playback time in milliseconds “HH:MM:SS.mmm”."
+"<br><li><strong>%wX</strong> Specify the current playback time using the "
+"format string X.<br>Valid format specifiers:<br><ul><li><strong>%wH</strong> "
+"hour (padded with 0 to two digits)</li><li><strong>%wh</strong> hour (not "
+"padded)</li><li><strong>%wM</strong> minutes (00–59)</li><li><strong>%wm</"
+"strong> total minutes (includes hours, unlike %wM)</li><li><strong>%wS</"
+"strong> seconds (00–59)</li><li><strong>%ws</strong> total seconds (includes "
+"hours and minutes)</li><li><strong>%wf</strong> like %ws, but as float</"
+"li><li><strong>%wT</strong> milliseconds (000–999)</li><li><strong>%%</"
+"strong> Replaced with the % character itself.</li></ul><br>"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:195
+msgctxt "@title"
+msgid "Image adjustments"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:205
+msgctxt "@label:slider"
+msgid "Contrast"
+msgstr "நிறமாறுபாட்டை கூட்டு"
+
+#: src/qml/Settings/VideoSettings.qml:224
+msgctxt "@label:slider"
+msgid "Brightness"
+msgstr "பிரகாசத்தை கூட்டு"
+
+#: src/qml/Settings/VideoSettings.qml:243
+msgctxt "@label:slider"
+msgid "Gamma"
+msgstr "காமாவை கூட்டு"
+
+#: src/qml/Settings/VideoSettings.qml:262
+msgctxt "@label:slider"
+msgid "Saturation"
+msgstr ""
+
+#: src/qml/Settings/VideoSettings.qml:278
+msgctxt "@info"
+msgid "Middle click on the sliders to reset them"
+msgstr ""
+
+#: src/youtube/youtube.cpp:80
+#, kde-format
+msgctxt "@info:tooltip; error when yt-dlp fails to get playlist"
+msgid ""
+"Could not retrieve playlist with id: %1\n"
+"\n"
+"%2"
+msgstr ""
+
+#, fuzzy
+#~| msgctxt "@title:menu"
+#~| msgid "&Audio"
+#~ msgctxt "@label:button track no"
+#~ msgid "Track No"
+#~ msgstr "&ஒலி"
+
+#, fuzzy
+#~| msgctxt ""
+#~| "@action The \"None\" subtitle track is used to clear/unset selected track"
+#~| msgid "None"
+#~ msgctxt "@action:inmenu"
+#~ msgid "None"
+#~ msgstr "ஏதுமில்லை"
+
+#, fuzzy
+#~| msgctxt "@info:tooltip"
+#~| msgid "Volume: %1"
+#~ msgctxt "@action:inmenu"
+#~ msgid "File Name"
+#~ msgstr "ஒலி அளவு: %1"
+
+#, fuzzy
+#~| msgctxt "@action:inmenu"
+#~| msgid "File"
+#~ msgctxt "@action:inmenu"
+#~ msgid "File Size"
+#~ msgstr "கோப்பு"
+
+#, fuzzy
+#~| msgctxt "@title:menu"
+#~| msgid "&Audio"
+#~ msgctxt "@action:inmenu"
+#~ msgid "Track No"
+#~ msgstr "&ஒலி"
+
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Name descending"
+#~ msgctxt "@action:button"
+#~ msgid "Name, descending"
+#~ msgstr "பெயர், இறங்குவரிசை"
+
+#~ msgctxt "@label:textbox"
+#~ msgid "Config folder"
+#~ msgstr "அமைப்புகளுக்கான அடைவு"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Open config folder"
+#~ msgstr "அமைப்புகளுக்கான அடைவைத் திற"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Open custom commands config file"
+#~ msgstr "தனிப்பயன் கட்டளைகளுக்கான அமைப்புக்கோப்பைத் திறக்கும்"
+
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Open playlist"
+#~ msgctxt "@action:button"
+#~ msgid "Open Playlist"
+#~ msgstr "பாடல்வரிசையை திற"
+
+#, fuzzy
+#~| msgctxt "@info:tooltip"
+#~| msgid "Select a color"
+#~ msgctxt "@title:window select mouse button action"
+#~ msgid "Select action"
+#~ msgstr "நிறத்தைத் தேர்ந்தெடுக்கவும்"
+
+#~ msgctxt "@action"
+#~ msgid "Playback Speed Increase"
+#~ msgstr "வேகமாக இயக்கு"
+
+#~ msgctxt "@action"
+#~ msgid "Playback Speed Decrease"
+#~ msgstr "மெதுவாக இயக்கு"
+
+#~ msgctxt "@action"
+#~ msgid "Playback Speed Reset"
+#~ msgstr "இயக்கவேகத்தை மீட்டமை"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Toggle"
+#~ msgstr "துணையுரையைக் காட்டு/மறை"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Move Down"
+#~ msgstr "துணையுரையை கீழே நகர்த்து"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Quicken"
+#~ msgstr "துணையுரையை வேகப்படுத்து"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Delay"
+#~ msgstr "துணையுரையைத் தாமதமாக்கு"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Cycle Up"
+#~ msgstr "முந்தைய வகையான துணை உரையை காட்டு"
+
+#~ msgctxt "@action"
+#~ msgid "Subtitle Cycle Down"
+#~ msgstr "அடுத்த வகையான துணை உரையை காட்டு"
+
+#~ msgctxt "@action"
+#~ msgid "Zoom Reset"
+#~ msgstr "உருப்பெருக்கத்தை மீட்டமை"
+
+#~ msgctxt "@action"
+#~ msgid "Contrast Up"
+#~ msgstr "நிறமாறுபாட்டை கூட்டு"
+
+#~ msgctxt "@action"
+#~ msgid "Contrast Down"
+#~ msgstr "நிறமாறுபாட்டை குறை"
+
+#~ msgctxt "@action"
+#~ msgid "Contrast Reset"
+#~ msgstr "நிறமாறுபாட்டை மீட்டமை"
+
+#~ msgctxt "@action"
+#~ msgid "Brightness Up"
+#~ msgstr "பிரகாசத்தை கூட்டு"
+
+#~ msgctxt "@action"
+#~ msgid "Brightness Down"
+#~ msgstr "பிரகாசத்தை குறை"
+
+#~ msgctxt "@action"
+#~ msgid "Brightness Reset"
+#~ msgstr "பிரகாசத்தை மீட்டமை"
+
+#~ msgctxt "@action"
+#~ msgid "Gamma Up"
+#~ msgstr "காமாவை கூட்டு"
+
+#~ msgctxt "@action"
+#~ msgid "Gamma Down"
+#~ msgstr "காமாவை குறை"
+
+#~ msgctxt "@action"
+#~ msgid "Gamma Reset"
+#~ msgstr "காமாவை மீட்டமை"
+
+#, fuzzy
+#~| msgid "Contrast Reset"
+#~ msgctxt "@action"
+#~ msgid "Saturation Reset"
+#~ msgstr "நிறமாறுபாட்டை மீட்டமை"
+
+#~ msgctxt "@label:textbox"
+#~ msgid "Skip words"
+#~ msgstr "சொற்களைத் தவிர்"
+
+#~ msgctxt "@action:button"
+#~ msgid "Add ..."
+#~ msgstr "சேர் ..."
+
+#~ msgctxt "@action:button"
+#~ msgid "Url"
+#~ msgstr "முகவரி"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Trash file"
+#~ msgstr "கோப்பை அகற்றிடப்படுத்து"
+
+#~ msgctxt "@action"
+#~ msgid "Custom commands"
+#~ msgstr "தனிப்பயன் கட்டளைகள்"
+
+#~ msgctxt "@option:check"
+#~ msgid "Enabled"
+#~ msgstr "இயக்கு"
+
+#, fuzzy
+#~| msgid "Playback"
+#~ msgctxt "@label:spinbox"
+#~ msgid "Resume playback"
+#~ msgstr "இயக்குதல்"
+
+#~ msgctxt "@info"
+#~ msgid "Disabled"
+#~ msgstr "முடக்கப்பட்டுள்ளது"
+
+#~ msgctxt "@info"
+#~ msgid "For all files"
+#~ msgstr "அனைத்து கோப்புகளுக்கும்"
+
+#~ msgctxt "@action"
+#~ msgid "Configure"
+#~ msgstr "அமை"
+
+#~ msgctxt "@action:intoolbar"
+#~ msgid "Help"
+#~ msgstr "உதவி"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Haruna help window (english only)"
+#~ msgstr "ஹருணா உதவி சாளரம் (ஆங்கிலம் மட்டும்)"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Haruna handbook"
+#~ msgstr "ஹருணா கையேடு"
+
+#~ msgctxt "@label:spinbox"
+#~ msgid "Remember time position"
+#~ msgstr "இருப்பிடத்தை நினைவில் கொள்"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Skip chapters containing these words. Comma separated list."
+#~ msgstr "இச்சொற்களை கொண்ட பகுதிகளை தவிர். காற்புள்ளிகளால் பிரிக்கப்பட்டுள்ள பட்டியல்."
+
+#~ msgctxt "@title:window"
+#~ msgid "Help"
+#~ msgstr "உதவி"
+
+#~ msgctxt "@title"
+#~ msgid "A configurable media player."
+#~ msgstr "தனிப்பயனாக்கக்கூடிய நிகழ்பட இயக்கி."
+
+#~ msgctxt "@info"
+#~ msgid "Playlist is empty"
+#~ msgstr "பாடல்வரிசை காலியாக உள்ளது"
+
+#~ msgctxt "@info:tooltip"
+#~ msgid "Do not use spaces."
+#~ msgstr "இடைவெளிகளை பயன்படுத்தாதீர்கள்."
+
+#~ msgctxt "@info"
+#~ msgid "<a href=\"https://youtube-dl.org\">Youtube-dl</a> was not found."
+#~ msgstr ""
+#~ "<a href=\"https://youtube-dl.org\">Youtube-dl</a> கண்டுபிடிக்கப்படவில்லை."
+
+#~ msgctxt "@info reason for blocking sleep and screen slocking"
+#~ msgid "Playing video"
+#~ msgstr "நிகழ்படம் இயக்கப்படுகிறது."
+
+#, fuzzy
+#~| msgctxt "@action:button"
+#~| msgid "Add new folder"
+#~ msgctxt "@action:button"
+#~ msgid "Add file"
+#~ msgstr "புதிய அடைவை சேர்க்கும்"
+
+#~ msgid "Configure shortcuts"
+#~ msgstr "சுருக்குவழிகளை அமை"
+
+#~ msgid "Unmute"
+#~ msgstr "ஒலிமுடக்கத்தை நீக்கு"
+
+#~ msgid "Type to filter..."
+#~ msgstr "வடிகட்ட தட்டச்சிடவும்…"
+
+#~ msgid "For files longer than %1 minutes"
+#~ msgstr "%1 நிமிடங்களைவிட நீளமான கோப்புகள்"
+
+#, fuzzy
+#~| msgid "Volume Up"
+#~ msgid "Volume"
+#~ msgstr "ஒலி அளவை கூட்டு"
+
+#, fuzzy
+#~| msgid "Skip chapters"
+#~ msgid "Show osd on skip chapters"
+#~ msgstr "பகுதிகளை தவிர்"
+
+#, fuzzy
+#~| msgid "Screenshot"
+#~ msgid "Screenshot format"
+#~ msgstr "திரைப்பிடிப்பு"
+
+#~ msgid "Haruna Settings"
+#~ msgstr "ஹருனா அமைப்புகள்"

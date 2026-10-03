@@ -22,7 +22,7 @@ class ImageMagickRecipe(SourceReleaseRecipe):
     description = "Image manipulation programs and libraries (ImageMagick 7: magick, convert, identify, ...)"
     depends = ("libc6",)
     # The image formats beyond ImageMagick's built-in coders.
-    build_depends = ("libjpeg62-turbo", "libwebp7", "libtiff6", "libopenjp2-7")
+    build_depends = ("libwebp7", "libtiff6", "libopenjp2-7")
     github = ("ImageMagick", "ImageMagick")
     source_url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/{tag}.tar.gz"
     # Coders are built into libMagickCore rather than loaded as modules, and

@@ -22,7 +22,7 @@ class NftablesRecipe(SourceReleaseRecipe):
     depends = ("libc6",)
     # Debian ships the library separately as libnftables1.
     provides = ("libnftables1",)
-    build_depends = ("libmnl0", "libnftnl11", "libjansson4")
+    build_depends = ("libmnl0", "libnftnl11")
     git_url = "https://git.netfilter.org/nftables"
     tag_pattern = r"v([0-9]+\.[0-9]+\.[0-9]+)"
     source_url = "https://www.netfilter.org/projects/nftables/files/nftables-{version}.tar.xz"

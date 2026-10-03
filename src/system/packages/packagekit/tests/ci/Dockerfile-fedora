@@ -1,0 +1,30 @@
+FROM fedora:latest
+
+RUN dnf -y update
+RUN dnf -y install \
+	dnf-plugins-core \
+	docbook5-style-xsl \
+	libdnf-devel \
+	libdnf5-devel \
+	redhat-rpm-config \
+	meson \
+	gcc \
+	gcc-c++ \
+	ninja-build \
+	appstream \
+	appstream-devel \
+	dbus-daemon \
+	polkit \
+	sdbus-cpp-devel \
+	jansson-devel
+
+RUN dnf -y builddep PackageKit
+
+# install dependencies for 'alpm' backend
+RUN dnf -y install libalpm-devel
+
+# install dependencies for 'zypp' backend
+RUN dnf -y install libzypp-devel
+
+RUN mkdir /build
+WORKDIR /build

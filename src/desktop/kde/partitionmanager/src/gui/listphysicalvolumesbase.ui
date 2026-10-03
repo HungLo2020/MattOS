@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <author>
+SPDX-FileCopyrightText: 2016 Chantara Tith &lt;tith.chantara@gmail.com&gt;
+SPDX-License-Identifier: GPL-3.0-or-later
+ </author>
+ <class>ListPhysicalVolumesBase</class>
+ <widget class="QWidget" name="ListPhysicalVolumesBase">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>249</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <widget class="QListWidget" name="m_ListPhysicalVolumes">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>251</width>
+     <height>301</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

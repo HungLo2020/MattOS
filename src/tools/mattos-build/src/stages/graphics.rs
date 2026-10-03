@@ -234,6 +234,19 @@ fn build_xorg_autotools_component(
     Ok(())
 }
 
+/// X RandR client library. Qt Multimedia's FFmpeg backend links it for X11
+/// screen capture (XWayland windows); it is a separate stage so only that
+/// consumer, not the whole X11 compatibility closure, depends on it.
+fn build_libxrandr(repo_root: &Path) -> Result<()> {
+    build_xorg_autotools_component(
+        repo_root,
+        "libxrandr",
+        &["xorg-util-macros", "xorgproto", "libxau", "libxdmcp", "libxcb", "libx11", "libxext", "libxrender"],
+        &["--prefix=/usr", "--libdir=/usr/lib/x86_64-linux-gnu", "--disable-static"],
+        &["usr/lib/x86_64-linux-gnu/libXrandr.so.2"],
+    )
+}
+
 fn build_x11_compat(repo_root: &Path) -> Result<()> {
     let common = [
         "--prefix=/usr",

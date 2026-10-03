@@ -10,7 +10,8 @@ import org.kde.kirigami as Kirigami
 /*!
    \qmltype RadioSelector
    \inqmlmodule org.kde.kirigamiaddons.components
-   \brief A Component that allows sitching between multiple options.
+   \brief A Component that allows switching between multiple options.
+
    Example:
    \qml
    Components.RadioSelector {
@@ -57,12 +58,12 @@ Item {
      */
     property int selectedIndex: actions.length > 0 ? 0 : -1
 
-    Layout.minimumWidth: consistentWidth ? 0 : switchLayout.implicitWidth
     Layout.fillWidth: consistentWidth
+    Layout.minimumWidth: switchLayout.implicitWidth
 
     implicitHeight: switchLayout.implicitHeight
 
-    onSelectedIndexChanged: if (selectedIndex >= 0 && repeater.count < selectedIndex && !repeater.childAt(selectedIndex).checked) {
+    onSelectedIndexChanged: if (selectedIndex >= 0 && selectedIndex < repeater.count && repeater.childAt(selectedIndex) && !repeater.childAt(selectedIndex).checked) {
         repeater.childAt(selectedIndex).clicked();
     }
 
@@ -74,6 +75,7 @@ Item {
 
     RowLayout {
         id: switchLayout
+        uniformCellSizes: root.consistentWidth
 
         anchors {
             top: root.top
@@ -92,7 +94,7 @@ Item {
                 required property int index
 
                 Layout.fillWidth: true
-                Layout.preferredWidth: root.consistentWidth ? (root.width/repeater.count)-(switchLayout.spacing/repeater.count-1) : button.implicitWidth
+                Layout.minimumWidth: button.implicitWidth
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 2
 
                 checkable: true
@@ -180,12 +182,12 @@ Item {
     Kirigami.ShadowedRectangle {
         id: marker
 
-        x: buttonGroup.checkedButton.x
+        x: buttonGroup.checkedButton?.x ?? 0
         y: switchLayout.y
         z: switchLayout.z - 1
 
         height: switchLayout.implicitHeight
-        width: buttonGroup.checkedButton.width
+        width: buttonGroup.checkedButton?.width ?? 0
         radius: Kirigami.Units.cornerRadius
 
         color: Kirigami.ColorUtils.linearInterpolation(Kirigami.Theme.hoverColor, Kirigami.Theme.backgroundColor, 0.8)

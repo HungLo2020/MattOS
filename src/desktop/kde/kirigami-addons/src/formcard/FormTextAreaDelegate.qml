@@ -9,6 +9,8 @@ import QtQuick.Layouts
 
 import org.kde.kirigami as Kirigami
 
+import "private" as Private
+
 /*!
    \qmltype FormTextAreaDelegate
    \inqmlmodule org.kde.kirigamiaddons.formcard
@@ -36,6 +38,17 @@ AbstractFormDelegate {
        to the left the text field.
      */
     required property string label
+
+    /*!
+       \brief A label containing secondary text that appears under the
+       inherited text property.
+
+       This provides additional information shown in a faint gray color.
+
+       \default ""
+       \since 1.12.0
+     */
+    property string description: ""
 
     /*!
        \brief The maximum length of the text inside the TextArea if maxLength > 0.
@@ -192,7 +205,11 @@ AbstractFormDelegate {
 
             placeholderText: root.placeholderText
             text: root.text
-            onTextChanged: root.text = text
+            onTextChanged: {
+                if (root.text !== text) {
+                    FormFieldHelper.setText(root, text);
+                }
+            }
             onEditingFinished: root.editingFinished()
             activeFocusOnTab: false
             wrapMode: TextEdit.Wrap
@@ -201,7 +218,7 @@ AbstractFormDelegate {
             Layout.fillWidth: true
         }
 
-        Kirigami.InlineMessage {
+        Private.FormInlineMessage {
             id: formErrorHandler
 
             visible: root.statusMessage.length > 0
@@ -211,6 +228,15 @@ AbstractFormDelegate {
             Layout.topMargin: visible ? Kirigami.Units.smallSpacing : 0
             Layout.fillWidth: true
         }
+
+        Label {
+            id: internalDescriptionItem
+
+            Layout.fillWidth: true
+            text: root.description
+            color: Kirigami.Theme.disabledTextColor
+            visible: root.description !== ""
+            wrapMode: Text.Wrap
+        }
     }
 }
-

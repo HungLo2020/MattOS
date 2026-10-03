@@ -1,0 +1,304 @@
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the kwalletmanager package.
+#
+# Kheyyam Gojayev <xxmn77@gmail.com>, 2021, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: kwalletmanager\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-08-14 02:47+0000\n"
+"PO-Revision-Date: 2022-11-11 12:15+0400\n"
+"Last-Translator: Kheyyam <xxmn77@gmail.com>\n"
+"Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
+"Language: az\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 22.08.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Xəyyam Qocayev"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "xxmn77@gmail.com"
+
+#: konfigurator.cpp:112
+#, kde-format
+msgid "New Wallet"
+msgstr "Yeni cüzdan"
+
+#: konfigurator.cpp:112
+#, kde-format
+msgid "Please choose a name for the new wallet:"
+msgstr "Yeni cüzdan üçün ad seçin:"
+
+#: konfigurator.cpp:226 konfigurator.cpp:304
+#, kde-format
+msgid "Always Allow"
+msgstr "Həmişə icazə vermək"
+
+#: konfigurator.cpp:229 konfigurator.cpp:236 konfigurator.cpp:317
+#, kde-format
+msgid "Always Deny"
+msgstr "Həmişə qadağan etmək"
+
+#: konfigurator.cpp:264
+#, kde-format
+msgid "Permission denied."
+msgstr "İcazə verilmədi."
+
+#: konfigurator.cpp:264 konfigurator.cpp:266
+#, kde-format
+msgid "KDE Wallet Control Module"
+msgstr "KDE Cüzdana Nəzarət Modulu"
+
+#: konfigurator.cpp:266
+#, kde-format
+msgid ""
+"Error while authenticating action:\n"
+"%1"
+msgstr ""
+"Kimlik doğrulaması zamanı xəta:\n"
+"%1"
+
+#: konfigurator.cpp:364
+#, kde-format
+msgid "&Delete"
+msgstr "&silin"
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab1)
+#: walletconfigwidget.ui:27
+#, kde-format
+msgid "Wallet Preferences"
+msgstr "Cüzdan tərcihləri"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _enabled)
+#: walletconfigwidget.ui:33
+#, kde-format
+msgid ""
+"<p>The wallet subsystem provides a convenient and secure way to manage all "
+"your passwords. This option specifies whether or not you want to use it.</p>"
+msgstr ""
+"<p>Cüzdan alt sistemi bütün parollarınızı idarə etmək üçün rahat və etibarlı "
+"bir yol təqdim edir. Bu seçim ondan istifadə etmək istəyib istəmədiyinizi "
+"göstərir.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _enabled)
+#: walletconfigwidget.ui:36
+#, kde-format
+msgid "&Enable the KDE wallet subsystem"
+msgstr "KDE Cüzdanı alt sistemini aktiv &etmək"
+
+#. i18n: ectx: property (whatsThis), widget (QGroupBox, groupBox2)
+#: walletconfigwidget.ui:49
+#, kde-format
+msgid ""
+"It is best to close your wallets when you are not using them to prevent "
+"others from viewing or using them."
+msgstr ""
+"İstifadə etmədiyiniz halda cüzdanı bağlayın ki, ondan başqaları istifadə edə "
+"və onda saxlanılan məlumatları görə bilməsin."
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox2)
+#: walletconfigwidget.ui:52
+#, kde-format
+msgid "Close Behavior"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, closeWalletLabel)
+#: walletconfigwidget.ui:69
+#, fuzzy, kde-format
+#| msgid "Close Wallet"
+msgid "Close wallet:"
+msgstr "Cüzdanı bağlamaq"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _autoclose)
+#: walletconfigwidget.ui:76
+#, kde-format
+msgid ""
+"<p><b>Close wallet as soon as applications that use it have stopped.</"
+"b><br>Note that your wallet will only be closed when all applications that "
+"use it have stopped.<br>When a wallet is closed the password is needed to "
+"access it again.</p>"
+msgstr ""
+"<p><b>Onu istifadə edən tətbiqlər bağlandıqda cüzdanı bağlamaq</"
+"br><br>Nəzərə alın ki, cüzdan, yalnız onu istifadə edən tətbiqlərin hamısı "
+"bağlandıqdan sonra bağlanacaq.<br>Cüzdan bağlanarsa giriş üçün tələb olunan "
+"şifrələri yenidən daxil etmək lazım olacaq.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _autoclose)
+#: walletconfigwidget.ui:79
+#, fuzzy, kde-format
+#| msgid "Close when last application stops using it"
+msgid "When last application stops using it"
+msgstr "Onu istifadə edən son tətbiq bağlanadıqda cüzdanı bağlamaq"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _screensaverLock)
+#: walletconfigwidget.ui:86
+#, kde-format
+msgid ""
+"<p><b>Close wallet as soon as the screensaver starts.</b><br>When a wallet "
+"is closed the password is needed to access it again.</p>"
+msgstr ""
+"<p><b>Cüzdanı ekran qoruyucu işə düşdükdə bağlamaqş</b><br>Cüzdan bağlanarsa "
+"giriş üçün şifrələr tələb olunduğunda onları yenidən daxil etmək lazım "
+"olacaq.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _screensaverLock)
+#: walletconfigwidget.ui:89
+#, fuzzy, kde-format
+#| msgid "Close when screensaver starts"
+msgid "When screensaver starts"
+msgstr "Ekran qoruyucu işə düşdükdə bağlamaq"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, _closeIdle)
+#. i18n: ectx: property (whatsThis), widget (QSpinBox, _idleTime)
+#: walletconfigwidget.ui:96 walletconfigwidget.ui:115
+#, kde-format
+msgid ""
+"<p><b>Close wallet after a period of inactivity.</b><br>When a wallet is "
+"closed the password is needed to access it again.</p>"
+msgstr ""
+"<p><b>Aktivlik olmadıqdacüzdanı bağlamaq.</b><br>Cüzdan bağlanarsa giriş "
+"üçün şifrələr tələb olunduğunda onları yenidən daxil etmək lazım olacaq.</p>"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _closeIdle)
+#: walletconfigwidget.ui:99
+#, fuzzy, kde-format
+#| msgid "Close when unused for:"
+msgid "When unused for:"
+msgstr "Bu müddətdə istifadə olunmadıqda bağlamaq:"
+
+#. i18n: ectx: property (suffix), widget (QSpinBox, _idleTime)
+#: walletconfigwidget.ui:121
+#, kde-format
+msgid " minutes"
+msgstr " dəq"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox4)
+#: walletconfigwidget.ui:145
+#, kde-format
+msgid "Automatic Wallet Selection"
+msgstr "Avtomatik Cüzdan seçimi"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _localWalletSelected)
+#: walletconfigwidget.ui:165
+#, fuzzy, kde-format
+#| msgid "Different wallet for local passwords:"
+msgid "Use different default wallet for local passwords"
+msgstr "Yerli şifrələr üçün başqa cüzdan:"
+
+#. i18n: ectx: property (text), widget (QPushButton, _newLocalWallet)
+#. i18n: ectx: property (text), widget (QPushButton, _newWallet)
+#: walletconfigwidget.ui:202 walletconfigwidget.ui:242
+#, kde-format
+msgid "New..."
+msgstr "Yeni..."
+
+#. i18n: ectx: property (text), widget (QLabel, selectDefaultWalletLabel)
+#: walletconfigwidget.ui:211
+#, kde-format
+msgid "Default wallet:"
+msgstr ""
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox3)
+#: walletconfigwidget.ui:256
+#, kde-format
+msgid "Wallet Manager"
+msgstr "Cüzdan idarəetməsi"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _launchManager)
+#: walletconfigwidget.ui:270
+#, kde-format
+msgid "Show manager in system tray"
+msgstr "Nişanı treydə göstərmək"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _autocloseManager)
+#: walletconfigwidget.ui:298
+#, kde-format
+msgid "Hide system tray icon when last wallet closes"
+msgstr "Sonuncu cüzdan bağlandıqa treydəki nişanını gizlətmək"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox5)
+#: walletconfigwidget.ui:312
+#, kde-format
+msgid "Secret Service"
+msgstr "Məxfilik xidmət"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _secretServiceAPI)
+#: walletconfigwidget.ui:331
+#, fuzzy, kde-format
+#| msgid "Use KWallet for the Secret Service interface"
+msgid "Use &KWallet for the Secret Service interface"
+msgstr "Məxfilik xidmət interfeysi üçün KWallet istifadə edin"
+
+#. i18n: ectx: property (contextualHelpText), widget (KContextualHelpButton, kcontextualhelpbutton)
+#: walletconfigwidget.ui:341
+#, kde-format
+msgid ""
+"The Secret Service interface lets applications store passwords and other "
+"confidential data. Disable this to allow third-party wallet services such as "
+"KeePassXC or GNOME Keyring to manage it instead."
+msgstr ""
+"Məxfilik xidməti tətbiqlərə şifrələri və digər məxfi məlumatları saxlamağa "
+"imkan verir. Əvəzinə KeePassXC və ya GNOME açarlar bağı kimi xidmətlərdən "
+"istifadə etmək istəsəniz Məxfilik xidməti interfeysini söndürün."
+
+#. i18n: ectx: attribute (title), widget (QWidget, tab2)
+#: walletconfigwidget.ui:388
+#, kde-format
+msgid "Access Control"
+msgstr "Girişin idarə edilməsi"
+
+#. i18n: ectx: property (text), widget (QCheckBox, _openPrompt)
+#: walletconfigwidget.ui:394
+#, kde-format
+msgid "&Prompt when an application accesses a wallet"
+msgstr "Tətbiqin cüzdana müraciətinin &təsiq edilməsi sorğusu"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, _accessList)
+#: walletconfigwidget.ui:408
+#, kde-format
+msgid "Wallet"
+msgstr "Cüzdan"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, _accessList)
+#: walletconfigwidget.ui:413
+#, kde-format
+msgid "Application"
+msgstr "Tətbiq"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, _accessList)
+#: walletconfigwidget.ui:418
+#, kde-format
+msgid "Policy"
+msgstr "Qayda"
+
+#. i18n: ectx: property (text), widget (QPushButton, _launch)
+#: walletconfigwidget.ui:451
+#, kde-format
+msgid "&Launch Wallet Manager"
+msgstr "Cüzdan Idarəetməsini baş&latmaq"
+
+#~ msgid "Select wallet to use as default:"
+#~ msgstr "Əsas cüzdan kimi istifadə olunacaq:"
+
+#~ msgid "(c) 2003 George Staikos"
+#~ msgstr "(c) 2003 George Staikos"
+
+#~ msgid "George Staikos"
+#~ msgstr "George Staikos"
+
+#~ msgid ""
+#~ "This configuration module allows you to configure the KDE wallet system."
+#~ msgstr ""
+#~ "Bu tənzimləmə modulu,həmişə KDE cüzdanı sistemini tənzimləməyə imkan "
+#~ "verir."
+
+#~ msgid "Enable Secret Service DBus API"
+#~ msgstr "DBus proqram interfeysi \"Məxfi xidməti\"ni aktiv edins"

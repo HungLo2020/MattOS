@@ -22,17 +22,17 @@ QQC2.Control {
     property bool showDays: true
     property bool showControlHeader: true
 
-    /**
-     * This property holds the minimum date (inclusive) that the user can select.
-     *
-     * By default, no limit is applied to the date selection.
+    /*!
+       This property holds the minimum date (inclusive) that the user can select.
+
+       By default, no limit is applied to the date selection.
      */
     property date minimumDate
 
-    /**
-     * This property holds the maximum date (inclusive) that the user can select.
-     *
-     * By default, no limit is applied to the date selection.
+    /*!
+       This property holds the maximum date (inclusive) that the user can select.
+
+       By default, no limit is applied to the date selection.
      */
     property date maximumDate
 
@@ -241,7 +241,7 @@ QQC2.Control {
                 actions: [
                     Kirigami.Action {
                         id: dayAction
-                        text: root.selectedDate.getDate()
+                        text: root.selectedDate.toLocaleDateString(Qt.locale(), "d")
                         onTriggered: pickerView.currentIndex = 0 // dayGrid is first item in pickerView
                         checked: pickerView.currentIndex === 0
                     },
@@ -253,7 +253,7 @@ QQC2.Control {
                     },
                     Kirigami.Action {
                         id: yearsViewCheck
-                        text: root.selectedDate.getFullYear()
+                        text: root.selectedDate.toLocaleDateString(Qt.locale(), "yyyy")
                         onTriggered: pickerView.currentIndex = 2
                         checked: pickerView.currentIndex === 2
                     }
@@ -362,7 +362,7 @@ QQC2.Control {
                 actions: [
                     Kirigami.Action {
                         id: goPreviousAction
-                        icon.name: 'go-previous-view-symbolic'
+                        icon.name: Application.layoutDirection === Qt.RightToLeft ? 'go-previous-rtl-symbolic' : 'go-previous-view-symbolic'
                         text: i18ndc("kirigami-addons6", "@action:button", "Go Previous")
                         displayHint: Kirigami.DisplayHint.IconOnly
                         onTriggered: {
@@ -384,7 +384,7 @@ QQC2.Control {
                     Kirigami.Action {
                         id: goNextAction
                         text: i18ndc("kirigami-addons6", "@action:button", "Go Next")
-                        icon.name: 'go-next-view-symbolic'
+                        icon.name: Application.layoutDirection === Qt.RightToLeft ? 'go-next-rtl-symbolic' : 'go-next-view-symbolic'
                         displayHint: Kirigami.DisplayHint.IconOnly
                         onTriggered: {
                             if (pickerView.currentIndex === 1) { // monthGrid index
@@ -501,7 +501,7 @@ QQC2.Control {
                                     date.getMonth() === selectedDate.getMonth() &&
                                     date.getFullYear() === selectedDate.getFullYear()
                                 opacity: sameMonth && inScope ? 1 : 0.6
-                                text: dayNumber
+                                text: date.toLocaleDateString(Qt.locale(), "d")
                                 onClicked: {
                                     selectedDate = date;
                                     datePicked(date);
@@ -677,7 +677,7 @@ QQC2.Control {
                                 checkable: true
                                 checked: date.getFullYear() === selectedDate.getFullYear()
                                 opacity: sameDecade ? 1 : 0.7
-                                text: date.getFullYear()
+                                text: date.toLocaleDateString(Qt.locale(), "yyyy")
                                 onClicked: {
                                     selectedDate = new Date(date);
                                     root.datePicked(date);

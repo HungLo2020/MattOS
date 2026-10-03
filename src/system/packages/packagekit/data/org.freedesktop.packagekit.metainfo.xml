@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="service">
+  <id>org.freedesktop.packagekit</id>
+
+  <name>PackageKit</name>
+  <summary>Provides a package management service</summary>
+
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+
+  <description>
+    <p>
+      PackageKit allows performing simple software management tasks over a D-Bus interface e.g. refreshing the cache,
+      updating, installing and removing software packages or searching for multimedia codecs and file handlers.
+    </p>
+    <p>
+      The work is done by backends which make use of the package manager shipped by the corresponding distribution.
+      Its main benefits are:
+    </p>
+    <ul>
+      <li>Unified developer and user interface on many distributions</li>
+      <li>Fine-grained permission control via PolicyKit</li>
+      <li>On-demand installation of missing system components</li>
+    </ul>
+  </description>
+
+  <url type="homepage">https://www.freedesktop.org/software/PackageKit</url>
+
+  <launchable type="service">packagekit.service</launchable>
+
+  <compulsory_for_desktop>Cinnamon</compulsory_for_desktop>
+  <compulsory_for_desktop>GNOME</compulsory_for_desktop>
+  <compulsory_for_desktop>KDE</compulsory_for_desktop>
+  <compulsory_for_desktop>LXQt</compulsory_for_desktop>
+  <compulsory_for_desktop>MATE</compulsory_for_desktop>
+  <compulsory_for_desktop>Pantheon</compulsory_for_desktop>
+  <compulsory_for_desktop>Unity</compulsory_for_desktop>
+  <compulsory_for_desktop>XFCE</compulsory_for_desktop>
+
+  <categories>
+    <category>System</category>
+  </categories>
+</component>
