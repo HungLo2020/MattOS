@@ -1,0 +1,11 @@
+schema_version = 1
+component = "keyutils"
+upstream_commit = "cb3bb194cca88211cbfcdde2f10c0f43c3fb8ec3"
+upstream_tree = "723bc12b41cde925b6c7d0310d5d921d2826edb5"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/keyutils/0001-build-date-source-date-epoch.patch"
+sha256 = "54fdfa05428fff6c79c7a427f79757bedf5a1be3cf547bdf7ebc643035de43d0"
+purpose = "Derive the build date libkeyutils embeds (keyutils_build_string) from SOURCE_DATE_EPOCH instead of the wall clock."
+documentation = "docs/build-system/reproducibility.md"

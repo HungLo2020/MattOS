@@ -196,17 +196,27 @@ fn build_attr(repo_root: &Path) -> Result<()> {
             soname.display()
         );
     }
-    copy_tree_contents(
-        &install_dir.join("usr/include"),
-        &repo_root.join("out/sysroot/usr/include"),
-    )?;
-    copy_tree_contents(
-        &install_dir.join("usr/lib/x86_64-linux-gnu"),
-        &repo_root.join("out/sysroot/usr/lib/x86_64-linux-gnu"),
-    )?;
+    publish_attr_to_sysroot(&install_dir, &repo_root.join("out/sysroot"))?;
     fs::write(&stamp_path, stamp)
         .with_context(|| format!("failed to write {}", stamp_path.display()))?;
     Ok(())
+}
+
+fn publish_attr_to_sysroot(install_dir: &Path, sysroot: &Path) -> Result<()> {
+    // Debian ships no libtool archive, and a libattr.la in the sysroot makes
+    // libtool treat it as "moved" and hardcode the sysroot directory into
+    // libacl's RUNPATH.  Drop it here and from sysroots populated by earlier
+    // builds.
+    remove_path_if_exists(&install_dir.join("usr/lib/x86_64-linux-gnu/libattr.la"))?;
+    remove_path_if_exists(&sysroot.join("usr/lib/x86_64-linux-gnu/libattr.la"))?;
+    copy_tree_contents(
+        &install_dir.join("usr/include"),
+        &sysroot.join("usr/include"),
+    )?;
+    copy_tree_contents(
+        &install_dir.join("usr/lib/x86_64-linux-gnu"),
+        &sysroot.join("usr/lib/x86_64-linux-gnu"),
+    )
 }
 
 fn build_lm_sensors(repo_root: &Path) -> Result<()> {
@@ -428,7 +438,7 @@ fn build_acl(repo_root: &Path) -> Result<()> {
         "--disable-nls",
     ];
     let stamp = format!(
-        "{state}\n{}\nacl-link-isolation-v2\n",
+        "{state}\n{}\nacl-link-isolation-v3\n",
         options.join("\n")
     );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {

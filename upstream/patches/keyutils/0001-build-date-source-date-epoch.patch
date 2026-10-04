@@ -1,0 +1,12 @@
+--- a/Makefile
++++ b/Makefile
+@@ -109,7 +109,8 @@
+ ###############################################################################
+ #RPATH = -Wl,-rpath,$(LIBDIR)
+ 
+-VCPPFLAGS	:= -DPKGBUILD="\"$(shell date -u +%F)\""
++# MattOS: reproducible builds (SOURCE_DATE_EPOCH, not the wall clock).
++VCPPFLAGS	:= -DPKGBUILD="\"$(shell date -u -d @$${SOURCE_DATE_EPOCH:-$$(date +%s)} +%F)\""
+ VCPPFLAGS	+= -DPKGVERSION="\"keyutils-$(VERSION)\""
+ VCPPFLAGS	+= -DAPIVERSION="\"libkeyutils-$(APIVERSION)\""
+ 

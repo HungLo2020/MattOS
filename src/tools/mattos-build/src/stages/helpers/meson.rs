@@ -61,8 +61,22 @@ fn build_meson_runtime(
             Ok::<_, anyhow::Error>(format!("{dependency}={}", manifest.output_content_digest))
         })
         .collect::<Result<Vec<_>>>()?;
+    // Meson falls back to CMake dependency discovery when pkg-config cannot
+    // find a dependency, and CMake then searches the build host (/usr): an
+    // undeclared dependency silently linked the host's library and put
+    // `-I/usr/include` on target compiles.  The machine file makes the CMake
+    // method unavailable, so a missing declared dependency fails instead.
+    let native_file = out_root.join("mattos-meson-native.ini");
+    // Meson runs from the checkout root.  Name the machine file relative to
+    // it: some projects (mpv) embed their configure arguments verbatim, so
+    // an absolute path would put the build machine's checkout in a package.
+    let native_file_argument = native_file
+        .strip_prefix(repo_root)
+        .with_context(|| format!("{} is outside the checkout", native_file.display()))?
+        .to_path_buf();
+    let native_file_contents = "[binaries]\ncmake = 'false'\n";
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\ndependency-outputs={}\n{adaptation_stamp}\n",
+        "{state}\n{}\ndependencies={}\ndependency-outputs={}\n{adaptation_stamp}\nnative-file={native_file_contents}",
         options.join("\n"),
         dependencies.join(","),
         dependency_outputs.join(",")
@@ -73,6 +87,7 @@ fn build_meson_runtime(
         remove_path_if_exists(&build_dir)?;
     }
     fs::create_dir_all(&out_root)?;
+    fs::write(&native_file, native_file_contents)?;
     sync_build_source(&source, &source_copy)?;
     if component == "pulseaudio" {
         // The immutable source importer intentionally strips Git metadata.
@@ -240,13 +255,21 @@ fn build_meson_runtime(
         let mut args = vec![
             "setup",
             "--reconfigure",
+            "--native-file",
+            path_str(&native_file_argument)?,
             path_str(&build_dir)?,
             path_str(&source_copy)?,
         ];
         args.extend(options.iter().copied());
         run_cmd_with_env_overrides(repo_root, "meson", &args, &env)?;
     } else {
-        let mut args = vec!["setup", path_str(&build_dir)?, path_str(&source_copy)?];
+        let mut args = vec![
+            "setup",
+            "--native-file",
+            path_str(&native_file_argument)?,
+            path_str(&build_dir)?,
+            path_str(&source_copy)?,
+        ];
         args.extend(options.iter().copied());
         run_cmd_with_env_overrides(repo_root, "meson", &args, &env)?;
     }

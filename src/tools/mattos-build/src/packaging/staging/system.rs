@@ -289,6 +289,23 @@ pub(crate) fn stage_brush(repo_root: &Path, staging: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Remove `root` and every directory below it that holds no file or symlink.
+fn prune_empty_directories(root: &Path) -> Result<()> {
+    if !root.is_dir() {
+        return Ok(());
+    }
+    for entry in fs::read_dir(root)? {
+        let path = entry?.path();
+        if path.symlink_metadata()?.is_dir() {
+            prune_empty_directories(&path)?;
+        }
+    }
+    if fs::read_dir(root)?.next().is_none() {
+        fs::remove_dir(root)?;
+    }
+    Ok(())
+}
+
 pub(super) fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
     let skeleton = repo_root.join("src/rootfs/skeleton/etc");
     for name in ["os-release", "hostname", "profile", "shells"] {
@@ -300,6 +317,10 @@ pub(super) fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
         // installed users and explicitly mirrored into the pre-created live
         // account. Do not leave its contents as unowned rootfs overlay data.
         copy_tree_preserving(&user_skeleton, &staging.join("etc/skel"))?;
+        // Git tracks files, not directories: a checkout that once had skel
+        // files can keep their emptied directories, which must not become
+        // package payload.
+        prune_empty_directories(&staging.join("etc/skel"))?;
     }
     copy_preserving(
         &repo_root.join("src/system/packages/config/base-files/environment"),
@@ -1631,4 +1652,24 @@ pub(super) fn stage_base_command(
         &repo_root.join(license),
         &staging.join("usr/share/doc").join(package).join("copyright"),
     )
+}
+
+#[cfg(test)]
+mod skeleton_tests {
+    use super::*;
+
+    #[test]
+    fn staged_user_skeleton_drops_directories_git_left_empty() {
+        let temporary = tempfile::tempdir().unwrap();
+        let skel = temporary.path().join("etc/skel");
+        fs::create_dir_all(skel.join(".local/share/flatpak/overrides")).unwrap();
+        fs::create_dir_all(skel.join(".config")).unwrap();
+        fs::write(skel.join(".config/kdeglobals"), "").unwrap();
+        prune_empty_directories(&skel).unwrap();
+        assert!(!skel.join(".local").exists());
+        assert!(skel.join(".config/kdeglobals").is_file());
+        fs::remove_dir_all(skel.join(".config")).unwrap();
+        prune_empty_directories(&skel).unwrap();
+        assert!(!skel.exists());
+    }
 }

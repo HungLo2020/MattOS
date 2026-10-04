@@ -33,6 +33,15 @@ use crate::timing::{IntegrityCacheStats, TimingCategory, TimingRecord, TimingRep
 
 const TIMING_SCHEMA_VERSION: u32 = 2;
 const NORMALIZED_SOURCE_DATE_EPOCH: &str = "1767225600";
+/// Vendored trees carry no `.git`, so a build script's `git describe` (FFmpeg,
+/// mpv, Meson's `vcs_tag`, ...) would otherwise walk up to the MattOS
+/// checkout and embed its commit and dirty state, changing package bytes on
+/// every MattOS commit.  Build commands may not look up into the checkout.
+const GIT_ISOLATION: &str = "checkout-ceiling-v1";
+/// Variables by which build systems detect a build started from an IDE; Qt
+/// changes how it builds and records syncqt when it sees one, so a build
+/// started from a terminal and one started from VS Code differed.
+const IDE_DETECTION_VARIABLES: [&str; 3] = ["VSCODE_CLI", "QTC_RUN", "CLION_IDE"];
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct SourceDigestKey {
@@ -437,6 +446,33 @@ pub(crate) fn active_stage_log_path_for_test() -> Option<PathBuf> {
     ACTIVE_BUILD_LOG.with(|slot| slot.borrow().clone())
 }
 
+/// The fixed environment of every build command; `normalized_build_environment`
+/// records the same policy in cache keys.
+fn apply_build_command_environment(command: &mut Command, checkout: Option<&std::ffi::OsStr>) {
+    command
+        .env("LC_ALL", "C")
+        .env("LANG", "C")
+        .env("TZ", "UTC")
+        .env("PYTHONDONTWRITEBYTECODE", "1")
+        .env("SOURCE_DATE_EPOCH", NORMALIZED_SOURCE_DATE_EPOCH);
+    isolate_command_from_checkout_git(command, checkout);
+    for variable in IDE_DETECTION_VARIABLES {
+        command.env_remove(variable);
+    }
+}
+
+/// Stop `git` run by a build command from discovering the MattOS checkout:
+/// it may not move up into the checkout root, and no host or user Git
+/// configuration applies.
+fn isolate_command_from_checkout_git(command: &mut Command, checkout: Option<&std::ffi::OsStr>) {
+    if let Some(root) = checkout {
+        command.env("GIT_CEILING_DIRECTORIES", root);
+    }
+    command
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null");
+}
+
 pub(crate) fn run_logged_command(command: &mut Command, display: &str) -> Result<ExitStatus> {
     let verbose = std::env::var_os("MATTOS_VERBOSE_BUILD_OUTPUT").is_some();
     run_logged_command_mode(command, display, verbose)
@@ -447,12 +483,7 @@ fn run_logged_command_mode(
     display: &str,
     verbose: bool,
 ) -> Result<ExitStatus> {
-    command
-        .env("LC_ALL", "C")
-        .env("LANG", "C")
-        .env("TZ", "UTC")
-        .env("PYTHONDONTWRITEBYTECODE", "1")
-        .env("SOURCE_DATE_EPOCH", NORMALIZED_SOURCE_DATE_EPOCH);
+    apply_build_command_environment(command, std::env::var_os("MATTOS_REPO_ROOT").as_deref());
     #[cfg(test)]
     if let Some(status) = command_recorder::intercept(command)? {
         return Ok(status);
@@ -1341,6 +1372,11 @@ fn normalized_build_environment_from(
     values.insert(
         "SOURCE_DATE_EPOCH".to_string(),
         NORMALIZED_SOURCE_DATE_EPOCH.to_string(),
+    );
+    values.insert("MATTOS_GIT_ISOLATION".to_string(), GIT_ISOLATION.to_string());
+    values.insert(
+        "MATTOS_IDE_DETECTION_REMOVED".to_string(),
+        IDE_DETECTION_VARIABLES.join(","),
     );
     values
 }
@@ -2768,6 +2804,53 @@ mod tests {
 
         let relevant_change = BTreeMap::from([("CFLAGS", "-O3")]);
         assert_ne!(normalized(&first), normalized(&relevant_change));
+    }
+
+    #[test]
+    fn build_commands_do_not_inherit_ide_detection_variables() {
+        let mut command = Command::new("true");
+        apply_build_command_environment(&mut command, Some(std::ffi::OsStr::new("/checkout")));
+        let environment = command.get_envs().collect::<BTreeMap<_, _>>();
+        for variable in IDE_DETECTION_VARIABLES {
+            assert_eq!(environment[std::ffi::OsStr::new(variable)], None, "{variable} must be removed");
+        }
+        assert_eq!(
+            environment[std::ffi::OsStr::new("GIT_CEILING_DIRECTORIES")],
+            Some(std::ffi::OsStr::new("/checkout"))
+        );
+    }
+
+    #[test]
+    fn build_commands_cannot_discover_the_checkout_git_repository() {
+        let root = tempdir().unwrap();
+        let checkout = root.path().join("checkout");
+        let source = checkout.join("src/component");
+        fs::create_dir_all(&source).unwrap();
+        let init = Command::new("git")
+            .args(["init", "-q"])
+            .arg(&checkout)
+            .status()
+            .unwrap();
+        assert!(init.success());
+        let describe = |isolated: bool| {
+            let mut command = Command::new("git");
+            command
+                .args(["rev-parse", "--show-toplevel"])
+                .current_dir(&source)
+                .stdout(std::process::Stdio::null())
+                .stderr(std::process::Stdio::null());
+            if isolated {
+                isolate_command_from_checkout_git(&mut command, Some(checkout.as_os_str()));
+            }
+            command.status().unwrap().success()
+        };
+        // Without isolation git finds the checkout from a vendored tree.
+        assert!(describe(false));
+        assert!(!describe(true));
+        assert_eq!(
+            normalized_build_environment_from(|_| None)["MATTOS_GIT_ISOLATION"],
+            GIT_ISOLATION
+        );
     }
 
     #[test]

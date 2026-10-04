@@ -157,8 +157,8 @@ existing system. `mattos-base` depends on all three.
 - The base `util-linux` package adds the deliberately selected administration
   set: `lsblk`, `dmesg`, `fdisk`, `cfdisk`, `sfdisk`, `wipefs`, `blkid`,
   `findmnt`, `losetup`, `mountpoint`, `blockdev`, `flock`, `lscpu`, `lslocks`,
-  `lsns`, `nsenter`, `unshare`, `taskset`, `chrt`, `ionice`, `prlimit`, and
-  `uuidgen`.
+  `lsns`, `nsenter`, `unshare`, `taskset`, `chrt`, `ionice`, `prlimit`,
+  `uuidgen`, and `setsid`.
 - Provider label: `util-linux`
 - This remains intentionally separate from Rust/uutils command expansion and
   avoids installing every upstream helper into the live base image.

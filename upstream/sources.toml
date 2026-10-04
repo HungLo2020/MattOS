@@ -2330,6 +2330,8 @@ branch = "v6.26.0"
 revision = "8a8789ca55c1209109f97a34b18e633c4240bee0"
 path = "src/desktop/kde/ksyntaxhighlighting"
 sync = "copy"
+patch_manifest = "upstream/patches/ksyntaxhighlighting/manifest.toml"
+patch_manifest_sha256 = "2740af3c19552c562abbbada90e6ab11bddc05680bebff9de1239f70623793de"
 
 [[component]]
 name = "ktextwidgets"
@@ -2751,6 +2753,8 @@ branch = "v1.6.3"
 revision = "cb3bb194cca88211cbfcdde2f10c0f43c3fb8ec3"
 path = "src/system/security/keyutils"
 sync = "copy"
+patch_manifest = "upstream/patches/keyutils/manifest.toml"
+patch_manifest_sha256 = "6185fc3e5a6705237664e9ece077a80dc2ceccc3a440b0816d32d008570e1a4b"
 
 [[component]]
 name = "cryptsetup"

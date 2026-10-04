@@ -77,6 +77,11 @@ fn build_rust(repo_root: &Path) -> Result<()> {
         ),
         ("PKG_CONFIG_PATH", String::new()),
         ("PKG_CONFIG_SYSROOT_DIR", sysroot.display().to_string()),
+        // Cargo's curl-sys links a system libcurl only when the build host's
+        // `curl-config` reports HTTP2, and otherwise builds its vendored copy,
+        // so cargo's linkage (and its undeclared libcurl4 dependency)
+        // depended on the build machine.  Always use the vendored copy.
+        ("LIBCURL_NO_PKG_CONFIG", "1".to_string()),
     ];
     run_cmd_with_env_overrides(
         &source_copy,

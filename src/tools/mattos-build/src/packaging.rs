@@ -216,6 +216,7 @@ const UTIL_LINUX_BASE_PATHS: &[&str] = &[
     "usr/bin/ionice",
     "usr/bin/prlimit",
     "usr/bin/uuidgen",
+    "usr/bin/setsid",
 ];
 const IPROUTE2_RUNTIME_PATHS: &[&str] = &[
     "usr/sbin/ip",
@@ -2266,7 +2267,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "power-profiles-daemon" => component_snapshot_version(repo_root, "power-profiles-daemon")?,
         "libdbus-1-3" => component_snapshot_version(repo_root, "dbus")?,
         "libdav1d7" => component_snapshot_version(repo_root, "dav1d")?,
-        "libglib2.0-0t64" => component_snapshot_version(repo_root, "glib")?,
+        "libglib2.0-0t64" | "libglib2.0-bin" => component_snapshot_version(repo_root, "glib")?,
         "libicu78" => component_snapshot_version(repo_root, "icu")?,
         "kf6-kdeclarative" => component_snapshot_version(repo_root, "kdeclarative")?,
         "pipewire" => component_snapshot_version(repo_root, "pipewire")?,

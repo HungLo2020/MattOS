@@ -490,6 +490,9 @@ fn build_gpgv(repo_root: &Path) -> Result<()> {
         "--disable-gnutls",
         "--disable-sqlite",
         "--disable-bzip2",
+        // Otherwise configure records whichever sendmail the build host has
+        // (or none) in gpg-wks-client/server; Debian uses this path too.
+        "--with-mailprog=/usr/sbin/sendmail",
     ];
     let state = fs::read_to_string(repo_root.join("upstream/state/gnupg.toml"))
         .context("failed to read GnuPG upstream state")?;

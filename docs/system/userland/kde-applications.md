@@ -55,7 +55,11 @@ Debian's package names:
   PackageKit-Qt (`libpackagekitqt6-2`) and PackageKit with its APT backend
   (`packagekit`, which also needs SQLite (`libsqlite3-0`) and Jansson
   (`libjansson4`)). PackageKit's APT backend links GStreamer
-  (`libgstreamer1.0-0`, `libgstreamer-plugins-base1.0-0`). Discover needs Kirigami
+  (`libgstreamer1.0-0`, `libgstreamer-plugins-base1.0-0`). As in Debian,
+  `packagekit` depends on `libglib2.0-bin` (GLib's `gdbus`, `gio`,
+  `gsettings`, `gapplication` and `gresource`): APT's `20packagekit` hook runs
+  `gdbus` after every cache update so PackageKit, and with it Discover, sees
+  new package lists. Discover needs Kirigami
   Addons 1.10 or later (MattOS pins 1.15.0) and QCoro's network module. Its
   update notifier starts with the session (`/etc/xdg/autostart`), and its
   Updates page appears in System Settings.

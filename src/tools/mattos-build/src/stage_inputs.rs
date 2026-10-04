@@ -1342,6 +1342,8 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
             "modinfo",
         ],
         BuildStage::Iso => &["xorriso"],
+        // Its translations are compiled by the build machine's gettext.
+        BuildStage::Cryptsetup => &["gcc", "g++", "as", "ld", "make", "msgfmt", "xgettext"],
         BuildStage::Libnl => &[
             "autoreconf",
             "gcc",

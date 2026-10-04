@@ -217,6 +217,15 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
         self.assertEqual(_select_installed_qemu_window(tree), "0x320000a")
         self.assertIsNone(_select_installed_qemu_window('  0x1 "Other window" 800x600+0+0'))
 
+    def test_plasma_window_selection_matches_the_head_holding_the_input_grab(self) -> None:
+        # Real xwininfo output: the rendered head was reparented by the window
+        # manager and carries SDL's grab suffix; the blank head did neither.
+        tree = '\n'.join([
+            '           0x6800008 "QEMU (mattos-installed-plasma-login-verification-0) - Press Ctrl-Alt-G to exit grab": ("qemu-system-x86_64" "qemu-system-x86_64")  1280x800+0+0  +635+231',
+            '     0x680000e "QEMU (mattos-installed-plasma-login-verification-1)": ("qemu-system-x86_64" "qemu-system-x86_64")  640x384+640+348  +640+348',
+        ])
+        self.assertEqual(_select_installed_qemu_window(tree), "0x6800008")
+
     def test_greeter_wakeup_is_real_qmp_keyboard_input(self) -> None:
         events: list[str] = []
 

@@ -881,7 +881,7 @@ fn build_keyutils(repo_root: &Path) -> Result<()> {
     let source = repo_root.join("src/system/security/keyutils");
     let source_copy = out.join("source");
     let install = out.join("install");
-    let stamp = "keyutils-v1\nlibdir=/usr/lib/x86_64-linux-gnu\n";
+    let stamp = "keyutils-v2\nlibdir=/usr/lib/x86_64-linux-gnu\n";
     let stamp_path = out.join("build-stamp.txt");
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp) {
         remove_path_if_exists(&source_copy)?;
@@ -889,6 +889,7 @@ fn build_keyutils(repo_root: &Path) -> Result<()> {
     }
     fs::create_dir_all(&out)?;
     sync_build_source(&source, &source_copy)?;
+    apply_component_patches(repo_root, "keyutils", &source_copy)?;
     let env = staged_library_environment(repo_root, &[])?;
     let variables = [
         "NO_ARLIB=1",
@@ -1138,6 +1139,35 @@ fn build_cryptsetup(repo_root: &Path) -> Result<()> {
     remove_staged_libtool_archives(
         &repo_root.join("out/build/cryptsetup/install/usr/lib/x86_64-linux-gnu"),
     )?;
+    install_cryptsetup_translations(repo_root)
+}
+
+/// gettext's po/Makefile compiles a catalog only when its timestamps say it
+/// is stale and silently skips installing a missing one, so the package got
+/// translations, or just empty LC_MESSAGES directories, depending on the
+/// build machine and tree.  Compile every listed catalog explicitly.
+fn install_cryptsetup_translations(repo_root: &Path) -> Result<()> {
+    let po = repo_root.join("out/build/cryptsetup/source/po");
+    let locale = repo_root.join("out/build/cryptsetup/install/usr/share/locale");
+    let languages = fs::read_to_string(po.join("LINGUAS"))?;
+    let languages = languages
+        .lines()
+        .flat_map(|line| line.split('#').next().unwrap_or_default().split_whitespace())
+        .collect::<Vec<_>>();
+    if languages.is_empty() {
+        bail!("cryptsetup lists no translations in {}", po.join("LINGUAS").display());
+    }
+    for language in languages {
+        let messages = locale.join(language).join("LC_MESSAGES");
+        fs::create_dir_all(&messages)?;
+        let catalog = messages.join("cryptsetup.mo");
+        run_cmd(&po, "msgfmt", &[
+            "-c",
+            "-o",
+            path_str(&catalog)?,
+            &format!("{language}.po"),
+        ])?;
+    }
     Ok(())
 }
 

@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_COMMANDS = (
     "lsblk dmesg fdisk cfdisk sfdisk wipefs blkid findmnt losetup mountpoint "
     "blockdev flock lscpu lslocks lsns nsenter unshare taskset chrt ionice "
-    "prlimit uuidgen gzip gunzip zcat bzip2 bunzip2 bzcat bzip2recover xz "
+    "prlimit uuidgen setsid gzip gunzip zcat bzip2 bunzip2 bzcat bzip2recover xz "
     "unxz xzcat lzma unlzma lzcat zstd unzstd zstdcat patch file less lesskey "
     "git scalar ssh scp sftp ssh-add ssh-agent ssh-keygen ssh-keyscan sshd "
     "sh dash sed awk mawk rsync"
@@ -135,7 +135,7 @@ ssh-keygen -lf /tmp/test-key.pub >/dev/null
 
 for command in lsblk dmesg fdisk cfdisk sfdisk wipefs blkid findmnt losetup \
     mountpoint blockdev flock lscpu lslocks lsns nsenter unshare taskset chrt \
-    ionice prlimit uuidgen; do
+    ionice prlimit uuidgen setsid; do
     "$command" --version >/dev/null
 done
 

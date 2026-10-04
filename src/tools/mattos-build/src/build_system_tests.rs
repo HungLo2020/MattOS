@@ -736,10 +736,36 @@ fn acl_uses_library_path_without_encoding_disposable_attr_runpath() {
             .find("\nfn ensure_acl_release_archive")
             .unwrap();
     let body = &source[start..end];
-    assert!(body.contains("acl-link-isolation-v2"));
+    assert!(body.contains("acl-link-isolation-v3"));
     assert!(body.contains("LIBRARY_PATH"));
     assert!(body.contains("libtool configuration"));
     assert!(!body.contains("\"LDFLAGS\""));
+}
+
+#[test]
+fn attr_keeps_its_libtool_archive_out_of_the_sysroot() {
+    // A sysroot libattr.la makes libtool hardcode the sysroot directory into
+    // libacl's RUNPATH, which package staging rejects as a host build root.
+    let temporary = tempfile::tempdir().unwrap();
+    let install = temporary.path().join("install");
+    let sysroot = temporary.path().join("sysroot");
+    let install_lib = install.join("usr/lib/x86_64-linux-gnu");
+    let sysroot_lib = sysroot.join("usr/lib/x86_64-linux-gnu");
+    fs::create_dir_all(install.join("usr/include/attr")).unwrap();
+    fs::create_dir_all(&install_lib).unwrap();
+    fs::create_dir_all(&sysroot_lib).unwrap();
+    fs::write(install.join("usr/include/attr/attributes.h"), "").unwrap();
+    fs::write(install_lib.join("libattr.so.1"), "").unwrap();
+    fs::write(install_lib.join("libattr.la"), "").unwrap();
+    // A sysroot populated by an earlier build still holds the archive.
+    fs::write(sysroot_lib.join("libattr.la"), "").unwrap();
+
+    publish_attr_to_sysroot(&install, &sysroot).unwrap();
+
+    assert!(sysroot_lib.join("libattr.so.1").is_file());
+    assert!(sysroot.join("usr/include/attr/attributes.h").is_file());
+    assert!(!sysroot_lib.join("libattr.la").exists());
+    assert!(!install_lib.join("libattr.la").exists());
 }
 
 #[test]
@@ -1691,4 +1717,20 @@ fn module_signing_uses_the_committed_key() {
     crate::install_module_signing_key(temp.path(), &build).unwrap();
     assert_eq!(fs::metadata(&staged).unwrap().modified().unwrap(), old);
     assert_eq!(fs::read_to_string(&staged).unwrap(), key);
+}
+
+#[test]
+fn fully_reachable_recipe_helpers_are_part_of_the_stage_key() {
+    // Every item of helpers/meson.rs is reached by a Meson stage, so it has
+    // no projection; it must still be hashed (whole) into the stage key, or a
+    // change to the Meson helper never rebuilds a Meson stage.
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..").canonicalize().unwrap();
+    let mut spec = bare_stage_spec("mpv");
+    spec.source_inputs = crate::stage_inputs::source_inputs(crate::stage_graph::BuildStage::Mpv);
+    let evaluation = crate::performance::compute_stage_evaluation(&repo, &spec).unwrap();
+    assert!(
+        evaluation.details.source.contains_key("src/tools/mattos-build/src/stages/helpers/meson.rs"),
+        "{:?}",
+        evaluation.details.source.keys().collect::<Vec<_>>()
+    );
 }

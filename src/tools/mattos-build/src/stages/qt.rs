@@ -140,17 +140,78 @@ fn qt_host_tool(name: &str) -> Result<PathBuf> {
     bail!("Qt build requires trusted host executable `{name}` in PATH")
 }
 
+/// Build-only tool overrides placed first on PATH for Qt and KDE builds.
+///
+/// `qsb -O` (Qt's shader baker) runs whatever `spirv-opt` PATH provides and
+/// silently keeps the unoptimized SPIR-V when that fails, so shader bytes in
+/// QtQuick, KDE frameworks and Plasma depended on whether the build machine
+/// happened to have SPIRV-Tools installed.  MattOS does not build SPIRV-Tools;
+/// this `spirv-opt` always fails, so every machine ships the same
+/// unoptimized SPIR-V.
+fn qt_build_tool_overrides(repo_root: &Path) -> Result<PathBuf> {
+    let bin = repo_root.join("out/host-tools/qt-build-overrides/bin");
+    fs::create_dir_all(&bin)?;
+    let spirv_opt = bin.join("spirv-opt");
+    let script = "#!/bin/sh\n# MattOS: shaders are never optimized (see qt_build_tool_overrides).\nexit 1\n";
+    if fs::read_to_string(&spirv_opt).ok().as_deref() != Some(script) {
+        fs::write(&spirv_opt, script)?;
+    }
+    fs::set_permissions(&spirv_opt, std::os::unix::fs::PermissionsExt::from_mode(0o755))?;
+    Ok(bin)
+}
+
+/// The phony Ninja targets that publish a QML module's type information:
+/// its `.qmltypes` (from qmltyperegistrar) and its copied QML files and
+/// resources in the build-tree import directory.
+fn qml_type_information_targets(ninja_targets: &str) -> Vec<String> {
+    let mut targets = ninja_targets
+        .lines()
+        .filter_map(|line| line.strip_suffix(": phony"))
+        .filter(|target| !target.starts_with('/') && !target.contains("CMakeFiles/"))
+        .filter(|target| {
+            target.ends_with("_qmltyperegistration")
+                || target.ends_with("_copy_qml")
+                || target.ends_with("_copy_res")
+        })
+        .map(str::to_owned)
+        .collect::<Vec<_>>();
+    targets.sort();
+    targets.dedup();
+    targets
+}
+
+/// `cmake --build .`, after first publishing every QML module's type
+/// information.  Qt's qmlcachegen rule depends only on its own module's
+/// qmltypes, so a QML file importing a sibling module of the same project
+/// could be compiled before that module's types existed: fewer bindings got
+/// AOT-compiled, and which ones depended on the machine's job count and
+/// timing.
+fn cmake_build_with_qml_types_first(build: &Path, env: &[(&str, String)]) -> Result<()> {
+    let ninja = qt_host_tool("ninja")?;
+    let listing = run_cmd_capture(build, path_str(&ninja)?, &["-t", "targets", "all"])?;
+    let targets = qml_type_information_targets(&listing);
+    if !targets.is_empty() {
+        let mut args = vec!["--build", ".", "--target"];
+        args.extend(targets.iter().map(String::as_str));
+        run_cmd_with_env_overrides(build, "cmake", &args, env)?;
+    }
+    run_cmd_with_env_overrides(build, "cmake", &["--build", "."], env)
+}
+
 /// The MattOS-built compilers and Binutils used for Qt and KDE target code.
 fn qt_target_toolchain(repo_root: &Path) -> Result<TargetToolchain> {
     require_mattos_target_toolchain(repo_root)
 }
 
-fn qt_host_tool_environment(toolchain: &TargetToolchain) -> Result<Vec<(&'static str, String)>> {
+fn qt_host_tool_environment(
+    toolchain: &TargetToolchain,
+    overrides: &Path,
+) -> Result<Vec<(&'static str, String)>> {
     let paths = ["cmake", "ninja", "pkg-config"]
         .iter()
         .map(|tool| qt_host_tool(tool))
         .collect::<Result<Vec<_>>>()?;
-    let mut path_dirs = vec![toolchain.bin.clone()];
+    let mut path_dirs = vec![overrides.to_path_buf(), toolchain.bin.clone()];
     for directory in paths.iter().filter_map(|path| path.parent()) {
         if !path_dirs.iter().any(|existing| existing == directory) {
             path_dirs.push(directory.to_path_buf());
@@ -187,7 +248,7 @@ fn qt_build_tool_environment(
     build: &Path,
     qtbase: Option<&Path>,
 ) -> Result<Vec<(&'static str, String)>> {
-    let mut env = qt_host_tool_environment(&qt_target_toolchain(repo_root)?)?;
+    let mut env = qt_host_tool_environment(&qt_target_toolchain(repo_root)?, &qt_build_tool_overrides(repo_root)?)?;
     let mut libraries = vec![build.join("lib/x86_64-linux-gnu")];
     if let Some(qtbase) = qtbase {
         libraries.push(qtbase.join("lib/x86_64-linux-gnu"));
@@ -274,6 +335,19 @@ fn isolated_target_cmake_args(repo_root: &Path, prefixes: &[PathBuf]) -> Result<
         "-DCMAKE_INSTALL_RPATH=".into(),
         "-DCMAKE_BUILD_RPATH=".into(),
         "-DCMAKE_SKIP_RPATH=ON".into(),
+        // Qt's SBOM document namespace otherwise hashes the host CMake
+        // version and, on a fresh configure, an architecture probe that has
+        // not run yet, so it differs between machines and between fresh and
+        // reused build trees.  Every Qt module's SBOM references qtbase's.
+        "-DQT_SBOM_FORCE_DOCUMENT_NAMESPACE_INFIX_UUID_CONTENT=mattos".into(),
+        // Started from an IDE (VSCODE_CLI, QTC_RUN, CLION_IDE), QtBase builds
+        // syncqt at configure time and leaves it out of its SBOM.
+        "-DQT_SYNC_HEADERS_AT_CONFIGURE_TIME=OFF".into(),
+        // ECM packages KDevelop app templates with GNU tar's sorted,
+        // root-owned, SOURCE_DATE_EPOCH archive mode, but its find_program()
+        // cannot see the host tar under the isolated search policy above and
+        // falls back to `cmake -E tar` (directory order, builder uid/gid).
+        format!("-D_tar_executable={}", qt_host_tool("tar")?.display()),
     ]).collect())
 }
 
@@ -1043,7 +1117,7 @@ fn build_qt_module(repo_root: &Path, component: &str) -> Result<()> {
         }
     }
     run_cmd_with_env_overrides(&build, "cmake", &refs, &env)?;
-    run_cmd_with_env_overrides(&build, "cmake", &["--build", "."], &env)?;
+    cmake_build_with_qml_types_first(&build, &env)?;
     qt_install(repo_root, &build, &install)?;
     // Standalone Qt modules emit the same qmake/CMake/SPDX metadata as
     // QtBase. Normalize it at the output boundary before any package stage
@@ -1205,11 +1279,37 @@ mod qt_tests {
     }
 
     #[test]
+    fn qml_type_information_targets_cover_registrations_and_copied_modules() {
+        let listing = "\
+applet/org.kde.plasma.networkmanagement_qmltyperegistration: phony
+libs/plasmanm_internal_qmltyperegistration: phony
+applet/all_qmltyperegistrations: phony
+applet/org.kde.plasma.networkmanagement_copy_qml: phony
+applet/org.kde.plasma.networkmanagement_copy_res: phony
+applet/CMakeFiles/org.kde.plasma.networkmanagement_copy_qml: phony
+/abs/build/applet/CMakeFiles/org.kde.plasma.networkmanagement_copy_qml: phony
+applet/org.kde.plasma.networkmanagement_qmltyperegistrations.cpp: CUSTOM_COMMAND
+libs/libplasmanm_internal.so: CXX_SHARED_LIBRARY_LINKER__plasmanm_internal_
+";
+        assert_eq!(
+            qml_type_information_targets(listing),
+            [
+                "applet/org.kde.plasma.networkmanagement_copy_qml",
+                "applet/org.kde.plasma.networkmanagement_copy_res",
+                "applet/org.kde.plasma.networkmanagement_qmltyperegistration",
+                "libs/plasmanm_internal_qmltyperegistration",
+            ]
+        );
+        assert!(qml_type_information_targets("all: phony\n").is_empty());
+    }
+
+    #[test]
     fn qt_host_environment_clears_inherited_qt_target_discovery() {
         let toolchain = TargetToolchain {
             bin: PathBuf::from("/nonexistent/mattos-toolchain/bin"),
         };
-        let environment = qt_host_tool_environment(&toolchain).unwrap();
+        let environment =
+            qt_host_tool_environment(&toolchain, Path::new("/nonexistent/overrides")).unwrap();
         for variable in [
             "CMAKE_PREFIX_PATH", "CMAKE_FIND_ROOT_PATH", "Qt6_DIR",
             "Qt6Core_DIR", "Qt6Gui_DIR", "Qt6Widgets_DIR", "QTDIR", "QT_PLUGIN_PATH",

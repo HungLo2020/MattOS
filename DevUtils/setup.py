@@ -58,6 +58,10 @@ REQUIRED_TOOLS = [
     "tar",
     "triehash",
     "magick",
+    # Translations (KDE, cryptsetup, polkit policies).
+    "msgfmt",
+    "msgmerge",
+    "xgettext",
     # Compiler cache for MattOS target C/C++ compiles (see
     # docs/build-system/architecture.md, "Compiler cache").
     "ccache",
@@ -158,6 +162,9 @@ DEBIAN_TOOL_PACKAGES: Dict[str, List[str]] = {
     "tar": ["tar"],
     "triehash": ["triehash"],
     "magick": ["imagemagick"],
+    "msgfmt": ["gettext"],
+    "msgmerge": ["gettext"],
+    "xgettext": ["gettext"],
     "ccache": ["ccache"],
 }
 

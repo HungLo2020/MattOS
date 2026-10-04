@@ -1,0 +1,12 @@
+--- a/data/generators/generate_jinja.py
++++ b/data/generators/generate_jinja.py
+@@ -151,7 +151,8 @@
+     lang_tag = grammar.getroot()
+     lang_tag.set('name', jinja_tag.get('name') + '/' + lang_tag.get('name'))
+     lang_tag.set('section', jinja_tag.get('section'))
+-    lang_tag.set('version', str(round(time.time())))
++    # MattOS: reproducible builds (SOURCE_DATE_EPOCH, not the wall clock).
++    lang_tag.set('version', str(int(os.environ.get('SOURCE_DATE_EPOCH', round(time.time())))))
+     lang_tag.set('license', jinja_tag.get('license'))
+     lang_tag.set('priority', lang_tag.get('priority', '0'))
+     lang_tag.set('kateversion', max(lang_tag.get('kateversion'),

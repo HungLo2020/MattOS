@@ -1184,8 +1184,10 @@ def _capture_settled_plasma_desktop(
 
 def _select_installed_qemu_window(tree: str) -> str | None:
     """Select the largest SDL head for this verification VM, not a blank head."""
+    # SDL appends a suffix such as " - Press Ctrl-Alt-G to exit grab" to the
+    # title of a head holding the input grab; that head must still match.
     pattern = re.compile(
-        r'^\s*(0x[0-9a-fA-F]+) "QEMU \(mattos-installed-plasma-login-verification[^\"]*\)".*?\b(\d+)x(\d+)[+-]'
+        r'^\s*(0x[0-9a-fA-F]+) "QEMU \(mattos-installed-plasma-login-verification[^)"]*\)[^"]*".*?\b(\d+)x(\d+)[+-]'
     )
     candidates: list[tuple[int, str]] = []
     for line in tree.splitlines():
@@ -1306,17 +1308,18 @@ def _verify_installed_disk_boot(
     """Boot the target with no ISO and prove its real UEFI/GRUB path works.
 
     A Plasma install is also offered a newer build of one installed package
-    from a host-served repository, which Discover's update path (PackageKit,
-    APT, the update notifier) must notice and install."""
+    (and, as publishing does, of every package pinning it exactly) from a
+    host-served repository, which Discover's update path (PackageKit, APT,
+    the update notifier) must notice and install without removing anything."""
     # The probe repository is reached over QEMU's user-mode network.
     if getattr(args, "install_profile", "plasma") != "plasma" or getattr(args, "no_network", False):
         return _verify_installed_disk_boot_with(repo_root, disk, args, ())
     probe_root = repo_root / "out/tmp/update-probe-repository"
-    package, version = prepare_update_probe_repository(repo_root, probe_root)
+    updates = prepare_update_probe_repository(repo_root, probe_root)
     server, port = serve_flat_repository(probe_root)
     try:
         return _verify_installed_disk_boot_with(
-            repo_root, disk, args, installed_discover_update_probes(port, package, version)
+            repo_root, disk, args, installed_discover_update_probes(port, updates)
         )
     finally:
         server.shutdown()
@@ -1771,6 +1774,9 @@ class _QuietRepositoryHandler(http.server.SimpleHTTPRequestHandler):
 UPDATE_PROBE_PACKAGE = "kcalc"
 UPDATE_PROBE_VERSION_SUFFIX = "+updatetest1"
 UPDATE_PROBE_SOURCE = "/etc/apt/sources.list.d/zz-mattos-update-probe.list"
+# The installed system pins the MattOS repositories at 990, so the probe
+# source needs the same priority for its newer version to become the candidate.
+UPDATE_PROBE_PREFERENCES = "/etc/apt/preferences.d/zz-mattos-update-probe"
 
 
 def _ar_members(data: bytes) -> list[tuple[str, bytes]]:
@@ -1797,8 +1803,21 @@ def _ar_archive(members: list[tuple[str, bytes]]) -> bytes:
     return bytes(out)
 
 
-def rebuild_deb_with_version(deb: bytes, version: str) -> tuple[bytes, str]:
-    """`deb` with its control `Version` replaced; returns it and its control."""
+def _repin_exact_relations(line: str, versions: dict[str, tuple[str, str]]) -> str:
+    """`line` with each `name (= old)` in `versions` pinned to its new version."""
+    for name, (old, new) in versions.items():
+        line = re.sub(rf"(?<![^\s,|:]){re.escape(name)} \(= {re.escape(old)}\)", f"{name} (= {new})", line)
+    return line
+
+
+def rebuild_deb_with_version(
+    deb: bytes,
+    version: str,
+    repinned: dict[str, tuple[str, str]] | None = None,
+) -> tuple[bytes, str]:
+    """`deb` with its control `Version` replaced, and its exact relations on
+    `repinned` packages (name -> (old, new) version) moved to the new versions;
+    returns it and its control."""
     import io
     import tarfile
     from compression import zstd
@@ -1815,6 +1834,12 @@ def rebuild_deb_with_version(deb: bytes, version: str) -> tuple[bytes, str]:
                     if info.name.lstrip("./") == "control":
                         lines = payload.decode().splitlines()
                         lines = [f"Version: {version}" if line.startswith("Version:") else line for line in lines]
+                        if repinned:
+                            lines = [
+                                _repin_exact_relations(line, repinned)
+                                if line.startswith(("Depends:", "Pre-Depends:")) else line
+                                for line in lines
+                            ]
                         control_text = "\n".join(lines) + "\n"
                         payload = control_text.encode()
                         info.size = len(payload)
@@ -1826,33 +1851,52 @@ def rebuild_deb_with_version(deb: bytes, version: str) -> tuple[bytes, str]:
     return _ar_archive(rebuilt), control_text
 
 
-def prepare_update_probe_repository(repo_root: Path, destination: Path) -> tuple[str, str]:
+def prepare_update_probe_repository(repo_root: Path, destination: Path) -> dict[str, str]:
     """A flat, unsigned repository holding one installed package rebuilt with
-    a higher version; returns the package and that version."""
+    a higher version, plus every package that pins it (directly or through
+    another rebuilt package) with an exact version, repinned to the rebuilt
+    versions.  Publishing raises those dependents' revisions the same way, so
+    the probe offers the coherent set a real update would.  Returns the
+    rebuilt packages and their new versions, the probe package first."""
     inventory = tomllib.loads((repo_root / "out/packages/inventory.toml").read_text(encoding="utf-8"))
-    entry = next(
-        (package for package in inventory["package"] if package["name"] == UPDATE_PROBE_PACKAGE),
-        None,
-    )
-    if entry is None:
+    entries = {package["name"]: package for package in inventory["package"]}
+    if UPDATE_PROBE_PACKAGE not in entries:
         raise RepoError(f"{UPDATE_PROBE_PACKAGE} is not in the package inventory; build MattOS first")
-    version = entry["version"] + UPDATE_PROBE_VERSION_SUFFIX
-    deb, control = rebuild_deb_with_version((repo_root / entry["artifact_path"]).read_bytes(), version)
+    repinned = {UPDATE_PROBE_PACKAGE: entries[UPDATE_PROBE_PACKAGE]["version"]}
+    changed = True
+    while changed:
+        changed = False
+        for entry in inventory["package"]:
+            if entry["name"] in repinned:
+                continue
+            for relation in entry.get("dependencies", []):
+                match = re.fullmatch(r"(\S+) \(= (\S+)\)", relation.strip())
+                if match and repinned.get(match.group(1)) == match.group(2):
+                    repinned[entry["name"]] = entry["version"]
+                    changed = True
+                    break
+    versions = {name: (old, old + UPDATE_PROBE_VERSION_SUFFIX) for name, old in repinned.items()}
     shutil.rmtree(destination, ignore_errors=True)
     destination.mkdir(parents=True)
-    filename = f"{UPDATE_PROBE_PACKAGE}_{version}_{entry['architecture']}.deb"
-    (destination / filename).write_bytes(deb)
-    stanza = control.rstrip("\n") + (
-        f"\nFilename: ./{filename}\nSize: {len(deb)}\nSHA256: {hashlib.sha256(deb).hexdigest()}\n"
-    )
-    packages = (stanza + "\n").encode()
+    stanzas = []
+    for name, (_, version) in versions.items():
+        entry = entries[name]
+        deb, control = rebuild_deb_with_version(
+            (repo_root / entry["artifact_path"]).read_bytes(), version, versions
+        )
+        filename = f"{name}_{version}_{entry['architecture']}.deb"
+        (destination / filename).write_bytes(deb)
+        stanzas.append(control.rstrip("\n") + (
+            f"\nFilename: ./{filename}\nSize: {len(deb)}\nSHA256: {hashlib.sha256(deb).hexdigest()}\n"
+        ))
+    packages = "\n".join(stanzas).encode() + b"\n"
     (destination / "Packages").write_bytes(packages)
     (destination / "Release").write_text(
         "Origin: MattOS update probe\nLabel: MattOS update probe\nArchitectures: amd64\n"
         f"SHA256:\n {hashlib.sha256(packages).hexdigest()} {len(packages)} Packages\n",
         encoding="utf-8",
     )
-    return UPDATE_PROBE_PACKAGE, version
+    return {name: version for name, (_, version) in versions.items()}
 
 
 def serve_flat_repository(directory: Path) -> tuple[http.server.ThreadingHTTPServer, int]:
@@ -1865,32 +1909,51 @@ def serve_flat_repository(directory: Path) -> tuple[http.server.ThreadingHTTPSer
     return server, server.server_address[1]
 
 
-def installed_discover_update_probes(port: int, package: str, version: str) -> tuple[tuple[str, str], ...]:
+def installed_discover_update_probes(port: int, updates: dict[str, str]) -> tuple[tuple[str, str], ...]:
     """Discover's update path on the installed Plasma session: PackageKit's
-    APT backend sees the newer build, Discover's notifier (a status-notifier
-    item that turns Active when updates are pending) reports it, and
-    PackageKit installs it.  Each probe is one short serial command."""
+    APT backend sees the newer build, Discover's notifier announces pending
+    updates, and PackageKit installs it.  Each probe is one short serial
+    command.
+
+    The notifier records LastNotificationTime when it announces updates and
+    then hides its status-notifier item until the next notification interval
+    (upstream BUG 466693), so the probe restarts it with cleared state and
+    waits for that record instead of an Active status-notifier item."""
     sudo = "printf '%s\\n' mattos | sudo -S -p ''"
-    notifier_active = (
-        "for n in $(seq 1 120); do for s in $(busctl --user list --no-legend | awk '/^org\\.kde\\.StatusNotifierItem-/{print $1}'); do "
-        "busctl --user get-property \"$s\" /StatusNotifierItem org.kde.StatusNotifierItem Id 2>/dev/null | grep -q DiscoverNotifier && "
-        "busctl --user get-property \"$s\" /StatusNotifierItem org.kde.StatusNotifierItem Status 2>/dev/null | grep -q Active && exit 0; "
-        "done; sleep 1; done; exit 1"
+    package, version = next(iter(updates.items()))
+    names = " ".join(updates)
+    # The rebuilt set must update in place: an update that would remove an
+    # installed package (such as a profile metapackage pinning the probe
+    # package exactly) is listed by PackageKit with state "remove".
+    offered = (
+        f"pkgcli list-updates | grep -F '{package}' | grep -qF '{version}' && "
+        "! pkgcli --json list-updates | grep -Eq '\"state\": ?\"remove\"'"
+    )
+    installed = " && ".join(
+        f"test \"$(dpkg-query -W -f='${{Version}}' {name})\" = '{new}'" for name, new in updates.items()
+    )
+    notifier = "app-org.kde.discover.notifier@autostart.service"
+    notifier_state = "~/.local/state/discovernotifierstaterc"
+    notifier_announces = (
+        f"systemctl --user stop {notifier}; rm -f {notifier_state}; systemctl --user reset-failed {notifier}; "
+        f"systemctl --user start {notifier} && for n in $(seq 1 120); do "
+        f"grep -q LastNotificationTime {notifier_state} 2>/dev/null && exit 0; sleep 1; done; exit 1"
     )
     return (
         (
             "update-probe-source",
-            f"{sudo} sh -c 'echo \"deb [trusted=yes] http://10.0.2.2:{port}/ ./\" > {UPDATE_PROBE_SOURCE}'",
+            f"{sudo} sh -c 'echo \"deb [trusted=yes] http://10.0.2.2:{port}/ ./\" > {UPDATE_PROBE_SOURCE} && "
+            f"printf \"Package: *\\nPin: origin 10.0.2.2\\nPin-Priority: 990\\n\" > {UPDATE_PROBE_PREFERENCES}'",
         ),
         ("discover-notifier-running", "for n in $(seq 1 60); do pgrep -u mattos -f DiscoverNotifier >/dev/null && exit 0; sleep 1; done; exit 1"),
         ("packagekit-refresh", f"{sudo} pkgcli -y refresh"),
-        ("packagekit-offers-update", f"pkgcli list-updates | grep -F '{package}' | grep -qF '{version}'"),
-        ("discover-notifier-offers-update", notifier_active),
+        ("packagekit-offers-update", offered),
+        ("discover-notifier-offers-update", notifier_announces),
         (
             "packagekit-installs-update",
-            f"{sudo} pkgcli -y update {package} && test \"$(dpkg-query -W -f='${{Version}}' {package})\" = '{version}'",
+            f"{sudo} pkgcli -y update {names} && {installed}",
         ),
-        ("update-probe-cleanup", f"{sudo} rm -f {UPDATE_PROBE_SOURCE}"),
+        ("update-probe-cleanup", f"{sudo} rm -f {UPDATE_PROBE_SOURCE} {UPDATE_PROBE_PREFERENCES}"),
     )
 
 

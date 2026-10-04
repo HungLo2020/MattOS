@@ -166,17 +166,28 @@ acceptance tests. The Plasma profile also checks each shipped KDE application
 
 The Plasma checks also exercise Discover's update path end to end. The host
 rebuilds one installed leaf package (KCalc) with a higher version
-(`+updatetest1`), serves it from a temporary flat repository over HTTP, and
-the installed system adds that source and must then:
+(`+updatetest1`). As a publish would, it also rebuilds every package that pins
+KCalc with an exact version, directly or through another rebuilt package
+(today `mattos-plasma`), with those pins moved to the new versions; offering
+KCalc alone would make APT remove the profile metapackage to take the update.
+It serves the set from a temporary flat repository over HTTP, and the
+installed system adds that source, pins it at the MattOS repositories'
+priority (990) so its newer build can become APT's candidate, and must then:
 
 1. refresh through PackageKit (`pkgcli -y refresh`);
-2. list the newer build among PackageKit's updates (`pkgcli list-updates`);
-3. show it through Discover's update notifier, whose status-notifier item
-   (`org.kde.DiscoverNotifier`) turns `Active` when updates are pending;
-4. install it through PackageKit and APT (`pkgcli -y update kcalc`), leaving
-   that version installed.
+2. list the newer build among PackageKit's updates (`pkgcli list-updates`),
+   with no update entry in the `remove` state (`pkgcli --json list-updates`);
+3. announce it through Discover's update notifier: the probe restarts the
+   notifier with cleared state and waits for it to record
+   `LastNotificationTime` in `~/.local/state/discovernotifierstaterc`. The
+   notifier hides its status-notifier item right after announcing normal
+   updates (until the next notification interval), so that item is not a
+   reliable signal;
+4. install the set through PackageKit and APT
+   (`pkgcli -y update kcalc mattos-plasma`), leaving every rebuilt version
+   installed.
 
-The source is removed afterwards. The probe is skipped with `--no-network`,
+The source and its pin are removed afterwards. The probe is skipped with `--no-network`,
 since the guest reaches the repository over QEMU's user-mode network.
 
 ## Upgrade test

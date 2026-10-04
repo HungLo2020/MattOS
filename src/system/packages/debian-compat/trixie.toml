@@ -2285,6 +2285,17 @@ classification = "debian-compatible"
 known_gaps = ["GObject introspection development metadata is not part of the runtime package"]
 
 [[package]]
+debian_name = "libglib2.0-bin"
+mattos_name = "libglib2.0-bin"
+source_component = "GLib 2.84.4"
+owned_paths = ["/usr/bin/gdbus", "/usr/bin/gio", "/usr/bin/gsettings", "/usr/bin/gapplication", "/usr/bin/gresource"]
+provided_abi_or_commands = ["gdbus", "gio", "gsettings", "gapplication", "gresource"]
+current_mattos_version = "2.84.4-1mattos1"
+expected_debian_role = "GLib command-line tools"
+classification = "debian-compatible"
+known_gaps = ["glib-compile-schemas and gio-querymodules stay in libglib2.0-0t64"]
+
+[[package]]
 debian_name = "pipewire"
 mattos_name = "pipewire"
 source_component = "PipeWire 1.4.11"

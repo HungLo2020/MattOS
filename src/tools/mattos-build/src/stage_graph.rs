@@ -3064,6 +3064,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Libglvnd => &["formal-sysroot", "x11-compat"],
         BuildStage::Mesa => &[
             "formal-sysroot",
+            "expat",
             "libdrm",
             "libdisplay-info",
             "elfutils",

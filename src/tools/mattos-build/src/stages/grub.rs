@@ -7,6 +7,13 @@ fn build_grub(repo_root: &Path) -> Result<()> {
     for private in [&source, &gnulib, &build] { remove_path_if_exists(private)?; }
     sync_build_source(&repo_root.join("src/boot/grub/upstream"), &source)?;
     apply_component_patches(repo_root, "grub", &source)?;
+    // The manuals' "version …, <date>" line comes from mdate-sh, which reads
+    // the .texi file's mtime (it ignores SOURCE_DATE_EPOCH); the mirror keeps
+    // the checkout's mtime, so the date followed when the source was checked
+    // out.  Give the manual sources the normalized epoch.
+    run_cmd(&source, "touch", &[
+        "-d", "@1767225600", "docs/grub.texi", "docs/grub-dev.texi",
+    ])?;
     sync_build_source(&repo_root.join("src/build-support/grub-gnulib"), &gnulib)?;
     run_cmd_with_env_overrides(&source, "bash", &[
         "bootstrap", "--no-git", "--no-bootstrap-sync", "--skip-po",

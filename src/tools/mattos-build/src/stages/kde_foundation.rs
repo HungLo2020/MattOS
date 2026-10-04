@@ -87,10 +87,10 @@ fn kde_host_boost_include_dir(repo_root: &Path) -> Result<PathBuf> {
 
 fn kde_host_ecm_dir(repo_root: &Path) -> Result<PathBuf> {
     let configured = std::env::var_os("MATTOS_HOST_ECM_DIR").map(PathBuf::from);
+    // Only the pinned ECM (or an explicit override) is trusted: a host ECM,
+    // present on any KDE desktop, would make KDE outputs depend on the host.
     let candidates = configured.into_iter().chain([
         repo_root.join("out/host-tools/ecm-6.27.0/share/ECM/cmake"),
-        PathBuf::from("/usr/share/ECM/cmake"),
-        PathBuf::from("/usr/lib/x86_64-linux-gnu/cmake/ECM"),
     ]);
     for directory in candidates {
         let config = directory.join("ECMConfig.cmake");
@@ -201,8 +201,9 @@ fn kde_target_environment(
             environment.push((key, value));
         }
     }
-    // MattOS-built compilers and Binutils first, then trusted host build tools.
-    let mut trusted_bins = vec![qt_target_toolchain(repo_root)?.bin];
+    // Build-only overrides, MattOS-built compilers and Binutils, then trusted
+    // host build tools.
+    let mut trusted_bins = vec![qt_build_tool_overrides(repo_root)?, qt_target_toolchain(repo_root)?.bin];
     for program in ["cmake", "ninja", "pkg-config", "python3", "msgfmt", "msgmerge"] {
         let directory = qt_host_tool(program)?.parent().unwrap().to_path_buf();
         if !trusted_bins.contains(&directory) {
@@ -602,19 +603,32 @@ fn apply_component_cmake_options(command: &mut Vec<String>, options: &[&str]) {
     }
 }
 
+/// Components whose installed programs load private libraries from their own
+/// directory through an upstream `INSTALL_RPATH` (Discover's
+/// plasma-discover/, Elisa's elisa/).
+const KDE_PRIVATE_LIBRARY_RPATH_COMPONENTS: &[&str] = &["discover", "elisa"];
+
 /// The shared target arguments set `CMAKE_SKIP_RPATH=ON`, which also drops
 /// the `INSTALL_RPATH` a project gives targets that load private libraries
-/// from their own directory (Discover's plasma-discover/, Elisa's elisa/).
-/// Keep RPATH handling on, but leave `CMAKE_INSTALL_RPATH` empty and switch
-/// off ECM's automatic RPATH settings (which would add the staged link
-/// directories): an installed binary records only its project's explicit
-/// install-time RPATH, never a staged build path.  Qt's QML-module helper
-/// would otherwise give every QML plugin a default `$ORIGIN/…/lib` RPATH;
-/// like Debian, MattOS ships QML plugins without one (the multiarch libdir
-/// is already on the default search path).
-fn keep_upstream_install_rpaths(command: &mut Vec<String>) {
+/// from their own directory.  For those components keep RPATH handling on,
+/// but leave `CMAKE_INSTALL_RPATH` empty and switch off ECM's automatic RPATH
+/// settings (which would add the staged link directories): an installed
+/// binary records only its project's explicit install-time RPATH, never a
+/// staged build path.  Linking with the install RPATH keeps the absolute
+/// build-tree RUNPATH, whose order follows the host CMake's link-line
+/// ordering, out of the linked bytes and the GNU build ID.  Qt's QML-module
+/// helper would otherwise give every QML plugin a default `$ORIGIN/…/lib`
+/// RPATH; like Debian, MattOS ships QML plugins without one.  Every other
+/// component keeps `CMAKE_SKIP_RPATH=ON`: projects such as Exiv2 and
+/// KDSingleApplication set an unconditional `$ORIGIN/../lib/<multiarch>`
+/// install RPATH that is wrong for /usr/lib/<multiarch> and absent in Debian.
+fn keep_upstream_install_rpaths(component: &str, command: &mut Vec<String>) {
+    if !KDE_PRIVATE_LIBRARY_RPATH_COMPONENTS.contains(&component) {
+        return;
+    }
     command.retain(|argument| !argument.starts_with("-DCMAKE_SKIP_RPATH="));
     command.push("-DCMAKE_SKIP_RPATH=OFF".into());
+    command.push("-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON".into());
     command.push("-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF".into());
     command.push("-DKDE_SKIP_RPATH_SETTINGS=TRUE".into());
     command.push("-DQT_NO_QML_PLUGIN_RPATH=TRUE".into());
@@ -1382,7 +1396,7 @@ public:
     } else {
         command.extend(isolated_target_cmake_args(repo_root, &prefixes)?);
     }
-    keep_upstream_install_rpaths(&mut command);
+    keep_upstream_install_rpaths(component, &mut command);
     if components.contains(&"qtbase") {
         let qtbase = repo_root.join("out/build/qtbase/install/usr");
         command.push(format!("-DQt6CorePrivate_DIR={}/lib/x86_64-linux-gnu/cmake/Qt6CorePrivate", qtbase.display()));
@@ -1898,7 +1912,7 @@ public:
         environment.push(("PYTHONPATH", python_deps.display().to_string()));
     }
     run_cmd_with_env_overrides(&build, "cmake", &refs, &environment)?;
-    run_cmd_with_env_overrides(&build, "cmake", &["--build", "."], &environment)?;
+    cmake_build_with_qml_types_first(&build, &environment)?;
     qt_install(repo_root, &build, &install)?;
     if component == "plasma-workspace" {
         // These generated runtime helpers are installed by the workspace

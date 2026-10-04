@@ -1005,6 +1005,14 @@ exec \"${{MATTOS_MODPROBE:-/usr/sbin/modprobe}}\" --ignore-install \"$module\" \
     (config, selector)
 }
 
+/// utils.mk stamps `nvidia id:` with `whoami`, `hostname` and the wall-clock
+/// date; pin them like the kernel's KBUILD_BUILD_* values (TZ is UTC).
+const NVIDIA_BUILD_STAMP_ARGS: [&str; 3] = [
+    "NV_BUILD_USER=mattos",
+    "NV_BUILD_HOST=mattos-build",
+    "DATE=date -u -d @1767225600",
+];
+
 fn build_nvidia_driver(repo_root: &Path) -> Result<()> {
     let manifest_path = repo_root.join("src/system/graphics/nvidia-driver/manifest.toml");
     let manifest_body = fs::read_to_string(&manifest_path)?;
@@ -1068,7 +1076,7 @@ fn build_nvidia_driver(repo_root: &Path) -> Result<()> {
     let open_stamp_path = out_root.join("kernel-source.stamp");
     let open_state =
         fs::read_to_string(repo_root.join("upstream/state/nvidia-open-gpu-kernel-modules.toml"))?;
-    let open_stamp = format!("{open_state}\nkernel-release={release}\nrecipe=2\n");
+    let open_stamp = format!("{open_state}\nkernel-release={release}\nrecipe=3\n");
     if fs::read_to_string(&open_stamp_path).ok().as_deref() != Some(open_stamp.as_str()) {
         remove_path_if_exists(&open_source)?;
         sync_build_source(
@@ -1090,7 +1098,8 @@ fn build_nvidia_driver(repo_root: &Path) -> Result<()> {
         format!("LD={cross_compile}ld"),
         format!("OBJDUMP={cross_compile}objdump"),
     ];
-    let module_tools = module_tools.iter().map(String::as_str).collect::<Vec<_>>();
+    let mut module_tools = module_tools.iter().map(String::as_str).collect::<Vec<_>>();
+    module_tools.extend(NVIDIA_BUILD_STAMP_ARGS);
     let mut module_args = vec![
         "modules",
         "-j",
@@ -2034,6 +2043,7 @@ fn build_mesa(repo_root: &Path) -> Result<()> {
         "mesa",
         "src/system/graphics/mesa",
         &[
+            "expat",
             "libdrm",
             "libdisplay-info",
             "elfutils",

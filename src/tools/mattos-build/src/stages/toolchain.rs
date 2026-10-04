@@ -100,8 +100,14 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     let source_identity_path = out_root.join("source-identity");
     let source_changed =
         fs::read_to_string(&source_identity_path).ok().as_deref() != Some(source_identity.as_str());
+    // Kbuild appends an object's genksyms CRCs to its .cmd file after the
+    // object is written, and nothing rechecks them: a build killed in between
+    // leaves an up-to-date object whose exports get CRC 0 in every later
+    // build of this tree.  A tree an unfinished build touched is discarded.
+    let incomplete_marker = out_root.join("build-incomplete");
+    let interrupted = incomplete_marker.exists();
     fs::create_dir_all(&out_root)?;
-    if source_changed {
+    if source_changed || interrupted {
         remove_path_if_exists(&source)?;
         remove_path_if_exists(&build)?;
     }
@@ -111,6 +117,7 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         fs::write(&source_identity_path, &source_identity)?;
     }
     fs::create_dir_all(&build).with_context(|| format!("failed to create {}", build.display()))?;
+    fs::write(&incomplete_marker, "")?;
     install_module_signing_key(repo_root, &build)?;
 
     let config_text = fs::read_to_string(&config)
@@ -135,12 +142,20 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     // generated metadata.  Pin the release banner and built-in initramfs cpio
     // mtimes explicitly; otherwise two healthy builds differ only by their
     // wall-clock build time and the GNU build ID derived from it.
+    //
+    // Kconfig also probes host tools ($(RUSTC), $(BINDGEN), $(PAHOLE)) and
+    // records their versions in the resolved config and kheaders.ko even
+    // though MattOS enables neither Rust nor BTF; a missing tool resolves to
+    // 0/n on every build machine.
     let kernel_reproducible_args = [
         "KBUILD_BUILD_TIMESTAMP=2026-01-01 00:00:00 UTC",
         "KBUILD_BUILD_USER=mattos",
         "KBUILD_BUILD_HOST=mattos-build",
         "KBUILD_BUILD_VERSION=1",
         "KCONFIG_NOTIMESTAMP=1",
+        "RUSTC=false",
+        "BINDGEN=false",
+        "PAHOLE=false",
     ];
     // Kernel modules can retain __FILE__ paths in modinfo/debug-adjacent
     // strings even when normal ELF debug sections are not packaged. Keep the
@@ -178,6 +193,8 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
     build_args.push(kernel_cppflags_map.as_str());
     build_args.push(kernel_cflags_map.as_str());
     run_cmd_with_env(&source, "make", &build_args, env.as_ref()).context("kernel build failed")?;
+    validate_kernel_symbol_versions(&fs::read_to_string(build.join("Module.symvers"))?)?;
+    remove_path_if_exists(&incomplete_marker)?;
 
     let bz = build.join("arch/x86/boot/bzImage");
     if !bz.exists() {
@@ -233,6 +250,24 @@ fn build_kernel(repo_root: &Path) -> Result<()> {
         bail!("generic kernel produced only {module_count} compressed modules");
     }
     fs::write(out_root.join("kernel-release"), format!("{release}\n"))?;
+    Ok(())
+}
+
+/// With CONFIG_MODVERSIONS every export has a genksyms CRC.  modpost only
+/// warns when one is missing and records 0, which makes the modules that
+/// import it differ from a healthy build's.
+fn validate_kernel_symbol_versions(module_symvers: &str) -> Result<()> {
+    let missing = module_symvers
+        .lines()
+        .filter(|line| line.starts_with("0x00000000\t"))
+        .filter_map(|line| line.split('\t').nth(1))
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        bail!(
+            "kernel exports have no symbol version CRC (a stale object from an interrupted build?): {}",
+            missing.join(", ")
+        );
+    }
     Ok(())
 }
 

@@ -8,6 +8,7 @@ Building MattOS with the Rust `mattos-build` orchestrator: commands, the stage g
 - [Build Commands](commands.md)
 - [MattOS Build-System Architecture and Invalidation Contract](architecture.md)
 - [Build performance and cache model](performance.md)
+- [Reproducibility across build machines](reproducibility.md)
 
 ## Sections
 

@@ -7,6 +7,7 @@ fn build_polkit(repo_root: &Path) -> Result<()> {
             "glib",
             "pcre2",
             "zlib",
+            "expat",
             "systemd",
             "dbus",
             "duktape",

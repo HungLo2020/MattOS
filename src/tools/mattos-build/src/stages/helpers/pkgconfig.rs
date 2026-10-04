@@ -103,6 +103,28 @@ fn staged_library_environment(
 /// place.  That made a later Flatpak build mutate cached xkbcommon/libbsd
 /// outputs after their manifests had been recorded.  The overlay keeps that
 /// build-only relocation private to the consumer environment.
+/// The descriptors' names and bytes, with the checkout path (which some
+/// producers write into `prefix=`) replaced by a placeholder; file owners,
+/// modes and timestamps are not part of it.
+fn pkgconfig_descriptor_identity(repo_root: &Path, directory: &Path) -> Result<Vec<(String, String)>> {
+    let checkout = repo_root.to_string_lossy();
+    let mut entries = fs::read_dir(directory)?.collect::<std::io::Result<Vec<_>>>()?;
+    entries.sort_by_key(|entry| entry.file_name());
+    let mut identity = Vec::new();
+    for entry in entries {
+        let path = entry.path();
+        if !path.is_file() || path.extension().and_then(OsStr::to_str) != Some("pc") {
+            continue;
+        }
+        let contents = fs::read_to_string(&path)?.replace(checkout.as_ref(), "@MATTOS_CHECKOUT@");
+        identity.push((
+            entry.file_name().to_string_lossy().into_owned(),
+            performance::digest_value(&contents)?,
+        ));
+    }
+    Ok(identity)
+}
+
 fn staged_pkgconfig_overlay(
     repo_root: &Path,
     sources: &[(String, String, PathBuf)],
@@ -115,32 +137,29 @@ fn staged_pkgconfig_overlay(
         return Ok(Vec::new());
     }
 
+    // The overlay directory's name reaches build outputs (CPython records its
+    // configure arguments, including PKG_CONFIG_PATH, in sysconfig), so it is
+    // derived only from host-independent inputs: the repo-relative descriptor
+    // directory and the descriptors' own bytes, never the checkout path or a
+    // producer manifest digest that covers unrelated output bytes.
     let identity = sources
         .iter()
         .map(|(component, kind, directory)| {
             Ok::<_, anyhow::Error>((
                 component.clone(),
                 kind.clone(),
-                directory.to_string_lossy().to_string(),
-                match stage_cache::read_stage_manifest(repo_root, component) {
-                    Ok(manifest) => manifest.output_content_digest,
-                    // Focused native-environment tests intentionally provide
-                    // just a minimal staged tree.  Real stage execution has
-                    // a producer manifest; fall back to the actual metadata
-                    // bytes only for this pre-manifest fixture/bootstrap case.
-                    Err(_) => performance::digest_paths(
-                        repo_root,
-                        std::slice::from_ref(directory),
-                        false,
-                        "pkgconfig-overlay-pre-manifest-v1",
-                    )?,
-                },
+                directory
+                    .strip_prefix(repo_root)
+                    .unwrap_or(directory)
+                    .to_string_lossy()
+                    .to_string(),
+                pkgconfig_descriptor_identity(repo_root, directory)?,
             ))
         })
         .collect::<Result<Vec<_>>>()?;
     // The overlay holds rewritten descriptors, so its identity includes the
     // rewrite's own version: a rewrite fix must not reuse stale overlays.
-    let digest = performance::digest_value(&("staged-pkgconfig-rewrite-v2", &identity))?;
+    let digest = performance::digest_value(&("staged-pkgconfig-rewrite-v4", &identity))?;
     let root = repo_root
         .join("out/build/.pkgconfig-overlays")
         .join(&digest);

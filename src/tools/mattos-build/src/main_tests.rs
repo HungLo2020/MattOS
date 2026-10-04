@@ -93,6 +93,46 @@ fn pkgconfig_consumer_overlay_is_repeatable_and_never_rewrites_published_produce
 }
 
 #[test]
+fn pkgconfig_overlay_name_depends_only_on_descriptors_not_the_checkout() {
+    // CPython records PKG_CONFIG_PATH in sysconfig, so the overlay name is
+    // package payload: two checkouts at different paths, or with different
+    // producer manifests, must name the overlay for identical descriptors alike.
+    let overlay_name = |root: &Path, descriptor: &str, manifest_digest: &str| {
+        let pkgconfig = root.join("out/build/fixture/install/usr/lib/x86_64-linux-gnu/pkgconfig");
+        fs::create_dir_all(&pkgconfig).unwrap();
+        // Some producers record the checkout path in their descriptors.
+        let descriptor = descriptor.replace("@ROOT@", &root.to_string_lossy());
+        fs::write(pkgconfig.join("fixture.pc"), descriptor).unwrap();
+        write_pkgconfig_overlay_fixture_manifest(root, "fixture", manifest_digest);
+        let overlays = staged_pkgconfig_overlay(
+            root,
+            &[("fixture".to_string(), "lib".to_string(), pkgconfig)],
+        )
+        .unwrap();
+        overlays[0]
+            .strip_prefix(root.join("out/build/.pkgconfig-overlays"))
+            .unwrap()
+            .components()
+            .next()
+            .unwrap()
+            .as_os_str()
+            .to_owned()
+    };
+    let first = tempfile::tempdir().unwrap();
+    let second = tempfile::tempdir().unwrap();
+    let third = tempfile::tempdir().unwrap();
+    let descriptor = "prefix=/usr\nlibdir=/usr/lib/x86_64-linux-gnu\nbuilddir=@ROOT@/out/build/fixture\n";
+    assert_eq!(
+        overlay_name(first.path(), descriptor, "one-host-output"),
+        overlay_name(second.path(), descriptor, "another-host-output"),
+    );
+    assert_ne!(
+        overlay_name(first.path(), descriptor, "one-host-output"),
+        overlay_name(third.path(), "prefix=/usr\nlibdir=/usr/lib\n", "one-host-output"),
+    );
+}
+
+#[test]
 fn staged_pkgconfig_rewrite_is_idempotent() {
     let prefix = Path::new("/tmp/mattos-stage/usr");
     let first = rewrite_pkgconfig_for_staged_consumer(
@@ -138,12 +178,21 @@ fn component_cmake_options_override_helper_values_and_compose_flags() {
 
 #[test]
 fn kde_cmake_keeps_upstream_install_rpaths_without_staged_link_paths() {
-    let mut command = vec!["-DCMAKE_INSTALL_RPATH=".to_owned(), "-DCMAKE_SKIP_RPATH=ON".to_owned()];
-    keep_upstream_install_rpaths(&mut command);
+    let shared = vec!["-DCMAKE_INSTALL_RPATH=".to_owned(), "-DCMAKE_SKIP_RPATH=ON".to_owned()];
+    // Ordinary components keep the shared policy: no RPATH at all, so an
+    // unconditional upstream `$ORIGIN/../lib/<multiarch>` (Exiv2,
+    // KDSingleApplication) never reaches /usr/lib/<multiarch>.
+    let mut ordinary = shared.clone();
+    keep_upstream_install_rpaths("exiv2", &mut ordinary);
+    assert_eq!(ordinary, shared);
+    let mut command = shared.clone();
+    keep_upstream_install_rpaths("discover", &mut command);
     assert!(!command.contains(&"-DCMAKE_SKIP_RPATH=ON".to_owned()));
     for required in [
         "-DCMAKE_INSTALL_RPATH=",
         "-DCMAKE_SKIP_RPATH=OFF",
+        // No absolute build-tree RUNPATH reaches the linked bytes or build ID.
+        "-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON",
         "-DCMAKE_INSTALL_RPATH_USE_LINK_PATH=OFF",
         "-DKDE_SKIP_RPATH_SETTINGS=TRUE",
         "-DQT_NO_QML_PLUGIN_RPATH=TRUE",
@@ -5063,4 +5112,28 @@ fn retained_paths_policies_are_applied_on_import_and_sync() {
     write(&root.join("upstream/policies/open-sans.toml"), &renamed);
     let error = import_component(root, &comp, true).unwrap_err().to_string();
     assert!(error.contains("retained path does not exist upstream: LICENSE.txt"), "{error}");
+}
+
+#[test]
+fn kernel_symbol_versions_reject_exports_without_a_crc() {
+    let healthy = "0xf7370f56\tsystem_state\tvmlinux\tEXPORT_SYMBOL\t\n";
+    validate_kernel_symbol_versions(healthy).unwrap();
+    // An object written before an interrupted build appended its genksyms
+    // CRCs keeps exporting symbols that modpost records with CRC 0.
+    let stale = "0xf7370f56\tsystem_state\tvmlinux\tEXPORT_SYMBOL\t\n\
+                 0x00000000\thex2bin\tvmlinux\tEXPORT_SYMBOL\t\n";
+    let error = validate_kernel_symbol_versions(stale).unwrap_err().to_string();
+    assert!(error.contains("hex2bin"));
+}
+
+#[test]
+fn nvidia_build_stamp_is_pinned_to_the_normalized_epoch() {
+    // The stamp matches the kernel's KBUILD_BUILD_USER/HOST and the build
+    // tool's SOURCE_DATE_EPOCH, so no build-machine identity reaches nvidia.ko.
+    assert!(NVIDIA_BUILD_STAMP_ARGS.contains(&"NV_BUILD_USER=mattos"));
+    assert!(NVIDIA_BUILD_STAMP_ARGS.contains(&"NV_BUILD_HOST=mattos-build"));
+    assert_eq!(
+        NVIDIA_BUILD_STAMP_ARGS[2],
+        format!("DATE=date -u -d @{}", performance::normalized_build_environment()["SOURCE_DATE_EPOCH"])
+    );
 }

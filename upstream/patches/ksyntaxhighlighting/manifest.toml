@@ -1,0 +1,11 @@
+schema_version = 1
+component = "ksyntaxhighlighting"
+upstream_commit = "8a8789ca55c1209109f97a34b18e633c4240bee0"
+upstream_tree = "dc67a1b948ab8d833af692c092353dcffdd7593c"
+application = "output-mirror-only"
+
+[[patch]]
+path = "upstream/patches/ksyntaxhighlighting/0001-jinja-source-date-epoch.patch"
+sha256 = "41d7957e336973f82f82c9498e5fca8e0f13abad20e2520f89fb3df86f280925"
+purpose = "Stamp the generated Jinja hybrid syntax definitions with SOURCE_DATE_EPOCH instead of the wall clock; they are compiled into libKF6SyntaxHighlighting."
+documentation = "docs/build-system/reproducibility.md"

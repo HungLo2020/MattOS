@@ -752,12 +752,16 @@ pub(crate) fn compute_stage_evaluation(
         &spec.source_inputs,
     )?;
     for path in &implicit {
-        if let Some(digest) =
-            crate::recipe_projection::projected_recipe_digest(repo_root, &spec.id, path)?
-        {
-            source.insert(diagnostic_path(repo_root, path), digest);
-            projected = true;
-        }
+        // A file whose every item the stage reaches has no projection (the
+        // projection would be the whole file); it is then hashed whole, like
+        // a listed input.  Skipping it left fully reachable helpers such as
+        // `helpers/meson.rs` out of every key.
+        let digest = match crate::recipe_projection::projected_recipe_digest(repo_root, &spec.id, path)? {
+            Some(digest) => digest,
+            None => digest_source_inputs(repo_root, std::slice::from_ref(path))?,
+        };
+        source.insert(diagnostic_path(repo_root, path), digest);
+        projected = true;
     }
     if !implicit.is_empty() {
         source.insert(

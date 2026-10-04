@@ -866,6 +866,18 @@ fn nvidia_manifest_pins_one_production_release_and_turing_floor() {
 }
 
 #[test]
+fn packagekit_depends_on_the_gdbus_its_apt_hook_calls() {
+    // APT's 20packagekit hook runs /usr/bin/gdbus after every cache update to
+    // tell PackageKit (and so Discover) that the package lists changed.
+    let specs = package_specs();
+    let packagekit = specs.iter().find(|spec| spec.name == "packagekit").unwrap();
+    assert!(packagekit.depends.contains(&"libglib2.0-bin"));
+    let tools = specs.iter().find(|spec| spec.name == "libglib2.0-bin").unwrap();
+    assert_eq!(tools.source_component, "glib");
+    assert!(tools.depends.contains(&"libglib2.0-0t64"));
+}
+
+#[test]
 fn third_milestone_package_families_are_complete() {
     let specs = package_specs();
     for name in [
@@ -896,10 +908,11 @@ fn third_milestone_package_families_are_complete() {
         "iputils-ping",
         "xwayland",
         "xdg-desktop-portal",
+        "libglib2.0-bin",
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 421);
+    assert_eq!(PACKAGE_NAMES.len(), 422);
 }
 
 #[test]
@@ -954,7 +967,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 421);
+    assert_eq!(PACKAGE_NAMES.len(), 422);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -990,6 +1003,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
             "usr/bin/ionice",
             "usr/bin/prlimit",
             "usr/bin/uuidgen",
+            "usr/bin/setsid",
         ]
     );
     let util = specs.iter().find(|spec| spec.name == "util-linux").unwrap();
@@ -1067,7 +1081,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 421);
+    assert_eq!(PACKAGE_NAMES.len(), 422);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",

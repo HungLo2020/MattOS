@@ -470,6 +470,7 @@ const UTIL_LINUX_BASE_BINARIES: &[ComponentBinarySpec] = &[
     component_binary("usr/bin/ionice", "ionice"),
     component_binary("usr/bin/prlimit", "prlimit"),
     component_binary("usr/bin/uuidgen", "uuidgen"),
+    component_binary("usr/bin/setsid", "setsid"),
 ];
 
 const GZIP_BINARIES: &[ComponentBinarySpec] = &[

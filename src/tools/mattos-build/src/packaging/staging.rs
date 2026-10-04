@@ -1056,6 +1056,24 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                 &staging.join("usr/share/doc/libglib2.0-0t64/copyright"),
             )?;
         }
+        "libglib2.0-bin" => {
+            stage_runtime_paths(
+                repo_root,
+                &staging,
+                "glib",
+                &[
+                    "usr/bin/gapplication",
+                    "usr/bin/gdbus",
+                    "usr/bin/gio",
+                    "usr/bin/gresource",
+                    "usr/bin/gsettings",
+                ],
+            )?;
+            copy_preserving(
+                &repo_root.join("src/system/libraries/glib/COPYING"),
+                &staging.join("usr/share/doc/libglib2.0-bin/copyright"),
+            )?;
+        }
         "pipewire" => stage_pipewire(repo_root, &staging)?,
         "libpython3.14" => {
             stage_library_family(repo_root, &staging, "cpython", &["libpython3.14.so.1.0"])?;
