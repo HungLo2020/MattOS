@@ -47,8 +47,9 @@ between two builds of the ISO. With `SOURCE_DATE_EPOCH` set, mkrescue passes
 dates from `SOURCE_DATE_EPOCH`.
 
 Installed systems use upstream `grub-install --target=x86_64-efi --removable
---no-nvram` and `grub-mkconfig`, not a handcrafted one-entry menu. The installer
-pairs `/boot/vmlinuz-<release>` with `/boot/initrd.img-<release>` and writes
+--no-nvram` and `grub-mkconfig`, not a handcrafted one-entry menu. The [kernel image package](kernel-upgrades.md) owns the paired
+`/boot/vmlinuz-<release>` and `/boot/initrd.img-<release>`. The installer validates
+these packaged files and writes
 `/etc/default/grub` with its filesystem identity. `update-grub` and standard
 kernel post-install/removal hooks regenerate menus from kernels actually
 present; they do not invent older kernels. Upstream's firmware-settings entry

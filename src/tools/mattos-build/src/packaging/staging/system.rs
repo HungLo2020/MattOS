@@ -40,23 +40,13 @@ pub(super) fn stage_mattos_installer(repo_root: &Path, staging: &Path) -> Result
     )?;
     let assets = staging.join("usr/lib/mattos/installer");
     fs::create_dir_all(&assets)?;
-    for (source, name) in [
-        (
-            repo_root.join("out/build/linux/build/arch/x86/boot/bzImage"),
-            "vmlinuz",
-        ),
-        (
-            repo_root.join("out/build/installed-initramfs.cpio.xz"),
-            "installed-initramfs.cpio.xz",
-        ),
-        (installer.join("BOOTX64.EFI"), "BOOTX64.EFI"),
-        (
-            repo_root.join("out/build/linux/kernel-release"),
-            "kernel-release",
-        ),
-    ] {
-        copy_preserving(&source, &assets.join(name))?;
-    }
+    // Installed kernels belong to linux-image packages. The live-only
+    // installer keeps its release marker, never a second unowned boot payload.
+    copy_preserving(&installer.join("BOOTX64.EFI"), &assets.join("BOOTX64.EFI"))?;
+    copy_preserving(
+        &repo_root.join("out/build/linux/kernel-release"),
+        &assets.join("kernel-release"),
+    )?;
     copy_preserving(
         &repo_root.join("src/system/installer/policy/example-plan.toml"),
         &staging.join("usr/share/doc/mattos-installer/example-plan.toml"),
@@ -1356,6 +1346,42 @@ pub(super) fn stage_iproute2(repo_root: &Path, staging: &Path) -> Result<()> {
     )
 }
 
+pub(super) fn stage_kernel_tracker(repo_root: &Path, staging: &Path) -> Result<()> {
+    copy_preserving(
+        &repo_root.join("out/build/linux/kernel-release"),
+        &staging.join("usr/lib/mattos/kernel-release"),
+    )?;
+    stage_kernel_scripts(repo_root, staging, &["postinst"])
+}
+
+pub(super) fn stage_linux_image(repo_root: &Path, staging: &Path) -> Result<()> {
+    let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?;
+    if release.trim() != MATTOS_KERNEL_RELEASE {
+        bail!("kernel image package name does not match built release {}", release.trim());
+    }
+    for (source, destination) in [
+        ("out/build/linux/build/arch/x86/boot/bzImage", format!("boot/vmlinuz-{MATTOS_KERNEL_RELEASE}")),
+        ("out/build/installed-initramfs.cpio.xz", format!("boot/initrd.img-{MATTOS_KERNEL_RELEASE}")),
+    ] {
+        copy_preserving(&repo_root.join(source), &staging.join(destination))?;
+    }
+    copy_preserving(
+        &repo_root.join("src/kernel/linux/COPYING"),
+        &staging.join(format!("usr/share/doc/{LINUX_IMAGE_PACKAGE}/copyright")),
+    )?;
+    stage_kernel_scripts(repo_root, staging, &["postinst", "postrm"])
+}
+
+fn stage_kernel_scripts(repo_root: &Path, staging: &Path, scripts: &[&str]) -> Result<()> {
+    for script in scripts {
+        let template = fs::read_to_string(repo_root.join("src/kernel/packaging").join(script))?;
+        let destination = staging.join("DEBIAN").join(script);
+        fs::write(&destination, template.replace("@KERNEL_RELEASE@", MATTOS_KERNEL_RELEASE))?;
+        set_mode(destination, 0o755)?;
+    }
+    Ok(())
+}
+
 pub(super) fn stage_linux_modules(repo_root: &Path, staging: &Path) -> Result<()> {
     let release = fs::read_to_string(repo_root.join("out/build/linux/kernel-release"))?;
     let release = release.trim();
@@ -1671,5 +1697,79 @@ mod skeleton_tests {
         fs::remove_dir_all(skel.join(".config")).unwrap();
         prune_empty_directories(&skel).unwrap();
         assert!(!skel.exists());
+    }
+}
+
+#[cfg(test)]
+mod kernel_package_tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    #[test]
+    fn kernel_packages_own_paired_versioned_boot_payloads_and_tracker_marker() {
+        let fixture = tempfile::tempdir().unwrap();
+        let root = fixture.path();
+        for (path, payload) in [
+            (
+                "out/build/linux/kernel-release",
+                format!("{MATTOS_KERNEL_RELEASE}\n"),
+            ),
+            (
+                "out/build/linux/build/arch/x86/boot/bzImage",
+                "kernel".to_string(),
+            ),
+            (
+                "out/build/installed-initramfs.cpio.xz",
+                "initramfs".to_string(),
+            ),
+            ("src/kernel/linux/COPYING", "license".to_string()),
+        ] {
+            let path = root.join(path);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, payload).unwrap();
+        }
+        let checkout = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        fs::create_dir_all(root.join("src/kernel/packaging")).unwrap();
+        for name in ["postinst", "postrm"] {
+            fs::copy(
+                checkout.join("src/kernel/packaging").join(name),
+                root.join("src/kernel/packaging").join(name),
+            )
+            .unwrap();
+        }
+        let image = root.join("image");
+        fs::create_dir_all(image.join("DEBIAN")).unwrap();
+        stage_linux_image(root, &image).unwrap();
+        assert_eq!(
+            fs::read(image.join(format!("boot/vmlinuz-{MATTOS_KERNEL_RELEASE}"))).unwrap(),
+            b"kernel"
+        );
+        assert_eq!(
+            fs::read(image.join(format!("boot/initrd.img-{MATTOS_KERNEL_RELEASE}"))).unwrap(),
+            b"initramfs"
+        );
+        assert!(!image.join("usr/lib/mattos/kernel-release").exists());
+        for script in ["postinst", "postrm"] {
+            let path = image.join("DEBIAN").join(script);
+            let text = fs::read_to_string(&path).unwrap();
+            assert!(!text.contains("@KERNEL_RELEASE@"));
+            assert!(text.contains(MATTOS_KERNEL_RELEASE));
+            assert_eq!(
+                fs::metadata(path).unwrap().permissions().mode() & 0o777,
+                0o755
+            );
+        }
+        let tracker = root.join("tracker");
+        fs::create_dir_all(tracker.join("DEBIAN")).unwrap();
+        stage_kernel_tracker(root, &tracker).unwrap();
+        assert_eq!(
+            fs::read_to_string(tracker.join("usr/lib/mattos/kernel-release"))
+                .unwrap()
+                .trim(),
+            MATTOS_KERNEL_RELEASE
+        );
+        assert!(!tracker.join("boot").exists());
+        fs::write(root.join("out/build/linux/kernel-release"), "mismatched\n").unwrap();
+        assert!(stage_linux_image(root, &image).is_err());
     }
 }

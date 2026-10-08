@@ -985,6 +985,7 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
         "mattos-compat" => &["systemd", "rust"],
         "linux-uapi" => &["linux-headers"],
         "kernel-modules" => &["linux"],
+        "kernel-image" => &["linux", "installer"],
         "gcc" => &["gcc-runtime", "gcc-compiler"],
         "glibc" => &["glibc", "formal-sysroot"],
         "make" => &["make"],
@@ -1298,6 +1299,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "ca-certificates" => &["src/system/network"],
         "linux-uapi" => &["src/kernel/linux-uapi"],
         "kernel-modules" => &["src/kernel/linux", "src/kernel/config"],
+        "kernel-image" => &["src/kernel/linux", "src/kernel/config", "src/system/installer/engine/installed-init.c"],
         "glibc" => &["src/system/libc/glibc"],
         "gcc" => &["src/toolchain/gcc"],
         "binutils" => &["src/toolchain/binutils"],
@@ -1839,6 +1841,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
 
 fn package_configuration_roots(package: &str) -> &'static [&'static str] {
     match package {
+        LINUX_IMAGE_PACKAGE | "linux-image-amd64" => &["src/kernel/packaging"],
         "flatpak" => &["src/system/packages/config/flatpak"],
         "grub-efi-amd64" => &["src/boot/grub/config"],
         // APT installs these policy files into the runtime package. Keep the
@@ -1928,7 +1931,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
             component_snapshot_version(repo_root, "glibc")?
         }
         "linux-libc-dev" => component_snapshot_version(repo_root, "linux-uapi")?,
-        LINUX_MODULES_PACKAGE => component_snapshot_version(repo_root, "linux")?,
+        LINUX_IMAGE_PACKAGE | "linux-image-amd64" | LINUX_MODULES_PACKAGE => component_snapshot_version(repo_root, "linux")?,
         "libgcc-s1"
         | "libgomp1"
         | "libstdc++6"
@@ -2662,6 +2665,10 @@ fn write_provenance(
     runtime_libraries: &[String],
 ) -> Result<()> {
     let (source_path, repository, commit, configuration) = match spec.source_component {
+        "kernel-image" => component_provenance(
+            repo_root, "linux", "src/kernel/linux",
+            "MattOS kernel config; source-built modules and matching installed initramfs; versioned boot payloads",
+        )?,
         "brush" => component_provenance(
             repo_root,
             "brush",

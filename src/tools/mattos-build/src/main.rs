@@ -1,7 +1,7 @@
 /// The release of the kernel MattOS boots: the vendored Linux Makefile's
 /// `VERSION.PATCHLEVEL.SUBLEVEL` and `EXTRAVERSION` plus the configured
 /// `CONFIG_LOCALVERSION`.  Debian-style kernel packages embed it in their
-/// names (`linux-modules-<release>`), so every such name and path is derived
+/// names (`linux-image-<release>` and `linux-modules-<release>`), so every such name and path is derived
 /// from this one macro; `kernel_release_matches_the_vendored_kernel_and_data`
 /// checks it against the kernel source and the package metadata files.
 macro_rules! mattos_kernel_release {
@@ -85,6 +85,7 @@ const LEGACY_SKELETON_FILES: &[&str] = &[
     "usr/libexec/mattos/validate-shell-env",
 ];
 const MATTOS_KERNEL_RELEASE: &str = mattos_kernel_release!();
+const LINUX_IMAGE_PACKAGE: &str = concat!("linux-image-", mattos_kernel_release!());
 const LINUX_MODULES_PACKAGE: &str = concat!("linux-modules-", mattos_kernel_release!());
 const NVIDIA_OPEN_MODULES_PACKAGE: &str =
     concat!("linux-modules-nvidia-595-open-", mattos_kernel_release!());

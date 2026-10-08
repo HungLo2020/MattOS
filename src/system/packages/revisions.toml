@@ -17,7 +17,7 @@ schema_version = 1
 "ark" = { upstream = "26.08.1", revision = 3 }
 "breeze" = { upstream = "6.6.5", revision = 4 }
 "breeze-icons" = { upstream = "6.26.0", revision = 3 }
-"calamares" = { upstream = "3.4.3", revision = 4 }
+"calamares" = { upstream = "3.4.3", revision = 5 }
 "cargo" = { upstream = "1.97.1", revision = 2 }
 "dolphin" = { upstream = "26.08.1", revision = 3 }
 "elisa" = { upstream = "26.08.1", revision = 3 }
@@ -125,13 +125,13 @@ schema_version = 1
 "libprocesscore10" = { upstream = "6.6.5", revision = 3 }
 "linux-modules-7.2.8-mattos" = { upstream = "7.2.8", revision = 2 }
 "linux-modules-nvidia-595-open-7.2.8-mattos" = { upstream = "595.84", revision = 2 }
-"mattos-base" = { upstream = "0.1", revision = 2 }
+"mattos-base" = { upstream = "0.1", revision = 3 }
 "mattos-base-files" = { upstream = "0.1", revision = 2 }
 "mattos-base-runtime" = { upstream = "0.1", revision = 2 }
 "mattos-brush" = { upstream = "0.4.0", revision = 2 }
-"mattos-cli" = { upstream = "0.1", revision = 2 }
-"mattos-installer" = { upstream = "0.1", revision = 3 }
-"mattos-plasma" = { upstream = "0.1", revision = 5 }
+"mattos-cli" = { upstream = "0.1", revision = 3 }
+"mattos-installer" = { upstream = "0.1", revision = 4 }
+"mattos-plasma" = { upstream = "0.1", revision = 6 }
 "mattos-plasma-live" = { upstream = "0.1", revision = 4 }
 "mattos-toolchain" = { upstream = "0.1", revision = 2 }
 "mesa-vulkan-drivers" = { upstream = "26.1.7+git20260812.152227.e8617e4ca95f", revision = 2 }

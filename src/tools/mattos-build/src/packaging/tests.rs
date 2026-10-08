@@ -912,7 +912,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 422);
+    assert_eq!(PACKAGE_NAMES.len(), 424);
 }
 
 #[test]
@@ -967,7 +967,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 422);
+    assert_eq!(PACKAGE_NAMES.len(), 424);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -1081,7 +1081,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 422);
+    assert_eq!(PACKAGE_NAMES.len(), 424);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",
@@ -3039,4 +3039,39 @@ fn builds_report_compatibility_entries_whose_recorded_version_drifted() {
     assert!(warning.contains("1 entry"), "{warning}");
     assert!(warning.contains("tzdata: records 2026a-1mattos1, built 2026d-1mattos1"), "{warning}");
     assert!(!warning.contains("zlib1g"));
+}
+
+#[test]
+fn kernel_hook_policy_changes_invalidate_image_and_tracking_packages() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    run_ok(root, "git", &["init", "-b", "main"]);
+    for path in [
+        "src/kernel/linux/kernel.c",
+        "src/kernel/config/config",
+        "src/system/installer/engine/installed-init.c",
+        "src/kernel/packaging/postinst",
+    ] {
+        let path = root.join(path);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, "original\n").unwrap();
+    }
+    run_ok(root, "git", &["add", "."]);
+    let specs = package_specs();
+    let snapshot = || {
+        let mut sources = BTreeMap::new();
+        [LINUX_IMAGE_PACKAGE, "linux-image-amd64", LINUX_MODULES_PACKAGE]
+            .into_iter()
+            .map(|name| {
+                let spec = specs.iter().find(|spec| spec.name == name).unwrap();
+                (name, package_payload_source_digests(root, spec, &mut sources).unwrap())
+            })
+            .collect::<BTreeMap<_, _>>()
+    };
+    let before = snapshot();
+    fs::write(root.join("src/kernel/packaging/postinst"), "changed\n").unwrap();
+    let after = snapshot();
+    assert_ne!(before[LINUX_IMAGE_PACKAGE], after[LINUX_IMAGE_PACKAGE]);
+    assert_ne!(before["linux-image-amd64"], after["linux-image-amd64"]);
+    assert_eq!(before[LINUX_MODULES_PACKAGE], after[LINUX_MODULES_PACKAGE]);
 }

@@ -1134,6 +1134,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "login" => stage_util_linux_auth(repo_root, &staging)?,
         "iproute2" => stage_iproute2(repo_root, &staging)?,
         "mattos-installer" => stage_mattos_installer(repo_root, &staging)?,
+        "linux-image-amd64" => stage_kernel_tracker(repo_root, &staging)?,
         "btrfs-progs" => copy_tree_preserving(
             &repo_root.join("out/build/btrfs-progs/install/usr"),
             &staging.join("usr"),
@@ -1815,6 +1816,7 @@ pub(crate) fn imported_soname_library_licenses() -> Vec<&'static str> {
 /// Packages named after the kernel release (`mattos_kernel_release!`): their
 /// names change with every kernel update, so no dispatcher arm names them.
 const KERNEL_RELEASE_PACKAGES: &[(&str, fn(&Path, &Path) -> Result<()>)] = &[
+    (LINUX_IMAGE_PACKAGE, stage_linux_image),
     (LINUX_MODULES_PACKAGE, stage_linux_modules),
     (NVIDIA_OPEN_MODULES_PACKAGE, |repo_root, staging| {
         stage_nvidia_package(repo_root, staging, NVIDIA_OPEN_MODULES_PACKAGE)

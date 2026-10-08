@@ -195,6 +195,8 @@ def parse_args() -> argparse.Namespace:
         metavar="PATH",
         help="use or create this persistent qcow2 install disk instead of the default",
     )
+    parser.add_argument("--require-kernel-change", action="store_true",
+                        help="require --upgrade-test to boot a different kernel release after upgrading")
     args = parser.parse_args()
     if args.build_only and (args.install or args.run_installed):
         parser.error("--build-only cannot be combined with --install or --run-installed")
@@ -208,6 +210,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--run-installed never builds; --clean is not applicable")
     if args.upgrade_test and (args.install or args.run_installed or args.build_only or args.no_install_disk):
         parser.error("--upgrade-test cannot be combined with --install, --run-installed, --build-only or --no-install-disk")
+    if args.require_kernel_change and not args.upgrade_test:
+        parser.error("--require-kernel-change requires --upgrade-test")
     if args.upgrade_from and not args.upgrade_test:
         parser.error("--upgrade-from requires --upgrade-test")
     if args.save_upgrade_baseline and (args.upgrade_test or args.install or args.run_installed):
@@ -880,6 +884,27 @@ def installed_toolchain_probe() -> str:
     )
 
 
+def installed_kernel_probe(repo_root: Path) -> str:
+    """Prove the booted release and dpkg-owned boot payload match this build."""
+    release = (repo_root / "out/build/linux/kernel-release").read_text().strip()
+    if not re.fullmatch(r"[A-Za-z0-9.+_-]+", release):
+        raise RepoError("invalid built kernel release")
+    kernel = hashlib.sha256((repo_root / "out/build/linux/build/arch/x86/boot/bzImage").read_bytes()).hexdigest()
+    initrd = hashlib.sha256((repo_root / "out/build/installed-initramfs.cpio.xz").read_bytes()).hexdigest()
+    return (
+        f"r={shlex.quote(release)} && test \"$(uname -r)\" = \"$r\" && "
+        "test \"$(cat /usr/lib/mattos/kernel-release)\" = \"$r\" && "
+        "dpkg-query -W -f='${Status}\\n' linux-image-amd64 \"linux-image-$r\" \"linux-modules-$r\" | "
+        "grep -c '^install ok installed$' | grep -qx 3 && "
+        "dpkg-query -S \"/boot/vmlinuz-$r\" \"/boot/initrd.img-$r\" | "
+        "grep -c \"^linux-image-$r: \" | grep -qx 2 && "
+        "test \"$(readlink /boot/vmlinuz)\" = \"vmlinuz-$r\" && "
+        "test \"$(readlink /boot/installed-initramfs.cpio.xz)\" = \"initrd.img-$r\" && "
+        f"echo '{kernel}  /boot/vmlinuz-{release}' | sha256sum -c - && "
+        f"echo '{initrd}  /boot/initrd.img-{release}' | sha256sum -c -"
+    )
+
+
 def installed_runtime_versions_probe() -> str:
     """Running kernel, OpenSSH, OpenSSL and sudo-rs match their installed packages."""
     return (
@@ -1415,6 +1440,7 @@ def _verify_installed_disk_boot_with(
         # What runs is what dpkg says is installed: the booted kernel has its
         # modules package, and OpenSSH, its linked OpenSSL and sudo-rs report
         # the installed package versions (no version is hard-coded here).
+        ("kernel-matches-build", installed_kernel_probe(repo_root)),
         ("runtime-matches-packages", installed_runtime_versions_probe()),
         # Modules carry signatures the kernel accepts: a loaded module has a
         # signature (MattOS kmod has no OpenSSL, so modinfo detects it but
@@ -2002,6 +2028,11 @@ def _upgrade_installed_system(
 
         installed_query = "dpkg-query -W -f '${Package} ${Version}\\n'"
         before = framed_output(run(framed_command(installed_query, "installed")), "installed")
+        report["kernel_before"] = framed_output(run(framed_command("uname -r", "kernel")), "kernel").strip()
+        report["kernel_expected"] = (repo_root / "out/build/linux/kernel-release").read_text().strip()
+        report["kernel_release_changed"] = report["kernel_before"] != report["kernel_expected"]
+        if getattr(args, "require_kernel_change", False) and not report["kernel_release_changed"]:
+            raise RepoError("kernel-change test requires a baseline with a different kernel release")
         report["packages_before"] = len(before.split("\n")) - 1
         # Upgrade from the build alone: the hosted repository may hold other versions.
         run(
@@ -2029,6 +2060,16 @@ def _upgrade_installed_system(
         stale = stale_installed_packages(after, inventory)
         if stale:
             raise RepoError("installed packages are not at the built versions: " + "; ".join(stale))
+        if report["kernel_release_changed"]:
+            previous = str(report["kernel_before"])
+            image = shlex.quote(f"/boot/vmlinuz-{previous}")
+            initrd = shlex.quote(f"/boot/initrd.img-{previous}")
+            modules = shlex.quote(f"linux-modules-{previous}")
+            pattern = shlex.quote(f"vmlinuz-{previous}")
+            run(f"test -s {image} && test -s {initrd} && "
+                f"dpkg-query -W -f='${{Status}}' {modules} | grep -q 'ok installed' && "
+                f"{sudo} grep -Fq -- {pattern} /boot/grub/grub.cfg")
+            report["previous_kernel_retained"] = True
         report["packages_after"] = len(after.split("\n")) - 1
         report["changed_packages"] = sorted(
             set(after.strip().splitlines()) - set(before.strip().splitlines())

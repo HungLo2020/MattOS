@@ -2,7 +2,7 @@
 
 MattOS uses Debian binary packages, `dpkg`, and APT. Its local repository (carried on the installer medium and copied onto installed systems) supplies every MattOS package, and the signed hosted MattOS repository at `https://packages.mattsherfey.com` is an enabled source at equal priority. Signed Debian 13 (Trixie) sources are shipped but disabled. See [APT source and pin policy](#apt-source-and-pin-policy). Editable source and package policy live in this monorepo. Generated `.deb` files and repository indexes live under `out/` and are ignored build artifacts.
 
-This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (378 packages at the time of writing; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the kernel modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
+This is a hybrid build-tool bootstrap, not a self-hosted distribution. The authoritative package set is `PACKAGE_NAMES` in `src/tools/mattos-build/src/packaging/registry.rs` (the current package inventory; `out/packages/inventory.toml` and `src/system/packages/debian-compat/trixie.toml` carry one entry per package). It covers the base filesystem and runtime policy, the package-manager and signature-verification runtime, MattOS-built glibc and GCC runtime libraries, systemd, util-linux, the versioned kernel image/initramfs, modules and firmware, administration/networking tools, the D-Bus broker and authentication stack, the native C/C++/Rust/Python development toolchain, KDE Plasma and its Qt/KF6/graphics stack, the installer, and profile metapackages. The final ISO has no host-derived executable or runtime-library payloads; host compilers and packaging tools remain build inputs.
 
 ## Imported package-manager sources
 
@@ -37,7 +37,13 @@ out/repository/
 
 Versions use `<upstream-version>-1mattos<N>`; unreleased snapshots use `<declared version>+git<YYYYMMDD>.<HHMMSS>.<12-hex commit>-1mattos<N>` (see [Package versions from pins](../sources/upstream-sync.md#package-versions-from-pins)). N is the packaging revision from `src/system/packages/revisions.toml`, 1 unless raised: a package whose bytes change without an upstream version change gets a higher revision when it is published, never a replacement under the same version (see [Packaging revisions](publishing.md#packaging-revisions)). Where Debian's package carries an epoch, the `debian_epoch` field in `trixie.toml` adds it (for example `libxau6` is `1:1.0.12-1mattos1` and `libx11-6` is `2:1.8.12-1mattos1`). `dpkg` is the one exception to both forms: its version comes from the imported `debian/changelog` plus the short import commit, giving `1.23.8+git.ff7e9d8b-1mattos1`. `out/packages/inventory.toml` records the exact current version of every package. Package modes and timestamps are normalized, directory walks are sorted, `dpkg-deb --root-owner-group` records root ownership, symlinks remain symlinks, and repository gzip headers and Release dates are fixed. No package ships the aggregate Info index `/usr/share/info/dir`: `install-info` maintains it on the installed system (Debian Policy 12.2), so `stage_package` removes it from every payload, including indexes carried in by bundled component installs such as flatpak's gpgme.
 
-Most packages have no maintainer scripts. The current exceptions are `mattos-plasma` (a `postinst` that enables the Plasma login manager and sets `graphical.target` as the default) and `linux-modules-nvidia-595-open-<kernel>` (a `postinst` and `postrm` that run `depmod`). All of them exit immediately when `DPKG_ROOT` is set, so offline root assembly does not run them against the build host.
+Kernel image and tracking packages configure the installed boot selection and
+run GRUB's kernel hooks; see [installed kernel upgrades](../system/boot/kernel-upgrades.md).
+Their chrootless `DPKG_ROOT` path changes only target links and never runs host
+hooks. Other packages have narrowly scoped scripts for runtime integration,
+including Plasma session enablement, module metadata, package-manager policy,
+and account setup; generated control archives are the authoritative list.
+
 
 `package inspect` reports Essential, Priority, Depends, Provides, Conflicts, Replaces, conffiles, installed size, detected ELF dependencies, package-owned shared libraries, and repository dependency resolution in deterministic order. Provenance is installed as `/usr/share/doc/<package>/mattos-build-info.toml`.
 
@@ -52,9 +58,10 @@ The table below covers representative core packages only; it is not the complete
 | `libc-bin` | required | selected glibc runtime utilities |
 | `systemd` | required, Essential | source-built systemd service manager and runtime, including `udevadm` and `systemd-udevd`; `Provides: systemd-sysv` |
 | `mattos-base-runtime` | required, Essential | MattOS base runtime policy: rescue init, login helpers, MattOS units, resolver/time/network configuration |
-| `mattos-base` | required | base profile metapackage (filesystem, base files and runtime, systemd, locales, kernel modules) |
+| `mattos-base` | required | base profile metapackage (filesystem, base files and runtime, systemd, locales, kernel tracking) |
 | `mattos-cli`, `mattos-plasma` | optional | installed-system profile metapackages built on `mattos-base` |
 | `mattos-toolchain` | optional | native development toolchain metapackage installed on every installed system |
+| `linux-image-amd64`, `linux-image-<release>` | important | current kernel selection and versioned kernel/initramfs with upgrade hooks |
 | `mattos-installer` | optional | permanent MattOS CLI installer and shared installation policy |
 | `util-linux` | required | selected util-linux administration commands (for example `lsblk`, `fdisk`, `wipefs`, `findmnt`) |
 | `gpgv` | required | source-built OpenPGP signature verifier used by APT |

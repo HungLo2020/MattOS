@@ -116,7 +116,9 @@ The guided CLI also offers optional applications installed through Flatpak.
 These need Internet access; a failure to install them does not stop the MattOS
 installation.
 
-The installed system has its own initramfs, built from
+The installed system receives its kernel and matching initramfs through
+[versioned kernel packages](boot/kernel-upgrades.md), including automatic GRUB
+refresh during APT upgrades. Its initramfs is built from
 `src/system/installer/engine/installed-init.c`. GRUB passes
 `mattos.root_uuid` and `mattos.root_fstype` (`btrfs` or `ext4`). Early
 userspace loads the boot-critical kernel modules, then tries each partition
@@ -220,6 +222,15 @@ SHA-256 and git commit); save one from each build you treat as a release.
 4. restores the installed APT sources, reboots, and runs the same boot
    checks as `--install` (for Plasma, the graphical login, session and reboot
    checks too).
+
+After reboot, the kernel check compares the running release and dpkg-owned
+boot payloads with the current build, including their hashes. The report records
+`kernel_before`, `kernel_expected` and `kernel_release_changed`; use a baseline
+with a different release when validating kernel selection across an upgrade,
+and pass `--require-kernel-change` to reject a same-release baseline. A
+release-changing test also requires that the previous versioned kernel,
+initramfs, module package and GRUB fallback entry remain available, recorded
+as `previous_kernel_retained: true`.
 
 The result, with the baseline record, package counts and the packages that
 changed, is written to `out/logs/upgrade-test.json`; the guest log is

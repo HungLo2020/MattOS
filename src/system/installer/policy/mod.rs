@@ -2591,23 +2591,24 @@ fn write_storage_identity(identity: &StorageIdentity, target: &Path) -> Result<(
     Ok(())
 }
 
+fn validate_packaged_boot_files(target: &Path, release: &str) -> Result<()> {
+    let selected = fs::read_to_string(target.join("usr/lib/mattos/kernel-release"))?;
+    if validate_kernel_release(&selected)? != release {
+        bail!("installed kernel tracking package does not match installer release {release}");
+    }
+    for name in [format!("vmlinuz-{release}"), format!("initrd.img-{release}")] {
+        let path = target.join("boot").join(name);
+        if !path.is_file() || fs::metadata(&path)?.len() == 0 {
+            bail!("kernel package did not install {}", path.display());
+        }
+    }
+    Ok(())
+}
+
 fn install_boot_files(identity: &StorageIdentity, target: &Path) -> Result<()> {
     let release = fs::read_to_string("/usr/lib/mattos/installer/kernel-release")?;
     let release = validate_kernel_release(&release)?;
-    for (source, destination) in [
-        (
-            "/usr/lib/mattos/installer/vmlinuz",
-            format!("boot/vmlinuz-{release}"),
-        ),
-        (
-            "/usr/lib/mattos/installer/installed-initramfs.cpio.xz",
-            format!("boot/initrd.img-{release}"),
-        ),
-    ] {
-        let destination = target.join(destination);
-        fs::create_dir_all(destination.parent().expect("boot destination parent"))?;
-        fs::copy(source, &destination).with_context(|| format!("install boot asset {source}"))?;
-    }
+    validate_packaged_boot_files(target, release)?;
     // Compatibility links are not additional kernels. Upstream 10_linux
     // enumerates the versioned files and pairs each with its own initramfs.
     for (link, value) in [
@@ -3227,6 +3228,22 @@ mod tests {
         let config = fs::read_to_string(directory.path().join("etc/mattos-storage.conf")).unwrap();
         assert!(config.contains("root_uuid=root-fs-uuid"));
         assert!(!config.contains("/dev/"));
+    }
+
+    #[test]
+    fn finalize_requires_the_matching_packaged_kernel_and_initramfs() {
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path();
+        fs::create_dir_all(root.join("usr/lib/mattos")).unwrap();
+        fs::create_dir_all(root.join("boot")).unwrap();
+        fs::write(root.join("usr/lib/mattos/kernel-release"), "7.2.8-mattos\n").unwrap();
+        assert!(validate_packaged_boot_files(root, "7.2.8-mattos").is_err());
+        fs::write(root.join("boot/vmlinuz-7.2.8-mattos"), b"kernel").unwrap();
+        fs::write(root.join("boot/initrd.img-7.2.8-mattos"), b"initramfs").unwrap();
+        validate_packaged_boot_files(root, "7.2.8-mattos").unwrap();
+        assert!(validate_packaged_boot_files(root, "7.2.9-mattos").is_err());
+        fs::write(root.join("boot/initrd.img-7.2.8-mattos"), b"").unwrap();
+        assert!(validate_packaged_boot_files(root, "7.2.8-mattos").is_err());
     }
 
     #[test]

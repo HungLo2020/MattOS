@@ -4700,3 +4700,25 @@ expected_debian_role = "MattOS build-essential metapackage"
 classification = "mattos-specific"
 known_gaps = ["MattOS-specific metapackage has no Debian package identity"]
 
+
+[[package]]
+debian_name = "linux-image-amd64"
+mattos_name = "linux-image-amd64"
+source_component = "linux"
+owned_paths = ["/usr/lib/mattos/kernel-release"]
+provided_abi_or_commands = ["current MattOS kernel tracking metapackage"]
+current_mattos_version = "7.2.8-1mattos1"
+expected_debian_role = "kernel tracking metapackage"
+classification = "mattos-extension"
+known_gaps = ["MattOS installed initramfs and boot policy"]
+
+[[package]]
+debian_name = "linux-image-7.2.8-mattos"
+mattos_name = "linux-image-7.2.8-mattos"
+source_component = "linux"
+owned_paths = ["/boot/vmlinuz-7.2.8-mattos", "/boot/initrd.img-7.2.8-mattos"]
+provided_abi_or_commands = ["MattOS kernel image and matching initramfs"]
+current_mattos_version = "7.2.8-1mattos1"
+expected_debian_role = "versioned kernel image"
+classification = "mattos-extension"
+known_gaps = ["No Debian initramfs-tools integration; MattOS builds the matching initramfs"]

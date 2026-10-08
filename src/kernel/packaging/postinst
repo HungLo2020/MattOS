@@ -1,0 +1,20 @@
+#!/bin/sh
+set -eu
+[ "$1" = configure ] || exit 0
+release='@KERNEL_RELEASE@'
+root=${DPKG_ROOT:-}
+# The tracking package selects the current release. Reconfiguring a retained
+# older image must not switch the default back to it.
+if [ -f "$root/usr/lib/mattos/kernel-release" ] &&
+   [ "$(cat "$root/usr/lib/mattos/kernel-release")" = "$release" ]; then
+    test -s "$root/boot/vmlinuz-$release"
+    test -s "$root/boot/initrd.img-$release"
+    ln -sfn "vmlinuz-$release" "$root/boot/vmlinuz"
+    ln -sfn "initrd.img-$release" "$root/boot/installed-initramfs.cpio.xz"
+fi
+# Chrootless dpkg assembly selects target links but never runs host hooks.
+[ -z "$root" ] || exit 0
+for hook in /etc/kernel/postinst.d/*; do
+    [ -f "$hook" ] && [ -x "$hook" ] || continue
+    "$hook" "$release" "/boot/vmlinuz-$release"
+done

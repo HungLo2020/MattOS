@@ -1,4 +1,4 @@
-use crate::{LINUX_MODULES_PACKAGE, NVIDIA_OPEN_MODULES_PACKAGE};
+use crate::{LINUX_IMAGE_PACKAGE, LINUX_MODULES_PACKAGE, NVIDIA_OPEN_MODULES_PACKAGE};
 use anyhow::{Result, bail};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
@@ -184,6 +184,8 @@ mod wifi_grub_tests {
         let cli = closure("mattos-cli");
         for required in [
             "systemd",
+            "linux-image-amd64",
+            LINUX_IMAGE_PACKAGE,
             LINUX_MODULES_PACKAGE,
             "linux-firmware",
             "network-manager",
@@ -294,6 +296,8 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "libgomp1",
     "libstdc++6",
     "linux-libc-dev",
+    "linux-image-amd64",
+    LINUX_IMAGE_PACKAGE,
     LINUX_MODULES_PACKAGE,
     "libc6-dev",
     "mattos-libgcc-dev",
@@ -744,7 +748,7 @@ const MATTOS_BASE_DEPENDS: &[&str] = &[
     "locales",
     "iso-codes",
     "tzdata",
-    LINUX_MODULES_PACKAGE,
+    "linux-image-amd64",
     "linux-firmware",
     "wireless-regdb",
     "ca-certificates",
@@ -1015,6 +1019,28 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             replaces: &[],
             essential: false,
             priority: "optional",
+        },
+        PackageSpec {
+            name: "linux-image-amd64",
+            description: "Current MattOS x86_64 kernel tracking metapackage",
+            source_component: "kernel-image",
+            depends: &[LINUX_IMAGE_PACKAGE],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
+        },
+        PackageSpec {
+            name: LINUX_IMAGE_PACKAGE,
+            description: "MattOS x86_64 kernel image and matching installed initramfs",
+            source_component: "kernel-image",
+            depends: &[LINUX_MODULES_PACKAGE, "grub-efi-amd64", "coreutils", "mattos-brush"],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "important",
         },
         PackageSpec {
             name: LINUX_MODULES_PACKAGE,

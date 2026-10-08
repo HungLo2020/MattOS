@@ -156,11 +156,20 @@ For Linux kernel fidelity, run synchronization in a Linux filesystem path (for e
   force-added yet, and committing it does not rebuild anything. Likewise a
   deleted tracked file is simply absent from the digest, exactly as it is
   once the deletion is committed.
+- Checkout completeness: `python3 DevUtils/audits/test_vendored_source_tracking.py`
+  compares the Git index's per-component tree digest with each recorded import.
+  This catches missing files even when no ignored copy remains on disk. Before
+  committing a restoration, use `--worktree` to include unstaged and ignored
+  upstream files without changing the index. The full provenance audit supports
+  the same flag, while still verifying every file's upstream bytes. Its default
+  requires all upstream paths to be tracked. Force-add upstream paths matched
+  by nested ignores when preparing the eventual commit.
 - Byte fidelity: upstream `.gitattributes` files are never imported. A
   nested one outranks the MattOS root `.gitattributes` and would let Git
   rewrite line endings (`text`, `eol`, `crlf`) or run filters on vendored
   files when they are committed or checked out, so a clone could hold bytes
-  that differ from upstream's blobs. The root `.gitattributes` sets
+  that differ from upstream's blobs. The provenance audit rejects attribute
+  residue even when nested Git ignore rules hide it. The root `.gitattributes` sets
   `* -text`, so every file is stored and checked out byte for byte whatever
   `core.autocrlf` says. The importer's tree projection and the provenance
   audit both omit `.gitattributes`, so the recorded `imported_tree_digest`

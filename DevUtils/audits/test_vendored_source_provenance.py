@@ -494,6 +494,7 @@ def verify_component_tree(
     source_selection: dict | None,
     intentional_omission: dict | None,
     lfs_objects: dict[str, dict],
+    allow_unstaged: bool = False,
 ) -> tuple[int, list[str]]:
     name = component["name"]
     source_root = ROOT / component["path"]
@@ -529,7 +530,7 @@ def verify_component_tree(
         except FileNotFoundError:
             failures.append(f"missing upstream path {path}")
             continue
-        if path not in tracked:
+        if path not in tracked and not allow_unstaged:
             failures.append(f"upstream path is not tracked by Git (ignored?): {path}")
 
         if mode == "120000":
@@ -580,6 +581,8 @@ def verify_component_tree(
             failures.append(f"blob mismatch {path}: expected {oid}, got {actual_oid}")
 
     local_paths = collect_local_leaf_paths(source_root)
+    failures.extend(f"forbidden upstream attributes {path}" for path in sorted(local_paths)
+                    if Path(path).name == ".gitattributes")
     nested_git = sorted(path for path in local_paths if path.endswith(".git/"))
     failures.extend(f"nested Git directory {path}" for path in nested_git)
     stale_excluded = sorted(
@@ -809,6 +812,8 @@ def main() -> int:
         default=[],
         help="audit only this component (repeatable); manifest-wide checks still run",
     )
+    parser.add_argument("--worktree", action="store_true",
+                        help="verify pending exact upstream restorations without staging them")
     args = parser.parse_args()
 
     source_document = load_toml(SOURCES_PATH)
@@ -927,6 +932,7 @@ def main() -> int:
             source_selection,
             intentional_omission,
             lfs_objects,
+            allow_unstaged=args.worktree,
         )
         ignored_total += ignored_count
         failures.extend(f"{name}: {failure}" for failure in tree_failures)

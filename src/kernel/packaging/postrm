@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+case "$1" in remove|purge) ;; *) exit 0 ;; esac
+release='@KERNEL_RELEASE@'
+root=${DPKG_ROOT:-}
+# Never leave aliases pointing at an image that dpkg has removed.
+for link in vmlinuz installed-initramfs.cpio.xz; do
+    case "$(readlink "$root/boot/$link" || true)" in
+        "vmlinuz-$release"|"initrd.img-$release") rm -f "$root/boot/$link" ;;
+    esac
+done
+[ -z "$root" ] || exit 0
+for hook in /etc/kernel/postrm.d/*; do
+    [ -f "$hook" ] && [ -x "$hook" ] || continue
+    "$hook" "$release" "/boot/vmlinuz-$release"
+done

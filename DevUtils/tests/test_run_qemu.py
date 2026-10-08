@@ -590,7 +590,8 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 "run_qemu.wait_for_socket"
             ), mock.patch("run_qemu.serial_command_stream", side_effect=["ok"] * 40), mock.patch(
                 "run_qemu.validate_completed_install", return_value={}
-            ):
+            ), mock.patch("run_qemu.installed_kernel_probe", return_value="true"):
+
                 run_qemu._verify_installed_disk_boot(root, disk, args)
             verification_args = launched.call_args.args[2]
             self.assertTrue(verification_args.test_control)

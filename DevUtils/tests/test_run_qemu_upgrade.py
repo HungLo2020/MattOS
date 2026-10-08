@@ -113,6 +113,7 @@ class UpgradeTestHelperTests(unittest.TestCase):
             ["--upgrade-test", "--install"],
             ["--upgrade-test", "--run-installed"],
             ["--upgrade-from", "x.iso"],
+            ["--require-kernel-change"],
             ["--save-upgrade-baseline", "--upgrade-test"],
         ):
             with self.subTest(argv=argv), mock.patch.object(sys, "argv", ["run_qemu.py", *argv]):
@@ -129,6 +130,30 @@ class UpgradeTestHelperTests(unittest.TestCase):
             args = mock.Mock(upgrade_from=None, install_profile="cli")
             with self.assertRaisesRegex(RepoError, "--save-upgrade-baseline"):
                 run_qemu.run_upgrade_test(Path(directory), args)
+
+
+class KernelBootProofTests(unittest.TestCase):
+    def test_kernel_proof_uses_build_release_hashes_and_package_ownership(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            release = root / 'out/build/linux/kernel-release'
+            release.parent.mkdir(parents=True)
+            release.write_text('7.2.9-mattos\n')
+            kernel = root / 'out/build/linux/build/arch/x86/boot/bzImage'
+            kernel.parent.mkdir(parents=True)
+            kernel.write_bytes(b'new kernel')
+            (root / 'out/build/installed-initramfs.cpio.xz').write_bytes(b'new initramfs')
+            probe = run_qemu.installed_kernel_probe(root)
+            self.assertLess(len(probe), 1200)
+            self.assertIn('test "$(uname -r)" = "$r"', probe)
+            self.assertIn('linux-image-amd64', probe)
+            self.assertIn('dpkg-query -S', probe)
+            self.assertIn(hashlib.sha256(b'new kernel').hexdigest(), probe)
+            self.assertIn(hashlib.sha256(b'new initramfs').hexdigest(), probe)
+            release.write_text('bad;release\n')
+            with self.assertRaises(RepoError):
+                run_qemu.installed_kernel_probe(root)
 
 
 if __name__ == "__main__":
