@@ -985,6 +985,8 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "wpasupplicant" => stage_wpa_supplicant(repo_root, &staging)?,
         "grub-efi-amd64" => stage_grub_package(repo_root, &staging)?,
         "mattos-cozy" => stage_cozy(repo_root, &staging)?,
+        "slate" => stage_slate(repo_root, &staging, false)?,
+        "slate-gui" => stage_slate(repo_root, &staging, true)?,
         "libdbus-1-3" => {
             stage_imported_soname_library(
                 repo_root,
@@ -1032,30 +1034,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
             )?;
             fs::write(private_config_path, private_config)?;
         }
-        "libglib2.0-0t64" => {
-            stage_library_family(
-                repo_root,
-                &staging,
-                "glib",
-                &[
-                    "libglib-2.0.so.0",
-                    "libgobject-2.0.so.0",
-                    "libgio-2.0.so.0",
-                    "libgmodule-2.0.so.0",
-                    "libgthread-2.0.so.0",
-                ],
-            )?;
-            stage_runtime_paths(
-                repo_root,
-                &staging,
-                "glib",
-                &["usr/bin/glib-compile-schemas", "usr/bin/gio-querymodules"],
-            )?;
-            copy_preserving(
-                &repo_root.join("src/system/libraries/glib/COPYING"),
-                &staging.join("usr/share/doc/libglib2.0-0t64/copyright"),
-            )?;
-        }
+        "libglib2.0-0t64" => stage_glib_runtime(repo_root, &staging)?,
         "libglib2.0-bin" => {
             stage_runtime_paths(
                 repo_root,

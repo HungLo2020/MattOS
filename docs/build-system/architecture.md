@@ -265,7 +265,7 @@ their build-machine helpers. A toolchain stage that rebuilds under different
 host tools also warns before it runs.
 
 Cargo-built userland (`brush`, `coreutils`, `grep`, `sed`, `findutils`,
-`diffutils`, `init`, `sudo-rs`, `greetd`, `cozy`, `installer`, and the
+`diffutils`, `init`, `sudo-rs`, `greetd`, `cozy`, `slate`, `slate-gui`, `installer`, and the
 `mattos-compat` package) and Meson builds with Rust components (`dbus-broker`,
 `mesa`, `gstreamer`) are compiled by the MattOS rustc from the `rust` stage,
 which is their declared dependency. The

@@ -14,7 +14,12 @@ This policy also expresses the general freshness preference: use current upstrea
 
 ## Cargo ownership catalog
 
-`DevUtils/generate_source_overrides.py` reads `upstream/sources.toml`, enumerates tracked Cargo manifests through Git, and writes the derived ownership catalog at `out/source-ownership/cargo/index.json`.
+`DevUtils/generate_source_overrides.py` reads `upstream/sources.toml`, enumerates
+Cargo manifests from tracked and unstaged worktree inputs through Git, and
+writes the derived ownership catalog at `out/source-ownership/cargo/index.json`.
+Only outer MattOS ignore rules apply, so newly imported manifests remain
+visible even when upstream ignores them. Ownership-mirror copying and source
+fingerprints use the same file selection; none of these operations stages files.
 
 The catalog records:
 

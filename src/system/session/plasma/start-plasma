@@ -4,6 +4,8 @@ export XDG_CURRENT_DESKTOP=KDE
 export XDG_SESSION_DESKTOP=KDE
 export XDG_SESSION_TYPE=wayland
 export KDE_FULL_SESSION=true
+export EDITOR=${EDITOR:-/usr/bin/slate}
+export VISUAL=${VISUAL:-/usr/bin/slate-visual}
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 # The target font tree is installed under /usr/share/fonts.  Qt otherwise

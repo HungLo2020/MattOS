@@ -1686,6 +1686,7 @@ include!("stages/networking.rs");
 include!("stages/system_runtime.rs");
 include!("stages/runtime_libraries.rs");
 include!("stages/desktop_support.rs");
+include!("stages/slate.rs");
 include!("stages/archive_tools.rs");
 
 fn stage_output_file(source: &Path, destination: &Path, mode: u32) -> Result<()> {

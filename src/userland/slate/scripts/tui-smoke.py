@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Drive the actual TUI under a PTY; check file saves and shell execution."""
+import fcntl, os, pathlib, pty, re, select, signal, struct, subprocess, sys, tempfile, termios, time
+binary = str(pathlib.Path(sys.argv[1] if len(sys.argv)>1 else 'target/debug/slate').resolve())
+with tempfile.TemporaryDirectory(prefix='slate-tui-') as tmp:
+    root=pathlib.Path(tmp); file=root/'edit.txt'; file.write_text('original\n')
+    master,slave=pty.openpty()
+    fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,160,0,0))
+    env={**os.environ,'TERM':'xterm-256color','SHELL':'/bin/sh','XDG_CONFIG_HOME':str(root/'config'),'XDG_STATE_HOME':str(root/'state')}
+    process=subprocess.Popen([binary,'--tui','--workspace',str(file)],stdin=slave,stdout=slave,stderr=slave,env=env,start_new_session=True)
+    os.close(slave);output=bytearray()
+    def pump(seconds=.25):
+        deadline=time.monotonic()+seconds
+        while time.monotonic()<deadline:
+            if select.select([master],[],[],.02)[0]:
+                try: data=os.read(master,65536)
+                except OSError: break
+                output.extend(data)
+                if b'\x1b[6n' in data: os.write(master,b'\x1b[1;1R')
+    def send(data): os.write(master,data);pump()
+    def command(text): send(b'\x1bOP');send((':'+text).encode());send(b'\r')
+    def await_file(path, expected, timeout=5):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if path.exists() and path.read_text() == expected:
+                return
+            assert process.poll() is None, output.decode(errors='replace')[-4000:]
+            pump(.05)
+        raise AssertionError(f'Timed out waiting for {path.name}: {output.decode(errors="replace")[-4000:]}')
+    try:
+        pump(1)
+        assert process.poll() is None,output.decode(errors='replace')
+        # Ratatui may render blank cells with cursor-forward sequences.
+        text = re.sub(rb'\x1b\[[0-?]*[ -/]*[@-~]', b'', output)
+        labels = re.sub(rb'\s+', b'', text)
+        assert all(label in labels for label in (b'files#1', b'editor#2', b'terminal#3')), 'Default panes missing'
+        send(b'\x01');send(b'TUI edited\rsecond line');send(b'\x13')
+        assert file.read_text()=='TUI edited\nsecond line',file.read_text()
+        command('set indent-width 2')
+        send(b'\x06');send(b'second');send(b'\r');send(b'\x1b')
+        send(b'\x08');send(b'\t');send(b'REPLACED');send(b'\r');send(b'\x1b');send(b'\x13')
+        assert file.read_text()=='TUI edited\nREPLACED line',file.read_text()
+        send(b'\x07');send(b'2');send(b'\r');send(b'\t');send(b'\x13')
+        assert file.read_text()=='TUI edited\n  REPLACED line',file.read_text()
+        command('split-down');command('terminal')
+        send(b"printf 'PTY_OK' > terminal.txt\r");pump(.4)
+        await_file(root/'terminal.txt', 'PTY_OK')
+        command('layout-save smoke');command('preset minimal');command('layout-load smoke')
+        assert (root/'config/slate/layouts.toml').exists()
+        send(b'\x11');process.wait(timeout=5);assert process.returncode==0
+        print('PASS TUI: three panes, edit/save, find/replace, go-to-line, indentation settings, split, terminal command, layout persistence, clean exit')
+    finally:
+        if process.poll() is None: process.terminate();process.wait(timeout=5)
+        os.close(master)

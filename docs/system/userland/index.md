@@ -7,3 +7,4 @@ Commands and base-system administration tools.
 - [Base-System Administration Milestone](base-administration.md)
 - [MattOS Userland Commands](commands.md)
 - [KDE Applications](kde-applications.md)
+- [Slate Text Editor](slate.md)

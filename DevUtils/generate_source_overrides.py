@@ -144,13 +144,8 @@ def load_sources() -> list[dict]:
 
 
 def tracked_manifests() -> list[pathlib.Path]:
-    result = subprocess.run(
-        ['git', 'ls-files', '-z', '--', ':(glob)src/**/Cargo.toml'],
-        cwd=ROOT,
-        check=True,
-        stdout=subprocess.PIPE,
-    )
-    return [ROOT / pathlib.Path(raw.decode()) for raw in result.stdout.split(b'\0') if raw]
+    import source_ownership_graph as graph
+    return [ROOT / path for path in graph.component_source_files(ROOT, ':(glob)src/**/Cargo.toml')]
 
 
 def read_manifest(path: pathlib.Path):

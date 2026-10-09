@@ -1,0 +1,1484 @@
+mod common;
+use slate_core::{
+    document::Document,
+    layout::{Axis, Node, Rect, View},
+    terminal::TerminalSession,
+    App, Command, Key,
+};
+use std::{
+    fs, thread,
+    time::{Duration, Instant},
+};
+fn key(app: &mut App, name: &str) {
+    app.dispatch(Command::Key {
+        key: Key {
+            key: name.into(),
+            ..Default::default()
+        },
+    });
+}
+#[test]
+fn unicode_edit_undo_redo_and_shared_split_views() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("code.rs");
+    fs::write(&path, "a👩‍💻界\n").unwrap();
+    let mut app = App::new(&path).unwrap();
+    key(&mut app, "Right");
+    key(&mut app, "Right");
+    key(&mut app, "Backspace");
+    assert_eq!(app.documents[&common::first_document(&app)].text(), "a界\n");
+    app.dispatch(Command::Undo);
+    assert_eq!(
+        app.documents[&common::first_document(&app)].text(),
+        "a👩‍💻界\n"
+    );
+    app.dispatch(Command::Redo);
+    assert_eq!(app.documents[&common::first_document(&app)].text(), "a界\n");
+    app.dispatch(Command::Split {
+        axis: Axis::Vertical,
+        kind: None,
+    });
+    assert_eq!(app.views.len(), 2);
+    app.dispatch(Command::Paste { text: "x".into() });
+    assert_eq!(
+        app.documents[&common::first_document(&app)].text(),
+        "ax界\n"
+    );
+    assert!(app.views.values().all(|v| v.document == 10));
+    app.dispatch(Command::Save);
+    wait_app(&mut app, |a| a.status == "Saved");
+    assert_eq!(fs::read_to_string(path).unwrap(), "ax界\n");
+    let snapshot = app.snapshot(160, 40, 1, 1, 1, 3);
+    assert_eq!(snapshot.panes.len(), 4);
+    assert!(snapshot
+        .panes
+        .iter()
+        .filter(|p| p.kind == "editor")
+        .all(|p| p.screen.is_some()));
+}
+#[test]
+fn save_preserves_permissions_and_rejects_external_changes_and_clobber() {
+    common::isolate();
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("file");
+    fs::write(&path, "old").unwrap();
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o750)).unwrap();
+    let mut doc = Document::open(&path).unwrap();
+    doc.replace(0, 3, "new", 0).unwrap();
+    doc.save(None).unwrap();
+    assert_eq!(
+        fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+        0o750
+    );
+    doc.replace(0, 3, "local", 0).unwrap();
+    fs::write(&path, "external").unwrap();
+    assert!(doc.save(None).is_err());
+    assert_eq!(fs::read_to_string(&path).unwrap(), "external");
+    assert!(doc.dirty());
+    let other = dir.path().join("other");
+    fs::write(&other, "keep").unwrap();
+    assert!(doc.save(Some(&other)).is_err());
+    assert_eq!(fs::read_to_string(other).unwrap(), "keep");
+    let copy = dir.path().join("copy");
+    doc.save(Some(&copy)).unwrap();
+    assert_eq!(fs::read_to_string(copy).unwrap(), "local");
+}
+#[test]
+fn symlink_save_changes_target_without_replacing_link() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let target = dir.path().join("target");
+    let link = dir.path().join("link");
+    fs::write(&target, "old").unwrap();
+    std::os::unix::fs::symlink(&target, &link).unwrap();
+    let mut doc = Document::open(&link).unwrap();
+    doc.replace(0, 3, "new", 0).unwrap();
+    doc.save(None).unwrap();
+    assert!(fs::symlink_metadata(link).unwrap().file_type().is_symlink());
+    assert_eq!(fs::read_to_string(target).unwrap(), "new");
+}
+#[test]
+fn nested_layout_geometry_resize_remove_and_validation() {
+    common::isolate();
+    let mut layout = Node::default_layout(11, 12);
+    assert!(layout.validate());
+    layout.split(2, Axis::Vertical, 6, 7, View::Editor(13));
+    let (panes, handles) = layout.arrange(
+        Rect {
+            x: 0,
+            y: 0,
+            width: 160,
+            height: 50,
+        },
+        1,
+    );
+    assert_eq!(panes.len(), 4);
+    assert_eq!(handles.len(), 3);
+    for a in &panes {
+        for b in &panes {
+            if a.id != b.id {
+                assert!(
+                    a.rect.x + a.rect.width <= b.rect.x
+                        || b.rect.x + b.rect.width <= a.rect.x
+                        || a.rect.y + a.rect.height <= b.rect.y
+                        || b.rect.y + b.rect.height <= a.rect.y
+                );
+            }
+        }
+    }
+    layout.resize(4, 0.3);
+    assert!(layout.validate());
+    assert!(layout.swap(1, 6));
+    assert!(layout.remove(6).is_some());
+    assert_eq!(layout.panes().len(), 3);
+    assert!(layout.remove(999).is_none());
+}
+fn wait_for(term: &TerminalSession, needle: &str) {
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        let text = term
+            .screen()
+            .cells
+            .iter()
+            .flat_map(|l| l.iter())
+            .map(|c| c.text.as_str())
+            .collect::<String>();
+        if text.contains(needle) {
+            break;
+        }
+        assert!(Instant::now() < deadline, "missing {needle:?} in {text:?}");
+        thread::sleep(Duration::from_millis(20));
+    }
+}
+#[test]
+fn real_pty_shell_color_resize_and_alternate_screen() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let mut term = TerminalSession::spawn(dir.path(), None, 24, 80).unwrap();
+    term.write(b"printf '\\033[31mSLATE_RED\\033[0m\\n'\r")
+        .unwrap();
+    wait_for(&term, "SLATE_RED");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !term
+        .screen()
+        .cells
+        .iter()
+        .flatten()
+        .any(|c| c.fg == "#bf616a")
+    {
+        assert!(Instant::now() < deadline, "No red output");
+        thread::sleep(Duration::from_millis(10));
+    }
+    term.resize(31, 91).unwrap();
+    term.write(b"stty size > size.txt\r").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while fs::read_to_string(dir.path().join("size.txt"))
+        .unwrap_or_default()
+        .trim()
+        != "31 91"
+    {
+        assert!(Instant::now() < deadline);
+        thread::sleep(Duration::from_millis(20));
+    }
+    assert_eq!(
+        fs::read_to_string(dir.path().join("size.txt"))
+            .unwrap()
+            .trim(),
+        "31 91"
+    );
+    term.write(b"printf '\\033[?1049h\\033[2J\\033[HSLATE_ALT'\r")
+        .unwrap();
+    wait_for(&term, "SLATE_ALT");
+    term.write(b"printf '\\033[?1049l'\r").unwrap();
+}
+#[test]
+fn closing_background_tabs_keeps_the_active_document_and_last_tab_leaves_an_editor() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let first = dir.path().join("first.txt");
+    let second = dir.path().join("second.txt");
+    fs::write(&first, "first").unwrap();
+    fs::write(&second, "second").unwrap();
+    let mut app = App::new(&first).unwrap();
+    app.dispatch(Command::Open {
+        path: second.clone(),
+    });
+    wait_app(&mut app, |a| a.status.starts_with("Opened"));
+    let active = app.layout.view(2).unwrap().clone();
+    app.dispatch(Command::CloseTab {
+        pane: common::editor_pane(&app),
+        view: 11,
+        force: false,
+    });
+    assert_eq!(app.layout.view(2), Some(&active));
+    assert_eq!(app.layout.pane_mut(2).unwrap().0.len(), 1);
+    assert!(!app.documents.contains_key(&10));
+    app.dispatch(Command::Paste {
+        text: " changed".into(),
+    });
+    app.dispatch(Command::CloseDocument { force: false });
+    assert_eq!(app.prompt.as_ref().unwrap().kind, "close-tab");
+    key(&mut app, "Enter"); // Default is cancellation, never discard.
+    assert!(app.prompt.is_none());
+    assert!(app.dirty());
+    app.dispatch(Command::CloseDocument { force: false });
+    key(&mut app, "d");
+    let View::Editor(view) = app.layout.view(2).unwrap() else {
+        panic!("No editor after close")
+    };
+    assert!(app.documents[&app.views[view].document].text().is_empty());
+    assert!(!app.dirty());
+    assert_eq!(fs::read_to_string(second).unwrap(), "second");
+}
+
+#[test]
+fn closing_one_shared_view_keeps_dirty_edits_and_last_view_prompts() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("shared.txt");
+    fs::write(&path, "original").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.dispatch(Command::Split {
+        axis: Axis::Vertical,
+        kind: None,
+    });
+    let pane = app.focus;
+    let View::Editor(other) = app.layout.view(pane).unwrap().clone() else {
+        panic!()
+    };
+    app.dispatch(Command::Paste {
+        text: "dirty ".into(),
+    });
+    app.dispatch(Command::CloseTab {
+        pane: common::editor_pane(&app),
+        view: 11,
+        force: false,
+    });
+    assert!(app.prompt.is_none());
+    assert_eq!(app.focus, pane);
+    assert_eq!(
+        app.documents[&common::first_document(&app)].text(),
+        "dirty original"
+    );
+    app.dispatch(Command::CloseTab {
+        pane,
+        view: other,
+        force: false,
+    });
+    assert_eq!(app.prompt.as_ref().unwrap().kind, "close-tab");
+    app.dispatch(Command::DismissPrompt);
+    assert!(app.views.contains_key(&other));
+    app.dispatch(Command::CloseTab {
+        pane,
+        view: other,
+        force: false,
+    });
+    app.dispatch(Command::SubmitPrompt { all: true });
+    assert!(!app.documents.contains_key(&10));
+    assert!(!app.dirty());
+}
+
+#[test]
+fn closing_last_live_tab_prompts_even_if_a_removed_pane_has_a_cached_view() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("shared.txt");
+    fs::write(&path, "original").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.dispatch(Command::Split {
+        axis: Axis::Vertical,
+        kind: None,
+    });
+    app.dispatch(Command::Paste {
+        text: "dirty".into(),
+    });
+    app.dispatch(Command::ClosePane);
+    app.dispatch(Command::CloseTab {
+        pane: common::editor_pane(&app),
+        view: 11,
+        force: false,
+    });
+    assert_eq!(app.prompt.as_ref().unwrap().kind, "close-tab");
+    app.dispatch(Command::SubmitPrompt { all: true });
+    assert!(!app.documents.contains_key(&10));
+    assert!(app.views.values().all(|v| v.document != 10));
+}
+
+#[test]
+fn close_tab_rejects_stale_targets_and_pending_saves() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("file.txt");
+    fs::write(&path, "original").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.dispatch(Command::Save);
+    app.dispatch(Command::CloseTab {
+        pane: common::editor_pane(&app),
+        view: 11,
+        force: true,
+    });
+    assert!(app.status.contains("pending save"));
+    assert!(app.views.contains_key(&11));
+    wait_app(&mut app, |a| a.status == "Saved");
+    app.dispatch(Command::CloseTab {
+        pane: common::editor_pane(&app),
+        view: 11,
+        force: false,
+    });
+    let replacement = app.layout.view(2).unwrap().clone();
+    app.dispatch(Command::CloseTab {
+        pane: common::editor_pane(&app),
+        view: 11,
+        force: true,
+    });
+    assert!(app.status.contains("no longer open"));
+    assert_eq!(app.layout.view(2), Some(&replacement));
+}
+
+#[test]
+fn closing_terminal_tabs_stops_only_the_target_shell_and_preserves_focus() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    app.dispatch(Command::Focus {
+        pane: common::terminal_pane(&app),
+    });
+    app.terminals
+        .get_mut(&12)
+        .unwrap()
+        .write(b"printf '%s' \"$$\" > shell.pid\r")
+        .unwrap();
+    wait_app(&mut app, |_| {
+        fs::read_to_string(dir.path().join("shell.pid")).is_ok_and(|pid| pid.parse::<i32>().is_ok())
+    });
+    let pid: i32 = fs::read_to_string(dir.path().join("shell.pid"))
+        .unwrap()
+        .parse()
+        .unwrap();
+    app.dispatch(Command::NewTerminal);
+    let next = app.layout.view(3).unwrap().clone();
+    app.dispatch(Command::NewTerminal);
+    let active = app.layout.view(3).unwrap().clone();
+    app.dispatch(Command::Focus {
+        pane: common::editor_pane(&app),
+    });
+    app.dispatch(Command::Paste {
+        text: "keep unsaved".into(),
+    });
+    app.dispatch(Command::CloseTab {
+        pane: common::terminal_pane(&app),
+        view: 12,
+        force: false,
+    });
+    assert_eq!(app.focus, 2);
+    assert_eq!(app.layout.view(3), Some(&active));
+    assert!(!app.terminals.contains_key(&12));
+    assert_eq!(app.terminals.len(), 2);
+    assert_eq!(
+        unsafe { libc::kill(pid, 0) },
+        -1,
+        "Closed shell is still running"
+    );
+    assert!(app.dirty());
+    assert!(app.prompt.is_none());
+    app.dispatch(Command::CloseTab {
+        pane: common::terminal_pane(&app),
+        view: 12,
+        force: false,
+    });
+    assert!(app.status.contains("no longer open"));
+    assert_eq!(app.layout.view(3), Some(&active));
+    app.dispatch(Command::Focus {
+        pane: common::terminal_pane(&app),
+    });
+    assert!(app
+        .command_catalog("close")
+        .iter()
+        .any(|c| c.id == "close" && c.enabled));
+    app.dispatch(Command::CloseDocument { force: false });
+    assert_eq!(app.layout.view(3), Some(&next));
+    app.dispatch(Command::TerminateTerminal);
+    assert!(app.terminals.is_empty());
+    assert_eq!(app.layout.view(3), Some(&View::Files));
+    assert_eq!(app.focus, 3);
+    assert!(app.layout.validate());
+    assert!(app.dirty());
+}
+
+#[test]
+fn closing_deferred_terminal_prevents_it_from_starting_on_expansion() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("file.txt");
+    fs::write(&path, "original").unwrap();
+    let mut app = App::new(&path).unwrap();
+    assert!(app.editor_only);
+    assert!(app.terminals.is_empty());
+    app.dispatch(Command::CloseTab {
+        pane: common::terminal_pane(&app),
+        view: 12,
+        force: false,
+    });
+    app.dispatch(Command::ShowWorkspace);
+    assert!(app.terminals.is_empty());
+    assert_eq!(app.layout.view(3), Some(&View::Files));
+    assert_eq!(app.layout.view(2), Some(&View::Editor(11)));
+}
+
+#[test]
+fn close_and_quit_protect_unsaved_work() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    app.preferences = Default::default();
+    app.dispatch(Command::Paste {
+        text: "unsaved".into(),
+    });
+    app.dispatch(Command::Key {
+        key: Key {
+            key: "q".into(),
+            ctrl: true,
+            ..Default::default()
+        },
+    });
+    assert!(!app.quit);
+    app.dispatch(Command::CloseDocument { force: false });
+    assert!(app.documents[&common::first_document(&app)].dirty());
+    app.dispatch(Command::Quit { force: true });
+    assert!(app.quit);
+}
+
+#[test]
+fn footer_quit_shortcut_tracks_binding_and_exits_cleanly() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    app.preferences = Default::default();
+    let hints = app.snapshot(160, 40, 1, 1, 1, 3).hints;
+    assert!(hints.contains("Ctrl+q quit"));
+    assert!(!hints.contains("replace") && !hints.contains("goto"));
+    app.preferences.global_keys.remove("Ctrl+q");
+    app.preferences
+        .global_keys
+        .insert("Alt+q".into(), "quit".into());
+    let hints = app.snapshot(160, 40, 1, 1, 1, 3).hints;
+    assert!(hints.contains("Alt+q quit") && !hints.contains("Ctrl+q quit"));
+    app.dispatch(Command::Key {
+        key: Key {
+            key: "q".into(),
+            alt: true,
+            ..Default::default()
+        },
+    });
+    assert!(app.quit);
+}
+
+#[test]
+fn git_status_stage_diff_commit_and_unstage_in_nested_workspace() {
+    common::isolate();
+    use std::process::Command as Process;
+    let dir = tempfile::tempdir().unwrap();
+    let run = |args: &[&str]| {
+        let result = Process::new("git")
+            .arg("-C")
+            .arg(dir.path())
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    };
+    run(&["init", "-q"]);
+    run(&["config", "user.email", "slate-tests@example.invalid"]);
+    run(&["config", "user.name", "Slate Tests"]);
+    fs::create_dir(dir.path().join("nested")).unwrap();
+    fs::write(dir.path().join("nested/code.rs"), "old\n").unwrap();
+    // The repository's folder contains the workspace; Git needs it trusted.
+    slate_core::trust::set_trusted(dir.path(), true).unwrap();
+    let mut app = App::new(&dir.path().join("nested")).unwrap();
+    fn wait_status(app: &mut App, needle: &str) {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        loop {
+            let s = app.snapshot(160, 40, 1, 1, 1, 3);
+            if s.git
+                .iter()
+                .any(|e| e.path == "nested/code.rs" && e.status.contains(needle))
+            {
+                break;
+            }
+            assert!(Instant::now() < deadline, "missing {needle}: {}", s.status);
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
+    wait_status(&mut app, "??");
+    app.dispatch(Command::GitStage {
+        path: "nested/code.rs".into(),
+    });
+    wait_status(&mut app, "A");
+    app.dispatch(Command::GitUnstage {
+        path: "nested/code.rs".into(),
+    });
+    wait_status(&mut app, "??");
+    assert!(dir.path().join("nested/code.rs").exists());
+    app.dispatch(Command::GitStage {
+        path: "nested/code.rs".into(),
+    });
+    wait_status(&mut app, "A");
+    app.dispatch(Command::GitCommit {
+        message: "Initial".into(),
+    });
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !Process::new("git")
+        .arg("-C")
+        .arg(dir.path())
+        .args(["rev-parse", "--verify", "HEAD"])
+        .output()
+        .unwrap()
+        .status
+        .success()
+    {
+        app.poll();
+        assert!(Instant::now() < deadline);
+        thread::sleep(Duration::from_millis(10));
+    }
+    fs::write(dir.path().join("nested/code.rs"), "new\n").unwrap();
+    app.dispatch(Command::Refresh);
+    wait_status(&mut app, "M");
+    app.dispatch(Command::GitDiff {
+        staged: false,
+        path: "nested/code.rs".into(),
+    });
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !app.documents.values().any(|d| d.text().contains("+new")) {
+        app.poll();
+        assert!(Instant::now() < deadline, "missing diff: {}", app.status);
+        thread::sleep(Duration::from_millis(10));
+    }
+}
+
+#[test]
+fn terminal_can_run_fullscreen_vim_and_htop() {
+    common::isolate();
+    // These optional integration checks run when the programs exist on the host.
+    let dir = tempfile::tempdir().unwrap();
+    if std::process::Command::new("vim.tiny")
+        .arg("--version")
+        .output()
+        .is_ok()
+    {
+        let mut term =
+            TerminalSession::spawn(dir.path(), Some("vim.tiny -Nu NONE -n edited.txt"), 24, 80)
+                .unwrap();
+        // Type once Vim has drawn its screen.
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !term.screen().cells.iter().flatten().any(|c| c.text == "~") {
+            assert!(Instant::now() < deadline, "Vim did not start");
+            thread::sleep(Duration::from_millis(20));
+        }
+        term.write(b"iVT_EDITOR_OK\x1b:wq\r").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !term.exited() {
+            assert!(Instant::now() < deadline, "Vim failed to exit");
+            thread::sleep(Duration::from_millis(20));
+        }
+        assert_eq!(
+            fs::read_to_string(dir.path().join("edited.txt")).unwrap(),
+            "VT_EDITOR_OK\n"
+        );
+    }
+    if std::process::Command::new("htop")
+        .arg("--version")
+        .output()
+        .is_ok()
+    {
+        let mut term = TerminalSession::spawn(dir.path(), Some("htop"), 24, 80).unwrap();
+        wait_for(&term, "Tasks");
+        term.write(b"q").unwrap();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !term.exited() {
+            assert!(Instant::now() < deadline, "htop failed to exit");
+            thread::sleep(Duration::from_millis(20));
+        }
+    }
+}
+
+fn wait_app(app: &mut App, check: impl Fn(&App) -> bool) {
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        app.poll();
+        if check(app) {
+            return;
+        }
+        assert!(Instant::now() < deadline, "Timed out: {}", app.status);
+        thread::sleep(Duration::from_millis(10));
+    }
+}
+#[test]
+fn search_replace_unicode_whole_words_literal_replacement_and_indentation() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("code.rs");
+    fs::write(&path, "cat CAT scatter 猫猫\n    fn main() {\n}").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.dispatch(Command::Search {
+        query: "cat".into(),
+        case_sensitive: false,
+        whole_word: true,
+        backward: false,
+    });
+    assert_eq!(app.views[&common::first_view(&app)].anchor, Some(0));
+    assert_eq!(app.views[&common::first_view(&app)].cursor, 3);
+    app.command_line("find-next");
+    assert_eq!(app.views[&common::first_view(&app)].anchor, Some(4));
+    app.command_line("find-previous");
+    assert_eq!(app.views[&common::first_view(&app)].anchor, Some(0));
+    app.dispatch(Command::Replace {
+        query: "cat".into(),
+        replacement: "$1猫".into(),
+        all: true,
+        case_sensitive: false,
+        whole_word: true,
+    });
+    assert!(app.documents[&common::first_document(&app)]
+        .text()
+        .starts_with("$1猫 $1猫 scatter"));
+    app.dispatch(Command::Undo);
+    assert!(app.documents[&common::first_document(&app)]
+        .text()
+        .starts_with("cat CAT scatter"));
+    app.dispatch(Command::GoToLine { line: 2 });
+    key(&mut app, "End");
+    key(&mut app, "Enter");
+    // Enter after an opening brace indents one level deeper.
+    assert!(app.documents[&common::first_document(&app)]
+        .text()
+        .contains("    fn main() {\n        \n}"));
+    app.preferences.indent_width = 2;
+    key(&mut app, "Tab");
+    assert!(app.documents[&common::first_document(&app)]
+        .text()
+        .contains("{\n          \n}"));
+    app.dispatch(Command::GoToLine { line: 2 });
+    app.dispatch(Command::Indent { outdent: false });
+    assert!(app.documents[&common::first_document(&app)]
+        .text()
+        .contains("      fn main()"));
+    app.dispatch(Command::Indent { outdent: true });
+    assert!(app.documents[&common::first_document(&app)]
+        .text()
+        .contains("    fn main()"));
+    app.dispatch(Command::GoToLine { line: 999 });
+    assert!(app.status.starts_with("Error:"));
+    app.command_line("prompt-find");
+    app.dispatch(Command::UpdatePrompt {
+        input: "猫猫".into(),
+        replacement: String::new(),
+        case_sensitive: true,
+        whole_word: false,
+    });
+    app.dispatch(Command::SubmitPrompt { all: false });
+    assert_eq!(
+        &app.documents[&common::first_document(&app)].text()[app.views[&common::first_view(&app)]
+            .anchor
+            .unwrap()
+            ..app.views[&common::first_view(&app)].cursor],
+        "猫猫"
+    );
+}
+#[test]
+fn undo_memory_is_proportional_to_edits_in_a_large_buffer() {
+    common::isolate();
+    let mut d = Document::from_text("x".repeat(8 * 1024 * 1024)).unwrap();
+    for _ in 0..100 {
+        d.replace(0, 0, "猫", 0).unwrap();
+    }
+    assert_eq!(d.history_bytes(), 300);
+    for _ in 0..100 {
+        d.undo(0).unwrap();
+    }
+    assert_eq!(d.text().len(), 8 * 1024 * 1024);
+    for _ in 0..100 {
+        d.redo(0).unwrap();
+    }
+    assert!(d.text().starts_with("猫猫"));
+    assert_eq!(d.history_bytes(), 300);
+}
+#[test]
+fn file_actions_request_paths_and_untitled_save_survives_cancellation() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("file.txt");
+    fs::write(&path, "original").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.preferences = Default::default();
+    for (command, kind) in [
+        ("open", "open"),
+        ("open-folder", "open-folder"),
+        ("save-as", "save-as"),
+    ] {
+        app.command_line(command);
+        assert_eq!(app.prompt.as_ref().unwrap().kind, kind);
+        app.dispatch(Command::DismissPrompt);
+    }
+    app.dispatch(Command::New);
+    app.dispatch(Command::Paste {
+        text: "unsaved text".into(),
+    });
+    app.dispatch(Command::Save);
+    assert_eq!(app.prompt.as_ref().unwrap().kind, "save-as");
+    app.dispatch(Command::DismissPrompt);
+    assert!(app.dirty());
+    assert_eq!(fs::read_to_string(&path).unwrap(), "original");
+    // A cancelled save must not leave a pending job preventing the next save.
+    let destination = dir.path().join("new 猫 #% .txt");
+    app.dispatch(Command::SaveAs {
+        path: destination.clone(),
+        overwrite: false,
+    });
+    wait_app(&mut app, |a| a.status == "Saved");
+    assert_eq!(fs::read_to_string(destination).unwrap(), "unsaved text");
+    assert!(!app.dirty());
+}
+
+#[test]
+fn save_as_requires_explicit_overwrite_and_normal_saves_keep_conflict_checks() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let original = dir.path().join("original.txt");
+    let destination = dir.path().join("existing.txt");
+    fs::write(&original, "original").unwrap();
+    fs::write(&destination, "existing").unwrap();
+    let mut app = App::new(&original).unwrap();
+    app.dispatch(Command::SaveAs {
+        path: destination.clone(),
+        overwrite: false,
+    });
+    wait_app(&mut app, |a| a.status.starts_with("Save failed:"));
+    assert_eq!(fs::read_to_string(&destination).unwrap(), "existing");
+    app.dispatch(Command::SaveAs {
+        path: destination.clone(),
+        overwrite: true,
+    });
+    wait_app(&mut app, |a| a.status == "Saved");
+    assert_eq!(fs::read_to_string(&destination).unwrap(), "original");
+    fs::write(&destination, "external change").unwrap();
+    app.dispatch(Command::SaveAs {
+        path: destination.clone(),
+        overwrite: true,
+    });
+    wait_app(&mut app, |a| a.status.starts_with("Save failed:"));
+    assert_eq!(fs::read_to_string(&destination).unwrap(), "external change");
+}
+
+#[test]
+fn background_save_preserves_newer_edits_and_external_conflicts() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("file");
+    fs::write(&path, "old").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.dispatch(Command::SelectAll);
+    app.dispatch(Command::Paste {
+        text: "saved".into(),
+    });
+    app.dispatch(Command::Save);
+    app.dispatch(Command::Paste {
+        text: " newer".into(),
+    });
+    wait_app(&mut app, |a| a.status.starts_with("Saved"));
+    assert_eq!(fs::read_to_string(&path).unwrap(), "saved");
+    assert_eq!(
+        app.documents[&common::first_document(&app)].text(),
+        "saved newer"
+    );
+    assert!(app.dirty());
+    fs::write(&path, "external").unwrap();
+    app.dispatch(Command::Save);
+    wait_app(&mut app, |a| a.status.starts_with("Save failed:"));
+    assert_eq!(fs::read_to_string(&path).unwrap(), "external");
+    assert!(app.dirty());
+    app.dispatch(Command::Open { path: path.clone() });
+    wait_app(&mut app, |a| a.status.starts_with("Opened"));
+    assert_eq!(app.documents.len(), 1);
+    assert_eq!(
+        app.documents[&common::first_document(&app)].text(),
+        "saved newer"
+    );
+}
+#[test]
+fn recovery_preserves_unsaved_baselines_layout_and_cursors_with_fresh_shells() {
+    common::isolate();
+    use slate_core::workspace::WorkspaceStore;
+    let dir = tempfile::tempdir().unwrap();
+    let state = tempfile::tempdir().unwrap();
+    let path = dir.path().join("code.rs");
+    fs::write(&path, "disk").unwrap();
+    let mut app = App::new(&path).unwrap();
+    let store = WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap();
+    let session = store.path.clone();
+    assert!(WorkspaceStore::acquire_in(dir.path(), state.path()).is_err());
+    app.attach_workspace(store, false).unwrap();
+    app.dispatch(Command::Paste {
+        text: "unsaved 猫".into(),
+    });
+    app.dispatch(Command::Split {
+        axis: Axis::Vertical,
+        kind: None,
+    });
+    let focus = app.focus;
+    app.flush_workspace().unwrap();
+    assert!(session.exists());
+    drop(app);
+    fs::write(&path, "external").unwrap();
+    let mut restored = App::new(dir.path()).unwrap();
+    restored
+        .attach_workspace(
+            WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+            true,
+        )
+        .unwrap();
+    assert_eq!(restored.focus, focus);
+    assert_eq!(restored.layout.panes().len(), 4);
+    assert_eq!(
+        restored.documents[&common::first_document(&restored)].text(),
+        "unsaved 猫disk"
+    );
+    assert!(restored.dirty());
+    assert!(restored
+        .views
+        .values()
+        .all(|v| v.cursor == "unsaved 猫".len()));
+    restored.dispatch(Command::Save);
+    wait_app(&mut restored, |a| a.status.starts_with("Save failed:"));
+    assert_eq!(fs::read_to_string(path).unwrap(), "external");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        assert_eq!(
+            fs::metadata(session).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+    }
+}
+#[test]
+fn preferences_remap_shared_shortcuts_and_validate_options() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    app.preferences
+        .editor_keys
+        .insert("Ctrl+k".into(), "new".into());
+    app.dispatch(Command::Key {
+        key: Key {
+            key: "k".into(),
+            ctrl: true,
+            ..Default::default()
+        },
+    });
+    assert_eq!(app.documents.len(), 2);
+    app.preferences.indent_width = 0;
+    assert!(app.preferences.validate().is_err());
+    app.preferences.indent_width = 2;
+    app.preferences.theme = "light".into();
+    assert!(app.preferences.validate().is_ok());
+}
+#[test]
+fn highlighting_is_shared_and_refreshes_after_editing() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("code.rs");
+    fs::write(&path, "// comment\nlet value = 42;\n").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.dispatch(Command::Split {
+        axis: Axis::Vertical,
+        kind: None,
+    });
+    let deadline = Instant::now() + Duration::from_secs(10);
+    loop {
+        let s = app.snapshot(160, 40, 1, 1, 1, 3);
+        let panes = s
+            .panes
+            .iter()
+            .filter(|p| p.kind == "editor")
+            .collect::<Vec<_>>();
+        let colors = panes[0]
+            .screen
+            .as_ref()
+            .unwrap()
+            .cells
+            .iter()
+            .flatten()
+            .map(|c| c.fg.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        if colors.len() > 2 {
+            assert!(
+                panes[0].screen.as_ref().unwrap().cells[..2]
+                    == panes[1].screen.as_ref().unwrap().cells[..2],
+                "Shared document token colors differ"
+            );
+            break;
+        }
+        assert!(Instant::now() < deadline, "No syntax colors");
+        thread::sleep(Duration::from_millis(20));
+    }
+}
+
+#[test]
+fn terminal_mouse_modes_bracketed_paste_and_frozen_scrollback_selection() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let probe = dir.path().join("probe.py");
+    fs::write(
+        &probe,
+        r#"import os, tty
+from pathlib import Path
+tty.setraw(0)
+os.write(1,b'\x1b[2J\x1b[HSELECT_ME\r\n\x1b[?1002h\x1b[?1006h\x1b[?2004hREADY')
+data=b''
+while b'\x1b[201~' not in data:
+    data+=os.read(0,4096)
+Path('input.bin').write_bytes(data)
+"#,
+    )
+    .unwrap();
+    let mut term = TerminalSession::spawn(dir.path(), Some("python3 probe.py"), 24, 80).unwrap();
+    wait_for(&term, "READY");
+    term.pointer(slate_core::terminal::Pointer {
+        row: 2,
+        col: 4,
+        kind: "press",
+        button: 0,
+        shift: false,
+        ctrl: false,
+        alt: false,
+    })
+    .unwrap();
+    term.pointer(slate_core::terminal::Pointer {
+        row: 2,
+        col: 6,
+        kind: "drag",
+        button: 0,
+        shift: false,
+        ctrl: true,
+        alt: false,
+    })
+    .unwrap();
+    term.pointer(slate_core::terminal::Pointer {
+        row: 2,
+        col: 6,
+        kind: "release",
+        button: 0,
+        shift: false,
+        ctrl: false,
+        alt: false,
+    })
+    .unwrap();
+    term.pointer(slate_core::terminal::Pointer {
+        row: 2,
+        col: 6,
+        kind: "wheel_up",
+        button: 0,
+        shift: false,
+        ctrl: false,
+        alt: false,
+    })
+    .unwrap();
+    term.pointer(slate_core::terminal::Pointer {
+        row: 0,
+        col: 0,
+        kind: "press",
+        button: 0,
+        shift: true,
+        ctrl: false,
+        alt: false,
+    })
+    .unwrap();
+    term.pointer(slate_core::terminal::Pointer {
+        row: 0,
+        col: 9,
+        kind: "drag",
+        button: 0,
+        shift: true,
+        ctrl: false,
+        alt: false,
+    })
+    .unwrap();
+    assert_eq!(term.selection_text(), "SELECT_ME");
+    term.paste("PASTE\n猫").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while !term.exited() {
+        assert!(Instant::now() < deadline);
+        thread::sleep(Duration::from_millis(10));
+    }
+    let input = fs::read(dir.path().join("input.bin")).unwrap();
+    assert_eq!(
+        input,
+        [
+            b"\x1b[<0;5;3M\x1b[<48;7;3M\x1b[<0;7;3m\x1b[<64;7;3M\x1b[200~".as_slice(),
+            "PASTE\n猫".as_bytes(),
+            b"\x1b[201~"
+        ]
+        .concat()
+    );
+}
+#[test]
+fn terminal_cwd_and_workspace_clean_file_refresh() {
+    common::isolate();
+    use slate_core::workspace::WorkspaceStore;
+    let dir = tempfile::tempdir().unwrap();
+    let state = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join("nested")).unwrap();
+    let path = dir.path().join("clean.rs");
+    fs::write(&path, "old").unwrap();
+    let mut app =
+        App::new_with_startup(&path, Some(slate_core::preferences::StartupMode::Workspace))
+            .unwrap();
+    app.attach_workspace(
+        WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+        false,
+    )
+    .unwrap();
+    app.terminals
+        .get_mut(&12)
+        .unwrap()
+        .write(b"cd nested; printf '\\033]7;file://localhost%s\\007CWD_READY' \"$PWD\"\r")
+        .unwrap();
+    wait_for(&app.terminals[&common::first_terminal(&app)], "CWD_READY");
+    #[cfg(target_os = "linux")]
+    {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while app.terminals[&common::first_terminal(&app)].cwd() != dir.path().join("nested") {
+            assert!(Instant::now() < deadline);
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
+    drop(app);
+    fs::write(&path, "new disk content").unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    app.attach_workspace(
+        WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+        true,
+    )
+    .unwrap();
+    assert_eq!(
+        app.documents[&common::first_document(&app)].text(),
+        "new disk content"
+    );
+    assert!(!app.dirty());
+    #[cfg(target_os = "linux")]
+    {
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while app.terminals[&common::first_terminal(&app)].cwd() != dir.path().join("nested") {
+            assert!(Instant::now() < deadline);
+            thread::sleep(Duration::from_millis(10));
+        }
+    }
+}
+
+#[test]
+fn real_ssh_session_forwards_input_colors_and_terminal_resize() {
+    common::isolate();
+    use std::process::Command as Process;
+    if !std::path::Path::new("/usr/sbin/sshd").exists() {
+        assert!(
+            std::env::var_os("SLATE_REQUIRE_TERMINAL_TOOLS").is_none(),
+            "sshd required for CI"
+        );
+        eprintln!("Skipping SSH integration: sshd is not installed");
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    for key in ["host", "client"] {
+        assert!(Process::new("ssh-keygen")
+            .args(["-q", "-t", "ed25519", "-N", "", "-f"])
+            .arg(dir.path().join(key))
+            .status()
+            .unwrap()
+            .success());
+    }
+    fs::copy(
+        dir.path().join("client.pub"),
+        dir.path().join("authorized_keys"),
+    )
+    .unwrap();
+    let host = fs::read_to_string(dir.path().join("host.pub")).unwrap();
+    fs::write(dir.path().join("known_hosts"), format!("slate-test {host}")).unwrap();
+    fs::write(dir.path().join("sshd_config"),format!("HostKey {0}/host\nAuthorizedKeysFile {0}/authorized_keys\nStrictModes no\nPasswordAuthentication no\nKbdInteractiveAuthentication no\nPermitRootLogin prohibit-password\nUsePAM no\nLogLevel ERROR\n",dir.path().display())).unwrap();
+    let user = String::from_utf8(Process::new("id").arg("-un").output().unwrap().stdout).unwrap();
+    let command=format!("ssh -tt -i {0}/client -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile={0}/known_hosts -o HostKeyAlias=slate-test -o 'ProxyCommand=/usr/sbin/sshd -i -e -f {0}/sshd_config' {1}@localhost 'cd {0}; printf \"\\033[31mSSH_READY\\033[0m\\n\"; read reply; printf \"%s\" \"$reply\" > ssh-input; stty size > ssh-size'",dir.path().display(),user.trim());
+    let mut term = TerminalSession::spawn(dir.path(), Some(&command), 24, 80).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(8);
+    loop {
+        let screen = term.screen();
+        let text = screen
+            .cells
+            .iter()
+            .flatten()
+            .map(|c| c.text.as_str())
+            .collect::<String>();
+        if text.contains("SSH_READY") {
+            break;
+        }
+        if text.contains("Operation not permitted")
+            || text.contains("Missing privilege separation directory")
+        {
+            assert!(
+                std::env::var_os("SLATE_REQUIRE_TERMINAL_TOOLS").is_none(),
+                "SSH environment blocked: {text}"
+            );
+            eprintln!(
+                "Skipping SSH integration: environment blocks sshd privilege separation: {text}"
+            );
+            return;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "SSH did not become ready: {text}"
+        );
+        thread::sleep(Duration::from_millis(20));
+    }
+    assert!(term
+        .screen()
+        .cells
+        .iter()
+        .flatten()
+        .any(|c| c.fg == "#bf616a"));
+    term.resize(31, 91).unwrap();
+    term.write(b"SSH_EDITED\r").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(8);
+    while !term.exited() {
+        assert!(Instant::now() < deadline, "SSH did not exit");
+        thread::sleep(Duration::from_millis(20));
+    }
+    assert_eq!(
+        fs::read_to_string(dir.path().join("ssh-input")).unwrap(),
+        "SSH_EDITED"
+    );
+    assert_eq!(
+        fs::read_to_string(dir.path().join("ssh-size"))
+            .unwrap()
+            .trim(),
+        "31 91"
+    );
+}
+#[test]
+fn real_tmux_session_preserves_shell_input_and_resize() {
+    common::isolate();
+    use std::process::Command as Process;
+    let executable = std::env::var("SLATE_TMUX_BINARY").unwrap_or_else(|_| "tmux".into());
+    if Process::new(&executable).arg("-V").output().is_err() {
+        assert!(
+            std::env::var_os("SLATE_REQUIRE_TERMINAL_TOOLS").is_none(),
+            "tmux required for CI"
+        );
+        eprintln!("Skipping tmux integration: tmux is not installed");
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let socket = dir.path().join("tmux.sock");
+    let probe = Process::new(&executable)
+        .arg("-S")
+        .arg(&socket)
+        .args(["-f", "/dev/null", "new-session", "-d", "-s", "probe"])
+        .output()
+        .unwrap();
+    if !probe.status.success() {
+        assert!(
+            std::env::var_os("SLATE_REQUIRE_TERMINAL_TOOLS").is_none(),
+            "Cannot start tmux: {}",
+            String::from_utf8_lossy(&probe.stderr)
+        );
+        eprintln!(
+            "Skipping tmux integration: {}",
+            String::from_utf8_lossy(&probe.stderr)
+        );
+        return;
+    }
+    let _ = Process::new(&executable)
+        .arg("-S")
+        .arg(&socket)
+        .arg("kill-server")
+        .status();
+    struct Cleanup(String, std::path::PathBuf);
+    impl Drop for Cleanup {
+        fn drop(&mut self) {
+            let _ = Process::new(&self.0)
+                .arg("-S")
+                .arg(&self.1)
+                .arg("kill-server")
+                .output();
+        }
+    }
+    let _cleanup = Cleanup(executable.clone(), socket.clone());
+    let command = format!(
+        "{executable} -S {} -f /dev/null new-session -s slate -c {}",
+        socket.display(),
+        dir.path().display()
+    );
+    let mut term = TerminalSession::spawn(dir.path(), Some(&command), 24, 80).unwrap();
+    wait_for(&term, "slate");
+    term.write(b"printf TMUX_EDITED > tmux-input\r").unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while fs::read_to_string(dir.path().join("tmux-input")).unwrap_or_default() != "TMUX_EDITED" {
+        assert!(Instant::now() < deadline);
+        thread::sleep(Duration::from_millis(20));
+    }
+    term.resize(31, 91).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        let result = Process::new(&executable)
+            .arg("-S")
+            .arg(&socket)
+            .args(["display-message", "-p", "#{window_height} #{window_width}"])
+            .output()
+            .unwrap();
+        if String::from_utf8_lossy(&result.stdout).trim() == "30 91" {
+            break;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "tmux resize: {}",
+            String::from_utf8_lossy(&result.stdout)
+        );
+        thread::sleep(Duration::from_millis(20));
+    }
+    term.write(b"exit\r").unwrap();
+}
+
+#[test]
+fn discard_quit_writes_valid_state_and_missing_clean_files_reopen_as_new() {
+    common::isolate();
+    use slate_core::workspace::WorkspaceStore;
+    let dir = tempfile::tempdir().unwrap();
+    let state = tempfile::tempdir().unwrap();
+    let path = dir.path().join("file");
+    fs::write(&path, "base").unwrap();
+    let mut app = App::new(&path).unwrap();
+    app.attach_workspace(
+        WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+        false,
+    )
+    .unwrap();
+    app.dispatch(Command::Paste {
+        text: "a much longer edit".into(),
+    });
+    app.dispatch(Command::Quit { force: true });
+    assert!(app.quit);
+    drop(app);
+    let mut app = App::new(dir.path()).unwrap();
+    app.attach_workspace(
+        WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+        true,
+    )
+    .unwrap();
+    assert_eq!(app.documents[&common::first_document(&app)].text(), "base");
+    assert!(!app.dirty());
+    assert!(app.views.values().all(|v| v.cursor <= 4));
+    drop(app);
+    fs::remove_file(path).unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    app.attach_workspace(
+        WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+        true,
+    )
+    .unwrap();
+    // Checkpoints store only a reference to clean files, never their
+    // contents. A clean file deleted meanwhile reopens as a new, empty file.
+    assert_eq!(app.documents[&common::first_document(&app)].text(), "");
+    assert!(app.documents[&common::first_document(&app)]
+        .path
+        .as_ref()
+        .unwrap()
+        .ends_with("file"));
+    assert!(!app.dirty());
+    app.dispatch(Command::Quit { force: false });
+    assert!(app.quit);
+}
+#[test]
+fn corrupt_workspace_is_preserved_until_an_explicit_fresh_start() {
+    common::isolate();
+    use slate_core::workspace::WorkspaceStore;
+    let dir = tempfile::tempdir().unwrap();
+    let state = tempfile::tempdir().unwrap();
+    let store = WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap();
+    let path = store.path.clone();
+    fs::write(&path, "broken checkpoint").unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    assert!(app.attach_workspace(store, true).is_err());
+    drop(app);
+    assert_eq!(fs::read_to_string(&path).unwrap(), "broken checkpoint");
+    let mut app = App::new(dir.path()).unwrap();
+    app.attach_workspace(
+        WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+        false,
+    )
+    .unwrap();
+    // The fresh start kept the old checkpoint beside the new one.
+    assert_eq!(
+        fs::read_to_string(path.with_file_name("session.previous.json")).unwrap(),
+        "broken checkpoint"
+    );
+    // Output and inspection documents are not part of the checkpoint.
+    app.dispatch(Command::Action {
+        name: "help".into(),
+        argument: String::new(),
+    });
+    app.flush_workspace().unwrap();
+    let saved: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert!(!saved.to_string().contains("Help · read-only"));
+}
+
+#[test]
+fn damaged_checkpoints_still_recover_unsaved_buffers() {
+    common::isolate();
+    use slate_core::workspace::WorkspaceStore;
+    let dir = tempfile::tempdir().unwrap();
+    let state = tempfile::tempdir().unwrap();
+    let path = dir.path().join("notes.txt");
+    fs::write(&path, "disk").unwrap();
+    let mut app = App::new(&path).unwrap();
+    let store = WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap();
+    let session = store.path.clone();
+    app.attach_workspace(store, false).unwrap();
+    app.dispatch(Command::Paste {
+        text: "precious ".into(),
+    });
+    app.flush_workspace().unwrap();
+    drop(app);
+    // Damage the checkpoint the way a buggy older build or a partial edit
+    // might: a cursor past the end, a tab naming a missing view, a bad focus,
+    // and one buffer that no longer parses.
+    let mut json: serde_json::Value = serde_json::from_slice(&fs::read(&session).unwrap()).unwrap();
+    for view in json["views"].as_object_mut().unwrap().values_mut() {
+        view["cursor"] = 9999.into();
+    }
+    json["layout"] = serde_json::json!({"type": "pane", "id": 1, "tabs": [{"kind": "editor", "id": 777}], "active": 0});
+    json["focus"] = 42.into();
+    json["documents"]["999"] = serde_json::json!({"nonsense": true});
+    let damaged = serde_json::to_vec(&json).unwrap();
+    fs::write(&session, &damaged).unwrap();
+
+    let mut restored = App::new(dir.path()).unwrap();
+    restored
+        .attach_workspace(
+            WorkspaceStore::acquire_in(dir.path(), state.path()).unwrap(),
+            true,
+        )
+        .unwrap();
+    assert!(
+        restored.status.contains("damaged checkpoint"),
+        "{}",
+        restored.status
+    );
+    let doc = restored
+        .documents
+        .values()
+        .find(|d| d.text() == "precious disk")
+        .expect("the unsaved buffer survives");
+    assert!(doc.dirty());
+    assert!(restored.layout.validate());
+    let shown = restored.layout.views();
+    assert!(shown.iter().any(|v| matches!(v, View::Editor(id)
+        if restored.documents[&restored.views[id].document].text() == "precious disk")));
+    for v in restored.views.values() {
+        assert!(v.cursor <= restored.documents[&v.document].len());
+    }
+    // The damaged original is kept for inspection.
+    let kept: Vec<_> = fs::read_dir(session.parent().unwrap())
+        .unwrap()
+        .flatten()
+        .filter(|e| {
+            e.file_name()
+                .to_string_lossy()
+                .starts_with("session.damaged-")
+        })
+        .collect();
+    assert_eq!(kept.len(), 1);
+    assert_eq!(fs::read(kept[0].path()).unwrap(), damaged);
+}
+#[test]
+fn constrained_layout_keeps_nested_panes_usable_without_changing_saved_ratios() {
+    common::isolate();
+    let mut layout = Node::default_layout(10, 20);
+    // Extreme requested ratios must not squeeze pane chrome out of existence.
+    if let Node::Split { ratio, .. } = &mut layout {
+        *ratio = 0.1;
+    }
+    assert!(layout.split(2, Axis::Vertical, 6, 7, View::Editor(10)));
+    let before = serde_json::to_string(&layout).unwrap();
+    let minimum = (180, 100);
+    let (width, height) = layout.minimum_size(6, minimum);
+    let (panes, handles) = layout.arrange_constrained(
+        Rect {
+            x: 0,
+            y: 0,
+            width,
+            height,
+        },
+        6,
+        minimum,
+    );
+    assert_eq!(panes.len(), 4);
+    assert_eq!(handles.len(), 3);
+    for pane in &panes {
+        assert!(pane.rect.width >= 180 && pane.rect.height >= 100);
+        assert!(pane.rect.x + pane.rect.width <= width);
+        for other in &panes {
+            if pane.id != other.id {
+                assert!(
+                    pane.rect.x + pane.rect.width <= other.rect.x
+                        || other.rect.x + other.rect.width <= pane.rect.x
+                        || pane.rect.y + pane.rect.height <= other.rect.y
+                        || other.rect.y + other.rect.height <= pane.rect.y
+                );
+            }
+        }
+    }
+    assert_eq!(serde_json::to_string(&layout).unwrap(), before);
+}
+
+#[test]
+fn compact_gui_preserves_layout_and_reserves_measured_header_space() {
+    common::isolate();
+    let dir = tempfile::tempdir().unwrap();
+    let mut app = App::new(dir.path()).unwrap();
+    let before = serde_json::to_string(&app.layout).unwrap();
+    let small = app.snapshot_with_minimum(
+        Rect {
+            x: 0,
+            y: 0,
+            width: 800,
+            height: 600,
+        },
+        6,
+        (9, 18),
+        63,
+        (300, 117),
+    );
+    assert_eq!(small.panes.len(), 1);
+    assert_eq!(small.panes[0].id, app.focus);
+    let large = app.snapshot_with_minimum(
+        Rect {
+            x: 0,
+            y: 0,
+            width: 1360,
+            height: 820,
+        },
+        6,
+        (9, 18),
+        63,
+        (300, 117),
+    );
+    assert_eq!(large.panes.len(), 3);
+    assert_eq!(serde_json::to_string(&app.layout).unwrap(), before);
+    for pane in large.panes {
+        if let Some(screen) = pane.screen {
+            assert!(screen.cells.len() * 18 <= usize::from(pane.rect.height - 63));
+        }
+    }
+}

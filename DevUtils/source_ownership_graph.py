@@ -304,19 +304,33 @@ def rewrite_manifest(
     return needed
 
 
-def copy_tracked_component(root: pathlib.Path, source_rel: str, destination: pathlib.Path) -> None:
-    destination.mkdir(parents=True, exist_ok=True)
+def component_source_files(root: pathlib.Path, source_rel: str) -> list[pathlib.PurePosixPath]:
+    """Use worktree inputs, including new imports, without changing the index.
+
+    Only outer MattOS ignores apply, as in the build source identity. Nested
+    upstream ignores must not hide an imported manifest or source file.
+    """
+    command = ['git', 'ls-files', '--cached', '--others', '-z']
+    for ignore in ['.gitignore', '.git/info/exclude']:
+        if (root / ignore).is_file():
+            command.append(f'--exclude-from={ignore}')
     result = subprocess.run(
-        ['git', 'ls-files', '-z', '--', source_rel],
+        [*command, '--', source_rel],
         cwd=root,
         stdout=subprocess.PIPE,
         check=True,
     )
+    return sorted({
+        pathlib.PurePosixPath(raw.decode())
+        for raw in result.stdout.split(b'\0')
+        if raw and ((root / raw.decode()).is_file() or (root / raw.decode()).is_symlink())
+    })
+
+
+def copy_tracked_component(root: pathlib.Path, source_rel: str, destination: pathlib.Path) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
     prefix = pathlib.PurePosixPath(source_rel)
-    for raw in result.stdout.split(b'\0'):
-        if not raw:
-            continue
-        rel_repo = pathlib.PurePosixPath(raw.decode())
+    for rel_repo in component_source_files(root, source_rel):
         rel = rel_repo.relative_to(prefix)
         src = root / pathlib.Path(rel_repo.as_posix())
         dst = destination / pathlib.Path(rel.as_posix())
@@ -444,15 +458,10 @@ def prune_derived_source_mirror_artifacts(destination: pathlib.Path) -> list[pat
 
 
 def tracked_source_fingerprint(root: pathlib.Path, source_rel: str) -> str:
-    """Hash the exact tracked source content copied into an ownership mirror."""
-    result = subprocess.run(
-        ['git', 'ls-files', '-z', '--', source_rel], cwd=root,
-        stdout=subprocess.PIPE, check=True,
-    )
+    """Hash the exact worktree source content copied into an ownership mirror."""
     digest = hashlib.sha256()
     prefix = pathlib.PurePosixPath(source_rel)
-    for raw in sorted(item for item in result.stdout.split(b'\0') if item):
-        rel_repo = pathlib.PurePosixPath(raw.decode())
+    for rel_repo in component_source_files(root, source_rel):
         rel = rel_repo.relative_to(prefix).as_posix()
         path = root / pathlib.Path(rel_repo.as_posix())
         digest.update(rel.encode())

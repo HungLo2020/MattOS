@@ -2,6 +2,37 @@
 
 use super::*;
 
+pub(crate) fn stage_glib_runtime(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_library_family(
+        repo_root,
+        staging,
+        "glib",
+        &[
+            "libglib-2.0.so.0",
+            "libgobject-2.0.so.0",
+            "libgio-2.0.so.0",
+            "libgmodule-2.0.so.0",
+            "libgthread-2.0.so.0",
+        ],
+    )?;
+    // libgio's GAppInfo launch path invokes this private executable, even
+    // when its caller is a library consumer rather than the gio CLI.
+    stage_runtime_paths(
+        repo_root,
+        staging,
+        "glib",
+        &[
+            "usr/bin/glib-compile-schemas",
+            "usr/bin/gio-querymodules",
+            "usr/libexec/gio-launch-desktop",
+        ],
+    )?;
+    copy_preserving(
+        &repo_root.join("src/system/libraries/glib/COPYING"),
+        &staging.join("usr/share/doc/libglib2.0-0t64/copyright"),
+    )
+}
+
 /// Preserve one upstream Qt module's complete `/usr` prefix. Qt plugins,
 /// tools and imported CMake targets reference sibling paths below that prefix,
 /// so an arbitrary runtime/development split would make later KF6 consumers
@@ -1678,6 +1709,41 @@ mod desktop_data_tests {
         fs::create_dir_all(&incomplete).unwrap();
         assert!(stage_pop_fonts(repo.path(), &incomplete).is_err());
     }
+}
+
+pub(super) fn stage_slate(repo_root: &Path, staging: &Path, graphical: bool) -> Result<()> {
+    let package = if graphical { "slate-gui" } else { "slate" };
+    let source = repo_root.join("src/userland/slate");
+    stage_executable(
+        &component_install(repo_root, package).join("usr/bin").join(package),
+        &staging.join("usr/bin").join(package),
+        0o755,
+    )?;
+    let doc = staging.join("usr/share/doc").join(package);
+    for note in ["README.md", "CHANGELOG.md"] {
+        copy_preserving(&source.join(note), &doc.join(note))?;
+    }
+    // The pinned upstream tree does not declare a project license. Preserve
+    // that fact rather than assigning the MattOS license to imported code.
+    fs::write(doc.join("copyright"), "Upstream: https://github.com/HungLo2020/Slate\nThe imported Slate source does not contain a project license declaration.\nMattOS integration code is covered by the MattOS repository license.\n")?;
+    let policy = repo_root.join("src/system/desktop/editor");
+    if graphical {
+        for (from, to) in [
+            ("packaging/slate.desktop", "usr/share/applications/slate.desktop"),
+            ("packaging/slate.metainfo.xml", "usr/share/metainfo/slate.metainfo.xml"),
+            ("resources/slate.svg", "usr/share/icons/hicolor/scalable/apps/slate.svg"),
+        ] {
+            copy_preserving(&source.join(from), &staging.join(to))?;
+        }
+        copy_preserving(&policy.join("mimeapps.list"), &staging.join("etc/xdg/mimeapps.list"))?;
+        fs::write(staging.join("DEBIAN/conffiles"), "/etc/xdg/mimeapps.list\n")?;
+    } else {
+        stage_executable(&policy.join("slate-visual"), &staging.join("usr/bin/slate-visual"), 0o755)?;
+        std::os::unix::fs::symlink("slate", staging.join("usr/bin/editor"))?;
+        copy_preserving(&source.join("packaging/slate.1"), &staging.join("usr/share/man/man1/slate.1"))?;
+        copy_preserving(&source.join("scripts/tui-smoke.py"), &doc.join("examples/tui-smoke.py"))?;
+    }
+    Ok(())
 }
 
 pub(super) fn stage_cozy(repo_root: &Path, staging: &Path) -> Result<()> {

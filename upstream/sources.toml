@@ -3,6 +3,14 @@
 # Future enhancement: use git subtree commits for provenance at git history level.
 
 [[component]]
+name = "slate"
+repo = "https://github.com/HungLo2020/Slate.git"
+branch = "main"
+revision = "32df63dc111cf923db37668c48e142b1777f26ba"
+path = "src/userland/slate"
+sync = "copy"
+
+[[component]]
 name = "linux"
 repo = "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git"
 branch = "v7.2.8"

@@ -80,6 +80,10 @@ Packages classified `mattos-specific` in `trixie.toml` currently are
 `mattos-sudo-rs`. The GCC 15 development packages deliberately do not claim
 Trixie's GCC 14 identities.
 
+`slate` and `slate-gui` are MattOS extensions built from the pinned Slate
+workspace. They use upstream command names and do not claim Debian package
+identities; see [Slate](../system/userland/slate.md).
+
 ## Versions and protected transactions
 
 Release branches are converted to deterministic upstream versions. A moving

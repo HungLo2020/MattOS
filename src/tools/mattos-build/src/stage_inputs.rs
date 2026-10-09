@@ -720,6 +720,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "upstream/patches/grub",
             "src/tools/mattos-build/src/stages/grub.rs",
         ],
+        BuildStage::Slate | BuildStage::SlateGui => &[
+            "src/userland/slate",
+            "src/tools/mattos-build/src/stages/slate.rs",
+        ],
         BuildStage::Cozy => &[
             "src/userland/cozy",
             "src/tools/mattos-build/src/stages/desktop_support.rs",
@@ -1048,7 +1052,9 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
     let mut inputs = roots.iter().map(PathBuf::from).collect::<Vec<_>>();
     if matches!(
         stage,
-        BuildStage::Brush
+        BuildStage::Slate
+            | BuildStage::SlateGui
+            | BuildStage::Brush
             | BuildStage::Coreutils
             | BuildStage::Grep
             | BuildStage::Sed
@@ -1188,6 +1194,7 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
 
 fn local_cargo_manifest_inputs(stage: BuildStage) -> Vec<PathBuf> {
     let root = match stage {
+        BuildStage::Slate | BuildStage::SlateGui => "src/userland/slate",
         BuildStage::Brush => "src/userland/brush",
         BuildStage::Coreutils => "src/userland/coreutils",
         BuildStage::Grep => "src/userland/grep",
@@ -1216,6 +1223,7 @@ pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::SudoRs => &["sudo-rs"],
         BuildStage::Installer => &["btrfs-progs", "dosfstools", "e2fsprogs"],
         BuildStage::Cozy => &["cozy"],
+        BuildStage::Slate | BuildStage::SlateGui => &["slate"],
         _ => &[],
     };
     components
@@ -1329,7 +1337,8 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libxfont
         | BuildStage::Libxshmfence => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
         BuildStage::Flatpak | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
-        BuildStage::Cozy => &["cargo", "rustc", "gcc", "ld"],
+        BuildStage::Cozy | BuildStage::Slate => &["cargo", "rustc", "gcc", "ld"],
+        BuildStage::SlateGui => &["cargo", "rustc", "gcc", "g++", "ld", "cmake", "ninja", "pkg-config"],
         BuildStage::Installer => &[
             "cargo",
             "rustc",

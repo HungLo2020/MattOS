@@ -1229,6 +1229,8 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "wpa-supplicant" => &["wpa-supplicant"],
             "grub" => &["grub"],
             "cozy" => &["cozy"],
+            "slate" => &["slate"],
+            "slate-gui" => &["slate-gui"],
             "cpython" => &["cpython"],
             "llvm" => &["llvm"],
             "rust" => &["rust"],
@@ -1827,6 +1829,8 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         ],
         "grub" => &["src/boot/grub/upstream", "src/build-support/grub-gnulib"],
         "cozy" => &["src/userland/cozy"],
+        "slate" => &["src/userland/slate", "src/system/desktop/editor/slate-visual"],
+        "slate-gui" => &["src/userland/slate", "src/system/desktop/editor/mimeapps.list"],
         "cpython" => &["src/development/python/cpython"],
         "llvm" => &[
             "src/toolchain/llvm-project",
@@ -2173,6 +2177,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         }
         "wpasupplicant" => component_snapshot_version(repo_root, "wpa-supplicant")?,
         "grub-efi-amd64" => component_snapshot_version(repo_root, "grub")?,
+        "slate" | "slate-gui" => component_snapshot_version(repo_root, "slate")?,
         "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
         "greetd" => component_snapshot_version(repo_root, "greetd")?,
         "plasma-login-manager" => component_snapshot_version(repo_root, "plasma-login-manager")?,
@@ -2820,6 +2825,10 @@ fn write_provenance(
                 "MattOS-owned appearance defaults/layout; panel-defaults.conf is validated and rendered into Plasma's supported layout scripting API; external slideshow paths retained verbatim; wallpaper images excluded; xcursorgen is build-only and excluded from runtime payload".to_string(),
             )
         }
+        "slate" | "slate-gui" => component_provenance(
+            repo_root, "slate", "src/userland/slate",
+            "locked Cargo workspace built with MattOS Rust; GUI uses source-built MattOS Qt; separate terminal and graphical packages",
+        )?,
         component @ ("glibc" | "ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker"
         | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2"
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"

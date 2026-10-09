@@ -866,6 +866,44 @@ fn nvidia_manifest_pins_one_production_release_and_turing_floor() {
 }
 
 #[test]
+fn glib_runtime_contains_the_private_desktop_launcher_its_library_executes() {
+    use std::os::unix::fs::PermissionsExt;
+    let repo = tempfile::tempdir().unwrap();
+    let install = repo.path().join("out/build/glib/install");
+    for path in [
+        "usr/lib/x86_64-linux-gnu/libglib-2.0.so.0",
+        "usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0",
+        "usr/lib/x86_64-linux-gnu/libgio-2.0.so.0",
+        "usr/lib/x86_64-linux-gnu/libgmodule-2.0.so.0",
+        "usr/lib/x86_64-linux-gnu/libgthread-2.0.so.0",
+        "usr/bin/glib-compile-schemas",
+        "usr/bin/gio-querymodules",
+        "usr/libexec/gio-launch-desktop",
+    ] {
+        let file = install.join(path);
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(&file, path).unwrap();
+        fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    let license = repo.path().join("src/system/libraries/glib/COPYING");
+    fs::create_dir_all(license.parent().unwrap()).unwrap();
+    fs::write(license, "license").unwrap();
+    let staging = repo.path().join("staging");
+    crate::packaging::staging::stage_glib_runtime(repo.path(), &staging).unwrap();
+    let helper = "usr/libexec/gio-launch-desktop";
+    assert_eq!(
+        fs::read(staging.join(helper)).unwrap(),
+        fs::read(install.join(helper)).unwrap()
+    );
+    assert_eq!(
+        fs::metadata(staging.join(helper)).unwrap().permissions().mode() & 0o111,
+        0o111
+    );
+    fs::remove_file(install.join(helper)).unwrap();
+    assert!(crate::packaging::staging::stage_glib_runtime(repo.path(), &staging).is_err());
+}
+
+#[test]
 fn packagekit_depends_on_the_gdbus_its_apt_hook_calls() {
     // APT's 20packagekit hook runs /usr/bin/gdbus after every cache update to
     // tell PackageKit (and so Discover) that the package lists changed.
@@ -912,7 +950,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 424);
+    assert_eq!(PACKAGE_NAMES.len(), 426);
 }
 
 #[test]
@@ -967,7 +1005,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 424);
+    assert_eq!(PACKAGE_NAMES.len(), 426);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -1081,7 +1119,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 424);
+    assert_eq!(PACKAGE_NAMES.len(), 426);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",
@@ -3074,4 +3112,21 @@ fn kernel_hook_policy_changes_invalidate_image_and_tracking_packages() {
     assert_ne!(before[LINUX_IMAGE_PACKAGE], after[LINUX_IMAGE_PACKAGE]);
     assert_ne!(before["linux-image-amd64"], after["linux-image-amd64"]);
     assert_eq!(before[LINUX_MODULES_PACKAGE], after[LINUX_MODULES_PACKAGE]);
+}
+
+#[test]
+fn slate_profile_and_package_boundaries_keep_the_terminal_editor_independent_of_qt() {
+    let specs = package_specs();
+    let spec = |name| specs.iter().find(|spec| spec.name == name).unwrap();
+    assert!(spec("mattos-base").depends.contains(&"slate"));
+    assert!(spec("mattos-plasma").depends.contains(&"slate-gui"));
+    assert!(!spec("slate").depends.iter().any(|name| name.starts_with("qt6") || *name == "slate-gui"));
+    for dependency in ["slate", "qt6-base", "qt6-declarative", "qt6-svg", "qt6-wayland"] {
+        assert!(spec("slate-gui").depends.contains(&dependency));
+    }
+    assert_eq!(package_stage_dependencies("slate"), &["slate"]);
+    assert_eq!(package_stage_dependencies("slate-gui"), &["slate-gui"]);
+    assert_eq!(package_source_roots("slate")[0], package_source_roots("slate-gui")[0]);
+    assert!(package_source_roots("slate").contains(&"src/system/desktop/editor/slate-visual"));
+    assert!(package_source_roots("slate-gui").contains(&"src/system/desktop/editor/mimeapps.list"));
 }

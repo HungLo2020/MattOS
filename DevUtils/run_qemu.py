@@ -1028,6 +1028,72 @@ def installed_kde_application_probes() -> tuple[tuple[str, str], ...]:
     )
 
 
+def installed_slate_probes(profile: str) -> tuple[tuple[str, str], ...]:
+    probes = (
+        ("slate-terminal-defaults", 'dpkg-query -W slate >/dev/null && test "$(readlink /usr/bin/editor)" = slate && '
+         'test "$EDITOR" = /usr/bin/slate && test "$VISUAL" = /usr/bin/slate-visual && '
+         'env -u DISPLAY -u WAYLAND_DISPLAY /usr/bin/slate-visual --version'),
+        ("slate-terminal-edit-save", "timeout 90 python3 /usr/share/doc/slate/examples/tui-smoke.py /usr/bin/slate"),
+    )
+    if profile == "plasma":
+        probes += (
+            ("slate-gui-runtime", "dpkg-query -W slate-gui >/dev/null && ! ldd /usr/bin/slate-gui | grep -q 'not found' && "
+             "/usr/bin/slate --gui --version && /usr/bin/slate-gui --tui --version"),
+            ("slate-session-defaults", "systemctl --user show-environment | grep -Fx EDITOR=/usr/bin/slate && "
+             "systemctl --user show-environment | grep -Fx VISUAL=/usr/bin/slate-visual"),
+            ("slate-desktop-default", "gio mime text/plain | grep -q slate.desktop && gio mime application/json | grep -q slate.desktop"),
+        )
+    return probes
+
+
+def verify_installed_slate_gui(repo_root: Path, control_paths: tuple[Path, Path], stream: Callable[[str], None]) -> None:
+    """Open the default text application, edit/save through Qt, and verify --wait."""
+    serial = control_paths[1].resolve()
+
+    def command(text: str) -> None:
+        serial_command_stream(serial, text, 120, on_output=stream)
+
+    # Each serial command stays short enough for the guest UART line discipline.
+    command("d=$(mktemp -d /tmp/mattos-slate-test.XXXXXX) && printf '%s' \"$d\" > /tmp/mattos-slate-test-dir && "
+            "printf 'initial\\n' > \"$d/document.txt\"")
+    command('d=$(cat /tmp/mattos-slate-test-dir) && WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland '
+            'gio open "$d/document.txt"')
+    command('for n in $(seq 1 60); do pgrep -u "$(id -u)" -x slate-gui >/dev/null && exit 0; sleep 1; done; exit 1')
+    time.sleep(3)
+    _capture_plasma_verification_window(
+        repo_root, repo_root / "out/logs/installed-slate-launched.png", qmp_socket=control_paths[0]
+    )
+    command('d=$(cat /tmp/mattos-slate-test-dir); '
+            '(WAYLAND_DISPLAY=wayland-0 QT_QPA_PLATFORM=wayland "$VISUAL" "$d/document.txt" > "$d/wait.log" 2>&1; '
+            'printf "%s\\n" "$?" > "$d/wait-status") < /dev/null > /dev/null 2>&1 &')
+    time.sleep(2)
+    command('d=$(cat /tmp/mattos-slate-test-dir) && test ! -e "$d/wait-status"')
+    with QmpClient(control_paths[0], 10) as qmp:
+        # A launch from the serial session may lack a Wayland activation
+        # token. This fixture has only Slate open on the user desktop.
+        send_key(qmp, "alt-tab")
+        time.sleep(0.5)
+        send_key(qmp, "ctrl-a")
+        # HMP sendkey holds modifiers briefly; release Ctrl before typing.
+        time.sleep(0.2)
+        type_text(qmp, "MattOS Slate GUI edit/save")
+        send_key(qmp, "ret")
+        time.sleep(0.2)
+        send_key(qmp, "ctrl-s")
+    command('d=$(cat /tmp/mattos-slate-test-dir) && for n in $(seq 1 30); do '
+            'test "$(cat "$d/document.txt")" = "MattOS Slate GUI edit/save" && test ! -e "$d/wait-status" && exit 0; '
+            'sleep 1; done; exit 1')
+    image = repo_root / "out/logs/installed-slate-editor.png"
+    _capture_plasma_verification_window(repo_root, image, qmp_socket=control_paths[0])
+    with QmpClient(control_paths[0], 10) as qmp:
+        send_key(qmp, "ctrl-q")
+    command('d=$(cat /tmp/mattos-slate-test-dir) && for n in $(seq 1 30); do '
+            'test -f "$d/wait-status" && test "$(cat "$d/wait-status")" = 0 && '
+            '! pgrep -u "$(id -u)" -x slate-gui >/dev/null && exit 0; sleep 1; done; exit 1')
+    command('d=$(cat /tmp/mattos-slate-test-dir) && rm -r "$d" && rm /tmp/mattos-slate-test-dir')
+    stream(f"[installed-check] PASS slate-default-gui-edit-save-wait; screenshot={image}\n")
+
+
 def _test_install_plan(profile: str = "plasma") -> str:
     if profile not in {"cli", "plasma"}:
         raise RepoError(f"unsupported test install profile: {profile}")
@@ -1389,7 +1455,7 @@ def _verify_installed_disk_boot_with(
     profile_checks = (
         (
             "cli-package-boundary",
-            "dpkg-query -W mattos-cli >/dev/null 2>&1 && ! dpkg-query -W qt6-base kwin plasma-workspace plasma-desktop greetd plasma-login-manager mattos-plasma-live dolphin konsole systemsettings >/dev/null 2>&1",
+            "dpkg-query -W mattos-cli >/dev/null 2>&1 && ! dpkg-query -W slate-gui qt6-base kwin plasma-workspace plasma-desktop greetd plasma-login-manager mattos-plasma-live dolphin konsole systemsettings >/dev/null 2>&1",
         ),
         ("cli-target", "systemctl is-active multi-user.target && ! systemctl is-active graphical.target"),
     ) if profile == "cli" else (
@@ -1430,6 +1496,7 @@ def _verify_installed_disk_boot_with(
         ("efi-mount", "findmnt -no SOURCE /boot/efi"),
         ("gpt", "lsblk -no PTTYPE /dev/vda"),
         *profile_checks,
+        *installed_slate_probes(profile),
         ("local-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/00-mattos-local.sources && test -f /usr/share/mattos/repository/dists/trixie/main/binary-amd64/Packages"),
         ("plasma-upgrade-candidate", "apt-cache show mattos-plasma >/dev/null"),
         # Every installed system carries the native toolchain (mattos-toolchain),
@@ -1594,6 +1661,8 @@ def _verify_installed_disk_boot_with(
                 "[installed-check] PASS launcher interaction; "
                 f"screenshots={','.join(popup_images)}\n"
             )
+            verify_installed_slate_gui(repo_root, control_paths, stream)
+            completed_checks.append("slate-default-gui-edit-save-wait")
             logout_graphical = (
                 f"{installed_plasma_logout_command()} && "
                 "for n in $(seq 1 90); do "

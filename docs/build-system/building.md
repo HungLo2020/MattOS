@@ -193,7 +193,7 @@ from the internal stage IDs used in cache manifests, logs, and
   Cargo, built from the checksummed official source release and depending on
   `llvm`). This MattOS rustc compiles all target Rust code, so the Cargo-built
   stages (`brush`, `coreutils`, `grep`, `findutils`, `diffutils`,
-  `init`, `sudo-rs`, `greetd`, `cozy`, `installer`) and the Meson builds with
+  `init`, `sudo-rs`, `greetd`, `cozy`, `slate`, `slate-gui`, `installer`) and the Meson builds with
   Rust components (`dbus-broker`, `mesa`, `gstreamer`) depend on `rust` as
   well as `formal-sysroot`.
 - **Graphics and desktop.** Wayland, Mesa, Vulkan, fonts, Qt (`qt-base`,

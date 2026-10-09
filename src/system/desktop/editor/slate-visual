@@ -1,0 +1,8 @@
+#!/bin/sh
+# Programs such as Git must wait for the requested GUI document to close.
+# CLI profiles, consoles and SSH sessions retain a working terminal editor.
+if [ -z "${SSH_CONNECTION:-}" ] && [ -x /usr/bin/slate-gui ] &&
+    { [ -n "${WAYLAND_DISPLAY:-}" ] || [ -n "${DISPLAY:-}" ]; }; then
+    exec /usr/bin/slate-gui --wait "$@"
+fi
+exec /usr/bin/slate "$@"

@@ -1,2 +1,2 @@
-EDITOR=/usr/bin/cozy
-VISUAL=/usr/bin/cozy
+EDITOR=/usr/bin/slate
+VISUAL=/usr/bin/slate-visual

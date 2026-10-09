@@ -28,6 +28,30 @@ class SourceOwnershipGraphTest(unittest.TestCase):
         subprocess.run(["python3", str(GENERATOR)], cwd=ROOT, check=True)
         cls.index = json.loads(INDEX.read_text())
 
+    def test_unstaged_imports_and_nested_ignored_inputs_reach_ownership_mirrors(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="unstaged-owned-") as raw:
+            root = pathlib.Path(raw)
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            (root / ".gitignore").write_text("out/\n")
+            owned = root / "src/owned"
+            owned.mkdir(parents=True)
+            (owned / ".gitignore").write_text("Cargo.toml\n*.rs\n")
+            (owned / "Cargo.toml").write_text('[package]\nname="new-owned"\nversion="1.0.0"\n')
+            (owned / "lib.rs").write_text("pub fn owned() {}\n")
+            (root / "out").mkdir()
+            (root / "out/Cargo.toml").write_text("generated residue")
+            index_before = subprocess.check_output(["git", "ls-files", "--stage", "-z"], cwd=root)
+            files = graph.component_source_files(root, "src/owned")
+            self.assertIn(pathlib.PurePosixPath("src/owned/Cargo.toml"), files)
+            first = graph.tracked_source_fingerprint(root, "src/owned")
+            mirror = root / "out/mirror"
+            graph.copy_tracked_component(root, "src/owned", mirror)
+            self.assertEqual((mirror / "lib.rs").read_bytes(), (owned / "lib.rs").read_bytes())
+            (owned / "lib.rs").write_text("pub fn changed() {}\n")
+            self.assertNotEqual(first, graph.tracked_source_fingerprint(root, "src/owned"))
+            self.assertEqual(graph.component_source_files(root, "out"), [])
+            self.assertEqual(subprocess.check_output(["git", "ls-files", "--stage", "-z"], cwd=root), index_before)
+
     def test_relocated_dispatcher_finds_checkout_from_consumer_cwd(self) -> None:
         with tempfile.TemporaryDirectory(prefix="source-dispatch-root-") as raw:
             root = pathlib.Path(raw) / "checkout"

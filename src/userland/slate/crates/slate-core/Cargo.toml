@@ -1,0 +1,31 @@
+[package]
+name = "slate-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde = { workspace = true, features = ["rc"] }
+serde_json.workspace = true
+toml = "0.8"
+portable-pty.workspace = true
+vt100.workspace = true
+unicode-segmentation = "1"
+unicode-width = "0.2"
+libc.workspace = true
+
+tempfile.workspace = true
+
+syntect = { version = "5", default-features = false, features = ["default-fancy"] }
+fs2 = "0.4"
+sha2 = "0.10"
+
+regex = "1"
+encoding_rs = "0.8"
+ropey = { version = "1.6", default-features = false, features = ["simd"] }
+regex-cursor = "0.1"
+two-face = { version = "0.5", default-features = false, features = ["syntect-default-fancy"] }
+ignore = "0.4"
+nucleo-matcher = "0.3"
+
+ec4rs = "1.2"

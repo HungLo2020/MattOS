@@ -682,6 +682,8 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "wpasupplicant",
     "grub-efi-amd64",
     "mattos-cozy",
+    "slate",
+    "slate-gui",
     "libpython3.14",
     "python3",
     "python3-venv",
@@ -731,6 +733,7 @@ pub(crate) struct PackageSpec {
 }
 
 const MATTOS_BASE_DEPENDS: &[&str] = &[
+    "slate",
     "mattos-filesystem",
     "mattos-base-files",
     "mattos-base-runtime",
@@ -791,6 +794,7 @@ const MATTOS_BASE_DEPENDS: &[&str] = &[
 ];
 
 const MATTOS_PLASMA_DEPENDS: &[&str] = &[
+    "slate-gui",
     "mattos-base",
     "mattos-plasma-theme",
     // This meta-package is the installed Plasma profile authority.  Keep the
@@ -5026,6 +5030,28 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             replaces: &[],
             essential: false,
             priority: "important",
+        },
+        PackageSpec {
+            name: "slate",
+            description: "Slate terminal text and code editor",
+            source_component: "slate",
+            depends: &["libc6", "libgcc-s1", "dash"],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
+            name: "slate-gui",
+            description: "Slate graphical text and code editor",
+            source_component: "slate-gui",
+            depends: &["slate", "libc6", "libgcc-s1", "libstdc++6", "qt6-base", "qt6-declarative", "qt6-svg", "qt6-wayland"],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
         },
         PackageSpec {
             name: "mattos-cozy",

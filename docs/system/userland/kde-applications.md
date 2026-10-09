@@ -3,6 +3,9 @@
 The Plasma profile (`mattos-plasma`) installs these KDE applications, each
 built from vendored source as its own stage and package:
 
+[Slate](slate.md) is the default graphical editor. Kate remains installed as
+an additional KDE editor.
+
 | Application | Package | Executable |
 | --- | --- | --- |
 | Dolphin | dolphin | `dolphin` |

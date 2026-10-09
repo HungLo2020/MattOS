@@ -212,6 +212,11 @@ are no longer shipped.
 
 ### MIME database
 
+`libglib2.0-0t64` also owns `/usr/libexec/gio-launch-desktop`, the private
+helper called by GIO's desktop-application launcher. It must accompany
+`libgio` even when the caller is a library consumer rather than `gio open`.
+Omitting it prevents default file associations from opening applications.
+
 `shared-mime-info` (vendored at `src/system/libraries/shared-mime-info`, built
 by the `shared-mime-info` stage) ships `update-mime-database` and the
 freedesktop.org definitions in `/usr/share/mime/packages`; other packages add
@@ -236,6 +241,12 @@ The database is kept current three ways:
 - purging the package removes the generated files and leaves `packages/`.
 
 ## Dependency and Essential policy
+
+[Slate](../system/userland/slate.md) is built and packaged in this repository
+as `slate` (terminal editor, in `mattos-base`) and `slate-gui` (graphical editor,
+in `mattos-plasma`). The terminal package has no Qt dependency. The GUI package
+has exact terminal and Qt runtime dependencies; both derive their snapshot
+version and provenance from the same immutable upstream commit.
 
 Every MattOS-to-MattOS dependency is emitted with an exact `(= version)` constraint; `out/packages/inventory.toml` currently contains no unversioned or ranged dependency. Representative ABI-coupled relationships:
 

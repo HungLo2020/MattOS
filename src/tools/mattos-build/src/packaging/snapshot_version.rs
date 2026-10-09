@@ -50,6 +50,7 @@ fn declaration(component: &str) -> Declaration {
         "procps-ng" => Declaration::NewsHeading("procps-ng-"),
         "util-linux" => Declaration::NewsHeading("util-linux "),
         "greetd" => Declaration::Cargo("greetd/Cargo.toml"),
+        "slate" => Declaration::Cargo("Cargo.toml"),
         _ => Declaration::BuildSystem,
     }
 }
@@ -122,9 +123,15 @@ fn declared_version(component: &str, tree: &Path) -> Result<String> {
             manifest
                 .get("package")
                 .and_then(|package| package.get("version"))
-                .and_then(toml::Value::as_str)
+                .and_then(|version| {
+                    version.as_str().or_else(|| {
+                        (version.get("workspace").and_then(toml::Value::as_bool) == Some(true))
+                            .then(|| manifest.get("workspace")?.get("package")?.get("version")?.as_str())
+                            .flatten()
+                    })
+                })
                 .map(str::to_string)
-                .ok_or_else(|| anyhow!("{file} has no [package] version"))?
+                .ok_or_else(|| anyhow!("{file} has no declared package version"))?
         }
         Declaration::NcursesVersionFile => {
             let body = read(tree, "VERSION")?;
@@ -408,6 +415,14 @@ mod tests {
         assert_eq!(version("util-linux", &[("NEWS", util_linux)]), "2.43~devel");
         let cargo = "[package]\nname = \"greetd\"\nversion = \"0.10.3\"\n";
         assert_eq!(version("greetd", &[("greetd/Cargo.toml", cargo)]), "0.10.3");
+    }
+
+    #[test]
+    fn slate_snapshot_uses_the_explicitly_inherited_workspace_version() {
+        let manifest = "[package]\nname = \"slate\"\nversion.workspace = true\n[workspace.package]\nversion = \"0.1.8\"\n";
+        assert_eq!(version("slate", &[("Cargo.toml", manifest)]), "0.1.8");
+        let without_inheritance = manifest.replace("version.workspace = true\n", "");
+        assert!(declared_version("slate", tree(&[("Cargo.toml", &without_inheritance)]).path()).is_err());
     }
 
     #[test]
