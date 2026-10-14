@@ -6,7 +6,7 @@ mod system;
 mod toolchain;
 pub(crate) use desktop::*;
 use development::*;
-pub(crate) use development::development_package_component;
+pub(crate) use development::{development_package_component, validate_perl_install_layout};
 pub(crate) use system::*;
 pub(crate) use toolchain::*;
 

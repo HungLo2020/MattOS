@@ -268,7 +268,11 @@ in `mattos-toolchain` and the builder container, so Git snapshots that need
   threads.  Configure is given every installed-system path and identity, so
   `Config.pm` names `gcc`, `/usr/bin/ar` and `/usr/lib/x86_64-linux-gnu`
   rather than the build tree; the DBM extensions are not built because MattOS
-  ships no Berkeley DB or GDBM.
+  ships no Berkeley DB or GDBM. Command manuals are installed under
+  `/usr/share/man/man1`; module manuals remain disabled, explicitly passed
+  as `--man3dir ''` to the separate `install.man` target so `DESTDIR` cannot
+  turn an empty manual directory into files in `/`. The build and package
+  staging both reject Perl output with any top-level entry outside `usr`.
 - m4, Autoconf, Automake and Libtool build from their checksum-verified GNU
   release archives (their Git trees need a bootstrap).  Their build runs the
   build host's m4 and perl; the installed scripts name `/usr/bin/m4` and

@@ -54,7 +54,14 @@ jobs then hand the Calamares-mounted target to the Rust installer through
   and `keyboard` jobs. It writes `/etc/mattos-storage.conf`, the
   subvolume-aware `/etc/fstab`, the installed initramfs and GRUB boot files,
   and the installed-profile marker. Calamares' generic `fstab` module is
-  deliberately not in the exec sequence.
+  deliberately not in the exec sequence. After the target account and profile
+  are configured, it provisions the selected profile's optional-application
+  defaults through the same target-rooted Flatpak backend as the CLI. Plasma
+  defaults to Firefox; CLI defaults to no optional applications. Calamares
+  currently applies these defaults without a separate application chooser.
+  Progress and nonfatal download failures appear in the installer output;
+  `/var/log/mattos-installer-optional-packages.log` retains the result on the
+  target.
 
 The Calamares partition module (`calamares/mattos/modules/partition.conf`)
 defaults to erasing a disk with a GPT table, an ESP at `/boot/efi`, a Btrfs
@@ -112,7 +119,8 @@ the repository onto the target as its local APT source. `btrfs-progs`,
 `dosfstools` and `e2fsprogs` are ordinary packages that `mattos-base` depends
 on, so every installed system has them.
 
-The guided CLI also offers optional applications installed through Flatpak.
+The graphical installer applies profile defaults, and the guided CLI offers
+a selection of optional applications installed through Flatpak.
 These need Internet access; a failure to install them does not stop the MattOS
 installation.
 
@@ -165,6 +173,19 @@ without extra flags, and a check that exactly one APT source names the local
 repository; these are not a substitute for interactive GUI or application
 acceptance tests. The Plasma profile also checks each shipped KDE application
 ([KDE Applications](userland/kde-applications.md)).
+
+Both installed profiles must have no regular files at `/`, and Perl's package
+file list must stay under `/usr` while retaining its command manual. The
+Plasma checks also require the Material cursor default at size 24, that same
+selection in KWin's live support information, no forced cursor environment
+variables, and no cursor-theme load failures in KWin's boot journal.
+
+The Plasma install test leaves optional applications out of its initial CLI
+plan, remounts the disposable test target, and runs Calamares' real finalization
+adapter after account creation. With networking enabled, the installed-system
+check requires Firefox to be deployed and the optional-application log to record
+success. This covers the graphical backend's default selection and provisioning
+hook; it does not automate Calamares' partitioning wizard UI.
 
 The Plasma checks also exercise Discover's update path end to end. The host
 rebuilds one installed leaf package (KCalc) with a higher version

@@ -1,5 +1,6 @@
 """Contracts for pinned desktop schemas and MattOS-owned integration policy."""
 from pathlib import Path
+import configparser
 import importlib.util
 import tomllib
 import unittest
@@ -8,6 +9,19 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class DesktopPolicyTests(unittest.TestCase):
+    def test_cursor_defaults_are_not_overridden_by_session_environment(self):
+        environment = (ROOT / "src/system/session/plasma/plasma-desktop.conf").read_text()
+        names = {
+            line.split("=", 1)[0].strip()
+            for line in environment.splitlines()
+            if "=" in line and not line.lstrip().startswith("#")
+        }
+        self.assertFalse(names & {"XCURSOR_THEME", "XCURSOR_SIZE"})
+        config = configparser.ConfigParser()
+        config.read(ROOT / "src/system/desktop/branding/MattOS/xdg/kcminputrc")
+        self.assertEqual(config["Mouse"]["cursorTheme"], "material_light_cursors")
+        self.assertEqual(config["Mouse"].getint("cursorSize"), 24)
+
     def test_provenance_exceptions_are_exact_and_child_imports_remain_validated(self):
         path = ROOT / "DevUtils/audits/test_vendored_source_provenance.py"
         spec = importlib.util.spec_from_file_location("polish_provenance", path)

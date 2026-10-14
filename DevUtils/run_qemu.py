@@ -1098,7 +1098,9 @@ def _test_install_plan(profile: str = "plasma") -> str:
     if profile not in {"cli", "plasma"}:
         raise RepoError(f"unsupported test install profile: {profile}")
     installer_profile = "cli" if profile == "cli" else "desktop"
-    optional_packages = "[]" if profile == "cli" else '["firefox"]'
+    # Plasma's optional defaults are exercised through Calamares finalization,
+    # rather than preinstalled by the CLI and masking a missing GUI hook.
+    optional_packages = "[]"
     return "\n".join([
         'version = 6', 'target_disk = "/dev/vda"',
         'storage = { mode = "guided_whole_disk", filesystem = "btrfs", efi = { policy = "create" } }',
@@ -1289,6 +1291,21 @@ def _select_installed_qemu_window(tree: str) -> str | None:
     return max(candidates)[1] if candidates else None
 
 
+def calamares_test_finalize_commands() -> tuple[str, ...]:
+    """Remount only the disposable test disk for the real Calamares adapter."""
+    target = "/run/mattos-calamares-finalize-test"
+    return (
+        f"sudo mkdir -p {target}",
+        f"sudo mount -t btrfs -o subvol=@ /dev/vda2 {target}",
+        f"sudo mount /dev/vda1 {target}/boot/efi",
+        "sudo /usr/libexec/mattos/calamares-target-executor "
+        f"--phase finalize --profile plasma --target {target}",
+        f"sudo umount {target}/boot/efi",
+        f"sudo umount {target}",
+        f"sudo rmdir {target}",
+    )
+
+
 def _run_automatic_test_install(
     repo_root: Path,
     disk: Path,
@@ -1333,6 +1350,18 @@ def _run_automatic_test_install(
             on_output=stream,
             progress_probe=disk_progress,
         )
+        if profile == "plasma":
+            # Use the real graphical installer's adapter on the fresh target,
+            # after accounts exist and while still in the live environment.
+            for finalize_command in calamares_test_finalize_commands():
+                serial_command_stream(
+                    control_paths[1].resolve(),
+                    finalize_command,
+                    INSTALL_PROGRESS_IDLE_SECONDS,
+                    on_output=stream,
+                    progress_probe=disk_progress,
+                )
+            stream("[install-check] PASS calamares-finalization-backend\n")
         serial_command_stream(
             control_paths[1].resolve(),
             scheduled_poweroff_command(),
@@ -1476,6 +1505,15 @@ def _verify_installed_disk_boot_with(
             "exit 1)",
         ),
         *installed_plasma_applet_runtime_probes(),
+        ("material-cursor-default", 'test "$(kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme)" = material_light_cursors && '
+         'test "$(kreadconfig6 --file kcminputrc --group Mouse --key cursorSize)" = 24 && '
+         'test -r /usr/share/icons/material_light_cursors/cursors/left_ptr && '
+         '! systemctl --user show-environment | grep -Eq "^XCURSOR_(THEME|SIZE)="'),
+        ("material-cursor-active", "qdbus org.kde.KWin /KWin org.kde.KWin.supportInformation > /tmp/mattos-kwin-support.log && "
+         "grep -Fx 'themeName: material_light_cursors' /tmp/mattos-kwin-support.log && "
+         "grep -Fx 'themeSize: 24' /tmp/mattos-kwin-support.log"),
+        ("material-cursor-loaded", "printf '%s\\n' mattos | sudo -S -p '' journalctl -b _COMM=kwin_wayland --no-pager > /tmp/mattos-kwin-cursor-check.log && "
+         "! grep -F 'Failed to load cursor theme' /tmp/mattos-kwin-cursor-check.log"),
         *installed_kde_application_probes(),
         *update_probes,
     )
@@ -1493,10 +1531,16 @@ def _verify_installed_disk_boot_with(
         ("grub-config", "test -f /boot/grub/grub.cfg"),
         ("grub-menu", installed_grub_menu_probe()),
         ("root-mount", "findmnt -no SOURCE /"),
+        ("clean-root-payload", "test -z \"$(find / -mindepth 1 -maxdepth 1 ! -type d ! -type l -print)\" && "
+         "test -z \"$(dpkg-query -L perl | grep -vE '^/$|^/[.]$|^/usr(/|$)')\" && "
+         "test -s /usr/share/man/man1/perl.1"),
         ("efi-mount", "findmnt -no SOURCE /boot/efi"),
         ("gpt", "lsblk -no PTTYPE /dev/vda"),
         *profile_checks,
         *installed_slate_probes(profile),
+        *((("calamares-firefox-default", "flatpak info --system org.mozilla.firefox >/dev/null && "
+            "grep -Fx 'installed firefox (org.mozilla.firefox)' /var/log/mattos-installer-optional-packages.log"),)
+          if profile == "plasma" and not getattr(args, "no_network", False) else ()),
         ("local-repository", "grep -q '^Enabled: yes' /etc/apt/sources.list.d/00-mattos-local.sources && test -f /usr/share/mattos/repository/dists/trixie/main/binary-amd64/Packages"),
         ("plasma-upgrade-candidate", "apt-cache show mattos-plasma >/dev/null"),
         # Every installed system carries the native toolchain (mattos-toolchain),

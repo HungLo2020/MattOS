@@ -768,6 +768,10 @@ pub(super) fn stage_install_tree(
     licenses: &[&str],
 ) -> Result<()> {
     let install = component_install(repo_root, component);
+    if component == "perl" {
+        // Recheck cached producer output before copying it into a package.
+        validate_perl_install_layout(&install)?;
+    }
     copy_tree_filtered(&install, staging, &|relative, _| {
         relative != Path::new("usr/share/info/dir")
     })?;
@@ -781,8 +785,42 @@ pub(super) fn stage_install_tree(
         .with_context(|| format!("write {package} copyright"))
 }
 
+pub(crate) fn validate_perl_install_layout(install: &Path) -> Result<()> {
+    for entry in fs::read_dir(install)? {
+        let entry = entry?;
+        if entry.file_name() != "usr" || !entry.file_type()?.is_dir() {
+            bail!(
+                "perl install contains unexpected root entry: {}",
+                entry.path().display()
+            );
+        }
+    }
+    if !install.join("usr").is_dir() {
+        bail!("perl install is missing its usr directory: {}", install.display());
+    }
+    Ok(())
+}
+
 pub(crate) const MESON_LAUNCHER: &str =
     "#!/usr/bin/python3\nimport sys\nfrom mesonbuild.mesonmain import main\nsys.exit(main())\n";
+
+#[cfg(test)]
+mod perl_install_tests {
+    use super::*;
+
+    #[test]
+    fn perl_install_staging_rejects_contaminated_cached_output() {
+        let temp = tempfile::tempdir().unwrap();
+        let install = temp.path().join("out/build/perl/install");
+        fs::create_dir_all(install.join("usr/bin")).unwrap();
+        fs::write(install.join("AnyDBM_File.0"), "module manual").unwrap();
+        let staging = temp.path().join("staging");
+        let error = stage_install_tree(temp.path(), &staging, "perl", "perl", "unused", &[])
+            .unwrap_err();
+        assert!(error.to_string().contains("AnyDBM_File.0"));
+        assert!(!staging.exists(), "invalid payload must be rejected before copying");
+    }
+}
 
 /// Meson is pure Python: its `mesonbuild` package goes into the MattOS
 /// Python's site-packages, with the launcher its entry point describes.

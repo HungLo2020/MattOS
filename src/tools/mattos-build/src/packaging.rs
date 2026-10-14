@@ -41,7 +41,7 @@ pub(crate) use staging::{
 };
 pub(crate) use staging::{
     apply_live_apt_policy, component_install, copy_tree_preserving, stage_package,
-    validate_udev_hwdb_payload,
+    validate_perl_install_layout, validate_udev_hwdb_payload,
 };
 
 mod registry;

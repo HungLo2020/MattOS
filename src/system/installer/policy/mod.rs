@@ -1473,7 +1473,7 @@ where
         },
     )?;
     configure_installed_profile(plan, target)?;
-    provision_optional_packages(plan, target, progress)?;
+    provision_optional_packages(&plan.optional_packages, target, progress)?;
     Ok(())
 }
 
@@ -1821,6 +1821,22 @@ pub fn finalize_calamares_target(profile: InstalledProfile, target: &Path) -> Re
     install_boot_files(&identity, target)?;
 
     let username = installed_target_username(target)?;
+    finish_calamares_target_with(profile, &username, target, |package| {
+        install_optional_package(target, package)
+    })
+}
+
+// Complete the same post-account policy for the graphical frontend. Keep the
+// backend injectable so tests execute this path without disks or downloads.
+fn finish_calamares_target_with<R>(
+    profile: InstalledProfile,
+    username: &str,
+    target: &Path,
+    provision: R,
+) -> Result<()>
+where
+    R: FnMut(&OptionalPackage) -> Result<()>,
+{
     // The Rust installer writes this marker as part of account/profile
     // finalization.  Calamares owns account creation, so its compose phase
     // cannot use that path; write the same authoritative marker here before
@@ -1833,9 +1849,14 @@ pub fn finalize_calamares_target(profile: InstalledProfile, target: &Path) -> Re
             InstalledProfile::Desktop => "plasma\n",
         },
     )?;
-    configure_installed_profile_values(profile, &username, false, target)?;
+    configure_installed_profile_values(profile, username, false, target)?;
     ensure_live_installer_absent(target)?;
-    Ok(())
+    provision_optional_packages_using(
+        &optional_package_defaults(profile),
+        target,
+        &mut |event| eprintln!("mattos-install: {}", event.detail),
+        provision,
+    )
 }
 
 fn ensure_btrfs_subvolume(device: &Path, name: &str) -> Result<()> {
@@ -1940,18 +1961,61 @@ fn installed_target_username(target: &Path) -> Result<String> {
 /// deployed target has its normal Flatpak remote and installed-system policy.
 /// Each catalog entry is isolated: a network or transaction failure is logged
 /// for the user but never invalidates the completed MattOS installation.
-fn provision_optional_packages<F>(plan: &InstallPlan, target: &Path, progress: &mut F) -> Result<()>
+fn install_optional_package(target: &Path, package: &OptionalPackage) -> Result<()> {
+    let output = match package.backend {
+        OptionalPackageBackend::Flatpak => Command::new("/usr/bin/timeout")
+            .args([
+                "--signal=TERM",
+                "12m",
+                "/usr/libexec/mattos-flatpak-target-install",
+            ])
+            .args(flatpak_target_install_arguments(target, package)?)
+            .output()
+            .context("run target-rooted Flatpak install from live environment"),
+    }?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        bail!(
+            "exit {}\nstdout:\n{}\nstderr:\n{}",
+            output.status,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
+        )
+    }
+}
+
+fn provision_optional_packages<F>(
+    selection: &[String],
+    target: &Path,
+    progress: &mut F,
+) -> Result<()>
 where
     F: FnMut(InstallProgress),
 {
-    if plan.optional_packages.is_empty() {
+    provision_optional_packages_using(selection, target, progress, |package| {
+        install_optional_package(target, package)
+    })
+}
+
+fn provision_optional_packages_using<F, R>(
+    selection: &[String],
+    target: &Path,
+    progress: &mut F,
+    provision: R,
+) -> Result<()>
+where
+    F: FnMut(InstallProgress),
+    R: FnMut(&OptionalPackage) -> Result<()>,
+{
+    if selection.is_empty() {
         return Ok(());
     }
     let log_path = target.join("var/log/mattos-installer-optional-packages.log");
     if let Some(parent) = log_path.parent() {
         fs::create_dir_all(parent)?;
     }
-    for id in &plan.optional_packages {
+    for id in selection {
         let package = optional_package(id).expect("validated optional package ID");
         progress(InstallProgress::new(
             InstallStage::ConfiguringSystem,
@@ -1962,29 +2026,7 @@ where
             ),
         ));
     }
-    let results = provision_optional_packages_with(plan, |package| {
-        let output = match package.backend {
-            OptionalPackageBackend::Flatpak => Command::new("/usr/bin/timeout")
-                .args([
-                    "--signal=TERM",
-                    "12m",
-                    "/usr/libexec/mattos-flatpak-target-install",
-                ])
-                .args(flatpak_target_install_arguments(target, package)?)
-                .output()
-                .context("run target-rooted Flatpak install from live environment"),
-        }?;
-        if output.status.success() {
-            Ok(())
-        } else {
-            bail!(
-                "exit {}\nstdout:\n{}\nstderr:\n{}",
-                output.status,
-                String::from_utf8_lossy(&output.stdout),
-                String::from_utf8_lossy(&output.stderr),
-            )
-        }
-    });
+    let results = provision_optional_packages_with(selection, provision);
     let mut log = "MattOS optional package provisioning\n".to_owned();
     for result in results {
         match &result.outcome {
@@ -2047,13 +2089,13 @@ struct OptionalPackageProvisionResult {
 /// root or a network, while preserving the rule that one failed application
 /// never aborts the completed operating-system installation.
 fn provision_optional_packages_with<R>(
-    plan: &InstallPlan,
+    selection: &[String],
     mut provision: R,
 ) -> Vec<OptionalPackageProvisionResult>
 where
     R: FnMut(&OptionalPackage) -> Result<()>,
 {
-    plan.optional_packages
+    selection
         .iter()
         .map(|id| {
             let package = optional_package(id).expect("validated optional package ID");
@@ -2350,7 +2392,11 @@ fn refresh_installed_local_apt_metadata(target: &Path) -> Result<()> {
         &dev,
         "dev",
         &["devtmpfs", "tmpfs"],
-        &["--bind".as_ref(), Path::new("/dev").as_os_str(), dev.as_os_str()],
+        &[
+            "--bind".as_ref(),
+            Path::new("/dev").as_os_str(),
+            dev.as_os_str(),
+        ],
     )?;
     let status = Command::new("chroot")
         .arg(target)
@@ -2596,7 +2642,10 @@ fn validate_packaged_boot_files(target: &Path, release: &str) -> Result<()> {
     if validate_kernel_release(&selected)? != release {
         bail!("installed kernel tracking package does not match installer release {release}");
     }
-    for name in [format!("vmlinuz-{release}"), format!("initrd.img-{release}")] {
+    for name in [
+        format!("vmlinuz-{release}"),
+        format!("initrd.img-{release}"),
+    ] {
         let path = target.join("boot").join(name);
         if !path.is_file() || fs::metadata(&path)?.len() == 0 {
             bail!("kernel package did not install {}", path.display());
@@ -3745,6 +3794,84 @@ mod tests {
     }
 
     #[test]
+    fn calamares_completion_provisions_desktop_defaults_after_account_policy() {
+        let target = tempfile::tempdir().unwrap();
+        fs::create_dir_all(target.path().join("etc")).unwrap();
+        stage_profile_units(target.path(), true);
+        let mut attempted = Vec::new();
+        finish_calamares_target_with(
+            InstalledProfile::Desktop,
+            "matt",
+            target.path(),
+            |package| {
+                assert_eq!(
+                    fs::read_to_string(target.path().join("etc/mattos-installed-profile"))?,
+                    "plasma\n"
+                );
+                assert!(
+                    target
+                        .path()
+                        .join("etc/systemd/system/display-manager.service")
+                        .is_symlink()
+                );
+                attempted.push(package.id);
+                Ok(())
+            },
+        )
+        .unwrap();
+        assert_eq!(attempted, ["firefox"]);
+        assert!(
+            fs::read_to_string(
+                target
+                    .path()
+                    .join("var/log/mattos-installer-optional-packages.log")
+            )
+            .unwrap()
+            .contains("installed firefox (org.mozilla.firefox)")
+        );
+    }
+
+    #[test]
+    fn calamares_completion_keeps_optional_failures_nonfatal_and_logged() {
+        let target = tempfile::tempdir().unwrap();
+        fs::create_dir_all(target.path().join("etc")).unwrap();
+        stage_profile_units(target.path(), true);
+        finish_calamares_target_with(InstalledProfile::Desktop, "matt", target.path(), |_| {
+            bail!("simulated offline Flathub")
+        })
+        .unwrap();
+        let log = fs::read_to_string(
+            target
+                .path()
+                .join("var/log/mattos-installer-optional-packages.log"),
+        )
+        .unwrap();
+        assert!(log.contains("failed firefox (org.mozilla.firefox); continuing installation"));
+        assert!(log.contains("simulated offline Flathub"));
+    }
+
+    #[test]
+    fn calamares_cli_completion_does_not_request_desktop_applications() {
+        let target = tempfile::tempdir().unwrap();
+        fs::create_dir_all(target.path().join("etc")).unwrap();
+        stage_profile_units(target.path(), false);
+        finish_calamares_target_with(InstalledProfile::Cli, "matt", target.path(), |_| {
+            panic!("CLI installation must not invoke the application backend")
+        })
+        .unwrap();
+        assert_eq!(
+            fs::read_to_string(target.path().join("etc/mattos-installed-profile")).unwrap(),
+            "cli\n"
+        );
+        assert!(
+            !target
+                .path()
+                .join("var/log/mattos-installer-optional-packages.log")
+                .exists()
+        );
+    }
+
+    #[test]
     fn profile_manifests_and_repository_closure_are_fail_closed() {
         let cli = parse_profile_manifest(
             "schema_version = 1\nid = \"cli\"\nextends = \"base\"\nmeta_package = \"mattos-cli\"\ndefault_target = \"multi-user.target\"\n",
@@ -3805,14 +3932,22 @@ mod tests {
         ]
         .join("\n");
         let packages = parse_repository_packages(&body, repository.path()).unwrap();
-        let selection = resolve_installed_packages(&["mattos-cli", TOOLCHAIN_META_PACKAGE], &packages)
-            .unwrap()
-            .into_iter()
-            .map(|package| package.name)
-            .collect::<Vec<_>>();
+        let selection =
+            resolve_installed_packages(&["mattos-cli", TOOLCHAIN_META_PACKAGE], &packages)
+                .unwrap()
+                .into_iter()
+                .map(|package| package.name)
+                .collect::<Vec<_>>();
         assert_eq!(
             selection,
-            ["libc6", "mattos-base", "mattos-cli", "gcc", "rustc", TOOLCHAIN_META_PACKAGE]
+            [
+                "libc6",
+                "mattos-base",
+                "mattos-cli",
+                "gcc",
+                "rustc",
+                TOOLCHAIN_META_PACKAGE
+            ]
         );
         // The offline composition requests exactly these roots.
         let source = include_str!("mod.rs");
@@ -3852,7 +3987,7 @@ mod tests {
         // deliberately models two catalog transactions to prove an earlier
         // failure cannot abort a later independent application.
         let calls = std::cell::Cell::new(0usize);
-        let results = provision_optional_packages_with(&candidate, |_| {
+        let results = provision_optional_packages_with(&candidate.optional_packages, |_| {
             let current = calls.get();
             calls.set(current + 1);
             if current == 0 {

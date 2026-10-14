@@ -165,9 +165,24 @@ fn build_perl(repo_root: &Path) -> Result<()> {
     run_cmd_with_env_overrides(
         &source,
         "make",
-        &["install", &format!("DESTDIR={}", install.display())],
+        &["install.perl", &format!("DESTDIR={}", install.display())],
         &[],
     )?;
+    // With man3dir disabled, installman otherwise prepends DESTDIR to an
+    // empty configured path and writes hundreds of module manuals at its
+    // root. Only install.man forwards INSTALLFLAGS to installman: explicitly
+    // disable man3 there while retaining the command manuals under /usr.
+    run_cmd_with_env_overrides(
+        &source,
+        "make",
+        &[
+            "install.man",
+            &format!("DESTDIR={}", install.display()),
+            "INSTALLFLAGS=--man3dir ''",
+        ],
+        &[],
+    )?;
+    packaging::validate_perl_install_layout(&install)?;
     relocate_toolchain_configuration(
         repo_root,
         &[
@@ -177,6 +192,7 @@ fn build_perl(repo_root: &Path) -> Result<()> {
     )?;
     for relative in [
         "usr/bin/perl".to_string(),
+        "usr/share/man/man1/perl.1".to_string(),
         format!("usr/share/perl/{api}/strict.pm"),
         format!("usr/lib/x86_64-linux-gnu/perl/{api}/Config.pm"),
     ] {

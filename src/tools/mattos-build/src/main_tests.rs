@@ -1,6 +1,54 @@
 use super::*;
 
 #[test]
+fn perl_install_layout_accepts_usr_and_rejects_root_payloads() {
+    let temp = tempfile::tempdir().unwrap();
+    let install = temp.path();
+    assert!(packaging::validate_perl_install_layout(install).is_err());
+    fs::create_dir_all(install.join("usr/share/man/man1")).unwrap();
+    fs::write(install.join("usr/share/man/man1/perl.1"), "manual").unwrap();
+    packaging::validate_perl_install_layout(install).unwrap();
+    let stray = install.join("AnyDBM_File.0");
+    fs::write(&stray, "module manual").unwrap();
+    assert!(
+        packaging::validate_perl_install_layout(install)
+            .unwrap_err()
+            .to_string()
+            .contains("AnyDBM_File.0")
+    );
+    fs::remove_file(&stray).unwrap();
+    std::os::unix::fs::symlink("missing", &stray).unwrap();
+    assert!(packaging::validate_perl_install_layout(install).is_err());
+    fs::remove_file(&stray).unwrap();
+    fs::create_dir(install.join("man3")).unwrap();
+    assert!(packaging::validate_perl_install_layout(install).is_err());
+}
+
+#[test]
+fn perl_install_layout_rejects_usr_symlink() {
+    let temp = tempfile::tempdir().unwrap();
+    fs::create_dir(temp.path().join("prefix")).unwrap();
+    fs::create_dir(temp.path().join("install")).unwrap();
+    std::os::unix::fs::symlink("../prefix", temp.path().join("install/usr")).unwrap();
+    assert!(packaging::validate_perl_install_layout(&temp.path().join("install")).is_err());
+}
+
+#[test]
+fn perl_install_guard_does_not_add_a_cross_toolchain_recipe_input() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let inputs = recipe_projection::implicit_recipe_inputs(
+        &root,
+        "cross-toolchain",
+        &stage_inputs::source_inputs(BuildStage::CrossToolchain),
+    )
+    .unwrap();
+    assert!(
+        !inputs.iter().any(|path| path.ends_with("stages/build_tools.rs")),
+        "the package layout guard must not invalidate unrelated build recipes: {inputs:?}"
+    );
+}
+
+#[test]
 fn autotools_regenerates_configure_for_new_or_stale_inputs_only() {
     assert!(autotools_configure_needs_regeneration(false, true, false));
     assert!(autotools_configure_needs_regeneration(true, false, false));

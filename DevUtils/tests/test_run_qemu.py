@@ -44,6 +44,35 @@ from run_qemu import (
 
 
 class QemuNetworkArgumentsTests(unittest.TestCase):
+    def test_plasma_install_exercises_calamares_before_shutdown_without_cli_preinstall(self):
+        import base64
+        import shlex
+        import tomllib
+        for profile in ("cli", "plasma"):
+            with TemporaryDirectory() as raw:
+                root = Path(raw)
+                disk = root / "test.qcow2"
+                disk.write_bytes(b"test fixture")
+                with mock.patch("run_qemu.wait_for_socket"), mock.patch(
+                    "run_qemu.serial_command_stream", return_value="ok"
+                ) as serial:
+                    run_qemu._run_automatic_test_install(
+                        root, disk, (root / "qmp.sock", root / "serial.sock"), profile
+                    )
+                commands = [call.args[1] for call in serial.call_args_list]
+                plan = tomllib.loads(base64.b64decode(shlex.split(commands[0])[2]).decode())
+                self.assertEqual(plan["optional_packages"], [])
+                adapters = [i for i, command in enumerate(commands) if "calamares-target-executor" in command]
+                if profile == "plasma":
+                    self.assertEqual(len(adapters), 1)
+                    self.assertGreater(adapters[0], 0)
+                    self.assertLess(adapters[0], len(commands) - 1)
+                    self.assertIn("--phase finalize --profile plasma", commands[adapters[0]])
+                    self.assertIn("/run/mattos-calamares-finalize-test", commands[adapters[0]])
+                else:
+                    self.assertEqual(adapters, [])
+                self.assertIn("mattos-test-poweroff", commands[-1])
+
     def test_installed_plasma_verifier_checks_dynamic_applet_elf_and_qml_failures(self) -> None:
         probes = dict(installed_plasma_applet_runtime_probes())
         runtime = probes["plasma-applet-runtime-libraries"]

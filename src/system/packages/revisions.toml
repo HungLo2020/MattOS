@@ -16,10 +16,12 @@ schema_version = 1
 [package]
 "appstream" = { upstream = "1.1.6", revision = 2 }
 "ark" = { upstream = "26.08.1", revision = 3 }
+"autoconf" = { upstream = "2.73", revision = 2 }
+"automake" = { upstream = "1:1.19", revision = 2 }
 "bluez" = { upstream = "5.87", revision = 2 }
-"breeze" = { upstream = "6.6.5", revision = 5 }
+"breeze" = { upstream = "6.6.5", revision = 6 }
 "breeze-icons" = { upstream = "6.26.0", revision = 3 }
-"calamares" = { upstream = "3.4.3", revision = 6 }
+"calamares" = { upstream = "3.4.3", revision = 7 }
 "cargo" = { upstream = "1.97.1", revision = 2 }
 "dolphin" = { upstream = "26.08.1", revision = 3 }
 "elisa" = { upstream = "26.08.1", revision = 3 }
@@ -143,10 +145,11 @@ schema_version = 1
 "mattos-base-runtime" = { upstream = "0.1", revision = 3 }
 "mattos-brush" = { upstream = "0.4.0", revision = 2 }
 "mattos-cli" = { upstream = "0.1", revision = 4 }
-"mattos-installer" = { upstream = "0.1", revision = 4 }
-"mattos-plasma" = { upstream = "0.1", revision = 7 }
-"mattos-plasma-live" = { upstream = "0.1", revision = 5 }
-"mattos-toolchain" = { upstream = "0.1", revision = 3 }
+"mattos-installer" = { upstream = "0.1", revision = 5 }
+"mattos-plasma" = { upstream = "0.1", revision = 8 }
+"mattos-plasma-live" = { upstream = "0.1", revision = 6 }
+"mattos-plasma-theme" = { upstream = "0.1", revision = 2 }
+"mattos-toolchain" = { upstream = "0.1", revision = 4 }
 "mesa-vulkan-drivers" = { upstream = "26.1.7+git20260812.152227.e8617e4ca95f", revision = 2 }
 "meson" = { upstream = "1.12.1", revision = 2 }
 "milou" = { upstream = "6.6.5", revision = 3 }
@@ -157,9 +160,10 @@ schema_version = 1
 "ostree" = { upstream = "2026.1", revision = 2 }
 "packagekit" = { upstream = "1.4.0", revision = 4 }
 "partitionmanager" = { upstream = "25.12.3", revision = 4 }
+"perl" = { upstream = "5.44.0", revision = 2 }
 "plasma-activities" = { upstream = "6.6.5", revision = 3 }
 "plasma-activities-stats" = { upstream = "6.6.5", revision = 3 }
-"plasma-desktop" = { upstream = "6.6.5", revision = 5 }
+"plasma-desktop" = { upstream = "6.6.5", revision = 6 }
 "plasma-discover" = { upstream = "6.6.5", revision = 4 }
 "plasma-framework" = { upstream = "6.6.5", revision = 3 }
 "plasma-login-manager" = { upstream = "6.6.5", revision = 5 }

@@ -30,6 +30,13 @@ For UID 1000, logind and `user-runtime-dir@1000.service` create `/run/user/1000`
 
 The design is UID-generic. A normally authenticated temporary user receives `/run/user/<uid>`, `user@<uid>.service`, its own manager, and its own bus; generic PAM policy and user units contain no UID 1000 paths.
 
+Plasma's environment file does not set `XCURSOR_THEME` or `XCURSOR_SIZE`.
+KWin reads the cursor selection from KDE configuration instead:
+`mattos-plasma-theme` supplies `material_light_cursors` at size 24 in
+`/etc/xdg/kcminputrc`, and users can override those defaults in their own
+KDE settings. Forcing both variables in the session environment would
+override that selection, including the Material default.
+
 ## Per-user D-Bus
 
 MattOS installs minimal user units under `/usr/lib/systemd/user`:
