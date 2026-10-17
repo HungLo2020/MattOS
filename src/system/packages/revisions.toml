@@ -21,7 +21,7 @@ schema_version = 1
 "bluez" = { upstream = "5.87", revision = 2 }
 "breeze" = { upstream = "6.6.5", revision = 7 }
 "breeze-icons" = { upstream = "6.26.0", revision = 3 }
-"calamares" = { upstream = "3.4.3", revision = 8 }
+"calamares" = { upstream = "3.4.3", revision = 9 }
 "cargo" = { upstream = "1.97.1", revision = 2 }
 "dolphin" = { upstream = "26.08.1", revision = 3 }
 "elisa" = { upstream = "26.08.1", revision = 3 }
@@ -141,13 +141,13 @@ schema_version = 1
 "libxmlb2" = { upstream = "0.3.29", revision = 2 }
 "linux-modules-7.2.8-mattos" = { upstream = "7.2.8", revision = 2 }
 "linux-modules-nvidia-595-open-7.2.8-mattos" = { upstream = "595.84", revision = 2 }
-"mattos-base" = { upstream = "0.1", revision = 6 }
-"mattos-base-files" = { upstream = "0.1", revision = 4 }
+"mattos-base" = { upstream = "0.1", revision = 7 }
+"mattos-base-files" = { upstream = "0.1", revision = 5 }
 "mattos-base-runtime" = { upstream = "0.1", revision = 3 }
 "mattos-brush" = { upstream = "0.4.0", revision = 2 }
-"mattos-cli" = { upstream = "0.1", revision = 6 }
+"mattos-cli" = { upstream = "0.1", revision = 7 }
 "mattos-installer" = { upstream = "0.1", revision = 6 }
-"mattos-plasma" = { upstream = "0.1", revision = 10 }
+"mattos-plasma" = { upstream = "0.1", revision = 11 }
 "mattos-plasma-live" = { upstream = "0.1", revision = 8 }
 "mattos-plasma-theme" = { upstream = "0.1", revision = 3 }
 "mattos-toolchain" = { upstream = "0.1", revision = 4 }

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import sys
+import json
+import hashlib
+import subprocess
 import tomllib
 import unittest
 from pathlib import Path
@@ -12,6 +15,90 @@ from common import RepoError
 
 
 class PublishPackagesTests(unittest.TestCase):
+    def release_fixture(self, root):
+        component = root / "base.deb"
+        component.write_bytes(b"component fixture")
+        ordinary = PublishPackages.InventoryPackage("mattos-base", "0.1-1mattos7", "amd64", hashlib.sha256(component.read_bytes()).hexdigest(), component, ())
+        release = PublishPackages.InventoryPackage("mattos-release", "26.10.1-1mattos1", "amd64", "b" * 64, root / "release.deb", ())
+        lock = root / "src/system/release/manifests/26.10.1.json"
+        lock.parent.mkdir(parents=True)
+        manifest = {"schema_version": 1, "version": "26.10.1", "packages": {ordinary.name: ordinary.version, release.name: release.version}, "migrations": []}
+        lock.write_text(json.dumps(manifest))
+        staging = root / "release-staging"
+        (staging / "DEBIAN").mkdir(parents=True)
+        (staging / "DEBIAN/control").write_text(f"Package: {release.name}\nVersion: {release.version}\nArchitecture: amd64\nMaintainer: Test <test@example.test>\nDescription: release fixture\n")
+        target = staging / "usr/share/mattos/release.json"
+        target.parent.mkdir(parents=True)
+        target.write_text(json.dumps(manifest))
+        subprocess.run(["dpkg-deb", "--build", "--root-owner-group", str(staging), str(release.artifact)],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        release = PublishPackages.InventoryPackage(release.name, release.version, release.architecture,
+            hashlib.sha256(release.artifact.read_bytes()).hexdigest(), release.artifact, ())
+        return ordinary, release
+
+    def test_changed_artifact_is_rejected_before_uploading_any_package(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ordinary, release = self.release_fixture(root)
+            ordinary.artifact.write_bytes(b"changed after validation")
+            with mock.patch.object(PublishPackages, "inventory_packages", return_value=[ordinary, release]), mock.patch.object(
+                PublishPackages, "upload_packages"
+            ) as upload:
+                with self.assertRaisesRegex(RepoError, "tested inventory SHA-256"):
+                    PublishPackages.publish_release_last(root, [ordinary, release], dry_run=False)
+            upload.assert_not_called()
+
+    def test_release_is_uploaded_after_verified_component_packages(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ordinary, release = self.release_fixture(root)
+            hosted = f"Package: {ordinary.name}\nVersion: {ordinary.version}\nArchitecture: amd64\nSHA256: {ordinary.sha256}\n\n"
+            with mock.patch.object(PublishPackages, "inventory_packages", return_value=[ordinary, release]), mock.patch.object(
+                PublishPackages, "published_index_url", return_value="https://example.test/Packages.gz"
+            ), mock.patch.object(PublishPackages, "fetch_published_index", return_value=hosted), mock.patch.object(
+                PublishPackages, "upload_packages"
+            ) as upload:
+                PublishPackages.publish_release_last(root, [release, ordinary], dry_run=False)
+            self.assertEqual(upload.call_args_list, [mock.call(root, [ordinary.artifact], dry_run=False), mock.call(root, [release.artifact], dry_run=False)])
+
+    def test_missing_or_wrong_hosted_package_withholds_release(self):
+        for sha in ("", "c" * 64):
+            with self.subTest(sha=sha), TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                ordinary, release = self.release_fixture(root)
+                hosted = f"Package: {ordinary.name}\nVersion: {ordinary.version}\nArchitecture: amd64\nSHA256: {sha}\n\n" if sha else ""
+                with mock.patch.object(PublishPackages, "inventory_packages", return_value=[ordinary, release]), mock.patch.object(
+                    PublishPackages, "published_index_url", return_value="https://example.test/Packages.gz"
+                ), mock.patch.object(PublishPackages, "fetch_published_index", return_value=hosted), mock.patch.object(
+                    PublishPackages, "upload_packages"
+                ) as upload:
+                    with self.assertRaisesRegex(RepoError, "remains unpublished"):
+                        PublishPackages.publish_release_last(root, [ordinary, release], dry_run=False)
+                upload.assert_called_once_with(root, [ordinary.artifact], dry_run=False)
+
+    def test_failed_component_upload_never_exposes_release(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ordinary, release = self.release_fixture(root)
+            with mock.patch.object(PublishPackages, "inventory_packages", return_value=[ordinary, release]), mock.patch.object(
+                PublishPackages, "upload_packages", side_effect=RepoError("offline")
+            ) as upload:
+                with self.assertRaisesRegex(RepoError, "offline"):
+                    PublishPackages.publish_release_last(root, [ordinary, release], dry_run=False)
+            upload.assert_called_once_with(root, [ordinary.artifact], dry_run=False)
+
+    def test_invalid_release_artifact_is_rejected_before_uploading_any_package(self):
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ordinary, release = self.release_fixture(root)
+            release.artifact.write_bytes(b"invalid deb")
+            with mock.patch.object(PublishPackages, "inventory_packages", return_value=[ordinary, release]), mock.patch.object(
+                PublishPackages, "upload_packages"
+            ) as upload:
+                with self.assertRaisesRegex(RepoError, "Cannot read release manifest"):
+                    PublishPackages.publish_release_last(root, [ordinary, release], dry_run=False)
+            upload.assert_not_called()
+
     def test_discovery_uses_inventory_and_ignores_stale_debs(self) -> None:
         with TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -50,6 +137,14 @@ class PublishPackagesTests(unittest.TestCase):
             self.assertEqual(args[0], Path("/repo"))
             self.assertFalse(args[1].no_build)
             self.assertTrue(args[1].clean)
+
+    def test_packages_only_uses_the_canonical_native_preparation_command(self) -> None:
+        with mock.patch("common.mattos_build_environment", return_value={}), mock.patch.object(
+            PublishPackages.subprocess, "run"
+        ) as run, mock.patch.object(PublishPackages.run_qemu, "build_if_needed") as image:
+            PublishPackages.ensure_build(Path("/repo"), clean=False, no_build=False, packages_only=True)
+        self.assertEqual([call.args[0][5:] for call in run.call_args_list], [["doctor"], ["prepare-packages"]])
+        image.assert_not_called()
 
     def test_upload_delegates_all_discovered_packages_to_vendored_manager(self) -> None:
         packages = [Path("/repo/out/packages/amd64/a.deb"), Path("/repo/out/packages/amd64/b.deb")]
@@ -263,10 +358,12 @@ class PublicationGuardTests(unittest.TestCase):
                 [dataclasses.replace(p, artifact=root / "out/packages/amd64" / p.artifact.name) for p in packages]
                 for packages in (before, after)
             )
-            args = mock.Mock(clean=False, no_build=True, dry_run=False, no_bump=False, no_upload=True)
-            result, upload = self.run_main(self.main_patches(root, args, [before, after]))
+            args = mock.Mock(clean=False, no_build=True, dry_run=False, no_bump=False, no_upload=True, packages_only=True)
+            builds = []
+            result, upload = self.run_main(self.main_patches(root, args, [before, after], build=lambda *a, **k: builds.append(k)))
             self.assertEqual(result, 0)
             upload.assert_not_called()
+            self.assertTrue(all(build["packages_only"] for build in builds))
             self.assertEqual(tomllib.loads(ledger.read_text())["package"], {"bash": {"upstream": "5.3", "revision": 2}})
 
     def test_main_refuses_or_only_reports_without_changing_anything(self) -> None:

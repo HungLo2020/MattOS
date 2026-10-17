@@ -2925,3 +2925,45 @@ branch = "v6.6.5"
 revision = "f3bf5e0dab35e321949e6994cc7f6654bdabfbd3"
 path = "src/desktop/kde/kde-cli-tools"
 sync = "copy"
+
+[[component]]
+name = "cifs-utils"
+repo = "https://git.samba.org/cifs-utils.git"
+branch = "cifs-utils-7.8"
+revision = "be9d47cc3c8f3842e8c6418885525130eeae87ed"
+path = "src/system/network/cifs-utils"
+sync = "copy"
+
+[[component]]
+name = "samba"
+repo = "https://git.samba.org/samba.git"
+branch = "samba-4.25.0"
+revision = "b439e3ec13425de85e03eb4ac394ad15273decf7"
+path = "src/system/network/samba"
+sync = "copy"
+
+[[component]]
+name = "nettle"
+repo = "https://git.lysator.liu.se/nettle/nettle.git"
+branch = "nettle_3.10.2_release_20250626"
+revision = "d9e983c664772f8cbacba9fa084bc079978e3c98"
+path = "src/system/security/nettle"
+sync = "copy"
+
+[[component]]
+name = "libtasn1"
+repo = "https://gitlab.com/gnutls/libtasn1.git"
+branch = "v4.21.0"
+revision = "4c9554ea0307678abc7952ee301aa5f68aa64aad"
+path = "src/system/security/libtasn1"
+sync = "copy"
+
+[[component]]
+name = "gnutls"
+repo = "https://gitlab.com/gnutls/gnutls.git"
+branch = "3.8.13"
+revision = "b390d80208ed60f1b33ad899475951a8efb40ccd"
+path = "src/system/security/gnutls"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/gitlinks.toml#gnutls"
+gitlink_policy = "upstream/policies/gitlinks.toml#gnutls"

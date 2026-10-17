@@ -4,6 +4,9 @@ The components of a running MattOS system.
 
 ## Notes
 
+- [Releases and Upgrades](releases.md)
+- [SMB Network Shares](network-shares.md)
+
 - [MattOS Installer](installer.md)
 - [Kernel Module Signing](kernel-module-signing.md)
 - [MattOS Wired/QEMU Networking](networking.md)

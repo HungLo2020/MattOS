@@ -1,0 +1,21 @@
+<samba:parameter name="winbind reconnect delay"
+                 context="G"
+                 type="integer"
+                 xmlns:samba="http://www.samba.org/samba/DTD/samba-doc">
+<description>
+	<para>This parameter specifies the number of seconds the
+	<citerefentry><refentrytitle>winbindd</refentrytitle>
+	<manvolnum>8</manvolnum></citerefentry> daemon will wait between
+	attempts to ping Domain Controllers for domains that have been
+	marked offline. When a domain is offline, winbindd will periodically
+	attempt to contact Domain Controllers to check if they have become
+	available again.</para>
+
+	<para>Before attempting to reconnect, winbindd flushes the negative
+	connection cache for the domain. The negative connection cache stores
+	Domain Controllers that have previously been unresponsive, to avoid
+	repeatedly trying to contact them.</para>
+</description>
+
+<value type="default">30</value>
+</samba:parameter>

@@ -44,6 +44,8 @@ pub(crate) use staging::{
     validate_perl_install_layout, validate_udev_hwdb_payload,
 };
 
+mod releases;
+pub(crate) use releases::write_release_lock;
 mod registry;
 pub(crate) use builder_image::build_builder_image;
 #[cfg(test)]
@@ -1162,6 +1164,13 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "libbytesize" => &["libbytesize"],
             "keyutils" => &["keyutils"],
             "libnvme" => &["libnvme"],
+            "mattos-upgrade" => &["mattos-upgrade"],
+            "samba-talloc" => &["talloc"],
+            "cifs-utils" => &["cifs-utils"],
+            "nettle" => &["nettle"],
+            "libtasn1" => &["libtasn1"],
+            "gnutls" => &["gnutls"],
+            "samba" => &["samba"],
             "popt" => &["popt"],
             "json-c" => &["json-c"],
             "lvm2" => &["lvm2"],
@@ -1314,6 +1323,8 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/desktop/themes/utterly-round-aurorae/Utterly-Round-Dark",
         ],
         "mattos-compat" => &["src/system/compat/mattos-compat"],
+        "mattos-release-data" => &["src/system/release/current.toml", "src/system/release/manifests", "src/system/release/migrations"],
+        "mattos-upgrade" => &["src/system/release/Cargo.toml", "src/system/release/src"],
         "MattOS" => &[
             "src/rootfs/skeleton",
             "src/system/packages/config",
@@ -1345,6 +1356,12 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "libbytesize" => &["src/system/libraries/libbytesize"],
         "keyutils" => &["src/system/security/keyutils"],
         "libnvme" => &["src/system/libraries/libnvme"],
+        "samba-talloc" => &["src/system/network/samba/lib/talloc"],
+        "cifs-utils" => &["src/system/network/cifs-utils"],
+        "nettle" => &["src/system/security/nettle"],
+        "libtasn1" => &["src/system/security/libtasn1"],
+        "gnutls" => &["src/system/security/gnutls"],
+        "samba" => &["src/system/network/samba"],
         "popt" => &["src/system/libraries/popt"],
         "json-c" => &["src/system/libraries/json-c"],
         "lvm2" => &["src/system/storage/lvm2"],
@@ -1865,6 +1882,9 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
 
 fn package_configuration_roots(package: &str) -> &'static [&'static str] {
     match package {
+        "calamares" => &["src/system/release/current.toml"],
+        "smbclient" => &["src/system/network/smbclient"],
+        "libtalloc2" => &["upstream/state/samba.toml"],
         "fonts-fira" => &["src/system/desktop/fonts"],
         "libpam-kwallet5" => &["src/system/session/kwallet"],
         "xdg-user-dirs" => &["src/system/session/user-directories"],
@@ -1952,8 +1972,20 @@ pub(crate) fn package_coreutils_applets(binary: &Path) -> Result<Vec<String>> {
 
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
+        "mattos-release" => releases::release_version(repo_root)?,
+        "mattos-upgrade" => cargo_package_version(&repo_root.join("src/system/release/Cargo.toml"))?,
         "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
         "mattos-compat" => "0.1.0".to_string(),
+        "libtalloc2" => fs::read_to_string(repo_root.join("src/system/network/samba/lib/talloc/wscript"))?
+            .lines().find_map(|line| line.strip_prefix("VERSION = '").and_then(|v| v.strip_suffix("'")))
+            .context("Talloc source version missing")?.to_string(),
+        "cifs-utils" => component_snapshot_version(repo_root, "cifs-utils")?,
+        "smbclient" => component_snapshot_version(repo_root, "samba")?,
+        "libnettle8t64" => component_snapshot_version(repo_root, "nettle")?,
+        "libhogweed6t64" => component_snapshot_version(repo_root, "nettle")?,
+        "libtasn1-6" => component_snapshot_version(repo_root, "libtasn1")?,
+        "libgnutls30t64" => component_snapshot_version(repo_root, "gnutls")?,
+
         "libc6" | "libc6-dev" | "libc-bin" | "locales" => {
             component_snapshot_version(repo_root, "glibc")?
         }
@@ -2472,6 +2504,7 @@ fn component_data_snapshot_version(repo_root: &Path, component: &str) -> Result<
 /// a snapshot version, which sorts below every release.
 fn release_version_from_branch(branch: &str) -> Option<String> {
     let mut tag = branch.rsplit('/').next()?;
+    if let Some(nettle) = tag.strip_prefix("nettle_") { return Some(nettle.split("_release_").next()?.to_string()); }
     if let Some(version) = openssh_release_version(tag) {
         return Some(version);
     }
@@ -2874,7 +2907,9 @@ fn write_provenance(
             repo_root, "slate", "src/userland/slate",
             "locked Cargo workspace built with MattOS Rust; GUI uses source-built MattOS Qt; separate terminal and graphical packages",
         )?,
-        component @ ("glibc" | "ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker"
+        "mattos-release-data" | "mattos-upgrade" => ("src/system/release".into(), "https://github.com/HungLo2020/MattOS".into(), "MattOS-owned".into(), "Independent OS release metadata, package cohort and migration coordinator".into()),
+        "samba-talloc" => component_provenance(repo_root, "samba", "src/system/network/samba/lib/talloc", "Talloc built from the pinned Samba source subtree")?,
+        component @ ("cifs-utils" | "samba" | "nettle" | "libtasn1" | "gnutls" | "glibc" | "ncurses" | "kmod" | "procps-ng" | "systemd" | "dbus-broker"
         | "linux-pam" | "shadow" | "sudo-rs" | "util-linux" | "iproute2"
         | "iputils" | "expat" | "libcap" | "acl" | "zlib" | "bzip2" | "lz4" | "xz"
         | "xxhash" | "zstd" | "nghttp2" | "openssl" | "elfutils" | "pcre2" | "selinux"

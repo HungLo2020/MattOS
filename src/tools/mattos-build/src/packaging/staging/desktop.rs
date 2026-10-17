@@ -890,6 +890,9 @@ pub(super) fn stage_calamares(repo_root: &Path, staging: &Path) -> Result<()> {
     // search mode (-X), and avoids having two configuration authorities.
     let config_root = staging.join("etc/calamares");
     copy_tree_preserving(&integration.join("branding"), &config_root.join("branding"))?;
+    let branding_file = config_root.join("branding/mattos/branding.desc");
+    let branding = fs::read_to_string(&branding_file)?;
+    fs::write(&branding_file, branding.replace("@MATTOS_VERSION@", &crate::packaging::releases::release_version(repo_root)?))?;
     copy_preserving(
         &integration.join("settings.conf"),
         &config_root.join("settings.conf"),

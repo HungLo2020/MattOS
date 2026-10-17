@@ -496,3 +496,67 @@ path = "demos/3rdparty/nuklear"
 upstream_commit = "242f35efa067a46c595645eeda7b1771ea1f83b1"
 action = "exclude"
 reason = "Demo programs are not built."
+
+[[component]]
+name = "gnutls"
+upstream_commit = "b390d80208ed60f1b33ad899475951a8efb40ccd"
+
+[[component.gitlink]]
+path = "cligen"
+upstream_commit = "67883b2490664e3ae0c9b21b919c38ac6ece6705"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "devel/abi-dump"
+upstream_commit = "3adc82d09a76595d5b3d1f467ea0594224757c73"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "devel/libtasn1"
+upstream_commit = "6b45b25e94ea538192cc0f97e9ad57171d1c6374"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "devel/nettle"
+upstream_commit = "40178e78ae73ec2a8cda8cd53664df9c73ac1961"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "devel/openssl"
+upstream_commit = "a7e992847de83aa36be0c399c89db3fb827b0be2"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "gnulib"
+upstream_commit = "1cc0125a28cba4e8503d853bf99b854fe4dd454c"
+action = "exclude"
+reason = "The verified official release archive supplies the generated Gnulib bootstrap closure in output-owned mirrors; retained source is overlaid from the pinned Git import."
+
+[[component.gitlink]]
+path = "tests/suite/tls-fuzzer/python-ecdsa"
+upstream_commit = "55aca7830c41af8d6b66ce2ba71fb9aac35085ec"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "tests/suite/tls-fuzzer/tlsfuzzer"
+upstream_commit = "14555fe211456c46deccc4b2d94751dbd894aece"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "tests/suite/tls-fuzzer/tlslite-ng"
+upstream_commit = "02d1506badb16473faf50ebc3a413c6d789fe31f"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."
+
+[[component.gitlink]]
+path = "tests/suite/tls-interoperability"
+upstream_commit = "20233dc815b05a10f34e5f67850d4d83f8409cab"
+action = "exclude"
+reason = "Optional development, interoperability, or test tooling is not used by the MattOS production library build."

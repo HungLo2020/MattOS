@@ -3,10 +3,10 @@ componentName: mattos
 strings:
     productName: MattOS
     shortProductName: MattOS
-    version: Development
-    shortVersion: Development
-    versionedName: MattOS Development
-    shortVersionedName: MattOS Development
+    version: @MATTOS_VERSION@
+    shortVersion: @MATTOS_VERSION@
+    versionedName: MattOS @MATTOS_VERSION@
+    shortVersionedName: MattOS @MATTOS_VERSION@
     bootloaderEntryName: MattOS
 images:
     productLogo: ""

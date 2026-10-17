@@ -90,3 +90,16 @@ the service never stopped; the publisher then still defaulted to the bare
 name. A `SERVER_URL` in `~/.config/mattos-repository/client.conf` or
 `MATTOS_REPOSITORY_SERVER_URL` overrides the default; keep it a fully
 qualified name.
+
+## OS release promotion
+
+`--packages-only` prepares packages and their APT repository through the Rust
+`prepare-packages` command, including source-stage freshness checks, while
+leaving ISO assembly to `run_qemu.py --build-only`. Combine it with `--no-upload`
+to prepare and test a release locally. Automatic revision rounds preserve this
+choice.
+
+The release package and its immutable package manifest are uploaded only after
+the required component packages are hosted with their tested hashes. See
+[Releases and Upgrades](../system/releases.md) for numbering, release locks,
+legacy bootstrap and migration policy.

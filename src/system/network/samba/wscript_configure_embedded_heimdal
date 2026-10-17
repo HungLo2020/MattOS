@@ -1,0 +1,18 @@
+if not conf.env['FLEX']:
+    conf.fatal("Embedded Heimdal build requires flex but it was not found.  Install flex or use --with-system-mitkrb5 or --with-system-heimdalkrb5")
+
+if not conf.env['BISON']:
+    conf.fatal("Embedded Heimdal build requires bison but it was not found.  Install bison or use --with-system-mitkrb5 or --with-system-heimdalkrb5")
+
+conf.define('USING_EMBEDDED_HEIMDAL', 1)
+conf.RECURSE('third_party/heimdal_build')
+
+#
+# See https://github.com/heimdal/heimdal/pull/1234
+# and https://github.com/krb5/krb5/pull/1329
+# when this will be available also in
+# system libraries...
+conf.define('HAVE_CLIENT_GSS_C_CHANNEL_BOUND_FLAG', 1)
+
+conf.define('HAVE_KRB5_INIT_CREDS_STEP', 1)
+conf.define('HAVE_GSS_KEY_VALUE_SET_DESC', 1)

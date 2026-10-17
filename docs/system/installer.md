@@ -224,7 +224,8 @@ since the guest reaches the repository over QEMU's user-mode network.
 
 A fresh install proves only that the current ISO installs. The upgrade test
 proves that a system installed from an earlier ISO upgrades to the current
-build with plain APT and still passes every installed-system check:
+build through the APT-backed release coordinator and still passes every
+installed-system check:
 
 ```text
 python3 DevUtils/run_qemu.py --save-upgrade-baseline
@@ -243,10 +244,13 @@ SHA-256 and git commit); save one from each build you treat as a release.
    loopback at `10.0.2.2`). A temporary APT source names it; the hosted
    repository is disabled meanwhile, so the test upgrades to exactly what was
    built, before anything is published;
-3. runs `apt-get full-upgrade` and requires that nothing was held back, that
-   no upgrade work remains, that `dpkg --audit` is clean, and that every
-   installed package MattOS builds is at its built version
-   (`out/packages/inventory.toml`);
+3. bootstraps `mattos-upgrade`, runs its `plan`, `apply --yes` and `status`
+   commands, and verifies the completed journal and migration state. It
+   requires that nothing was held back, that no APT upgrade work remains,
+   that `dpkg --audit` is clean, and that every installed package MattOS builds
+   is at its built version (`out/packages/inventory.toml`). Sentinel user data
+   and a change to `/etc/profile` must survive. A build without release
+   metadata uses the legacy `apt-get full-upgrade` path;
 4. restores the installed APT sources, reboots, and runs the same boot
    checks as `--install` (for Plasma, the graphical login, session and reboot
    checks too).

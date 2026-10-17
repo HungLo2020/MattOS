@@ -1,0 +1,721 @@
+/*
+   Unix SMB/CIFS implementation.
+   DNS utility library
+   Copyright (C) Gerald (Jerry) Carter           2006.
+   Copyright (C) Jeremy Allison                  2007.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "includes.h"
+#include "lib/util/util_net.h"
+#include "lib/util/tsort.h"
+#include "libcli/dns/dns_lookup.h"
+#include "lib/util/tevent_ntstatus.h"
+#include "dnsquery.h"
+
+/*********************************************************************
+ Sort SRV record list based on weight and priority.  See RFC 2782.
+*********************************************************************/
+
+static int dnssrvcmp( struct dns_rr_srv *a, struct dns_rr_srv *b )
+{
+	if ( a->priority == b->priority ) {
+
+		/* randomize entries with an equal weight and priority */
+		if ( a->weight == b->weight )
+			return 0;
+
+		/* higher weights should be sorted lower */
+		if ( a->weight > b->weight )
+			return -1;
+		else
+			return 1;
+	}
+
+	if ( a->priority < b->priority )
+		return -1;
+
+	return 1;
+}
+
+struct ads_dns_lookup_srv_state {
+	struct dns_rr_srv *srvs;
+	size_t num_srvs;
+};
+
+static void ads_dns_lookup_srv_done(struct tevent_req *subreq);
+
+struct tevent_req *ads_dns_lookup_srv_send(TALLOC_CTX *mem_ctx,
+					   struct tevent_context *ev,
+					   const char *name)
+{
+	struct tevent_req *req, *subreq;
+	struct ads_dns_lookup_srv_state *state;
+
+	req = tevent_req_create(mem_ctx, &state,
+				struct ads_dns_lookup_srv_state);
+	if (req == NULL) {
+		return NULL;
+	}
+
+	subreq = dns_lookup_send(
+		state,
+		ev,
+		NULL,
+		name,
+		DNS_QCLASS_IN,
+		DNS_QTYPE_SRV);
+
+	if (tevent_req_nomem(subreq, req)) {
+		return tevent_req_post(req, ev);
+	}
+	tevent_req_set_callback(subreq, ads_dns_lookup_srv_done, req);
+	return req;
+}
+
+static void ads_dns_lookup_srv_done(struct tevent_req *subreq)
+{
+	struct tevent_req *req = tevent_req_callback_data(
+		subreq, struct tevent_req);
+	struct ads_dns_lookup_srv_state *state = tevent_req_data(
+		req, struct ads_dns_lookup_srv_state);
+	int ret;
+	struct dns_name_packet *reply;
+	uint16_t i, idx;
+
+	ret = dns_lookup_recv(subreq, state, &reply);
+	TALLOC_FREE(subreq);
+	if (ret != 0) {
+		tevent_req_nterror(req, map_nt_error_from_unix_common(ret));
+		return;
+	}
+
+	for (i=0; i<reply->ancount; i++) {
+		if (reply->answers[i].rr_type == DNS_QTYPE_SRV) {
+			/* uint16_t can't wrap here. */
+			state->num_srvs += 1;
+		}
+	}
+
+	state->srvs = talloc_array(state, struct dns_rr_srv, state->num_srvs);
+	if (tevent_req_nomem(state->srvs, req)) {
+		return;
+	}
+
+	idx = 0;
+
+	for (i=0; i<reply->ancount; i++) {
+		struct dns_res_rec *an = &reply->answers[i];
+		struct dns_rr_srv *dst = &state->srvs[idx];
+		struct dns_srv_record *src;
+
+		if (an->rr_type != DNS_QTYPE_SRV) {
+			continue;
+		}
+		src = &an->rdata.srv_record;
+
+		*dst = (struct dns_rr_srv) {
+			.hostname = talloc_move(state->srvs, &src->target),
+			.priority = src->priority,
+			.weight = src->weight,
+			.port = src->port,
+		};
+		idx += 1;
+	}
+
+	for (i=0; i<reply->arcount; i++) {
+		struct dns_res_rec *ar = &reply->additional[i];
+		struct samba_sockaddr addr = {};
+		bool ok;
+		size_t j;
+
+		ok = dns_res_rec_get_sockaddr(ar, &addr);
+		if (!ok) {
+			continue;
+		}
+
+		for (j=0; j<state->num_srvs; j++) {
+			struct dns_rr_srv *srv = &state->srvs[j];
+			struct samba_sockaddr *tmp = NULL;
+
+			/*
+			 * sometimes the name gets messed up
+			 * with upper and lower case...
+			 */
+			if (!strequal(srv->hostname, ar->name)) {
+				continue;
+			}
+			/* uint16_t can't wrap here. */
+			tmp = talloc_realloc(state->srvs,
+					     srv->ss_s,
+					     struct samba_sockaddr,
+					     srv->num_ips + 1);
+
+			if (tevent_req_nomem(tmp, req)) {
+				return;
+			}
+			srv->ss_s = tmp;
+
+			srv->ss_s[srv->num_ips] = addr;
+			srv->num_ips += 1;
+		}
+	}
+
+	TYPESAFE_QSORT(state->srvs, state->num_srvs, dnssrvcmp);
+
+	tevent_req_done(req);
+}
+
+NTSTATUS ads_dns_lookup_srv_recv(struct tevent_req *req,
+				 TALLOC_CTX *mem_ctx,
+				 struct dns_rr_srv **srvs,
+				 size_t *num_srvs)
+{
+	struct ads_dns_lookup_srv_state *state = tevent_req_data(
+		req, struct ads_dns_lookup_srv_state);
+	NTSTATUS status;
+
+	if (tevent_req_is_nterror(req, &status)) {
+		return status;
+	}
+	*srvs = talloc_move(mem_ctx, &state->srvs);
+	*num_srvs = state->num_srvs;
+	tevent_req_received(req);
+	return NT_STATUS_OK;
+}
+
+/*********************************************************************
+ Simple wrapper for a DNS SRV query
+*********************************************************************/
+
+NTSTATUS ads_dns_lookup_srv(TALLOC_CTX *ctx,
+				const char *name,
+				struct dns_rr_srv **dclist,
+				size_t *numdcs)
+{
+	struct tevent_context *ev;
+	struct tevent_req *req;
+	NTSTATUS status = NT_STATUS_NO_MEMORY;
+	size_t num_srvs = 0;
+
+	ev = samba_tevent_context_init(ctx);
+	if (ev == NULL) {
+		goto fail;
+	}
+	req = ads_dns_lookup_srv_send(ev, ev, name);
+	if (req == NULL) {
+		goto fail;
+	}
+	if (!tevent_req_poll_ntstatus(req, ev, &status)) {
+		goto fail;
+	}
+	status = ads_dns_lookup_srv_recv(req, ctx, dclist, &num_srvs);
+	if (NT_STATUS_IS_OK(status)) {
+		*numdcs = num_srvs;
+	}
+fail:
+	TALLOC_FREE(ev);
+	return status;
+}
+
+static bool ads_dns_add_ns_ip(struct dns_rr_ns *nss,
+			      size_t num_nss,
+			      const char *hostname,
+			      const struct samba_sockaddr *addr)
+{
+	size_t i;
+
+	for (i = 0; i < num_nss; i++) {
+		struct dns_rr_ns *ns = &nss[i];
+		size_t num_ips = talloc_array_length(ns->ss_s);
+		struct samba_sockaddr *tmp = NULL;
+
+		if (!strequal(ns->hostname, hostname)) {
+			continue;
+		}
+
+		if (num_ips == SIZE_MAX) {
+			continue;
+		}
+
+		tmp = talloc_realloc(nss,
+				     ns->ss_s,
+				     struct samba_sockaddr,
+				     num_ips + 1);
+		if (tmp == NULL) {
+			return false;
+		}
+		ns->ss_s = tmp;
+		ns->ss_s[num_ips] = *addr;
+	}
+
+	return true;
+}
+
+struct ads_dns_lookup_ns_state {
+	struct tevent_context *ev;
+	uint32_t timeout;
+	struct dns_rr_ns *nss;
+	size_t num_nss;
+	size_t num_pending;
+};
+
+static void ads_dns_lookup_ns_done(struct tevent_req *subreq);
+static void ads_dns_lookup_ns_in_done(struct tevent_req *subreq);
+
+struct tevent_req *ads_dns_lookup_ns_send(TALLOC_CTX *mem_ctx,
+					  struct tevent_context *ev,
+					  const char *name,
+					  uint32_t timeout)
+{
+	struct tevent_req *req, *subreq;
+	struct ads_dns_lookup_ns_state *state;
+
+	req = tevent_req_create(mem_ctx, &state,
+				struct ads_dns_lookup_ns_state);
+	if (req == NULL) {
+		return NULL;
+	}
+	state->ev = ev;
+	state->timeout = timeout;
+
+	subreq = dns_lookup_send(state, ev, NULL, name, DNS_QCLASS_IN,
+				 DNS_QTYPE_NS);
+	if (tevent_req_nomem(subreq, req)) {
+		return tevent_req_post(req, ev);
+	}
+	tevent_req_set_callback(subreq, ads_dns_lookup_ns_done, req);
+	return req;
+}
+
+static void ads_dns_lookup_ns_done(struct tevent_req *subreq)
+{
+	struct tevent_req *req = tevent_req_callback_data(
+		subreq, struct tevent_req);
+	struct ads_dns_lookup_ns_state *state = tevent_req_data(
+		req, struct ads_dns_lookup_ns_state);
+	int ret;
+	struct dns_name_packet *reply;
+	uint16_t i, idx;
+	struct timeval endtime;
+
+	ret = dns_lookup_recv(subreq, state, &reply);
+	TALLOC_FREE(subreq);
+	if (ret != 0) {
+		tevent_req_nterror(req, map_nt_error_from_unix_common(ret));
+		return;
+	}
+
+	for (i=0; i<reply->ancount; i++) {
+		if (reply->answers[i].rr_type == DNS_QTYPE_NS) {
+			state->num_nss += 1;
+		}
+	}
+
+	state->nss = talloc_array(state, struct dns_rr_ns, state->num_nss);
+	if (tevent_req_nomem(state->nss, req)) {
+		return;
+	}
+
+	idx = 0;
+
+	for (i=0; i<reply->ancount; i++) {
+		struct dns_res_rec *an = &reply->answers[i];
+
+		if (an->rr_type != DNS_QTYPE_NS) {
+			continue;
+		}
+
+		state->nss[idx] = (struct dns_rr_ns){
+			.hostname = talloc_move(state->nss,
+						&an->rdata.ns_record),
+		};
+		idx += 1;
+	}
+
+	for (i=0; i<reply->arcount; i++) {
+		struct dns_res_rec *ar = &reply->additional[i];
+		struct samba_sockaddr addr = {};
+		bool ok;
+
+		ok = dns_res_rec_get_sockaddr(ar, &addr);
+		if (!ok) {
+			continue;
+		}
+
+		ok = ads_dns_add_ns_ip(state->nss,
+				       state->num_nss,
+				       ar->name,
+				       &addr);
+		if (!ok) {
+			tevent_req_oom(req);
+			return;
+		}
+	}
+
+	if (state->timeout == 0) {
+		/*
+		 * Queries for IPs don't have time, don't schedule
+		 * them.
+		 */
+		tevent_req_done(req);
+		return;
+	}
+	endtime = tevent_timeval_current_ofs(state->timeout, 0);
+
+	/*
+	 * Launch address queries for any NS records that don't have
+	 * IP addresses from the additional section
+	 */
+	for (i = 0; i < state->num_nss; i++) {
+		struct dns_rr_ns *ns = &state->nss[i];
+		size_t num_ips = talloc_array_length(ns->ss_s);
+		bool ok;
+
+		if (num_ips > 0) {
+			/* Already have IPs from additional records */
+			continue;
+		}
+
+		subreq = ads_dns_lookup_in_send(state,
+						state->ev,
+						ns->hostname);
+		if (tevent_req_nomem(subreq, req)) {
+			return;
+		}
+		tevent_req_set_callback(subreq,
+					ads_dns_lookup_ns_in_done,
+					req);
+
+		ok = tevent_req_set_endtime(subreq, state->ev, endtime);
+		if (!ok) {
+			tevent_req_oom(req);
+			return;
+		}
+
+		state->num_pending += 1;
+	}
+
+	if (state->num_pending == 0) {
+		/* All NS records already have IPs, we're done */
+		tevent_req_done(req);
+		return;
+	}
+}
+
+static void ads_dns_lookup_ns_in_done(struct tevent_req *subreq)
+{
+	struct tevent_req *req = tevent_req_callback_data(subreq,
+							  struct tevent_req);
+	struct ads_dns_lookup_ns_state *state = tevent_req_data(
+		req, struct ads_dns_lookup_ns_state);
+	size_t num_addrs = 0;
+	char **hostnames = NULL;
+	struct samba_sockaddr *addrs = NULL;
+	NTSTATUS status;
+
+	status = ads_dns_lookup_in_recv(subreq, state, &hostnames, &addrs);
+	TALLOC_FREE(subreq);
+
+	state->num_pending -= 1;
+
+	num_addrs = talloc_array_length(addrs);
+
+	if (NT_STATUS_IS_OK(status) && num_addrs > 0) {
+		size_t j;
+		bool ok;
+
+		/* Add all A records for this hostname */
+		for (j = 0; j < num_addrs; j++) {
+			ok = ads_dns_add_ns_ip(state->nss,
+					       state->num_nss,
+					       hostnames[0],
+					       &addrs[j]);
+			if (!ok) {
+				tevent_req_oom(req);
+				return;
+			}
+		}
+	}
+
+	if (state->num_pending == 0) {
+		tevent_req_done(req);
+	}
+}
+
+NTSTATUS ads_dns_lookup_ns_recv(struct tevent_req *req,
+				TALLOC_CTX *mem_ctx,
+				struct dns_rr_ns **nss,
+				size_t *num_nss)
+{
+	struct ads_dns_lookup_ns_state *state = tevent_req_data(
+		req, struct ads_dns_lookup_ns_state);
+	NTSTATUS status;
+
+	if (tevent_req_is_nterror(req, &status)) {
+		return status;
+	}
+	*nss = talloc_move(mem_ctx, &state->nss);
+	*num_nss = state->num_nss;
+	tevent_req_received(req);
+	return NT_STATUS_OK;
+}
+
+/*********************************************************************
+ Simple wrapper for a DNS NS query
+*********************************************************************/
+
+NTSTATUS ads_dns_lookup_ns(TALLOC_CTX *ctx,
+			   const char *dnsdomain,
+			   uint32_t timeout,
+			   struct dns_rr_ns **nslist,
+			   size_t *numns)
+{
+	struct tevent_context *ev;
+	struct tevent_req *req;
+	NTSTATUS status = NT_STATUS_NO_MEMORY;
+	size_t num_ns = 0;
+
+	ev = samba_tevent_context_init(ctx);
+	if (ev == NULL) {
+		goto fail;
+	}
+	req = ads_dns_lookup_ns_send(ev, ev, dnsdomain, timeout);
+	if (req == NULL) {
+		goto fail;
+	}
+	if (!tevent_req_poll_ntstatus(req, ev, &status)) {
+		goto fail;
+	}
+	status = ads_dns_lookup_ns_recv(req, ctx, nslist, &num_ns);
+	*numns = num_ns;
+fail:
+	TALLOC_FREE(ev);
+	return status;
+}
+
+/*********************************************************************
+ Async A/AAAA lookup.
+*********************************************************************/
+
+struct ads_dns_lookup_in_state {
+	const char *hostname;
+	struct tevent_req *subreq_a;
+	struct tevent_req *subreq_aaaa;
+	char **names;
+	struct samba_sockaddr *addrs;
+};
+
+static void ads_dns_lookup_in_done(struct tevent_req *subreq);
+
+struct tevent_req *ads_dns_lookup_in_send(TALLOC_CTX *mem_ctx,
+					  struct tevent_context *ev,
+					  const char *name)
+{
+	struct tevent_req *req = NULL, *subreq = NULL;
+	struct ads_dns_lookup_in_state *state = NULL;
+
+	req = tevent_req_create(mem_ctx,
+				&state,
+				struct ads_dns_lookup_in_state);
+	if (req == NULL) {
+		return NULL;
+	}
+	state->hostname = name;
+
+	subreq = dns_lookup_send(
+		state, ev, NULL, name, DNS_QCLASS_IN, DNS_QTYPE_AAAA);
+	if (tevent_req_nomem(subreq, req)) {
+		return tevent_req_post(req, ev);
+	}
+	tevent_req_set_callback(subreq, ads_dns_lookup_in_done, req);
+	state->subreq_aaaa = subreq;
+
+	subreq = dns_lookup_send(
+		state, ev, NULL, name, DNS_QCLASS_IN, DNS_QTYPE_A);
+	if (tevent_req_nomem(subreq, req)) {
+		return tevent_req_post(req, ev);
+	}
+	tevent_req_set_callback(subreq, ads_dns_lookup_in_done, req);
+	state->subreq_a = subreq;
+
+	return req;
+}
+
+static void ads_dns_lookup_in_done(struct tevent_req *subreq)
+{
+	struct tevent_req *req = tevent_req_callback_data(subreq,
+							  struct tevent_req);
+	struct ads_dns_lookup_in_state *state = tevent_req_data(
+		req, struct ads_dns_lookup_in_state);
+	int ret;
+	struct dns_name_packet *reply = NULL;
+	size_t num_replies;
+	enum dns_qtype qtype;
+	uint8_t rcode;
+	uint16_t i;
+
+	if (subreq == state->subreq_aaaa) {
+		qtype = DNS_QTYPE_AAAA;
+		state->subreq_aaaa = NULL;
+	} else if (subreq == state->subreq_a) {
+		qtype = DNS_QTYPE_A;
+		state->subreq_a = NULL;
+	} else {
+		tevent_req_nterror(req, NT_STATUS_INTERNAL_ERROR);
+		return;
+	}
+
+	ret = dns_lookup_recv(subreq, state, &reply);
+	TALLOC_FREE(subreq);
+	if (ret != 0) {
+		DBG_INFO("dns_lookup_recv returned %s\n", strerror(ret));
+		goto done;
+	}
+
+	ret = ENOENT;
+
+	rcode = (reply->operation & DNS_RCODE);
+	if (rcode != DNS_RCODE_OK) {
+		DBG_INFO("async DNS %s lookup for %s returned DNS code "
+			 "%" PRIu8 "\n",
+			 qtype == DNS_QTYPE_A ? "A" : "AAAA",
+			 state->hostname,
+			 rcode);
+		goto done;
+	}
+
+	for (i = 0; i < reply->ancount; i++) {
+		struct dns_res_rec *an = &reply->answers[i];
+		struct samba_sockaddr ss = {};
+		bool ok;
+
+		if (an->rr_type != qtype) {
+			continue;
+		}
+		if (an->name == NULL) {
+			/* Can this happen? */
+			continue;
+		}
+		ok = dns_res_rec_get_sockaddr(an, &ss);
+		if (!ok) {
+			continue;
+		}
+		if (is_zero_addr(&ss.u.ss)) {
+			continue;
+		}
+
+		num_replies = talloc_array_length(state->addrs);
+
+		/*
+		 * Do reallocs without the "tmp" pattern: What we
+		 * would leak on realloc failure is cleaned up with
+		 * "state".
+		 */
+		state->addrs = talloc_realloc(state,
+					      state->addrs,
+					      struct samba_sockaddr,
+					      num_replies + 1);
+		if (tevent_req_nomem(state->addrs, req)) {
+			return;
+		}
+		state->addrs[num_replies] = ss;
+
+		state->names = talloc_realloc(state,
+					      state->names,
+					      char *,
+					      num_replies + 1);
+		if (tevent_req_nomem(state->names, req)) {
+			return;
+		}
+
+		state->names[num_replies] = talloc_strdup(state->names,
+							  an->name);
+		if (tevent_req_nomem(state->names[num_replies], req)) {
+			return;
+		}
+	}
+done:
+	if ((state->subreq_aaaa != NULL) || (state->subreq_a != NULL)) {
+		/*
+		 * Wait for the other subreq
+		 */
+		return;
+	}
+
+	num_replies = talloc_array_length(state->addrs);
+	if (num_replies == 0) {
+		tevent_req_nterror(req, map_nt_error_from_unix_common(ret));
+		return;
+	}
+
+	tevent_req_done(req);
+}
+
+NTSTATUS ads_dns_lookup_in_recv(struct tevent_req *req,
+				TALLOC_CTX *mem_ctx,
+				char ***_names,
+				struct samba_sockaddr **_addrs)
+{
+	struct ads_dns_lookup_in_state *state = tevent_req_data(
+		req, struct ads_dns_lookup_in_state);
+	NTSTATUS status;
+
+	if (tevent_req_is_nterror(req, &status)) {
+		return status;
+	}
+	if (_names != NULL) {
+		*_names = talloc_move(mem_ctx, &state->names);
+	}
+	if (_addrs != NULL) {
+		*_addrs = talloc_move(mem_ctx, &state->addrs);
+	}
+	tevent_req_received(req);
+	return NT_STATUS_OK;
+}
+
+/*********************************************************************
+ Simple wrapper for a QCLASS_IN query
+*********************************************************************/
+
+NTSTATUS ads_dns_lookup_in(TALLOC_CTX *ctx,
+			   const char *name,
+			   char ***_names,
+			   struct samba_sockaddr **_addrs)
+{
+	struct tevent_context *ev;
+	struct tevent_req *req;
+	NTSTATUS status = NT_STATUS_NO_MEMORY;
+
+	ev = samba_tevent_context_init(ctx);
+	if (ev == NULL) {
+		goto fail;
+	}
+	req = ads_dns_lookup_in_send(ev, ev, name);
+	if (req == NULL) {
+		goto fail;
+	}
+	if (!tevent_req_poll_ntstatus(req, ev, &status)) {
+		goto fail;
+	}
+	/*
+	 * Synchronous doesn't need to care about the rcode or
+	 * a copy of the name_in.
+	 */
+	status = ads_dns_lookup_in_recv(req, ctx, _names, _addrs);
+fail:
+	TALLOC_FREE(ev);
+	return status;
+}

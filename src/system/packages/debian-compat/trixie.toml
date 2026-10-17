@@ -305,9 +305,9 @@ known_gaps = ["tzdata management utilities are not separately packaged"]
 debian_name = "mattos-base-files"
 mattos_name = "mattos-base-files"
 source_component = "MattOS"
-owned_paths = ["/etc/os-release"]
+owned_paths = ["/etc/profile", "/etc/hostname"]
 provided_abi_or_commands = ["MattOS identity"]
-current_mattos_version = "0.1-1mattos4"
+current_mattos_version = "0.1-1mattos5"
 expected_debian_role = "MattOS base configuration"
 classification = "mattos-specific"
 known_gaps = ["Conflicts with Debian base-files by design"]
@@ -1001,7 +1001,7 @@ mattos_name = "mattos-base"
 source_component = "mattos-profiles"
 owned_paths = ["/usr/share/mattos/install-profiles/base.toml"]
 provided_abi_or_commands = ["MattOS base package profile"]
-current_mattos_version = "0.1-1mattos6"
+current_mattos_version = "0.1-1mattos7"
 expected_debian_role = "MattOS base metapackage"
 classification = "mattos-specific"
 known_gaps = ["MattOS-specific profile has no Debian package identity"]
@@ -1012,7 +1012,7 @@ mattos_name = "mattos-cli"
 source_component = "mattos-profiles"
 owned_paths = ["/usr/share/mattos/install-profiles/cli.toml"]
 provided_abi_or_commands = ["MattOS CLI installed-system profile"]
-current_mattos_version = "0.1-1mattos6"
+current_mattos_version = "0.1-1mattos7"
 expected_debian_role = "MattOS CLI metapackage"
 classification = "mattos-specific"
 known_gaps = ["MattOS-specific profile has no Debian package identity"]
@@ -1034,7 +1034,7 @@ mattos_name = "mattos-plasma"
 source_component = "mattos-profiles"
 owned_paths = ["/usr/share/mattos/install-profiles/plasma.toml"]
 provided_abi_or_commands = ["MattOS Plasma Wayland desktop profile"]
-current_mattos_version = "0.1-1mattos10"
+current_mattos_version = "0.1-1mattos11"
 expected_debian_role = "MattOS Plasma desktop metapackage"
 classification = "mattos-specific"
 known_gaps = ["MattOS-specific profile has no Debian package identity"]
@@ -1795,7 +1795,7 @@ mattos_name = "calamares"
 source_component = "calamares"
 owned_paths = ["/usr/bin/calamares", "/usr/libexec/mattos/calamares-target-executor", "/etc/xdg/calamares"]
 provided_abi_or_commands = ["Qt6 graphical MattOS installer"]
-current_mattos_version = "3.4.3-1mattos8"
+current_mattos_version = "3.4.3-1mattos9"
 expected_debian_role = "graphical installer"
 classification = "debian-compatible"
 known_gaps = ["MattOS-specific profile composition is delegated to the shared Rust installer policy"]
@@ -2996,7 +2996,7 @@ mattos_name = "kf6-kirigami-addons"
 source_component = "kirigami-addons"
 owned_paths = ["/usr/lib/x86_64-linux-gnu/libKirigamiAddonsStatefulApp.so.6", "/usr/lib/x86_64-linux-gnu/qml/org/kde/kirigamiaddons"]
 provided_abi_or_commands = ["KDE Kirigami Addons Qt Quick controls runtime"]
-current_mattos_version = "1.9.0-1mattos1"
+current_mattos_version = "1.15.0-1mattos3"
 expected_debian_role = "KDE Kirigami Addons Qt Quick controls runtime"
 classification = "mattos-extension"
 known_gaps = ["MattOS Plasma foundation package"]
@@ -4854,3 +4854,102 @@ current_mattos_version = "0+git20260814.142828.352f6b7d9d6c-1mattos1"
 expected_debian_role = "Pinned upstream fallback font assets"
 classification = "debian-compatible"
 known_gaps = ["MattOS-selected source-built runtime payload"]
+
+[[package]]
+debian_name = "cifs-utils"
+mattos_name = "cifs-utils"
+source_component = "cifs-utils"
+owned_paths = ["/usr/sbin/mount.cifs"]
+provided_abi_or_commands = ["SMB3 kernel mounts; password and keyring credentials"]
+current_mattos_version = "7.8-1mattos1"
+expected_debian_role = "SMB3 kernel mounts; password and keyring credentials"
+classification = "debian-compatible"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "smbclient"
+mattos_name = "smbclient"
+source_component = "samba"
+owned_paths = ["/usr/bin/smbclient"]
+provided_abi_or_commands = ["SMB2/SMB3 client; no server service or AD domain management"]
+current_mattos_version = "4.25.0-1mattos1"
+expected_debian_role = "SMB2/SMB3 client; no server service or AD domain management"
+classification = "debian-compatible"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "libtalloc2"
+mattos_name = "libtalloc2"
+source_component = "samba-talloc"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libtalloc.so.2"]
+provided_abi_or_commands = ["Talloc allocation ABI"]
+current_mattos_version = "2.5.0-1mattos1"
+expected_debian_role = "Talloc allocation ABI"
+classification = "debian-compatible"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "libnettle8t64"
+mattos_name = "libnettle8t64"
+source_component = "nettle"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libnettle.so.8"]
+provided_abi_or_commands = ["Nettle crypto ABI"]
+current_mattos_version = "3.10.2-1mattos1"
+expected_debian_role = "Nettle crypto ABI"
+classification = "debian-compatible"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "libhogweed6t64"
+mattos_name = "libhogweed6t64"
+source_component = "nettle"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libhogweed.so.6"]
+provided_abi_or_commands = ["Hogweed crypto ABI"]
+current_mattos_version = "3.10.2-1mattos1"
+expected_debian_role = "Hogweed crypto ABI"
+classification = "debian-compatible"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "libtasn1-6"
+mattos_name = "libtasn1-6"
+source_component = "libtasn1"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libtasn1.so.6"]
+provided_abi_or_commands = ["ASN.1 parsing ABI"]
+current_mattos_version = "4.21.0-1mattos1"
+expected_debian_role = "ASN.1 parsing ABI"
+classification = "debian-compatible"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "libgnutls30t64"
+mattos_name = "libgnutls30t64"
+source_component = "gnutls"
+owned_paths = ["/usr/lib/x86_64-linux-gnu/libgnutls.so.30"]
+provided_abi_or_commands = ["GnuTLS TLS and SMB crypto ABI"]
+current_mattos_version = "3.8.13-1mattos1"
+expected_debian_role = "GnuTLS TLS and SMB crypto ABI"
+classification = "debian-compatible"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "mattos-release"
+mattos_name = "mattos-release"
+source_component = "mattos-release-data"
+owned_paths = ["/usr/lib/os-release"]
+provided_abi_or_commands = ["Release identity and package manifest"]
+current_mattos_version = "26.10.1-1mattos1"
+expected_debian_role = "Release identity and package manifest"
+classification = "mattos-specific"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]
+
+[[package]]
+debian_name = "mattos-upgrade"
+mattos_name = "mattos-upgrade"
+source_component = "mattos-upgrade"
+owned_paths = ["/usr/bin/mattos-upgrade"]
+provided_abi_or_commands = ["Release upgrade and migration coordinator"]
+current_mattos_version = "0.1.0-1mattos1"
+expected_debian_role = "Release upgrade and migration coordinator"
+classification = "mattos-specific"
+known_gaps = ["Runtime package only; optional upstream development or server features are outside the initial MattOS scope"]

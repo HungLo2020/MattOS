@@ -1,0 +1,77 @@
+conf.RECURSE('third_party/heimdal_build')
+
+heimdal_includedirs = []
+heimdal_libdirs = []
+krb5_config = conf.find_program("krb5-config.heimdal", var="HEIMDAL_KRB5_CONFIG")
+if not krb5_config:
+    krb5_config = conf.find_program("krb5-config", var="HEIMDAL_KRB5_CONFIG")
+if krb5_config:
+    # Not ideal, but seems like the best way to get at these paths:
+    f = open(krb5_config[0], 'r')
+    try:
+        for l in f:
+            if l.startswith("libdir="):
+                heimdal_libdirs.append(l.strip()[len("libdir="):])
+            elif l.startswith("includedir="):
+                include_path = l.strip()[len("includedir="):]
+                heimdal_includedirs.append(include_path)
+                conf.ADD_EXTRA_INCLUDES(include_path)
+                conf.define('HEIMDAL_KRB5_TYPES_PATH',
+                            include_path + "/krb5-types.h")
+    finally:
+        f.close()
+
+def check_system_heimdal_lib(name, functions='', headers=''):
+    # Only use system library if the user requested the bundled one not be
+    # used.
+    if conf.LIB_MAY_BE_BUNDLED(name):
+        return False
+    setattr(conf.env, "CPPPATH_%s" % name.upper(), heimdal_includedirs)
+    setattr(conf.env, "LIBPATH_%s" % name.upper(), heimdal_libdirs)
+    if not conf.CHECK_FUNCS_IN(functions, name, headers=headers, empty_decl=False, set_target=True):
+        return False
+    conf.define('USING_SYSTEM_%s' % name.upper(), 1)
+    return True
+
+check_system_heimdal_lib("com_err", "com_right_r com_err", "com_err.h")
+
+# Make sure HAVE_CONFIG_H is unset, as the system Heimdal headers use it
+# and include config.h if it is set, resulting in failure (since config.h
+# doesn't yet exist)
+
+DEFINES = list(conf.env.DEFINES)
+conf.undefine("HAVE_CONFIG_H")
+while "HAVE_CONFIG_H=1" in conf.env.DEFINES:
+    conf.env.DEFINES.remove("HAVE_CONFIG_H=1")
+try:
+    check_system_heimdal_lib("asn1", "decode_Ticket", "krb5_asn1.h")
+    if check_system_heimdal_lib("krb5", "krb5_anyaddr", "krb5.h"):
+        conf.CHECK_FUNCS_IN('krb5_free_unparsed_name', 'krb5', headers="krb5.h")
+    check_system_heimdal_lib("gssapi", "gss_oid_to_name", "gssapi.h")
+finally:
+    conf.env.DEFINES = DEFINES
+
+# With the proper checks in place we should be able to build against the system libtommath.
+#if conf.CHECK_BUNDLED_SYSTEM('tommath', checkfunctions='mp_init', headers='tommath.h'):
+#    conf.define('USING_SYSTEM_TOMMATH', 1)
+
+conf.env.KRB5_VENDOR = 'heimdal'
+conf.define('USING_SYSTEM_KRB5', 1)
+conf.define('USING_SYSTEM_HEIMDAL', 1)
+
+conf.CHECK_FUNCS('''
+       krb5_get_init_creds_opt_set_fast_ccache
+       krb5_get_init_creds_opt_set_fast_flags
+       krb5_init_creds_step
+       ''',
+     lib='krb5',
+     headers='krb5.h')
+
+# gss_key_value_set_desc is not part of system heimdal in the build image. Maybe
+# the distro we use is too old.
+conf.CHECK_CODE(
+    "gss_key_value_set_desc",
+    "HAVE_GSS_KEY_VALUE_SET_DESC",
+    headers="gssapi/gssapi.h",
+    lib="gssapi",
+)

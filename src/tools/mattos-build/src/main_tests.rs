@@ -1,6 +1,24 @@
 use super::*;
 
 #[test]
+fn repository_preparation_checks_native_producers_without_building_images() {
+    let stages = package_source_build_plan();
+    for stage in [BuildStage::Kernel, BuildStage::SambaClient, BuildStage::GnuTls, BuildStage::ReleaseTools] {
+        assert!(stages.contains(&stage));
+    }
+    for stage in [BuildStage::Rootfs, BuildStage::LiveRoot, BuildStage::Initramfs, BuildStage::Iso] {
+        assert!(!stages.contains(&stage));
+    }
+    let nodes = scheduled_build_nodes(&stages);
+    let names: BTreeSet<_> = nodes.iter().map(|node| node.id.as_str()).collect();
+    for node in &nodes {
+        for dependency in &node.dependencies {
+            assert!(names.contains(dependency.as_str()), "{} requires missing {dependency}", node.id);
+        }
+    }
+}
+
+#[test]
 fn perl_install_layout_accepts_usr_and_rejects_root_payloads() {
     let temp = tempfile::tempdir().unwrap();
     let install = temp.path();
@@ -604,6 +622,9 @@ fn all_parallel_stages_follow_dynamic_scheduler_grants() {
     for stage in build_plan(BuildStage::All) {
         let expected = if stage == BuildStage::Libcap {
             scheduler::ChildJobPolicy::Serial
+        } else if matches!(stage, BuildStage::SambaClient | BuildStage::Talloc) {
+            // Waf uses the scheduler's numeric launch grant, not the jobserver.
+            scheduler::ChildJobPolicy::Capped(usize::MAX)
         } else {
             scheduler::ChildJobPolicy::SchedulerGrant
         };

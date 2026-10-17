@@ -1,0 +1,27 @@
+<samba:parameter name="winbind request timeout"
+                 context="G"
+                 type="integer"
+                 xmlns:samba="http://www.samba.org/samba/DTD/samba-doc">
+<description>
+	<para>This parameter specifies the number of
+	seconds the <citerefentry><refentrytitle>winbindd</refentrytitle>
+	<manvolnum>8</manvolnum></citerefentry> daemon will wait before
+	disconnecting either a client connection with no outstanding
+	requests (idle) or a client connection with a request that has
+	remained outstanding (hung) for longer than this number of seconds.</para>
+
+	<para>A winbind client is any local program on the system that
+	queries winbindd for user or group information, or to authenticate
+	users. Common examples include
+	<citerefentry><refentrytitle>wbinfo</refentrytitle>
+	<manvolnum>1</manvolnum></citerefentry>,
+	<citerefentry><refentrytitle>smbd</refentrytitle>
+	<manvolnum>8</manvolnum></citerefentry>,
+	<citerefentry><refentrytitle>pam_winbind</refentrytitle>
+	<manvolnum>8</manvolnum></citerefentry>, and
+	<citerefentry><refentrytitle>nss_winbind</refentrytitle>
+	<manvolnum>8</manvolnum></citerefentry>.</para>
+</description>
+
+<value type="default">60</value>
+</samba:parameter>

@@ -66,7 +66,9 @@ The table below covers representative core packages only; it is not the complete
 | `util-linux` | required | selected util-linux administration commands (for example `lsblk`, `fdisk`, `wipefs`, `findmnt`) |
 | `gpgv` | required | source-built OpenPGP signature verifier used by APT |
 | `libgcc-s1`, `libstdc++6` | required | source-built GCC unwinding and C++ runtime ABIs; no development files |
-| `mattos-base-files` | required | MattOS identity, hostname default, profile, issue, and shells |
+| `mattos-base-files` | required | Hostname default, profile, issue, and shells |
+| `mattos-release` | required | [OS release identity, package manifest and migrations](../system/releases.md) |
+| `mattos-upgrade` | important | Release upgrade coordinator |
 | `xdg-user-dirs` | optional | Localized standard user folders, early graphical-session service, and interactive login initialization |
 | `plasma-integration`, `kde-cli-tools` | optional | Native KDE Qt platform theme and desktop command helpers |
 | `bluedevil`, `kf6-bluez-qt` | optional | Bluetooth pairing, settings, Plasma applet and Qt/QML integration |

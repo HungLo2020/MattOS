@@ -41,6 +41,37 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "tzdata" => stage_tzdata(repo_root, &staging)?,
         "linux-firmware" => stage_linux_firmware(repo_root, &staging)?,
         "wireless-regdb" => stage_wireless_regdb(repo_root, &staging)?,
+        "libtalloc2" => {
+            stage_library_family(repo_root, &staging, "talloc", &["libtalloc.so.2"])?;
+            copy_preserving(&repo_root.join("src/system/network/samba/lib/talloc/LICENSE"), &staging.join("usr/share/doc/libtalloc2/copyright"))?;
+        },
+        "cifs-utils" => stage_install_tree(repo_root, &staging, "cifs-utils", "cifs-utils", "src/system/network/cifs-utils", &["COPYING"])?,
+        "smbclient" => {
+            stage_install_tree(repo_root, &staging, "samba", "smbclient", "src/system/network/samba", &["COPYING"])?;
+            copy_preserving(&repo_root.join("src/system/network/smbclient/smb.conf"), &staging.join("etc/samba/smb.conf"))?;
+            fs::write(staging.join("DEBIAN/conffiles"), "/etc/samba/smb.conf\n")?;
+            if staging.join("usr/sbin/smbd").exists() { bail!("The SMB client package must not install the test server"); }
+        },
+        "libnettle8t64" => {
+            stage_library_family(repo_root, &staging, "nettle", &["libnettle.so.8"])?;
+            copy_preserving(&repo_root.join("src/system/security/nettle/COPYING.LESSERv3"), &staging.join("usr/share/doc/libnettle8t64/copyright"))?;
+            copy_preserving(&repo_root.join("src/system/security/nettle/COPYINGv3"), &staging.join("usr/share/doc/libnettle8t64/COPYINGv3"))?;
+        },
+        "libhogweed6t64" => {
+            stage_library_family(repo_root, &staging, "nettle", &["libhogweed.so.6"])?;
+            copy_preserving(&repo_root.join("src/system/security/nettle/COPYING.LESSERv3"), &staging.join("usr/share/doc/libhogweed6t64/copyright"))?;
+            copy_preserving(&repo_root.join("src/system/security/nettle/COPYINGv3"), &staging.join("usr/share/doc/libhogweed6t64/COPYINGv3"))?;
+        },
+        "libtasn1-6" => {
+            stage_library_family(repo_root, &staging, "libtasn1", &["libtasn1.so.6"])?;
+            copy_preserving(&repo_root.join("src/system/security/libtasn1/COPYING.LESSERv2"), &staging.join("usr/share/doc/libtasn1-6/copyright"))?;
+        },
+        "libgnutls30t64" => {
+            stage_library_family(repo_root, &staging, "gnutls", &["libgnutls.so.30"])?;
+            copy_preserving(&repo_root.join("src/system/security/gnutls/COPYING.LESSERv2"), &staging.join("usr/share/doc/libgnutls30t64/copyright"))?;
+        },
+        "mattos-release" => super::releases::stage_release(repo_root, &staging)?,
+        "mattos-upgrade" => copy_tree_preserving(&component_install(repo_root, "mattos-upgrade"), &staging)?,
         "mattos-base-files" => stage_base_files(repo_root, &staging)?,
         "systemd" => stage_systemd_runtime(repo_root, &staging)?,
         "mattos-base-runtime" => stage_mattos_base_runtime(repo_root, &staging)?,

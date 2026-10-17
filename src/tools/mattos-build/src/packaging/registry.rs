@@ -40,6 +40,16 @@ mod wifi_grub_tests {
     }
 
     #[test]
+    fn every_installed_profile_includes_release_identity_and_migrations() {
+        for profile in ["mattos-base", "mattos-cli", "mattos-plasma"] {
+            let packages = closure(profile);
+            for required in ["mattos-release", "mattos-upgrade", "mattos-base-files"] {
+                assert!(packages.contains(required), "{profile} lacks {required}");
+            }
+        }
+    }
+
+    #[test]
     fn desktop_integration_has_a_complete_package_closure() {
         let desktop = closure("mattos-plasma");
         for name in ["plasma-integration", "bluedevil", "kf6-bluez-qt", "libpam-kwallet5", "libsecret-1-0", "xdg-utils", "fonts-noto-color-emoji", "fonts-noto-cjk"] {
@@ -314,6 +324,16 @@ mod wifi_grub_tests {
 }
 
 pub(crate) const PACKAGE_NAMES: &[&str] = &[
+    "mattos-release",
+    "mattos-upgrade",
+    "libtalloc2",
+    "cifs-utils",
+    "smbclient",
+    "libnettle8t64",
+    "libhogweed6t64",
+    "libtasn1-6",
+    "libgnutls30t64",
+
     "kde-cli-tools",
     "plasma-integration",
     "kf6-bluez-qt",
@@ -769,6 +789,7 @@ pub(crate) struct PackageSpec {
 }
 
 const MATTOS_BASE_DEPENDS: &[&str] = &[
+    "mattos-release",
     "xdg-user-dirs",
     "slate",
     "mattos-filesystem",
@@ -1261,12 +1282,63 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             essential: false,
             priority: "important",
         },
+        PackageSpec { name: "libtalloc2", description: "Talloc from the pinned Samba source", source_component: "samba-talloc", depends: &["libc6"], provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
+        PackageSpec {
+            name: "cifs-utils",
+            description: "MattOS source-built cifs-utils",
+            source_component: "cifs-utils",
+            depends: &["libc6", "libkeyutils1", "libcap2", "libtalloc2"],
+            provides: &[], conflicts: &[], replaces: &[],
+            essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "smbclient",
+            description: "MattOS source-built smbclient",
+            source_component: "samba",
+            depends: &["libc6", "libgnutls30t64", "libpopt0", "zlib1g", "libcap2", "libkeyutils1", "libcrypt1"],
+            provides: &[], conflicts: &[], replaces: &[],
+            essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libnettle8t64",
+            description: "MattOS source-built libnettle8t64",
+            source_component: "nettle",
+            depends: &["libc6"],
+            provides: &[], conflicts: &[], replaces: &[],
+            essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libhogweed6t64",
+            description: "MattOS source-built libhogweed6t64",
+            source_component: "nettle",
+            depends: &["libc6", "libnettle8t64", "libgmp10"],
+            provides: &[], conflicts: &[], replaces: &[],
+            essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libtasn1-6",
+            description: "MattOS source-built libtasn1-6",
+            source_component: "libtasn1",
+            depends: &["libc6"],
+            provides: &[], conflicts: &[], replaces: &[],
+            essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libgnutls30t64",
+            description: "MattOS source-built libgnutls30t64",
+            source_component: "gnutls",
+            depends: &["libc6", "libnettle8t64", "libhogweed6t64", "libtasn1-6", "libgmp10", "zlib1g"],
+            provides: &[], conflicts: &[], replaces: &[],
+            essential: false, priority: "optional",
+        },
+        PackageSpec { name: "mattos-release", description: "MattOS release identity and upgrade manifest", source_component: "mattos-release-data", depends: &["mattos-base-files", "mattos-upgrade"], provides: &[], conflicts: &[], replaces: &["mattos-base-files"], essential: false, priority: "required" },
+        PackageSpec { name: "mattos-upgrade", description: "MattOS release upgrade and migration coordinator", source_component: "mattos-upgrade", depends: &["libc6", "libgcc-s1", "apt", "dpkg"], provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "important" },
         PackageSpec {
             name: "mattos-base-files",
             description: "MattOS identity and baseline configuration",
             source_component: "MattOS",
             depends: &["mattos-filesystem"],
-            provides: &["mattos-release"],
+            provides: &[],
             conflicts: &["base-files"],
             replaces: &["base-files"],
             essential: false,

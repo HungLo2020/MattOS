@@ -1,0 +1,102 @@
+#!/bin/sh
+
+usage()
+{
+	echo "stat -c FMT FILE ..."
+	exit 1
+}
+
+format=""
+
+# Mix of Linux and FreeBSD options
+while getopts "c:f:t:h:?" opt; do
+	case "$opt" in
+	c) format="$OPTARG" ;;
+	f) format="$OPTARG" ;;
+	t) : ;; # Ignore and assume seconds since epoch
+	\? | h) usage ;;
+	esac
+done
+shift $((OPTIND - 1))
+
+fake_device_id()
+{
+	_path="$1"
+
+	_t=$(echo "$FAKE_FILE_ID_MAP" |
+		awk -v path="${_path}" '$1 == path { print $2 }')
+	_major_minor="${_t%:*}"
+	_major="0x${_major_minor%:*}"
+	_minor="0x${_major_minor#*:}"
+	_device_id=$((_major * 256 + _minor))
+	echo "$_device_id"
+}
+
+fake_inode()
+{
+	_path="$1"
+
+	_t=$(echo "$FAKE_FILE_ID_MAP" |
+		awk -v path="${_path}" '$1 == path { print $2 }')
+	echo "${_t##*:}"
+}
+
+if [ -n "$format" ]; then
+	case "$format" in
+	"%m" | "%Y")
+		# Want the real platform because we want to run the
+		# platform version of stat
+		. /etc/os-release
+		case "$ID" in
+		freebsd)
+			exec /usr/bin/stat -f '%m' -t '%s' "$@"
+			;;
+		*)
+			exec /usr/bin/stat -c "%Y" "$@"
+			;;
+		esac
+		;;
+	"%a" | "%Lp")
+		# File permissions in octal
+		. /etc/os-release
+		case "$ID" in
+		freebsd)
+			exec /usr/bin/stat -f '%Lp' "$@"
+			;;
+		*)
+			exec /usr/bin/stat -c "%a" "$@"
+			;;
+		esac
+		;;
+	esac
+
+	rc=0
+	for f; do
+		if [ ! -e "$f" ]; then
+			echo "stat: cannot statx '${f}': " \
+				"No such file or directory"
+			rc=1
+			continue
+		fi
+		case "$f" in
+		/*) path="$f" ;;
+		*) path="${PWD}/${f}" ;;
+		esac
+
+		case "$format" in
+		"%d:%i")
+			device_id=$(fake_device_id "$path")
+			inode=$(fake_inode "$path")
+			echo "${device_id}:${inode}"
+			;;
+		*)
+			echo "Unsupported format \"${format}\""
+			usage
+			;;
+		esac
+	done
+
+	exit $rc
+fi
+
+usage

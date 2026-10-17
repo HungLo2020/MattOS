@@ -800,6 +800,13 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/userland/iputils",
             "src/tools/mattos-build/src/stages/networking.rs",
         ],
+        BuildStage::Talloc => &["src/system/network/samba/lib/talloc", "src/system/network/samba/lib/replace", "src/system/network/samba/buildtools", "src/system/network/samba/third_party/waf"],
+        BuildStage::ReleaseTools => &["src/system/release/Cargo.toml", "src/system/release/src", "Cargo.toml", "Cargo.lock"],
+        BuildStage::CifsUtils => &["src/system/network/cifs-utils"],
+        BuildStage::Nettle => &["src/system/security/nettle", "upstream/policies/smb-release-archives.toml"],
+        BuildStage::LibTasn1 => &["src/system/security/libtasn1", "upstream/policies/smb-release-archives.toml"],
+        BuildStage::GnuTls => &["src/system/security/gnutls", "upstream/policies/smb-release-archives.toml"],
+        BuildStage::SambaClient => &["src/system/network/samba"],
         BuildStage::Curl => &[
             "src/userland/curl",
             "src/tools/mattos-build/src/stages/networking.rs",
@@ -1354,6 +1361,11 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libfontenc
         | BuildStage::Libxfont
         | BuildStage::Libxshmfence => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
+        BuildStage::ReleaseTools => &["cargo", "rustc", "gcc", "ld"],
+        BuildStage::CifsUtils => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
+        BuildStage::Talloc => &["gcc", "ld", "python3", "pkg-config"],
+        BuildStage::SambaClient => &["gcc", "ld", "python3", "pkg-config", "perl", "make", "tar", "curl", "readelf"],
+        BuildStage::Nettle | BuildStage::LibTasn1 | BuildStage::GnuTls => &["gcc", "ld", "make", "pkg-config", "rsync", "tar"],
         BuildStage::Flatpak | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
         BuildStage::Cozy | BuildStage::Slate => &["cargo", "rustc", "gcc", "ld"],
         BuildStage::SlateGui => &["cargo", "rustc", "gcc", "g++", "ld", "cmake", "ninja", "pkg-config"],

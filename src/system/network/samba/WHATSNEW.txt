@@ -1,0 +1,296 @@
+                   ==============================
+                   Release Notes for Samba 4.25.0
+                         September 24, 2026
+                   ==============================
+
+
+This is the first stable release of the Samba 4.25 release series.
+Please read the release notes carefully before upgrading.
+
+
+NEW FEATURES/CHANGES
+====================
+
+SMB3 Persistent Handles (Experimental)
+--------------------------------------
+
+Samba now includes experimental support for SMB3 Persistent Handles,
+a fundamental building block for Transparent Failover.
+
+Persistent Handles allow SMB clients to reconnect after a server
+restart or outage while retaining valid file handles. Samba persists
+all necessary handle state to durable on-disk storage so that open
+files can be reconstructed when clients reconnect. This enables
+applications that depend on uninterrupted file access, such as virtual
+machine storage and clustered database workloads, to tolerate
+temporary server failures without having to reopen files.
+
+Persistent Handles are advertised through the SMB3 protocol capability
+SMB2_CAP_PERSISTENT_HANDLES. To make use of them on a share, both the
+global "persistent handles" option and the per-share
+"continuous availability" option must be enabled.
+
+Because Persistent Handles require Samba to maintain SMB state, they
+are only available on shares configured for SMB-exclusive
+access. Specifically, they require:
+
+kernel oplocks = no
+kernel share modes = no
+posix locking = no
+
+These settings disable interoperability with local POSIX file access
+and NFS clients on the affected share.
+
+Administrators should be aware that Persistent Handles incur a
+significant performance cost. File handle metadata is synchronously
+persisted to durable storage for every open, update, lease, and close
+operation, increasing latency compared to traditional SMB file
+serving. For this reason, the feature is intended only for workloads
+that require Continuous Availability semantics and is not recommended
+for general-purpose file servers.
+
+On a cluster the handle state is kept in a volatile ctdb database that
+is replicated to every node, and additionally in a backup copy in a
+persistent ctdb database. Only that backup copy makes handles survive
+an outage of every node at the same time, for example a maintenance
+window in which the whole cluster is shut down and restarted, because
+that loses the volatile databases. Maintaining the backup is expensive:
+every change to the state of a persistent handle costs an additional
+cluster wide transaction, and that transaction is written to stable
+storage on every node.
+
+The new global option "persistent handles durability" to choose to
+which side of the tradeof, performance or durability, they want to
+lean on:
+
+persistent handles durability = full_outage
+
+  The default. The backup copy is maintained and handles survive an
+  outage of the whole cluster.
+
+persistent handles durability = partial_outage
+
+  The backup copy is not maintained. Handles survive any outage that
+  leaves at least one node running, which covers a node crash, a
+  rolling restart and the loss of all but one node, because the handle
+  state is still kept on every node of the cluster. Handles are lost if
+  every node is down at the same time. In exchange, every open, update,
+  lease and close operation becomes noticeably cheaper.
+
+This feature is currently considered experimental.
+
+Cluster-wide rate limiting in vfs_aio_ratelimit
+------------------------------------------------
+
+The vfs_aio_ratelimit VFS module has been extended with cluster-wide
+coordination. When Samba clustering is enabled, the configured per-share rate
+limits are now enforced as a global ceiling across the entire cluster rather than
+per-node. Each share's limits are tracked and enforced independently.
+
+Coordination is handled by a new per-node daemon, ratelimitd, which aggregates
+activity from all smbd processes on the node and broadcasts node-level summaries
+to the rest of the cluster via Samba's messaging layer.
+
+To enable this feature, Samba must be built with --with-ratelimitd.
+
+New Ceph RGW VFS module
+-----------------------
+
+Introduced a new VFS module, vfs_ceph_rgw, which uses the librgw APIs to
+export Ceph Object Gateway buckets as SMB shares. It provides a hierarchical
+view of the objects stored in a bucket, allowing them to be accessed as files
+and folders. The module supports standard POSIX uids and gids, as well as most
+basic file operations.
+
+JSON Audit logging
+------------------
+
+The two leading spaces before the opening '{' on JSON audit log lines have been
+removed. And any embedded new line characters '\n' are converted to spaces.
+
+Domain encryption types changed to AES by default
+-------------------------------------------------
+
+The default value of the smb.conf option ‘kdc default domain supported enctypes’
+now corresponds to ‘aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha1-96’ (both AES
+encryption types) if the domain functional level is 2008 or higher. This
+addresses CVE-2026-20833.
+
+CTDB changes
+------------
+
+* CTDB's locations for locks, PID files and sockets now use ctdb/
+  subdirectories of the Samba locations configured at build time.
+  This means that the relevant top-level Samba configure options
+  (--with-lockdir, --with-piddir, --with-sockets-dir) are now also
+  used by CTDB.
+
+  The standalone CTDB build does not support these options.  However,
+  it is generally only used for developer/standalone testing.
+
+* The CTDB initscript (ctdb.init) has been moved to ctdb/doc/examples.
+  This recognises that it isn't installed by default so it is
+  basically unmaintained and untested.
+
+* Monitoring of (infrastructure) hosts is now supported.  A good use
+  of this is to monitor DNS servers.  See the NETWORK MONITORING
+  section in ctdb-script.options(5) for more details.
+
+* The detect_init_style() script function and associated
+  CTDB_INIT_STYLE variable are deprecated, so will be removed in a
+  future release.  Use the new, more general CTDB_PLATFORM_STYLE
+  variable instead.  This may affect site-local CTDB (event) scripts.
+  See ctdb.sysconfig(5) for more details.
+
+Cluster functional level
+------------------------
+
+Samba now maintains a cluster functional level, a cluster wide value
+that is kept as persistent global state and shared by all nodes. It
+is similar in spirit to the domain and forest functional levels known
+from Active Directory.
+
+The purpose of the functional level is to allow controlled upgrades
+of a cluster. New database formats, new internal messages and other
+changes that affect the communication between nodes are gated behind
+an explicit raise of the cluster functional level. As long as the
+level has not been raised, all nodes keep writing and sending the old
+formats, so that nodes running different Samba versions can
+interoperate during a rolling upgrade.
+
+A level consists of a major and a minor number, e.g. "1.0". Samba
+4.25 implements the initial level 1.0, which is currently also the
+only defined level.
+
+On a non-clustered server the highest supported level is always
+activated automatically, there is nothing to configure or maintain.
+
+On a cluster the currently active level is stored persistently in
+cluster_level.tdb. On a fresh cluster it is initialized with the
+highest level supported by the second node that starts up. From then
+on the level never changes on its own, it is only raised when an
+administrator explicitly asks for it. A node that does not support
+the currently active level refuses to start, which keeps a node
+running an incompatible Samba version from joining the cluster.
+
+Once all nodes of a cluster have been upgraded to a new Samba
+version, the administrator can raise the cluster functional level.
+The new 'net clusterlevel' subcommands are available for this:
+
+  net clusterlevel features
+        List the cluster functional levels supported by the
+        installed binaries.
+
+  net clusterlevel show
+        Show the currently active cluster functional level.
+
+  net clusterlevel showall
+        Show the levels supported by each node of the cluster,
+        together with the currently active level and the highest
+        level that could be activated.
+
+  net clusterlevel upgrade [--test] [--apply]
+        Raise the active cluster functional level to the highest
+        level supported by all nodes. With --test (the default) only
+        checks and reports whether the upgrade would be possible,
+        --apply performs the actual upgrade.
+
+Note that raising the cluster functional level is a one way
+operation, there is no way to lower it again. It should only be done
+once all nodes have been upgraded and the new version has proven to
+work.
+
+The current implementation is deliberately strict: an upgrade is only
+possible if all nodes announce the exact same set of supported
+levels, which in practice means that all nodes run the same Samba
+version.
+
+Also note that this change only prepares for the future. It
+is not designed help with upgrades from older versions before
+4.25 to 4.25 as a target. However vendors are free to use their
+own backports and use custom levels >= 0.1 and < 1.0.
+
+REMOVED FEATURES
+================
+
+
+smb.conf changes
+================
+
+  Parameter Name                          Description     Default
+  --------------                          -----------     -------
+  allow dcerpc auth level connect         deprecated
+  kdc default domain supported enctypes   New default     AES encryption types (if supported by domain)
+  getwd cache                             Removed
+  persistent handles                      New             no
+  persistent handles durability           New             full_outage
+  continuous availability                 New             no
+
+
+Changes since 4.25.0rc2
+=======================
+
+o  Ralph Boehme <slow@samba.org>
+   * BUG 16234: persistent handles options in WHATSNEW need fixups
+   * BUG 16237: Bugs in Persistent Handles database layer code
+   * BUG 16253: smbstatus byte-range locks broken by Persistent Handle changes
+
+o  Volker Lendecke <vl@samba.org>
+   * BUG 16233: "getwd cache" removal needs more work
+
+o  Stefan Metzmacher <metze@samba.org>
+   * BUG 15962: SMB3 SESSION SETUP responses must always be signed
+   * BUG 16081: winbindd_child_msg_filter: talloc_get_type_abort crashes when
+     winbind max domain connections > 1
+
+o  Kopylov Pavel <pkopylov@cloudlinux.com>
+   * BUG 16239: Fix parsing of uppercase "0X" hex values in the "kdc default
+     domain      supported enctypes" smb.conf parameter.
+
+o  Anoop C S <anoopcs@samba.org>
+   * BUG 16240: smbd temporary mkdir name can exceed NAME_MAX for otherwise
+     valid client names
+
+CHANGES SINCE 4.25.0rc1
+=======================
+
+o  Stefan Metzmacher <metze@samba.org>
+   * BUG 15988: Samba internal DNS service doesn't handle switch from UDP to TCP
+     when packet is larger than 4k
+   * BUG 16194: autobuild failures need to be reported in a more verbose way
+   * BUG 16219: samba-cluster-support should depend on ndr-samba
+   * BUG 16223: DNS scavenging happens even if fAging is FALSE
+   * BUG 16226: samba-tool dns zoneoptions $DC_SERVER_IP
+     _msdcs.addom.samba.example.com -P --aging=1 gives
+     WERR_INTERNAL_DB_ERROR
+
+o  Jennifer Sutton <jennifersutton@catalyst.net.nz>
+   * BUG 16225: dns client problems related to EDNS usage
+
+
+
+KNOWN ISSUES
+============
+
+https://wiki.samba.org/index.php/Release_Planning_for_Samba_4.25#Release_blocking_bugs
+
+
+#######################################
+Reporting bugs & Development Discussion
+#######################################
+
+Please discuss this release on the samba-technical mailing list or by
+joining the #samba-technical:matrix.org matrix room, or
+#samba-technical IRC channel on irc.libera.chat
+
+If you do report problems then please try to send high quality
+feedback. If you don't provide vital information to help us track down
+the problem then you will probably be ignored.  All bug reports should
+be filed under the Samba 4.1 and newer product in the project's Bugzilla
+database (https://bugzilla.samba.org/).
+
+
+======================================================================
+== Our Code, Our Bugs, Our Responsibility.
+== The Samba Team
+======================================================================

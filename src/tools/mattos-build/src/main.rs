@@ -84,6 +84,12 @@ const LEGACY_SKELETON_FILES: &[&str] = &[
     "usr/libexec/mattos/brush-login",
     "usr/libexec/mattos/validate-shell-env",
 ];
+const NETTLE_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/nettle/nettle-3.10.2.tar.gz";
+const NETTLE_RELEASE_ARCHIVE_SHA256: &str = "fe9ff51cb1f2abb5e65a6b8c10a92da0ab5ab6eaf26e7fc2b675c45f1fb519b5";
+const LIBTASN1_RELEASE_ARCHIVE_URL: &str = "https://ftp.gnu.org/gnu/libtasn1/libtasn1-4.21.0.tar.gz";
+const LIBTASN1_RELEASE_ARCHIVE_SHA256: &str = "1d8a444a223cc5464240777346e125de51d8e6abf0b8bac742ac84609167dc87";
+const GNUTLS_RELEASE_ARCHIVE_URL: &str = "https://www.gnupg.org/ftp/gcrypt/gnutls/v3.8/gnutls-3.8.13.tar.xz";
+const GNUTLS_RELEASE_ARCHIVE_SHA256: &str = "ffed8ec1bf09c2426d4f14aae377de4753b53e537d685e604e99a8b16ca9c97e";
 const MATTOS_KERNEL_RELEASE: &str = mattos_kernel_release!();
 const LINUX_IMAGE_PACKAGE: &str = concat!("linux-image-", mattos_kernel_release!());
 const LINUX_MODULES_PACKAGE: &str = concat!("linux-modules-", mattos_kernel_release!());
@@ -745,6 +751,10 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     Doctor,
+    /// Freeze release metadata independently of component package versions.
+    ReleaseLock,
+    /// Build current native packages and their repository, leaving ISO assembly for a separate build.
+    PreparePackages,
     Timings,
     /// Validate and report the authoritative boot/image artifacts.
     Artifacts,
@@ -1190,6 +1200,7 @@ fn main() -> Result<()> {
             None => format!("build {}", stage.map(build_stage_id).unwrap_or("all")),
         }),
         Commands::Image => Some("image".to_string()),
+        Commands::PreparePackages => Some("prepare-packages".to_string()),
         Commands::Package { command } => Some(format!("package {command:?}")),
         _ => None,
     };
@@ -1207,6 +1218,12 @@ fn main() -> Result<()> {
             })?;
             println!("MATTOS_BUILD_PROBE_ID={EXECUTABLE_PROBE_ID}");
             Ok(())
+        }
+        Commands::ReleaseLock => packaging::write_release_lock(&repo_root),
+        Commands::PreparePackages => {
+            build_stages_scheduled(&repo_root, package_source_build_plan(), scheduler::FailurePolicy::FailFast)?;
+            packaging::build_all_packages(&repo_root)?;
+            packaging::generate_repository(&repo_root)
         }
         Commands::Doctor => doctor(),
         Commands::Timings => performance::show_latest_timings(&repo_root),
@@ -1527,8 +1544,17 @@ fn validate_experimental_child_jobs_with_budget(
 }
 
 fn build_all_scheduled(repo_root: &Path, failure_policy: scheduler::FailurePolicy) -> Result<()> {
+    build_stages_scheduled(repo_root, build_plan(BuildStage::All), failure_policy)
+}
+
+fn package_source_build_plan() -> Vec<BuildStage> {
+    build_plan(BuildStage::All).into_iter().filter(|stage| !matches!(stage,
+        BuildStage::Rootfs | BuildStage::LiveRoot | BuildStage::Initramfs | BuildStage::Iso
+    )).collect()
+}
+
+fn build_stages_scheduled(repo_root: &Path, stages: Vec<BuildStage>, failure_policy: scheduler::FailurePolicy) -> Result<()> {
     prune_derived_source_mirror_artifacts(repo_root)?;
-    let stages = build_plan(BuildStage::All);
     let nodes = scheduled_build_nodes(&stages);
     let snapshot = resources::discover();
     let budget = snapshot.budget();
@@ -1683,6 +1709,7 @@ include!("stages/wifi.rs");
 include!("stages/grub.rs");
 include!("stages/foundation_libraries.rs");
 include!("stages/networking.rs");
+include!("stages/smb.rs");
 include!("stages/system_runtime.rs");
 include!("stages/runtime_libraries.rs");
 include!("stages/desktop_support.rs");

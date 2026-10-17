@@ -40,6 +40,15 @@ cargo run -p mattos-build -- image
 
 ## Packages
 
+Prepare current source-built packages and their repository without assembling
+an ISO (native producer stages are checked and rebuilt as needed):
+
+```
+cargo run -p mattos-build -- prepare-packages
+```
+
+Lower-level package operations for already-built native outputs:
+
 ```
 cargo run -p mattos-build -- package build --all
 cargo run -p mattos-build -- package repo

@@ -24,7 +24,10 @@ fails at once.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import gzip
+import io
+import tarfile
 import json
 import re
 import subprocess
@@ -109,6 +112,8 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="use the existing package output without rebuilding",
     )
+    parser.add_argument("--packages-only", action="store_true",
+                        help="build native packages and the repository without assembling an ISO")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -170,9 +175,18 @@ def discover_packages(repo_root: Path) -> list[Path]:
     return sorted(packages)
 
 
-def ensure_build(repo_root: Path, *, clean: bool, no_build: bool) -> None:
+def ensure_build(repo_root: Path, *, clean: bool, no_build: bool, packages_only: bool = False) -> None:
     """Use run_qemu.py's exact doctor/build path without launching QEMU."""
     if no_build:
+        return
+    if packages_only:
+        if clean:
+            raise RepoError("--packages-only cannot be combined with --clean; use the canonical full build for a clean rebuild")
+        from common import mattos_build_environment
+        environment = mattos_build_environment(repo_root)
+        for arguments in (["doctor"], ["prepare-packages"]):
+            subprocess.run(["cargo", "run", "-p", "mattos-build", "--", *arguments],
+                           cwd=repo_root, env=environment, check=True)
         return
     build_args = argparse.Namespace(no_build=False, clean=clean, dry_run=False)
     run_qemu.build_if_needed(repo_root, build_args)
@@ -418,10 +432,79 @@ def raise_revisions(repo_root: Path, packages: list[InventoryPackage]) -> list[t
     return changes
 
 
+
+def release_package_manifest(package: InventoryPackage) -> dict:
+    """Read the immutable manifest actually inside the package being uploaded."""
+    try:
+        payload = subprocess.run(["dpkg-deb", "--fsys-tarfile", str(package.artifact)],
+                                 check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout
+        with tarfile.open(fileobj=io.BytesIO(payload), mode="r:") as archive:
+            member = next(member for member in archive.getmembers()
+                          if member.name.removeprefix("./") == "usr/share/mattos/release.json")
+            if not member.isfile():
+                raise ValueError("release manifest is not a regular file")
+            manifest = json.load(archive.extractfile(member))
+        version = split_mattos_version(package.version)[0]
+        if manifest.get("schema_version") != 1 or manifest.get("version") != version:
+            raise ValueError("release manifest version does not match package")
+        if manifest["packages"].get("mattos-release") != package.version:
+            raise ValueError("release manifest package version does not match package")
+        return manifest
+    except (OSError, subprocess.CalledProcessError, tarfile.TarError, StopIteration,
+            KeyError, ValueError, TypeError, AttributeError) as exc:
+        raise RepoError(f"Cannot read release manifest from {package.artifact}: {exc}") from exc
+
+
+def publish_release_last(repo_root: Path, packages: list[InventoryPackage], *, dry_run: bool) -> None:
+    """Expose release metadata only after its complete package cohort is hosted."""
+    releases = [package for package in packages if package.name == "mattos-release"]
+    ordinary = [package.artifact for package in packages if package.name != "mattos-release"]
+    prepared = []
+    if releases:
+        inventory = {entry.name: entry for entry in inventory_packages(repo_root)}
+        for release in releases:
+            manifest = release_package_manifest(release)
+            for name, version in manifest["packages"].items():
+                if name not in inventory or inventory[name].version != version:
+                    raise RepoError(f"Release {manifest['version']} lock disagrees with inventory for {name}")
+                entry = inventory[name]
+                try:
+                    with entry.artifact.open("rb") as stream:
+                        actual = hashlib.file_digest(stream, "sha256").hexdigest()
+                except OSError as exc:
+                    raise RepoError(f"Cannot verify release artifact {entry.artifact}: {exc}") from exc
+                if actual != entry.sha256:
+                    raise RepoError(f"Release artifact {entry.artifact} differs from the tested inventory SHA-256; rebuild before publishing")
+            prepared.append((release, manifest))
+    if ordinary:
+        upload_packages(repo_root, sorted(ordinary), dry_run=dry_run)
+    for release, manifest in prepared:
+        if not dry_run:
+            hosted = parse_packages_index(fetch_published_index(published_index_url(repo_root)))
+            for name, version in manifest["packages"].items():
+                if name == "mattos-release":
+                    continue
+                expected = inventory[name]
+                if not any(p.version == version and p.sha256 == expected.sha256
+                           for p in hosted.get((name, expected.architecture), [])):
+                    raise RepoError(f"Release {manifest['version']} remains unpublished: {name}={version} is not hosted with the tested SHA-256")
+        upload_packages(repo_root, [release.artifact], dry_run=dry_run)
+
+
+def refresh_unpublished_release_lock(repo_root: Path) -> None:
+    """Keep an unpublished cohort current when package revisions are prepared."""
+    if not (repo_root / "src/system/release/current.toml").is_file():
+        return
+    from common import mattos_build_environment
+    subprocess.run(["cargo", "run", "-p", "mattos-build", "--", "release-lock"],
+                   cwd=repo_root, env=mattos_build_environment(repo_root), check=True)
+
+
 def main() -> int:
     args = parse_args()
     repo_root = find_repo_root(Path(__file__).resolve().parent)
-    ensure_build(repo_root, clean=args.clean, no_build=args.no_build)
+    packages_only = getattr(args, "packages_only", False) is True
+    ensure_build(repo_root, clean=args.clean, no_build=args.no_build, packages_only=packages_only)
     packages = discover_packages(repo_root)
     print(
         f"Discovered {len(packages)} package(s) from {PACKAGE_INVENTORY_RELATIVE}"
@@ -442,6 +525,8 @@ def main() -> int:
             )
         if not plan.rebuilt:
             break
+        if any(package.name == "mattos-release" for package in plan.rebuilt):
+            raise RepoError("A published release manifest is immutable. Increment YY.MM.revision and run mattos-build release-lock before publishing a changed package cohort.")
         targets = bump_targets(plan, entries)
         print(
             f"{len(plan.rebuilt)} package(s) changed under an already-published version; "
@@ -465,8 +550,9 @@ def main() -> int:
                 "rounds; their packaging may not be reproducible"
             )
         raise_revisions(repo_root, targets)
+        refresh_unpublished_release_lock(repo_root)
         print(f"Recorded the new revisions in {REVISION_LEDGER_RELATIVE} (commit it); rebuilding the packages")
-        ensure_build(repo_root, clean=False, no_build=False)
+        ensure_build(repo_root, clean=False, no_build=False, packages_only=packages_only)
         entries = inventory_packages(repo_root)
         reject_third_party_names(repo_root, entries)
     print(
@@ -483,7 +569,7 @@ def main() -> int:
             "test the upgrade with python3 DevUtils/run_qemu.py --upgrade-test --no-build, then publish"
         )
         return 0
-    upload_packages(repo_root, sorted(package.artifact for package in plan.upload), dry_run=args.dry_run)
+    publish_release_last(repo_root, plan.upload, dry_run=args.dry_run)
     return 0
 
 

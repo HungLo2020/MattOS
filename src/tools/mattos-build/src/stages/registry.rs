@@ -1,4 +1,11 @@
 fn stage_resource_profile(stage: BuildStage) -> scheduler::StageResourceProfile {
+    if matches!(stage, BuildStage::SambaClient | BuildStage::Talloc) {
+        // Waf reads a numeric MAKEFLAGS limit but cannot join the shared
+        // jobserver. Charge and pass its launch grant instead of a bare -j.
+        let mut profile = scheduler::StageResourceProfile::memory_heavy();
+        profile.child_jobs = scheduler::ChildJobPolicy::Capped(usize::MAX);
+        return profile;
+    }
     if stage == BuildStage::Libcap {
         return scheduler::StageResourceProfile::serial();
     }
@@ -228,6 +235,8 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::XdgUtils => vec!["out/build/xdg-utils/install".into()],
         BuildStage::NotoColorEmoji => vec!["out/build/noto-color-emoji/install".into()],
         BuildStage::NotoSansCjk => vec!["out/build/noto-sans-cjk/install".into()],
+        BuildStage::ReleaseTools | BuildStage::Talloc | BuildStage::CifsUtils | BuildStage::Nettle | BuildStage::LibTasn1 | BuildStage::GnuTls => vec![format!("out/build/{}/install", build_stage_id(stage)).into()],
+        BuildStage::SambaClient => vec!["out/build/samba/install".into(), "out/build/samba/validation".into()],
         BuildStage::XdgUserDirs => vec!["out/build/xdg-user-dirs/install".into()],
         BuildStage::PopFonts => vec!["out/build/pop-fonts/install/usr/share/fonts/opentype/fira/FiraSans-Regular.otf".into()],
         BuildStage::MaterialCursors => vec![
@@ -1006,6 +1015,13 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Ncurses => build_ncurses(repo_root),
         BuildStage::Iproute2 => build_iproute2(repo_root),
         BuildStage::Iputils => build_iputils(repo_root),
+        BuildStage::ReleaseTools => build_mattos_upgrade(repo_root),
+        BuildStage::Talloc => build_talloc(repo_root),
+        BuildStage::CifsUtils => build_cifs_utils(repo_root),
+        BuildStage::Nettle => build_nettle(repo_root),
+        BuildStage::LibTasn1 => build_libtasn1(repo_root),
+        BuildStage::GnuTls => build_gnutls(repo_root),
+        BuildStage::SambaClient => build_samba(repo_root),
         BuildStage::Curl => build_curl(repo_root),
         BuildStage::Nghttp2 => build_nghttp2(repo_root),
         BuildStage::Expat => build_expat(repo_root),

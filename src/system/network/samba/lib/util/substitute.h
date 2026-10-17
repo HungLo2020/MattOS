@@ -1,0 +1,103 @@
+/*
+   Unix SMB/CIFS implementation.
+   Samba utility functions
+
+   Copyright (C) Andrew Tridgell 1992-2001
+   Copyright (C) Simo Sorce      2001-2002
+   Copyright (C) Martin Pool     2003
+   Copyright (C) James Peach	 2005
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifndef _SAMBA_SUBSTITUTE_H_
+#define _SAMBA_SUBSTITUTE_H_
+
+#include <talloc.h>
+
+#define STRING_SUB_UNSAFE_CHARACTERS "$`\"';%|&<>"
+
+/**
+ Substitute a string for a pattern in another string. Make sure there is
+ enough room!
+
+ This routine looks for pattern in s and replaces it with
+ insert. It may do multiple replacements.
+
+ Any of STRING_SUB_UNSAFE_CHARACTERS (see above) and any character
+ caught by calling iscntrl() in the insert string are replaced with _
+
+ if len==0 then the string cannot be extended. This is different from the old
+ use of len==0 which was for no length checks to be done.
+**/
+void string_sub(char *s,const char *pattern, const char *insert, size_t len);
+
+/**
+ Similar to string_sub() but allows for any character to be substituted.
+ Use with caution!
+ if len==0 then the string cannot be extended. This is different from the old
+ use of len==0 which was for no length checks to be done.
+**/
+void all_string_sub(char *s,const char *pattern,const char *insert, size_t len);
+
+/*
+ * If unsafe_characters is NULL all characters are allowed,
+ * if unsafe_characters is not NULL all characters caught
+ * by iscntrl() are also replaced by safe_character.
+ *
+ * *_string might be reallocated!
+ *
+ * On error *_string may still be reallocated and
+ * may contain partial replacements.
+ */
+bool realloc_string_sub_raw(char **_string,
+			    const char *pattern,
+			    const char *insert,
+			    bool replace_once,
+			    bool allow_trailing_dollar,
+			    const char *unsafe_characters,
+			    char safe_character);
+
+char *talloc_string_sub2(TALLOC_CTX *mem_ctx, const char *src,
+			const char *pattern,
+			const char *insert,
+			bool remove_unsafe_characters,
+			bool replace_once,
+			bool allow_trailing_dollar);
+char *talloc_string_sub(TALLOC_CTX *mem_ctx,
+			const char *src,
+			const char *pattern,
+			const char *insert);
+char *talloc_all_string_sub(TALLOC_CTX *ctx,
+				const char *src,
+				const char *pattern,
+				const char *insert);
+
+#ifndef SAMBA_UTIL_CORE_ONLY
+bool talloc_string_sub_mixed_quoting(const char *full_cmd, char variable_char);
+
+char *talloc_string_sub_unsafe(TALLOC_CTX *mem_ctx,
+			       const char *orig_cmd,
+			       char variable_char,
+			       const char *unsafe_value,
+			       const char *unsafe_characters,
+			       char safe_character,
+			       const char *fallback_value,
+			       bool *_modified,
+			       bool *_masked,
+			       bool *_mixed_fallback);
+
+#endif /* ! SAMBA_UTIL_CORE_ONLY */
+
+#endif /* _SAMBA_SUBSTITUTE_H_ */

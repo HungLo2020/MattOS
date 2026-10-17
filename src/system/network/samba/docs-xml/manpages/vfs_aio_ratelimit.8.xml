@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE refentry PUBLIC "-//Samba-Team//DTD DocBook V4.2-Based Variant V1.0//EN" "http://www.samba.org/samba/DTD/samba-doc">
+<refentry id="vfs_aio_ratelimit.8">
+
+<refmeta>
+	<refentrytitle>vfs_aio_ratelimit</refentrytitle>
+	<manvolnum>8</manvolnum>
+	<refmiscinfo class="source">Samba</refmiscinfo>
+	<refmiscinfo class="manual">System Administration tools</refmiscinfo>
+	<refmiscinfo class="version">&doc.version;</refmiscinfo>
+</refmeta>
+
+<refnamediv>
+	<refname>vfs_aio_ratelimit</refname>
+	<refpurpose>Implement async-I/O rate-limiting for Samba with cluster-wide coordination</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+	<cmdsynopsis>
+		<command>vfs objects = aio_ratelimit</command>
+	</cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1>
+	<title>DESCRIPTION</title>
+
+	<para>This VFS module is part of the
+	<citerefentry><refentrytitle>samba</refentrytitle>
+	<manvolnum>7</manvolnum></citerefentry> suite.</para>
+
+	<para>The <command>aio_ratelimit</command> VFS module enables run-time
+	rate-limiting on specific shares by enforcing upper limit on async I/O
+	operations. An administrator may define this limit as operations
+	per-second or bytes-per-second. When one of those limits is exceeded,
+	a delay value (in microseconds) is calculated based on current I/O load
+	and injected to async I/O operations, yielding an implicit throughput
+	ceiling.
+	</para>
+
+	<para>
+	A configurable burst allowance is supported via a burst multiplier,
+	allowing short-term bursts above the steady-state rate while still
+	enforcing a long-term ceiling. Rate-limiter state is periodically
+	persisted to a local TDB, allowing limits to be enforced consistently
+	across client reconnects and smbd restarts.
+	</para>
+
+	<para>
+	<emphasis role="bold">Cluster Support:</emphasis>
+	When clustering is enabled in Samba, cluster-wide rate limiting is
+	automatically enabled by default. Each share's configured rate limit
+	applies to that share across the entire cluster. Limits for different
+	shares are tracked and enforced independently of one another.
+	</para>
+
+	<para>
+	This module operates only on asynchronous VFS READ/WRITE operations.
+	</para>
+
+	<para>This module is stackable.</para>
+</refsect1>
+
+<refsect1>
+	<title>CONFIGURATION</title>
+
+	<para>Straight forward use:</para>
+
+<programlisting>
+	<smbconfsection name="[share]"/>
+	<smbconfoption name="path">/path/to/share</smbconfoption>
+	<smbconfoption name="vfs objects">aio_ratelimit</smbconfoption>
+</programlisting>
+
+	<para>Cluster deployment example (cluster-wide limits):</para>
+
+<programlisting>
+	<smbconfsection name="[global]"/>
+	<smbconfoption name="clustering">yes</smbconfoption>
+
+	<smbconfsection name="[shared-storage]"/>
+	<smbconfoption name="path">/mnt/shared</smbconfoption>
+	<smbconfoption name="vfs objects">aio_ratelimit</smbconfoption>
+	<smbconfoption name="aio_ratelimit:read_iops_limit">10000</smbconfoption>
+	<smbconfoption name="aio_ratelimit:write_bw_limit">1G</smbconfoption>
+</programlisting>
+
+	<para>The 10000 IOPS and 1G bandwidth limits apply to the entire cluster.</para>
+
+	<para>Cluster deployment with per-node limits:</para>
+
+<programlisting>
+	<smbconfsection name="[global]"/>
+	<smbconfoption name="clustering">yes</smbconfoption>
+
+	<smbconfsection name="[shared-storage]"/>
+	<smbconfoption name="path">/mnt/shared</smbconfoption>
+	<smbconfoption name="vfs objects">aio_ratelimit</smbconfoption>
+	<smbconfoption name="aio_ratelimit:read_iops_limit">10000</smbconfoption>
+</programlisting>
+
+	<para>Each node independently enforces the 10000 IOPS limit.</para>
+
+</refsect1>
+
+<refsect1>
+	<title>OPTIONS</title>
+
+	<variablelist>
+		<varlistentry>
+		<term>aio_ratelimit:read_iops_limit = count</term>
+		<listitem>
+		<para>
+			Upper limit of READ operations-per-second before
+			injecting delays. Zero value implies no limit.
+		</para>
+		<para>
+			In cluster mode, this is the <emphasis>global limit</emphasis>
+			enforced across all nodes. The limit is automatically distributed
+			equally among all active smbd processes performing I/O
+			on this share.
+		</para>
+		<para>Default: 0, Max: 1000000</para>
+		<para>Example: aio_ratelimit:read_iops_limit = 1000</para>
+		</listitem>
+		</varlistentry>
+
+		<varlistentry>
+		<term>aio_ratelimit:read_bw_limit = count</term>
+		<listitem>
+		<para>
+			Upper limit of READ bandwidth (bytes-per-second) before
+			injecting delays. Zero value implies no limit.
+			Supports size suffixes (K, M, G, T).
+		</para>
+		<para>
+			In cluster mode, this is the <emphasis>global limit</emphasis>
+			enforced across all nodes. The limit is automatically distributed
+			equally among all active smbd processes performing I/O
+			on this share.
+		</para>
+		<para>Default: 0, Max: 1T</para>
+		<para>Example: aio_ratelimit:read_bw_limit = 2M</para>
+		</listitem>
+		</varlistentry>
+
+		<varlistentry>
+		<term>aio_ratelimit:read_burst_mult = value</term>
+		<listitem>
+		<para>
+			Burst multiplier for READ operations, expressed in
+			tenths (e.g., 15 = 1.5x). Defines the token bucket
+			capacity as a multiple of the rate limit, allowing
+			short-term bursts above the steady-state rate.
+		</para>
+		<para>Default: 15 (1.5x), Max: 100 (10x)</para>
+		<para>Example: aio_ratelimit:read_burst_mult = 20</para>
+		</listitem>
+		</varlistentry>
+
+		<varlistentry>
+		<term>aio_ratelimit:write_iops_limit = count</term>
+		<listitem>
+		<para>
+			Upper limit of WRITE operations-per-second before
+			injecting delays. Zero value implies no limit.
+		</para>
+		<para>
+			In cluster mode, this is the <emphasis>global limit</emphasis>
+			enforced across all nodes. The limit is automatically distributed
+			equally among all active smbd processes performing I/O
+			on this share.
+		</para>
+		<para>Default: 0, Max: 1000000</para>
+		<para>Example: aio_ratelimit:write_iops_limit = 1000</para>
+		</listitem>
+		</varlistentry>
+
+		<varlistentry>
+		<term>aio_ratelimit:write_bw_limit = count</term>
+		<listitem>
+		<para>
+			Upper limit of WRITE bandwidth (bytes-per-second)
+			before injecting delays. Zero value implies no limit.
+			Supports size suffixes (K, M, G, T).
+		</para>
+		<para>
+			In cluster mode, this is the <emphasis>global limit</emphasis>
+			enforced across all nodes. The limit is automatically distributed
+			equally among all active smbd processes performing I/O
+			on this share.
+		</para>
+		<para>Default: 0, Max: 1T</para>
+		<para>Example: aio_ratelimit:write_bw_limit = 1M</para>
+		</listitem>
+		</varlistentry>
+
+		<varlistentry>
+		<term>aio_ratelimit:write_burst_mult = value</term>
+		<listitem>
+		<para>
+			Burst multiplier for WRITE operations, expressed in
+			tenths (e.g., 15 = 1.5x). Defines the token bucket
+			capacity as a multiple of the rate limit, allowing
+			short-term bursts above the steady-state rate.
+		</para>
+		<para>Default: 15 (1.5x), Max: 100 (10x)</para>
+		<para>Example: aio_ratelimit:write_burst_mult = 15</para>
+		</listitem>
+		</varlistentry>
+
+	</variablelist>
+</refsect1>
+
+<refsect1>
+	<title>CLUSTER BEHAVIOR</title>
+
+	<para>
+	When Samba clustering is enabled, cluster-wide rate limiting is
+	automatically enabled by default. The configured limits apply to the
+	<emphasis>entire cluster</emphasis>, not individual nodes. This requires
+	the <command>ratelimitd</command> daemon, which must be enabled at build
+	time with <command>--with-ratelimitd</command>.
+	</para>
+
+<programlisting>
+	<smbconfsection name="[share]"/>
+	<smbconfoption name="aio_ratelimit:read_iops_limit">1000</smbconfoption>
+</programlisting>
+
+	<para>
+	With cluster mode enabled (default when clustering is active),
+	the module automatically distributes bandwidth among active connections
+	on that share.
+	For example, with a 1000 IOPS limit:
+	</para>
+	<itemizedlist>
+		<listitem>
+			<para>4 active connections → Each gets ~250 IOPS</para>
+		</listitem>
+		<listitem>
+			<para>10 active connections → Each gets ~100 IOPS</para>
+		</listitem>
+		<listitem>
+			<para>Total cluster throughput: Always limited to 1000 IOPS</para>
+		</listitem>
+	</itemizedlist>
+
+	<para>
+	The distribution happens automatically as connections are established
+	and closed.
+	</para>
+
+	<note>
+		<para>
+		Nodes with more active connections will naturally use more of the
+		total bandwidth. This ensures fair per-connection allocation across
+		the cluster.
+		</para>
+	</note>
+
+</refsect1>
+
+<refsect1>
+	<title>BURST BEHAVIOR</title>
+
+	<para>
+	The <command>read_burst_mult</command> and <command>write_burst_mult</command>
+	parameters control the maximum burst capacity of the rate limiter relative to
+	the configured rate limits. The effective burst capacity is calculated as:
+	<emphasis>rate_limit * (burst_mult / 10)</emphasis>.
+	</para>
+	<para>
+	For example, with <command>read_iops_limit = 1000</command> and
+	<command>read_burst_mult = 15</command>, the burst capacity is
+	1000 * 1.5 = 1500 IOPS.
+	</para>
+	<para>
+	This allows short-term I/O bursts above the steady-state rate while
+	still enforcing the configured long-term limit.
+	</para>
+
+	<para>
+	The appropriate burst multiplier depends on workload characteristics.
+	Workloads with larger or more variable asynchronous I/O requests may
+	require a higher burst value to avoid premature throttling, while
+	smaller or latency-sensitive workloads may benefit from lower values.
+	</para>
+
+	<note>
+	<para>
+	The <command>read_burst_mult</command> and <command>write_burst_mult</command>
+	parameters do not change the long-term average throughput, which remains limited
+	by <command>read_iops_limit</command>/<command>read_bw_limit</command> and
+	<command>write_iops_limit</command>/<command>write_bw_limit</command> respectively.
+	Higher burst values only affect initial acceleration and recovery from idle periods.
+	</para>
+	</note>
+</refsect1>
+
+<refsect1>
+	<title>VERSION</title>
+
+	<para>This man page is part of version &doc.version; of the Samba suite.
+	</para>
+</refsect1>
+
+<refsect1>
+	<title>AUTHOR</title>
+
+	<para>The original Samba software and related utilities
+	were created by Andrew Tridgell. Samba is now developed
+	by the Samba Team as an Open Source project similar
+	to the way the Linux kernel is developed.</para>
+
+</refsect1>
+
+</refentry>

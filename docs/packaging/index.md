@@ -8,4 +8,5 @@ Debian-format packages, the MattOS APT repository, current (not guaranteed) Debi
 - [Debian Compatibility (Current State)](debian-compatibility.md)
 - [MattOS remote repository integration](remote-repository.md)
 - [Publishing Packages](publishing.md)
+- [OS Releases and Upgrades](../system/releases.md)
 - [Third-Party Packages](third-party-packages.md)

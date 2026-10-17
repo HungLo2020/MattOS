@@ -37,7 +37,10 @@ Synchronization state uses schema version 2 in
 Gitlink replacements and exclusions are recorded in
 `upstream/policies/gitlinks.toml`. Official release archives used only to supply
 generated bootstrap inputs are pinned in
-`upstream/policies/release-archives.toml`.
+`upstream/policies/release-archives.toml` and the SMB crypto closure's
+`upstream/policies/smb-release-archives.toml`. The separate SMB policy keeps
+adding or updating those pins from invalidating unrelated archive consumers
+such as the Rust toolchain. The provenance audit validates both policies.
 
 Source-selection policies under `upstream/policies/` declare reproducible
 component projections. The Linux policy is limited to `arch/`: it retains

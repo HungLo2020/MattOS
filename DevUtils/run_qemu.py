@@ -167,6 +167,8 @@ def parse_args() -> argparse.Namespace:
             "current build's repository, reboot and rerun the installed-system checks"
         ),
     )
+    parser.add_argument("--smb-test", action="store_true",
+                        help="verify encrypted SMB3 client transfers and CIFS mounts in an ephemeral live VM")
     parser.add_argument(
         "--upgrade-from",
         type=Path,
@@ -198,6 +200,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--require-kernel-change", action="store_true",
                         help="require --upgrade-test to boot a different kernel release after upgrading")
     args = parser.parse_args()
+    if args.smb_test and (args.install or args.run_installed or args.upgrade_test or args.build_only
+                          or args.headless or args.no_network or args.install_disk):
+        parser.error("--smb-test requires a live graphical VM with networking and no installation disk")
+    if args.smb_test:
+        args.no_install_disk = True
+        args.test_control = True
     if args.build_only and (args.install or args.run_installed):
         parser.error("--build-only cannot be combined with --install or --run-installed")
     if args.run_installed and args.no_install_disk:
@@ -1480,6 +1488,28 @@ def _verify_installed_disk_boot(
         shutil.rmtree(probe_root, ignore_errors=True)
 
 
+def installed_release_probes(repo_root: Path) -> tuple[tuple[str, str], ...]:
+    selector = repo_root / "src/system/release/current.toml"
+    if not selector.is_file():
+        return ()
+    version = tomllib.loads(selector.read_text())["version"]
+    manifest = repo_root / f"src/system/release/manifests/{version}.json"
+    digest = hashlib.sha256(manifest.read_bytes()).hexdigest()
+    sudo = f"printf '%s\\n' {shlex.quote(TEST_INSTALL_PASSWORD)} | sudo -S"
+    return (
+        ("release-identity", f". /etc/os-release && test \"$VERSION_ID\" = {shlex.quote(version)} && "
+         "test \"$(readlink /etc/os-release)\" = ../usr/lib/os-release && "
+         "dpkg-query -S /usr/lib/os-release | grep -q '^mattos-release:'"),
+        ("release-manifest", f"test \"$(sha256sum /usr/share/mattos/release.json | cut -d' ' -f1)\" = {digest}"),
+        ("release-migrations", "systemctl is-active mattos-release-migrations.service && "
+         "mattos-upgrade status && "
+         f"python3 -c 'import json; s=json.load(open(\"/var/lib/mattos/releases/state.json\")); assert s[\"completed_version\"] == \"{version}\"'"),
+        ("release-migrations-idempotent", "before=$(sha256sum /var/lib/mattos/releases/state.json) && "
+         f"{sudo} mattos-upgrade migrate && "
+         "test \"$before\" = \"$(sha256sum /var/lib/mattos/releases/state.json)\""),
+    )
+
+
 def _verify_installed_disk_boot_with(
     repo_root: Path,
     disk: Path,
@@ -1560,6 +1590,7 @@ def _verify_installed_disk_boot_with(
     )
     checks = (
         ("not-live", "test ! -e /run/mattos-live"),
+        *installed_release_probes(repo_root),
         ("profile-file", "test -f /etc/mattos-installed-profile"),
         ("profile-value", f"test \"$(cat /etc/mattos-installed-profile)\" = {expected_profile}"),
         ("hostname", "test \"$(cat /etc/hostname)\" = mattos-test"),
@@ -2100,6 +2131,11 @@ def serve_flat_repository(directory: Path) -> tuple[http.server.ThreadingHTTPSer
     """Serve a flat (`./`) repository on the host loopback for the guest."""
     if not (directory / "Release").is_file():
         raise RepoError(f"no flat repository at {directory}")
+    return serve_test_directory(directory)
+
+
+def serve_test_directory(directory: Path) -> tuple[http.server.ThreadingHTTPServer, int]:
+    """Serve output-owned test inputs only on host loopback."""
     handler = functools.partial(_QuietRepositoryHandler, directory=str(directory))
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -2199,6 +2235,8 @@ def _upgrade_installed_system(
 
         installed_query = "dpkg-query -W -f '${Package} ${Version}\\n'"
         before = framed_output(run(framed_command(installed_query, "installed")), "installed")
+        run("printf '%s\\n' mattos-upgrade-preserved > ~/release-upgrade-user-data")
+        run(f"{sudo} sh -c 'echo \"# mattos-upgrade-preserved\" >> /etc/profile'")
         report["kernel_before"] = framed_output(run(framed_command("uname -r", "kernel")), "kernel").strip()
         report["kernel_expected"] = (repo_root / "out/build/linux/kernel-release").read_text().strip()
         report["kernel_release_changed"] = report["kernel_before"] != report["kernel_expected"]
@@ -2213,11 +2251,22 @@ def _upgrade_installed_system(
         stream("[upgrade-test] serving the build repository at "
                f"http://{QEMU_HOST_ADDRESS}:{port}/\n")
         run(f"{sudo} apt-get update")
-        upgrade = run(
-            f"{sudo} env DEBIAN_FRONTEND=noninteractive apt-get -y "
-            "-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold full-upgrade",
-            INSTALL_PROGRESS_IDLE_SECONDS,
-        )
+        if "mattos-release" in inventory:
+            run(f"{sudo} env DEBIAN_FRONTEND=noninteractive apt-get -y install mattos-upgrade", INSTALL_PROGRESS_IDLE_SECONDS)
+            run("mattos-upgrade plan", INSTALL_PROGRESS_IDLE_SECONDS)
+            upgrade = run(f"{sudo} env DEBIAN_FRONTEND=noninteractive mattos-upgrade apply --yes", INSTALL_PROGRESS_IDLE_SECONDS)
+            run("mattos-upgrade status")
+            run("python3 -c 'import json; j=json.load(open(\"/var/lib/mattos/releases/upgrade.json\")); "
+                "assert j[\"phase\"] == \"complete\"; "
+                "s=json.load(open(\"/var/lib/mattos/releases/state.json\")); "
+                "assert s[\"completed_version\"] == j[\"to\"]; assert s[\"original_version\"] == j[\"from\"]'")
+            report["release_upgrade"] = True
+        else:
+            upgrade = run(
+                f"{sudo} env DEBIAN_FRONTEND=noninteractive apt-get -y "
+                "-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold full-upgrade",
+                INSTALL_PROGRESS_IDLE_SECONDS,
+            )
         summary = parse_upgrade_summary(upgrade)
         report["apt_full_upgrade"] = summary
         stream(f"[upgrade-test] apt full-upgrade: {summary}\n")
@@ -2227,6 +2276,9 @@ def _upgrade_installed_system(
         if any(remaining[key] for key in ("upgraded", "installed", "removed", "held")):
             raise RepoError(f"the upgrade left work undone: {remaining}")
         run("test -z \"$(dpkg --audit)\"")
+        run("grep -Fx mattos-upgrade-preserved ~/release-upgrade-user-data && "
+            "grep -Fx '# mattos-upgrade-preserved' /etc/profile")
+        report["user_data_and_configuration_preserved"] = True
         after = framed_output(run(framed_command(installed_query, "installed")), "installed")
         stale = stale_installed_packages(after, inventory)
         if stale:
@@ -2398,6 +2450,10 @@ def main() -> int:
         iso_path = None
     else:
         iso_path = ensure_iso_exists(repo_root)
+
+    if args.smb_test and not args.dry_run:
+        from smb_validation import run
+        return run(repo_root, iso_path, args)
 
     return launch_qemu(repo_root, iso_path, args)
 
