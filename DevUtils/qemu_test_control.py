@@ -159,7 +159,9 @@ def serial_console_is_grub(output: bytes) -> bool:
 
 def serial_console_has_shell_prompt(output: bytes) -> bool:
     """Recognize a POSIX shell prompt, never a boot-loader prompt."""
-    return SHELL_PROMPT.search(output) is not None
+    # Colors may surround the username, hostname and working directory.
+    visible = re.sub(rb"\x1b\[[0-9;:]*m", b"", output)
+    return SHELL_PROMPT.search(visible) is not None
 
 
 def shell_probe_payload(marker: str) -> bytes:

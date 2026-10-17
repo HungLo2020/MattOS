@@ -1,0 +1,320 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: kdeorg\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-27 02:39+0000\n"
+"PO-Revision-Date: 2024-04-22 15:58\n"
+"Last-Translator: \n"
+"Language-Team: Chinese Simplified\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: kdeorg\n"
+"X-Crowdin-Project-ID: 269464\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /kf6-stable/messages/bluedevil/plasma_applet_org.kde.plasma."
+"bluetooth.pot\n"
+"X-Crowdin-File-ID: 51992\n"
+
+#: devicesproxymodel.cpp:51
+#, kde-format
+msgctxt "@title:column Blocked Bluetooth devices"
+msgid "Blocked"
+msgstr "已屏蔽"
+
+#: devicesproxymodel.cpp:54
+#, kde-format
+msgctxt "@title:column Connected Bluetooth devices"
+msgid "Connected"
+msgstr "已连接"
+
+#: devicesproxymodel.cpp:56
+#, kde-format
+msgctxt "@title:column Available but not connected Bluetooth devices"
+msgid "Available"
+msgstr "可用"
+
+#: devicesstateproxymodel.cpp:273
+#, kde-format
+msgctxt "@label %1 is the name of a Bluetooth device"
+msgid "Could not connect to device “%1”"
+msgstr "无法连接到设备“%1”"
+
+#: devicesstateproxymodel.cpp:288
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+msgid "The device is unreachable"
+msgstr "设备无法访问"
+
+#: devicesstateproxymodel.cpp:289
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed"
+msgid "Connection to the device failed"
+msgstr "设备连接失败"
+
+#: devicesstateproxymodel.cpp:292
+#, kde-format
+msgctxt "Notification when the connection failed due to NotReady"
+msgid "The device is not ready"
+msgstr "设备未就绪"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Disconnect"
+msgstr "断开"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Connect"
+msgstr "连接"
+
+#: qml/DeviceItem.qml:51
+#, kde-format
+msgid "Browse Files"
+msgstr "浏览文件"
+
+#: qml/DeviceItem.qml:62
+#, kde-format
+msgid "Send File"
+msgstr "发送文件"
+
+#: qml/DeviceItem.qml:71
+#, kde-format
+msgctxt "@action:button Forget a Bluetooth device"
+msgid "Forget"
+msgstr "忘记"
+
+#: qml/DeviceItem.qml:117
+#, kde-format
+msgid "Copy"
+msgstr "复制"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "Yes"
+msgstr "是"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "No"
+msgstr "否"
+
+#: qml/DeviceItem.qml:219
+#, kde-format
+msgctxt "@label %1 is human-readable adapter name, %2 is HCI"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: qml/DeviceItem.qml:227
+#, kde-format
+msgid "Remote Name"
+msgstr "远程名称"
+
+#: qml/DeviceItem.qml:231
+#, kde-format
+msgid "Address"
+msgstr "地址"
+
+#: qml/DeviceItem.qml:234
+#, kde-format
+msgid "Paired"
+msgstr "已配对"
+
+#: qml/DeviceItem.qml:237
+#, kde-format
+msgid "Trusted"
+msgstr "已信任"
+
+#: qml/DeviceItem.qml:240
+#, kde-format
+msgid "Adapter"
+msgstr "适配器"
+
+#: qml/DeviceItem.qml:248
+#, kde-format
+msgid "Connecting"
+msgstr "正在连接"
+
+#: qml/DeviceItem.qml:250
+#, kde-format
+msgid "Disconnecting"
+msgstr "正在断开连接"
+
+#: qml/DeviceItem.qml:256
+#, kde-format
+msgid "Connection failed"
+msgstr "连接失败"
+
+#: qml/DeviceItem.qml:261
+#, kde-format
+msgid "Headset"
+msgstr "耳麦"
+
+#: qml/DeviceItem.qml:267
+#, kde-format
+msgid "Audio device"
+msgstr "音频设备"
+
+#: qml/DeviceItem.qml:271
+#, kde-format
+msgid "Keyboard"
+msgstr "键盘"
+
+#: qml/DeviceItem.qml:274
+#, kde-format
+msgid "Mouse"
+msgstr "鼠标"
+
+#: qml/DeviceItem.qml:277
+#, kde-format
+msgid "Joypad"
+msgstr "游戏控制器"
+
+#: qml/DeviceItem.qml:280
+#, kde-format
+msgid "Drawing tablet"
+msgstr "数位板"
+
+#: qml/DeviceItem.qml:284
+#, kde-format
+msgid "Phone"
+msgstr "电话"
+
+#: qml/DeviceItem.qml:287
+#, kde-format
+msgid "Camera"
+msgstr "摄像头"
+
+#: qml/DeviceItem.qml:290
+#, kde-format
+msgid "Printer"
+msgstr "打印机"
+
+#: qml/DeviceItem.qml:297
+#, kde-format
+msgid "File transfer"
+msgstr "文件传输"
+
+#: qml/DeviceItem.qml:300
+#, kde-format
+msgid "Send file"
+msgstr "发送文件"
+
+#: qml/DeviceItem.qml:303
+#, kde-format
+msgid "Input"
+msgstr "输入"
+
+#: qml/DeviceItem.qml:306
+#, kde-format
+msgid "Audio"
+msgstr "音频"
+
+#: qml/DeviceItem.qml:309
+#, kde-format
+msgid "Network"
+msgstr "网络"
+
+#: qml/DeviceItem.qml:314
+#, kde-format
+msgid "Other device"
+msgstr "其他设备"
+
+#: qml/DeviceItem.qml:321 qml/main.qml:74 qml/main.qml:83
+#, kde-format
+msgid "%1% Battery"
+msgstr "%1% 电量"
+
+#: qml/FullRepresentation.qml:80
+#, kde-format
+msgid "Enable"
+msgstr "启用"
+
+#: qml/FullRepresentation.qml:156
+#, kde-format
+msgid "No Bluetooth adapters available"
+msgstr "没有可用的蓝牙适配器"
+
+#: qml/FullRepresentation.qml:158
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "蓝牙已禁用"
+
+#: qml/FullRepresentation.qml:160
+#, kde-format
+msgid "No devices paired"
+msgstr "没有已配对的设备"
+
+#: qml/main.qml:51
+#, kde-format
+msgid "Bluetooth"
+msgstr "蓝牙"
+
+#: qml/main.qml:55
+#, kde-format
+msgid "Bluetooth is disabled; middle-click to enable"
+msgstr "蓝牙已禁用；中键点击以启用"
+
+#: qml/main.qml:59
+#, kde-format
+msgid "No adapters available"
+msgstr "没有可用的适配器"
+
+#: qml/main.qml:61
+#, kde-format
+msgid "Bluetooth is offline"
+msgstr "蓝牙离线"
+
+#: qml/main.qml:64
+#, kde-format
+msgid "Middle-click to disable Bluetooth"
+msgstr "中键点击禁用蓝牙"
+
+#: qml/main.qml:67
+#, kde-format
+msgid "No connected devices"
+msgstr "尚未连接任何设备"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "%1 connected"
+msgstr "%1 已连接"
+
+#: qml/main.qml:79
+#, kde-format
+msgctxt "Number of connected devices"
+msgid "%1 connected device"
+msgid_plural "%1 connected devices"
+msgstr[0] "%1 个已连接设备"
+
+#: qml/main.qml:110
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable Bluetooth"
+msgstr "启用蓝牙"
+
+#: qml/main.qml:122
+#, kde-format
+msgctxt "@action:button"
+msgid "Pair Device…"
+msgstr "配对设备…"
+
+#: qml/main.qml:130
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Show badge with number of connected devices"
+msgstr "显示已连接设备数的角标"
+
+#: qml/main.qml:140
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Configure &Bluetooth…"
+msgstr "配置蓝牙(&B)…"
+
+#: qml/Toolbar.qml:73
+#, kde-format
+msgctxt "@action:button opens hamburger menu"
+msgid "More actions"
+msgstr "更多操作"

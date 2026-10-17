@@ -1,0 +1,9 @@
+/*!
+    \module BluezQt
+    \title BluezQt C++ Classes
+    \ingroup modules
+    \cmakepackage KF6
+    \cmakecomponent BluezQt
+
+    \brief Qt wrapper for BlueZ 5 DBus API.
+*/

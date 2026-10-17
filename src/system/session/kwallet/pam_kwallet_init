@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+"""Pass the graphical environment to upstream KWallet's PAM-started daemon.
+
+This implements the upstream `env | socat STDIN UNIX-CONNECT:...` handshake
+with the Python runtime already packaged in MattOS.
+"""
+import os
+import socket
+
+path = os.environ.get("PAM_KWALLET5_LOGIN")
+if path:
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+        connection.settimeout(10)
+        connection.connect(path)
+        connection.sendall(b"".join(key + b"=" + value + b"\n" for key, value in os.environb.items()))
+        connection.shutdown(socket.SHUT_WR)

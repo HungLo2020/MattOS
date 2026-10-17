@@ -37,6 +37,24 @@ KWin reads the cursor selection from KDE configuration instead:
 KDE settings. Forcing both variables in the session environment would
 override that selection, including the Material default.
 
+## Standard user directories
+
+The base profile includes source-built `xdg-user-dirs` (pinned upstream v0.20).
+Its user service is enabled in `graphical-session-pre.target.wants`, before
+desktop applications start. Ordinary interactive console and SSH logins also
+run the updater through `/etc/profile.d/xdg-user-dirs.sh`; root and system
+accounts are excluded from that shell hook.
+
+On first initialization, upstream creates localized Desktop, Downloads,
+Documents, Pictures, Music, Videos, Templates, Public and Projects folders and
+records them in `${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs`. Later
+logins preserve custom paths and directory opt-outs. The upstream configuration
+files `/etc/xdg/user-dirs.conf` and `user-dirs.defaults` are conffiles, as is
+the shell hook. Setting `enabled=False` in the user's `user-dirs.conf` disables
+the updater. The Plasma wrapper preserves the login locale rather than forcing
+English. Existing accounts receive initialization on their next login after
+the package is installed; an installer-only account hook is unnecessary.
+
 ## Per-user D-Bus
 
 MattOS installs minimal user units under `/usr/lib/systemd/user`:

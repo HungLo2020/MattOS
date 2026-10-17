@@ -1,0 +1,197 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl"
+   href="http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+    "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+]>
+<refentry id="xdg-open">
+  <refentryinfo>
+    <title>xdg-open Manual</title>
+    <copyright>
+      <year>2006</year>
+    </copyright>
+    <author>
+      <firstname>Kevin</firstname>
+      <surname>Krammer</surname>
+    </author>
+    <address><email>kevin.krammer@gmx.at</email></address>
+    <author>
+      <firstname>Jeremy</firstname>
+      <surname>White</surname>
+    </author>
+    <address><email>jwhite@codeweavers.com</email></address>
+    <releaseinfo>xdg-utils 1.0</releaseinfo>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>xdg-open</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+
+  <refnamediv>
+    <refname>xdg-open</refname>
+    <refpurpose>opens a file or URL in the user's preferred application</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>xdg-open</command>
+      <group choice="req">
+        <arg choice="plain"><option><replaceable>file</replaceable></option></arg>
+        <arg choice="plain"><option><replaceable>URL</replaceable></option></arg>
+      </group>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>xdg-open</command>
+      <group choice="req">
+        <arg choice="plain"><option>--help</option></arg>
+        <arg choice="plain"><option>--manual</option></arg>
+        <arg choice="plain"><option>--version</option></arg>
+      </group>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id="description">
+    <title>Description</title>
+    <para>
+      xdg-open opens a file or URL in the user's preferred application.
+      If a URL is provided the URL will be opened in the user's preferred
+      web browser. If a file is provided the file will be opened in the
+      preferred application for files of that type. xdg-open supports
+      file, ftp, http and https URLs.
+    </para>
+    <para>
+      xdg-open is for use inside a desktop session only.
+      It is not recommended to use xdg-open as root.
+    </para>
+    <para>
+	  As xdg-open can not handle arguments that begin with a <quote>-</quote> it is recommended to pass filepaths in one of the following ways:
+    </para>
+	  <itemizedlist>
+		  <listitem><para>Pass absolute paths, i.e. by using <command>realpath</command> as a preprocessor.</para></listitem>
+		  <listitem><para>Prefix known relative filepaths with a <quote>./</quote>. For example using <code>sed -E 's|^[^/]|./\0|'</code>.</para></listitem>
+		  <listitem><para>Pass a file URL.</para></listitem>
+	  </itemizedlist>
+  </refsect1>
+  <refsect1 id="options">
+    <title>Options</title>
+    <variablelist>
+      <varlistentry>
+	<term><option>--help</option></term>
+	<listitem>
+	  <simpara>
+	    Show command synopsis.
+	  </simpara>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term><option>--manual</option></term>
+	<listitem>
+	  <simpara>
+	    Show this manual page.
+	  </simpara>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><option>--version</option></term>
+        <listitem>
+          <simpara>
+            Show the xdg-utils version information.
+          </simpara>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1 id="exitcodes">
+    <title>Exit Codes</title>
+    <para>
+      An exit code of 0 indicates success while a non-zero exit code
+      indicates failure. The following failure codes can be returned:
+    </para>
+    <variablelist>
+      <varlistentry>
+	<term><option>1</option></term>
+	<listitem>
+	  <simpara>
+	    Error in command line syntax.
+	  </simpara>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>2</option></term>
+	<listitem>
+	  <simpara>
+	    One of the files passed on the command line did not exist.
+	  </simpara>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>3</option></term>
+	<listitem>
+	  <simpara>
+	    A required tool could not be found. 
+	  </simpara>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term><option>4</option></term>
+	<listitem>
+	  <simpara>
+	    The action failed. 
+	  </simpara>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+    <para>
+	  In case of success the process launched from the .desktop file will not be forked off and therefore may result in xdg-open running for a very long time. This behaviour intentionally differs from most desktop specific openers to allow terminal based applications to run using the same terminal xdg-open was called from.
+    </para>
+  </refsect1>
+  <refsect1 id="reporting-issues">
+    <title>Reporting Issues</title>
+    <para>
+	  Please keep in mind <command>xdg-open</command> inherits most of the flaws of its configuration and the underlying opener.
+    </para>
+    <para>
+      In case the command <code>xdg-mime query default "$(xdg-mime query filetype path/to/troublesome_file)"</code> names the program responsible for any unexpected behaviour you can fix that by setting a different handler. (If the program is broken let the developers know)
+    </para>
+    <para>
+       Also see the security note on <citerefentry><refentrytitle>xdg-mime</refentrytitle><manvolnum>1</manvolnum></citerefentry> for the <code>default</code> subcommand.
+    </para>
+    <para>
+	   If a flaw is reproducible using the desktop specific opener (and isn't a configuration issue): Please report to whoever is responsible for that first (reporting to xdg-utils is better than not reporting at all, but since the xdg-utils are maintained in very little spare time a fix will take much longer)
+    </para>
+    <para>
+      In case an issue specific to xdg-open please report it to <uri>https://gitlab.freedesktop.org/xdg/xdg-utils/-/issues</uri> .
+    </para>
+  </refsect1>
+  <refsect1 id="seealso">
+    <title>See Also</title>
+    <para><citerefentry><refentrytitle>xdg-mime</refentrytitle>
+        <manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry><refentrytitle>xdg-settings</refentrytitle>
+        <manvolnum>1</manvolnum>
+      </citerefentry>,
+      <ulink url="http://www.freedesktop.org/wiki/Specifications/mime-apps-spec/">MIME applications associations specification</ulink>
+    </para>
+  </refsect1>
+
+  <refsect1 id="examples">
+    <title>Examples</title>
+    <para>
+<programlisting>
+xdg-open 'http://www.freedesktop.org/'
+</programlisting>
+      Opens the freedesktop.org website in the user's default browser.
+    </para>
+    <para>
+<programlisting>
+xdg-open /tmp/foobar.png
+</programlisting>
+      Opens the PNG image file /tmp/foobar.png in the user's default image
+      viewing application.
+    </para>
+  </refsect1>
+</refentry>

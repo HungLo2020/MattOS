@@ -1,0 +1,357 @@
+# Translation for plasma_applet_org.kde.plasma.bluetooth.po to Euskara/Basque (eu).
+# Copyright (C) 2017-2026 This file is copyright:
+# This file is distributed under the same license as the bluedevil package.
+# SPDX-FileCopyrightText: 2024, 2025, 2026 KDE euskaratzeko proiektuaren arduraduna <xalba@ni.eus>
+#
+# Translators:
+# Iñigo Salvador Azurmendi <xalba@ni.eus>, 2017, 2018, 2020, 2021, 2022, 2024, 2025, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: bluedevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-27 02:39+0000\n"
+"PO-Revision-Date: 2026-01-25 12:59+0100\n"
+"Last-Translator: Iñigo Salvador Azurmendi <xalba@ni.eus>\n"
+"Language-Team: Basque <kde-i18n-eu@kde.org>\n"
+"Language: eu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 25.12.1\n"
+
+#: devicesproxymodel.cpp:51
+#, kde-format
+msgctxt "@title:column Blocked Bluetooth devices"
+msgid "Blocked"
+msgstr "Oztopatuta"
+
+#: devicesproxymodel.cpp:54
+#, kde-format
+msgctxt "@title:column Connected Bluetooth devices"
+msgid "Connected"
+msgstr "Konektatuta"
+
+#: devicesproxymodel.cpp:56
+#, kde-format
+msgctxt "@title:column Available but not connected Bluetooth devices"
+msgid "Available"
+msgstr "Erabilgarri"
+
+#: devicesstateproxymodel.cpp:273
+#, kde-format
+msgctxt "@label %1 is the name of a Bluetooth device"
+msgid "Could not connect to device “%1”"
+msgstr "Ezin izan du “%1” gailuarekin konektatu"
+
+#: devicesstateproxymodel.cpp:288
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+msgid "The device is unreachable"
+msgstr "Ezin da gailuarekin harremanetan jarri"
+
+#: devicesstateproxymodel.cpp:289
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed"
+msgid "Connection to the device failed"
+msgstr "Gailurako konexioak huts egin du"
+
+#: devicesstateproxymodel.cpp:292
+#, kde-format
+msgctxt "Notification when the connection failed due to NotReady"
+msgid "The device is not ready"
+msgstr "Gailua ez dago prest"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Disconnect"
+msgstr "Deskonektatu"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Connect"
+msgstr "Konektatu"
+
+#: qml/DeviceItem.qml:51
+#, kde-format
+msgid "Browse Files"
+msgstr "Arakatu fitxategiak"
+
+#: qml/DeviceItem.qml:62
+#, kde-format
+msgid "Send File"
+msgstr "Bidali fitxategia"
+
+#: qml/DeviceItem.qml:71
+#, kde-format
+msgctxt "@action:button Forget a Bluetooth device"
+msgid "Forget"
+msgstr "Ahaztu"
+
+#: qml/DeviceItem.qml:117
+#, kde-format
+msgid "Copy"
+msgstr "Kopiatu"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "Yes"
+msgstr "Bai"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "No"
+msgstr "Ez"
+
+#: qml/DeviceItem.qml:219
+#, kde-format
+msgctxt "@label %1 is human-readable adapter name, %2 is HCI"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: qml/DeviceItem.qml:227
+#, kde-format
+msgid "Remote Name"
+msgstr "Urruneko izena"
+
+#: qml/DeviceItem.qml:231
+#, kde-format
+msgid "Address"
+msgstr "Helbidea"
+
+#: qml/DeviceItem.qml:234
+#, kde-format
+msgid "Paired"
+msgstr "Parekatuta"
+
+#: qml/DeviceItem.qml:237
+#, kde-format
+msgid "Trusted"
+msgstr "Fidagarria"
+
+#: qml/DeviceItem.qml:240
+#, kde-format
+msgid "Adapter"
+msgstr "Moldagailua"
+
+#: qml/DeviceItem.qml:248
+#, kde-format
+msgid "Connecting"
+msgstr "Konektatzen"
+
+#: qml/DeviceItem.qml:250
+#, kde-format
+msgid "Disconnecting"
+msgstr "Deskonektatzen"
+
+#: qml/DeviceItem.qml:256
+#, kde-format
+msgid "Connection failed"
+msgstr "Konexioak huts egin du"
+
+#: qml/DeviceItem.qml:261
+#, kde-format
+msgid "Headset"
+msgstr "Entzungailu mikrofonoduna"
+
+#: qml/DeviceItem.qml:267
+#, kde-format
+msgid "Audio device"
+msgstr "Audio gailua"
+
+#: qml/DeviceItem.qml:271
+#, kde-format
+msgid "Keyboard"
+msgstr "Teklatua"
+
+#: qml/DeviceItem.qml:274
+#, kde-format
+msgid "Mouse"
+msgstr "Sagua"
+
+#: qml/DeviceItem.qml:277
+#, kde-format
+msgid "Joypad"
+msgstr "Jolas-agintea"
+
+#: qml/DeviceItem.qml:280
+#, kde-format
+msgid "Drawing tablet"
+msgstr "Marrazteko tableta"
+
+#: qml/DeviceItem.qml:284
+#, kde-format
+msgid "Phone"
+msgstr "Telefonoa"
+
+#: qml/DeviceItem.qml:287
+#, kde-format
+msgid "Camera"
+msgstr "Kamera"
+
+#: qml/DeviceItem.qml:290
+#, kde-format
+msgid "Printer"
+msgstr "Inprimagailua"
+
+#: qml/DeviceItem.qml:297
+#, kde-format
+msgid "File transfer"
+msgstr "Fitxategi transferentzia"
+
+#: qml/DeviceItem.qml:300
+#, kde-format
+msgid "Send file"
+msgstr "Bidali fitxategia"
+
+#: qml/DeviceItem.qml:303
+#, kde-format
+msgid "Input"
+msgstr "Sarrera"
+
+#: qml/DeviceItem.qml:306
+#, kde-format
+msgid "Audio"
+msgstr "Audioa"
+
+#: qml/DeviceItem.qml:309
+#, kde-format
+msgid "Network"
+msgstr "Sarea"
+
+#: qml/DeviceItem.qml:314
+#, kde-format
+msgid "Other device"
+msgstr "Beste gailu batzuk"
+
+#: qml/DeviceItem.qml:321 qml/main.qml:74 qml/main.qml:83
+#, kde-format
+msgid "%1% Battery"
+msgstr "%%1 bateria"
+
+#: qml/FullRepresentation.qml:80
+#, kde-format
+msgid "Enable"
+msgstr "Gaitu"
+
+#: qml/FullRepresentation.qml:156
+#, kde-format
+msgid "No Bluetooth adapters available"
+msgstr "Ez dago Bluetooth egokigailurik erabilgarri"
+
+#: qml/FullRepresentation.qml:158
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "Bluetooth desgaituta dago"
+
+#: qml/FullRepresentation.qml:160
+#, kde-format
+msgid "No devices paired"
+msgstr "Ez dago parekatutako gailurik"
+
+#: qml/main.qml:51
+#, kde-format
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+#: qml/main.qml:55
+#, kde-format
+msgid "Bluetooth is disabled; middle-click to enable"
+msgstr "Bluetooth desgaituta dago; erdiko-klik gaitzeko"
+
+#: qml/main.qml:59
+#, kde-format
+msgid "No adapters available"
+msgstr "Ez dago moldagailurik erabilgarri"
+
+#: qml/main.qml:61
+#, kde-format
+msgid "Bluetooth is offline"
+msgstr "Bluetooth lerroz kanpo dago"
+
+#: qml/main.qml:64
+#, kde-format
+msgid "Middle-click to disable Bluetooth"
+msgstr "Erdiko-klik Bluetooth ezgaitzeko"
+
+#: qml/main.qml:67
+#, kde-format
+msgid "No connected devices"
+msgstr "Ez dago konektatutako gailurik"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "%1 connected"
+msgstr "%1 konektatuta"
+
+#: qml/main.qml:79
+#, kde-format
+msgctxt "Number of connected devices"
+msgid "%1 connected device"
+msgid_plural "%1 connected devices"
+msgstr[0] "gailu %1 konektatuta"
+msgstr[1] "%1 gailu konektatuta"
+
+#: qml/main.qml:110
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable Bluetooth"
+msgstr "Gaitu Bluetooth"
+
+#: qml/main.qml:122
+#, kde-format
+msgctxt "@action:button"
+msgid "Pair Device…"
+msgstr "Parekatu gailua…"
+
+#: qml/main.qml:130
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Show badge with number of connected devices"
+msgstr "Erakutsi konektatutako gailu-kopurua duen ikur txikia"
+
+#: qml/main.qml:140
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Configure &Bluetooth…"
+msgstr "Konfiguratu &Bluetooth…"
+
+#: qml/Toolbar.qml:73
+#, kde-format
+msgctxt "@action:button opens hamburger menu"
+msgid "More actions"
+msgstr "Ekintza gehiago"
+
+#~ msgctxt ""
+#~ "@label %1 is human-readable device name, %2 is low-level device address"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgid "Input device"
+#~ msgstr "Sarrerako gailua"
+
+#~ msgid ""
+#~ "No connected devices\n"
+#~ "Middle-click to disable Bluetooth"
+#~ msgstr ""
+#~ "Ez dago konektatutako gailurik\n"
+#~ "Erdiko-klik Bluetooth ezgaitzeko"
+
+#~ msgid ""
+#~ "%1 connected\n"
+#~ "Middle-click to disable Bluetooth"
+#~ msgstr ""
+#~ "%1 konektatuta\n"
+#~ "Erdiko-klik Bluetooth ezgaitzeko"
+
+#~ msgid "Bluetooth is Disabled"
+#~ msgstr "Bluetooth desgaituta dago"
+
+#~ msgid "Add New Device..."
+#~ msgstr "Erantsi gailu berria..."
+
+#~ msgid "Connected devices"
+#~ msgstr "Konektatutako gailuak"
+
+#~ msgid "Configure Bluetooth..."
+#~ msgstr "Konfiguratu Bluetooth..."

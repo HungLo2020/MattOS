@@ -216,6 +216,17 @@ pub(crate) enum BuildStage {
     Freetype,
     Fontconfig,
     PopFonts,
+    XdgUserDirs,
+    PlasmaIntegration,
+    KdeCliTools,
+    BluezQt,
+    BlueDevil,
+    KWalletPam,
+    Libsecret,
+    XdgUtils,
+    NotoColorEmoji,
+    NotoSansCjk,
+
     MaterialCursors,
     Libfontenc,
     Libxfont,
@@ -527,6 +538,17 @@ pub(crate) fn stage_id(stage: BuildStage) -> &'static str {
         BuildStage::Freetype => "freetype",
         BuildStage::Fontconfig => "fontconfig",
         BuildStage::PopFonts => "pop-fonts",
+        BuildStage::XdgUserDirs => "xdg-user-dirs",
+        BuildStage::PlasmaIntegration => "plasma-integration",
+        BuildStage::KdeCliTools => "kde-cli-tools",
+        BuildStage::BluezQt => "bluez-qt",
+        BuildStage::BlueDevil => "bluedevil",
+        BuildStage::KWalletPam => "kwallet-pam",
+        BuildStage::Libsecret => "libsecret",
+        BuildStage::XdgUtils => "xdg-utils",
+        BuildStage::NotoColorEmoji => "noto-color-emoji",
+        BuildStage::NotoSansCjk => "noto-sans-cjk",
+
         BuildStage::MaterialCursors => "material-cursors",
         BuildStage::Libfontenc => "libfontenc",
         BuildStage::Libxfont => "libxfont",
@@ -727,7 +749,7 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::QtCore5Compat => {
             &["formal-sysroot", "qtbase", "qtdeclarative", "qtshadertools"]
         }
-        BuildStage::Qca => &["formal-sysroot", "qtbase", "qt5compat"],
+        BuildStage::Qca => &["formal-sysroot", "qtbase", "qt5compat", "openssl"],
         BuildStage::KCoreAddons => &[
             "formal-sysroot",
             "qtbase",
@@ -1241,8 +1263,10 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
             "kwindowsystem",
             "knotifications",
             "kcolorscheme",
+            "kguiaddons", "wayland", "xkbcommon",
             "kcrash",
             "libgcrypt",
+            "qca", "qt5compat", "openssl", "libsecret", "libgpg-error", "libcanberra", "glib", "dbus", "pcre2", "zlib", "libffi",
         ],
         BuildStage::KWindowSystem => &[
             "formal-sysroot",
@@ -3046,6 +3070,17 @@ pub(crate) fn direct_dependencies(stage: BuildStage) -> &'static [&'static str] 
         BuildStage::Freetype => &["formal-sysroot", "zlib"],
         BuildStage::Fontconfig => &["formal-sysroot", "expat", "freetype", "zlib"],
         BuildStage::PopFonts => &[],
+        BuildStage::XdgUserDirs => &["formal-sysroot"],
+        BuildStage::PlasmaIntegration => &["formal-sysroot", "qtbase", "qtdeclarative", "qtsvg", "kconfig", "kcoreaddons", "kcodecs", "ki18n", "kconfigwidgets", "kcolorscheme", "kiconthemes", "kio", "kservice", "kwidgetsaddons", "kwindowsystem", "knotifications", "kguiaddons", "kxmlgui", "kjobwidgets", "kcompletion", "kbookmarks", "kitemviews", "kcrash", "solid", "karchive", "kdbusaddons", "libffi", "kglobalaccel", "breeze-icons", "libcanberra", "qtwayland", "plasma-wayland-protocols", "wayland", "x11-compat", "kstatusnotifieritem", "fontconfig", "freetype"],
+        BuildStage::KdeCliTools => &["formal-sysroot", "qtbase", "qtdeclarative", "qtsvg", "kconfig", "kcoreaddons", "kcodecs", "ki18n", "kconfigwidgets", "kcolorscheme", "kiconthemes", "kio", "kservice", "kwidgetsaddons", "kwindowsystem", "knotifications", "kguiaddons", "kxmlgui", "kjobwidgets", "kcompletion", "kbookmarks", "kitemviews", "kcrash", "solid", "karchive", "kdbusaddons", "libffi", "kglobalaccel", "breeze-icons", "libcanberra", "kparts", "kcmutils"],
+        BuildStage::BluezQt => &["formal-sysroot", "qtbase", "qtdeclarative"],
+        BuildStage::BlueDevil => &["formal-sysroot", "qtbase", "qtdeclarative", "qtsvg", "kconfig", "kcoreaddons", "kcodecs", "ki18n", "kconfigwidgets", "kcolorscheme", "kiconthemes", "kio", "kservice", "kwidgetsaddons", "kwindowsystem", "knotifications", "kguiaddons", "kxmlgui", "kjobwidgets", "kcompletion", "kbookmarks", "kitemviews", "kcrash", "solid", "karchive", "kdbusaddons", "libffi", "kglobalaccel", "breeze-icons", "libcanberra", "bluez-qt", "plasma-framework", "ksvg", "shared-mime-info", "kcmutils", "kdeclarative", "kirigami", "kpackage", "knewstuff", "attica"],
+        BuildStage::KWalletPam => &["formal-sysroot", "qtbase", "linux-pam", "libgcrypt", "libgpg-error", "kwallet", "systemd"],
+        BuildStage::Libsecret => &["formal-sysroot", "glib", "libgcrypt", "libgpg-error", "libffi", "pcre2", "zlib"],
+        BuildStage::XdgUtils => &[],
+        BuildStage::NotoColorEmoji => &[],
+        BuildStage::NotoSansCjk => &[],
+
         BuildStage::MaterialCursors => &[],
         // libfontenc's configure probe includes zlib.h; keep the target-owned
         // zlib development output in its explicit native build environment.
@@ -3672,6 +3707,17 @@ pub(crate) fn all_build_stages() -> &'static [BuildStage] {
         BuildStage::Freetype,
         BuildStage::Fontconfig,
         BuildStage::PopFonts,
+        BuildStage::XdgUserDirs,
+        BuildStage::PlasmaIntegration,
+        BuildStage::KdeCliTools,
+        BuildStage::BluezQt,
+        BuildStage::BlueDevil,
+        BuildStage::KWalletPam,
+        BuildStage::Libsecret,
+        BuildStage::XdgUtils,
+        BuildStage::NotoColorEmoji,
+        BuildStage::NotoSansCjk,
+
         BuildStage::MaterialCursors,
         BuildStage::Libfontenc,
         BuildStage::Libxfont,
@@ -4203,22 +4249,22 @@ mod tests {
             ("Brush source", &["brush"], 6, &["zlib", "linux"]),
             // Fontconfig and the Plasma closure are first-class consumers of
             // glibc through their source-owned runtime dependencies.
-            ("glibc source", &["glibc"], 305, &["linux"]),
+            ("glibc source", &["glibc"], 312, &["linux"]),
             ("Linux x86_64 config", &["linux"], 16, &["glibc", "brush"]),
             (
                 "Linux x86_64 UAPI source",
                 &["linux", "glibc", "linux-headers"],
-                306,
+                313,
                 &[],
             ),
             (
                 "GCC source",
                 &["gcc-runtime", "gcc-compiler"],
-                303,
+                310,
                 &["linux", "glibc", "linux-headers"],
             ),
             // zlib reaches Cargo-built userland through the MattOS rustc.
-            ("zlib shared library", &["zlib"], 223, &["attr", "linux"]),
+            ("zlib shared library", &["zlib"], 229, &["attr", "linux"]),
             ("package metadata", &["packages"], 5, &["brush", "zlib"]),
             (
                 "repository policy",

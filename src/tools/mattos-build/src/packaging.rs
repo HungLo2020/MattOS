@@ -980,6 +980,15 @@ fn stale_compatibility_versions(repo_root: &Path, inventory: &PackageInventory) 
 
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
     match source_component {
+        "kde-cli-tools" => &["kde-cli-tools"],
+        "plasma-integration" => &["plasma-integration"],
+        "bluez-qt" => &["bluez-qt"],
+        "bluedevil" => &["bluedevil"],
+        "kwallet-pam" => &["kwallet-pam"],
+        "xdg-utils" => &["xdg-utils"],
+        "noto-color-emoji" => &["noto-color-emoji"],
+        "noto-sans-cjk" => &["noto-sans-cjk"],
+        "libsecret" => &["libsecret"],
         "MattOS" | "ca-certificates" | "test" => &[],
         "mattos-profiles" => &["systemd", "init"],
         "mattos-compat" => &["systemd", "rust"],
@@ -1264,6 +1273,16 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
 
 fn package_source_roots(source_component: &str) -> &'static [&'static str] {
     match source_component {
+        "kde-cli-tools" => &["src/desktop/kde/kde-cli-tools"],
+        "plasma-integration" => &["src/desktop/kde/plasma-integration"],
+        "bluez-qt" => &["src/desktop/kde/bluez-qt"],
+        "bluedevil" => &["src/desktop/kde/bluedevil"],
+        "kwallet-pam" => &["src/desktop/kde/kwallet-pam"],
+        "xdg-utils" => &["src/desktop/xdg-utils"],
+        "noto-color-emoji" => &["src/desktop/fonts/noto-color-emoji"],
+        "noto-sans-cjk" => &["src/desktop/fonts/noto-sans-cjk"],
+        "libsecret" => &["src/system/security/libsecret"],
+        "xdg-user-dirs" => &["src/desktop/xdg-user-dirs"],
         "mattos-profiles" => &[
             "src/system/packages/profiles",
             "src/system/units",
@@ -1276,6 +1295,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         ],
         "mattos-plasma-theme" => &[
             "src/system/desktop/branding/MattOS",
+            "src/system/desktop/validation",
             "src/desktop/themes/nordic-kde/widgets",
             "src/desktop/themes/nordic-kde/icons",
             "src/desktop/themes/nordic-kde/dialogs",
@@ -1845,6 +1865,9 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
 
 fn package_configuration_roots(package: &str) -> &'static [&'static str] {
     match package {
+        "fonts-fira" => &["src/system/desktop/fonts"],
+        "libpam-kwallet5" => &["src/system/session/kwallet"],
+        "xdg-user-dirs" => &["src/system/session/user-directories"],
         LINUX_IMAGE_PACKAGE | "linux-image-amd64" => &["src/kernel/packaging"],
         "flatpak" => &["src/system/packages/config/flatpak"],
         "grub-efi-amd64" => &["src/boot/grub/config"],
@@ -1987,6 +2010,17 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
             component_snapshot_version(repo_root, "fontconfig")?
         }
         "fonts-fira" => component_snapshot_version(repo_root, "pop-fonts")?,
+        "xdg-user-dirs" => component_snapshot_version(repo_root, "xdg-user-dirs")?,
+        "plasma-integration" => component_snapshot_version(repo_root, "plasma-integration")?,
+        "kf6-bluez-qt" => component_snapshot_version(repo_root, "bluez-qt")?,
+        "bluedevil" => component_snapshot_version(repo_root, "bluedevil")?,
+        "libpam-kwallet5" => component_snapshot_version(repo_root, "kwallet-pam")?,
+        "xdg-utils" => component_snapshot_version(repo_root, "xdg-utils")?,
+        "kde-cli-tools" => component_snapshot_version(repo_root, "kde-cli-tools")?,
+        "fonts-noto-color-emoji" => component_data_snapshot_version(repo_root, "noto-color-emoji")?,
+        "fonts-noto-cjk" => component_data_snapshot_version(repo_root, "noto-sans-cjk")?,
+        "libsecret-1-0" => component_snapshot_version(repo_root, "libsecret")?,
+
         "libcap2" | "libcap-dev" => component_snapshot_version(repo_root, "libcap")?,
         "libattr1" | "libattr1-dev" => component_snapshot_version(repo_root, "attr")?,
         "libacl1" | "libacl1-dev" => component_snapshot_version(repo_root, "acl")?,
@@ -2412,6 +2446,17 @@ fn component_snapshot_version(repo_root: &Path, component: &str) -> Result<Strin
         state.imported_commit.trim(),
         state.upstream_committed_at_utc.as_deref(),
     )
+}
+
+/// Selected font collections have no single build-system release version.
+/// Their package identity follows the immutable upstream data snapshot.
+fn component_data_snapshot_version(repo_root: &Path, component: &str) -> Result<String> {
+    let state = read_sync_state(repo_root, component)?
+        .ok_or_else(|| anyhow!("upstream state missing for {component}"))?;
+    let timestamp = state.upstream_committed_at_utc.as_deref()
+        .ok_or_else(|| anyhow!("upstream commit time missing for {component}"))?;
+    let time = chrono::DateTime::parse_from_rfc3339(timestamp)?;
+    Ok(format!("0+git{}.{}.{}", time.format("%Y%m%d"), time.format("%H%M%S"), &state.imported_commit[..12]))
 }
 
 /// The Debian upstream version named by a release tag (`branch` in

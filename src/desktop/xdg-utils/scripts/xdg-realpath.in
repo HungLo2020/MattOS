@@ -1,0 +1,60 @@
+#!/bin/sh
+#---------------------------------------------
+#   xdg-realpath
+#
+#   Utility script to canonicalize filepaths.
+# 
+#   Copyright 2023, Slatian <baschdel@disroot.org>
+#
+#   LICENSE:
+#
+#---------------------------------------------
+
+manualpage()
+{
+cat << '_MANUALPAGE'
+_MANUALPAGE
+}
+
+usage()
+{
+cat << '_USAGE'
+_USAGE
+}
+
+XDG_UTILS_ENABLE_DOUBLE_HYPEN="y"
+
+#@xdg-utils-common@
+
+set -e
+
+[ -n "$1" ] || exit_failure_syntax
+
+past_double_hyphen=""
+exit_with_missing_status=""
+
+while [ $# -gt 0 ] ; do
+	if [ -n "$past_double_hyphen" ] ; then
+		[ -e "$1" ] || echo "@NAME@: $1: No such file or directory" >&2
+		xdg_realpath "$1"
+	else
+		case "$1" in
+			--)
+				past_double_hyphen="y"
+				;;
+			--get-backend)
+				xdg_realpath || true
+				echo "$XDG_UTILS_REALPATH_BACKEND"
+				;;
+			-*)
+				exit_failure_syntax "Unknown option: '$1'"
+				;;
+			*)
+				xdg_realpath "$1"
+				;;
+		esac
+	fi
+	shift
+done
+
+[ -z "$exit_with_missing_status" ] || exit_failure_file_missing

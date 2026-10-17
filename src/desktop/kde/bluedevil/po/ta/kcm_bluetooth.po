@@ -1,0 +1,423 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the bluedevil package.
+#
+# SPDX-FileCopyrightText: 2024, 2025 Kishore G <kishore96@gmail.com>
+msgid ""
+msgstr ""
+"Project-Id-Version: bluedevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-04 00:45+0000\n"
+"PO-Revision-Date: 2025-08-10 19:52+0530\n"
+"Last-Translator: Kishore G <kishore96@gmail.com>\n"
+"Language-Team: Tamil <kde-l10n-ta@kde.org>\n"
+"Language: ta\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 25.04.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "கோ. கிஷோர்"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "Kde-l10n-ta@kde.org"
+
+#: bluetooth.cpp:135
+#, kde-format
+msgctxt "DeviceName Network (Service)"
+msgid "%1 Network (%2)"
+msgstr "%1 பிணையம் (%2)"
+
+#: bluetoothmoduledata.cpp:20
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Enable Bluetooth"
+msgstr "ஊடலையை இயக்கு"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Disconnect"
+msgstr "இணைப்பை துண்டி"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Connect"
+msgstr "இணை "
+
+#: ui/Device.qml:135
+#, kde-format
+msgid "Unblock the device first to be able to connect to it"
+msgstr "சாதனத்துடன் இணைய அதைத் தடுத்ததைத் திரும்பப்பெறவும்"
+
+#: ui/Device.qml:156
+#, kde-format
+msgid "Type:"
+msgstr "வகை:"
+
+#: ui/Device.qml:160
+#, kde-format
+msgid "%1%"
+msgstr "%1%"
+
+#: ui/Device.qml:162
+#, kde-format
+msgid "Battery:"
+msgstr "மின்கலம்:"
+
+#: ui/Device.qml:167 ui/General.qml:49
+#, kde-format
+msgid "Address:"
+msgstr "முகவரி:"
+
+#: ui/Device.qml:172
+#, kde-format
+msgid "Adapter:"
+msgstr "செருகி"
+
+#: ui/Device.qml:178 ui/General.qml:43
+#, kde-format
+msgid "Name:"
+msgstr "பெயர்:"
+
+#: ui/Device.qml:182
+#, kde-format
+msgid "Trusted"
+msgstr "நம்பகமானது"
+
+#: ui/Device.qml:191 ui/main.qml:180
+#, kde-format
+msgid "Blocked"
+msgstr "தடுக்கப்பட்டது"
+
+#: ui/Device.qml:197
+#, fuzzy, kde-format
+#| msgid ""
+#| "Any incoming connections from a blocked device will be immediately "
+#| "rejected."
+msgid ""
+"When enabled, all incoming connections from this device will be rejected."
+msgstr "தடுக்கப்பட்டுள்ள சாதனத்திலிருந்து உள்வரும் இணைப்புக் கோரிக்கைகள் தானாக மறுக்கப்படும்."
+
+#: ui/Device.qml:203
+#, kde-format
+msgid "Send File"
+msgstr "கோப்பை அனுப்பு"
+
+#: ui/Device.qml:211
+#, kde-format
+msgid "Setup NAP Network…"
+msgstr "NAP பிணையத்தை அமை…"
+
+#: ui/Device.qml:219
+#, kde-format
+msgid "Setup DUN Network…"
+msgstr "DUN பிணையத்தை அமை…"
+
+#: ui/Device.qml:234
+#, kde-format
+msgctxt "@action:button Forget the Bluetooth device"
+msgid "Forget"
+msgstr "மறந்துவிடு"
+
+#: ui/ForgetDeviceAction.qml:18
+#, kde-format
+msgctxt "@action:button %1 is the name of a Bluetooth device"
+msgid "Forget \"%1\""
+msgstr "\"%1\" தனை மறந்திடு"
+
+#: ui/General.qml:24
+#, kde-format
+msgid "Settings"
+msgstr "அமைப்புகள்"
+
+#: ui/General.qml:35
+#, kde-format
+msgid "Device:"
+msgstr "சாதனம்:"
+
+#: ui/General.qml:53
+#, kde-format
+msgid "Enabled:"
+msgstr "இயக்கப்பட்டதா:"
+
+#: ui/General.qml:59
+#, kde-format
+msgid "Visible:"
+msgstr "தெரிகிறதா:"
+
+#: ui/General.qml:73
+#, kde-format
+msgid "On login:"
+msgstr "நுழையும்போது:"
+
+#: ui/General.qml:74
+#, kde-format
+msgid "Enable Bluetooth"
+msgstr "ஊடலையை இயக்கு"
+
+#: ui/General.qml:85
+#, kde-format
+msgid "Disable Bluetooth"
+msgstr "ஊடலையை முடக்கு"
+
+#: ui/General.qml:96
+#, kde-format
+msgid "Restore previous status"
+msgstr "முந்தைய நிலையை மீட்டமை"
+
+#: ui/General.qml:116
+#, kde-format
+msgid "When receiving files:"
+msgstr "கோப்புகளை பெறும்போது:"
+
+#: ui/General.qml:118
+#, kde-format
+msgid "Ask for confirmation"
+msgstr "உறுதிப்படுத்து"
+
+#: ui/General.qml:127
+#, kde-format
+msgid "Accept for trusted devices"
+msgstr "நம்பகமான சாதனங்களிலிருந்து ஏற்றுக்கொள்"
+
+#: ui/General.qml:137
+#, kde-format
+msgid "Always accept"
+msgstr "எப்போதும் ஏற்றுக்கொள்"
+
+#: ui/General.qml:147
+#, kde-format
+msgid "Save files in:"
+msgstr "கோப்புகளை இங்கு சேமி:"
+
+#: ui/General.qml:160 ui/General.qml:171
+#, kde-format
+msgid "Select folder"
+msgstr "அடைவைத் தேர்ந்தெடு"
+
+#: ui/main.qml:34
+#, kde-format
+msgid "Pair Device…"
+msgstr "சாதனத்தை ஜோடியாக்கு…"
+
+#: ui/main.qml:41
+#, kde-format
+msgid "Configure…"
+msgstr "அமை..."
+
+#: ui/main.qml:48
+#, kde-format
+msgctxt "@action: button as in, 'enable Bluetooth'"
+msgid "Enabled"
+msgstr "இயக்கு"
+
+#: ui/main.qml:126
+#, kde-format
+msgid "No Bluetooth adapters found"
+msgstr "ஊடலை செருகியேதும் இல்லை"
+
+#: ui/main.qml:127
+#, kde-format
+msgid "Connect an external Bluetooth adapter"
+msgstr "வெளி ஊடலை செருகியை இணைக்கவும்"
+
+#: ui/main.qml:136
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "ஊடலை முடக்கப்பட்டுள்ளது"
+
+#: ui/main.qml:142
+#, kde-format
+msgid "Enable"
+msgstr "இயக்கு"
+
+#: ui/main.qml:152
+#, kde-format
+msgid "No devices paired"
+msgstr "எச்சாதனமும் இணைக்கப்படவில்லை"
+
+#: ui/main.qml:153
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Click <interface>Pair Device…</interface> to pair some"
+msgstr ""
+"புதியவற்றை சேர்க்க <interface>சாதனத்தை ஜோடியாக்கு…</interface> என்பதை அழுத்தவும்"
+
+#: ui/main.qml:182
+#, kde-format
+msgid "Connected"
+msgstr "இணைந்துள்ளது"
+
+#: ui/main.qml:184
+#, kde-format
+msgid "Available"
+msgstr "கிடைக்கிறது"
+
+#: ui/main.qml:246
+#, kde-format
+msgid "%1% Battery"
+msgstr "%1% மின்கலம்"
+
+#: ui/script.js:13
+#, kde-format
+msgctxt "This device is a Phone"
+msgid "Phone"
+msgstr "தொலைபேசி"
+
+#: ui/script.js:15
+#, kde-format
+msgctxt "This device is a Modem"
+msgid "Modem"
+msgstr "இணக்கி"
+
+#: ui/script.js:17
+#, kde-format
+msgctxt "This device is a Computer"
+msgid "Computer"
+msgstr "கணினி"
+
+#: ui/script.js:19
+#, kde-format
+msgctxt "This device is of type Network"
+msgid "Network"
+msgstr "பிணையம்"
+
+#: ui/script.js:21
+#, kde-format
+msgctxt "This device is a Headset"
+msgid "Headset"
+msgstr "தலையணி ஒலிவாங்கி"
+
+#: ui/script.js:23
+#, kde-format
+msgctxt "This device is a Headphones"
+msgid "Headphones"
+msgstr "தலைப்பேசி"
+
+#: ui/script.js:25
+#, kde-format
+msgctxt "This device is an Audio/Video device"
+msgid "Multimedia"
+msgstr "பல்லூடகம்"
+
+#: ui/script.js:27
+#, kde-format
+msgctxt "This device is a Keyboard"
+msgid "Keyboard"
+msgstr "விசைப்பலகை"
+
+#: ui/script.js:29
+#, kde-format
+msgctxt "This device is a Mouse"
+msgid "Mouse"
+msgstr "சுட்டி"
+
+#: ui/script.js:31
+#, kde-format
+msgctxt "This device is a Game controller"
+msgid "Game controller"
+msgstr "விளையாட்டு கட்டுப்படுத்தி"
+
+#: ui/script.js:33
+#, kde-format
+msgctxt "This device is a Graphics Tablet (input device)"
+msgid "Tablet"
+msgstr "வரைகலை பலகை"
+
+#: ui/script.js:35
+#, kde-format
+msgctxt "This device is a Peripheral device"
+msgid "Peripheral"
+msgstr ""
+
+#: ui/script.js:37
+#, kde-format
+msgctxt "This device is a Camera"
+msgid "Camera"
+msgstr "படக்கருவி"
+
+#: ui/script.js:39
+#, kde-format
+msgctxt "This device is a Printer"
+msgid "Printer"
+msgstr "அச்சுப்பொறி"
+
+#: ui/script.js:41
+#, kde-format
+msgctxt ""
+"This device is an Imaging device (printer, scanner, camera, display, …)"
+msgid "Imaging"
+msgstr "படமெடுப்பது"
+
+#: ui/script.js:43
+#, kde-format
+msgctxt "This device is a Wearable"
+msgid "Wearable"
+msgstr "அணியக்கூடியது"
+
+#: ui/script.js:45
+#, kde-format
+msgctxt "This device is a Toy"
+msgid "Toy"
+msgstr "விளையாட்டுப்பொருள்"
+
+#: ui/script.js:47
+#, kde-format
+msgctxt "This device is a Health device"
+msgid "Health"
+msgstr "மருத்துவக்கருவி"
+
+#: ui/script.js:53
+#, kde-format
+msgid "File transfer"
+msgstr "கோப்பு இடமாற்றம்"
+
+#: ui/script.js:56
+#, kde-format
+msgid "Send file"
+msgstr "கோப்பை அனுப்பு"
+
+#: ui/script.js:59
+#, kde-format
+msgid "Input"
+msgstr "உள்ளீடு"
+
+#: ui/script.js:62
+#, kde-format
+msgid "Audio"
+msgstr "ஒலி"
+
+#: ui/script.js:65
+#, kde-format
+msgid "Network"
+msgstr "பிணையம்"
+
+#: ui/script.js:69
+#, kde-format
+msgid "Other"
+msgstr "மற்றவை"
+
+#: ui/script.js:72
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#~ msgid "Forget this Device?"
+#~ msgstr "இந்த சாதனத்தை மறந்திடலாமா?"
+
+#~ msgid "Are you sure you want to forget \"%1\"?"
+#~ msgstr "\"%1\" எனும் சாதனத்தை உறுதியாக மறந்திடலாமா?"
+
+#~ msgctxt "@action:button"
+#~ msgid "Forget Device"
+#~ msgstr "சாதனத்தை மற"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "ரத்து செய்"

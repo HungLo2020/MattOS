@@ -1,0 +1,14 @@
+*~
+*.bak
+*.o
+*.so
+*.pc
+*.cache
+build
+Makefile
+.directory
+
+xdg-user-dir-lookup
+xdg-user-dirs-update
+
+xdg-user-dirs-*.tar*

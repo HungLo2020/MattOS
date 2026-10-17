@@ -2,6 +2,8 @@
 from pathlib import Path
 import configparser
 import importlib.util
+import os
+import subprocess
 import tomllib
 import unittest
 
@@ -9,6 +11,17 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class DesktopPolicyTests(unittest.TestCase):
+    def test_plasma_wrapper_preserves_selected_locale(self):
+        script = (ROOT / "src/system/session/plasma/start-plasma").read_text()
+        # Execute the locale-setting prologue, before any session side effects.
+        prologue = script.split("# The target font tree", 1)[0]
+        result = subprocess.run(
+            ["sh", "-c", prologue + '\nprintf "%s|%s" "$LANG" "${LC_ALL-unset}"'],
+            env=dict(os.environ, LANG="de_DE.UTF-8", LC_ALL="de_DE.UTF-8"),
+            text=True, capture_output=True, check=True,
+        )
+        self.assertEqual(result.stdout, "de_DE.UTF-8|de_DE.UTF-8")
+
     def test_cursor_defaults_are_not_overridden_by_session_environment(self):
         environment = (ROOT / "src/system/session/plasma/plasma-desktop.conf").read_text()
         names = {

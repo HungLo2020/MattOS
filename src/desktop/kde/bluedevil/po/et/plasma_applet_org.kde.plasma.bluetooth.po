@@ -1,0 +1,346 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Marek Laane <qiilaq69@gmail.com>, 2016, 2019, 2020.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-27 02:39+0000\n"
+"PO-Revision-Date: 2020-04-24 13:19+0300\n"
+"Last-Translator: Marek Laane <qiilaq69@gmail.com>\n"
+"Language-Team: Estonian <kde-et@lists.linux.ee>\n"
+"Language: et\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 19.12.3\n"
+
+#: devicesproxymodel.cpp:51
+#, kde-format
+msgctxt "@title:column Blocked Bluetooth devices"
+msgid "Blocked"
+msgstr ""
+
+#: devicesproxymodel.cpp:54
+#, fuzzy, kde-format
+#| msgid "Connect"
+msgctxt "@title:column Connected Bluetooth devices"
+msgid "Connected"
+msgstr "Ühenda"
+
+#: devicesproxymodel.cpp:56
+#, fuzzy, kde-format
+#| msgid "Available devices"
+msgctxt "@title:column Available but not connected Bluetooth devices"
+msgid "Available"
+msgstr "Saadaolevad seadmed"
+
+#: devicesstateproxymodel.cpp:273
+#, kde-format
+msgctxt "@label %1 is the name of a Bluetooth device"
+msgid "Could not connect to device “%1”"
+msgstr ""
+
+#: devicesstateproxymodel.cpp:288
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+msgid "The device is unreachable"
+msgstr "Seade ei ole saadaval"
+
+#: devicesstateproxymodel.cpp:289
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed"
+msgid "Connection to the device failed"
+msgstr "Ühendumine seadmega nurjus"
+
+#: devicesstateproxymodel.cpp:292
+#, kde-format
+msgctxt "Notification when the connection failed due to NotReady"
+msgid "The device is not ready"
+msgstr "Seade ei ole valmis"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Disconnect"
+msgstr "Katkesta ühendus"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Connect"
+msgstr "Ühenda"
+
+#: qml/DeviceItem.qml:51
+#, kde-format
+msgid "Browse Files"
+msgstr "Sirvi faile"
+
+#: qml/DeviceItem.qml:62
+#, kde-format
+msgid "Send File"
+msgstr "Saada fail"
+
+#: qml/DeviceItem.qml:71
+#, kde-format
+msgctxt "@action:button Forget a Bluetooth device"
+msgid "Forget"
+msgstr ""
+
+#: qml/DeviceItem.qml:117
+#, kde-format
+msgid "Copy"
+msgstr "Kopeeri"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "Yes"
+msgstr "Jah"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "No"
+msgstr "Ei"
+
+#: qml/DeviceItem.qml:219
+#, kde-format
+msgctxt "@label %1 is human-readable adapter name, %2 is HCI"
+msgid "%1 (%2)"
+msgstr ""
+
+#: qml/DeviceItem.qml:227
+#, kde-format
+msgid "Remote Name"
+msgstr "Võrgunimi"
+
+#: qml/DeviceItem.qml:231
+#, kde-format
+msgid "Address"
+msgstr "Aadress"
+
+#: qml/DeviceItem.qml:234
+#, kde-format
+msgid "Paired"
+msgstr "Paardunud"
+
+#: qml/DeviceItem.qml:237
+#, kde-format
+msgid "Trusted"
+msgstr "Usaldatav"
+
+#: qml/DeviceItem.qml:240
+#, kde-format
+msgid "Adapter"
+msgstr "Adapter"
+
+#: qml/DeviceItem.qml:248
+#, kde-format
+msgid "Connecting"
+msgstr "Ühendumine"
+
+#: qml/DeviceItem.qml:250
+#, kde-format
+msgid "Disconnecting"
+msgstr "Ühenduse katkestamine"
+
+#: qml/DeviceItem.qml:256
+#, fuzzy, kde-format
+#| msgctxt "Notification when the connection failed due to Failed"
+#| msgid "Connection to the device failed"
+msgid "Connection failed"
+msgstr "Ühendumine seadmega nurjus"
+
+#: qml/DeviceItem.qml:261
+#, kde-format
+msgid "Headset"
+msgstr ""
+
+#: qml/DeviceItem.qml:267
+#, kde-format
+msgid "Audio device"
+msgstr "Heliseade"
+
+#: qml/DeviceItem.qml:271
+#, kde-format
+msgid "Keyboard"
+msgstr ""
+
+#: qml/DeviceItem.qml:274
+#, kde-format
+msgid "Mouse"
+msgstr ""
+
+#: qml/DeviceItem.qml:277
+#, kde-format
+msgid "Joypad"
+msgstr ""
+
+#: qml/DeviceItem.qml:280
+#, kde-format
+msgid "Drawing tablet"
+msgstr ""
+
+#: qml/DeviceItem.qml:284
+#, kde-format
+msgid "Phone"
+msgstr ""
+
+#: qml/DeviceItem.qml:287
+#, kde-format
+msgid "Camera"
+msgstr ""
+
+#: qml/DeviceItem.qml:290
+#, kde-format
+msgid "Printer"
+msgstr ""
+
+#: qml/DeviceItem.qml:297
+#, kde-format
+msgid "File transfer"
+msgstr "Failiedastus"
+
+#: qml/DeviceItem.qml:300
+#, kde-format
+msgid "Send file"
+msgstr "Faili saatmine"
+
+#: qml/DeviceItem.qml:303
+#, kde-format
+msgid "Input"
+msgstr "Sisend"
+
+#: qml/DeviceItem.qml:306
+#, kde-format
+msgid "Audio"
+msgstr "Heli"
+
+#: qml/DeviceItem.qml:309
+#, kde-format
+msgid "Network"
+msgstr "Võrk"
+
+#: qml/DeviceItem.qml:314
+#, kde-format
+msgid "Other device"
+msgstr "Muu seade"
+
+#: qml/DeviceItem.qml:321 qml/main.qml:74 qml/main.qml:83
+#, kde-format
+msgid "%1% Battery"
+msgstr "Aku %1%"
+
+#: qml/FullRepresentation.qml:80
+#, kde-format
+msgid "Enable"
+msgstr ""
+
+#: qml/FullRepresentation.qml:156
+#, fuzzy, kde-format
+#| msgid "No Bluetooth Adapters Available"
+msgid "No Bluetooth adapters available"
+msgstr "Bluetoothi adaptereid pole saada"
+
+#: qml/FullRepresentation.qml:158
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "Bluetooth on välja lülitatud"
+
+#: qml/FullRepresentation.qml:160
+#, fuzzy, kde-format
+#| msgid "No Devices Found"
+msgid "No devices paired"
+msgstr "Seadmeid ei leitud"
+
+#: qml/main.qml:51
+#, kde-format
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+#: qml/main.qml:55
+#, fuzzy, kde-format
+#| msgid "Bluetooth is disabled"
+msgid "Bluetooth is disabled; middle-click to enable"
+msgstr "Bluetooth on välja lülitatud"
+
+#: qml/main.qml:59
+#, kde-format
+msgid "No adapters available"
+msgstr "Adapterid puuduvad"
+
+#: qml/main.qml:61
+#, kde-format
+msgid "Bluetooth is offline"
+msgstr "Bluetooth ei ole võrgus"
+
+#: qml/main.qml:64
+#, kde-format
+msgid "Middle-click to disable Bluetooth"
+msgstr ""
+
+#: qml/main.qml:67
+#, kde-format
+msgid "No connected devices"
+msgstr "Ühendatud seadmed puuduvad"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "%1 connected"
+msgstr "%1 ühendatud"
+
+#: qml/main.qml:79
+#, kde-format
+msgctxt "Number of connected devices"
+msgid "%1 connected device"
+msgid_plural "%1 connected devices"
+msgstr[0] "%1 ühendatud seade"
+msgstr[1] "%1 ühendatud seadet"
+
+#: qml/main.qml:110
+#, fuzzy, kde-format
+#| msgid "Enable Bluetooth"
+msgctxt "@option:check"
+msgid "Enable Bluetooth"
+msgstr "Lülita Bluetooth sisse"
+
+#: qml/main.qml:122
+#, fuzzy, kde-format
+#| msgid "Add New Device"
+msgctxt "@action:button"
+msgid "Pair Device…"
+msgstr "Lisa uus seade"
+
+#: qml/main.qml:130
+#, fuzzy, kde-format
+#| msgid "No connected devices"
+msgctxt "@item:inmenu"
+msgid "Show badge with number of connected devices"
+msgstr "Ühendatud seadmed puuduvad"
+
+#: qml/main.qml:140
+#, fuzzy, kde-format
+#| msgid "Configure &Bluetooth..."
+msgctxt "@action:inmenu"
+msgid "Configure &Bluetooth…"
+msgstr "Seadista &Bluetoothi ..."
+
+#: qml/Toolbar.qml:73
+#, kde-format
+msgctxt "@action:button opens hamburger menu"
+msgid "More actions"
+msgstr ""
+
+#~ msgid "Input device"
+#~ msgstr "Sisendseade"
+
+#~ msgid "Bluetooth is Disabled"
+#~ msgstr "Bluetooth on välja lülitatud"
+
+#~ msgid "Add New Device..."
+#~ msgstr "Lisa uus seade..."
+
+#~ msgid "Connected devices"
+#~ msgstr "Ühendatud seadmed"
+
+#~ msgid "Configure Bluetooth..."
+#~ msgstr "Seadista Bluetoothi ..."

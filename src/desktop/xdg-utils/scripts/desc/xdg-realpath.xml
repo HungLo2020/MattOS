@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl"
+   href="http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN" "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+<refentry id="xdg-open">
+  <refentryinfo>
+    <title>xdg-realpath Manual</title>
+    <copyright>
+      <year>2023</year>
+    </copyright>
+    <author>
+      <firstname>Slatian</firstname>
+      <address>
+        <email>baschdel+xdg-utils@disroot.org</email>
+      </address>
+    </author>
+    <author>
+      <firstname>Kevin</firstname>
+      <surname>Krammer</surname>
+      <address>
+        <!--email>kevin.krammer@gmx.at</email-->
+      </address>
+    </author>
+    <author>
+      <firstname>Jeremy</firstname>
+      <surname>White</surname>
+      <address>
+        <!--email>jwhite@codeweavers.com</email-->
+      </address>
+    </author>
+    <releaseinfo>xdg-utils 1.2</releaseinfo>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>xdg-realpath</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>xdg-realpath</refname>
+    <refpurpose>Canonicalizes filepaths in a consistent way.</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>xdg-realpath</command>
+      <arg choice="opt"><option>--</option></arg>
+      <arg choice="plain" rep="repeat">
+        <option><replaceable>file</replaceable></option>
+      </arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>xdg-realpath</command>
+      <arg choice="plain"><option>--get-backend</option></arg>
+    </cmdsynopsis>
+    <cmdsynopsis>
+      <command>xdg-realpath</command>
+      <group choice="req">
+        <arg choice="plain"><option>--help</option></arg>
+        <arg choice="plain"><option>--manual</option></arg>
+        <arg choice="plain"><option>--version</option></arg>
+      </group>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1 id="description">
+    <title>Description</title>
+    <para>
+      xdg-realpath canonicalizes filepaths using the installed <command>realpath</command> or <command>readlink -f</command> implementation, automatically choosing the right calling conventions so you don't have to worry about it.
+    </para>
+    <para>
+      Canonicalization happens by resolving relative paths and symbolic links resulting in an absolute path to a file. It fails if the path does not lead to any kind file or directory.
+    </para>
+    <para>
+      It is strongly recommended to call xdg-realpath using the <option>--</option> option.
+    </para>
+  </refsect1>
+  <refsect1 id="options">
+    <title>Options</title>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>--help</option>
+        </term>
+        <listitem>
+          <simpara>
+            Show command synopsis.
+          </simpara>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--manual</option>
+        </term>
+        <listitem>
+          <simpara>
+            Show this manual page.
+          </simpara>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>--version</option>
+        </term>
+        <listitem>
+          <simpara>
+            Show the xdg-utils version information.
+          </simpara>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1 id="exitcodes">
+    <title>Exit Codes</title>
+    <para>
+      An exit code of 0 indicates success while a non-zero exit code
+      indicates failure. The following failure codes can be returned:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>
+          <option>1</option>
+        </term>
+        <listitem>
+          <simpara>
+            Error in command line syntax.
+          </simpara>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>2</option>
+        </term>
+        <listitem>
+          <simpara>
+            One of the files passed on the command line did not exist.
+          </simpara>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>3</option>
+        </term>
+        <listitem>
+          <simpara>
+            A required tool could not be found. 
+          </simpara>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+          <option>4</option>
+        </term>
+        <listitem>
+          <simpara>
+            The action failed. 
+          </simpara>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1 id="env_vars">
+    <title>Environment Variables</title>
+    <para>
+      xdg-realpath honours the following environment variables:
+    </para>
+    <variablelist>
+      <varlistentry>
+        <term>XDG_UTILS_REALPATH_BACKEND</term>
+        <listitem>
+          <simpara>
+            When left empty (recommended) xdg-realpath automatically chooses an appropriate backend. Possible values are <code>realpath</code>, <code>busybox-realpath</code> and <code>readlink</code>.
+            This is also used by other scripts from the xdg-utils family.
+          </simpara>
+          <simpara>
+            Setting this variable has the possibility to break a lot of things. It is primarily intended for testing and quick-fixing. <emphasis>If you are not the local system administrator or a distribution maintainer leave it alone!</emphasis>
+          </simpara>
+          <simpara>
+            The <option>--get-backend</option> option will print the used backend.
+          </simpara>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1 id="seealso">
+    <title>See Also</title>
+    <para><citerefentry><refentrytitle>realpath</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+      <citerefentry><refentrytitle>readlink</refentrytitle><manvolnum>1</manvolnum></citerefentry>,
+    </para>
+  </refsect1>
+  <refsect1 id="examples">
+    <title>Examples</title>
+    <para>
+<programlisting>
+xdg-realpath -- /./bin
+</programlisting>
+      Canonicalizes the path to <code>/./bin</code>, on most systems the output will be <code>/bin</code> or <code>/usr/bin</code>.
+    </para>
+    <para>
+<programlisting>
+xdg-realpath -- foo.txt
+</programlisting>
+      Will print the absolute path of the file foo.txt or inform you that foo.txt doesn't exist.
+    </para>
+    <para>
+<programlisting>
+xdg-realpath -- .
+</programlisting>
+      Will print the present working directory path with symbolic links resolved.
+    </para>
+  </refsect1>
+</refentry>

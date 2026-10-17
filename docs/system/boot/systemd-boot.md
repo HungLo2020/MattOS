@@ -64,7 +64,7 @@ the rest:
   `bpf-framework`
 - Disabled extras: man pages, HTML, translations, tests, kernel-install,
   `systemd-analyze`
-- Journal default: volatile (`journal-storage-default=volatile`)
+- Live journal default: volatile (`journal-storage-default=volatile`)
 
 The full option list is defined by `systemd_meson_options()` in
 `src/tools/mattos-build/src/stages/system_runtime.rs`.
@@ -178,10 +178,17 @@ by the systemd stage, including `meson`, `ninja-build`, `gperf` and
 `cargo run -p mattos-build -- doctor` reports missing host tools and the
 packages that provide them.
 
+## Installed journal persistence
+
+Both installer paths configure both installed profiles with
+`/etc/systemd/journald.conf.d/20-mattos-installed.conf`, selecting
+`Storage=persistent` and `SystemMaxUse=256M`, and create `/var/log/journal`.
+Systemd applies its normal journal ownership and permissions at boot.
+Previous-boot logs are available through `journalctl -b -1`. The live
+image retains its volatile journal and does not contain this drop-in.
+
 ## Known Limitations
 
-- The journal is volatile (`journal-storage-default=volatile`), including on
-  installed systems; no `/var/log/journal` is created.
 - No MattOS firewall policy is installed.
 - `systemd-hostnamed`, `machined`, `homed` and the other disabled stacks
   above are unavailable.

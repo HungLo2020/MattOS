@@ -1,0 +1,5 @@
+schema_version = 1
+component = "noto-sans-cjk"
+upstream_commit = "352f6b7d9d6cc4fa9e242b931291d31b21a6dc84"
+retained_paths = ["ofl/notosanssc", "ofl/notosansjp", "ofl/notosanskr", "ofl/notosanstc", "ofl/notosanshk"]
+reason = "Retain the complete five Noto Sans CJK runtime-font families and their OFL metadata from the Google Fonts repository. The desktop installs these upstream font assets as data, without depending on the omitted unrelated font families or tooling."

@@ -1,0 +1,425 @@
+# Hindi translations for bluedevil package.
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the bluedevil package.
+# Kali <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bluedevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-04 00:45+0000\n"
+"PO-Revision-Date: 2024-12-15 17:36+0530\n"
+"Last-Translator: Kali <EMAIL@ADDRESS>\n"
+"Language-Team: Hindi <fedora-trans-hi@redhat.com>\n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "तुम्हारे नाम"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "आपके ईमेल"
+
+#: bluetooth.cpp:135
+#, kde-format
+msgctxt "DeviceName Network (Service)"
+msgid "%1 Network (%2)"
+msgstr "%1 नेटवर्क (%2)"
+
+#: bluetoothmoduledata.cpp:20
+#, fuzzy, kde-format
+#| msgid "Enable Bluetooth"
+msgctxt "@info:tooltip"
+msgid "Enable Bluetooth"
+msgstr "ब्लूटूथ सक्षम करें"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Disconnect"
+msgstr "डिस्कनेक्ट"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Connect"
+msgstr "जोड़ना"
+
+#: ui/Device.qml:135
+#, kde-format
+msgid "Unblock the device first to be able to connect to it"
+msgstr "डिवाइस से कनेक्ट होने के लिए पहले उसे अनब्लॉक करें"
+
+#: ui/Device.qml:156
+#, kde-format
+msgid "Type:"
+msgstr "प्रकार:"
+
+#: ui/Device.qml:160
+#, kde-format
+msgid "%1%"
+msgstr "%1%"
+
+#: ui/Device.qml:162
+#, kde-format
+msgid "Battery:"
+msgstr "बैटरी:"
+
+#: ui/Device.qml:167 ui/General.qml:49
+#, kde-format
+msgid "Address:"
+msgstr "पता:"
+
+#: ui/Device.qml:172
+#, kde-format
+msgid "Adapter:"
+msgstr "एडाप्टर:"
+
+#: ui/Device.qml:178 ui/General.qml:43
+#, kde-format
+msgid "Name:"
+msgstr "नाम:"
+
+#: ui/Device.qml:182
+#, kde-format
+msgid "Trusted"
+msgstr "विश्वस्त"
+
+#: ui/Device.qml:191 ui/main.qml:180
+#, kde-format
+msgid "Blocked"
+msgstr "अवरोधित"
+
+#: ui/Device.qml:197
+#, fuzzy, kde-format
+#| msgid ""
+#| "Any incoming connections from a blocked device will be immediately "
+#| "rejected."
+msgid ""
+"When enabled, all incoming connections from this device will be rejected."
+msgstr ""
+"किसी भी अवरुद्ध डिवाइस से आने वाले किसी भी कनेक्शन को तुरंत अस्वीकार कर दिया जाएगा।"
+
+#: ui/Device.qml:203
+#, kde-format
+msgid "Send File"
+msgstr "लेख्यपत्र भेज दें"
+
+#: ui/Device.qml:211
+#, kde-format
+msgid "Setup NAP Network…"
+msgstr "NAP नेटवर्क सेटअप करें…"
+
+#: ui/Device.qml:219
+#, kde-format
+msgid "Setup DUN Network…"
+msgstr "DUN नेटवर्क सेटअप करें…"
+
+#: ui/Device.qml:234
+#, kde-format
+msgctxt "@action:button Forget the Bluetooth device"
+msgid "Forget"
+msgstr "भूल जाओ"
+
+#: ui/ForgetDeviceAction.qml:18
+#, kde-format
+msgctxt "@action:button %1 is the name of a Bluetooth device"
+msgid "Forget \"%1\""
+msgstr "\"%1\" भूल जाओ"
+
+#: ui/General.qml:24
+#, kde-format
+msgid "Settings"
+msgstr "सेटिंग्स"
+
+#: ui/General.qml:35
+#, kde-format
+msgid "Device:"
+msgstr "उपकरण:"
+
+#: ui/General.qml:53
+#, kde-format
+msgid "Enabled:"
+msgstr "सक्षम:"
+
+#: ui/General.qml:59
+#, kde-format
+msgid "Visible:"
+msgstr "दृश्यमान:"
+
+#: ui/General.qml:73
+#, kde-format
+msgid "On login:"
+msgstr "लॉगिन पर:"
+
+#: ui/General.qml:74
+#, kde-format
+msgid "Enable Bluetooth"
+msgstr "ब्लूटूथ सक्षम करें"
+
+#: ui/General.qml:85
+#, kde-format
+msgid "Disable Bluetooth"
+msgstr "ब्लूटूथ अक्षम करें"
+
+#: ui/General.qml:96
+#, kde-format
+msgid "Restore previous status"
+msgstr "पिछली स्थिति बहाल करें"
+
+#: ui/General.qml:116
+#, kde-format
+msgid "When receiving files:"
+msgstr "फ़ाइलें प्राप्त करते समय:"
+
+#: ui/General.qml:118
+#, kde-format
+msgid "Ask for confirmation"
+msgstr "पुष्टि हेतु पूछें"
+
+#: ui/General.qml:127
+#, kde-format
+msgid "Accept for trusted devices"
+msgstr "विश्वसनीय डिवाइस के लिए स्वीकार करें"
+
+#: ui/General.qml:137
+#, kde-format
+msgid "Always accept"
+msgstr "सदैव स्वीकार करें"
+
+#: ui/General.qml:147
+#, kde-format
+msgid "Save files in:"
+msgstr "फ़ाइलें यहां सहेजें:"
+
+#: ui/General.qml:160 ui/General.qml:171
+#, kde-format
+msgid "Select folder"
+msgstr "फ़ोल्डर चुनें"
+
+#: ui/main.qml:34
+#, kde-format
+msgid "Pair Device…"
+msgstr "डिवाइस युग्मित करें…"
+
+#: ui/main.qml:41
+#, kde-format
+msgid "Configure…"
+msgstr "कॉन्फ़िगर करें…"
+
+#: ui/main.qml:48
+#, kde-format
+msgctxt "@action: button as in, 'enable Bluetooth'"
+msgid "Enabled"
+msgstr "सक्रिय"
+
+#: ui/main.qml:126
+#, kde-format
+msgid "No Bluetooth adapters found"
+msgstr "कोई ब्लूटूथ एडाप्टर नहीं मिला"
+
+#: ui/main.qml:127
+#, kde-format
+msgid "Connect an external Bluetooth adapter"
+msgstr "बाहरी ब्लूटूथ एडाप्टर कनेक्ट करें"
+
+#: ui/main.qml:136
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "ब्लूटूथ अक्षम है"
+
+#: ui/main.qml:142
+#, kde-format
+msgid "Enable"
+msgstr "सक्षम"
+
+#: ui/main.qml:152
+#, kde-format
+msgid "No devices paired"
+msgstr "कोई डिवाइस युग्मित नहीं है"
+
+#: ui/main.qml:153
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Click <interface>Pair Device…</interface> to pair some"
+msgstr ""
+"कुछ डिवाइस को पेयर करने के लिए <interface>Pair Device…</interface> पर क्लिक करें"
+
+#: ui/main.qml:182
+#, kde-format
+msgid "Connected"
+msgstr "जुड़े हुए"
+
+#: ui/main.qml:184
+#, kde-format
+msgid "Available"
+msgstr "उपलब्ध"
+
+#: ui/main.qml:246
+#, kde-format
+msgid "%1% Battery"
+msgstr "%1% बैटरी"
+
+#: ui/script.js:13
+#, kde-format
+msgctxt "This device is a Phone"
+msgid "Phone"
+msgstr "फ़ोन"
+
+#: ui/script.js:15
+#, kde-format
+msgctxt "This device is a Modem"
+msgid "Modem"
+msgstr "मोडम"
+
+#: ui/script.js:17
+#, kde-format
+msgctxt "This device is a Computer"
+msgid "Computer"
+msgstr "कंप्यूटर"
+
+#: ui/script.js:19
+#, kde-format
+msgctxt "This device is of type Network"
+msgid "Network"
+msgstr "नेटवर्क"
+
+#: ui/script.js:21
+#, kde-format
+msgctxt "This device is a Headset"
+msgid "Headset"
+msgstr "हेडसेट"
+
+#: ui/script.js:23
+#, kde-format
+msgctxt "This device is a Headphones"
+msgid "Headphones"
+msgstr "हेडफ़ोन"
+
+#: ui/script.js:25
+#, kde-format
+msgctxt "This device is an Audio/Video device"
+msgid "Multimedia"
+msgstr "मल्टीमीडिया"
+
+#: ui/script.js:27
+#, kde-format
+msgctxt "This device is a Keyboard"
+msgid "Keyboard"
+msgstr "कीबोर्ड"
+
+#: ui/script.js:29
+#, kde-format
+msgctxt "This device is a Mouse"
+msgid "Mouse"
+msgstr "चूहा"
+
+#: ui/script.js:31
+#, kde-format
+msgctxt "This device is a Game controller"
+msgid "Game controller"
+msgstr "खेल नियंत्रक"
+
+#: ui/script.js:33
+#, kde-format
+msgctxt "This device is a Graphics Tablet (input device)"
+msgid "Tablet"
+msgstr "टैबलेट"
+
+#: ui/script.js:35
+#, kde-format
+msgctxt "This device is a Peripheral device"
+msgid "Peripheral"
+msgstr "परिधीय"
+
+#: ui/script.js:37
+#, kde-format
+msgctxt "This device is a Camera"
+msgid "Camera"
+msgstr "कैमरा"
+
+#: ui/script.js:39
+#, kde-format
+msgctxt "This device is a Printer"
+msgid "Printer"
+msgstr "प्रिंटर"
+
+#: ui/script.js:41
+#, kde-format
+msgctxt ""
+"This device is an Imaging device (printer, scanner, camera, display, …)"
+msgid "Imaging"
+msgstr "इमेजिंग"
+
+#: ui/script.js:43
+#, kde-format
+msgctxt "This device is a Wearable"
+msgid "Wearable"
+msgstr "पहनने योग्य"
+
+#: ui/script.js:45
+#, kde-format
+msgctxt "This device is a Toy"
+msgid "Toy"
+msgstr "खिलौने"
+
+#: ui/script.js:47
+#, kde-format
+msgctxt "This device is a Health device"
+msgid "Health"
+msgstr "स्वास्थ्य"
+
+#: ui/script.js:53
+#, kde-format
+msgid "File transfer"
+msgstr "दस्तावेज हस्तांतरण"
+
+#: ui/script.js:56
+#, kde-format
+msgid "Send file"
+msgstr "लेख्यपत्र भेज दें"
+
+#: ui/script.js:59
+#, kde-format
+msgid "Input"
+msgstr "इनपुट"
+
+#: ui/script.js:62
+#, kde-format
+msgid "Audio"
+msgstr "ऑडियो"
+
+#: ui/script.js:65
+#, kde-format
+msgid "Network"
+msgstr "नेटवर्क"
+
+#: ui/script.js:69
+#, kde-format
+msgid "Other"
+msgstr "अन्य"
+
+#: ui/script.js:72
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ","
+
+#~ msgid "Forget this Device?"
+#~ msgstr "इस डिवाइस को भूल गए?"
+
+#~ msgid "Are you sure you want to forget \"%1\"?"
+#~ msgstr "क्या आप वाकई \"%1\" को भूलना चाहते हैं?"
+
+#~ msgctxt "@action:button"
+#~ msgid "Forget Device"
+#~ msgstr "डिवाइस भूल गए"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "रद्द करना"

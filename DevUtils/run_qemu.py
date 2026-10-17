@@ -1046,6 +1046,39 @@ def installed_slate_probes(profile: str) -> tuple[tuple[str, str], ...]:
     return probes
 
 
+def installed_wallet_open_probe() -> str:
+    return (
+        "for n in $(seq 1 90); do "
+        "busctl --user --no-pager list | grep -q '^org.kde.ksecretd[[:space:]]' && "
+        "busctl --user call org.kde.ksecretd /ksecretd org.kde.KWallet isOpen s kdewallet | grep -Fx 'b true' && "
+        "test -s ~/.local/share/kwalletd/kdewallet.kwl && exit 0; sleep 1; done; "
+        "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 150; exit 1"
+    )
+
+
+def verify_installed_desktop_defaults(repo_root: Path, control_paths: tuple[Path, Path], stream: Callable[[str], None]) -> None:
+    """Exercise real desktop launch paths, beside the palette/font/QML probe."""
+    serial = control_paths[1].resolve()
+    applications = (
+        ("dolphin", "/usr/bin/xdg-open /home/mattos", "dolphin"),
+        ("bluetooth", "/usr/bin/bluedevil-wizard", None),
+        ("konsole", "/usr/bin/konsole --separate --workdir /home/mattos", "konsole"),
+    )
+    for name, command, process in applications:
+        unit = f"mattos-desktop-check-{name}"
+        serial_command_stream(serial,
+            f"systemd-run --user --collect --unit={unit} -E QT_QPA_PLATFORM=wayland "
+            f"-E WAYLAND_DISPLAY=wayland-0 {command}", 120, on_output=stream)
+        readiness = f"pgrep -u mattos -x {process}" if process else f"systemctl --user is-active --quiet {unit}"
+        serial_command_stream(serial, f"sleep 3; {readiness}", 120, on_output=stream)
+        image = repo_root / f"out/logs/installed-desktop-{name}.png"
+        _capture_plasma_verification_window(repo_root, image, qmp_socket=control_paths[0])
+        stream(f"[installed-check] PASS desktop-{name}; screenshot={image}\n")
+        if process:
+            serial_command_stream(serial, f"pkill -u mattos -x {process} || true", 120, on_output=stream)
+        serial_command_stream(serial, f"systemctl --user stop {unit} 2>/dev/null || true", 120, on_output=stream)
+
+
 def verify_installed_slate_gui(repo_root: Path, control_paths: tuple[Path, Path], stream: Callable[[str], None]) -> None:
     """Open the default text application, edit/save through Qt, and verify --wait."""
     serial = control_paths[1].resolve()
@@ -1505,6 +1538,9 @@ def _verify_installed_disk_boot_with(
             "exit 1)",
         ),
         *installed_plasma_applet_runtime_probes(),
+        ("xdg-user-directories-service", "systemctl --user show graphical-session-pre.target -p Wants --value | tr ' ' '\\n' | grep -Fx xdg-user-dirs.service && "
+         "test \"$(systemctl --user show xdg-user-dirs.service -p ExecMainStartTimestampMonotonic --value)\" -gt 0 && "
+         "test \"$(systemctl --user show xdg-user-dirs.service -p Result --value)\" = success"),
         ("material-cursor-default", 'test "$(kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme)" = material_light_cursors && '
          'test "$(kreadconfig6 --file kcminputrc --group Mouse --key cursorSize)" = 24 && '
          'test -r /usr/share/icons/material_light_cursors/cursors/left_ptr && '
@@ -1515,6 +1551,11 @@ def _verify_installed_disk_boot_with(
         ("material-cursor-loaded", "printf '%s\\n' mattos | sudo -S -p '' journalctl -b _COMM=kwin_wayland --no-pager > /tmp/mattos-kwin-cursor-check.log && "
          "! grep -F 'Failed to load cursor theme' /tmp/mattos-kwin-cursor-check.log"),
         *installed_kde_application_probes(),
+        ("desktop-defaults-packages", "dpkg-query -W plasma-integration kde-cli-tools bluedevil kf6-bluez-qt libpam-kwallet5 libsecret-1-0 xdg-utils fonts-noto-cjk fonts-noto-color-emoji"),
+        ("desktop-defaults-runtime", "systemd-run --user --wait --pipe --collect -E QT_QPA_PLATFORM=wayland -E WAYLAND_DISPLAY=wayland-0 python3 /usr/share/doc/mattos-plasma-theme/examples/smoke-test.py"),
+        ("wallet-unlocked-by-login", installed_wallet_open_probe()),
+        ("wallet-secret-service-roundtrip", "printf '%s' mattos-wallet-test-value | timeout 30 secret-tool store --label='MattOS disposable verification' mattos-test desktop && "
+         "test \"$(timeout 30 secret-tool lookup mattos-test desktop)\" = mattos-wallet-test-value && secret-tool clear mattos-test desktop"),
         *update_probes,
     )
     checks = (
@@ -1523,6 +1564,15 @@ def _verify_installed_disk_boot_with(
         ("profile-value", f"test \"$(cat /etc/mattos-installed-profile)\" = {expected_profile}"),
         ("hostname", "test \"$(cat /etc/hostname)\" = mattos-test"),
         ("user", "id mattos"),
+        ("persistent-journal", "grep -Fx Storage=persistent /etc/systemd/journald.conf.d/20-mattos-installed.conf && "
+         "test -d /var/log/journal && printf '%s\\n' mattos-persistent-journal-proof | systemd-cat -t mattos-install-check && "
+         "printf '%s\\n' mattos | sudo -S journalctl --sync"),
+        ("xdg-user-directories", "dpkg-query -W xdg-user-dirs >/dev/null && "
+         "test -f ~/.config/user-dirs.dirs && "
+         "for key in DESKTOP DOWNLOAD DOCUMENTS MUSIC PICTURES VIDEOS TEMPLATES PUBLICSHARE PROJECTS; do "
+         "directory=$(xdg-user-dir \"$key\") && test -d \"$directory\" && "
+         "test \"$(stat -c %u \"$directory\")\" = \"$(id -u)\" || exit 1; done"),
+        ("xdg-user-directory-policy", "python3 /usr/share/doc/xdg-user-dirs/examples/smoke-test.py"),
         ("uefi", "test -d /sys/firmware/efi"),
         ("efi-partition", "test -b /dev/vda1"),
         ("root-partition", "test -b /dev/vda2"),
@@ -1705,6 +1755,7 @@ def _verify_installed_disk_boot_with(
                 "[installed-check] PASS launcher interaction; "
                 f"screenshots={','.join(popup_images)}\n"
             )
+            verify_installed_desktop_defaults(repo_root, control_paths, stream)
             verify_installed_slate_gui(repo_root, control_paths, stream)
             completed_checks.append("slate-default-gui-edit-save-wait")
             logout_graphical = (
@@ -1771,6 +1822,13 @@ def _verify_installed_disk_boot_with(
                 INSTALL_BOOT_IDLE_SECONDS, on_output=stream,
             )
             stream("[installed-check] PASS login-after-reboot\n")
+            serial_command_stream(control_paths[1].resolve(),
+                "printf '%s\\n' mattos | sudo -S journalctl -b -1 -t mattos-install-check -o cat --no-pager | grep -Fx mattos-persistent-journal-proof",
+                INSTALL_BOOT_IDLE_SECONDS, on_output=stream)
+            stream("[installed-check] PASS previous-boot-journal-persisted\n")
+            serial_command_stream(control_paths[1].resolve(), installed_wallet_open_probe(),
+                INSTALL_BOOT_IDLE_SECONDS, on_output=stream)
+            stream("[installed-check] PASS encrypted-wallet-reopened-after-reboot\n")
         result.update({"uefi_grub_boot": True, "serial_checks": "".join(completed_checks)})
         serial_command_stream(
             control_paths[1].resolve(),

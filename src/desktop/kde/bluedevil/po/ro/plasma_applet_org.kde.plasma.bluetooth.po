@@ -1,0 +1,342 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the bluedevil package.
+# SPDX-FileCopyrightText: 2015, 2020, 2021, 2022, 2023, 2024, 2025, 2026 Sergiu Bivol <sergiu@cip.md>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-27 02:39+0000\n"
+"PO-Revision-Date: 2026-01-28 18:47+0000\n"
+"Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
+"Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+"X-Generator: Lokalize 25.08.1\n"
+
+#: devicesproxymodel.cpp:51
+#, kde-format
+msgctxt "@title:column Blocked Bluetooth devices"
+msgid "Blocked"
+msgstr "Blocate"
+
+#: devicesproxymodel.cpp:54
+#, kde-format
+msgctxt "@title:column Connected Bluetooth devices"
+msgid "Connected"
+msgstr "Conectate"
+
+#: devicesproxymodel.cpp:56
+#, kde-format
+msgctxt "@title:column Available but not connected Bluetooth devices"
+msgid "Available"
+msgstr "Disponibile"
+
+#: devicesstateproxymodel.cpp:273
+#, kde-format
+msgctxt "@label %1 is the name of a Bluetooth device"
+msgid "Could not connect to device “%1”"
+msgstr "Nu s-a putut conecta la dispozitivul „%1”"
+
+#: devicesstateproxymodel.cpp:288
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+msgid "The device is unreachable"
+msgstr "Dispozitivul e inaccesibil"
+
+#: devicesstateproxymodel.cpp:289
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed"
+msgid "Connection to the device failed"
+msgstr "Conectarea la dispozitiv a eșuat"
+
+#: devicesstateproxymodel.cpp:292
+#, kde-format
+msgctxt "Notification when the connection failed due to NotReady"
+msgid "The device is not ready"
+msgstr "Dispozitivul nu este gata"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Disconnect"
+msgstr "Deconectează"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Connect"
+msgstr "Conectează"
+
+#: qml/DeviceItem.qml:51
+#, kde-format
+msgid "Browse Files"
+msgstr "Răsfoiește fișiere"
+
+#: qml/DeviceItem.qml:62
+#, kde-format
+msgid "Send File"
+msgstr "Trimite fișier"
+
+#: qml/DeviceItem.qml:71
+#, kde-format
+msgctxt "@action:button Forget a Bluetooth device"
+msgid "Forget"
+msgstr "Uită"
+
+#: qml/DeviceItem.qml:117
+#, kde-format
+msgid "Copy"
+msgstr "Copiază"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "Yes"
+msgstr "Da"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "No"
+msgstr "Nu"
+
+#: qml/DeviceItem.qml:219
+#, kde-format
+msgctxt "@label %1 is human-readable adapter name, %2 is HCI"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: qml/DeviceItem.qml:227
+#, kde-format
+msgid "Remote Name"
+msgstr "Denumire distant"
+
+#: qml/DeviceItem.qml:231
+#, kde-format
+msgid "Address"
+msgstr "Adresă"
+
+#: qml/DeviceItem.qml:234
+#, kde-format
+msgid "Paired"
+msgstr "Asociat"
+
+#: qml/DeviceItem.qml:237
+#, kde-format
+msgid "Trusted"
+msgstr "De încredere"
+
+#: qml/DeviceItem.qml:240
+#, kde-format
+msgid "Adapter"
+msgstr "Adaptor"
+
+#: qml/DeviceItem.qml:248
+#, kde-format
+msgid "Connecting"
+msgstr "Se conectează"
+
+#: qml/DeviceItem.qml:250
+#, kde-format
+msgid "Disconnecting"
+msgstr "Se deconectează"
+
+#: qml/DeviceItem.qml:256
+#, kde-format
+msgid "Connection failed"
+msgstr "Conexiunea a eșuat"
+
+#: qml/DeviceItem.qml:261
+#, kde-format
+msgid "Headset"
+msgstr "Set cu cască"
+
+#: qml/DeviceItem.qml:267
+#, kde-format
+msgid "Audio device"
+msgstr "Dispozitiv audio"
+
+#: qml/DeviceItem.qml:271
+#, kde-format
+msgid "Keyboard"
+msgstr "Tastatură"
+
+#: qml/DeviceItem.qml:274
+#, kde-format
+msgid "Mouse"
+msgstr "Maus"
+
+#: qml/DeviceItem.qml:277
+#, kde-format
+msgid "Joypad"
+msgstr "Joypad"
+
+#: qml/DeviceItem.qml:280
+#, kde-format
+msgid "Drawing tablet"
+msgstr "Planșetă grafică"
+
+#: qml/DeviceItem.qml:284
+#, kde-format
+msgid "Phone"
+msgstr "Telefon"
+
+#: qml/DeviceItem.qml:287
+#, kde-format
+msgid "Camera"
+msgstr "Cameră"
+
+#: qml/DeviceItem.qml:290
+#, kde-format
+msgid "Printer"
+msgstr "Imprimantă"
+
+#: qml/DeviceItem.qml:297
+#, kde-format
+msgid "File transfer"
+msgstr "Transfer de fișiere"
+
+#: qml/DeviceItem.qml:300
+#, kde-format
+msgid "Send file"
+msgstr "Trimite fișier"
+
+#: qml/DeviceItem.qml:303
+#, kde-format
+msgid "Input"
+msgstr "Intrare"
+
+#: qml/DeviceItem.qml:306
+#, kde-format
+msgid "Audio"
+msgstr "Audio"
+
+#: qml/DeviceItem.qml:309
+#, kde-format
+msgid "Network"
+msgstr "Rețea"
+
+#: qml/DeviceItem.qml:314
+#, kde-format
+msgid "Other device"
+msgstr "Alt dispozitiv"
+
+#: qml/DeviceItem.qml:321 qml/main.qml:74 qml/main.qml:83
+#, kde-format
+msgid "%1% Battery"
+msgstr "Acumulator %1%"
+
+#: qml/FullRepresentation.qml:80
+#, kde-format
+msgid "Enable"
+msgstr "Activează"
+
+#: qml/FullRepresentation.qml:156
+#, kde-format
+msgid "No Bluetooth adapters available"
+msgstr "Niciun adaptor Bluetooth disponibil"
+
+#: qml/FullRepresentation.qml:158
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "Bluetooth este dezactivat"
+
+#: qml/FullRepresentation.qml:160
+#, kde-format
+msgid "No devices paired"
+msgstr "Niciun dispozitiv asociat"
+
+#: qml/main.qml:51
+#, kde-format
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+#: qml/main.qml:55
+#, kde-format
+msgid "Bluetooth is disabled; middle-click to enable"
+msgstr "Bluetooth este dezactivat; clic mijlociu pentru activare"
+
+#: qml/main.qml:59
+#, kde-format
+msgid "No adapters available"
+msgstr "Niciun adaptor disponibil"
+
+#: qml/main.qml:61
+#, kde-format
+msgid "Bluetooth is offline"
+msgstr "Bluetooth este offline"
+
+#: qml/main.qml:64
+#, kde-format
+msgid "Middle-click to disable Bluetooth"
+msgstr "Faceți clic mijlociu pentru a dezactiva Bluetooth"
+
+#: qml/main.qml:67
+#, kde-format
+msgid "No connected devices"
+msgstr "Niciun dispozitiv conectat"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "%1 connected"
+msgstr "%1 conectat"
+
+#: qml/main.qml:79
+#, kde-format
+msgctxt "Number of connected devices"
+msgid "%1 connected device"
+msgid_plural "%1 connected devices"
+msgstr[0] "%1 dispozitiv conectat"
+msgstr[1] "%1 dispozitive conectate"
+msgstr[2] "%1 de dispozitive conectate"
+
+#: qml/main.qml:110
+#, kde-format
+msgctxt "@option:check"
+msgid "Enable Bluetooth"
+msgstr "Activează Bluetooth"
+
+#: qml/main.qml:122
+#, kde-format
+msgctxt "@action:button"
+msgid "Pair Device…"
+msgstr "Asociază dispozitiv…"
+
+#: qml/main.qml:130
+#, kde-format
+msgctxt "@item:inmenu"
+msgid "Show badge with number of connected devices"
+msgstr "Arată insigna cu numărul de dispozitive conectate"
+
+#: qml/main.qml:140
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Configure &Bluetooth…"
+msgstr "Configurează &Bluetooth…"
+
+#: qml/Toolbar.qml:73
+#, kde-format
+msgctxt "@action:button opens hamburger menu"
+msgid "More actions"
+msgstr "Acțiuni suplimentare"
+
+#~ msgctxt ""
+#~ "@label %1 is human-readable device name, %2 is low-level device address"
+#~ msgid "%1 (%2)"
+#~ msgstr "%1 (%2)"
+
+#~ msgid "Input device"
+#~ msgstr "Dispozitiv de intrare"
+
+#~ msgid "Bluetooth is Disabled"
+#~ msgstr "Bluetooth este dezactivat"
+
+#~ msgid "Add New Device..."
+#~ msgstr "Adaugă dispozitiv nou..."
+
+#~ msgid "Connected devices"
+#~ msgstr "Dispozitive conectate"
+
+#~ msgid "Configure Bluetooth..."
+#~ msgstr "Configurează Bluetooth..."

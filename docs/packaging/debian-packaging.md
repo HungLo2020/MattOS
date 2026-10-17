@@ -67,6 +67,12 @@ The table below covers representative core packages only; it is not the complete
 | `gpgv` | required | source-built OpenPGP signature verifier used by APT |
 | `libgcc-s1`, `libstdc++6` | required | source-built GCC unwinding and C++ runtime ABIs; no development files |
 | `mattos-base-files` | required | MattOS identity, hostname default, profile, issue, and shells |
+| `xdg-user-dirs` | optional | Localized standard user folders, early graphical-session service, and interactive login initialization |
+| `plasma-integration`, `kde-cli-tools` | optional | Native KDE Qt platform theme and desktop command helpers |
+| `bluedevil`, `kf6-bluez-qt` | optional | Bluetooth pairing, settings, Plasma applet and Qt/QML integration |
+| `libpam-kwallet5`, `libsecret-1-0` | optional | Graphical login wallet unlock and Secret Service client library |
+| `xdg-utils` | optional | Generated standard desktop URL, MIME and settings helpers |
+| `fonts-fira`, `fonts-noto-cjk`, `fonts-noto-color-emoji` | optional | Explicit desktop/monospace defaults with CJK and color emoji fallback |
 | `ca-certificates` | important | pinned Mozilla-derived CA bundle and update provenance |
 | `mattos-brush` | required | `/usr/bin/brush` |
 | `coreutils` | required | uutils multicall binary and non-conflicting applet symlinks |

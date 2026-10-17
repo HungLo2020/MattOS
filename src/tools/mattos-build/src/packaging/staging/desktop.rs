@@ -508,18 +508,24 @@ pub(super) fn stage_mattos_plasma_theme(repo_root: &Path, staging: &Path) -> Res
         &staging.join("usr/share/icons/material_light_cursors"),
     )?;
 
-    for config in ["kdeglobals", "kcminputrc", "kwinrc", "plasmarc"] {
+    for config in ["kdeglobals", "kcminputrc", "kwinrc", "plasmarc", "konsolerc"] {
         copy_preserving(
             &branding.join("xdg").join(config),
             &staging.join("etc/xdg").join(config),
         )?;
     }
+    copy_tree_preserving(&branding.join("konsole"), &staging.join("usr/share/konsole"))?;
+    fs::write(staging.join("DEBIAN/conffiles"), "/etc/xdg/kdeglobals\n/etc/xdg/kcminputrc\n/etc/xdg/kwinrc\n/etc/xdg/plasmarc\n/etc/xdg/konsolerc\n")?;
     copy_tree_preserving(
         &branding.join("desktop-directories"),
         &staging.join("usr/share/desktop-directories"),
     )?;
 
     let docs = staging.join("usr/share/doc/mattos-plasma-theme/upstream-licenses");
+    copy_tree_preserving(
+        &repo_root.join("src/system/desktop/validation"),
+        &staging.join("usr/share/doc/mattos-plasma-theme/examples"),
+    )?;
     for (source, destination, is_directory) in [
         ("src/desktop/themes/nordic-kde/LICENSE", "nordic-kde", true),
         (
@@ -1450,6 +1456,11 @@ pub(super) fn stage_fontconfig_config(repo_root: &Path, staging: &Path) -> Resul
 pub(super) fn stage_pop_fonts(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = component_install(repo_root, "pop-fonts");
     copy_tree_preserving(&install.join("usr"), &staging.join("usr"))?;
+    copy_preserving(
+        &repo_root.join("src/system/desktop/fonts/60-mattos-fonts.conf"),
+        &staging.join("etc/fonts/conf.d/60-mattos-fonts.conf"),
+    )?;
+    fs::write(staging.join("DEBIAN/conffiles"), "/etc/fonts/conf.d/60-mattos-fonts.conf\n")?;
     for font in POP_FIRA_RUNTIME_FONTS {
         let path = staging.join("usr/share/fonts/opentype/fira").join(font);
         if !path.is_file() {
@@ -1691,7 +1702,10 @@ mod desktop_data_tests {
         fs::write(&license, b"OFL").unwrap();
 
         let staging = repo.path().join("staged");
-        fs::create_dir_all(&staging).unwrap();
+        fs::create_dir_all(staging.join("DEBIAN")).unwrap();
+        let policy = repo.path().join("src/system/desktop/fonts/60-mattos-fonts.conf");
+        fs::create_dir_all(policy.parent().unwrap()).unwrap();
+        fs::write(policy, include_bytes!("../../../../../system/desktop/fonts/60-mattos-fonts.conf")).unwrap();
         stage_pop_fonts(repo.path(), &staging).unwrap();
         assert!(
             staging
@@ -2224,4 +2238,37 @@ mod mattos_plasma_theme_tests {
             .is_err()
         );
     }
+}
+/// Upstream owns defaults, translations, and the early graphical-session unit.
+/// MattOS also initializes ordinary console/SSH login homes through profile.d.
+pub(super) fn stage_xdg_user_dirs(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_install_tree(
+        repo_root, staging, "xdg-user-dirs", "xdg-user-dirs",
+        "src/desktop/xdg-user-dirs", &["COPYING"],
+    )?;
+    let policy = repo_root.join("src/system/session/user-directories");
+    copy_preserving(&policy.join("profile.sh"), &staging.join("etc/profile.d/xdg-user-dirs.sh"))?;
+    copy_preserving(
+        &policy.join("smoke-test.py"),
+        &staging.join("usr/share/doc/xdg-user-dirs/examples/smoke-test.py"),
+    )?;
+    let wants = staging.join("usr/lib/systemd/user/graphical-session-pre.target.wants");
+    fs::create_dir_all(&wants)?;
+    std::os::unix::fs::symlink("../xdg-user-dirs.service", wants.join("xdg-user-dirs.service"))?;
+    fs::write(
+        staging.join("DEBIAN/conffiles"),
+        "/etc/xdg/user-dirs.conf\n/etc/xdg/user-dirs.defaults\n/etc/profile.d/xdg-user-dirs.sh\n/etc/xdg/autostart/xdg-user-dirs.desktop\n",
+    )?;
+    Ok(())
+}
+
+pub(super) fn stage_kwallet_pam(repo_root: &Path, staging: &Path) -> Result<()> {
+    stage_install_tree(repo_root, staging, "kwallet-pam", "libpam-kwallet5", "src/desktop/kde/kwallet-pam", &["LICENSES/LGPL-2.1-or-later.txt"])?;
+    // Preserve the upstream PAM module and startup unit. The local helper
+    // implements its environment socket protocol without a socat dependency.
+    stage_executable(
+        &repo_root.join("src/system/session/kwallet/pam_kwallet_init"),
+        &staging.join("usr/lib/x86_64-linux-gnu/libexec/pam_kwallet_init"), 0o755,
+    )?;
+    Ok(())
 }

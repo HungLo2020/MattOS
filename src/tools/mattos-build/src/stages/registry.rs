@@ -219,6 +219,16 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Libepoxy => vec!["out/build/libepoxy/install/usr/lib/x86_64-linux-gnu/libepoxy.so.0".into()],
         BuildStage::Freetype => vec!["out/build/freetype/install/usr/lib/x86_64-linux-gnu/libfreetype.so.6".into()],
         BuildStage::Fontconfig => vec!["out/build/fontconfig/install/usr/lib/x86_64-linux-gnu/libfontconfig.so.1".into()],
+        BuildStage::KdeCliTools => vec!["out/build/kde-cli-tools/install".into()],
+        BuildStage::PlasmaIntegration => vec!["out/build/plasma-integration/install".into()],
+        BuildStage::BluezQt => vec!["out/build/bluez-qt/install".into()],
+        BuildStage::BlueDevil => vec!["out/build/bluedevil/install".into()],
+        BuildStage::Libsecret => vec!["out/build/libsecret/install".into()],
+        BuildStage::KWalletPam => vec!["out/build/kwallet-pam/install".into()],
+        BuildStage::XdgUtils => vec!["out/build/xdg-utils/install".into()],
+        BuildStage::NotoColorEmoji => vec!["out/build/noto-color-emoji/install".into()],
+        BuildStage::NotoSansCjk => vec!["out/build/noto-sans-cjk/install".into()],
+        BuildStage::XdgUserDirs => vec!["out/build/xdg-user-dirs/install".into()],
         BuildStage::PopFonts => vec!["out/build/pop-fonts/install/usr/share/fonts/opentype/fira/FiraSans-Regular.otf".into()],
         BuildStage::MaterialCursors => vec![
             "out/build/material-cursors/install/usr/share/icons/material_light_cursors".into(),
@@ -632,7 +642,7 @@ fn stage_precedes_target_toolchain(stage_id: &str) -> bool {
 /// keying them on it would let them build before it exists and then rebuild
 /// once it does.
 fn stage_independent_of_target_toolchain(stage_id: &str) -> bool {
-    matches!(stage_id, "pop-fonts" | "material-cursors")
+    matches!(stage_id, "pop-fonts" | "material-cursors" | "noto-color-emoji" | "noto-sans-cjk" | "xdg-utils")
 }
 
 /// Whether `stage_id` is compiled by the target toolchain, and so is keyed on
@@ -943,6 +953,17 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Freetype => build_freetype(repo_root),
         BuildStage::Fontconfig => build_fontconfig(repo_root),
         BuildStage::PopFonts => build_pop_fonts(repo_root),
+        BuildStage::XdgUserDirs => build_xdg_user_dirs(repo_root),
+        BuildStage::PlasmaIntegration => build_plasma_integration(repo_root),
+        BuildStage::KdeCliTools => build_kde_cli_tools(repo_root),
+        BuildStage::BluezQt => build_bluez_qt(repo_root),
+        BuildStage::BlueDevil => build_bluedevil(repo_root),
+        BuildStage::KWalletPam => build_kwallet_pam(repo_root),
+        BuildStage::Libsecret => build_libsecret(repo_root),
+        BuildStage::XdgUtils => build_xdg_utils(repo_root),
+        BuildStage::NotoColorEmoji => build_noto_color_emoji(repo_root),
+        BuildStage::NotoSansCjk => build_noto_sans_cjk(repo_root),
+
         BuildStage::MaterialCursors => build_material_cursors(repo_root),
         BuildStage::Libfontenc => build_libfontenc(repo_root),
         BuildStage::Libxfont => build_libxfont(repo_root),

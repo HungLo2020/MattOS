@@ -27,6 +27,31 @@ mod wifi_grub_tests {
         result
     }
     #[test]
+    fn xdg_user_directories_are_available_in_both_installed_profiles() {
+        let specs = package_specs();
+        let spec = specs.iter().find(|spec| spec.name == "xdg-user-dirs").unwrap();
+        assert_eq!(spec.source_component, "xdg-user-dirs");
+        assert!(spec.depends.contains(&"libc6"));
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        assert!(super::super::package_version(&root, spec).is_ok());
+        for profile in ["mattos-cli", "mattos-plasma"] {
+            assert!(closure(profile).contains("xdg-user-dirs"));
+        }
+    }
+
+    #[test]
+    fn desktop_integration_has_a_complete_package_closure() {
+        let desktop = closure("mattos-plasma");
+        for name in ["plasma-integration", "bluedevil", "kf6-bluez-qt", "libpam-kwallet5", "libsecret-1-0", "xdg-utils", "fonts-noto-color-emoji", "fonts-noto-cjk"] {
+            assert!(desktop.contains(name), "missing desktop dependency {name}");
+        }
+        let cli = closure("mattos-cli");
+        for name in ["plasma-integration", "bluedevil", "libpam-kwallet5", "fonts-noto-cjk"] {
+            assert!(!cli.contains(name), "desktop package leaked into CLI: {name}");
+        }
+    }
+
+    #[test]
     fn wifi_and_bootloader_runtime_dependencies_are_complete() {
         let specs = package_specs();
         let network = specs.iter().find(|p| p.name == "network-manager").unwrap();
@@ -289,6 +314,16 @@ mod wifi_grub_tests {
 }
 
 pub(crate) const PACKAGE_NAMES: &[&str] = &[
+    "kde-cli-tools",
+    "plasma-integration",
+    "kf6-bluez-qt",
+    "bluedevil",
+    "libpam-kwallet5",
+    "xdg-utils",
+    "fonts-noto-color-emoji",
+    "fonts-noto-cjk",
+    "libsecret-1-0",
+
     "mattos-filesystem",
     "mattos-compat",
     "libc6",
@@ -359,6 +394,7 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "mattos-toolchain",
     "mattos-plasma-live",
     "mattos-plasma-theme",
+    "xdg-user-dirs",
     "ca-certificates",
     "dash",
     "mattos-brush",
@@ -733,6 +769,7 @@ pub(crate) struct PackageSpec {
 }
 
 const MATTOS_BASE_DEPENDS: &[&str] = &[
+    "xdg-user-dirs",
     "slate",
     "mattos-filesystem",
     "mattos-base-files",
@@ -794,6 +831,8 @@ const MATTOS_BASE_DEPENDS: &[&str] = &[
 ];
 
 const MATTOS_PLASMA_DEPENDS: &[&str] = &[
+    "kde-cli-tools",
+    "plasma-integration", "bluedevil", "libpam-kwallet5", "xdg-utils", "fonts-noto-color-emoji", "fonts-noto-cjk",
     "slate-gui",
     "mattos-base",
     "mattos-plasma-theme",
@@ -1969,6 +2008,80 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "kde-cli-tools",
+            description: "KDE desktop URL, MIME and application command helpers",
+            source_component: "kde-cli-tools",
+            depends: &["qt6-base", "qt6-svg", "kf6-kio", "kf6-kparts", "kf6-kcmutils", "kf6-kiconthemes", "kf6-ki18n", "kf6-kwindowsystem", "kf6-kservice", "kf6-kcoreaddons", "libc6", "libstdc++6"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "plasma-integration",
+            description: "KDE Qt platform theme and desktop integration",
+            source_component: "plasma-integration",
+            depends: &["qt6-base", "qt6-declarative", "qt6-wayland", "kf6-kio", "kf6-kconfigwidgets", "kf6-kcolorscheme", "kf6-kiconthemes", "kf6-knotifications", "kf6-kwindowsystem", "kf6-kguiaddons", "kf6-kxmlgui", "kf6-kstatusnotifieritem", "libx11-6", "libxcb1", "libxcursor1", "libwayland-client0", "libc6", "libstdc++6"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "kf6-bluez-qt",
+            description: "KDE Bluetooth library and QML integration",
+            source_component: "bluez-qt",
+            depends: &["qt6-base", "qt6-declarative", "bluez", "libc6", "libstdc++6"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "bluedevil",
+            description: "KDE Bluetooth pairing, settings and Plasma applet",
+            source_component: "bluedevil",
+            depends: &["kf6-bluez-qt", "plasma-framework", "kf6-kcmutils", "kf6-kio", "kf6-knotifications", "kf6-kdbusaddons", "kf6-ki18n", "kf6-ksvg", "kf6-kirigami", "libc6", "libstdc++6"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libpam-kwallet5",
+            description: "Unlock the KDE wallet using graphical login credentials",
+            source_component: "kwallet-pam",
+            depends: &["libpam0g", "libgcrypt20", "libc6", "kf6-kwallet", "python3"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "xdg-utils",
+            description: "Standard desktop URL, MIME and application helpers",
+            source_component: "xdg-utils",
+            depends: &["dash", "coreutils", "sed", "grep", "mawk", "shared-mime-info", "libglib2.0-bin"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "fonts-noto-color-emoji",
+            description: "Noto color emoji font",
+            source_component: "noto-color-emoji",
+            depends: &["fontconfig"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "fonts-noto-cjk",
+            description: "Noto Sans Chinese Japanese and Korean fallback fonts",
+            source_component: "noto-sans-cjk",
+            depends: &["fontconfig"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "libsecret-1-0",
+            description: "Secret Service client library",
+            source_component: "libsecret",
+            depends: &["libglib2.0-0t64", "libgcrypt20", "libc6"],
+            provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
+            name: "xdg-user-dirs",
+            description: "Localized standard user directories and login initialization",
+            source_component: "xdg-user-dirs",
+            depends: &["libc6", "systemd"],
+            provides: &[],
+            conflicts: &[],
+            replaces: &[],
+            essential: false,
+            priority: "optional",
+        },
+        PackageSpec {
             name: "fonts-fira",
             description: "Fira Sans and Fira Mono desktop fonts for MattOS",
             source_component: "pop-fonts",
@@ -3105,7 +3218,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             name: "qca-qt6",
             description: "Qt Cryptographic Architecture 2 Qt 6 runtime and development metadata",
             source_component: "qca",
-            depends: &["qt6-base", "qt6-core5compat", "libc6", "libstdc++6"],
+            depends: &["libssl3t64", "qt6-base", "qt6-core5compat", "libc6", "libstdc++6"],
             provides: &["libqca-qt6-2", "qca-qt6-dev"],
             conflicts: &[],
             replaces: &[],
@@ -4264,7 +4377,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             description: "KDE Frameworks wallet runtime and development metadata",
             source_component: "kwallet",
             depends: &[
-                "qt6-base",
+                "qt6-base", "libsecret-1-0", "qca-qt6",
                 "kf6-kconfig",
                 "kf6-kcoreaddons",
                 "kf6-kdbusaddons",
@@ -5538,7 +5651,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             name: "plasma-login-manager",
             description: "KDE Plasma Login Manager with MattOS PAM and Wayland session policy",
             source_component: "plasma-login-manager",
-            depends: &[
+            depends: &["libpam-kwallet5",
                 "qt6-base",
                 "qt6-declarative",
                 "qt6-shadertools",

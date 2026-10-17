@@ -1,0 +1,432 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the bluedevil package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bluedevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-04 00:45+0000\n"
+"PO-Revision-Date: 2025-12-08 05:50+0100\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <kde-i18n-doc@kde.org>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.8\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Temuri Doghonadze"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "Temuri.doghonadze@gmail.com"
+
+#: bluetooth.cpp:135
+#, kde-format
+msgctxt "DeviceName Network (Service)"
+msgid "%1 Network (%2)"
+msgstr "%1 ქსელი (%2)"
+
+#: bluetoothmoduledata.cpp:20
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Enable Bluetooth"
+msgstr "ბლუთუზის ჩართვა"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Disconnect"
+msgstr "გათიშვა"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Connect"
+msgstr "დაკავშირება"
+
+#: ui/Device.qml:135
+#, kde-format
+msgid "Unblock the device first to be able to connect to it"
+msgstr "ჯერ განბლოკეთ მოწყობილობა, რომ შეძლოთ, დაუკავშირდეთ მას"
+
+#: ui/Device.qml:156
+#, kde-format
+msgid "Type:"
+msgstr "ტიპი:"
+
+#: ui/Device.qml:160
+#, kde-format
+msgid "%1%"
+msgstr "%1%"
+
+#: ui/Device.qml:162
+#, kde-format
+msgid "Battery:"
+msgstr "ელემენტი:"
+
+#: ui/Device.qml:167 ui/General.qml:49
+#, kde-format
+msgid "Address:"
+msgstr "მისამართი:"
+
+#: ui/Device.qml:172
+#, kde-format
+msgid "Adapter:"
+msgstr "ადაპტერი:"
+
+#: ui/Device.qml:178 ui/General.qml:43
+#, kde-format
+msgid "Name:"
+msgstr "სახელი:"
+
+#: ui/Device.qml:182
+#, kde-format
+msgid "Trusted"
+msgstr "სანდო"
+
+#: ui/Device.qml:191 ui/main.qml:180
+#, kde-format
+msgid "Blocked"
+msgstr "დაბლოკილია"
+
+#: ui/Device.qml:197
+#, kde-format
+msgid ""
+"When enabled, all incoming connections from this device will be rejected."
+msgstr ""
+"როცა ჩართულია, ყველა შემომავალი მიერთება დაბლოკილი მოწყობილობიდან "
+"დაუყოვნებლივ უარყოფილი იქნება."
+
+#: ui/Device.qml:203
+#, kde-format
+msgid "Send File"
+msgstr "ფაილის გაგზავნა"
+
+#: ui/Device.qml:211
+#, kde-format
+msgid "Setup NAP Network…"
+msgstr "NAP ქსელის მორგება…"
+
+#: ui/Device.qml:219
+#, kde-format
+msgid "Setup DUN Network…"
+msgstr "DUN ქსელის მორგება…"
+
+#: ui/Device.qml:234
+#, kde-format
+msgctxt "@action:button Forget the Bluetooth device"
+msgid "Forget"
+msgstr "დავიწყება"
+
+#: ui/ForgetDeviceAction.qml:18
+#, kde-format
+msgctxt "@action:button %1 is the name of a Bluetooth device"
+msgid "Forget \"%1\""
+msgstr "\"%1\"-ის დავიწყება"
+
+#: ui/General.qml:24
+#, kde-format
+msgid "Settings"
+msgstr "მორგება"
+
+#: ui/General.qml:35
+#, kde-format
+msgid "Device:"
+msgstr "მოწყობიობა:"
+
+#: ui/General.qml:53
+#, kde-format
+msgid "Enabled:"
+msgstr "ჩართულია:"
+
+#: ui/General.qml:59
+#, kde-format
+msgid "Visible:"
+msgstr "ხილული:"
+
+#: ui/General.qml:73
+#, kde-format
+msgid "On login:"
+msgstr "შესვლისას:"
+
+#: ui/General.qml:74
+#, kde-format
+msgid "Enable Bluetooth"
+msgstr "ბლუთუზის ჩართვა"
+
+#: ui/General.qml:85
+#, kde-format
+msgid "Disable Bluetooth"
+msgstr "ბლუთუზის გამორთვა"
+
+#: ui/General.qml:96
+#, kde-format
+msgid "Restore previous status"
+msgstr "წინა მდგომარეობის აღდგენა"
+
+#: ui/General.qml:116
+#, kde-format
+msgid "When receiving files:"
+msgstr "ფაილების მიღებისას:"
+
+#: ui/General.qml:118
+#, kde-format
+msgid "Ask for confirmation"
+msgstr "დადასტურების მოთხოვნა"
+
+#: ui/General.qml:127
+#, kde-format
+msgid "Accept for trusted devices"
+msgstr "დადასტურება სანდო მოწყობილობებიდან"
+
+#: ui/General.qml:137
+#, kde-format
+msgid "Always accept"
+msgstr "ყოველთვის მიღება"
+
+#: ui/General.qml:147
+#, kde-format
+msgid "Save files in:"
+msgstr "ფაილების შენახვა:"
+
+#: ui/General.qml:160 ui/General.qml:171
+#, kde-format
+msgid "Select folder"
+msgstr "საქაღალდეს არჩევა"
+
+#: ui/main.qml:34
+#, kde-format
+msgid "Pair Device…"
+msgstr "მოწყობილობის დაწყვილება…"
+
+#: ui/main.qml:41
+#, kde-format
+msgid "Configure…"
+msgstr "მორგება…"
+
+#: ui/main.qml:48
+#, kde-format
+msgctxt "@action: button as in, 'enable Bluetooth'"
+msgid "Enabled"
+msgstr "ჩართულია"
+
+#: ui/main.qml:126
+#, kde-format
+msgid "No Bluetooth adapters found"
+msgstr "ბლუთუზის ბარათი ნაპოვნი არაა"
+
+#: ui/main.qml:127
+#, kde-format
+msgid "Connect an external Bluetooth adapter"
+msgstr "მიუერთეთ გარე ბლუთუზის ადაპტერი"
+
+#: ui/main.qml:136
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "ბლუთუზი გამორთულია"
+
+#: ui/main.qml:142
+#, kde-format
+msgid "Enable"
+msgstr "ჩართვა"
+
+#: ui/main.qml:152
+#, kde-format
+msgid "No devices paired"
+msgstr "შეწყვილებული მოწყობილობების გარეშე"
+
+#: ui/main.qml:153
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Click <interface>Pair Device…</interface> to pair some"
+msgstr ""
+"დასაწყვილებლად დააწკაპუნეთ <interface>მოწყობილობის დაწყვილების…</interface> "
+"ღილაკზე"
+
+#: ui/main.qml:182
+#, kde-format
+msgid "Connected"
+msgstr "დაკავშირებულია"
+
+#: ui/main.qml:184
+#, kde-format
+msgid "Available"
+msgstr "ხელმისაწვდომია"
+
+#: ui/main.qml:246
+#, kde-format
+msgid "%1% Battery"
+msgstr "%1% ელემენტი"
+
+#: ui/script.js:13
+#, kde-format
+msgctxt "This device is a Phone"
+msgid "Phone"
+msgstr "ტელეფონი"
+
+#: ui/script.js:15
+#, kde-format
+msgctxt "This device is a Modem"
+msgid "Modem"
+msgstr "მოდემი"
+
+#: ui/script.js:17
+#, kde-format
+msgctxt "This device is a Computer"
+msgid "Computer"
+msgstr "კომპიუტერი"
+
+#: ui/script.js:19
+#, kde-format
+msgctxt "This device is of type Network"
+msgid "Network"
+msgstr "ქსელი"
+
+#: ui/script.js:21
+#, kde-format
+msgctxt "This device is a Headset"
+msgid "Headset"
+msgstr "ყურსაცვამები & მიკროფონი"
+
+#: ui/script.js:23
+#, kde-format
+msgctxt "This device is a Headphones"
+msgid "Headphones"
+msgstr "ყურსაცვამები"
+
+#: ui/script.js:25
+#, kde-format
+msgctxt "This device is an Audio/Video device"
+msgid "Multimedia"
+msgstr "მულტიმედია"
+
+#: ui/script.js:27
+#, kde-format
+msgctxt "This device is a Keyboard"
+msgid "Keyboard"
+msgstr "კლავიატურა"
+
+#: ui/script.js:29
+#, kde-format
+msgctxt "This device is a Mouse"
+msgid "Mouse"
+msgstr "მაუსი"
+
+#: ui/script.js:31
+#, kde-format
+msgctxt "This device is a Game controller"
+msgid "Game controller"
+msgstr "სათამაშო კონტროლერი"
+
+#: ui/script.js:33
+#, kde-format
+msgctxt "This device is a Graphics Tablet (input device)"
+msgid "Tablet"
+msgstr "ტაბლეტი"
+
+#: ui/script.js:35
+#, kde-format
+msgctxt "This device is a Peripheral device"
+msgid "Peripheral"
+msgstr "გარე"
+
+#: ui/script.js:37
+#, kde-format
+msgctxt "This device is a Camera"
+msgid "Camera"
+msgstr "კამერა"
+
+#: ui/script.js:39
+#, kde-format
+msgctxt "This device is a Printer"
+msgid "Printer"
+msgstr "პრინტერი"
+
+#: ui/script.js:41
+#, kde-format
+msgctxt ""
+"This device is an Imaging device (printer, scanner, camera, display, …)"
+msgid "Imaging"
+msgstr "გამოსახულება"
+
+#: ui/script.js:43
+#, kde-format
+msgctxt "This device is a Wearable"
+msgid "Wearable"
+msgstr "მინიმოწყობილობა"
+
+#: ui/script.js:45
+#, kde-format
+msgctxt "This device is a Toy"
+msgid "Toy"
+msgstr "სათამაშო"
+
+#: ui/script.js:47
+#, kde-format
+msgctxt "This device is a Health device"
+msgid "Health"
+msgstr "ჯანმრთელობა"
+
+#: ui/script.js:53
+#, kde-format
+msgid "File transfer"
+msgstr "ფაილის მიმოცვლა"
+
+#: ui/script.js:56
+#, kde-format
+msgid "Send file"
+msgstr "ფაილის გაგზავნა"
+
+#: ui/script.js:59
+#, kde-format
+msgid "Input"
+msgstr "შეყვანა"
+
+#: ui/script.js:62
+#, kde-format
+msgid "Audio"
+msgstr "აუდიო"
+
+#: ui/script.js:65
+#, kde-format
+msgid "Network"
+msgstr "ქსელი"
+
+#: ui/script.js:69
+#, kde-format
+msgid "Other"
+msgstr "სხვა"
+
+#: ui/script.js:72
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#~ msgid "Forget this Device?"
+#~ msgstr "დავივიწყო ეს მოწყობილობა?"
+
+#~ msgid "Are you sure you want to forget \"%1\"?"
+#~ msgstr "დარწმუნებული ბრძანდებით, რომ გსურთ დაივიწყოთ \"%1\"?"
+
+#~ msgctxt "@action:button"
+#~ msgid "Forget Device"
+#~ msgstr "მოწყობილობის დავიწყება"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "შეწყვეტა"
+
+#~ msgctxt "This device is a Joypad"
+#~ msgid "Joypad"
+#~ msgstr "ჯოისტიკი"
+
+#~ msgctxt "Type of device: could not be determined"
+#~ msgid "Unknown"
+#~ msgstr "უცნობი"

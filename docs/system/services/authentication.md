@@ -95,6 +95,29 @@ sessions with optional `pam_systemd`:
 
 `su-l` is separate because util-linux selects that PAM service for `su --login` and `su -`. `pam_systemd` is deliberately absent from `sudo`, plain `su`, `passwd`, and `other`; it is a session hook, not an authentication or password policy.
 
+## Graphical wallet unlock
+
+The Plasma profile builds and installs KWallet's `ksecretd`, its legacy
+`kwalletd6` bridge and `kwallet-query`. The bridge uses MattOS-built
+`libsecret-1-0`; the Secret Service uses QCA's source-built OpenSSL provider.
+The current build supports password-encrypted wallets; optional Gpgmepp
+wallet encryption is disabled.
+
+`libpam-kwallet5` provides upstream's `pam_kwallet5.so`. The normal
+`plasmalogin` PAM stack captures credentials after `pam_unix`, then starts
+the wallet after `pam_systemd` creates the runtime directory. Both hooks
+are optional and cannot turn a rejected Unix password into a valid login.
+The session hook uses `force_run` because this stack serves graphical
+logins only. Greeter, console, SSH and autologin PAM stacks do not collect
+wallet credentials.
+
+Plasma's upstream `plasma-kwallet-pam.service` completes the environment
+handshake after KWin starts. MattOS installs a small Python helper at the
+upstream helper path to send the same environment socket protocol without
+depending on `socat`; the upstream PAM module and unit are unchanged.
+The helper is a no-op when `PAM_KWALLET5_LOGIN` is absent. Autologin supplies
+no password, so an encrypted wallet still requires manual unlocking there.
+
 ## Accounts and authorization
 
 The live profile supplies coherent `passwd`, `group`, `shadow`, `gshadow`, and `shells` files.

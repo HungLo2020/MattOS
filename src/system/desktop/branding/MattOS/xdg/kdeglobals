@@ -1,5 +1,10 @@
 [General]
 ColorScheme=Nordic
+font=Fira Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0
+fixed=Fira Mono,11,-1,2,400,0,0,0,1,0,0,0,0,0,0,1,,0,0
+menuFont=Fira Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0
+smallestReadableFont=Fira Sans,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0
+toolBarFont=Fira Sans,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,,0,0
 
 [Icons]
 Theme=Papirus-Dark

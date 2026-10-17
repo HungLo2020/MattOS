@@ -3,6 +3,14 @@
 # Future enhancement: use git subtree commits for provenance at git history level.
 
 [[component]]
+name = "xdg-user-dirs"
+repo = "https://gitlab.freedesktop.org/xdg/xdg-user-dirs.git"
+branch = "v0.20"
+revision = "cd05b6d29da1abdb3cd253ef496ae7fd1593e4bb"
+path = "src/desktop/xdg-user-dirs"
+sync = "copy"
+
+[[component]]
 name = "slate"
 repo = "https://github.com/HungLo2020/Slate.git"
 branch = "main"
@@ -2842,4 +2850,78 @@ repo = "https://gitlab.freedesktop.org/xorg/app/xcursorgen.git"
 branch = "xcursorgen-1.0.9"
 revision = "3d0909b630ca82401489411c9b496de14f664c55"
 path = "src/build-tools/xcursorgen"
+sync = "copy"
+
+[[component]]
+name = "plasma-integration"
+repo = "https://github.com/KDE/plasma-integration.git"
+branch = "v6.6.5"
+revision = "010c9f03c328693ea2ae5db872f98eb7f7fd12a5"
+path = "src/desktop/kde/plasma-integration"
+sync = "copy"
+
+[[component]]
+name = "bluez-qt"
+repo = "https://github.com/KDE/bluez-qt.git"
+branch = "v6.26.0"
+revision = "42c6c45f2018716d45e4d189854b5d7cd884eb7e"
+path = "src/desktop/kde/bluez-qt"
+sync = "copy"
+
+[[component]]
+name = "bluedevil"
+repo = "https://github.com/KDE/bluedevil.git"
+branch = "v6.6.5"
+revision = "c2bbaab800fbe4b71a7935b295c969c0aa0eeb22"
+path = "src/desktop/kde/bluedevil"
+sync = "copy"
+
+[[component]]
+name = "kwallet-pam"
+repo = "https://github.com/KDE/kwallet-pam.git"
+branch = "v6.6.5"
+revision = "ff8ed6c1e28634e78475104e187c7c4c55724275"
+path = "src/desktop/kde/kwallet-pam"
+sync = "copy"
+
+[[component]]
+name = "xdg-utils"
+repo = "https://gitlab.freedesktop.org/xdg/xdg-utils.git"
+branch = "v1.2.1"
+revision = "356c380ad6fecc9ce6bea1f6a77986ba67402c80"
+path = "src/desktop/xdg-utils"
+sync = "copy"
+
+[[component]]
+name = "noto-color-emoji"
+repo = "https://github.com/googlefonts/noto-emoji.git"
+branch = "main"
+revision = "e20cbc2bbec1926686be9f9bee7d1d2cfa1fea0e"
+path = "src/desktop/fonts/noto-color-emoji"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/noto-color-emoji-runtime-selection.toml"
+
+[[component]]
+name = "noto-sans-cjk"
+repo = "https://github.com/google/fonts.git"
+branch = "main"
+revision = "352f6b7d9d6cc4fa9e242b931291d31b21a6dc84"
+path = "src/desktop/fonts/noto-sans-cjk"
+sync = "copy"
+intentional_omission_policy = "upstream/policies/noto-sans-cjk-runtime-selection.toml"
+
+[[component]]
+name = "libsecret"
+repo = "https://github.com/GNOME/libsecret.git"
+branch = "0.21.8.2"
+revision = "4941c2f3088eb0ea4a180737b02e22320b8ff7a7"
+path = "src/system/security/libsecret"
+sync = "copy"
+
+[[component]]
+name = "kde-cli-tools"
+repo = "https://github.com/KDE/kde-cli-tools.git"
+branch = "v6.6.5"
+revision = "f3bf5e0dab35e321949e6994cc7f6654bdabfbd3"
+path = "src/desktop/kde/kde-cli-tools"
 sync = "copy"

@@ -1,0 +1,326 @@
+# Translation of plasma_applet_org.kde.plasma.bluetooth to Norwegian Bokmål
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bluedevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-27 02:39+0000\n"
+"PO-Revision-Date: 2025-03-29 11:00+0100\n"
+"Last-Translator: Martin Hansen <mh306602@gmail.com>\n"
+"Language-Team: Norwegian Bokmål <l10n-no@lister.huftis.org>\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 24.12.3\n"
+"X-Environment: kde\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+
+#: devicesproxymodel.cpp:51
+#, kde-format
+msgctxt "@title:column Blocked Bluetooth devices"
+msgid "Blocked"
+msgstr ""
+
+#: devicesproxymodel.cpp:54
+#, fuzzy, kde-format
+#| msgid "Connect"
+msgctxt "@title:column Connected Bluetooth devices"
+msgid "Connected"
+msgstr "Koble til"
+
+#: devicesproxymodel.cpp:56
+#, kde-format
+msgctxt "@title:column Available but not connected Bluetooth devices"
+msgid "Available"
+msgstr ""
+
+#: devicesstateproxymodel.cpp:273
+#, kde-format
+msgctxt "@label %1 is the name of a Bluetooth device"
+msgid "Could not connect to device “%1”"
+msgstr ""
+
+#: devicesstateproxymodel.cpp:288
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+msgid "The device is unreachable"
+msgstr "Kan ikke nå enheten"
+
+#: devicesstateproxymodel.cpp:289
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed"
+msgid "Connection to the device failed"
+msgstr "Klarte ikke koble til enheten"
+
+#: devicesstateproxymodel.cpp:292
+#, kde-format
+msgctxt "Notification when the connection failed due to NotReady"
+msgid "The device is not ready"
+msgstr "Enheten er ikke klar"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Disconnect"
+msgstr "Koble fra"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Connect"
+msgstr "Koble til"
+
+#: qml/DeviceItem.qml:51
+#, kde-format
+msgid "Browse Files"
+msgstr "Bla gjennom filer"
+
+#: qml/DeviceItem.qml:62
+#, kde-format
+msgid "Send File"
+msgstr "Send fil"
+
+#: qml/DeviceItem.qml:71
+#, kde-format
+msgctxt "@action:button Forget a Bluetooth device"
+msgid "Forget"
+msgstr ""
+
+#: qml/DeviceItem.qml:117
+#, kde-format
+msgid "Copy"
+msgstr "Kopier"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "Yes"
+msgstr "Ja"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "No"
+msgstr "Nei"
+
+#: qml/DeviceItem.qml:219
+#, kde-format
+msgctxt "@label %1 is human-readable adapter name, %2 is HCI"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+#: qml/DeviceItem.qml:227
+#, kde-format
+msgid "Remote Name"
+msgstr "Fjernnavn"
+
+#: qml/DeviceItem.qml:231
+#, kde-format
+msgid "Address"
+msgstr "Adresse"
+
+#: qml/DeviceItem.qml:234
+#, kde-format
+msgid "Paired"
+msgstr "Paret"
+
+#: qml/DeviceItem.qml:237
+#, kde-format
+msgid "Trusted"
+msgstr "Tiltrodd"
+
+#: qml/DeviceItem.qml:240
+#, kde-format
+msgid "Adapter"
+msgstr "Adapter"
+
+#: qml/DeviceItem.qml:248
+#, kde-format
+msgid "Connecting"
+msgstr "Kobler til"
+
+#: qml/DeviceItem.qml:250
+#, kde-format
+msgid "Disconnecting"
+msgstr "Kobler fra"
+
+#: qml/DeviceItem.qml:256
+#, kde-format
+msgid "Connection failed"
+msgstr "Feil ved tilkobling"
+
+#: qml/DeviceItem.qml:261
+#, kde-format
+msgid "Headset"
+msgstr ""
+
+#: qml/DeviceItem.qml:267
+#, kde-format
+msgid "Audio device"
+msgstr "Lydenhet"
+
+#: qml/DeviceItem.qml:271
+#, kde-format
+msgid "Keyboard"
+msgstr ""
+
+#: qml/DeviceItem.qml:274
+#, kde-format
+msgid "Mouse"
+msgstr ""
+
+#: qml/DeviceItem.qml:277
+#, kde-format
+msgid "Joypad"
+msgstr ""
+
+#: qml/DeviceItem.qml:280
+#, kde-format
+msgid "Drawing tablet"
+msgstr ""
+
+#: qml/DeviceItem.qml:284
+#, kde-format
+msgid "Phone"
+msgstr "Telefon"
+
+#: qml/DeviceItem.qml:287
+#, kde-format
+msgid "Camera"
+msgstr ""
+
+#: qml/DeviceItem.qml:290
+#, kde-format
+msgid "Printer"
+msgstr ""
+
+#: qml/DeviceItem.qml:297
+#, kde-format
+msgid "File transfer"
+msgstr "Filoverføring"
+
+#: qml/DeviceItem.qml:300
+#, kde-format
+msgid "Send file"
+msgstr "Send fil"
+
+#: qml/DeviceItem.qml:303
+#, kde-format
+msgid "Input"
+msgstr "Inndata"
+
+#: qml/DeviceItem.qml:306
+#, kde-format
+msgid "Audio"
+msgstr "Lyd"
+
+#: qml/DeviceItem.qml:309
+#, kde-format
+msgid "Network"
+msgstr "Nettverk"
+
+#: qml/DeviceItem.qml:314
+#, kde-format
+msgid "Other device"
+msgstr "Annen enhet"
+
+#: qml/DeviceItem.qml:321 qml/main.qml:74 qml/main.qml:83
+#, kde-format
+msgid "%1% Battery"
+msgstr "%1 % batteri"
+
+#: qml/FullRepresentation.qml:80
+#, kde-format
+msgid "Enable"
+msgstr "Ta i bruk"
+
+#: qml/FullRepresentation.qml:156
+#, kde-format
+msgid "No Bluetooth adapters available"
+msgstr "Ingen tilgjengelige Bluetooth-adaptere"
+
+#: qml/FullRepresentation.qml:158
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "Bluetooth er avslått"
+
+#: qml/FullRepresentation.qml:160
+#, kde-format
+msgid "No devices paired"
+msgstr "Ingen enheter er paret"
+
+#: qml/main.qml:51
+#, kde-format
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+#: qml/main.qml:55
+#, kde-format
+msgid "Bluetooth is disabled; middle-click to enable"
+msgstr "Bluetooth er avslått – midtklikk for å slå på"
+
+#: qml/main.qml:59
+#, kde-format
+msgid "No adapters available"
+msgstr "Ingen tilgjengelige adaptere"
+
+#: qml/main.qml:61
+#, kde-format
+msgid "Bluetooth is offline"
+msgstr "Brukeren er frakoblet"
+
+#: qml/main.qml:64
+#, kde-format
+msgid "Middle-click to disable Bluetooth"
+msgstr "Midtklikk for å slå av Bluetooth"
+
+#: qml/main.qml:67
+#, kde-format
+msgid "No connected devices"
+msgstr "Ingen tilkoblede enheter"
+
+#: qml/main.qml:72
+#, kde-format
+msgid "%1 connected"
+msgstr "%1 koblet til"
+
+#: qml/main.qml:79
+#, kde-format
+msgctxt "Number of connected devices"
+msgid "%1 connected device"
+msgid_plural "%1 connected devices"
+msgstr[0] "%1 tilkoblet enhet"
+msgstr[1] "%1 tilkoblede enheter"
+
+#: qml/main.qml:110
+#, fuzzy, kde-format
+#| msgid "Enable Bluetooth"
+msgctxt "@option:check"
+msgid "Enable Bluetooth"
+msgstr "Bruk Bluetooth"
+
+#: qml/main.qml:122
+#, fuzzy, kde-format
+#| msgid "Pair Device…"
+msgctxt "@action:button"
+msgid "Pair Device…"
+msgstr "Par ny enhet …"
+
+#: qml/main.qml:130
+#, fuzzy, kde-format
+#| msgid "No connected devices"
+msgctxt "@item:inmenu"
+msgid "Show badge with number of connected devices"
+msgstr "Ingen tilkoblede enheter"
+
+#: qml/main.qml:140
+#, fuzzy, kde-format
+#| msgid "Configure &Bluetooth…"
+msgctxt "@action:inmenu"
+msgid "Configure &Bluetooth…"
+msgstr "Sett opp &Bluetooth …"
+
+#: qml/Toolbar.qml:73
+#, kde-format
+msgctxt "@action:button opens hamburger menu"
+msgid "More actions"
+msgstr ""

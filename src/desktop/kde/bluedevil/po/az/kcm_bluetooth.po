@@ -1,0 +1,457 @@
+# Copyright (C) YEAR This file is copyright:
+# This file is distributed under the same license as the bluedevil package.
+#
+# Kheyyam Gojayev <xxmn77@gmail.com>, 2020, 2021, 2022.
+msgid ""
+msgstr ""
+"Project-Id-Version: bluedevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-04 00:45+0000\n"
+"PO-Revision-Date: 2022-07-26 15:51+0400\n"
+"Last-Translator: Kheyyam <xxmn77@gmail.com>\n"
+"Language-Team: Azerbaijani <kde-i18n-doc@kde.org>\n"
+"Language: az\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 22.04.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Xəyyam Qocayev"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "xxmn77@gmail.com"
+
+#: bluetooth.cpp:135
+#, kde-format
+msgctxt "DeviceName Network (Service)"
+msgid "%1 Network (%2)"
+msgstr "%1 Şəbəkə (%2)"
+
+#: bluetoothmoduledata.cpp:20
+#, fuzzy, kde-format
+#| msgid "Enable Bluetooth"
+msgctxt "@info:tooltip"
+msgid "Enable Bluetooth"
+msgstr "Bluetooth'u açın"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Disconnect"
+msgstr "Ayırmaq"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Connect"
+msgstr "Qoşmaq"
+
+#: ui/Device.qml:135
+#, kde-format
+msgid "Unblock the device first to be able to connect to it"
+msgstr ""
+
+#: ui/Device.qml:156
+#, kde-format
+msgid "Type:"
+msgstr "Növü:"
+
+#: ui/Device.qml:160
+#, kde-format
+msgid "%1%"
+msgstr ""
+
+#: ui/Device.qml:162
+#, kde-format
+msgid "Battery:"
+msgstr ""
+
+#: ui/Device.qml:167 ui/General.qml:49
+#, kde-format
+msgid "Address:"
+msgstr "Ünvan:"
+
+#: ui/Device.qml:172
+#, kde-format
+msgid "Adapter:"
+msgstr "Uzlaşdırıcı:"
+
+#: ui/Device.qml:178 ui/General.qml:43
+#, kde-format
+msgid "Name:"
+msgstr "Adı:"
+
+#: ui/Device.qml:182
+#, kde-format
+msgid "Trusted"
+msgstr "Güvən Səviyyəsi"
+
+#: ui/Device.qml:191 ui/main.qml:180
+#, kde-format
+msgid "Blocked"
+msgstr "Kilidli"
+
+#: ui/Device.qml:197
+#, kde-format
+msgid ""
+"When enabled, all incoming connections from this device will be rejected."
+msgstr ""
+
+#: ui/Device.qml:203
+#, kde-format
+msgid "Send File"
+msgstr "Fayl göndərmək"
+
+#: ui/Device.qml:211
+#, kde-format
+msgid "Setup NAP Network…"
+msgstr "NAP Şəbəkəsini qurun..."
+
+#: ui/Device.qml:219
+#, kde-format
+msgid "Setup DUN Network…"
+msgstr "DUN Şəbəkəsini qurun"
+
+#: ui/Device.qml:234
+#, fuzzy, kde-format
+#| msgctxt "@action:button %1 is the name of a Bluetooth device"
+#| msgid "Forget \"%1\""
+msgctxt "@action:button Forget the Bluetooth device"
+msgid "Forget"
+msgstr "\"%1\" unudulsun"
+
+#: ui/ForgetDeviceAction.qml:18
+#, kde-format
+msgctxt "@action:button %1 is the name of a Bluetooth device"
+msgid "Forget \"%1\""
+msgstr "\"%1\" unudulsun"
+
+#: ui/General.qml:24
+#, kde-format
+msgid "Settings"
+msgstr "Ayarlar"
+
+#: ui/General.qml:35
+#, kde-format
+msgid "Device:"
+msgstr "Qurğu:"
+
+#: ui/General.qml:53
+#, kde-format
+msgid "Enabled:"
+msgstr "Aktivdir:"
+
+#: ui/General.qml:59
+#, kde-format
+msgid "Visible:"
+msgstr "Görünən:"
+
+#: ui/General.qml:73
+#, kde-format
+msgid "On login:"
+msgstr "Girişdə:"
+
+#: ui/General.qml:74
+#, kde-format
+msgid "Enable Bluetooth"
+msgstr "Bluetooth'u açın"
+
+#: ui/General.qml:85
+#, kde-format
+msgid "Disable Bluetooth"
+msgstr "Bluetooth'u söndürmək"
+
+#: ui/General.qml:96
+#, kde-format
+msgid "Restore previous status"
+msgstr "Əvvəlki vəziyyətinə qaytarın"
+
+#: ui/General.qml:116
+#, kde-format
+msgid "When receiving files:"
+msgstr "Fayl qəbul edilərkən:"
+
+#: ui/General.qml:118
+#, kde-format
+msgid "Ask for confirmation"
+msgstr "Təsdiqləməni soruşmaq"
+
+#: ui/General.qml:127
+#, kde-format
+msgid "Accept for trusted devices"
+msgstr "Etibarlı cihazlar üçün qəbul etmək"
+
+#: ui/General.qml:137
+#, kde-format
+msgid "Always accept"
+msgstr "Həmişə qəbul etmək"
+
+#: ui/General.qml:147
+#, kde-format
+msgid "Save files in:"
+msgstr "Faylı burada saxlamaq:"
+
+#: ui/General.qml:160 ui/General.qml:171
+#, kde-format
+msgid "Select folder"
+msgstr "Qovluq Seçmək"
+
+#: ui/main.qml:34
+#, fuzzy, kde-format
+#| msgid "Add New Device…"
+msgid "Pair Device…"
+msgstr "Yenu cihaz əlavə edin..."
+
+#: ui/main.qml:41
+#, kde-format
+msgid "Configure…"
+msgstr "Tənzimləmək…"
+
+#: ui/main.qml:48
+#, fuzzy, kde-format
+#| msgid "Enabled:"
+msgctxt "@action: button as in, 'enable Bluetooth'"
+msgid "Enabled"
+msgstr "Aktivdir:"
+
+#: ui/main.qml:126
+#, kde-format
+msgid "No Bluetooth adapters found"
+msgstr "Bluetooth uzlaşdırıcısı tapılmadı"
+
+#: ui/main.qml:127
+#, kde-format
+msgid "Connect an external Bluetooth adapter"
+msgstr ""
+
+#: ui/main.qml:136
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "Bluetooth söndürüldü"
+
+#: ui/main.qml:142
+#, kde-format
+msgid "Enable"
+msgstr "Aktiv etmək"
+
+#: ui/main.qml:152
+#, kde-format
+msgid "No devices paired"
+msgstr "Cihazlar bağlanmadı"
+
+#: ui/main.qml:153
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Click <interface>Pair Device…</interface> to pair some"
+msgstr ""
+
+#: ui/main.qml:182
+#, kde-format
+msgid "Connected"
+msgstr "Qoşuldu"
+
+#: ui/main.qml:184
+#, kde-format
+msgid "Available"
+msgstr "Əlçatan"
+
+#: ui/main.qml:246
+#, kde-format
+msgid "%1% Battery"
+msgstr ""
+
+#: ui/script.js:13
+#, kde-format
+msgctxt "This device is a Phone"
+msgid "Phone"
+msgstr "Telefon"
+
+#: ui/script.js:15
+#, kde-format
+msgctxt "This device is a Modem"
+msgid "Modem"
+msgstr "Modem"
+
+#: ui/script.js:17
+#, kde-format
+msgctxt "This device is a Computer"
+msgid "Computer"
+msgstr "Kompyuter"
+
+#: ui/script.js:19
+#, kde-format
+msgctxt "This device is of type Network"
+msgid "Network"
+msgstr "Şəbəkə"
+
+#: ui/script.js:21
+#, kde-format
+msgctxt "This device is a Headset"
+msgid "Headset"
+msgstr "Mikrofonlu qulaqlıq"
+
+#: ui/script.js:23
+#, kde-format
+msgctxt "This device is a Headphones"
+msgid "Headphones"
+msgstr "Qulaqlıqlar"
+
+#: ui/script.js:25
+#, fuzzy, kde-format
+#| msgctxt "This device is an Audio/Video device"
+#| msgid "Multimedia Device"
+msgctxt "This device is an Audio/Video device"
+msgid "Multimedia"
+msgstr "Multimedia cihazı"
+
+#: ui/script.js:27
+#, kde-format
+msgctxt "This device is a Keyboard"
+msgid "Keyboard"
+msgstr "Klaviatura"
+
+#: ui/script.js:29
+#, kde-format
+msgctxt "This device is a Mouse"
+msgid "Mouse"
+msgstr "Siçan"
+
+#: ui/script.js:31
+#, kde-format
+msgctxt "This device is a Game controller"
+msgid "Game controller"
+msgstr ""
+
+#: ui/script.js:33
+#, kde-format
+msgctxt "This device is a Graphics Tablet (input device)"
+msgid "Tablet"
+msgstr "Planşet"
+
+#: ui/script.js:35
+#, kde-format
+msgctxt "This device is a Peripheral device"
+msgid "Peripheral"
+msgstr "Periferik"
+
+#: ui/script.js:37
+#, kde-format
+msgctxt "This device is a Camera"
+msgid "Camera"
+msgstr "Kamera"
+
+#: ui/script.js:39
+#, kde-format
+msgctxt "This device is a Printer"
+msgid "Printer"
+msgstr "Printer"
+
+#: ui/script.js:41
+#, kde-format
+msgctxt ""
+"This device is an Imaging device (printer, scanner, camera, display, …)"
+msgid "Imaging"
+msgstr "Görüntüləmə"
+
+#: ui/script.js:43
+#, kde-format
+msgctxt "This device is a Wearable"
+msgid "Wearable"
+msgstr "Daşınan qurğu"
+
+#: ui/script.js:45
+#, kde-format
+msgctxt "This device is a Toy"
+msgid "Toy"
+msgstr "Oyuncaqlar"
+
+#: ui/script.js:47
+#, kde-format
+msgctxt "This device is a Health device"
+msgid "Health"
+msgstr "Tibbi cihazlar"
+
+#: ui/script.js:53
+#, kde-format
+msgid "File transfer"
+msgstr ""
+
+#: ui/script.js:56
+#, fuzzy, kde-format
+#| msgid "Send File"
+msgid "Send file"
+msgstr "Fayl göndərmək"
+
+#: ui/script.js:59
+#, kde-format
+msgid "Input"
+msgstr ""
+
+#: ui/script.js:62
+#, fuzzy, kde-format
+#| msgctxt "This device is an Audio device"
+#| msgid "Audio"
+msgid "Audio"
+msgstr "Audio"
+
+#: ui/script.js:65
+#, fuzzy, kde-format
+#| msgctxt "This device is of type Network"
+#| msgid "Network"
+msgid "Network"
+msgstr "Şəbəkə"
+
+#: ui/script.js:69
+#, kde-format
+msgid "Other"
+msgstr ""
+
+#: ui/script.js:72
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ""
+
+#~ msgid "Forget this Device?"
+#~ msgstr "Bu cihaz unudulsun?"
+
+#~ msgid "Are you sure you want to forget \"%1\"?"
+#~ msgstr "\"%1\" cihazını unutmaq istədiyinizə əminsiniz?"
+
+#~ msgctxt "@action:button"
+#~ msgid "Forget Device"
+#~ msgstr "Cihaz unudulsun"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "İmtina"
+
+#~ msgctxt "This device is a Joypad"
+#~ msgid "Joypad"
+#~ msgstr "Oyun dəstəyi"
+
+#~ msgctxt "Type of device: could not be determined"
+#~ msgid "Unknown"
+#~ msgstr "Naməlum"
+
+#~ msgid "Confirm Deletion of Device"
+#~ msgstr "Cihazın silinməsini təsdiqləyin"
+
+#~ msgid "Remove"
+#~ msgstr "Silmək"
+
+#~ msgid "Bluetooth"
+#~ msgstr "Bluetooth"
+
+#~ msgid "Nicolas Fella"
+#~ msgstr "Nicolas Fella"
+
+#~ msgid "Add…"
+#~ msgstr "Əlavə etmək…"
+
+#~ msgid "Add..."
+#~ msgstr "Əlavə etmək..."

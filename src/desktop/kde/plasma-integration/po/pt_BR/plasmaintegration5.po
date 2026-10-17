@@ -1,0 +1,169 @@
+# Translation of plasmaintegration5.po to Brazilian Portuguese
+# Copyright (C) 2016 This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# André Marcelo Alvarenga <alvarenga@kde.org>, 2016.
+# Luiz Fernando Ranghetti <elchevive@opensuse.org>, 2022.
+# SPDX-FileCopyrightText: 2024 Geraldo Simiao <geraldosimiao@fedoraproject.org>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasmaintegration5\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-27 00:45+0000\n"
+"PO-Revision-Date: 2024-11-29 00:27-0300\n"
+"Last-Translator: Geraldo Simiao <geraldosimiao@fedoraproject.org>\n"
+"Language-Team: Brazilian Portuguese <kde-i18n-pt_BR@kde.org>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Lokalize 24.08.3\n"
+
+#: platformtheme/kdeplatformfiledialoghelper.cpp:260
+#, kde-format
+msgctxt "@title:window"
+msgid "Open File"
+msgstr "Abrir arquivo"
+
+#: platformtheme/kdeplatformfiledialoghelper.cpp:261
+#, kde-format
+msgctxt "@title:window"
+msgid "Save File"
+msgstr "Salvar arquivo"
+
+#: platformtheme/kdeplatformtheme.cpp:278
+#, kde-format
+msgctxt "@action:button"
+msgid "Save All"
+msgstr "Salvar tudo"
+
+#: platformtheme/kdeplatformtheme.cpp:282
+#, kde-format
+msgctxt "@action:button"
+msgid "&Yes"
+msgstr "&Sim"
+
+#: platformtheme/kdeplatformtheme.cpp:284
+#, kde-format
+msgctxt "@action:button"
+msgid "Yes to All"
+msgstr "Sim para tudo"
+
+#: platformtheme/kdeplatformtheme.cpp:286
+#, kde-format
+msgctxt "@action:button"
+msgid "&No"
+msgstr "&Não"
+
+#: platformtheme/kdeplatformtheme.cpp:288
+#, kde-format
+msgctxt "@action:button"
+msgid "No to All"
+msgstr "Não para tudo"
+
+#: platformtheme/kdeplatformtheme.cpp:291
+#, kde-format
+msgctxt "@action:button"
+msgid "Abort"
+msgstr "Cancelar"
+
+#: platformtheme/kdeplatformtheme.cpp:293
+#, kde-format
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "Repetir"
+
+#: platformtheme/kdeplatformtheme.cpp:295
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Ignorar"
+
+#: platformtheme/kdirselectdialog.cpp:133
+#, kde-format
+msgctxt "folder name"
+msgid "New Folder"
+msgstr "Nova pasta"
+
+#: platformtheme/kdirselectdialog.cpp:139
+#, kde-format
+msgctxt "@title:window"
+msgid "New Folder"
+msgstr "Nova pasta"
+
+#: platformtheme/kdirselectdialog.cpp:140
+#, kde-format
+msgctxt "@label:textbox"
+msgid ""
+"Create new folder in:\n"
+"%1"
+msgstr ""
+"Criar nova pasta em:\n"
+"%1"
+
+#: platformtheme/kdirselectdialog.cpp:171
+#, kde-format
+msgid "A file or folder named %1 already exists."
+msgstr "Um arquivo ou pasta chamado %1 já existe."
+
+#: platformtheme/kdirselectdialog.cpp:180
+#, kde-format
+msgid "You do not have permission to create that folder."
+msgstr "Você não tem permissão para criar esta pasta."
+
+#: platformtheme/kdirselectdialog.cpp:282
+#, kde-format
+msgctxt "@title:window"
+msgid "Select Folder"
+msgstr "Selecionar pasta"
+
+#: platformtheme/kdirselectdialog.cpp:290
+#, kde-format
+msgctxt "@action:button"
+msgid "New Folder..."
+msgstr "Nova pasta..."
+
+#: platformtheme/kdirselectdialog.cpp:348
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "New Folder..."
+msgstr "Nova pasta..."
+
+#: platformtheme/kdirselectdialog.cpp:357
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Move to Trash"
+msgstr "Mover para a Lixeira"
+
+#: platformtheme/kdirselectdialog.cpp:366
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Delete"
+msgstr "Excluir"
+
+#: platformtheme/kdirselectdialog.cpp:377
+#, kde-format
+msgctxt "@option:check"
+msgid "Show Hidden Folders"
+msgstr "Mostrar pastas ocultas"
+
+#: platformtheme/kdirselectdialog.cpp:384
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Properties"
+msgstr "Propriedades"
+
+#: platformtheme/kfiletreeview.cpp:185
+#, kde-format
+msgid "Show Hidden Folders"
+msgstr "Mostrar pastas ocultas"
+
+#: platformtheme/kioopenwith.cpp:125
+#, kde-format
+msgid ""
+"Failed to launch for unknown reasons. Please try with a pre-existing "
+"application."
+msgstr ""
+"Falha ao iniciar por razões desconhecidas. Tente com um aplicativo pré-"
+"existente."

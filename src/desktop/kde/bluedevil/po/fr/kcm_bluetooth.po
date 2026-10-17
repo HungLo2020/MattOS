@@ -1,0 +1,464 @@
+# translation of bluedevil.po to Français
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Joëlle Cornavin <jcorn@free.fr>, 2010, 2011, 2012.
+# Vincent PINON <vincent.pinon@st.com>, 2013, 2014.
+# Thomas Vergnaud <thomas.vergnaud@gmx.fr>, 2015, 2016, 2022.
+# Vincent Pinon <vpinon@kde.org>, 2016, 2017.
+# Simon Depiets <sdepiets@gmail.com>, 2018, 2019, 2020.
+# William Oprandi <william.oprandi@gmail.com>, 2020.
+# SPDX-FileCopyrightText: 2020, 2021, 2022, 2023, 2024, 2025 Xavier Besnard <xavier.besnard@kde.org>
+# Xavier Besnard <xavier.besnard@kde.org>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: bluedevil\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-04 00:45+0000\n"
+"PO-Revision-Date: 2025-12-09 09:14+0100\n"
+"Last-Translator: Xavier Besnard <xavier.besnard@kde.org>\n"
+"Language-Team: French <French <kde-francophone@kde.org>>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Accelerator-Marker: &\n"
+"X-Environment: kde\n"
+"X-Generator: Lokalize 25.11.90\n"
+"X-Text-Markup: kde4\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr ""
+"Joëlle Cornavin, Vincent Pinon, Thomas Vergnaud, Vincent Pinon, Simon "
+"Depiets, Xavier Besnard"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr ""
+"jcorn@free.fr, vincent.pinon@laposte.net, thomas.vergnaud@mailo.eu, "
+"vpinon@kde.org, sdepiets@gmail.com, xavier.besnard@kde.org"
+
+#: bluetooth.cpp:135
+#, kde-format
+msgctxt "DeviceName Network (Service)"
+msgid "%1 Network (%2)"
+msgstr "Réseau %1 (%2)"
+
+#: bluetoothmoduledata.cpp:20
+#, kde-format
+msgctxt "@info:tooltip"
+msgid "Enable Bluetooth"
+msgstr "Activer le Bluetooth"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Disconnect"
+msgstr "Déconnecter"
+
+#: ui/Device.qml:132 ui/main.qml:213
+#, kde-format
+msgid "Connect"
+msgstr "Connecter"
+
+#: ui/Device.qml:135
+#, kde-format
+msgid "Unblock the device first to be able to connect to it"
+msgstr "Débloquez d'abord le périphérique pour pouvoir vous y connecter"
+
+#: ui/Device.qml:156
+#, kde-format
+msgid "Type:"
+msgstr "Type :"
+
+#: ui/Device.qml:160
+#, kde-format
+msgid "%1%"
+msgstr "%1 %"
+
+#: ui/Device.qml:162
+#, kde-format
+msgid "Battery:"
+msgstr "Batterie :"
+
+#: ui/Device.qml:167 ui/General.qml:49
+#, kde-format
+msgid "Address:"
+msgstr "Adresse :"
+
+#: ui/Device.qml:172
+#, kde-format
+msgid "Adapter:"
+msgstr "Adaptateur :"
+
+#: ui/Device.qml:178 ui/General.qml:43
+#, kde-format
+msgid "Name:"
+msgstr "Nom :"
+
+#: ui/Device.qml:182
+#, kde-format
+msgid "Trusted"
+msgstr "Fiable"
+
+#: ui/Device.qml:191 ui/main.qml:180
+#, kde-format
+msgid "Blocked"
+msgstr "Bloqué"
+
+#: ui/Device.qml:197
+#, kde-format
+msgid ""
+"When enabled, all incoming connections from this device will be rejected."
+msgstr ""
+"Lorsque cette option est activée, toute connexion entrante provenant de ce "
+"périphérique sera rejetée."
+
+#: ui/Device.qml:203
+#, kde-format
+msgid "Send File"
+msgstr "Envoyer un fichier"
+
+#: ui/Device.qml:211
+#, kde-format
+msgid "Setup NAP Network…"
+msgstr "Configurer un réseau NAP..."
+
+#: ui/Device.qml:219
+#, kde-format
+msgid "Setup DUN Network…"
+msgstr "Configurer un réseau DUN…"
+
+#: ui/Device.qml:234
+#, kde-format
+msgctxt "@action:button Forget the Bluetooth device"
+msgid "Forget"
+msgstr "Oublier"
+
+#: ui/ForgetDeviceAction.qml:18
+#, kde-format
+msgctxt "@action:button %1 is the name of a Bluetooth device"
+msgid "Forget \"%1\""
+msgstr "Oublier « %1 »"
+
+#: ui/General.qml:24
+#, kde-format
+msgid "Settings"
+msgstr "Configuration"
+
+#: ui/General.qml:35
+#, kde-format
+msgid "Device:"
+msgstr "Périphérique :"
+
+#: ui/General.qml:53
+#, kde-format
+msgid "Enabled:"
+msgstr "Activé :"
+
+#: ui/General.qml:59
+#, kde-format
+msgid "Visible:"
+msgstr "Visible :"
+
+#: ui/General.qml:73
+#, kde-format
+msgid "On login:"
+msgstr "À la connexion :"
+
+#: ui/General.qml:74
+#, kde-format
+msgid "Enable Bluetooth"
+msgstr "Activer le périphérique « Bluetooth »"
+
+#: ui/General.qml:85
+#, kde-format
+msgid "Disable Bluetooth"
+msgstr "Désactiver le périphérique « Bluetooth »"
+
+#: ui/General.qml:96
+#, kde-format
+msgid "Restore previous status"
+msgstr "Restaurer l'état précédent"
+
+#: ui/General.qml:116
+#, kde-format
+msgid "When receiving files:"
+msgstr "Lors de la réception de fichiers :"
+
+#: ui/General.qml:118
+#, kde-format
+msgid "Ask for confirmation"
+msgstr "Demander une confirmation"
+
+#: ui/General.qml:127
+#, kde-format
+msgid "Accept for trusted devices"
+msgstr "Accepter les périphériques de confiance"
+
+#: ui/General.qml:137
+#, kde-format
+msgid "Always accept"
+msgstr "Toujours accepter"
+
+#: ui/General.qml:147
+#, kde-format
+msgid "Save files in:"
+msgstr "Enregistrer des fichiers dans :"
+
+#: ui/General.qml:160 ui/General.qml:171
+#, kde-format
+msgid "Select folder"
+msgstr "Sélectionner un dossier"
+
+#: ui/main.qml:34
+#, kde-format
+msgid "Pair Device…"
+msgstr "Associer un périphérique..."
+
+#: ui/main.qml:41
+#, kde-format
+msgid "Configure…"
+msgstr "Configurer..."
+
+#: ui/main.qml:48
+#, kde-format
+msgctxt "@action: button as in, 'enable Bluetooth'"
+msgid "Enabled"
+msgstr "Activé"
+
+#: ui/main.qml:126
+#, kde-format
+msgid "No Bluetooth adapters found"
+msgstr "Aucun adaptateur « Bluetooth » trouvé"
+
+#: ui/main.qml:127
+#, kde-format
+msgid "Connect an external Bluetooth adapter"
+msgstr "Se connecter avec un adaptateur externe Bluetooth"
+
+#: ui/main.qml:136
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "Le périphérique « Bluetooth » est désactivé."
+
+#: ui/main.qml:142
+#, kde-format
+msgid "Enable"
+msgstr "Activer"
+
+#: ui/main.qml:152
+#, kde-format
+msgid "No devices paired"
+msgstr "Aucun périphérique associé"
+
+#: ui/main.qml:153
+#, kde-kuit-format
+msgctxt "@info"
+msgid "Click <interface>Pair Device…</interface> to pair some"
+msgstr ""
+"Cliquez sur <interface>Associer un périphérique...</interface> pour "
+"l'associer à d'autres"
+
+#: ui/main.qml:182
+#, kde-format
+msgid "Connected"
+msgstr "Connecté"
+
+#: ui/main.qml:184
+#, kde-format
+msgid "Available"
+msgstr "Disponible"
+
+#: ui/main.qml:246
+#, kde-format
+msgid "%1% Battery"
+msgstr "%1 % de batterie"
+
+#: ui/script.js:13
+#, kde-format
+msgctxt "This device is a Phone"
+msgid "Phone"
+msgstr "Téléphone"
+
+#: ui/script.js:15
+#, kde-format
+msgctxt "This device is a Modem"
+msgid "Modem"
+msgstr "Modem"
+
+#: ui/script.js:17
+#, kde-format
+msgctxt "This device is a Computer"
+msgid "Computer"
+msgstr "Ordinateur"
+
+#: ui/script.js:19
+#, kde-format
+msgctxt "This device is of type Network"
+msgid "Network"
+msgstr "Réseau"
+
+#: ui/script.js:21
+#, kde-format
+msgctxt "This device is a Headset"
+msgid "Headset"
+msgstr "Casque"
+
+#: ui/script.js:23
+#, kde-format
+msgctxt "This device is a Headphones"
+msgid "Headphones"
+msgstr "Écouteurs"
+
+#: ui/script.js:25
+#, kde-format
+msgctxt "This device is an Audio/Video device"
+msgid "Multimedia"
+msgstr "Multimédia"
+
+#: ui/script.js:27
+#, kde-format
+msgctxt "This device is a Keyboard"
+msgid "Keyboard"
+msgstr "Clavier"
+
+#: ui/script.js:29
+#, kde-format
+msgctxt "This device is a Mouse"
+msgid "Mouse"
+msgstr "Souris"
+
+#: ui/script.js:31
+#, kde-format
+msgctxt "This device is a Game controller"
+msgid "Game controller"
+msgstr "Contrôleur de jeu"
+
+#: ui/script.js:33
+#, kde-format
+msgctxt "This device is a Graphics Tablet (input device)"
+msgid "Tablet"
+msgstr "Tablette"
+
+#: ui/script.js:35
+#, kde-format
+msgctxt "This device is a Peripheral device"
+msgid "Peripheral"
+msgstr "Périphérique"
+
+#: ui/script.js:37
+#, kde-format
+msgctxt "This device is a Camera"
+msgid "Camera"
+msgstr "Appareil photo"
+
+#: ui/script.js:39
+#, kde-format
+msgctxt "This device is a Printer"
+msgid "Printer"
+msgstr "Imprimante"
+
+#: ui/script.js:41
+#, kde-format
+msgctxt ""
+"This device is an Imaging device (printer, scanner, camera, display, …)"
+msgid "Imaging"
+msgstr "Imagerie"
+
+#: ui/script.js:43
+#, kde-format
+msgctxt "This device is a Wearable"
+msgid "Wearable"
+msgstr "Vêtement"
+
+#: ui/script.js:45
+#, kde-format
+msgctxt "This device is a Toy"
+msgid "Toy"
+msgstr "Jouet"
+
+#: ui/script.js:47
+#, kde-format
+msgctxt "This device is a Health device"
+msgid "Health"
+msgstr "Santé"
+
+#: ui/script.js:53
+#, kde-format
+msgid "File transfer"
+msgstr "Transfert de fichiers"
+
+#: ui/script.js:56
+#, kde-format
+msgid "Send file"
+msgstr "Envoyer un fichier"
+
+#: ui/script.js:59
+#, kde-format
+msgid "Input"
+msgstr "Entrée"
+
+#: ui/script.js:62
+#, kde-format
+msgid "Audio"
+msgstr "Audio"
+
+#: ui/script.js:65
+#, kde-format
+msgid "Network"
+msgstr "Réseau"
+
+#: ui/script.js:69
+#, kde-format
+msgid "Other"
+msgstr "Autre"
+
+#: ui/script.js:72
+#, kde-format
+msgctxt "List separator"
+msgid ", "
+msgstr ", "
+
+#~ msgid "Forget this Device?"
+#~ msgstr "Oublier ce périphérique ?"
+
+#~ msgid "Are you sure you want to forget \"%1\"?"
+#~ msgstr "Voulez-vous vraiment oublier « %1 » ?"
+
+#~ msgctxt "@action:button"
+#~ msgid "Forget Device"
+#~ msgstr "Oublier un périphérique"
+
+#~ msgctxt "@action:button"
+#~ msgid "Cancel"
+#~ msgstr "Annuler"
+
+#~ msgctxt "This device is a Joypad"
+#~ msgid "Joypad"
+#~ msgstr "Joystick"
+
+#~ msgctxt "Type of device: could not be determined"
+#~ msgid "Unknown"
+#~ msgstr "Inconnu"
+
+#~ msgid "Confirm Deletion of Device"
+#~ msgstr "Confirmez la suppression du périphérique"
+
+#~ msgid "Remove"
+#~ msgstr "Supprimer"
+
+#~ msgid "Bluetooth"
+#~ msgstr "Bluetooth"
+
+#~ msgid "Nicolas Fella"
+#~ msgstr "Nicolas Fella"
+
+#~ msgid "Add…"
+#~ msgstr "Ajouter…"
+
+#~ msgid "Add..."
+#~ msgstr "Ajouter..."

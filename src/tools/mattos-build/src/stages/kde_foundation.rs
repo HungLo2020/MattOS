@@ -2418,17 +2418,16 @@ fn build_ksonnet(repo_root: &Path) -> Result<()> {
 }
 
 fn build_kwallet(repo_root: &Path) -> Result<()> {
-    // MattOS ships the KWallet API for Plasma consumers, but deliberately
-    // does not enable the upstream Secret-Service daemons here.  Those
-    // daemons add a separate libsecret/Gpgmepp service-provider closure and
-    // are not required by the Wayland shell; a provider can be added later
-    // as an explicit runtime component rather than leaking host packages.
+    // Build the Secret Service and legacy KWallet bridge used by desktop clients.
+    // ECM's legacy FindLibGcrypt exposes gcrypt's own include directory but
+    // not the separate prefix containing its public gpg-error.h dependency.
+    let gpg_headers = format!("-DCMAKE_CXX_FLAGS=-I{}", repo_root.join("out/build/libgpg-error/install/usr/include").display());
     build_kde_cmake(
         repo_root,
         "kwallet",
         "src/desktop/kde/kwallet",
-        &["qtbase", "qtdeclarative", "kconfig", "kcoreaddons", "kdbusaddons", "ki18n", "kwidgetsaddons", "kwindowsystem", "knotifications", "kcolorscheme", "kcrash", "libgcrypt"],
-        &["-DBUILD_TESTING=OFF", "-DBUILD_KSECRETD=OFF", "-DBUILD_KWALLETD=OFF", "-DBUILD_KWALLET_QUERY=OFF"],
+        &["qtbase", "qtdeclarative", "kconfig", "kcoreaddons", "kdbusaddons", "ki18n", "kwidgetsaddons", "kwindowsystem", "knotifications", "kcolorscheme", "kguiaddons", "wayland", "xkbcommon", "kcrash", "libgcrypt", "libsecret", "libgpg-error", "libcanberra", "glib", "dbus", "pcre2", "zlib", "libffi", "qca", "qt5compat", "openssl"],
+        &["-DBUILD_TESTING=OFF", "-DBUILD_KSECRETD=ON", "-DBUILD_KWALLETD=ON", "-DBUILD_KWALLET_QUERY=ON", "-DCMAKE_DISABLE_FIND_PACKAGE_Gpgmepp=ON", "-DWITH_X11=OFF", &gpg_headers],
         "usr/lib/x86_64-linux-gnu/libKF6Wallet.so",
     )
 }
@@ -2438,12 +2437,12 @@ fn build_qca(repo_root: &Path) -> Result<()> {
         repo_root,
         "qca",
         "src/system/security/qca",
-        &["qtbase", "qt5compat"],
+        &["qtbase", "qt5compat", "openssl"],
         &[
             "-DBUILD_WITH_QT6=ON",
             "-DBUILD_TESTS=OFF",
             "-DBUILD_TOOLS=OFF",
-            "-DBUILD_PLUGINS=none",
+            "-DBUILD_PLUGINS=ossl",
             "-DLIB_INSTALL_DIR=/usr/lib/x86_64-linux-gnu",
             "-DQCA_LIBRARY_INSTALL_DIR=/usr/lib/x86_64-linux-gnu",
             "-DQCA_PLUGINS_INSTALL_DIR=/usr/lib/x86_64-linux-gnu/qca-qt6",

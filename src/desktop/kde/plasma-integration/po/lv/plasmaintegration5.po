@@ -1,0 +1,166 @@
+# Copyright (C) 2024 This file is copyright:
+# This file is distributed under the same license as the plasma-integration package.
+#
+# SPDX-FileCopyrightText: 2024 Toms Trasūns <toms.trasuns@posteo.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma-integration\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2025-11-27 00:45+0000\n"
+"PO-Revision-Date: 2024-09-06 14:53+0300\n"
+"Last-Translator: Toms Trasuns <toms.trasuns@posteo.net>\n"
+"Language-Team: Latvian <kde-i18n-doc@kde.org>\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : "
+"2);\n"
+"X-Generator: Lokalize 24.08.0\n"
+
+#: platformtheme/kdeplatformfiledialoghelper.cpp:260
+#, kde-format
+msgctxt "@title:window"
+msgid "Open File"
+msgstr "Atvērt datni"
+
+#: platformtheme/kdeplatformfiledialoghelper.cpp:261
+#, kde-format
+msgctxt "@title:window"
+msgid "Save File"
+msgstr "Saglabāt datni"
+
+#: platformtheme/kdeplatformtheme.cpp:278
+#, kde-format
+msgctxt "@action:button"
+msgid "Save All"
+msgstr "Saglabāt visu"
+
+#: platformtheme/kdeplatformtheme.cpp:282
+#, kde-format
+msgctxt "@action:button"
+msgid "&Yes"
+msgstr "&Jā"
+
+#: platformtheme/kdeplatformtheme.cpp:284
+#, kde-format
+msgctxt "@action:button"
+msgid "Yes to All"
+msgstr "„Jā“ visam"
+
+#: platformtheme/kdeplatformtheme.cpp:286
+#, kde-format
+msgctxt "@action:button"
+msgid "&No"
+msgstr "&Nē"
+
+#: platformtheme/kdeplatformtheme.cpp:288
+#, kde-format
+msgctxt "@action:button"
+msgid "No to All"
+msgstr "„Nē“ visam"
+
+#: platformtheme/kdeplatformtheme.cpp:291
+#, kde-format
+msgctxt "@action:button"
+msgid "Abort"
+msgstr "Atcelt"
+
+#: platformtheme/kdeplatformtheme.cpp:293
+#, kde-format
+msgctxt "@action:button"
+msgid "Retry"
+msgstr "Atkārtot"
+
+#: platformtheme/kdeplatformtheme.cpp:295
+#, kde-format
+msgctxt "@action:button"
+msgid "Ignore"
+msgstr "Ignorēt"
+
+#: platformtheme/kdirselectdialog.cpp:133
+#, kde-format
+msgctxt "folder name"
+msgid "New Folder"
+msgstr "Jauna mape"
+
+#: platformtheme/kdirselectdialog.cpp:139
+#, kde-format
+msgctxt "@title:window"
+msgid "New Folder"
+msgstr "Jauna mape"
+
+#: platformtheme/kdirselectdialog.cpp:140
+#, kde-format
+msgctxt "@label:textbox"
+msgid ""
+"Create new folder in:\n"
+"%1"
+msgstr ""
+"Izveidot jaunu mapi te:\n"
+"„%1“"
+
+#: platformtheme/kdirselectdialog.cpp:171
+#, kde-format
+msgid "A file or folder named %1 already exists."
+msgstr "Datne vai mape ar nosaukumu „%1“ jau pastāv."
+
+#: platformtheme/kdirselectdialog.cpp:180
+#, kde-format
+msgid "You do not have permission to create that folder."
+msgstr "Jums nav atļaujas izveidot šo mapi."
+
+#: platformtheme/kdirselectdialog.cpp:282
+#, kde-format
+msgctxt "@title:window"
+msgid "Select Folder"
+msgstr "Atlasīt mapi"
+
+#: platformtheme/kdirselectdialog.cpp:290
+#, kde-format
+msgctxt "@action:button"
+msgid "New Folder..."
+msgstr "Jauna mape..."
+
+#: platformtheme/kdirselectdialog.cpp:348
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "New Folder..."
+msgstr "Jauna mape..."
+
+#: platformtheme/kdirselectdialog.cpp:357
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Move to Trash"
+msgstr "Pārvietot uz atkritni"
+
+#: platformtheme/kdirselectdialog.cpp:366
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Delete"
+msgstr "Dzēst"
+
+#: platformtheme/kdirselectdialog.cpp:377
+#, kde-format
+msgctxt "@option:check"
+msgid "Show Hidden Folders"
+msgstr "Rādīt slēptās mapes"
+
+#: platformtheme/kdirselectdialog.cpp:384
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Properties"
+msgstr "Īpašības"
+
+#: platformtheme/kfiletreeview.cpp:185
+#, kde-format
+msgid "Show Hidden Folders"
+msgstr "Rādīt slēptās mapes"
+
+#: platformtheme/kioopenwith.cpp:125
+#, kde-format
+msgid ""
+"Failed to launch for unknown reasons. Please try with a pre-existing "
+"application."
+msgstr ""
+"Neizdevās palaist nezināmu iemeslu dēļ. Mēģiniet ar jau esošu programmu."

@@ -42,6 +42,8 @@ fn version_arguments(tool: &str) -> &'static [&'static str] {
     match Path::new(tool).file_name().and_then(OsStr::to_str) {
         // squashfs-tools intentionally uses the historical single-dash form.
         Some("mksquashfs" | "unsquashfs") => &["-version"],
+        Some("w3m") => &["-version"],
+        Some("awk" | "mawk") => &["-W", "version"],
         _ => &["--version"],
     }
 }
@@ -133,5 +135,12 @@ mod tests {
         assert_eq!(version_arguments("mksquashfs"), ["-version"]);
         assert_eq!(version_arguments("/usr/bin/unsquashfs"), ["-version"]);
         assert_eq!(version_arguments("gcc"), ["--version"]);
+    }
+
+    #[test]
+    fn docbook_tools_use_their_supported_version_switches() {
+        assert_eq!(version_arguments("w3m"), ["-version"]);
+        assert_eq!(version_arguments("awk"), ["-W", "version"]);
+        assert_eq!(version_arguments("/usr/bin/mawk"), ["-W", "version"]);
     }
 }

@@ -1,0 +1,353 @@
+# Translation of plasma_applet_org.kde.plasma.bluetooth.po into Serbian.
+# Chusslove Illich <caslav.ilic@gmx.net>, 2015, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.kde.plasma.bluetooth\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2026-01-27 02:39+0000\n"
+"PO-Revision-Date: 2017-12-24 21:47+0100\n"
+"Last-Translator: Chusslove Illich <caslav.ilic@gmx.net>\n"
+"Language-Team: Serbian <kde-i18n-sr@kde.org>\n"
+"Language: sr@ijekavian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Environment: kde\n"
+
+#: devicesproxymodel.cpp:51
+#, kde-format
+msgctxt "@title:column Blocked Bluetooth devices"
+msgid "Blocked"
+msgstr ""
+
+#: devicesproxymodel.cpp:54
+#, fuzzy, kde-format
+#| msgid "Connect"
+msgctxt "@title:column Connected Bluetooth devices"
+msgid "Connected"
+msgstr "Повежи се"
+
+#: devicesproxymodel.cpp:56
+#, fuzzy, kde-format
+#| msgid "Available devices"
+msgctxt "@title:column Available but not connected Bluetooth devices"
+msgid "Available"
+msgstr "Доступни уређаји"
+
+#: devicesstateproxymodel.cpp:273
+#, kde-format
+msgctxt "@label %1 is the name of a Bluetooth device"
+msgid "Could not connect to device “%1”"
+msgstr ""
+
+#: devicesstateproxymodel.cpp:288
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed:HostIsDown"
+msgid "The device is unreachable"
+msgstr "Уређај је недоступан"
+
+#: devicesstateproxymodel.cpp:289
+#, kde-format
+msgctxt "Notification when the connection failed due to Failed"
+msgid "Connection to the device failed"
+msgstr "Повезивање са уређајем пропало"
+
+#: devicesstateproxymodel.cpp:292
+#, kde-format
+msgctxt "Notification when the connection failed due to NotReady"
+msgid "The device is not ready"
+msgstr "Уређај није спреман"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Disconnect"
+msgstr "Прекини везу"
+
+#: qml/DeviceItem.qml:40
+#, kde-format
+msgid "Connect"
+msgstr "Повежи се"
+
+#: qml/DeviceItem.qml:51
+#, kde-format
+msgid "Browse Files"
+msgstr "Прегледај фајлове"
+
+#: qml/DeviceItem.qml:62
+#, kde-format
+msgid "Send File"
+msgstr "Пошаљи фајл"
+
+#: qml/DeviceItem.qml:71
+#, kde-format
+msgctxt "@action:button Forget a Bluetooth device"
+msgid "Forget"
+msgstr ""
+
+#: qml/DeviceItem.qml:117
+#, kde-format
+msgid "Copy"
+msgstr "Копирај"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "Yes"
+msgstr "да"
+
+#: qml/DeviceItem.qml:213
+#, kde-format
+msgid "No"
+msgstr "не"
+
+#: qml/DeviceItem.qml:219
+#, kde-format
+msgctxt "@label %1 is human-readable adapter name, %2 is HCI"
+msgid "%1 (%2)"
+msgstr ""
+
+#: qml/DeviceItem.qml:227
+#, kde-format
+msgid "Remote Name"
+msgstr "Удаљено име"
+
+#: qml/DeviceItem.qml:231
+#, kde-format
+msgid "Address"
+msgstr "Адреса"
+
+#: qml/DeviceItem.qml:234
+#, kde-format
+msgid "Paired"
+msgstr "Упарен"
+
+#: qml/DeviceItem.qml:237
+#, kde-format
+msgid "Trusted"
+msgstr "Поуздан"
+
+#: qml/DeviceItem.qml:240
+#, kde-format
+msgid "Adapter"
+msgstr "Адаптер"
+
+# >> The device is connecting.
+#: qml/DeviceItem.qml:248
+#, kde-format
+msgid "Connecting"
+msgstr "Повезује се"
+
+#: qml/DeviceItem.qml:250
+#, kde-format
+msgid "Disconnecting"
+msgstr "Прекидам везу"
+
+#: qml/DeviceItem.qml:256
+#, fuzzy, kde-format
+#| msgctxt "Notification when the connection failed due to Failed"
+#| msgid "Connection to the device failed"
+msgid "Connection failed"
+msgstr "Повезивање са уређајем пропало"
+
+#: qml/DeviceItem.qml:261
+#, kde-format
+msgid "Headset"
+msgstr ""
+
+#: qml/DeviceItem.qml:267
+#, kde-format
+msgid "Audio device"
+msgstr "Аудио уређај"
+
+#: qml/DeviceItem.qml:271
+#, kde-format
+msgid "Keyboard"
+msgstr ""
+
+#: qml/DeviceItem.qml:274
+#, kde-format
+msgid "Mouse"
+msgstr ""
+
+#: qml/DeviceItem.qml:277
+#, kde-format
+msgid "Joypad"
+msgstr ""
+
+#: qml/DeviceItem.qml:280
+#, kde-format
+msgid "Drawing tablet"
+msgstr ""
+
+#: qml/DeviceItem.qml:284
+#, kde-format
+msgid "Phone"
+msgstr ""
+
+#: qml/DeviceItem.qml:287
+#, kde-format
+msgid "Camera"
+msgstr ""
+
+#: qml/DeviceItem.qml:290
+#, kde-format
+msgid "Printer"
+msgstr ""
+
+#: qml/DeviceItem.qml:297
+#, kde-format
+msgid "File transfer"
+msgstr "Пренос фајлова"
+
+#: qml/DeviceItem.qml:300
+#, kde-format
+msgid "Send file"
+msgstr "Пошаљи фајл"
+
+#: qml/DeviceItem.qml:303
+#, kde-format
+msgid "Input"
+msgstr "Улаз"
+
+#: qml/DeviceItem.qml:306
+#, kde-format
+msgid "Audio"
+msgstr "Аудио"
+
+#: qml/DeviceItem.qml:309
+#, kde-format
+msgid "Network"
+msgstr "Мрежа"
+
+#: qml/DeviceItem.qml:314
+#, kde-format
+msgid "Other device"
+msgstr "Други уређај"
+
+#: qml/DeviceItem.qml:321 qml/main.qml:74 qml/main.qml:83
+#, kde-format
+msgid "%1% Battery"
+msgstr ""
+
+#: qml/FullRepresentation.qml:80
+#, kde-format
+msgid "Enable"
+msgstr ""
+
+#: qml/FullRepresentation.qml:156
+#, fuzzy, kde-format
+#| msgid "No Adapters Available"
+msgid "No Bluetooth adapters available"
+msgstr "Нема доступних адаптера"
+
+#: qml/FullRepresentation.qml:158
+#, kde-format
+msgid "Bluetooth is disabled"
+msgstr "Блутут је искључен"
+
+#: qml/FullRepresentation.qml:160
+#, fuzzy, kde-format
+#| msgid "No Devices Found"
+msgid "No devices paired"
+msgstr "Није нађен ниједан уређај"
+
+#: qml/main.qml:51
+#, kde-format
+msgid "Bluetooth"
+msgstr "Блутут"
+
+#: qml/main.qml:55
+#, fuzzy, kde-format
+#| msgid "Bluetooth is disabled"
+msgid "Bluetooth is disabled; middle-click to enable"
+msgstr "Блутут је искључен"
+
+#: qml/main.qml:59
+#, kde-format
+msgid "No adapters available"
+msgstr "Нема ниједног адаптера"
+
+#: qml/main.qml:61
+#, kde-format
+msgid "Bluetooth is offline"
+msgstr "Блутут је ван везе"
+
+#: qml/main.qml:64
+#, kde-format
+msgid "Middle-click to disable Bluetooth"
+msgstr ""
+
+#: qml/main.qml:67
+#, kde-format
+msgid "No connected devices"
+msgstr "Нема повезаних уређаја"
+
+#: qml/main.qml:72
+#, fuzzy, kde-format
+#| msgctxt "Number of connected devices"
+#| msgid "%1 connected device"
+#| msgid_plural "%1 connected devices"
+msgid "%1 connected"
+msgstr "%1 повезан уређај"
+
+#: qml/main.qml:79
+#, kde-format
+msgctxt "Number of connected devices"
+msgid "%1 connected device"
+msgid_plural "%1 connected devices"
+msgstr[0] "%1 повезан уређај"
+msgstr[1] "%1 повезана уређаја"
+msgstr[2] "%1 повезаних уређаја"
+msgstr[3] "%1 повезан уређај"
+
+#: qml/main.qml:110
+#, fuzzy, kde-format
+#| msgid "Enable Bluetooth"
+msgctxt "@option:check"
+msgid "Enable Bluetooth"
+msgstr "Укључи блутут"
+
+#: qml/main.qml:122
+#, fuzzy, kde-format
+#| msgid "Add New Device"
+msgctxt "@action:button"
+msgid "Pair Device…"
+msgstr "Додај нови уређај"
+
+#: qml/main.qml:130
+#, fuzzy, kde-format
+#| msgid "No connected devices"
+msgctxt "@item:inmenu"
+msgid "Show badge with number of connected devices"
+msgstr "Нема повезаних уређаја"
+
+#: qml/main.qml:140
+#, fuzzy, kde-format
+#| msgid "Configure &Bluetooth..."
+msgctxt "@action:inmenu"
+msgid "Configure &Bluetooth…"
+msgstr "Подеси &блутут..."
+
+#: qml/Toolbar.qml:73
+#, kde-format
+msgctxt "@action:button opens hamburger menu"
+msgid "More actions"
+msgstr ""
+
+#~ msgid "Input device"
+#~ msgstr "Улазни уређај"
+
+#~ msgid "Connected devices"
+#~ msgstr "Повезани уређаји"
+
+#~ msgid "Bluetooth is Disabled"
+#~ msgstr "Блутут је искључен"
+
+#~ msgid "Add New Device..."
+#~ msgstr "Додај нови уређај..."
+
+#~ msgid "Configure Bluetooth..."
+#~ msgstr "Подеси блутут..."

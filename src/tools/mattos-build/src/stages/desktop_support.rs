@@ -1,3 +1,22 @@
+fn build_xdg_user_dirs(repo_root: &Path) -> Result<()> {
+    build_meson_runtime(
+        repo_root,
+        "xdg-user-dirs",
+        "src/desktop/xdg-user-dirs",
+        &[],
+        &[
+            "--prefix=/usr",
+            "--sysconfdir=/etc",
+            "--libdir=lib/x86_64-linux-gnu",
+            "--buildtype=release",
+            "-Ddocs=false",
+            "-Dnls=true",
+        ],
+        "usr/bin/xdg-user-dirs-update",
+        &[],
+    )
+}
+
 const POP_FIRA_RUNTIME_FONTS: &[&str] = &[
     "FiraSans-Regular.otf",
     "FiraSans-Bold.otf",

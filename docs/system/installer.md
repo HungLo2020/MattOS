@@ -160,6 +160,13 @@ Either frontend may select either installed profile:
 
 Both profiles also receive `mattos-toolchain`.
 
+Both profiles include `xdg-user-dirs` through `mattos-base`. Standard user
+folders are initialized by the login session, for CLI and Calamares-created
+accounts alike; see [Standard user directories](services/sessions.md#standard-user-directories).
+The installed tests require the user's configured folders to exist with the
+correct owner and exercise repeated login, custom paths and user opt-out in
+disposable homes.
+
 ## Validation and initial package discovery
 
 `DevUtils/run_qemu.py --install` requires the installer and independent disk

@@ -2180,6 +2180,15 @@ fn configure_installed_profile_values(
     automatic_login: bool,
     target: &Path,
 ) -> Result<()> {
+    // The live image keeps its volatile journal. Installed roots retain boot
+    // diagnostics across restarts, for either installer and either profile.
+    let journal_config = target.join("etc/systemd/journald.conf.d");
+    fs::create_dir_all(&journal_config)?;
+    fs::write(
+        journal_config.join("20-mattos-installed.conf"),
+        "[Journal]\nStorage=persistent\nSystemMaxUse=256M\n",
+    )?;
+    fs::create_dir_all(target.join("var/log/journal"))?;
     let default_target = target.join("etc/systemd/system/default.target");
     fs::create_dir_all(
         default_target
@@ -3708,6 +3717,10 @@ mod tests {
             let mut candidate = plan("/dev/vda", profile);
             candidate.automatic_login = false;
             configure_installed_profile(&candidate, directory.path()).unwrap();
+            let journald = fs::read_to_string(directory.path().join("etc/systemd/journald.conf.d/20-mattos-installed.conf")).unwrap();
+            assert!(journald.contains("Storage=persistent"));
+            assert!(journald.contains("SystemMaxUse=256M"));
+            assert!(directory.path().join("var/log/journal").is_dir());
             assert_eq!(
                 fs::read_link(directory.path().join("etc/systemd/system/default.target")).unwrap(),
                 PathBuf::from(expected)

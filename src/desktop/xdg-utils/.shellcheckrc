@@ -1,0 +1,9 @@
+
+# checking success after running a command
+# is a common practice trhought the xdg-utils
+# and it works well enough to not change it.
+disable=SC2181
+
+# x prefixes aren't pretty anymore,
+# but they don't hurt either.
+disable=SC2268

@@ -33,6 +33,11 @@ the build. `--build-only` runs `doctor` and the same `cargo run -p mattos-build 
 
 This milestone also requires the systemd, dbus-broker, Autotools, networking, packaging, glibc/GCC-runtime-bootstrap, and ELF-inspection tools declared by `DevUtils/setup.py`, including GCC/G++, GNU assembler and linker tools, Make, Bison, Meson/Ninja, CMake, Autoconf/Automake/libtool, `gnulib-tool`, GNU awk (`gawk`), `rsync`, `bindgen`, `dpkg-deb`, `dpkg-scanpackages`, `apt-ftparchive`, `fakeroot`, `zstd`, `xz`, `file`, `ldd`, and `readelf`. The host compiler only builds the stage-0 cross toolchain, the host-running compiler proper, and build-time helper programs. All target code is compiled by source-built GCC and Binutils (see [MattOS native C/C++ toolchain](toolchain/native-toolchain.md)). GCC's GMP, MPFR, and MPC prerequisites are built from checksum-pinned sources, not host `-dev` packages. Target runtime development files come from imported source builds and `out/sysroot`, not host distribution `-dev` packages.
 
+The desktop helper build also needs host `xmlto`, `xsltproc`, DocBook XML/XSL
+and `w3m` to generate xdg-utils' scripts and help from vendored source.
+`DevUtils/setup.py` installs these build-only tools; they are not target
+runtime inputs or packages.
+
 ## Upstream source status
 
 ```

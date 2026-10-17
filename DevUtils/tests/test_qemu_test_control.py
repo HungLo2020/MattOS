@@ -196,6 +196,12 @@ class QemuTestControlTests(unittest.TestCase):
     def test_grub_prompt_is_never_considered_a_userspace_shell(self) -> None:
         self.assertTrue(control.serial_console_is_grub(b"\r\ngrub> "))
         self.assertFalse(control.serial_console_has_shell_prompt(b"\r\ngrub> "))
+        self.assertFalse(control.serial_console_has_shell_prompt(b"\r\n\x1b[32mgrub> \x1b[0m"))
+
+    def test_colored_shell_prompt_is_recognized(self) -> None:
+        self.assertTrue(control.serial_console_has_shell_prompt(
+            b"\r\n\x1b[01;32mmattos@MattOS\x1b[0m:\x1b[01;34m~\x1b[0m$ "
+        ))
 
     def test_grub_menu_output_is_not_considered_userspace_ready(self) -> None:
         menu = b"GNU GRUB version 2.12\r\n*MattOS\r\nBooting in 2 seconds\r\n"

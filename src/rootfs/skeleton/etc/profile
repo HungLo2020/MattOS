@@ -8,6 +8,9 @@ if [ "$(id -u 2>/dev/null)" = "0" ]; then
 else
     export PS1='\u@\h:\w$ '
 fi
+case $- in
+    *i*) [ ! -r /etc/bash.bashrc ] || . /etc/bash.bashrc ;;
+esac
 if [ -d /etc/profile.d ]; then
     for script in /etc/profile.d/*.sh; do
         [ -r "$script" ] && . "$script"

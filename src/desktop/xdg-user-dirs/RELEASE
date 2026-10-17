@@ -1,0 +1,51 @@
+xdg-user-dirs Release Notes
+
+1. Set variables
+
+OLD_VERSION="0.19"
+NEW_VERSION="0.20"
+
+2. Write NEWS.md entries for xdg-user-dirs in the same format as usual.
+
+git shortlog v$OLD_VERSION.. | grep -i -v trivial | grep -v Merge > NEWS.new
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Version 0.20
+------------
+Released: 2025-xx-xx
+
+Notes:
+
+Features:
+
+Bugfixes:
+
+Miscellaneous:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+3. Commit changes in xdg-user-dirs git:
+
+git commit -a -m "Release version $NEW_VERSION"
+git tag -s -f -m "Release $NEW_VERSION" v$NEW_VERSION <gpg password>
+git push && git push --tags
+
+4. Create & sign release tarballs:
+
+rm -r meson-dist/
+meson dist
+gpg -b -a meson-dist/xdg-user-dirs-${NEW_VERSION}.tar.xz
+
+5. Upload tarball & signature:
+
+scp meson-dist/xdg-user-dirs-${NEW_VERSION}.tar.* mak@annarchy.freedesktop.org:/srv/user-dirs.freedesktop.org/www/releases/
+
+6. Update Wiki page at https://freedesktop.org/wiki/Software/xdg-user-dirs/
+
+7. Do post release version bump in meson.build, configure.ac, RELEASE
+
+8. Commit trivial changes:
+
+git commit -a -m "trivial: post release version bump"
+git push
+
+9. Announce the new release

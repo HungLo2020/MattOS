@@ -6,6 +6,9 @@ built from vendored source as its own stage and package:
 [Slate](slate.md) is the default graphical editor. Kate remains installed as
 an additional KDE editor.
 
+Font, palette, terminal, helper-command and Bluetooth integration are
+described in [Desktop Defaults](desktop-defaults.md).
+
 | Application | Package | Executable |
 | --- | --- | --- |
 | Dolphin | dolphin | `dolphin` |

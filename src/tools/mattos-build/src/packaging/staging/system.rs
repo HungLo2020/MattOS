@@ -298,7 +298,7 @@ fn prune_empty_directories(root: &Path) -> Result<()> {
 
 pub(super) fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
     let skeleton = repo_root.join("src/rootfs/skeleton/etc");
-    for name in ["os-release", "hostname", "profile", "shells"] {
+    for name in ["os-release", "hostname", "profile", "bash.bashrc", "shells"] {
         copy_preserving(&skeleton.join(name), &staging.join("etc").join(name))?;
     }
     let user_skeleton = skeleton.join("skel");
@@ -321,6 +321,7 @@ pub(super) fn stage_base_files(repo_root: &Path, staging: &Path) -> Result<()> {
     let conffiles = [
         "/etc/hostname",
         "/etc/profile",
+        "/etc/bash.bashrc",
         "/etc/shells",
         "/etc/issue",
         "/etc/environment",

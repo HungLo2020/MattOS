@@ -1,0 +1,5 @@
+schema_version = 1
+component = "noto-color-emoji"
+upstream_commit = "e20cbc2bbec1926686be9f9bee7d1d2cfa1fea0e"
+retained_paths = ["2D/fonts/NotoColorEmoji.ttf", "2D/fonts/Noto-COLRv1.ttf", "2D/fonts/LICENSE", "LICENSE", "README.md"]
+reason = "Install the upstream color emoji runtime font and its licensing as data, like the existing Fira font stage. Other font variants, artwork, generators and test assets are not installed or built."

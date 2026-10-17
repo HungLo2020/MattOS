@@ -665,6 +665,19 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Libepoxy => &["src/system/graphics/libepoxy"],
         BuildStage::Freetype => &["src/system/libraries/freetype"],
         BuildStage::Fontconfig => &["src/system/libraries/fontconfig"],
+        BuildStage::KdeCliTools => &["src/desktop/kde/kde-cli-tools", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::PlasmaIntegration => &["src/desktop/kde/plasma-integration", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::BluezQt => &["src/desktop/kde/bluez-qt", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::BlueDevil => &["src/desktop/kde/bluedevil", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::KWalletPam => &["src/desktop/kde/kwallet-pam", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::Libsecret => &["src/system/security/libsecret", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::XdgUtils => &["src/desktop/xdg-utils", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::NotoColorEmoji => &["src/desktop/fonts/noto-color-emoji", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::NotoSansCjk => &["src/desktop/fonts/noto-sans-cjk", "src/tools/mattos-build/src/stages/desktop_integration.rs"],
+        BuildStage::XdgUserDirs => &[
+            "src/desktop/xdg-user-dirs",
+            "src/tools/mattos-build/src/stages/desktop_support.rs",
+        ],
         BuildStage::PopFonts => &[
             "src/desktop/fonts/pop-fonts",
             "src/tools/mattos-build/src/stages/desktop_support.rs",
@@ -1238,6 +1251,11 @@ pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
 
 pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
     let tools: &[&str] = match stage {
+        BuildStage::KdeCliTools | BuildStage::PlasmaIntegration | BuildStage::BluezQt | BuildStage::BlueDevil | BuildStage::KWalletPam => &["gcc", "g++", "ld", "cmake", "ninja", "pkg-config", "python3", "msgfmt", "msgmerge"],
+        BuildStage::Libsecret => &["gcc", "ld", "meson", "ninja", "pkg-config", "msgfmt"],
+        BuildStage::XdgUtils => &["bash", "make", "autoconf", "awk", "xmlto", "xsltproc", "w3m"],
+        BuildStage::NotoColorEmoji | BuildStage::NotoSansCjk => &[],
+        BuildStage::XdgUserDirs => &["gcc", "ld", "meson", "ninja", "pkg-config", "msgfmt"],
         BuildStage::LiveRoot => &["mksquashfs", "unsquashfs"],
         BuildStage::Duktape => &["gcc", "python3"],
         BuildStage::Pkgconf => &["gcc", "ld", "meson", "ninja"],
