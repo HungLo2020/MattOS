@@ -1,5 +1,5 @@
 /* call-keyboxd.c - Access to the keyboxd storage server
- * Copyright (C) 2019  g10 Code GmbH
+ * Copyright (C) 2019, 2024  g10 Code GmbH
  *
  * This file is part of GnuPG.
  *
@@ -38,7 +38,6 @@
 #include "../common/i18n.h"
 #include "../common/asshelp.h"
 #include "../common/host2net.h"
-#include "../common/exechelp.h"
 #include "../common/status.h"
 #include "../kbx/kbx-client-util.h"
 #include "keydb.h"
@@ -47,7 +46,7 @@
 
 
 /* Data used to keep track of keybox daemon sessions.  This allows us
- * to use several sessions with the keyboxd and also to re-use already
+ * to use several sessions with the keyboxd and also to reuse already
  * established sessions.  Note that gpg.h defines the type
  * keyboxd_local_t for this structure. */
 struct keyboxd_local_s
@@ -94,8 +93,6 @@ gpg_keyboxd_deinit_session_data (ctrl_t ctrl)
         log_error ("oops: trying to cleanup an active keyboxd context\n");
       else
         {
-          kbx_client_data_release (kbl->kcd);
-          kbl->kcd = NULL;
           if (kbl->ctx && in_transaction)
             {
               /* This is our hack to commit the changes done during a
@@ -112,6 +109,15 @@ gpg_keyboxd_deinit_session_data (ctrl_t ctrl)
             }
           assuan_release (kbl->ctx);
           kbl->ctx = NULL;
+          /*
+           * Since there may be pipe output FD sent to the server (so
+           * that it can receive data through the pipe), we should
+           * release the assuan connection before releasing KBL->KCD.
+           * This way, the data receiving thread can finish cleanly,
+           * and we can join the thread.
+           */
+          kbx_client_data_release (kbl->kcd);
+          kbl->kcd = NULL;
         }
       xfree (kbl);
     }
@@ -143,7 +149,8 @@ create_new_context (ctrl_t ctrl, assuan_context_t *r_ctx)
   err = start_new_keyboxd (&ctx,
                            GPG_ERR_SOURCE_DEFAULT,
                            opt.keyboxd_program,
-                           opt.autostart, opt.verbose, DBG_IPC,
+                           opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
+                           opt.verbose, DBG_IPC,
                            NULL, ctrl);
   if (!opt.autostart && gpg_err_code (err) == GPG_ERR_NO_KEYBOXD)
     {
@@ -223,9 +230,7 @@ open_context (ctrl_t ctrl, keyboxd_local_t *r_kbl)
           return err;
         }
 
-      /* We use D-lines in 2.4 for communication due to a bug with fd
-       * passing.  See T6512.  */
-      err = kbx_client_data_new (&kbl->kcd, kbl->ctx, 1 /*=use D-lines*/);
+      err = kbx_client_data_new (&kbl->kcd, kbl->ctx, 0);
       if (err)
         {
           assuan_release (kbl->ctx);
@@ -318,20 +323,6 @@ keydb_release (KEYDB_HANDLE hd)
       hd->ctrl = NULL;
     }
   xfree (hd);
-}
-
-
-/* Take a lock if we are not using the keyboxd.  */
-gpg_error_t
-keydb_lock (KEYDB_HANDLE hd)
-{
-  if (!hd)
-    return gpg_error (GPG_ERR_INV_ARG);
-
-  if (!hd->use_keyboxd)
-    return internal_keydb_lock (hd);
-
-  return 0;
 }
 
 
@@ -625,7 +616,7 @@ keydb_search_reset (KEYDB_HANDLE hd)
 
 
 
-/* Status callback for SEARCH and NEXT operaions.  */
+/* Status callback for SEARCH and NEXT operations.  */
 static gpg_error_t
 search_status_cb (void *opaque, const char *line)
 {
@@ -663,7 +654,17 @@ search_status_cb (void *opaque, const char *line)
                   while (spacep (s))
                     s++;
                   if (*s)
-                    hd->last_pk_no = atoi (s);
+                    {
+                      hd->last_pk_no = atoi (s);
+                      /* Keyboxd returns 0 for invalid but also for
+                       * the primary key and 1 for the first subkey.
+                       * That does not match our use and thus we
+                       * increment it despite that this maps an
+                       * invalid index to the primary key.  */
+                      if (hd->last_pk_no >= 0)
+                        hd->last_pk_no++;
+                    }
+
                 }
             }
         }
@@ -712,7 +713,7 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
   if (DBG_CLOCK)
     log_clock ("%s enter", __func__);
 
-  if (DBG_LOOKUP)
+  if (DBG_KEYDB)
     {
       log_debug ("%s: %zu search descriptions:\n", __func__, ndesc);
       for (i = 0; i < ndesc; i ++)
@@ -865,7 +866,6 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
             goto leave;
         }
     }
-  while (ndesc);
 
 
  do_search:
@@ -873,9 +873,36 @@ keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
   err = kbx_client_data_cmd (hd->kbl->kcd, line, search_status_cb, hd);
   if (!err && !(err = kbx_client_data_wait (hd->kbl->kcd, &buffer, &len)))
     {
+      int any;
+      u32 kid[2];
+
+      for (any = i = 0; i < ndesc && !any; i++)
+        if (desc[i].skipfnc)
+          any = 1;
+
+      if (any)
+        {
+          err = kbx_get_first_opgp_keyid (buffer, len, kid);
+          if (err)
+            {
+              log_info ("error getting keyid for skipping callback: %s\n",
+                        gpg_strerror (err));
+              goto leave;
+            }
+          for (i = 0; i < ndesc; i++)
+            if (desc[i].skipfnc (desc[i].skipfncvalue, kid, hd->last_uid_no))
+              { /* Callback told us to skip this one.  */
+                if (DBG_KEYDB && hd->last_ubid_valid)
+                  log_printhex (hd->last_ubid, 20, "skipped UBID (%d,%d):",
+                                hd->last_uid_no, hd->last_pk_no);
+                snprintf (line, sizeof line, "NEXT");
+                goto do_search;  /* again */
+              }
+        }
+
       hd->kbl->search_result = iobuf_temp_with_content (buffer, len);
       xfree (buffer);
-      if (DBG_LOOKUP && hd->last_ubid_valid)
+      if (DBG_KEYDB && hd->last_ubid_valid)
         log_printhex (hd->last_ubid, 20, "found UBID (%d,%d):",
                       hd->last_uid_no, hd->last_pk_no);
     }

@@ -467,6 +467,8 @@ _ges_command_line_formatter_add_clip (GESTimeline * timeline,
 {
   GESProject *proj;
   GESAsset *asset;
+  gboolean ret;
+
   if (!_cleanup_fields (options[CLIP].properties, structure, error))
     return FALSE;
 
@@ -478,9 +480,11 @@ _ges_command_line_formatter_add_clip (GESTimeline * timeline,
   proj = GES_PROJECT (ges_extractable_get_asset (GES_EXTRACTABLE (timeline)));
   asset = _ges_get_asset_from_timeline (timeline, GES_TYPE_URI_CLIP,
       gst_structure_get_string (structure, "asset-id"), NULL);
-  ges_project_add_asset (proj, asset);
 
-  return TRUE;
+  ret = ges_project_add_asset (proj, asset);
+  gst_object_unref (asset);
+
+  return ret;
 }
 
 static gboolean
@@ -866,7 +870,8 @@ _serialize_control_binding (GESTrackElement * e, const gchar * prop,
 {
   GstInterpolationMode mode;
   GstControlSource *source = NULL;
-  GList *timed_values, *tmp;
+  GstTimedValue *timed_values;
+  gsize n_values;
   gboolean absolute = FALSE;
   GstControlBinding *binding = ges_track_element_get_control_binding (e, prop);
 
@@ -898,18 +903,18 @@ _serialize_control_binding (GESTrackElement * e, const gchar * prop,
             mode)->value_nick);
 
   timed_values =
-      gst_timed_value_control_source_get_all
-      (GST_TIMED_VALUE_CONTROL_SOURCE (source));
-  for (tmp = timed_values; tmp; tmp = tmp->next) {
+      gst_timed_value_control_source_list_control_points
+      (GST_TIMED_VALUE_CONTROL_SOURCE (source), &n_values);
+  for (gint i = 0; i < n_values; i++) {
     gchar strbuf[G_ASCII_DTOSTR_BUF_SIZE];
     GstTimedValue *value;
 
-    value = (GstTimedValue *) tmp->data;
+    value = &timed_values[i];
     g_string_append_printf (res, " %f=%s",
         (gdouble) value->timestamp / (gdouble) GST_SECOND,
         g_ascii_dtostr (strbuf, G_ASCII_DTOSTR_BUF_SIZE, value->value));
   }
-  g_list_free (timed_values);
+  g_free (timed_values);
 
 done:
   g_clear_object (&source);

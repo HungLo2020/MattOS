@@ -22,6 +22,10 @@
 #  include "config.h"
 #endif
 
+#ifdef GST_DISABLE_DEPRECATED
+#undef GST_DISABLE_DEPRECATED
+#endif
+
 #include <gst/check/gstcheck.h>
 #include <gst/gstelement.h>
 
@@ -815,6 +819,7 @@ GST_START_TEST (test_forbidden_pad_template_names)
 {
   const gchar *pad_name;
   GSList *padname_blacklists = NULL, *item;
+  GstPadTemplate *ignored G_GNUC_UNUSED;
 
   padname_blacklists =
       g_slist_append (padname_blacklists, (gpointer) "src_%u%u");
@@ -835,7 +840,7 @@ GST_START_TEST (test_forbidden_pad_template_names)
   while (item) {
     pad_name = (const gchar *) (item->data);
     item = g_slist_next (item);
-    ASSERT_WARNING (gst_pad_template_new (pad_name, GST_PAD_SRC,
+    ASSERT_WARNING (ignored = gst_pad_template_new (pad_name, GST_PAD_SRC,
             GST_PAD_REQUEST, GST_CAPS_ANY));
   }
 
@@ -962,6 +967,83 @@ GST_START_TEST (test_foreach_pad)
 
 GST_END_TEST;
 
+typedef struct
+{
+  GMutex lock;
+  GCond cond;
+  GThread *caller_thread;
+
+  gint called;
+  gint notified;
+} CallAsyncData;
+
+static void
+call_async_func (GstElement * element, gpointer user_data)
+{
+  CallAsyncData *data;
+
+  fail_unless (GST_IS_ELEMENT (element));
+
+  data = (CallAsyncData *) user_data;
+
+  fail_unless (g_thread_self () != data->caller_thread);
+
+  g_mutex_lock (&data->lock);
+  assert_equals_int (data->called, 0);
+  assert_equals_int (data->notified, 0);
+  data->called++;
+  g_cond_signal (&data->cond);
+  g_mutex_unlock (&data->lock);
+}
+
+static void
+call_async_notify (gpointer user_data)
+{
+  CallAsyncData *data = (CallAsyncData *) user_data;
+
+  /* notify should be called from another thread */
+  fail_unless (g_thread_self () != data->caller_thread);
+
+  g_mutex_lock (&data->lock);
+  assert_equals_int (data->called, 1);
+  assert_equals_int (data->notified, 0);
+  data->notified++;
+  g_cond_signal (&data->cond);
+  g_mutex_unlock (&data->lock);
+}
+
+GST_START_TEST (test_call_async)
+{
+  GstElement *element;
+  CallAsyncData *data;
+
+  element = gst_element_factory_make ("fakesrc", NULL);
+  fail_unless (element);
+
+  data = g_new0 (CallAsyncData, 1);
+  g_mutex_init (&data->lock);
+  g_cond_init (&data->cond);
+  data->caller_thread = g_thread_self ();
+
+  gst_element_call_async (element,
+      call_async_func, data, (GDestroyNotify) call_async_notify);
+  g_mutex_lock (&data->lock);
+  while (!data->called || !data->notified)
+    g_cond_wait (&data->cond, &data->lock);
+  g_mutex_unlock (&data->lock);
+
+  assert_equals_int (data->called, 1);
+  assert_equals_int (data->notified, 1);
+
+  g_mutex_clear (&data->lock);
+  g_cond_clear (&data->cond);
+  g_free (data);
+
+  gst_object_unref (element);
+}
+
+GST_END_TEST;
+
 static Suite *
 gst_element_suite (void)
 {
@@ -980,6 +1062,7 @@ gst_element_suite (void)
   tcase_add_test (tc_chain, test_request_pad_templates);
   tcase_add_test (tc_chain, test_forbidden_pad_template_names);
   tcase_add_test (tc_chain, test_foreach_pad);
+  tcase_add_test (tc_chain, test_call_async);
 
   return s;
 }

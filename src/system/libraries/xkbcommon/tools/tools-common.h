@@ -19,40 +19,48 @@
 
 #define ARRAY_SIZE(arr) ((sizeof(arr) / sizeof(*(arr))))
 
+enum {
+    DEFAULT_KEYMAP_SERIALIZE_FLAGS = XKB_KEYMAP_SERIALIZE_PRETTY |
+                                     XKB_KEYMAP_SERIALIZE_KEEP_UNUSED
+};
+
 /* Fields that are printed in the interactive tools. */
-enum print_state_fields {
-#ifdef ENABLE_PRIVATE_APIS
-    PRINT_MODMAPS = (1u << 1),
-#endif
-    PRINT_LAYOUT = (1u << 2),
-    PRINT_UNICODE = (1u << 3),
+enum print_state_options {
+    PRINT_LAYOUT = (1u << 0),
+    PRINT_UNICODE = (1u << 1),
     PRINT_ALL_FIELDS = ((PRINT_UNICODE << 1) - 1),
     /*
      * Fields that can be hidden with the option --short.
      * NOTE: If this value is modified, remember to update the documentation of
      *       the --short option in the corresponding tools.
      */
-    PRINT_VERBOSE_FIELDS = (PRINT_LAYOUT | PRINT_UNICODE)
+    PRINT_VERBOSE_ONE_LINE_FIELDS = (PRINT_LAYOUT | PRINT_UNICODE),
+    PRINT_VERBOSE = (1u << 2),
+    PRINT_UNILINE = (1u << 3),
+    DEFAULT_PRINT_OPTIONS = PRINT_ALL_FIELDS | PRINT_VERBOSE | PRINT_UNILINE
 };
-typedef uint32_t print_state_fields_mask_t;
 
-#ifdef ENABLE_PRIVATE_APIS
 void
-print_keymap_modmaps(struct xkb_keymap *keymap);
+print_modifiers_encodings(struct xkb_keymap *keymap);
 void
 print_keys_modmaps(struct xkb_keymap *keymap);
-#endif
+
+void
+tools_enable_verbose_logging(struct xkb_context *ctx);
 
 void
 tools_print_keycode_state(const char *prefix,
                           struct xkb_state *state,
                           struct xkb_compose_state *compose_state,
                           xkb_keycode_t keycode,
+                          enum xkb_key_direction direction,
                           enum xkb_consumed_mode consumed_mode,
-                          print_state_fields_mask_t fields);
+                          enum print_state_options options);
 
 void
-tools_print_state_changes(enum xkb_state_component changed);
+tools_print_state_changes(const char *prefix, struct xkb_state *state,
+                          enum xkb_state_component changed,
+                          enum print_state_options options);
 
 void
 tools_disable_stdin_echo(void);
@@ -60,8 +68,11 @@ tools_disable_stdin_echo(void);
 void
 tools_enable_stdin_echo(void);
 
+const char *
+select_backend(const char *wayland, const char *x11, const char *fallback);
+
 int
-tools_exec_command(const char *prefix, int argc, char **argv);
+tools_exec_command(const char *prefix, int argc, const char **argv);
 
 bool
 is_pipe_or_regular_file(int fd);

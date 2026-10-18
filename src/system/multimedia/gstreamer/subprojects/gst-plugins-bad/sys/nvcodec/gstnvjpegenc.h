@@ -23,9 +23,10 @@
 
 G_BEGIN_DECLS
 
-void gst_nv_jpeg_enc_register (GstPlugin * plugin,
-                               GstCudaContext * context,
+gboolean gst_nv_jpeg_enc_register (GstPlugin * plugin,
+                               guint cuda_device_id,
                                guint rank,
-                               gboolean have_nvrtc);
+                               gboolean have_nvrtc,
+                               gboolean auto_gpu);
 
 G_END_DECLS

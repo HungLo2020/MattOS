@@ -14,10 +14,12 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "keymap.h"
+#include "xkbcommon/xkbcommon.h"
 #include "darray.h"
-#include "xkbcomp-priv.h"
+#include "keymap.h"
 #include "text.h"
+#include "utils.h"
+#include "xkbcomp-priv.h"
 
 static bool
 has_unbound_vmods(struct xkb_keymap *keymap, xkb_mod_mask_t mask)
@@ -30,10 +32,18 @@ has_unbound_vmods(struct xkb_keymap *keymap, xkb_mod_mask_t mask)
     return false;
 }
 
-static void
+static inline void
 ComputeEffectiveMask(struct xkb_keymap *keymap, struct xkb_mods *mods)
 {
-    mods->mask = mod_mask_get_effective(keymap, mods->mods);
+    /*
+     * Since we accept numeric values for the vmod mask in the keymap, we may
+     * have extra bits set that encode no real/virtual modifier. Keep them
+     * unchanged for consistency.
+     */
+    const xkb_mod_mask_t unknown_mods = ~(xkb_mod_mask_t)
+        ((UINT64_C(1) << keymap->mods.num_mods) - UINT64_C(1));
+    mods->mask = mod_mask_get_effective(keymap, mods->mods)
+               | (mods->mods & unknown_mods);
 }
 
 static void
@@ -93,8 +103,8 @@ FindInterpForKey(struct xkb_keymap *keymap, const struct xkb_key *key,
      */
     for (int s = 0; s < num_syms; s++) {
         bool found = false;
-        for (unsigned int i = 0; i < keymap->num_sym_interprets; i++) {
-            const struct xkb_sym_interpret *interp = &keymap->sym_interprets[i];
+        for (darray_size_t i = 0; i < keymap->num_sym_interprets; i++) {
+            struct xkb_sym_interpret * const interp = &keymap->sym_interprets[i];
             xkb_mod_mask_t mods;
 
             found = false;
@@ -141,7 +151,8 @@ FindInterpForKey(struct xkb_keymap *keymap, const struct xkb_key *key,
                         found = false;
                         log_warn(keymap->ctx, XKB_LOG_MESSAGE_NO_ID,
                                  "Repeated interpretation ignored for keysym "
-                                 "#%u \"%s\" at level %u/group %u on key %s.\n",
+                                 "#%d \"%s\" at level %"PRIu32"/group %"PRIu32" "
+                                 "on key %s.\n",
                                  s + 1, KeysymText(keymap->ctx, syms[s]),
                                  level + 1, group + 1,
                                  KeyNameText(keymap->ctx, key->name));
@@ -151,6 +162,7 @@ FindInterpForKey(struct xkb_keymap *keymap, const struct xkb_key *key,
             }
             if (found) {
                 darray_append(*interprets, interp);
+                interp->required = true;
                 break;
             }
         }
@@ -165,13 +177,12 @@ static bool
 ApplyInterpsToKey(struct xkb_keymap *keymap, struct xkb_key *key)
 {
     xkb_mod_mask_t vmodmap = 0;
-    xkb_layout_index_t group;
     xkb_level_index_t level;
     // FIXME: do not use darray, add actions directly in FindInterpForKey
     xkb_sym_interprets interprets = darray_new();
     darray(union xkb_action) actions = darray_new();
 
-    for (group = 0; group < key->num_groups; group++) {
+    for (xkb_layout_index_t group = 0; group < key->num_groups; group++) {
         /* Skip any interpretation for this group if it has explicit actions */
         if (key->groups[group].explicit_actions)
             continue;
@@ -301,7 +312,8 @@ CheckMultipleActionsCategories(struct xkb_keymap *keymap, struct xkb_key *key)
                         log_err(keymap->ctx, XKB_LOG_MESSAGE_NO_ID,
                                 "Cannot use multiple %s actions "
                                 "in the same level. Action #%u "
-                                "for key %s in group %u/level %u ignored.\n",
+                                "for key %s in group %"PRIu32"/level %"PRIu32" "
+                                "ignored.\n",
                                 (mod_action ? "modifiers" : "group"),
                                 j + 1, KeyNameText(keymap->ctx, key->name),
                                 g + 1, l + 1);
@@ -309,6 +321,22 @@ CheckMultipleActionsCategories(struct xkb_keymap *keymap, struct xkb_key *key)
                     }
                 }
             }
+        }
+    }
+}
+
+static void
+add_key_aliases(struct xkb_keymap *keymap, darray_size_t min, darray_size_t max,
+                struct xkb_key_alias *aliases)
+{
+    for (darray_size_t alias = min; alias <= max; alias++) {
+        const KeycodeMatch entry = keymap->key_names[alias];
+        if (entry.is_alias && entry.found) {
+            *aliases = (struct xkb_key_alias) {
+                .alias = alias,
+                .real = entry.alias.real
+            };
+            aliases++;
         }
     }
 }
@@ -322,13 +350,94 @@ CheckMultipleActionsCategories(struct xkb_keymap *keymap, struct xkb_key *key)
 static bool
 UpdateDerivedKeymapFields(struct xkb_keymap *keymap)
 {
-    struct xkb_key *key;
-    struct xkb_mod *mod;
-    struct xkb_led *led;
-    unsigned int i, j, k;
+    /**
+     * Create the key alias list
+     *
+     * Since we already allocated the key name LUT, we try to overwrite it:
+     * - An alias entry is exactly 2× the size of a LUT entry (on most compilers).
+     * - We ensure that there is a real key for each alias.
+     * - So, if each alias maps to a different keycode, we usually have:
+     *   current alloc(keymap.key_names) ≥ needed alloc(keymap.key_aliases).
+     * - Usual keymaps have enough space in the LUT to enable overwriting real
+     *   key entries without overlap with the alias entries.
+     * - In the unlikely event that this is not the case, we need to realloc.
+     */
+#ifdef _WIN32
+    /* Bit fields are not packed on Windows as efficiently as other platforms */
+    static_assert(sizeof(struct xkb_key_alias) == sizeof(KeycodeMatch), "");
+#else
+    static_assert(sizeof(struct xkb_key_alias) == 2 * sizeof(KeycodeMatch), "");
+#endif
+    darray_size_t num_key_aliases = 0;
+    darray_size_t min_alias = 0;
+    darray_size_t max_alias = 0;
+    for (xkb_atom_t alias = 0; alias < keymap->num_key_names; alias++) {
+        const KeycodeMatch entry = keymap->key_names[alias];
+        if (entry.is_alias && entry.found) {
+            if (!num_key_aliases)
+                min_alias = alias;
+            max_alias = alias;
+            num_key_aliases++;
+        }
+    }
+    if (num_key_aliases) {
+        /*
+         * No fancy algorithm used here: either we can trivially write the whole
+         * range of `xkb_key_aliases` without overlapping with the `KeycodeMatch`
+         * alias entries or we allocate a new array.
+         * In practice no new allocation is needed and it performs better than
+         * using a buffer to handle overlaps.
+         */
+        const darray_size_t required_space = sizeof(struct xkb_key_alias)
+                                           / sizeof(KeycodeMatch)
+                                           * num_key_aliases;
+        assert(num_key_aliases <= keymap->num_key_names);
+        if (min_alias >= required_space) {
+            /* Overwrite before the *first* alias entry */
+            add_key_aliases(keymap, min_alias, max_alias, keymap->key_aliases);
+            /* Shrink */
+            struct xkb_key_alias * const r =
+                realloc(keymap->key_aliases,
+                        num_key_aliases * sizeof(*keymap->key_aliases));
+            if (!r)
+                return false;
+            keymap->key_aliases = r;
+        } else if (keymap->num_key_names - max_alias - 1 > required_space) {
+            /* Overwrite after the *last* alias entry */
+            struct xkb_key_alias * const aliases = (struct xkb_key_alias *) (
+                keymap->key_names + max_alias + 1 +
+                !is_aligned(keymap->key_names + max_alias + 1, sizeof(*aliases))
+            );
+            add_key_aliases(keymap, min_alias, max_alias, aliases);
+            /* Move to the start */
+            memcpy(keymap->key_aliases, aliases,
+                   num_key_aliases * sizeof(*keymap->key_aliases));
+            /* Shrink */
+            struct xkb_key_alias * const r =
+                realloc(keymap->key_aliases,
+                        num_key_aliases * sizeof(*keymap->key_aliases));
+            if (!r)
+                return false;
+            keymap->key_aliases = r;
+        } else {
+            /*
+             * No space trivially available: instead of processing the LUT with
+             * a buffer to handle overlaps, we simply allocate a dedicated array
+             */
+            struct xkb_key_alias * const aliases = calloc(num_key_aliases,
+                                                          sizeof(*aliases));
+            if (!aliases)
+                return false;
+            add_key_aliases(keymap, min_alias, max_alias, aliases);
+            free(keymap->key_names);
+            keymap->key_aliases = aliases;
+        }
+    }
+    keymap->num_key_aliases = num_key_aliases;
 
     /* Find all the interprets for the key and bind them to actions,
      * which will also update the vmodmap. */
+    struct xkb_key *key;
     xkb_keys_foreach(key, keymap) {
         if (!ApplyInterpsToKey(keymap, key))
             return false;
@@ -336,16 +445,52 @@ UpdateDerivedKeymapFields(struct xkb_keymap *keymap)
     }
 
     /* Update keymap->mods, the virtual -> real mod mapping. */
+    xkb_mod_index_t idx;
+    struct xkb_mod *mod;
     xkb_keys_foreach(key, keymap)
-        xkb_vmods_enumerate(i, mod, &keymap->mods)
-            if (key->vmodmap & (UINT32_C(1) << i))
+        xkb_vmods_enumerate(idx, mod, &keymap->mods)
+            if (key->vmodmap & (UINT32_C(1) << idx))
                 mod->mapping |= key->modmap;
 
+    if (keymap->format >= XKB_KEYMAP_FORMAT_TEXT_V2) {
+        /*
+         * XKB extension: canonical virtual modifiers (incompatible with X11)
+         *
+         * Virtual modifiers that are not mapped, map to their canonical
+         * encoding, i.e. themselves.
+         *
+         * This excludes:
+         * - Modifiers mapped *explicitly*: e.g. `virtual_modifiers M = 0x1;`.
+         * - Modifiers mapped *implicitly* via vmodmap/modifier_map, i.e. the
+         *   usual X11 way used in xkeyboard-config.
+         */
+        xkb_vmods_enumerate(idx, mod, &keymap->mods) {
+            const xkb_mod_mask_t mask = UINT32_C(1) << idx;
+            if (mod->mapping == 0 && !(keymap->mods.explicit_vmods & mask)) {
+                mod->mapping = mask;
+                /*
+                 * Make the mapping explicit, so that it is interoperable
+                 * without relying on the implementation-specific virtual
+                 * modifiers indices.
+                 */
+                keymap->mods.explicit_vmods |= mask;
+            }
+        }
+    }
+
+    /* Update the canonical modifiers state mask */
+    assert(keymap->canonical_state_mask == MOD_REAL_MASK_ALL);
+    xkb_mod_mask_t extra_canonical_mods = 0;
+    xkb_vmods_enumerate(idx, mod, &keymap->mods) {
+        extra_canonical_mods |= mod->mapping;
+    }
+    keymap->canonical_state_mask |= extra_canonical_mods;
+
     /* Now update the level masks for all the types to reflect the vmods. */
-    for (i = 0; i < keymap->num_types; i++) {
+    for (darray_size_t i = 0; i < keymap->num_types; i++) {
         ComputeEffectiveMask(keymap, &keymap->types[i].mods);
 
-        for (j = 0; j < keymap->types[i].num_entries; j++) {
+        for (darray_size_t j = 0; j < keymap->types[i].num_entries; j++) {
             if (has_unbound_vmods(keymap,
                                   keymap->types[i].entries[j].mods.mods)) {
                 /*
@@ -367,22 +512,26 @@ UpdateDerivedKeymapFields(struct xkb_keymap *keymap)
     }
 
     /* Update action modifiers. */
-    xkb_keys_foreach(key, keymap)
-        for (i = 0; i < key->num_groups; i++)
-            for (j = 0; j < XkbKeyNumLevels(key, i); j++) {
+    xkb_keys_foreach(key, keymap) {
+        for (xkb_layout_index_t i = 0; i < key->num_groups; i++) {
+            for (xkb_level_index_t j = 0; j < XkbKeyNumLevels(key, i); j++) {
                 if (key->groups[i].levels[j].num_actions == 1) {
                     UpdateActionMods(keymap, &key->groups[i].levels[j].a.action,
                                      key->modmap);
                 } else {
-                    for (k = 0; k < key->groups[i].levels[j].num_actions; k++) {
+                    for (xkb_action_count_t k = 0;
+                         k < key->groups[i].levels[j].num_actions; k++) {
                         UpdateActionMods(keymap,
                                          &key->groups[i].levels[j].a.actions[k],
                                          key->modmap);
                     }
                 }
             }
+        }
+    }
 
     /* Update vmod -> led maps. */
+    struct xkb_led *led;
     xkb_leds_foreach(led, keymap)
         ComputeEffectiveMask(keymap, &led->mods);
 
@@ -415,7 +564,7 @@ CompileKeymap(XkbFile *file, struct xkb_keymap *keymap)
         if (file->file_type < FIRST_KEYMAP_FILE_TYPE ||
             file->file_type > LAST_KEYMAP_FILE_TYPE) {
             if (file->file_type == FILE_TYPE_GEOMETRY) {
-                log_vrb(ctx, 1,
+                log_vrb(ctx, XKB_LOG_VERBOSITY_BRIEF,
                         XKB_WARNING_UNSUPPORTED_GEOMETRY_SECTION,
                         "Geometry sections are not supported; ignoring\n");
             } else {

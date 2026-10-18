@@ -55,14 +55,14 @@ if [ -d linux ]; then
   git fetch --depth=1 $REPO $BRANCH_OR_TAG
   git checkout FETCH_HEAD
 else
+  sudo mkdir ./linux
+  sudo chown containeruser:containeruser ./linux
   git clone --depth=1 --branch=$BRANCH_OR_TAG $REPO linux
   pushd linux
 fi
 
 # Apply visl patches until they are upstreamed
-for patch in ../ci/docker/fedora/patches/*.patch; do
-	patch -p1 < "${patch}"
-done
+git apply ../ci/docker/fedora/patches/*.patch
 
 make defconfig
 sync
@@ -90,7 +90,9 @@ make -j8 WERROR=0
 popd
 
 TARGET_DIR="$(dirname "$IMAGE")"
-mkdir -p "$TARGET_DIR"
+sudo mkdir -p "$TARGET_DIR"
+sudo chown containeruser:containeruser --recursive "$TARGET_DIR"
+
 mv linux/arch/$SUBARCH/boot/bzImage "$IMAGE"
 mv linux/.config $TARGET_DIR/.config
-rm -rf linux
+sudo rm -rf linux

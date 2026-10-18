@@ -78,21 +78,7 @@ there is a blank line after this
     ;; I think this file will be constructed wrong (gpg 0.9.3) but it
     ;; should verify okay anyway.
     ("this is a sig test
- " #f ())
-
-    ;; check our special diff mode
-    ("--- mainproc.c	Tue Jun 27 09:28:11 2000
-+++ mainproc.c~ Thu Jun  8 22:50:25 2000
-@@ -1190,16 +1190,13 @@
-		md_enable( c->mfx.md, n1->pkt->pkt.signature->digest_algo);
-	    }
-	    /* ask for file and hash it */
--	    if( c->sigs_only ) {
-+	    if( c->sigs_only )
-		rc = hash_datafiles( c->mfx.md, NULL,
-				     c->signed_data, c->sigfilename,
-			n1? (n1->pkt->pkt.onepass_sig->sig_class == 0x01):0 );
-" #t (--not-dash-escaped))))
+ " #f ())))
 
 (let ((counter (make-counter)))
   (for-each-p'

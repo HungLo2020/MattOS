@@ -55,6 +55,13 @@ impl FileOperation {
     }
 }
 
+/// A path that may no longer exist, with its folder resolved.
+fn resolved(path: &Path) -> PathBuf {
+    match (path.parent().map(Path::canonicalize), path.file_name()) {
+        (Some(Ok(parent)), Some(name)) => parent.join(name),
+        _ => path.to_path_buf(),
+    }
+}
 fn rename_no_replace(from: &Path, to: &Path) -> Result<()> {
     #[cfg(target_os = "linux")]
     {
@@ -115,13 +122,16 @@ pub(crate) fn listing(
         if depth > 16 || out.len() >= 100_000 {
             return Ok(());
         }
+        let visible = unignored_children(path);
         let mut rows: Vec<_> = fs::read_dir(path)?
             .take(100_000 - out.len())
             .filter_map(Result::ok)
             .map(|e| {
                 let directory = e.path().is_dir();
+                let name = e.file_name();
                 Entry {
-                    name: e.file_name().to_string_lossy().into_owned(),
+                    ignored: name == ".git" || visible.as_ref().is_some_and(|v| !v.contains(&name)),
+                    name: name.to_string_lossy().into_owned(),
                     path: e.path().to_string_lossy().into_owned(),
                     directory,
                     depth,
@@ -159,10 +169,36 @@ pub(crate) fn listing(
             directory: true,
             depth: 0,
             expanded: false,
+            ignored: false,
         });
     }
     children(root, workspace, 0, expanded, tree, &mut rows)?;
     Ok(rows)
+}
+
+/// The names in `folder` that ignore rules (`.gitignore`, `.ignore`, Git's
+/// exclude files, as project search reads them) keep; hidden files count as
+/// kept. `None` when the folder cannot be walked, so nothing is marked.
+fn unignored_children(folder: &Path) -> Option<std::collections::HashSet<std::ffi::OsString>> {
+    let mut kept = std::collections::HashSet::new();
+    let walk = ignore::WalkBuilder::new(folder)
+        .max_depth(Some(1))
+        .hidden(false)
+        .git_ignore(true)
+        .git_global(true)
+        .git_exclude(true)
+        .ignore(true)
+        .parents(true)
+        .follow_links(false)
+        .require_git(false)
+        .build();
+    for entry in walk {
+        let entry = entry.ok()?;
+        if entry.depth() == 1 {
+            kept.insert(entry.file_name().to_os_string());
+        }
+    }
+    Some(kept)
 }
 
 impl App {
@@ -256,9 +292,123 @@ impl App {
                     self.refresh();
                 }
             }
+            // The TUI browses one folder at a time; collapsing everything
+            // returns it to the workspace root.
+            "collapse-all-folders" if self.terminal_frontend => self.browse(self.root.clone())?,
+            "collapse-all-folders" => {
+                self.expanded_folders.clear();
+                self.refresh();
+            }
+            "terminal-here" => {
+                let path = if argument.is_empty() {
+                    selected()?
+                } else {
+                    PathBuf::from(argument)
+                };
+                let folder = if path.is_dir() {
+                    path
+                } else {
+                    path.parent()
+                        .context("Select a file or folder")?
+                        .to_path_buf()
+                };
+                let folder = workspace_directory(&folder, &self.root)?;
+                self.expand_workspace()?;
+                let id = self.new_terminal_in(&folder)?;
+                self.add_tab(crate::layout::View::Terminal(id));
+            }
             _ => bail!("Unknown file action"),
         }
         Ok(())
+    }
+    /// Show `target` (a workspace path) selected in a file browser: the GUI
+    /// tree expands its folders; the TUI browses its folder.
+    pub(crate) fn reveal_in_files(&mut self, target: &Path) -> Result<()> {
+        let target = target
+            .canonicalize()
+            .with_context(|| format!("{} no longer exists", target.display()))?;
+        if !target.starts_with(&self.root) || target == self.root {
+            bail!("Only entries inside the workspace can be revealed");
+        }
+        self.focus_file_browser()?;
+        let folder = target.parent().context("Nothing to reveal")?.to_path_buf();
+        if self.terminal_frontend {
+            self.browse(folder)?;
+        } else {
+            if !target.starts_with(&self.browser) {
+                self.browse(self.root.clone())?;
+            }
+            for ancestor in folder.ancestors() {
+                if !ancestor.starts_with(&self.browser) || ancestor == self.browser {
+                    break;
+                }
+                self.expanded_folders.insert(ancestor.to_path_buf());
+            }
+            self.refresh();
+        }
+        // The listing just requested is the one to search.
+        self.pending_reveal = Some((target, self.browse_requests));
+        Ok(())
+    }
+    /// Ask for the browser's listing. A save, a file operation or several
+    /// expanded folders in a row need only the newest state, so this never
+    /// queues more than one listing behind the one being read.
+    pub(crate) fn request_listing(&mut self) {
+        self.browse_requests += 1;
+        self.send_listing();
+    }
+    /// Send the newest requested listing when none is being read. Also called
+    /// as events are processed, so a request the busy queue refused is retried.
+    pub(crate) fn send_listing(&mut self) {
+        if self.browse_sent.is_some() || self.browse_replies >= self.browse_requests {
+            return;
+        }
+        let job = crate::services::Job::Browse(
+            self.browser.clone(),
+            self.root.clone(),
+            self.expanded_folders.iter().cloned().collect(),
+            !self.terminal_frontend,
+        );
+        if self.services.tx.send(job).is_ok() {
+            self.browse_sent = Some(self.browse_requests);
+        }
+    }
+    /// A listing arrived: everything requested before it was sent is answered.
+    pub(crate) fn listing_answered(&mut self) {
+        if let Some(sent) = self.browse_sent.take() {
+            self.browse_replies = self.browse_replies.max(sent);
+        }
+    }
+    pub(crate) fn finish_reveal(&mut self) {
+        let Some((target, reply)) = self.pending_reveal.take() else {
+            return;
+        };
+        if self.browse_replies < reply {
+            self.pending_reveal = Some((target, reply));
+            return;
+        }
+        match self.files.iter().position(|e| Path::new(&e.path) == target) {
+            Some(index) => self.selected = index,
+            None => self.status = format!("{} is not listed", target.display()),
+        }
+    }
+    /// Focus the pane showing the file browser, adding one if none does.
+    pub(crate) fn focus_file_browser(&mut self) -> Result<()> {
+        if self.editor_only {
+            self.expand_workspace()?;
+        }
+        for pane in self.layout.panes() {
+            if let Some((tabs, active)) = self.layout.pane_mut(pane) {
+                if let Some(index) = tabs.iter().position(|v| *v == crate::layout::View::Files) {
+                    *active = index;
+                    self.focus = pane;
+                    return Ok(());
+                }
+            }
+        }
+        self.execute(Command::AddView {
+            kind: "files".into(),
+        })
     }
     pub(crate) fn confirm_trash(&mut self) -> Result<()> {
         let source = self.pending_file.take().context("No entry selected")?;
@@ -299,10 +449,21 @@ impl App {
                 let _ = self.execute(Command::Open { path });
             }
             FileOperation::Rename(from, to) => {
+                // Document paths stay canonical: the target may have been
+                // typed as `../name` or through a symlinked folder.
+                let (from, to) = (resolved(&from), to.canonicalize().unwrap_or(to));
+                // Joining an empty suffix would add a trailing separator.
+                let moved = |suffix: &Path| {
+                    if suffix.as_os_str().is_empty() {
+                        to.clone()
+                    } else {
+                        to.join(suffix)
+                    }
+                };
                 for doc in self.documents.values_mut() {
                     if let Some(suffix) = doc.path.as_ref().and_then(|p| p.strip_prefix(&from).ok())
                     {
-                        doc.path = Some(to.join(suffix));
+                        doc.path = Some(moved(suffix));
                         doc.generation += 1;
                     }
                 }
@@ -311,12 +472,12 @@ impl App {
                     .iter()
                     .map(|path| {
                         path.strip_prefix(&from)
-                            .map(|suffix| to.join(suffix))
+                            .map(moved)
                             .unwrap_or_else(|_| path.clone())
                     })
                     .collect();
                 if let Ok(suffix) = self.browser.strip_prefix(&from) {
-                    self.browser = to.join(suffix);
+                    self.browser = moved(suffix);
                 }
             }
             FileOperation::Trash(path) => {
@@ -339,6 +500,68 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn listing_requests_coalesce_into_one_follow_up() {
+        let _serial = crate::paths::TEST_ENV
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("XDG_CONFIG_HOME", dir.path().join("config"));
+        std::env::set_var("XDG_STATE_HOME", dir.path().join("state"));
+        let root = dir.path().join("workspace");
+        fs::create_dir_all(&root).unwrap();
+        let mut app = App::new(&root).unwrap();
+        let in_flight = app.browse_sent;
+        assert!(
+            in_flight.is_some(),
+            "the session asks for its first listing"
+        );
+        // Saves and file operations each ask again; none queue behind it.
+        fs::write(root.join("late.txt"), "").unwrap();
+        for _ in 0..50 {
+            app.refresh();
+        }
+        assert_eq!(app.browse_sent, in_flight, "no second listing was queued");
+        let wanted = app.browse_requests;
+        for _ in 0..500 {
+            app.process_events();
+            if app.browse_replies >= wanted {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        }
+        assert!(
+            app.browse_replies >= wanted,
+            "the follow-up listing was read"
+        );
+        assert!(
+            app.files.iter().any(|e| e.name == "late.txt"),
+            "it saw the newest state"
+        );
+        assert!(app.browse_sent.is_none());
+    }
+
+    #[test]
+    fn listing_marks_ignored_entries_without_hiding_them() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().canonicalize().unwrap();
+        fs::create_dir_all(root.join(".git")).unwrap();
+        fs::create_dir_all(root.join("target/debug")).unwrap();
+        fs::create_dir_all(root.join("src")).unwrap();
+        fs::write(root.join(".gitignore"), "target/\n*.log\n").unwrap();
+        fs::write(root.join("build.log"), "").unwrap();
+        fs::write(root.join(".env"), "").unwrap();
+        fs::write(root.join("src/main.rs"), "").unwrap();
+        fs::write(root.join("src/trace.log"), "").unwrap();
+        let rows = listing(&root, &root, &[root.join("src")], true).unwrap();
+        let ignored = |name: &str| rows.iter().find(|e| e.name == name).unwrap().ignored;
+        assert!(ignored(".git") && ignored("target") && ignored("build.log"));
+        assert!(ignored("trace.log"), "nested rows use their parents' rules");
+        // Hidden files are not ignored files.
+        assert!(!ignored(".env") && !ignored(".gitignore") && !ignored("src"));
+        assert!(!ignored("main.rs"));
+    }
 
     #[cfg(unix)]
     #[test]
@@ -390,13 +613,14 @@ mod tests {
         let path = dir.path().join("source.txt");
         fs::write(&path, "data").unwrap();
         let mut app = App::new(&path).unwrap();
-        app.files = vec![Entry {
+        app.files = std::sync::Arc::new(vec![Entry {
             name: "source.txt".into(),
             path: path.to_string_lossy().into_owned(),
             directory: false,
             depth: 0,
             expanded: false,
-        }];
+            ignored: false,
+        }]);
         let id = *app.documents.keys().next().unwrap();
         app.documents
             .get_mut(&id)
@@ -418,5 +642,48 @@ mod tests {
             .contains("Wait for saves"));
         assert!(path.exists());
         assert!(!dir.path().join("renamed.txt").exists());
+    }
+    #[test]
+    fn renaming_an_open_file_keeps_a_canonical_savable_path() {
+        let _serial = crate::paths::TEST_ENV
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("XDG_CONFIG_HOME", dir.path().join("config"));
+        std::env::set_var("XDG_STATE_HOME", dir.path().join("state"));
+        let root = dir.path().canonicalize().unwrap();
+        fs::create_dir(root.join("sub")).unwrap();
+        std::os::unix::fs::symlink(root.join("sub"), root.join("link")).unwrap();
+        let path = root.join("sub/source.txt");
+        fs::write(&path, "data").unwrap();
+        let mut app = App::new(&path).unwrap();
+        let id = *app.documents.keys().next().unwrap();
+        // Renamed out through `..`, then back in through a symlinked folder.
+        for (from, to, expected) in [
+            (
+                path.clone(),
+                root.join("sub/../moved.txt"),
+                root.join("moved.txt"),
+            ),
+            (
+                root.join("moved.txt"),
+                root.join("link/back.txt"),
+                root.join("sub/back.txt"),
+            ),
+        ] {
+            FileOperation::Rename(from.clone(), to.clone())
+                .run()
+                .unwrap();
+            app.file_operation_done(FileOperation::Rename(from, to), Ok(()));
+            assert_eq!(app.documents[&id].path.as_deref(), Some(&*expected));
+            assert_eq!(app.document_for(&expected), Some(id));
+        }
+        let doc = app.documents.get_mut(&id).unwrap();
+        doc.replace(0, 0, "saved ", 0).unwrap();
+        doc.save(None).unwrap();
+        assert_eq!(
+            fs::read_to_string(root.join("sub/back.txt")).unwrap(),
+            "saved data"
+        );
     }
 }

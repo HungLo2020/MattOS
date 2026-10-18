@@ -169,7 +169,7 @@ uint32_t collect_profile_info(struct pw_manager_object *card, struct card_info *
 				SPA_PARAM_PROFILE_description,  SPA_POD_OPT_String(&pi->description),
 				SPA_PARAM_PROFILE_priority,  SPA_POD_OPT_Int(&pi->priority),
 				SPA_PARAM_PROFILE_available,  SPA_POD_OPT_Id(&pi->available),
-				SPA_PARAM_PROFILE_classes,  SPA_POD_OPT_Pod(&classes)) < 0) {
+				SPA_PARAM_PROFILE_classes,  SPA_POD_OPT_PodStruct(&classes)) < 0) {
 			continue;
 		}
 		if (pi->description == NULL)
@@ -246,7 +246,7 @@ static void collect_device_info(struct pw_manager_object *device, struct pw_mana
 					SPA_TYPE_OBJECT_ParamRoute, NULL,
 					SPA_PARAM_ROUTE_index, SPA_POD_Int(&index),
 					SPA_PARAM_ROUTE_device,  SPA_POD_Int(&dev),
-					SPA_PARAM_ROUTE_props,  SPA_POD_OPT_Pod(&props)) < 0)
+					SPA_PARAM_ROUTE_props,  SPA_POD_OPT_PodObject(&props)) < 0)
 				continue;
 			if (dev != dev_info->device)
 				continue;
@@ -359,17 +359,21 @@ static bool array_contains(uint32_t *vals, uint32_t n_vals, uint32_t val)
 }
 
 uint32_t collect_port_info(struct pw_manager_object *card, struct card_info *card_info,
-			   struct device_info *dev_info, struct port_info *port_info)
+			   struct device_info *dev_info, struct port_info *port_info,
+			   const char **active_port_name)
 {
 	struct pw_manager_param *p;
 	uint32_t n;
+	const char *aport_name = NULL;
 
 	if (card == NULL)
 		return 0;
 
 	n = 0;
 	spa_list_for_each(p, &card->param_list, link) {
-		struct spa_pod *devices = NULL, *profiles = NULL;
+		int32_t *devices = NULL, *profiles = NULL;
+		uint32_t devices_size = 0, devices_type = 0, n_devices = 0;
+		uint32_t profiles_size = 0, profiles_type = 0, n_profiles = 0;
 		struct port_info *pi;
 
 		if (p->id != SPA_PARAM_EnumRoute)
@@ -387,16 +391,24 @@ uint32_t collect_port_info(struct pw_manager_object *card, struct card_info *car
 				SPA_PARAM_ROUTE_priority,  SPA_POD_OPT_Int(&pi->priority),
 				SPA_PARAM_ROUTE_available,  SPA_POD_OPT_Id(&pi->available),
 				SPA_PARAM_ROUTE_info,  SPA_POD_OPT_Pod(&pi->info),
-				SPA_PARAM_ROUTE_devices,  SPA_POD_OPT_Pod(&devices),
-				SPA_PARAM_ROUTE_profiles,  SPA_POD_OPT_Pod(&profiles)) < 0)
+				SPA_PARAM_ROUTE_devices, SPA_POD_OPT_Array(&devices_size,
+					&devices_type, &n_devices, &devices),
+				SPA_PARAM_ROUTE_profiles, SPA_POD_OPT_Array(&profiles_size,
+					&profiles_type, &n_profiles, &profiles)) < 0)
 			continue;
 
 		if (pi->description == NULL)
 			pi->description = pi->name;
-		if (devices)
-			pi->devices = spa_pod_get_array(devices, &pi->n_devices);
-		if (profiles)
-			pi->profiles = spa_pod_get_array(profiles, &pi->n_profiles);
+		if (devices && devices_size == sizeof(pi->devices[0]) &&
+		    devices_type == SPA_TYPE_Int) {
+			pi->devices = (uint32_t*)devices;
+			pi->n_devices = n_devices;
+		}
+		if (profiles && profiles_size == sizeof(pi->profiles[0]) &&
+		    profiles_type == SPA_TYPE_Int) {
+			pi->profiles = (uint32_t*)profiles;
+			pi->n_profiles = n_profiles;
+		}
 
 		if (dev_info != NULL) {
 			if (pi->direction != dev_info->direction)
@@ -406,7 +418,7 @@ uint32_t collect_port_info(struct pw_manager_object *card, struct card_info *car
 			if (!array_contains(pi->devices, pi->n_devices, dev_info->device))
 				continue;
 			if (pi->index == dev_info->active_port)
-				dev_info->active_port_name = pi->name;
+				aport_name = pi->name;
 		}
 
 		while (pi->info != NULL) {
@@ -436,8 +448,11 @@ uint32_t collect_port_info(struct pw_manager_object *card, struct card_info *car
 		}
 		n++;
 	}
-	if (dev_info != NULL && dev_info->active_port_name == NULL && n > 0)
-		dev_info->active_port_name = port_info[0].name;
+	if (aport_name == NULL && n > 0)
+		aport_name = port_info[0].name;
+
+	if (active_port_name)
+		*active_port_name = aport_name;
 	return n;
 }
 
@@ -467,7 +482,8 @@ uint32_t find_port_index(struct pw_manager_object *card, uint32_t direction, con
 	return SPA_ID_INVALID;
 }
 
-struct spa_dict *collect_props(struct spa_pod *info, struct spa_dict *dict)
+struct spa_dict *collect_props(struct spa_pod *info, struct spa_dict *dict,
+			       struct spa_dict_item *items, size_t capacity)
 {
 	struct spa_pod_parser prs;
 	struct spa_pod_frame f[1];
@@ -478,15 +494,18 @@ struct spa_dict *collect_props(struct spa_pod *info, struct spa_dict *dict)
 	    spa_pod_parser_get_int(&prs, &n_items) < 0)
 		return NULL;
 
+	if (n_items < 0 || (size_t) n_items > capacity)
+		return NULL;
+
 	for (n = 0; n < n_items; n++) {
 		if (spa_pod_parser_get(&prs,
-				SPA_POD_String(&dict->items[n].key),
-				SPA_POD_String(&dict->items[n].value),
+				SPA_POD_String(&items[n].key),
+				SPA_POD_String(&items[n].value),
 				NULL) < 0)
 			break;
 	}
 	spa_pod_parser_pop(&prs, &f[0]);
-	dict->n_items = n;
+	*dict = SPA_DICT_INIT(items, n);
 	return dict;
 }
 
@@ -524,8 +543,11 @@ uint32_t collect_transport_codec_info(struct pw_manager_object *card,
 		if (iid != SPA_PROP_bluetoothAudioCodec)
 			continue;
 
-		if (SPA_POD_CHOICE_TYPE(type) != SPA_CHOICE_Enum ||
-				SPA_POD_TYPE(SPA_POD_CHOICE_CHILD(type)) != SPA_TYPE_Int)
+		if (type->pod.size < sizeof(struct spa_pod_choice_body) +
+		                     2 * sizeof(int32_t) ||
+		    type->body.type != SPA_CHOICE_Enum ||
+		    type->body.child.type != SPA_TYPE_Int ||
+		    type->body.child.size != sizeof(int32_t))
 			continue;
 
 		/*

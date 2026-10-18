@@ -27,6 +27,7 @@
 
 #include <gst/check/gstcheck.h>
 #include <gst/sdp/gstsdpmessage.h>
+#include <gst/pbutils/pbutils.h>
 
 /* *INDENT-OFF* */
 static const gchar *sdp = "v=0\r\n"
@@ -79,6 +80,17 @@ static const gchar caps_video_string2[] =
 static const gchar caps_audio_string[] =
     "application/x-unknown, media=(string)audio, payload=(int)14, "
     "clock-rate=(int)90000";
+
+static const gchar caps_opus_dtmf[] =
+    "application/x-unknown, media=(string)audio, payload=(int)98, "
+    "clock-rate=(int)48000, encoding-name=(string)OPUS; "
+    "application/x-unknown, media=(string)audio, payload=(int)110, "
+    "clock-rate=(int)48000, encoding-name=(string)TELEPHONE-EVENT;";
+
+static const gchar *sdp_opus_dtmf =
+    "m=audio 0 (null) 98 110\r\n"
+    "a=rtpmap:98 OPUS/48000\r\n"
+    "a=rtpmap:110 TELEPHONE-EVENT/48000\r\n";
 
 static const gchar * sdp_rtcp_fb = "v=0\r\n"
     "o=- 123456 2 IN IP4 127.0.0.1 \r\n"
@@ -763,21 +775,90 @@ GST_START_TEST (media_from_caps_h264_with_profile_asymmetry_allowed)
   const GstSDPMedia *result_video;
   GstStructure *s_video;
   GstCaps *caps_video;
+  GstSDPMedia media;
+  GstSDPResult ret = GST_SDP_OK;
+  const gchar *fmtp;
+  gboolean profile_level_id_found = FALSE;
+  gboolean level_asymmetry_allowed = FALSE;
+  gchar **pairs;
+  const gchar *params;
 
   gst_sdp_message_new (&message);
   gst_sdp_message_parse_buffer ((guint8 *) h264_sdp, length, message);
-
 
   result_video = gst_sdp_message_get_media (message, 0);
   fail_unless (result_video != NULL);
   caps_video = gst_sdp_media_get_caps_from_media (result_video, 96);
 
   s_video = gst_caps_get_structure (caps_video, 0);
-  fail_if (gst_structure_has_field (s_video, "level-asymmetry-allowed"));
-  fail_if (gst_structure_has_field (s_video, "profile-level-id"));
+  fail_if (!gst_structure_has_field (s_video, "level-asymmetry-allowed"));
   fail_unless_equals_string (gst_structure_get_string (s_video, "profile"),
       "constrained-baseline");
 
+  /* Check that the conversion from caps to SDP preserved the profile and level
+   * caps fields, through the profile-level-id SDP sub-attribute of the fmtp
+   * attribute. */
+  memset (&media, 0, sizeof (media));
+  fail_unless_equals_int (GST_SDP_OK, gst_sdp_media_init (&media));
+
+  ret = gst_sdp_media_set_media_from_caps (caps_video, &media);
+  fail_unless (ret == GST_SDP_OK);
+
+  fmtp = gst_sdp_media_get_attribute_val (&media, "fmtp");
+  fail_unless (fmtp != NULL);
+
+  /* Move to start of params skipping the pt followed by space */
+  params = strchr (fmtp, ' ');
+
+  fail_unless (params);
+  pairs = g_strsplit (params + 1, ";", 0);
+  for (int i = 0; pairs[i]; i++) {
+    gchar *valpos;
+    const gchar *val, *key;
+    valpos = strstr (pairs[i], "=");
+    if (valpos) {
+      /* we have a '=' and thus a value, remove the '=' with \0 */
+      *valpos = '\0';
+      /* value is everything between '=' and ';'. We split the pairs at ;
+       * boundaries so we can take the remainder of the value. Some servers
+       * put spaces around the value which we strip off here. Alternatively
+       * we could strip those spaces in the depayloaders should these spaces
+       * actually carry any meaning in the future. */
+      val = g_strstrip (valpos + 1);
+    } else {
+      /* simple <param>;.. is translated into <param>=1;... */
+      val = "1";
+    }
+    /* strip the key of spaces, convert key to lowercase but not the value. */
+    key = g_strstrip (pairs[i]);
+    if (!strcmp (key, "profile-level-id")) {
+      gint64 spsint;
+      guint8 sps[3];
+      spsint = g_ascii_strtoll (val, NULL, 16);
+      sps[0] = spsint >> 16;
+      sps[1] = (spsint >> 8) & 0xff;
+      sps[2] = spsint & 0xff;
+
+      g_print ("%s\n", val);
+
+      fail_unless_equals_string (gst_codec_utils_h264_get_profile (sps, 3),
+          "constrained-baseline");
+      fail_unless_equals_string (gst_codec_utils_h264_get_level (sps, 3),
+          "3.1");
+      profile_level_id_found = TRUE;
+      break;
+    }
+
+    if (!strcmp (key, "level-asymmetry-allowed")) {
+      if (!strcmp (val, "1"))
+        level_asymmetry_allowed = TRUE;
+    }
+  }
+  g_strfreev (pairs);
+  fail_unless (profile_level_id_found);
+  fail_unless (level_asymmetry_allowed);
+
+  gst_sdp_media_uninit (&media);
   gst_caps_unref (caps_video);
   gst_sdp_message_free (message);
 }
@@ -984,6 +1065,37 @@ GST_START_TEST (media_remove)
 }
 
 GST_END_TEST
+GST_START_TEST (media_from_all_caps)
+{
+  GstSDPResult ret = GST_SDP_OK;
+  GstCaps *caps = gst_caps_from_string (caps_opus_dtmf);
+  GstSDPMedia *media;
+  gchar *sdp;
+  guint caps_size = gst_caps_get_size (caps);
+
+  gst_sdp_media_new (&media);
+  fail_unless (media != NULL);
+
+  for (guint i = 0; i < caps_size; i++) {
+    const GstStructure *s = gst_caps_get_structure (caps, i);
+    ret = gst_sdp_media_add_media_from_structure (s, media);
+    fail_unless (ret == GST_SDP_OK);
+  }
+
+  gst_caps_unref (caps);
+
+  fail_unless_equals_int (gst_sdp_media_formats_len (media), 2);
+  fail_unless_equals_string (gst_sdp_media_get_format (media, 0), "98");
+  fail_unless_equals_string (gst_sdp_media_get_format (media, 1), "110");
+
+  sdp = gst_sdp_media_as_text (media);
+  fail_unless_equals_string (sdp, sdp_opus_dtmf);
+  g_free (sdp);
+
+  gst_sdp_media_free (media);
+}
+
+GST_END_TEST
 /*
  * End of test cases
  */
@@ -1014,6 +1126,7 @@ sdp_suite (void)
   tcase_add_test (tc_chain, caps_multiple_rid_parse_with_params);
   tcase_add_test (tc_chain, media_from_caps_with_source_filters);
   tcase_add_test (tc_chain, media_remove);
+  tcase_add_test (tc_chain, media_from_all_caps);
 
   return s;
 }

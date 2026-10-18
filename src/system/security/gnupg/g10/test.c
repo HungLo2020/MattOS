@@ -25,6 +25,7 @@
 
 #define INCLUDED_BY_MAIN_MODULE 1
 #include "gpg.h"
+#include "../common/name-value.h"
 
 /* A unit test consists of one or more tests.  Tests can be broken
    into groups and each group can consist of one or more tests.  */

@@ -300,7 +300,7 @@ TSS_Create(TSS_CONTEXT **tssContext)
 	}
       else
 	{
-	  fprintf(stderr, "Unknown TPM_INTERFACE_TYPE %s\n", intType);
+	  log_error ("tss: Unknown TPM_INTERFACE_TYPE %s\n", intType);
 	}
     }
 
@@ -344,7 +344,7 @@ TSS_Hash_Generate(TPMT_HA *digest, ...)
   int length;
   uint8_t *buffer;
   int algo;
-  gcry_md_hd_t md;
+  gcry_md_hd_t md = NULL;
   va_list ap;
 
   va_start(ap, digest);
@@ -352,17 +352,17 @@ TSS_Hash_Generate(TPMT_HA *digest, ...)
   rc = TSS_Hash_GetMd(&algo, digest->hashAlg);
   if (rc)
     {
-      fprintf(stderr, "TSS_HASH_GENERATE: Unknown hash %d\n",
-	      digest->hashAlg);
-      goto out;
+      log_error ("TSS_Hash_Generate: Unknown hash %d\n", digest->hashAlg);
+      goto leave;
     }
 
   rc = gcry_md_open (&md, algo, 0);
   if (rc != 0)
     {
-      fprintf(stderr, "TSS_Hash_Generate: EVP_MD_CTX_create failed\n");
+      log_error ("TSS_Hash_Generate: EVP_MD_CTX_create failed: %s\n",
+                 gpg_strerror (rc));
       rc = TPM_RC_FAILURE;
-      goto out;
+      goto leave;
     }
 
   rc = TPM_RC_FAILURE;
@@ -374,19 +374,24 @@ TSS_Hash_Generate(TPMT_HA *digest, ...)
 	break;
       if (length < 0)
 	{
-	  fprintf(stderr, "TSS_Hash_Generate: Length is negative\n");
-	  goto out_free;
+	  log_error ("%s: Length is negative\n", "TSS_Hash_Generate");
+	  goto leave;
 	}
       if (length != 0)
 	gcry_md_write (md, buffer, length);
     }
 
-  memcpy (&digest->digest, gcry_md_read (md, algo),
-	  TSS_GetDigestSize(digest->hashAlg));
+  length = TSS_GetDigestSize(digest->hashAlg);
+  if (length < 0)
+    {
+      log_error ("%s: Length is negative\n", "TSS_GetDigestSize");
+      goto leave;
+    }
+  memcpy (&digest->digest, gcry_md_read (md, algo), length);
   rc = TPM_RC_SUCCESS;
- out_free:
+
+ leave:
   gcry_md_close (md);
- out:
   va_end(ap);
   return rc;
 }
@@ -408,9 +413,8 @@ tpm2_error(TPM_RC rc, const char *reason)
 {
   const char *msg;
 
-  fprintf(stderr, "%s failed with %d\n", reason, rc);
   msg = Tss2_RC_Decode(rc);
-  fprintf(stderr, "%s\n", msg);
+  log_error ("%s failed with error %d (%s)\n", reason, rc, msg);
 }
 
 static inline int

@@ -6,6 +6,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "scanner-utils.h"
@@ -30,12 +31,16 @@ number(struct scanner *s, int64_t *out, int *out_tok)
         }
     }
     else {
+        bool is_digit = false;
         switch (scanner_dec_int64(s, out)) {
         case -1:
             *out_tok = ERROR_TOK;
             return true;
         case 0:
             return false;
+        case 1:
+            is_digit = true;
+            break;
         default:
             ;
         }
@@ -56,6 +61,8 @@ number(struct scanner *s, int64_t *out, int *out_tok)
                 return true;
             }
             *out_tok = FLOAT;
+        } else if (is_digit) {
+            *out_tok = DECIMAL_DIGIT;
         } else {
             *out_tok = INTEGER;
         }
@@ -197,7 +204,7 @@ skip_more_whitespace_and_comments:
             scanner_next(s);
 
         const char *start = s->s + s->token_pos;
-        const unsigned int len = s->pos - s->token_pos;
+        const size_t len = s->pos - s->token_pos;
 
         /* Keyword. */
         tok = keyword_to_token(start, len);
@@ -222,27 +229,50 @@ skip_more_whitespace_and_comments:
     return ERROR_TOK;
 }
 
+bool
+XkbParseStringInit(struct xkb_context *ctx, struct scanner *scanner,
+                   const char *string, size_t len,
+                   const char *file_name, const char *map)
+{
+    scanner_init(scanner, ctx, string, len, file_name, NULL);
+
+    /* Basic detection of wrong character encoding.
+       The first character relevant to the grammar must be ASCII:
+       whitespace, section, comment */
+    if (!scanner_check_supported_char_encoding(scanner)) {
+        scanner_err(scanner, XKB_ERROR_INVALID_FILE_ENCODING,
+                    "This could be a file encoding issue. "
+                    "Supported encodings must be backward compatible with ASCII.");
+        scanner_err(scanner, XKB_ERROR_INVALID_FILE_ENCODING,
+                    "E.g. ISO/CEI 8859 and UTF-8 are supported "
+                    "but UTF-16, UTF-32 and CP1026 are not.");
+        return false;
+    }
+
+    return true;
+}
+
 XkbFile *
 XkbParseString(struct xkb_context *ctx, const char *string, size_t len,
                const char *file_name, const char *map)
 {
     struct scanner scanner;
-    scanner_init(&scanner, ctx, string, len, file_name, NULL);
-
-    /* Basic detection of wrong character encoding.
-       The first character relevant to the grammar must be ASCII:
-       whitespace, section, comment */
-    if (!scanner_check_supported_char_encoding(&scanner)) {
-        scanner_err(&scanner, XKB_ERROR_INVALID_FILE_ENCODING,
-                    "This could be a file encoding issue. "
-                    "Supported encodings must be backward compatible with ASCII.");
-        scanner_err(&scanner, XKB_ERROR_INVALID_FILE_ENCODING,
-                    "E.g. ISO/CEI 8859 and UTF-8 are supported "
-                    "but UTF-16, UTF-32 and CP1026 are not.");
+    if (!XkbParseStringInit(ctx, &scanner, string, len, file_name, map))
         return NULL;
-    }
 
     return parse(ctx, &scanner, map);
+}
+
+bool
+XkbParseStringNext(struct xkb_context *ctx, struct scanner *scanner,
+                   const char *map, XkbFile **out)
+{
+    if (map) {
+        *out = parse(ctx, scanner, map);
+        return !!(*out);
+    } else {
+        return parse_next(ctx, scanner, out);
+    }
 }
 
 XkbFile *

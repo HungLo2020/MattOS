@@ -163,7 +163,7 @@ _keybox_get_flag_location (const unsigned char *buffer, size_t length,
           break;
         case KEYBOX_FLAG_CREATED_AT:
           *flag_size = 4;
-          *flag_off += 1+2+4+4+4;
+          *flag_off += 1+1+2+4+4;
           break;
         case KEYBOX_FLAG_SIG_INFO:
           *flag_size = siginfolen * nsigs;
@@ -279,7 +279,8 @@ blob_cmp_fpr (KEYBOXBLOB blob, const unsigned char *fpr, unsigned int fprlen)
 }
 
 
-/* Helper for has_short_kid and has_long_kid.  */
+/* Helper for has_short_kid and has_long_kid.  This function is called
+ * with FPROFF 12 and FPRLEN 4 or with FPROFF 12 and FPRLEN 8.  */
 static int
 blob_cmp_fpr_part (KEYBOXBLOB blob, const unsigned char *fpr,
                    int fproff, int fprlen)
@@ -288,7 +289,8 @@ blob_cmp_fpr_part (KEYBOXBLOB blob, const unsigned char *fpr,
   size_t length;
   size_t pos, off;
   size_t nkeys, keyinfolen;
-  int idx, fpr32, storedfprlen;
+  int idx;
+  int fpr32;    /* Set if this blob stores all fingerprints as 32 bytes. */
 
   buffer = _keybox_get_blob_image (blob, &length);
   if (length < 40)
@@ -307,13 +309,24 @@ blob_cmp_fpr_part (KEYBOXBLOB blob, const unsigned char *fpr,
   for (idx=0; idx < nkeys; idx++)
     {
       off = pos + idx*keyinfolen;
-      if (fpr32)
-        storedfprlen = (get16 (buffer + off + 32) & 0x80)? 32:20;
+      if (!fpr32)
+        {
+          /* Blob has only 20 fingerprints - use the FPROFF.    */
+          if (!memcmp (buffer + off + fproff, fpr, fprlen))
+            return idx+1; /* found */
+        }
+      else if ((buffer[off + 32 + 1] & 0x80))
+        {
+          /* This (sub)key has a 32 byte fpr -> use 0 as offset. */
+          if (!memcmp (buffer + off, fpr, fprlen))
+            return idx+1; /* found */
+        }
       else
-        storedfprlen = 20;
-      if ((fpr32 || storedfprlen == fproff + fprlen)
-          && !memcmp (buffer + off + fproff, fpr, fprlen))
-        return idx+1; /* found */
+        {
+          /* This (sub)key has a 20 byte fpr -> use the FPROFF  */
+          if (!memcmp (buffer + off + fproff, fpr, fprlen))
+            return idx+1; /* found */
+        }
     }
   return 0; /* not found */
 }
@@ -576,7 +589,7 @@ blob_openpgp_has_grip (KEYBOXBLOB blob, const unsigned char *grip)
   if ((uint64_t)cert_off+(uint64_t)cert_len > (uint64_t)length)
     return 0; /* Too short.  */
 
-  if (_keybox_parse_openpgp (buffer + cert_off, cert_len, NULL, &info))
+  if (_keybox_parse_openpgp (buffer + cert_off, cert_len, 0, NULL, &info))
     return 0; /* Parse error.  */
 
   if (!memcmp (info.primary.grip, grip, 20))
@@ -683,43 +696,30 @@ blob_x509_has_grip (KEYBOXBLOB blob, const unsigned char *grip)
 static inline int
 has_short_kid (KEYBOXBLOB blob, u32 lkid)
 {
-  const unsigned char *buffer;
   size_t length;
-  int fpr32;
   unsigned char buf[4];
 
-  buffer = _keybox_get_blob_image (blob, &length);
+  _keybox_get_blob_image (blob, &length);
   if (length < 48)
     return 0; /* blob too short */
-  fpr32 = buffer[5] == 2;
-  if (fpr32 && length < 56)
-    return 0; /* blob to short */
 
   buf[0] = lkid >> 24;
   buf[1] = lkid >> 16;
   buf[2] = lkid >> 8;
   buf[3] = lkid;
 
-  if (fpr32 && (get16 (buffer + 20 + 32) & 0x80))
-    return blob_cmp_fpr_part (blob, buf, 0, 4);
-  else
-    return blob_cmp_fpr_part (blob, buf, 16, 4);
+  return blob_cmp_fpr_part (blob, buf, 16, 4);
 }
 
 static inline int
 has_long_kid (KEYBOXBLOB blob, u32 mkid, u32 lkid)
 {
-  const unsigned char *buffer;
   size_t length;
-  int fpr32;
   unsigned char buf[8];
 
-  buffer = _keybox_get_blob_image (blob, &length);
+  _keybox_get_blob_image (blob, &length);
   if (length < 48)
     return 0; /* blob too short */
-  fpr32 = buffer[5] == 2;
-  if (fpr32 && length < 56)
-    return 0; /* blob to short */
 
   buf[0] = mkid >> 24;
   buf[1] = mkid >> 16;
@@ -730,10 +730,7 @@ has_long_kid (KEYBOXBLOB blob, u32 mkid, u32 lkid)
   buf[6] = lkid >> 8;
   buf[7] = lkid;
 
-  if (fpr32 && (get16 (buffer + 20 + 32) & 0x80))
-    return blob_cmp_fpr_part (blob, buf, 0, 8);
-  else
-    return blob_cmp_fpr_part (blob, buf, 12, 8);
+  return blob_cmp_fpr_part (blob, buf, 12, 8);
 }
 
 static inline int
@@ -1366,6 +1363,7 @@ keybox_get_cert (KEYBOX_HANDLE hd, ksba_cert_t *r_cert)
   size_t cert_off, cert_len;
   ksba_reader_t reader = NULL;
   ksba_cert_t cert = NULL;
+  unsigned int blobflags;
   int rc;
 
   if (!hd)
@@ -1409,6 +1407,17 @@ keybox_get_cert (KEYBOX_HANDLE hd, ksba_cert_t *r_cert)
       ksba_reader_release (reader);
       /* fixme: need to map the error codes */
       return gpg_error (GPG_ERR_GENERAL);
+    }
+
+  rc = get_flag_from_image (buffer, length, KEYBOX_FLAG_BLOB, &blobflags);
+  if (!rc)
+    rc = ksba_cert_set_user_data (cert, "keydb.blobflags",
+                                  &blobflags, sizeof blobflags);
+  if (rc)
+    {
+      ksba_cert_release (cert);
+      ksba_reader_release (reader);
+      return gpg_error (rc);
     }
 
   *r_cert = cert;

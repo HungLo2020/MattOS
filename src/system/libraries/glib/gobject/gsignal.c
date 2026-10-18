@@ -26,8 +26,9 @@
 
 #include "config.h"
 
-#include <string.h>
 #include <signal.h>
+#include <stdint.h>
+#include <string.h>
 
 #include "gsignal.h"
 #include "gtype-private.h"
@@ -71,10 +72,9 @@ static inline Handler*		handler_new		(guint            signal_id,
 static	      void		handler_insert		(guint		  signal_id,
 							 gpointer	  instance,
 							 Handler	 *handler);
-static	      Handler*		handler_lookup		(gpointer	  instance,
-							 gulong		  handler_id,
-							 GClosure        *closure,
-							 guint		 *signal_id_p);
+static	      Handler *         handler_lookup_by_closure (gpointer       instance,
+                                                           GClosure      *closure,
+                                                           guint         *signal_id_p);
 static inline HandlerMatch*	handler_match_prepend	(HandlerMatch	 *list,
 							 Handler	 *handler,
 							 guint		  signal_id);
@@ -427,22 +427,47 @@ handler_equal (gconstpointer a, gconstpointer b)
       (ha->instance  == hb->instance);
 }
 
+static Handler *
+handler_lookup_by_id (gpointer instance,
+                      gulong   handler_id)
+{
+  Handler key;
+
+  g_assert (handler_id != 0);
+
+  key.sequential_number = handler_id;
+  key.instance = instance;
+
+  return g_hash_table_lookup (g_handlers, &key);
+}
+
+static Handler *
+handler_steal_by_id (gpointer instance,
+                     gulong   handler_id)
+{
+  Handler key;
+  Handler *handler = NULL;
+
+  g_assert (handler_id != 0);
+
+  key.sequential_number = handler_id;
+  key.instance = instance;
+
+  if (!g_hash_table_steal_extended (g_handlers, &key,
+                                    (gpointer *) &handler, NULL))
+    return NULL;
+
+  return handler;
+}
+
 static Handler*
-handler_lookup (gpointer  instance,
-		gulong    handler_id,
-		GClosure *closure,
-		guint    *signal_id_p)
+handler_lookup_by_closure (gpointer  instance,
+                           GClosure *closure,
+                           guint    *signal_id_p)
 {
   GBSearchArray *hlbsa;
 
-  if (handler_id)
-    {
-      Handler key;
-      key.sequential_number = handler_id;
-      key.instance = instance;
-      return g_hash_table_lookup (g_handlers, &key);
-
-    }
+  g_assert (closure != NULL);
 
   hlbsa = g_hash_table_lookup (g_handler_list_bsa_ht, instance);
   
@@ -456,7 +481,7 @@ handler_lookup (gpointer  instance,
           Handler *handler;
           
           for (handler = hlist->handlers; handler; handler = handler->next)
-            if (closure ? (handler->closure == closure) : (handler->sequential_number == handler_id))
+            if (handler->closure == closure)
               {
                 if (signal_id_p)
                   *signal_id_p = hlist->signal_id;
@@ -755,7 +780,7 @@ node_update_single_va_closure (SignalNode *node)
 
   node->single_va_closure_is_valid = TRUE;
   node->single_va_closure = closure;
-  node->single_va_closure_is_after = is_after;
+  node->single_va_closure_is_after = (guint) is_after;
 }
 
 static inline void
@@ -935,8 +960,8 @@ signal_finalize_hook (GHookList *hook_list,
  * g_signal_add_emission_hook:
  * @signal_id: the signal identifier, as returned by g_signal_lookup().
  * @detail: the detail on which to call the hook.
- * @hook_func: (not nullable): a #GSignalEmissionHook function.
- * @hook_data: (nullable) (closure hook_func): user data for @hook_func.
+ * @hook_func: (not nullable) (closure hook_data): a #GSignalEmissionHook function.
+ * @hook_data: (nullable): user data for @hook_func.
  * @data_destroy: (nullable) (destroy hook_data): a #GDestroyNotify for @hook_data.
  *
  * Adds an emission hook for a signal, which will get called for any emission
@@ -1056,7 +1081,7 @@ signal_parse_name (const gchar *name,
   else if (colon[1] == ':')
     {
       gchar buffer[32];
-      guint l = colon - name;
+      size_t l = (size_t) (colon - name);
       
       if (colon[2] == '\0')
         return 0;
@@ -1359,8 +1384,8 @@ g_signal_query (guint         signal_id,
  * @class_offset: The offset of the function pointer in the class structure
  *  for this type. Used to invoke a class method generically. Pass 0 to
  *  not associate a class method slot with this signal.
- * @accumulator: (nullable) (scope forever): the accumulator for this signal; may be %NULL.
- * @accu_data: (nullable) (closure accumulator): user data for the @accumulator.
+ * @accumulator: (nullable) (scope forever) (closure accu_data): the accumulator for this signal; may be %NULL.
+ * @accu_data: (nullable): user data for the @accumulator.
  * @c_marshaller: (nullable): the function to translate arrays of parameter
  *  values to signal emissions into C language callback invocations or %NULL.
  * @return_type: the type of return value, or %G_TYPE_NONE for a signal
@@ -1435,8 +1460,8 @@ g_signal_new (const gchar	 *signal_name,
  * @class_handler: (nullable) (scope forever): a #GCallback which acts as class implementation of
  *  this signal. Used to invoke a class method generically. Pass %NULL to
  *  not associate a class method with this signal.
- * @accumulator: (nullable) (scope forever): the accumulator for this signal; may be %NULL.
- * @accu_data: (nullable) (closure accumulator): user data for the @accumulator.
+ * @accumulator: (nullable) (scope forever) (closure accu_data): the accumulator for this signal; may be %NULL.
+ * @accu_data: (nullable): user data for the @accumulator.
  * @c_marshaller: (nullable): the function to translate arrays of parameter
  *  values to signal emissions into C language callback invocations or %NULL.
  * @return_type: the type of return value, or %G_TYPE_NONE for a signal
@@ -1572,8 +1597,8 @@ signal_add_class_closure (SignalNode *node,
  *     %G_SIGNAL_RUN_FIRST or %G_SIGNAL_RUN_LAST
  * @class_closure: (nullable): The closure to invoke on signal emission;
  *     may be %NULL
- * @accumulator: (nullable) (scope forever): the accumulator for this signal; may be %NULL
- * @accu_data: (nullable) (closure accumulator): user data for the @accumulator
+ * @accumulator: (nullable) (scope forever) (closure accu_data): the accumulator for this signal; may be %NULL
+ * @accu_data: (nullable): user data for the @accumulator
  * @c_marshaller: (nullable): the function to translate arrays of
  *     parameter values to signal emissions into C language callback
  *     invocations or %NULL
@@ -1694,7 +1719,7 @@ g_signal_newv (const gchar       *signal_name,
       key.quark = g_quark_from_string (name);
       g_signal_key_bsa = g_bsearch_array_insert (g_signal_key_bsa, &g_signal_key_bconfig, &key);
 
-      TRACE(GOBJECT_SIGNAL_NEW(signal_id, name, itype));
+      TRACE (GOBJECT_SIGNAL_NEW (signal_id, name, (uintmax_t) itype));
     }
   node->destroyed = FALSE;
 
@@ -1833,8 +1858,8 @@ g_signal_set_va_marshaller (guint              signal_id,
  *  the default handler is to be invoked. You should at least specify
  *  %G_SIGNAL_RUN_FIRST or %G_SIGNAL_RUN_LAST.
  * @class_closure: (nullable): The closure to invoke on signal emission; may be %NULL.
- * @accumulator: (nullable) (scope forever): the accumulator for this signal; may be %NULL.
- * @accu_data: (nullable) (closure accumulator): user data for the @accumulator.
+ * @accumulator: (nullable) (scope forever) (closure accu_data): the accumulator for this signal; may be %NULL.
+ * @accu_data: (nullable): user data for the @accumulator.
  * @c_marshaller: (nullable): the function to translate arrays of parameter
  *  values to signal emissions into C language callback invocations or %NULL.
  * @return_type: the type of return value, or %G_TYPE_NONE for a signal
@@ -2466,8 +2491,8 @@ node_check_deprecated (const SignalNode *node)
  * g_signal_connect_data:
  * @instance: (type GObject.Object): the instance to connect to.
  * @detailed_signal: a string of the form "signal-name::detail".
- * @c_handler: (not nullable): the #GCallback to connect.
- * @data: (nullable) (closure c_handler): data to pass to @c_handler calls.
+ * @c_handler: (not nullable) (closure data): the #GCallback to connect.
+ * @data: (nullable): data to pass to @c_handler calls.
  * @destroy_data: (nullable) (destroy data): a #GClosureNotify for @data.
  * @connect_flags: a combination of #GConnectFlags.
  *
@@ -2586,7 +2611,7 @@ signal_handler_block_unlocked (gpointer instance,
 {
   Handler *handler;
 
-  handler = handler_lookup (instance, handler_id, NULL, NULL);
+  handler = handler_lookup_by_id (instance, handler_id);
   if (handler)
     {
 #ifndef G_DISABLE_CHECKS
@@ -2640,7 +2665,7 @@ signal_handler_unblock_unlocked (gpointer instance,
 {
   Handler *handler;
 
-  handler = handler_lookup (instance, handler_id, NULL, NULL);
+  handler = handler_lookup_by_id (instance, handler_id);
   if (handler)
     {
       if (handler->block_count)
@@ -2686,10 +2711,9 @@ signal_handler_disconnect_unlocked (gpointer instance,
 {
   Handler *handler;
 
-  handler = handler_lookup (instance, handler_id, 0, 0);
+  handler = handler_steal_by_id (instance, handler_id);
   if (handler)
     {
-      g_hash_table_remove (g_handlers, handler);
       handler->sequential_number = 0;
       handler->block_count = 1;
       remove_invalid_closure_notify (handler, instance);
@@ -2717,8 +2741,11 @@ g_signal_handler_is_connected (gpointer instance,
 
   g_return_val_if_fail (G_TYPE_CHECK_INSTANCE (instance), FALSE);
 
+  if (handler_id == 0)
+    return FALSE;
+
   SIGNAL_LOCK ();
-  handler = handler_lookup (instance, handler_id, NULL, NULL);
+  handler = handler_lookup_by_id (instance, handler_id);
   connected = handler != NULL;
   SIGNAL_UNLOCK ();
 
@@ -2808,7 +2835,7 @@ g_signal_handler_find (gpointer         instance,
   gulong handler_seq_no = 0;
   
   g_return_val_if_fail (G_TYPE_CHECK_INSTANCE (instance), 0);
-  g_return_val_if_fail ((mask & ~G_SIGNAL_MATCH_MASK) == 0, 0);
+  g_return_val_if_fail ((mask & (unsigned) ~G_SIGNAL_MATCH_MASK) == 0, 0);
   
   if (mask & G_SIGNAL_MATCH_MASK)
     {
@@ -2894,7 +2921,7 @@ g_signal_handlers_block_matched (gpointer         instance,
   guint n_handlers = 0;
   
   g_return_val_if_fail (G_TYPE_CHECK_INSTANCE (instance), 0);
-  g_return_val_if_fail ((mask & ~G_SIGNAL_MATCH_MASK) == 0, 0);
+  g_return_val_if_fail ((mask & (unsigned) ~G_SIGNAL_MATCH_MASK) == 0, 0);
   
   if (mask & (G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_CLOSURE | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA))
     {
@@ -2950,7 +2977,7 @@ g_signal_handlers_unblock_matched (gpointer         instance,
   guint n_handlers = 0;
   
   g_return_val_if_fail (G_TYPE_CHECK_INSTANCE (instance), 0);
-  g_return_val_if_fail ((mask & ~G_SIGNAL_MATCH_MASK) == 0, 0);
+  g_return_val_if_fail ((mask & (unsigned) ~G_SIGNAL_MATCH_MASK) == 0, 0);
   
   if (mask & (G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_CLOSURE | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA))
     {
@@ -3005,7 +3032,7 @@ g_signal_handlers_disconnect_matched (gpointer         instance,
   guint n_handlers = 0;
   
   g_return_val_if_fail (G_TYPE_CHECK_INSTANCE (instance), 0);
-  g_return_val_if_fail ((mask & ~G_SIGNAL_MATCH_MASK) == 0, 0);
+  g_return_val_if_fail ((mask & (unsigned) ~G_SIGNAL_MATCH_MASK) == 0, 0);
   
   if (mask & (G_SIGNAL_MATCH_ID | G_SIGNAL_MATCH_CLOSURE | G_SIGNAL_MATCH_FUNC | G_SIGNAL_MATCH_DATA))
     {
@@ -3240,7 +3267,7 @@ accumulate (GSignalInvocationHint *ihint,
   continue_emission = accumulator->func (ihint, return_accu, handler_return, accumulator->data);
   g_value_reset (handler_return);
 
-  ihint->run_type &= ~G_SIGNAL_ACCUMULATOR_FIRST_RUN;
+  ihint->run_type &= (unsigned) ~G_SIGNAL_ACCUMULATOR_FIRST_RUN;
 
   return continue_emission;
 }
@@ -3415,12 +3442,12 @@ signal_emit_valist_unlocked (gpointer instance,
 
 	  if (closure != NULL)
 	    {
-	  TRACE(GOBJECT_SIGNAL_EMIT(signal_id, detail, instance, instance_type));
+              TRACE (GOBJECT_SIGNAL_EMIT (signal_id, detail, instance, (uintmax_t) instance_type));
 
-	      SIGNAL_UNLOCK ();
+              SIGNAL_UNLOCK ();
 
-	  if (rtype != G_TYPE_NONE)
-	    g_value_init (&emission_return, rtype);
+              if (rtype != G_TYPE_NONE)
+                g_value_init (&emission_return, rtype);
 
               if (node_copy.accumulator)
                 g_value_init (&accu, rtype);
@@ -3484,8 +3511,8 @@ signal_emit_valist_unlocked (gpointer instance,
 		   */
 		}
 	    }
-	  
-	  TRACE(GOBJECT_SIGNAL_EMIT_END(signal_id, detail, instance, instance_type));
+
+          TRACE (GOBJECT_SIGNAL_EMIT_END (signal_id, detail, instance, (uintmax_t) instance_type));
 
           /* See comment above paired ref above */
 #ifndef __COVERITY__
@@ -3853,9 +3880,9 @@ signal_emit_unlocked_R (SignalNode   *node,
 
                 if (!(old_flags & G_HOOK_FLAG_IN_CALL))
                   {
-                    g_atomic_int_compare_and_exchange (&hook->flags,
-                                                       old_flags | G_HOOK_FLAG_IN_CALL,
-                                                       old_flags);
+                    g_atomic_int_compare_and_exchange ((gint *) &hook->flags,
+                                                       (gint) old_flags | G_HOOK_FLAG_IN_CALL,
+                                                       (gint) old_flags);
                   }
 
                 hook_returns[i] = !!need_destroy;
@@ -3929,7 +3956,7 @@ signal_emit_unlocked_R (SignalNode   *node,
 	goto EMIT_RESTART;
     }
   
-  emission.ihint.run_type &= ~G_SIGNAL_RUN_FIRST;
+  emission.ihint.run_type &= (unsigned) ~G_SIGNAL_RUN_FIRST;
   emission.ihint.run_type |= G_SIGNAL_RUN_LAST;
   
   if ((node->flags & G_SIGNAL_RUN_LAST) && class_closure)
@@ -4003,7 +4030,7 @@ signal_emit_unlocked_R (SignalNode   *node,
   
  EMIT_CLEANUP:
   
-  emission.ihint.run_type &= ~G_SIGNAL_RUN_LAST;
+  emission.ihint.run_type &= (unsigned) ~G_SIGNAL_RUN_LAST;
   emission.ihint.run_type |= G_SIGNAL_RUN_CLEANUP;
   
   if ((node->flags & G_SIGNAL_RUN_CLEANUP) && class_closure)
@@ -4078,7 +4105,7 @@ invalid_closure_notify (gpointer  instance,
 
   SIGNAL_LOCK ();
 
-  handler = handler_lookup (instance, 0, closure, &signal_id);
+  handler = handler_lookup_by_closure (instance, closure, &signal_id);
   /* See https://bugzilla.gnome.org/show_bug.cgi?id=730296 for discussion about this... */
   g_assert (handler != NULL);
   g_assert (handler->closure == closure);

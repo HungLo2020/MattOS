@@ -27,6 +27,7 @@
 
 #include <gst/base/gstbitreader.h>
 #include <gst/rtp/gstrtpbuffer.h>
+#include <gst/pbutils/pbutils.h>
 #include <gst/video/video.h>
 #include "gstrtpelements.h"
 #include "gstrtph265depay.h"
@@ -41,12 +42,14 @@ GST_DEBUG_CATEGORY_STATIC (rtph265depay_debug);
 #define DEFAULT_ACCESS_UNIT   FALSE
 #define DEFAULT_WAIT_FOR_KEYFRAME FALSE
 #define DEFAULT_REQUEST_KEYFRAME FALSE
+#define DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE (32 * 1024 * 1024)
 
 enum
 {
   PROP_0,
   PROP_WAIT_FOR_KEYFRAME,
   PROP_REQUEST_KEYFRAME,
+  PROP_MAX_FRAGMENTATION_UNIT_SIZE,
 };
 
 
@@ -142,6 +145,9 @@ gst_rtp_h265_depay_set_property (GObject * object, guint prop_id,
     case PROP_REQUEST_KEYFRAME:
       self->request_keyframe = g_value_get_boolean (value);
       break;
+    case PROP_MAX_FRAGMENTATION_UNIT_SIZE:
+      self->max_fragmentation_unit_size = g_value_get_uint (value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -160,6 +166,9 @@ gst_rtp_h265_depay_get_property (GObject * object, guint prop_id,
       break;
     case PROP_REQUEST_KEYFRAME:
       g_value_set_boolean (value, self->request_keyframe);
+      break;
+    case PROP_MAX_FRAGMENTATION_UNIT_SIZE:
+      g_value_set_uint (value, self->max_fragmentation_unit_size);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -212,6 +221,24 @@ gst_rtp_h265_depay_class_init (GstRtpH265DepayClass * klass)
           DEFAULT_REQUEST_KEYFRAME,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+  /**
+   * GstRtpH265Depay:max-fragmentation-unit-size:
+   *
+   * Maximum size in bytes for a fragmentation unit. Larger units
+   * will be dropped to prevent excessive memory usage.
+   *
+   * Use 0 for automatic.
+   *
+   * Since: 1.28.6
+   */
+  g_object_class_install_property (gobject_class,
+      PROP_MAX_FRAGMENTATION_UNIT_SIZE,
+      g_param_spec_uint ("max-fragmentation-unit-size",
+          "Max Fragmentation Unit Size",
+          "Maximum size in bytes for a fragmentation unit (0 = auto)", 0,
+          G_MAXUINT, DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
   gst_element_class_add_static_pad_template (gstelement_class,
       &gst_rtp_h265_depay_src_template);
   gst_element_class_add_static_pad_template (gstelement_class,
@@ -249,6 +276,8 @@ gst_rtp_h265_depay_init (GstRtpH265Depay * rtph265depay)
       (GDestroyNotify) gst_buffer_unref);
   rtph265depay->wait_for_keyframe = DEFAULT_WAIT_FOR_KEYFRAME;
   rtph265depay->request_keyframe = DEFAULT_REQUEST_KEYFRAME;
+  rtph265depay->max_fragmentation_unit_size =
+      DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE;
 }
 
 static void
@@ -507,6 +536,7 @@ gst_rtp_h265_set_src_caps (GstRtpH265Depay * rtph265depay)
     guint32 max_sub_layers_minus1, temporal_id_nesting_flag, chroma_format_idc,
         bit_depth_luma_minus8, bit_depth_chroma_minus8,
         min_spatial_segmentation_idc;
+    const char *level, *profile, *tier;
 
     /* Fixme: Current implementation is not embedding SEI in codec_data */
 
@@ -606,6 +636,7 @@ gst_rtp_h265_set_src_caps (GstRtpH265Depay * rtph265depay)
         "Ignoring min_spatial_segmentation for now (assuming zero)");
 
     min_spatial_segmentation_idc = 0;   /* NOTE - we ignore this for now, but in a perfect world, we should continue parsing to obtain the real value */
+
     gst_buffer_unmap (g_ptr_array_index (rtph265depay->sps, 0), &nalmap);
 
     /* min_spatial_segmentation_idc */
@@ -693,12 +724,25 @@ gst_rtp_h265_set_src_caps (GstRtpH265Depay * rtph265depay)
     }
 
     new_size = data - map.data;
+
+    // skip HEVCDecoderConfigurationVersion
+    profile = gst_codec_utils_h265_get_profile (&map.data[1], new_size - 1);
+    tier = gst_codec_utils_h265_get_tier (&map.data[1], new_size - 1);
+    level = gst_codec_utils_h265_get_level (&map.data[1], new_size - 1);
+
     gst_buffer_unmap (codec_data, &map);
     gst_buffer_set_size (codec_data, new_size);
 
     gst_caps_set_simple (srccaps,
         "codec_data", GST_TYPE_BUFFER, codec_data, NULL);
     gst_buffer_unref (codec_data);
+
+    if (profile)
+      gst_caps_set_simple (srccaps, "profile", G_TYPE_STRING, profile, NULL);
+    if (tier)
+      gst_caps_set_simple (srccaps, "tier", G_TYPE_STRING, tier, NULL);
+    if (level)
+      gst_caps_set_simple (srccaps, "level", G_TYPE_STRING, level, NULL);
   }
 
   srcpad = GST_RTP_BASE_DEPAYLOAD_SRCPAD (rtph265depay);
@@ -711,6 +755,7 @@ gst_rtp_h265_set_src_caps (GstRtpH265Depay * rtph265depay)
   }
 
   gst_caps_unref (srccaps);
+  gst_clear_caps (&old_caps);
 
   /* Insert SPS and PPS into the stream on next opportunity */
   if (rtph265depay->output_format != GST_H265_STREAM_FORMAT_HVC1
@@ -1432,8 +1477,8 @@ gst_rtp_h265_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
 
     GST_DEBUG_OBJECT (rtph265depay, "receiving %d bytes", payload_len);
 
-    if (payload_len == 0)
-      goto empty_packet;
+    if (payload_len < 2)
+      goto short_payload;
 
     /* +---------------+---------------+
      * |0|1|2|3|4|5|6|7|0|1|2|3|4|5|6|7|
@@ -1555,6 +1600,9 @@ gst_rtp_h265_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
       {
         GST_DEBUG_OBJECT (rtph265depay, "Processing Fragmentation Unit");
 
+        if (payload_len < header_len + 1)
+          goto short_payload;
+
         /* Fragmentation units (FUs)  Section 4.8 */
 
         /*    The structure of a Fragmentation Unit (FU)
@@ -1671,6 +1719,9 @@ gst_rtp_h265_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
                 "%u to %u within Fragmentation Unit. Data was lost, dropping "
                 "stored.", rtph265depay->last_fu_seqnum,
                 gst_rtp_buffer_get_seq (rtp));
+            rtph265depay->wait_start = TRUE;
+            rtph265depay->current_fu_type = 0;
+            rtph265depay->last_fu_seqnum = 0;
             gst_rtp_base_depayload_flush (depayload, FALSE);
             gst_adapter_clear (rtph265depay->adapter);
             return NULL;
@@ -1703,6 +1754,20 @@ gst_rtp_h265_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
         if (E) {
           gst_rtp_h265_finish_fragmentation_unit (rtph265depay);
           GST_DEBUG_OBJECT (rtph265depay, "End of Fragmentation Unit");
+        } else {
+          guint limit = rtph265depay->max_fragmentation_unit_size ?
+              rtph265depay->max_fragmentation_unit_size :
+              DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE;
+          if (gst_adapter_available (rtph265depay->adapter) > limit) {
+            GST_WARNING_OBJECT (rtph265depay,
+                "Too big (> %u bytes) fragmentation unit, dropping.", limit);
+            rtph265depay->wait_start = TRUE;
+            rtph265depay->current_fu_type = 0;
+            rtph265depay->last_fu_seqnum = 0;
+            gst_rtp_base_depayload_flush (depayload, FALSE);
+            gst_adapter_clear (rtph265depay->adapter);
+            return NULL;
+          }
         }
         break;
       }
@@ -1744,9 +1809,9 @@ gst_rtp_h265_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
   return NULL;
 
   /* ERRORS */
-empty_packet:
+short_payload:
   {
-    GST_DEBUG_OBJECT (rtph265depay, "empty packet");
+    GST_DEBUG_OBJECT (rtph265depay, "short payload");
     gst_rtp_base_depayload_dropped (depayload);
     return NULL;
   }

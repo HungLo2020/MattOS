@@ -82,6 +82,9 @@
   ((version) == 99 && G_C_STD_VERSION >= 199901L) || \
   ((version) == 11 && G_C_STD_VERSION >= 201112L) || \
   ((version) == 17 && G_C_STD_VERSION >= 201710L) || \
+  /* the canonical number for C23 is 202311L, but gcc 14 used 202000L and it \
+   * implemented almost all of the C23 standard (see https://en.cppreference.com/w/c/compiler_support/23) */ \
+  ((version) == 23 && G_C_STD_VERSION >= 202000L) || \
   0)
 
 #else /* defined (__cplusplus) */
@@ -103,6 +106,7 @@
   ((version) == 14 && G_CXX_STD_VERSION >= 201402L) || \
   ((version) == 17 && G_CXX_STD_VERSION >= 201703L) || \
   ((version) == 20 && G_CXX_STD_VERSION >= 202002L) || \
+  ((version) == 23 && G_CXX_STD_VERSION >= 202302L) || \
   0)
 
 #endif /* !defined (__cplusplus) */
@@ -773,6 +777,38 @@
 #define G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 #define G_GNUC_END_IGNORE_DEPRECATIONS
 #define GLIB_CANNOT_IGNORE_DEPRECATIONS
+#endif
+
+/**
+ * G_GNUC_FLAG_ENUM:
+ *
+ * Expands to the GNU C `flag_enum` attribute if the compiler is `gcc` or `clang`.
+ * This attribute indicates that an enumerated type is used in bitwise
+ * operations.
+ * It is sometimes used in static analysis.
+ *
+ * See the
+ * [GNU C documentation](https://gcc.gnu.org/onlinedocs/gcc/Common-Type-Attributes.html#index-flag_005fenum-type-attribute)
+ * for details.
+ *
+ * |[<!-- language="C" -->
+ * typedef enum {
+ *   G_KEY_FILE_NONE              = 0,
+ *   G_KEY_FILE_KEEP_COMMENTS     = 1 << 0,
+ *   G_KEY_FILE_KEEP_TRANSLATIONS = 1 << 1
+ * } G_GNUC_FLAG_ENUM GKeyFileFlags;
+ * ]|
+ *
+ * The attribute can also be placed after `enum` and before the opening brace,
+ * but that may cause it to be misinterpreted as the name of the enum if the
+ * macro is not defined.
+ *
+ * Since: 2.88
+ */
+#if g_macro__has_attribute(flag_enum)
+#define G_GNUC_FLAG_ENUM __attribute__((flag_enum))
+#else
+#define G_GNUC_FLAG_ENUM
 #endif
 
 /**

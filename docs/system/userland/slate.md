@@ -3,8 +3,8 @@
 Slate is MattOS's default terminal and graphical text editor. Its complete
 upstream source is imported at `src/userland/slate`, with the exact commit in
 `upstream/sources.toml` and its tree digest in `upstream/state/slate.toml`.
-The current pin is Slate 0.1.8 at
-[`32df63dc111cf923db37668c48e142b1777f26ba`](https://github.com/HungLo2020/Slate/commit/32df63dc111cf923db37668c48e142b1777f26ba).
+The current pin is Slate 0.1.15 at
+[`3237c330f977ef0d3825d48ed88514de30802007`](https://github.com/HungLo2020/Slate/commit/3237c330f977ef0d3825d48ed88514de30802007).
 
 ## Packages and builds
 

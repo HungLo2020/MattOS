@@ -38,12 +38,13 @@
 #include <gpg-error.h>
 
 #include <assuan.h>
+
 #include "i18n.h"
 #include "logging.h"
 #include "membuf.h"
 #include "mischelp.h"
-#include "exechelp.h"
 #include "sysutils.h"
+#include "exechelp.h"
 #include "util.h"
 #include "exectool.h"
 
@@ -301,7 +302,6 @@ copy_buffer_flush (struct copy_buffer *c, estream_t sink)
 }
 
 
-
 /* Run the program PGMNAME with the command line arguments given in
  * the NULL terminates array ARGV.  If INPUT is not NULL it will be
  * fed to stdin of the process.  stderr is logged using log_info and
@@ -321,13 +321,17 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
                         void *status_cb_value)
 {
   gpg_error_t err;
-  pid_t pid = (pid_t) -1;
+  gpgrt_process_t proc = NULL;
   estream_t infp = NULL;
   estream_t extrafp = NULL;
   estream_t outfp = NULL, errfp = NULL;
   es_poll_t fds[4];
+#ifdef HAVE_W32_SYSTEM
+  HANDLE exceptclose[2];
+#else
   int exceptclose[2];
-  int extrapipe[2] = {-1, -1};
+#endif
+  gnupg_fd_t extrapipe = GNUPG_INVALID_FD;
   char extrafdbuf[20];
   const char *argsave = NULL;
   int argsaveidx;
@@ -335,7 +339,8 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   read_and_log_buffer_t fderrstate;
   struct copy_buffer *cpbuf_in = NULL, *cpbuf_out = NULL, *cpbuf_extra = NULL;
   int quiet = 0;
-  int dummy_exitcode;
+  gpgrt_spawn_actions_t act = NULL;
+  int i = 0;
 
   memset (fds, 0, sizeof fds);
   memset (&fderrstate, 0, sizeof fderrstate);
@@ -382,23 +387,28 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
 
   if (inextra)
     {
-      err = gnupg_create_outbound_pipe (extrapipe, &extrafp, 1);
+      err = gnupg_create_outbound_pipe (&extrapipe, &extrafp, 1);
       if (err)
         {
           log_error ("error creating outbound pipe for extra fp: %s\n",
                      gpg_strerror (err));
           goto leave;
         }
-      exceptclose[0] = extrapipe[0]; /* Do not close in child. */
-      exceptclose[1] = -1;
+      /* Do not close in child. */
+      exceptclose[i] = extrapipe;
       /* Now find the argument marker and replace by the pipe's fd.
          Yeah, that is an ugly non-thread safe hack but it safes us to
          create a copy of the array.  */
 #ifdef HAVE_W32_SYSTEM
+# ifdef _WIN64
+      snprintf (extrafdbuf, sizeof extrafdbuf, "-&%llu",
+                (unsigned long long)exceptclose[i]);
+# else
       snprintf (extrafdbuf, sizeof extrafdbuf, "-&%lu",
-                (unsigned long)_get_osfhandle (extrapipe[0]));
+                (unsigned long)exceptclose[i]);
+# endif
 #else
-      snprintf (extrafdbuf, sizeof extrafdbuf, "-&%d", extrapipe[0]);
+      snprintf (extrafdbuf, sizeof extrafdbuf, "-&%d", exceptclose[i]);
 #endif
       for (argsaveidx=0; argv[argsaveidx]; argsaveidx++)
         if (!strcmp (argv[argsaveidx], "-&@INEXTRA@"))
@@ -407,16 +417,34 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
             argv[argsaveidx] = extrafdbuf;
             break;
           }
+      i++;
     }
-  else
-    exceptclose[0] = -1;
 
-  err = gnupg_spawn_process (pgmname, argv,
-                             exceptclose, GNUPG_SPAWN_NONBLOCK,
-                             input? &infp : NULL,
-                             &outfp, &errfp, &pid);
-  if (extrapipe[0] != -1)
-    close (extrapipe[0]);
+  exceptclose[i] = GNUPG_INVALID_FD;
+
+  err = gpgrt_spawn_actions_new (&act);
+  if (err)
+    goto leave;
+
+#ifdef HAVE_W32_SYSTEM
+  gpgrt_spawn_actions_set_inherit_handles (act, exceptclose);
+#else
+  gpgrt_spawn_actions_set_inherit_fds (act, exceptclose);
+#endif
+  err = gpgrt_process_spawn (pgmname, argv,
+                             ((input
+                               ? GPGRT_PROCESS_STDIN_PIPE
+                               : 0)
+                              | GPGRT_PROCESS_STDOUT_PIPE
+                              | GPGRT_PROCESS_STDERR_PIPE), act, &proc);
+  gpgrt_process_get_streams (proc, GPGRT_PROCESS_STREAM_NONBLOCK,
+                             input? &infp : NULL, &outfp, &errfp);
+  if (extrapipe != GNUPG_INVALID_FD)
+#ifdef HAVE_W32_SYSTEM
+    CloseHandle (extrapipe);
+#else
+    close (extrapipe);
+#endif
   if (argsave)
     argv[argsaveidx] = argsave;
   if (err)
@@ -456,6 +484,13 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
           log_debug ("unexpected timeout while polling '%s'\n", pgmname);
           break;
         }
+      for (i=0; i < 4; i++)
+        if (!fds[i].ignore && fds[i].got_nval)
+          {
+            /* This should never happen.  */
+            log_debug ("closed fd passed to poll at idx %d - ignored\n", i);
+            fds[i].ignore = 1;
+          }
 
       if (fds[0].got_write)
         {
@@ -546,20 +581,26 @@ gnupg_exec_tool_stream (const char *pgmname, const char *argv[],
   es_fclose (outfp); outfp = NULL;
   es_fclose (errfp); errfp = NULL;
 
-  err = gnupg_wait_process (pgmname, pid, 1, quiet? &dummy_exitcode : NULL);
-  pid = (pid_t)(-1);
+  err = gpgrt_process_wait (proc, 1);
+  if (!err)
+    {                      /* To be compatible to old wait_process. */
+      int status;
+
+      gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &status);
+      if (status)
+        err = gpg_error (GPG_ERR_GENERAL);
+    }
 
  leave:
-  if (err && pid != (pid_t) -1)
-    gnupg_kill_process (pid);
+  if (err && proc)
+    gpgrt_process_terminate (proc);
 
   es_fclose (infp);
   es_fclose (extrafp);
   es_fclose (outfp);
   es_fclose (errfp);
-  if (pid != (pid_t)(-1))
-    gnupg_wait_process (pgmname, pid, 1,  quiet? &dummy_exitcode : NULL);
-  gnupg_release_process (pid);
+  gpgrt_process_release (proc);
+  gpgrt_spawn_actions_release (act);
 
   copy_buffer_shred (cpbuf_in);
   xfree (cpbuf_in);

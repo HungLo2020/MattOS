@@ -88,7 +88,75 @@ struct default_inq_parm_s
   assuan_context_t ctx;
 };
 
+
+/* An object and variable to cache ISTRUSTED calls.  The cache is
+ * global and reset with each mark trusted.  We also have a disabled
+ * flag here in case the gpg-agent did not allow us to query all
+ * trusted keys at once.  */
+struct istrusted_cache_s
+{
+  struct istrusted_cache_s *next;
+  struct rootca_flags_s flags; /* The flags of this fingerprint.  */
+  char fpr[1];  /* The fingerprint of the trusted key in hex format.  */
+};
+typedef struct istrusted_cache_s *istrusted_cache_t;
+static istrusted_cache_t istrusted_cache;
+static int istrusted_cache_valid;
+static int istrusted_cache_disabled;
+
+/* Flag indicating that we can't use the keyinfo cache at all.  The
+ * actual cache is stored in CTRL.  */
+static int keyinfo_cache_disabled;
+
+
 
+static void
+flush_istrusted_cache (void)
+{
+  istrusted_cache_t mycache;
+
+  /* First unlink the cache to be npth safe.  Note that we don't clear
+   * the the disabled flag - this is considered a permantent error. */
+  mycache = istrusted_cache;
+  istrusted_cache = NULL;
+  istrusted_cache_valid = 0;
+
+  while (mycache)
+    {
+      istrusted_cache_t next = mycache->next;
+      xfree (mycache);
+      mycache = next;
+    }
+}
+
+
+/* Release all items in *CACHEP and set CACHEP to NULL  */
+static void
+release_a_keyinfo_cache (keyinfo_cache_item_t *cachep)
+{
+  keyinfo_cache_item_t mycache;
+
+  /* First unlink the cache to be npth safe.  */
+  mycache = *cachep;
+  *cachep = NULL;
+
+  while (mycache)
+    {
+      keyinfo_cache_item_t next = mycache->next;
+      xfree (mycache);
+      mycache = next;
+    }
+}
+
+
+/* Flush the keyinfo cache for the session CTRL.  */
+void
+gpgsm_flush_keyinfo_cache (ctrl_t ctrl)
+{
+  ctrl->keyinfo_cache_valid = 0;
+  release_a_keyinfo_cache (&ctrl->keyinfo_cache);
+}
+
 /* Print a warning if the server's version number is less than our
    version number.  Returns an error code on a connection problem.  */
 static gpg_error_t
@@ -118,7 +186,8 @@ start_agent (ctrl_t ctrl)
                                 opt.agent_program,
                                 opt.lc_ctype, opt.lc_messages,
                                 opt.session_env,
-                                opt.autostart, opt.verbose, DBG_IPC,
+                                opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
+                                opt.verbose, DBG_IPC,
                                 gpgsm_status2, ctrl);
 
       if (!opt.autostart && gpg_err_code (rc) == GPG_ERR_NO_AGENT)
@@ -485,7 +554,7 @@ inq_ciphertext_cb (void *opaque, const char *line)
    the hex string KEYGRIP. */
 int
 gpgsm_agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
-                       ksba_const_sexp_t ciphertext,
+                       int use_kem, ksba_const_sexp_t ciphertext,
                        char **r_buf, size_t *r_buflen )
 {
   int rc;
@@ -532,7 +601,7 @@ gpgsm_agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   cipher_parm.ctx = agent_ctx;
   cipher_parm.ciphertext = ciphertext;
   cipher_parm.ciphertextlen = ciphertextlen;
-  rc = assuan_transact (agent_ctx, "PKDECRYPT",
+  rc = assuan_transact (agent_ctx, use_kem? "PKDECRYPT --kem=CMS": "PKDECRYPT",
                         put_membuf_cb, &data,
                         inq_ciphertext_cb, &cipher_parm, NULL, NULL);
   if (rc)
@@ -611,8 +680,8 @@ inq_genkey_parms (void *opaque, const char *line)
 
 
 /* Call the agent to generate a new key */
-int
-gpgsm_agent_genkey (ctrl_t ctrl,
+gpg_error_t
+gpgsm_agent_genkey (ctrl_t ctrl, int no_protection,
                     ksba_const_sexp_t keyparms, ksba_sexp_t *r_pubkey)
 {
   int rc;
@@ -640,7 +709,9 @@ gpgsm_agent_genkey (ctrl_t ctrl,
   if (!gk_parm.sexplen)
     return gpg_error (GPG_ERR_INV_VALUE);
   gnupg_get_isotime (timebuf);
-  snprintf (line, sizeof line, "GENKEY --timestamp=%s", timebuf);
+  snprintf (line, sizeof line, "GENKEY%s --timestamp=%s",
+            no_protection? " --no-protection":"",
+            timebuf);
   rc = assuan_transact (agent_ctx, line,
                         put_membuf_cb, &data,
                         inq_genkey_parms, &gk_parm, NULL, NULL);
@@ -877,27 +948,57 @@ gpgsm_agent_scd_keypairinfo (ctrl_t ctrl, strlist_t *r_list)
 
 
 
+struct istrusted_status_parm_s
+{
+  struct rootca_flags_s flags;
+  istrusted_cache_t cache;
+};
+
+
 static gpg_error_t
 istrusted_status_cb (void *opaque, const char *line)
 {
-  struct rootca_flags_s *flags = opaque;
+  struct istrusted_status_parm_s *parm = opaque;
   const char *s;
 
   if ((s = has_leading_keyword (line, "TRUSTLISTFLAG")))
     {
       line = s;
       if (has_leading_keyword (line, "relax"))
-        flags->relax = 1;
+        parm->flags.relax = 1;
       else if (has_leading_keyword (line, "cm"))
-        flags->chain_model = 1;
+        parm->flags.chain_model = 1;
       else if (has_leading_keyword (line, "qual"))
-        flags->qualified = 1;
+        parm->flags.qualified = 1;
+      else if (has_leading_keyword (line, "noconsent"))
+        parm->flags.noconsent = 1;
       else if (has_leading_keyword (line, "de-vs"))
-        flags->de_vs = 1;
+        parm->flags.de_vs = 1;
+
+      /* Copy the current flags to the current list item.  */
+      if (parm->cache)
+        parm->cache->flags = parm->flags;
+    }
+  else if ((s = has_leading_keyword (line, "TRUSTLISTFPR")) && *s)
+    {
+      /* We see this only with the "LISTTRUSTED --status" command but
+       * not with ISTRUSTED.  Thus the cache will only be filled by
+       * the former command. */
+      istrusted_cache_t ci;
+
+      ci = xtrymalloc (sizeof *ci + strlen (s));
+      if (!ci)
+        return gpg_error_from_syserror ();
+      strcpy (ci->fpr, s);
+      memset (&ci->flags, 0, sizeof ci->flags);
+      ci->next = parm->cache;
+      parm->cache = ci;
+      /* Also need to clear the parm's flags which will be copied to
+       * the cache.  */
+      memset (&parm->flags, 0, sizeof ci->flags);
     }
   return 0;
 }
-
 
 
 /* Ask the agent whether the certificate is in the list of trusted
@@ -910,8 +1011,12 @@ gpgsm_agent_istrusted (ctrl_t ctrl, ksba_cert_t cert, const char *hexfpr,
 {
   int rc;
   char line[ASSUAN_LINELENGTH];
+  char *fpr_buffer = NULL;
+  struct istrusted_status_parm_s parm;
+  istrusted_cache_t ci;
 
   memset (rootca_flags, 0, sizeof *rootca_flags);
+  memset (&parm, 0, sizeof parm);
 
   if (cert && hexfpr)
     return gpg_error (GPG_ERR_INV_ARG);
@@ -920,29 +1025,70 @@ gpgsm_agent_istrusted (ctrl_t ctrl, ksba_cert_t cert, const char *hexfpr,
   if (rc)
     return rc;
 
-  if (hexfpr)
+  if (!hexfpr)
     {
-      snprintf (line, DIM(line), "ISTRUSTED %s", hexfpr);
-    }
-  else
-    {
-      char *fpr;
-
-      fpr = gpgsm_get_fingerprint_hexstring (cert, GCRY_MD_SHA1);
-      if (!fpr)
+      fpr_buffer = gpgsm_get_fingerprint_hexstring (cert, GCRY_MD_SHA1);
+      if (!fpr_buffer)
         {
           log_error ("error getting the fingerprint\n");
-          return gpg_error (GPG_ERR_GENERAL);
+          rc = gpg_error (GPG_ERR_GENERAL);
+          goto leave;
         }
-
-      snprintf (line, DIM(line), "ISTRUSTED %s", fpr);
-      xfree (fpr);
+      hexfpr = fpr_buffer;
     }
 
+  /* First try to get the info from the cache.  */
+  if ((opt.compat_flags & COMPAT_NO_KEYINFO_CACHE))
+    istrusted_cache_disabled = 1;
+
+  if (!istrusted_cache_disabled && !istrusted_cache_valid)
+    {
+      /* Cache is empty - fill it.  */
+      rc = assuan_transact (agent_ctx, "LISTTRUSTED --status",
+                            NULL, NULL, NULL, NULL,
+                            istrusted_status_cb, &parm);
+      istrusted_cache = parm.cache;
+      parm.cache = NULL;
+      if (rc)
+        {
+          if (gpg_err_code (rc) != GPG_ERR_FORBIDDEN)
+            log_info ("filling istrusted cache failed: %s\n",
+                       gpg_strerror (rc));
+          istrusted_cache_disabled = 1;
+          flush_istrusted_cache ();
+          rc = 0;  /* Fallback to single requests.  */
+        }
+      else
+        istrusted_cache_valid = 1;
+    }
+
+  if (istrusted_cache_valid)
+    {
+      for (ci = istrusted_cache; ci; ci = ci->next)
+        if (!strcmp (ci->fpr, hexfpr))
+          break;  /* Found.  */
+      if (ci)
+        {
+          *rootca_flags = ci->flags;
+          rootca_flags->valid = 1;
+          rc = 0;
+        }
+      else
+        rc = gpg_error (GPG_ERR_NOT_TRUSTED);
+      goto leave;
+    }
+
+  snprintf (line, DIM(line), "ISTRUSTED %s", hexfpr);
   rc = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL,
-                        istrusted_status_cb, rootca_flags);
+                        istrusted_status_cb, &parm);
   if (!rc)
-    rootca_flags->valid = 1;
+    {
+      *rootca_flags = parm.flags;
+      rootca_flags->valid = 1;
+    }
+
+ leave:
+  xfree (fpr_buffer);
   return rc;
 }
 
@@ -984,6 +1130,10 @@ gpgsm_agent_marktrusted (ctrl_t ctrl, ksba_cert_t cert)
 
   rc = assuan_transact (agent_ctx, line, NULL, NULL,
                         default_inq_cb, &inq_parm, NULL, NULL);
+  /* Marktrusted changes the trustlist and thus we need to flush the
+   * cache.   */
+  if (!rc)
+    flush_istrusted_cache ();
   return rc;
 }
 
@@ -1105,7 +1255,7 @@ learn_cb (void *opaque, const void *buffer, size_t length)
   string = NULL;
 
 
-  /* We do not store a certifciate with missing issuers as ephemeral
+  /* We do not store a certificate with missing issuers as ephemeral
      because we can assume that the --learn-card command has been used
      on purpose.  */
   rc = gpgsm_basic_cert_check (parm->ctrl, cert);
@@ -1133,14 +1283,17 @@ learn_cb (void *opaque, const void *buffer, size_t length)
   return 0;
 }
 
-/* Call the agent to learn about a smartcard */
+
+/* Call the agent to learn about a smartcard.  If SERIALNO is not NULL
+ * switch to the card with that s/n first.  */
 int
-gpgsm_agent_learn (ctrl_t ctrl)
+gpgsm_agent_learn (ctrl_t ctrl, const char *serialno)
 {
   int rc;
   struct learn_parm_s learn_parm;
   membuf_t data;
   size_t len;
+  char line[ASSUAN_LINELENGTH];
 
   rc = start_agent (ctrl);
   if (rc)
@@ -1155,7 +1308,10 @@ gpgsm_agent_learn (ctrl_t ctrl)
   learn_parm.ctrl = ctrl;
   learn_parm.ctx = agent_ctx;
   learn_parm.data = &data;
-  rc = assuan_transact (agent_ctx, "LEARN --send",
+  snprintf (line, sizeof line, "LEARN --send%s%s",
+            serialno? " -- ":"",
+            serialno? serialno:"");
+  rc = assuan_transact (agent_ctx, line,
                         learn_cb, &learn_parm,
                         NULL, NULL,
                         learn_status_cb, &learn_parm);
@@ -1243,42 +1399,80 @@ gpgsm_agent_send_nop (ctrl_t ctrl)
 
 
 
+struct keyinfo_status_parm_s
+{
+  char *serialno;
+  int fill_mode;  /* True if we want to fill the cache.  */
+  keyinfo_cache_item_t cache;
+};
+
 static gpg_error_t
 keyinfo_status_cb (void *opaque, const char *line)
 {
-  char **serialno = opaque;
-  const char *s, *s2;
+  struct keyinfo_status_parm_s *parm = opaque;
+  const char *s0, *s, *s2;
 
-  if ((s = has_leading_keyword (line, "KEYINFO")) && !*serialno)
+  if ((s0 = has_leading_keyword (line, "KEYINFO"))
+      && (!parm->serialno || parm->fill_mode))
     {
-      s = strchr (s, ' ');
+      s = strchr (s0, ' ');
+      xfree (parm->serialno);
+      parm->serialno = NULL;
       if (s && s[1] == 'T' && s[2] == ' ' && s[3])
         {
           s += 3;
           s2 = strchr (s, ' ');
           if ( s2 > s )
             {
-              *serialno = xtrymalloc ((s2 - s)+1);
-              if (*serialno)
+              parm->serialno = xtrymalloc ((s2 - s)+1);
+              if (parm->serialno)
                 {
-                  memcpy (*serialno, s, s2 - s);
-                  (*serialno)[s2 - s] = 0;
+                  memcpy (parm->serialno, s, s2 - s);
+                  parm->serialno[s2 - s] = 0;
                 }
             }
+          s -= 3;
         }
+
+      if (parm->fill_mode && *s0)
+        {
+          keyinfo_cache_item_t ci;
+          size_t n;
+
+          n = s? (s - s0) : strlen (s0);
+          ci = xtrymalloc (sizeof *ci + n);
+          if (!ci)
+            return gpg_error_from_syserror ();
+          memcpy (ci->hexgrip, s0, n);
+          ci->hexgrip[n] = 0;
+          ci->serialno = parm->serialno;
+          parm->serialno = NULL;
+          ci->next = parm->cache;
+          parm->cache = ci;
+        }
+
     }
   return 0;
 }
 
+
 /* Return the serial number for a secret key.  If the returned serial
-   number is NULL, the key is not stored on a smartcard.  Caller needs
-   to free R_SERIALNO.  */
+ * number is NULL, the key is not stored on a smartcard.  Caller needs
+ * to free R_SERIALNO.
+ *
+ * Take care: The cache is currently only used in the key listing and
+ * it should not interfere with import or creation of new keys because
+ * we assume that is done by another process.  However we assume that
+ * in server mode the key listing is not directly followed by an import
+ * and another key listing.
+ */
 gpg_error_t
 gpgsm_agent_keyinfo (ctrl_t ctrl, const char *hexkeygrip, char **r_serialno)
 {
   gpg_error_t err;
   char line[ASSUAN_LINELENGTH];
-  char *serialno = NULL;
+  keyinfo_cache_item_t ci;
+  struct keyinfo_status_parm_s parm = { NULL };
 
   *r_serialno = NULL;
 
@@ -1289,20 +1483,73 @@ gpgsm_agent_keyinfo (ctrl_t ctrl, const char *hexkeygrip, char **r_serialno)
   if (!hexkeygrip || strlen (hexkeygrip) != 40)
     return gpg_error (GPG_ERR_INV_VALUE);
 
-  snprintf (line, DIM(line), "KEYINFO %s", hexkeygrip);
+  /* First try to fill the cache.  */
+  if ((opt.compat_flags & COMPAT_NO_KEYINFO_CACHE))
+    keyinfo_cache_disabled = 1;
 
-  err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL,
-                         keyinfo_status_cb, &serialno);
-  if (!err && serialno)
+  if (!keyinfo_cache_disabled && !ctrl->keyinfo_cache_valid)
+    {
+      parm.fill_mode = 1;
+      err = assuan_transact (agent_ctx, "KEYINFO --list",
+                            NULL, NULL, NULL, NULL,
+                            keyinfo_status_cb, &parm);
+      if (err)
+        {
+          if (gpg_err_code (err) != GPG_ERR_FORBIDDEN)
+            log_error ("filling keyinfo cache failed: %s\n",
+                       gpg_strerror (err));
+          keyinfo_cache_disabled = 1;
+          release_a_keyinfo_cache (&parm.cache);
+          err = 0;  /* Fallback to single requests.  */
+        }
+      else
+        {
+          ctrl->keyinfo_cache_valid = 1;
+          ctrl->keyinfo_cache = parm.cache;
+          parm.cache = NULL;
+        }
+    }
+
+  /* Then consult the cache or send a query  */
+  if (ctrl->keyinfo_cache_valid)
+    {
+      for (ci = ctrl->keyinfo_cache; ci; ci = ci->next)
+        if (!strcmp (hexkeygrip, ci->hexgrip))
+          break;
+      if (ci)
+        {
+          xfree (parm.serialno);
+          parm.serialno = NULL;
+          err = 0;
+          if (ci->serialno)
+            {
+              parm.serialno = xtrystrdup (ci->serialno);
+              if (!parm.serialno)
+                err = gpg_error_from_syserror ();
+            }
+        }
+      else
+        err = gpg_error (GPG_ERR_NOT_FOUND);
+    }
+  else
+    {
+      snprintf (line, DIM(line), "KEYINFO %s", hexkeygrip);
+      parm.fill_mode = 0;
+      err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL,
+                             keyinfo_status_cb, &parm);
+    }
+
+  if (!err && parm.serialno)
     {
       /* Sanity check for bad characters.  */
-      if (strpbrk (serialno, ":\n\r"))
-        err = GPG_ERR_INV_VALUE;
+      if (strpbrk (parm.serialno, ":\n\r"))
+        err = gpg_error (GPG_ERR_INV_VALUE);
     }
+
   if (err)
-    xfree (serialno);
+    xfree (parm.serialno);
   else
-    *r_serialno = serialno;
+    *r_serialno = parm.serialno;
   return err;
 }
 

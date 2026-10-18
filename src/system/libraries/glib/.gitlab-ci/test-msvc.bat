@@ -4,6 +4,7 @@
 setlocal enabledelayedexpansion
 set args=
 set stash_plat=0
+set extra_args=
 
 for %%x in (%*) do (
   if "%%x" == "--plat" set stash_plat=1
@@ -12,9 +13,14 @@ for %%x in (%*) do (
 )
 set args=%args:~1%
 if "!plat!" == "" set plat=x64
+
+:: Remove these lines if the CI is updated to use VS2022 or later
+:: Visual Studio 2019 ARM64 builds can only use the 10.0.22621.0 or earlier SDKs
+if "!plat!" == "x64_arm64" set extra_args=10.0.22621.0
+
 :: vcvarsall.bat sets various env vars like PATH, INCLUDE, LIB, LIBPATH for the
 :: specified build architecture
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" !plat!
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" !extra_args! !plat!
 
 :: Setup and write a cross-compilation file for ARM64 builds
 if not "!plat!" == "x64_arm64" goto :continue_build
@@ -40,17 +46,11 @@ echo skip_sanity_check = true>>!cross_file!
 set args=%args% --cross-file=!cross_file!
 
 :continue_build
-pip3 install --upgrade --user meson==1.4.2 || goto :error
+pip3 install --upgrade --user meson==1.9.2 || goto :error
 meson setup %args% _build || goto :error
 meson compile -C _build || goto :error
 
-:: FIXME: Skip PCRE2 tests for now for 32-bit x86 builds, until we pull in pcre2-10.45 (or so)
-:: from our subprojects, as 32-bit Windows Visual Studio tests are fixed upstream
-:: Upstream PRs:
-:: https://github.com/PCRE2Project/pcre2/pull/480
-:: https://github.com/PCRE2Project/pcre2/pull/468
-if "!plat!" == "x64_x86" meson test -v -C _build --timeout-multiplier %MESON_TEST_TIMEOUT_MULTIPLIER% --no-suite pcre2 || goto :error
-if not "!plat!" == "x64_x86" meson test -v -C _build --timeout-multiplier %MESON_TEST_TIMEOUT_MULTIPLIER% || goto :error
+meson test -v -C _build --timeout-multiplier %MESON_TEST_TIMEOUT_MULTIPLIER% || goto :error
 meson test -v -C _build --timeout-multiplier %MESON_TEST_TIMEOUT_MULTIPLIER% --setup=unstable_tests --suite=failing --suite=flaky
 
 :: FIXME: can we get code coverage support?

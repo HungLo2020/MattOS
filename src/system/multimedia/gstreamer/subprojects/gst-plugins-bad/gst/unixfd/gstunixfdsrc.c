@@ -28,8 +28,8 @@
  *
  * ## Example launch lines
  * |[
- * gst-launch-1.0 -v videotestsrc ! unixfdsink socket-path=/tmp/blah
- * gst-launch-1.0 -v unixfdsrc socket-path=/tmp/blah ! autovideosink
+ * gst-launch-1.0 -v videotestsrc ! video/x-raw,format=RGBx,width=1920,height=1080 ! timeoverlay ! unixfdsink socket-path=/tmp/blah
+ * gst-launch-1.0 -v unixfdsrc socket-path=/tmp/blah ! videoconvert ! autovideosink
  * ]|
  *
  * Since: 1.24
@@ -405,11 +405,10 @@ again:
         ctx->id = new_buffer->id;
         ctx->n_memory = new_buffer->n_memory;
         for (int i = 0; i < new_buffer->n_memory; i++) {
-          GstMemory *mem = gst_fd_allocator_alloc (allocator, fds_arr[i],
-              new_buffer->memories[i].size + new_buffer->memories[i].offset,
+          GstMemory *mem = gst_fd_allocator_alloc_full (allocator, fds_arr[i],
+              new_buffer->memories[i].offset + new_buffer->memories[i].size,
+              new_buffer->memories[i].offset, new_buffer->memories[i].size,
               GST_FD_MEMORY_FLAG_KEEP_MAPPED);
-          gst_memory_resize (mem, new_buffer->memories[i].offset,
-              new_buffer->memories[i].size);
           GST_MINI_OBJECT_FLAG_SET (mem, GST_MEMORY_FLAG_READONLY);
 
           g_hash_table_insert (self->memories, mem, ctx);
@@ -471,12 +470,8 @@ gst_unix_fd_src_set_clock (GstElement * element, GstClock * clock)
 {
   GstUnixFdSrc *self = (GstUnixFdSrc *) element;
 
-  self->uses_monotonic_clock = FALSE;
-  if (clock != NULL && G_OBJECT_TYPE (clock) == GST_TYPE_SYSTEM_CLOCK) {
-    GstClockType clock_type;
-    g_object_get (clock, "clock-type", &clock_type, NULL);
-    self->uses_monotonic_clock = clock_type == GST_CLOCK_TYPE_MONOTONIC;
-  }
+  self->uses_monotonic_clock = clock != NULL
+      && gst_clock_is_system_monotonic (clock);
 
   return GST_ELEMENT_CLASS (gst_unix_fd_src_parent_class)->set_clock (element,
       clock);
@@ -493,7 +488,7 @@ gst_unix_fd_src_class_init (GstUnixFdSrcClass * klass)
   GST_DEBUG_CATEGORY_INIT (unixfdsrc_debug, "unixfdsrc", 0,
       "Unix file descriptor source");
   gst_element_class_set_static_metadata (gstelement_class,
-      "Unix file descriptor source", "Src", "Unix file descriptor source",
+      "Unix file descriptor source", "Source", "Unix file descriptor source",
       "Xavier Claessens <xavier.claessens@collabora.com>");
   gst_element_class_add_static_pad_template (gstelement_class, &srctemplate);
 

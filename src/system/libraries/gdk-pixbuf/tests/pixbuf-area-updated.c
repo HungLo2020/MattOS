@@ -24,6 +24,8 @@
 #include <stdio.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 
+#include "test-common.h"
+
 /* maximum number of frames in animation(before repeating) */
 #define MAX_NUMBER_FRAMES 1000
 
@@ -37,6 +39,8 @@ typedef struct {
     GTimeVal time; /* time when this frame appears */
     GdkPixbuf *pixbuf; /* current content of the frame */
 } FrameData;
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 
 /* Auxiliary function, returns numeric representation of pixel.
  * For RGB format it is rrggbb(in hex), for RGBA - rrggbbaa. */
@@ -180,6 +184,10 @@ test_area_updated_ico (gconstpointer data)
     GdkPixbufLoader *loader;
 
     filename = g_test_get_filename (G_TEST_DIST, data, NULL);
+    if (!format_supported (filename)) {
+        g_test_skip ("format not supported");
+        return;
+    }
 
     /* create channel */
     channel = g_io_channel_new_file(filename, "r", NULL);
@@ -298,6 +306,10 @@ test_area_updated_anim (gconstpointer data)
     GdkPixbufLoader *loader;
 
     filename = g_test_get_filename (G_TEST_DIST, data, NULL);
+    if (!format_supported (filename)) {
+        g_test_skip ("format not supported");
+        return;
+    }
 
     channel = g_io_channel_new_file (filename, "r", NULL);
     g_assert_nonnull (channel);

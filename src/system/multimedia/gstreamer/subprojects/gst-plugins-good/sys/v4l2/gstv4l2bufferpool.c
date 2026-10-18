@@ -1929,6 +1929,30 @@ cleanup:
 }
 
 /**
+ * gst_v4l2_buffer_pool_release_buffers:
+ * @pool: a #GstBufferPool
+ *
+ * Dequeue and release all buffers that are ready. This can be used for output
+ * devices or the output side of M2M devices to release buffers for use in the
+ * upstream pipeline.
+ *
+ * Must be called with the stream lock held.
+ */
+void
+gst_v4l2_buffer_pool_release_buffers (GstV4l2BufferPool * pool)
+{
+  GstBufferPool *bpool = GST_BUFFER_POOL_CAST (pool);
+  GstBuffer *buffer;
+  gboolean outstanding;
+
+  while (gst_v4l2_buffer_pool_dqbuf (pool, &buffer, &outstanding,
+          FALSE) == GST_FLOW_OK) {
+    if (!outstanding)
+      gst_v4l2_buffer_pool_complete_release_buffer (bpool, buffer, FALSE);
+  }
+}
+
+/**
  * gst_v4l2_buffer_pool_process:
  * @bpool: a #GstBufferPool
  * @buf: a #GstBuffer, maybe be replaced
@@ -2164,8 +2188,10 @@ gst_v4l2_buffer_pool_process (GstV4l2BufferPool * pool, GstBuffer ** buf,
           if ((ret =
                   gst_v4l2_buffer_pool_qbuf (pool, to_queue, group,
                       frame_number))
-              != GST_FLOW_OK)
+              != GST_FLOW_OK) {
+            gst_buffer_unref (to_queue);
             goto queue_failed;
+          }
 
           /* if we are not streaming yet (this is the first buffer, start
            * streaming now */
@@ -2202,12 +2228,7 @@ gst_v4l2_buffer_pool_process (GstV4l2BufferPool * pool, GstBuffer ** buf,
           gst_clear_buffer (&to_queue);
 
           /* release as many buffer as possible */
-          while (gst_v4l2_buffer_pool_dqbuf (pool, &buffer, &outstanding,
-                  FALSE) == GST_FLOW_OK) {
-            if (!outstanding)
-              gst_v4l2_buffer_pool_complete_release_buffer (bpool, buffer,
-                  FALSE);
-          }
+          gst_v4l2_buffer_pool_release_buffers (pool);
 
           num_queued = g_atomic_int_get (&pool->num_queued);
           if (num_queued >= pool->min_latency && num_queued > split_count) {

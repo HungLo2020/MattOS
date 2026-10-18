@@ -2,11 +2,19 @@
 #include "gdk-pixbuf/gdk-pixbuf.h"
 #include <glib.h>
 
+#include "test-common.h"
+
 static void
 test_gif_circular_table (void)
 {
   GdkPixbuf *pixbuf;
   GError *error = NULL;
+
+  if (!format_supported ("gif"))
+    {
+      g_test_skip ("GIF format not supported");
+      return;
+    }
 
   pixbuf = gdk_pixbuf_new_from_file (g_test_get_filename (G_TEST_DIST, "circular-table.gif", NULL), &error);
   g_assert_no_error (error);

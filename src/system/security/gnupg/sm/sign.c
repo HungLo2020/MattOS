@@ -40,19 +40,11 @@
 
 /* Hash the data and return if something was hashed.  Return -1 on error.  */
 static int
-hash_data (int fd, gcry_md_hd_t md)
+hash_data (estream_t fp, gcry_md_hd_t md)
 {
-  estream_t fp;
   char buffer[4096];
   int nread;
   int rc = 0;
-
-  fp = es_fdopen_nc (fd, "rb");
-  if (!fp)
-    {
-      log_error ("fdopen(%d) failed: %s\n", fd, strerror (errno));
-      return -1;
-    }
 
   do
     {
@@ -62,31 +54,21 @@ hash_data (int fd, gcry_md_hd_t md)
   while (nread);
   if (es_ferror (fp))
     {
-      log_error ("read error on fd %d: %s\n", fd, strerror (errno));
+      log_error ("read error on fd %p: %s\n", fp, strerror (errno));
       rc = -1;
     }
-  es_fclose (fp);
   return rc;
 }
 
 
 static int
-hash_and_copy_data (int fd, gcry_md_hd_t md, ksba_writer_t writer)
+hash_and_copy_data (estream_t fp, gcry_md_hd_t md, ksba_writer_t writer)
 {
   gpg_error_t err;
-  estream_t fp;
   char buffer[4096];
   int nread;
   int rc = 0;
   int any = 0;
-
-  fp = es_fdopen_nc (fd, "rb");
-  if (!fp)
-    {
-      gpg_error_t tmperr = gpg_error_from_syserror ();
-      log_error ("fdopen(%d) failed: %s\n", fd, strerror (errno));
-      return tmperr;
-    }
 
   do
     {
@@ -107,9 +89,9 @@ hash_and_copy_data (int fd, gcry_md_hd_t md, ksba_writer_t writer)
   if (es_ferror (fp))
     {
       rc = gpg_error_from_syserror ();
-      log_error ("read error on fd %d: %s\n", fd, strerror (errno));
+      log_error ("read error on fp %p: %s\n", fp, strerror (errno));
     }
-  es_fclose (fp);
+
   if (!any)
     {
       /* We can't allow signing an empty message because it does not
@@ -304,8 +286,87 @@ add_certificate_list (ctrl_t ctrl, ksba_cms_t cms, ksba_cert_t cert)
 }
 
 
+/* This is similar to add_signed_attribute but takes the system
+ * attribute name (w/o the underscore prefix).  System attributes are
+ * either simple attributes and special attributes build up on fly
+ * which are identified by a gpgsm specific name.  */
 static gpg_error_t
-add_signed_attribute (ksba_cms_t cms, const char *attrstr)
+add_system_attribute (ksba_cms_t cms, ksba_cert_t cert, int signer,
+                      const char *attrname)
+{
+  gpg_error_t err;
+  ksba_der_t d;               /* DER builder context.  */
+  unsigned char *der = NULL;  /* Resulting DER    */
+  size_t derlen;              /* and its length.  */
+  int uattr;
+  const char *oid;
+  unsigned char sha256buf[32];
+
+  d = ksba_der_builder_new (0);
+  if (!d)
+    {
+      err = gpg_error_from_syserror ();
+      log_error ("error creating new DER builder: %s\n", gpg_strerror (err));
+      goto leave;
+    }
+
+  uattr = 0;  /* Default is a signed attribute.  */
+  if (!strcmp (attrname, "signingCertificateV2"))
+    {
+      oid = "1.2.840.113549.1.9.16.2.47";
+      gpgsm_get_fingerprint (cert, GCRY_MD_SHA256, sha256buf, NULL);
+
+      ksba_der_add_tag (d, KSBA_CLASS_UNIVERSAL, KSBA_TYPE_SEQUENCE);
+      ksba_der_add_tag (d, KSBA_CLASS_UNIVERSAL, KSBA_TYPE_SEQUENCE);
+      ksba_der_add_tag (d, KSBA_CLASS_UNIVERSAL, KSBA_TYPE_SEQUENCE);
+      ksba_der_add_ptr (d, KSBA_CLASS_UNIVERSAL, KSBA_TYPE_OCTET_STRING,
+                        sha256buf, 32);
+      ksba_der_add_end (d);
+      ksba_der_add_end (d);
+      ksba_der_add_end (d);
+    }
+  else
+    {
+      log_error ("system attribute '_%s' is not known\n", attrname);
+      err = gpg_error (GPG_ERR_INV_ATTR);
+      goto leave;
+    }
+
+  err = ksba_der_builder_get (d, &der, &derlen);
+  if (err)
+    {
+      log_error ("error building DER for system attribute '_%s': %s\n",
+                 attrname, gpg_strerror (err));
+      goto leave;
+    }
+
+  /* Store the data in the CMS object for all signers.  */
+#if KSBA_VERSION_NUMBER >= 0x010700  /* 1.7.0 */
+  err = ksba_cms_add_attribute (cms, signer, oid, uattr, der, derlen);
+#else
+  (void)cms;
+  err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+#endif
+  if (err)
+    {
+      log_error ("error setting system attribute '_%s': %s\n",
+                 attrname, gpg_strerror (err));
+      goto leave;
+    }
+
+ leave:
+  xfree (der);
+  ksba_der_release (d);
+  return err;
+}
+
+
+/* Add one attribute specifified by ATTRSTR to all signers or for
+ * specific attributes only to the signer with index SIGNER.  CERT is
+ * the certificate of the current signer. */
+static gpg_error_t
+add_attribute (ksba_cms_t cms, ksba_cert_t cert, int signer,
+               const char *attrstr)
 {
   gpg_error_t err;
   char **fields = NULL;
@@ -313,6 +374,16 @@ add_signed_attribute (ksba_cms_t cms, const char *attrstr)
   int i;
   unsigned char *der = NULL;
   size_t derlen;
+  int uattr;
+
+  /* Divert to special system signers.  */
+  if (*attrstr == '_' && attrstr[1])
+    return add_system_attribute (cms, cert, signer, attrstr+1);
+
+  /* The code below tells ksba to add it to all signers (-1) and thus
+   * we need to skip all signers except for the first.  */
+  if (signer > 0)
+    return 0;
 
   fields = strtokenize (attrstr, ":");
   if (!fields)
@@ -331,18 +402,18 @@ add_signed_attribute (ksba_cms_t cms, const char *attrstr)
                  attrstr, i < 3 ? "not enough fields":"too many fields");
       goto leave;
     }
+
+  uattr = 0;
   if (!ascii_strcasecmp (fields[1], "u"))
-    {
-      err = 0;
-      goto leave; /* Skip unsigned attributes.  */
-    }
-  if (ascii_strcasecmp (fields[1], "s"))
+    uattr = 1;
+  else if (ascii_strcasecmp (fields[1], "s"))
     {
       err = gpg_error (GPG_ERR_SYNTAX);
       log_error ("invalid attribute specification '%s': %s\n",
                  attrstr, "type is not 's' or 'u'");
       goto leave;
     }
+
   /* Check that the OID is valid.  */
   err = ksba_oid_from_str (fields[0], &der, &derlen);
   if (err)
@@ -381,8 +452,8 @@ add_signed_attribute (ksba_cms_t cms, const char *attrstr)
     }
 
   /* Store the data in the CMS object for all signers.  */
-#if 0
-  err = ksba_cms_add_attribute (cms, -1, fields[0], 0, der, derlen);
+#if KSBA_VERSION_NUMBER >= 0x010700  /* 1.7.0 */
+  err = ksba_cms_add_attribute (cms, -1, fields[0], uattr, der, derlen);
 #else
   (void)cms;
   err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
@@ -622,7 +693,7 @@ write_detached_signature (ctrl_t ctrl, const void *blob, size_t bloblen,
    be used if the value of this argument is NULL. */
 int
 gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
-            int data_fd, int detached, estream_t out_fp)
+            estream_t data_fp, int detached, estream_t out_fp)
 {
   gpg_error_t err;
   int i;
@@ -909,7 +980,12 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
               goto leave;
             }
           if (*buffer)
-            err = gpgsm_qualified_consent (ctrl, cl->cert);
+            {
+              if (*buffer == 2)
+                err = 0;  /* No consent required.  */
+              else
+                err = gpgsm_qualified_consent (ctrl, cl->cert);
+            }
           else
             err = gpgsm_not_qualified_warning (ctrl, cl->cert);
           if (err)
@@ -950,7 +1026,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
       unsigned char *digest;
       size_t digest_len;
 
-      if (!hash_data (data_fd, data_md))
+      if (!hash_data (data_fp, data_md))
         audit_log (ctrl->audit, AUDIT_GOT_DATA);
       for (cl=signerlist,signer=0; cl; cl = cl->next, signer++)
         {
@@ -975,6 +1051,8 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
   gnupg_get_isotime (signed_at);
   for (cl=signerlist,signer=0; cl; cl = cl->next, signer++)
     {
+      strlist_t sl;
+
       err = ksba_cms_set_signing_time (cms, signer, signed_at);
       if (err)
         {
@@ -982,26 +1060,27 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
                      gpg_strerror (err));
           goto leave;
         }
+
+      for (sl = ctrl->attributes; sl; sl = sl->next)
+        if ((err = add_attribute (cms, cl->cert, signer, sl->d)))
+          goto leave;
     }
-
-  {
-    strlist_t sl;
-
-    for (sl = opt.attributes; sl; sl = sl->next)
-      if ((err = add_signed_attribute (cms, sl->d)))
-        goto leave;
-  }
-
 
   /* We need to write at least a minimal list of our capabilities to
    * try to convince some MUAs to use 3DES and not the crippled
    * RC2. Our list is:
    *
+   *   aes256-GCM
+   *   aes128-GCM
    *   aes256-CBC
    *   aes128-CBC
    *   des-EDE3-CBC
    */
-  err = ksba_cms_add_smime_capability (cms, "2.16.840.1.101.3.4.1.42", NULL,0);
+  err = ksba_cms_add_smime_capability (cms, "2.16.840.1.101.3.4.1.46", NULL,0);
+  if (!err)
+    err = ksba_cms_add_smime_capability (cms, "2.16.840.1.101.3.4.1.6", NULL,0);
+  if (!err)
+    err = ksba_cms_add_smime_capability (cms, "2.16.840.1.101.3.4.1.42",NULL,0);
   if (!err)
     err = ksba_cms_add_smime_capability (cms, "2.16.840.1.101.3.4.1.2", NULL,0);
   if (!err)
@@ -1032,7 +1111,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
 
           log_assert (!detached);
 
-          err = hash_and_copy_data (data_fd, data_md, writer);
+          err = hash_and_copy_data (data_fp, data_md, writer);
           if (err)
             goto leave;
           audit_log (ctrl->audit, AUDIT_GOT_DATA);
@@ -1176,7 +1255,7 @@ gpgsm_sign (ctrl_t ctrl, certlist_t signerlist,
       if (err)
         goto leave;
       err = write_detached_signature (ctrl, blob, bloblen, out_fp);
-      xfree (blob);
+      es_free (blob);
       if (err)
         goto leave;
     }

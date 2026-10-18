@@ -19,18 +19,26 @@ gi_gen_shared_dependencies = [
 
 gi_gen_env_variables = environment()
 
+# Use currently built libraries to run g-ir-scanner and the various tools
+# this may not happen if we don't set the library paths.
+# FIXME: https://github.com/mesonbuild/meson/issues/16127
+gi_gen_env_variables.prepend(glib_exec_var_library_path,
+  fs.parent(libglib.full_path()), fs.parent(libgobject.full_path()),
+  fs.parent(libgmodule.full_path()), fs.parent(libgio.full_path()))
+
 if 'address' in glib_sanitizers
-  gi_gen_env_variables.append(
-    'ASAN_OPTIONS', 'verify_asan_link_order=0', separator: ',')
+  gi_gen_env_variables.append('ASAN_OPTIONS',
+    glib_exec_asan_options_disable,
+    separator: ',')
 endif
 
 if host_system == 'windows'
   # Use gio-2.0-uninstalled.pc to find the paths where the GLib DLLs (and their dependent non-system
   # DLLs that are built as subprojects) are located
-  check_built_dll_paths_cmd = [get_dll_paths_script, '--build-path=@0@'.format(meson.project_build_root())]
+  check_built_dll_paths_cmd = [get_dll_paths_script, '--build-path=@0@'.format(meson.global_build_root())]
   meson_pkgconfig_paths = get_option('pkg_config_path')
   if meson_pkgconfig_paths.length() > 0
-    check_built_dll_paths_cmd += '--pkg-config-path=@0@'.format(''.join(meson_pkgconfig_paths))
+    check_built_dll_paths_cmd += '--pkg-config-path=@0@'.format(';'.join(meson_pkgconfig_paths))
   endif
   check_built_dll_paths = run_command(
     check_built_dll_paths_cmd,
@@ -64,17 +72,6 @@ glib_gir_sources = [
   files('../../glib/docs.c'),
 ]
 
-# For API compatibility reasons, GLib-2.0.gir needs to contain the platform
-# specific APIs which are also present in the (newer) GLibUnix-2.0.gir and
-# GLibWin32-2.0.gir repositories.
-# See https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3892#note_2001361
-# These can be dropped when GLib next breaks API (i.e. with GLib-3.0.gir).
-if host_system == 'windows'
-  glib_gir_sources += files('../../glib/gwin32.h')
-else
-  glib_gir_sources += files('../../glib/glib-unix.h')
-endif
-
 glib_gir = gnome.generate_gir(libglib,
   sources: glib_gir_sources,
   namespace: 'GLib',
@@ -103,6 +100,7 @@ if host_system == 'windows'
     sources: [
       gi_gen_shared_sources,
       glib_win32_headers,
+      glib_win32_sources,
     ],
     namespace: 'GLibWin32',
     nsversion: '2.0',
@@ -132,6 +130,7 @@ else
     sources: [
       gi_gen_shared_sources,
       glib_unix_headers,
+      glib_unix_sources,
     ],
     namespace: 'GLibUnix',
     nsversion: '2.0',
@@ -233,27 +232,6 @@ gio_gir_args = [
   '-DG_SETTINGS_ENABLE_BACKEND',
   '--symbol-prefix=gio',
 ]
-
-# For API compatibility reasons, Gio-2.0.gir needs to contain the platform
-# specific APIs which are also present in the (newer) GioUnix-2.0.gir and
-# GioWin32-2.0.gir repositories.
-# See https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3892#note_2001361
-# These can be dropped when GIO next breaks API (i.e. with Gio-3.0.gir).
-if host_system == 'windows'
-  gio_gir_sources += [ gio_win32_include_headers, win32_sources ]
-  foreach h: gio_win32_include_headers
-    gio_gir_args += '--c-include=gio/' + fs.name(h)
-  endforeach
-  gio_gir_packages += 'gio-windows-2.0'
-  gio_gir_args += '--pkg=gio-windows-2.0'
-else
-  gio_gir_sources += [ gio_unix_include_headers, unix_sources ]
-  foreach h: gio_unix_include_headers
-    gio_gir_args += '--c-include=gio/' + fs.name(h)
-  endforeach
-  gio_gir_packages += 'gio-unix-2.0'
-  gio_gir_args += '--pkg=gio-unix-2.0'
-endif
 
 gio_gir = gnome.generate_gir(libgio,
   sources: gio_gir_sources,

@@ -909,8 +909,8 @@ test_recursive_remove_all_subprocess (void)
 static void
 test_recursive_remove_all (void)
 {
-  g_test_trap_subprocess ("/hash/recursive-remove-all/subprocess", 1000000,
-                          G_TEST_SUBPROCESS_DEFAULT);
+  g_test_trap_subprocess ("/hash/recursive-remove-all/subprocess",
+                          0, G_TEST_SUBPROCESS_DEFAULT);
   g_test_trap_assert_passed ();
 }
 
@@ -1471,7 +1471,7 @@ test_new_similar (void)
 
 struct _GHashTable
 {
-  gsize            size;
+  guint            size;
   gint             mod;
   guint            mask;
   gint             nnodes;
@@ -1489,7 +1489,7 @@ struct _GHashTable
   gint             ref_count;  /* (atomic) */
 
 #ifndef G_DISABLE_ASSERT
-  int              version;
+  guintptr         version;
 #endif
   GDestroyNotify   key_destroy_func;
   GDestroyNotify   value_destroy_func;

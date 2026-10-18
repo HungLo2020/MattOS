@@ -169,7 +169,7 @@ typedef enum
   G_PARAM_EXPLICIT_NOTIFY     = 1 << 30,
   /* Avoid warning with -Wpedantic for gcc6 */
   G_PARAM_DEPRECATED          = (gint)(1u << 31)
-} GParamFlags;
+} G_GNUC_FLAG_ENUM GParamFlags;
 
 /**
  * G_PARAM_STATIC_STRINGS:
@@ -411,7 +411,7 @@ GType	g_param_type_register_static	(const gchar		  *name,
 GOBJECT_AVAILABLE_IN_2_66
 gboolean g_param_spec_is_valid_name    (const gchar              *name);
 
-/* For registering builting types */
+/* For registering builtin types */
 GType  _g_param_type_register_static_constant (const gchar              *name,
 					       const GParamSpecTypeInfo *pspec_info,
 					       GType                     opt_type);

@@ -322,7 +322,7 @@ resolution_change_common (gint from_width, gint from_height, gint to_width,
   /* change resolution */
   caps = gst_caps_from_string ("video/x-raw,format=NV12");
   gst_caps_set_simple (caps, "width", G_TYPE_INT, to_width,
-      "height", G_TYPE_INT, to_width, NULL);
+      "height", G_TYPE_INT, to_height, NULL);
 
   GST_DEBUG ("Set new resolution %dx%d", to_width, to_height);
   gst_harness_set_src_caps (h, caps);
@@ -376,14 +376,14 @@ resolution_change_common (gint from_width, gint from_height, gint to_width,
 
 GST_START_TEST (test_resolution_change_to_larger)
 {
-  resolution_change_common (64, 64, 128, 128);
+  resolution_change_common (320, 320, 640, 640);
 }
 
 GST_END_TEST;
 
 GST_START_TEST (test_resolution_change_to_smaller)
 {
-  resolution_change_common (128, 128, 64, 64);
+  resolution_change_common (640, 640, 320, 320);
 }
 
 GST_END_TEST;
@@ -419,9 +419,6 @@ nvenc_suite (void)
   Suite *s;
   TCase *tc_chain;
 
-  /* HACK: cuda device init/deinit with fork seems to problematic */
-  g_setenv ("CK_FORK", "no", TRUE);
-
   s = suite_create ("nvenc");
   tc_chain = tcase_create ("general");
 
@@ -442,4 +439,4 @@ end:
   return s;
 }
 
-GST_CHECK_MAIN (nvenc);
+GST_CHECK_MAIN_NOFORK (nvenc);

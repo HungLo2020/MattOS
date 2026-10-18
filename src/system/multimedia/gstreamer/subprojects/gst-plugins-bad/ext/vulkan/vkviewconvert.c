@@ -368,7 +368,7 @@ update_uniform (GstVulkanViewConvert * conv, GstVulkanImageView ** in_views,
   GstVulkanVideoFilter *vfilter = GST_VULKAN_VIDEO_FILTER (conv);
   GstVideoMultiviewMode in_mode, out_mode;
   GstVideoMultiviewFlags in_flags, out_flags;
-  struct ViewUpdate data;
+  struct ViewUpdate data = { 0 };
   GstMapInfo map_info;
   guint l_index, r_index;
   gboolean mono_input = FALSE;
@@ -610,8 +610,8 @@ gst_vulkan_view_convert_class_init (GstVulkanViewConvertClass * klass)
           GST_TYPE_VULKAN_STEREO_DOWNMIX, DEFAULT_DOWNMIX,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
-  gst_element_class_set_metadata (gstelement_class, "Vulkan View Convert",
-      "Filter/Video/Convert", "A Vulkan View Convert",
+  gst_element_class_set_static_metadata (gstelement_class,
+      "Vulkan View Convert", "Filter/Video/Convert", "A Vulkan View Convert",
       "Matthew Waters <matthew@centricular.com>");
 
   gst_type_mark_as_plugin_api (GST_TYPE_VULKAN_STEREO_DOWNMIX, 0);

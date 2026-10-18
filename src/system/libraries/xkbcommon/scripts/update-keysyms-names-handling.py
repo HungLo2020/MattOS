@@ -39,7 +39,7 @@ KEYSYM_ENTRY_PATTERN = re.compile(
     (?P<value>0x[0-9a-fA-F]+)\s*
     (?:/\*\s*
         (?:
-            (?P<deprecated>deprecated)|
+            (?P<deprecated>(?:D|d)eprecated)|
             \(<U\+(?P<unicode_alt_semantics>[0-9a-fA-F]{4,}>)\)|
             \(U\+(?P<deprecated_unicode>[0-9a-fA-F]{4,})\s(?:\s|\w|-)+\)|
             .*
@@ -80,8 +80,7 @@ def parse_keysyms(path: Path) -> Iterator[Keysym]:
                     deprecated=Deprecation.EXPLICIT
                     if m.group("deprecated") or m.group("deprecated_unicode")
                     else Deprecation.NONE,
-                    alias="alias for" in line.casefold()
-                    or m.group("unicode_alt_semantics"),
+                    alias="alias for" in line.casefold(),
                 )
 
 
@@ -128,15 +127,20 @@ print(
 
 entry_offsets: dict[str, int] = {}
 UINT16_MAX = (1 << 16) - 1
+UNICODE_KEYSYM = UINT16_MAX - 1
 DEPRECATED_KEYSYM = UINT16_MAX
 MAX_EXPLICIT_DEPRECATED_ALIAS_INDEX_LOG2 = 8
 MAX_EXPLICIT_DEPRECATED_ALIAS_INDEX = 1 << MAX_EXPLICIT_DEPRECATED_ALIAS_INDEX_LOG2
 MAX_EXPLICIT_DEPRECATED_ALIAS_COUNT_LOG2 = 4
 MAX_EXPLICIT_DEPRECATED_ALIAS_COUNT = 1 << MAX_EXPLICIT_DEPRECATED_ALIAS_COUNT_LOG2
-MAX_OFFSET = DEPRECATED_KEYSYM - 1
+MAX_OFFSET = UNICODE_KEYSYM - 1
+XKB_KEYSYM_UNICODE_MIN = 0x01000100
+XKB_KEYSYM_UNICODE_MAX = 0x0110FFFF
 
 print(
     """
+#include "config.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -170,22 +174,18 @@ static const uint16_t keysym_name_G[] = {
     $G
 };
 
-static size_t
-keysym_name_hash_f(const char *key, const char *T)
-{
-    size_t sum = 0;
-    for (size_t i = 0; key[i] != '\0'; i++)
-        sum += (size_t) (T[i % $NS] * key[i]);
-    return sum % $NG;
-}
-
 static inline size_t
 keysym_name_perfect_hash(const char *key)
 {
-    return (
-        keysym_name_G[keysym_name_hash_f(key, "$S1")] +
-        keysym_name_G[keysym_name_hash_f(key, "$S2")]
-    ) % $NG;
+    const char *T1 = "$S1";
+    const char *T2 = "$S2";
+    size_t h1 = 0;
+    size_t h2 = 0;
+    for (size_t i = 0; key[i] != '\0'; i++) {
+        h1 += (size_t) (T1[i % $NS] * key[i]);
+        h2 += (size_t) (T2[i % $NS] * key[i]);
+    }
+    return (keysym_name_G[h1 % $NG] + keysym_name_G[h2 % $NG]) % $NG;
 }
 """
 print(
@@ -263,7 +263,11 @@ def make_deprecated_entry(
     else:
         # Keysym is deprecated
         canonical_name = ""
-        canonical_index = "DEPRECATED_KEYSYM"
+        canonical_index = (
+            "DEPRECATED_KEYSYM"
+            if value < XKB_KEYSYM_UNICODE_MIN or value > XKB_KEYSYM_UNICODE_MAX
+            else "UNICODE_KEYSYM"
+        )
         deprecated_ks = keysyms
         explicit_deprecated_aliases_index = 0
     if non_deprecated_ks[1:]:
@@ -304,8 +308,9 @@ def generate_mixed_aliases(aliases: Iterable[Iterable[int]]):
             print(f"    {x},")
 
 
+print(f"#define UNICODE_KEYSYM    0x{UNICODE_KEYSYM:x}")
 print(f"#define DEPRECATED_KEYSYM 0x{DEPRECATED_KEYSYM:x}")
-# NOTE: Alternative implementation, useful the day the indexes do not fit uint16_t.
+# NOTE: Alternative implementation, useful the day the indices do not fit uint16_t.
 # print(f"""
 # struct deprecated_keysym {{
 #     xkb_keysym_t keysym;

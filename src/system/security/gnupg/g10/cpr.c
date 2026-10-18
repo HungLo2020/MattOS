@@ -280,6 +280,19 @@ write_status_printf (int no, const char *format, ...)
     g10_exit (0);
 }
 
+/* Write a WARNING status line using a full gpg-error error value.  */
+void
+write_status_warning (const char *where, gpg_error_t err)
+{
+  if (!statusfp || !status_currently_allowed (STATUS_WARNING))
+    return;  /* Not enabled or allowed. */
+
+  es_fprintf (statusfp, "[GNUPG:] %s %s %u\n",
+              get_status_string (STATUS_WARNING), where, err);
+  if (es_fflush (statusfp) && opt.exit_on_status_write_error)
+    g10_exit (0);
+}
+
 
 /* Write an ERROR status line using a full gpg-error error value.  */
 void
@@ -340,6 +353,7 @@ write_status_text_and_buffer (int no, const char *string,
   const char *s, *text;
   int esc, first;
   int lower_limit = ' ';
+  int escape_more;
   size_t n, count, dowrap;
 
   if (!statusfp || !status_currently_allowed (no))
@@ -350,6 +364,8 @@ write_status_text_and_buffer (int no, const char *string,
       lower_limit--;
       wrap = 0;
     }
+
+  escape_more = (no == STATUS_NOTATION_NAME || no == STATUS_NOTATION_DATA);
 
   text = get_status_string (no);
   count = dowrap = first = 1;
@@ -375,7 +391,7 @@ write_status_text_and_buffer (int no, const char *string,
       for (esc=0, s=buffer, n=len; n; s++, n--)
         {
           if (*s == '%' || *(const byte*)s <= lower_limit
-              || *(const byte*)s == 127 )
+              || *(const byte*)s == 127 || (escape_more && (*s & 0x80)))
             esc = 1;
           if (wrap && ++count > wrap)
             dowrap=1;

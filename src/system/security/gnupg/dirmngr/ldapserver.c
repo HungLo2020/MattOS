@@ -60,11 +60,12 @@ ldapserver_list_free (ldap_server_t servers)
  * Flags are:
  *
  *   starttls  := Use STARTTLS with a default port of 389
- *   ldaptls   := Tunnel LDAP trough a TLS tunnel with default port 636
+ *   ldaptls   := Tunnel LDAP through a TLS tunnel with default port 636
  *   plain     := Switch to plain unsecured LDAP.
  *   (The last of these 3 flags is the effective one)
  *   ntds      := Use Active Directory authentication
  *   areconly  := Use option LDAP_OPT_AREC_EXCLUSIVE
+ *   upload    := Use this server only for upload.
  *
  * FILENAME and LINENO are used for diagnostic purposes only.
  */
@@ -181,6 +182,10 @@ ldapserver_parse_one (const char *line,
                 else if (!ascii_strcasecmp (s, "areconly"))
                   {
                     server->areconly = 1;
+                  }
+                else if (!ascii_strcasecmp (s, "upload"))
+                  {
+                    server->upload = 1;
                   }
                 else
                   {

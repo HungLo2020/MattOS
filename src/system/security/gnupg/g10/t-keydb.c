@@ -105,3 +105,11 @@ do_test (int argc, char *argv[])
   keydb_release (hd2);
   xfree (ctrl);
 }
+
+
+nvc_t
+seckey_packet_to_nvc (PKT_public_key *pk)
+{
+  (void)pk;
+  return NULL;
+}

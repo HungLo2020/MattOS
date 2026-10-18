@@ -781,7 +781,7 @@ int
 xdg_mime_media_type_equal (const char *mime_a,
 			   const char *mime_b)
 {
-  char *sep;
+  const char *sep;
 
   sep = strchr (mime_a, '/');
   
@@ -950,7 +950,8 @@ xdg_mime_dump (void)
   printf ("\n*** GLOBS ***\n\n");
   _xdg_glob_hash_dump (global_hash);
   printf ("\n*** GLOBS REVERSE TREE ***\n\n");
-  _xdg_mime_cache_glob_dump ();
+  if (_caches)
+    _xdg_mime_cache_glob_dump ();
 }
 
 

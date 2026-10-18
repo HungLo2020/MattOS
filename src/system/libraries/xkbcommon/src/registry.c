@@ -5,6 +5,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -12,6 +13,14 @@
 #include <string.h>
 #include <stdint.h>
 #include <libxml/parser.h>
+
+#if HAVE_XKB_EXTENSIONS_DIRECTORIES
+    #include <limits.h>
+    #if HAVE_UNISTD_H && HAVE_DIRENT_H
+        #include <dirent.h>
+        #include <unistd.h>
+    #endif
+#endif
 
 #include "xkbcommon/xkbregistry.h"
 #include "messages-codes.h"
@@ -109,6 +118,7 @@ struct rxkb_option {
     char *brief;
     char *description;
     enum rxkb_popularity popularity;
+    bool layout_specific;
 };
 
 static bool
@@ -140,8 +150,8 @@ rxkb_log(struct rxkb_context *ctx, enum rxkb_log_level level,
     rxkb_log(ctx, level, PREPEND_MESSAGE_ID(msg_id, fmt), ##__VA_ARGS__)
 #define log_dbg(ctx, ...) \
     rxkb_log((ctx), RXKB_LOG_LEVEL_DEBUG, __VA_ARGS__)
-#define log_info(ctx, ...) \
-    rxkb_log((ctx), RXKB_LOG_LEVEL_INFO, __VA_ARGS__)
+#define log_info(ctx, id, ...) \
+    rxkb_log_with_code((ctx), RXKB_LOG_LEVEL_INFO, id, __VA_ARGS__)
 #define log_warn(ctx, id, ...) \
     rxkb_log_with_code((ctx), RXKB_LOG_LEVEL_WARNING, id, __VA_ARGS__)
 #define log_err(ctx, id, ...) \
@@ -305,6 +315,9 @@ DECLARE_GETTER_FOR_TYPE(rxkb_option, name);
 DECLARE_GETTER_FOR_TYPE(rxkb_option, brief);
 DECLARE_GETTER_FOR_TYPE(rxkb_option, description);
 DECLARE_TYPED_GETTER_FOR_TYPE(rxkb_option, popularity, enum rxkb_popularity);
+bool rxkb_option_is_layout_specific(struct rxkb_option *object) {
+    return object->layout_specific;
+}
 DECLARE_FIRST_NEXT_FOR_TYPE(rxkb_option, rxkb_option_group, options);
 
 static void
@@ -505,6 +518,10 @@ rxkb_context_new(enum rxkb_context_flags flags)
 
     if (!(flags & RXKB_CONTEXT_NO_DEFAULT_INCLUDES) &&
         !rxkb_context_include_path_append_default(ctx)) {
+        log_err(ctx, XKB_ERROR_NO_VALID_DEFAULT_INCLUDE_PATH,
+                "Failed to add any default include path "
+                "(default system path: %s)\n",
+                DFLT_XKB_CONFIG_ROOT);
         rxkb_context_unref(ctx);
         return NULL;
     }
@@ -524,52 +541,171 @@ rxkb_context_set_log_fn(struct rxkb_context *ctx,
 bool
 rxkb_context_include_path_append(struct rxkb_context *ctx, const char *path)
 {
-    struct stat stat_buf;
-    int err;
-    char *tmp = NULL;
-    char rules[PATH_MAX];
+    int err = 0;
 
     if (ctx->context_state != CONTEXT_NEW) {
         log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
                 "include paths can only be appended to a new context\n");
-        return false;
+        goto error;
     }
 
+    struct stat stat_buf;
     err = stat(path, &stat_buf);
-    if (err != 0)
-        return false;
-    if (!S_ISDIR(stat_buf.st_mode))
-        return false;
+    if (err != 0) {
+        err = errno;
+        goto error;
+    }
+    if (!S_ISDIR(stat_buf.st_mode)) {
+        err = ENOTDIR;
+        goto error;
+    }
 
-    if (!check_eaccess(path, R_OK | X_OK))
-        return false;
+    if (!check_eaccess(path, R_OK | X_OK)) {
+        err = EACCES;
+        goto error;
+    }
 
-    /* Pre-filter for the 99.9% case - if we can't assemble the default ruleset
+    /*
+     * Pre-filter for the 99.9% case - if we can’t assemble the default ruleset
      * path, complain here instead of during parsing later. The niche cases
-     * where this is the wrong behaviour aren't worth worrying about.
+     * where this is the wrong behaviour aren’t worth worrying about.
      */
+    char rules[PATH_MAX];
     if (!snprintf_safe(rules, sizeof(rules), "%s/rules/%s.xml",
                        path, DEFAULT_XKB_RULES)) {
         log_err(ctx, XKB_ERROR_INVALID_PATH,
                 "Path is too long: expected max length of %zu, "
                 "got: %s/rules/%s.xml\n",
                 sizeof(rules), path, DEFAULT_XKB_RULES);
-        return false;
+        goto error;
     }
 
-    tmp = strdup(path);
-    if (!tmp)
-        return false;
+    char * const tmp = strdup(path);
+    if (!tmp) {
+        err = ENOMEM;
+        goto error;
+    }
 
     darray_append(ctx->includes, tmp);
+    /* Use “info” log level to facilitate bug reporting. */
+    log_info(ctx, XKB_LOG_MESSAGE_NO_ID, "Include path added: %s\n", tmp);
 
     return true;
+
+error:
+    /*
+     * This error is not fatal because some valid paths may still be defined.
+     * Use “info” log level to facilitate bug reporting.
+     */
+    log_info(ctx, XKB_LOG_MESSAGE_NO_ID,
+             "Include path failed: \"%s\" (%s)\n", path, strerror(err));
+    return false;
 }
+
+#ifdef HAVE_XKB_EXTENSIONS_DIRECTORIES
+
+static int
+compare_str(const void *a, const void *b)
+{
+    return strcmp(*(char **)a, *(char **) b);
+}
+
+static int
+add_direct_subdirectories(struct rxkb_context *ctx, const char *path,
+                          darray_string *extensions,
+                          darray_size_t versioned_count,
+                          size_t versioned_path_length)
+{
+    int ret = 0;
+    int err = ENOMEM;
+    DIR *dir = NULL;
+
+    /* Check extensions parent directory */
+    struct stat stat_buf;
+    err = stat(path, &stat_buf);
+    if (err != 0) {
+        err = errno;
+        goto err;
+    }
+    if (!S_ISDIR(stat_buf.st_mode)) {
+        err = ENOTDIR;
+        goto err;
+    }
+    if (!check_eaccess(path, R_OK | X_OK)) {
+        err = EACCES;
+        goto err;
+    }
+
+    dir = opendir(path);
+    if (dir == NULL) {
+        err = EACCES;
+        goto err;
+    }
+
+    struct dirent *entry;
+    char path_buf[PATH_MAX] = "";
+    versioned_path_length++; /* Additional final ‘/’ */
+    while ((entry = readdir(dir)) != NULL) {
+        const char *name = entry->d_name;
+
+        /* Skip special entries */
+        if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
+            continue;
+
+        if (!snprintf_safe(path_buf, sizeof(path_buf), "%s/%s", path, name)) {
+            err = ENOMEM;
+            goto err;
+        }
+        if (stat(path_buf, &stat_buf) != 0 || !S_ISDIR(stat_buf.st_mode))
+            continue;
+
+        /* Skip if the corresponding versioned directory is already included */
+        for (darray_size_t i = 0; i < versioned_count; i++) {
+            const char * const prev_name = darray_item(*extensions, i)
+                                         + versioned_path_length;
+            if (strcmp(name, prev_name) == 0)
+                goto next;
+        }
+
+        char *ext_path = strdup_safe(path_buf);
+        if (!ext_path) {
+            err = ENOMEM;
+            goto err;
+        }
+
+        darray_append(*extensions, ext_path);
+next:
+    {} /* Label at end of compound statement is a C23 extension */
+    }
+
+    closedir(dir);
+
+    if (darray_size(*extensions) > versioned_count) {
+        /* Sort the entries, so that they are appended in lexicographic order */
+        qsort(darray_items(*extensions) + versioned_count,
+              darray_size(*extensions) - versioned_count,
+              sizeof(*darray_items(*extensions)), &compare_str);
+        char **ext_path;
+        darray_foreach_from(ext_path, *extensions, versioned_count) {
+            ret |= rxkb_context_include_path_append(ctx, *ext_path);
+        }
+    }
+
+    return ret;
+
+err:
+    log_dbg(ctx,
+            "Include extensions path failed: %s (%s)\n", path, strerror(err));
+    if (dir)
+        closedir(dir);
+
+    return ret;
+}
+#endif
 
 bool
 rxkb_context_include_path_append_default(struct rxkb_context *ctx)
 {
-    const char *home, *xdg, *root, *extra;
     char user_path[PATH_MAX];
     bool ret = false;
 
@@ -579,9 +715,9 @@ rxkb_context_include_path_append_default(struct rxkb_context *ctx)
         return false;
     }
 
-    home = rxkb_context_getenv(ctx, "HOME");
-
-    xdg = rxkb_context_getenv(ctx, "XDG_CONFIG_HOME");
+    const char * const home = rxkb_context_getenv(ctx, "HOME");
+    const char * const xdg = rxkb_context_getenv(ctx, "XDG_CONFIG_HOME");
+    /* Accept empty string, which may be unintentional and should be reported */
     if (xdg != NULL) {
         if (snprintf_safe(user_path, sizeof(user_path), "%s/xkb", xdg))
             ret |= rxkb_context_include_path_append(ctx, user_path);
@@ -596,17 +732,86 @@ rxkb_context_include_path_append_default(struct rxkb_context *ctx)
             ret |= rxkb_context_include_path_append(ctx, user_path);
     }
 
-    extra = rxkb_context_getenv(ctx, "XKB_CONFIG_EXTRA_PATH");
-    if (extra != NULL)
-        ret |= rxkb_context_include_path_append(ctx, extra);
-    else
-        ret |= rxkb_context_include_path_append(ctx, DFLT_XKB_CONFIG_EXTRA_PATH);
+    const char * const extra = rxkb_context_getenv(ctx, "XKB_CONFIG_EXTRA_PATH");
+    /*
+     * Only use default if path is undefined, but accept empty string, which may
+     * be unintentional and should be reported.
+     */
+    ret |= rxkb_context_include_path_append(
+        ctx, ((extra != NULL) ? extra : DFLT_XKB_CONFIG_EXTRA_PATH)
+    );
 
-    root = rxkb_context_getenv(ctx, "XKB_CONFIG_ROOT");
-    if (root != NULL)
-        ret |= rxkb_context_include_path_append(ctx, root);
-    else
-        ret |= rxkb_context_include_path_append(ctx, DFLT_XKB_CONFIG_ROOT);
+#ifdef HAVE_XKB_EXTENSIONS_DIRECTORIES
+    darray_string extensions = darray_new();
+
+    /* Versioned extensions directory */
+    const char *extensions_path =
+        rxkb_context_getenv(ctx, "XKB_CONFIG_VERSIONED_EXTENSIONS_PATH");
+#ifdef DFLT_XKB_CONFIG_VERSIONED_EXTENSIONS_PATH
+    if (extensions_path == NULL)
+        extensions_path = DFLT_XKB_CONFIG_VERSIONED_EXTENSIONS_PATH;
+#endif
+    size_t versioned_path_length = 0;
+    if (extensions_path != NULL) {
+        /* Add direct subdirectories */
+        ret |= add_direct_subdirectories(ctx, extensions_path,
+                                         &extensions, 0, 0);
+        versioned_path_length = strlen(extensions_path);
+    }
+
+    /* Unversioned extensions directory */
+    extensions_path =
+        rxkb_context_getenv(ctx, "XKB_CONFIG_UNVERSIONED_EXTENSIONS_PATH");
+#ifdef DFLT_XKB_CONFIG_UNVERSIONED_EXTENSIONS_PATH
+    if (extensions_path == NULL)
+        extensions_path = DFLT_XKB_CONFIG_UNVERSIONED_EXTENSIONS_PATH;
+#endif
+    if (extensions_path != NULL) {
+        /*
+         * Add direct subdirectories, except those already added from the
+         * *versioned* extensions path hereinabove.
+         */
+        ret |= add_direct_subdirectories(ctx, extensions_path, &extensions,
+                                         darray_size(extensions),
+                                         versioned_path_length);
+    }
+
+    char **ext_path;
+    darray_foreach(ext_path, extensions) {
+        free(*ext_path);
+    }
+    darray_free(extensions);
+#endif
+
+    /* Canonical XKB root */
+    const char * const root = rxkb_context_getenv(ctx, "XKB_CONFIG_ROOT");
+    /*
+     * Only use default if path is undefined, but accept empty string, which may
+     * be unintentional and should be reported.
+     */
+    const bool has_root = rxkb_context_include_path_append(
+        ctx, ((root != NULL) ? root: DFLT_XKB_CONFIG_ROOT)
+    );
+    ret |= has_root;
+
+    /*
+     * Fallback for misconfigured setups.
+     * Some setups use the assumption that the canonical XKB root is always the
+     * legacy X11 one, but this is no longer true since xkeyboard-config 2.45,
+     * where the X11 path is now a mere symlink to a dedicated xkeyboard-config
+     * data directory.
+     * This fallback can still be skipped if deliberately using an empty string
+     * for the canonical XKB root hereinabove.
+     */
+    if (!has_root && (root == NULL || root[0] != '\0')) {
+        log_warn(ctx, XKB_LOG_MESSAGE_NO_ID,
+                 "Root include path failed; fallback to \"%s\". "
+                 "The setup is probably misconfigured. "
+                 "Please ensure that \"%s\" is available in the environment.\n",
+                 DFLT_XKB_LEGACY_ROOT,
+                 ((root == NULL) ? DFLT_XKB_CONFIG_ROOT : root));
+        ret |= rxkb_context_include_path_append(ctx, DFLT_XKB_LEGACY_ROOT);
+    }
 
     return ret;
 }
@@ -693,6 +898,7 @@ struct config_item {
     char *brief;
     char *vendor;
     enum rxkb_popularity popularity;
+    bool layout_specific;
 };
 
 #define config_item_new(popularity_) { \
@@ -700,7 +906,8 @@ struct config_item {
     .description = NULL, \
     .brief = NULL, \
     .vendor = NULL, \
-    .popularity = (popularity_) \
+    .popularity = (popularity_), \
+    .layout_specific = false \
 }
 
 static void
@@ -729,11 +936,19 @@ parse_config_item(struct rxkb_context *ctx, xmlNode *parent,
                     config->popularity = RXKB_POPULARITY_EXOTIC;
                 else
                     log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
-                            "xml:%d: invalid popularity attribute: expected "
+                            "xml:%u: invalid popularity attribute: expected "
                             "'standard' or 'exotic', got: '%s'\n",
                             ci->line, raw_popularity);
             }
             xmlFree(raw_popularity);
+
+            /* Note: this is only useful for options */
+            xmlChar *raw_layout_specific =
+                xmlGetProp(ci, (const xmlChar*)"layout-specific");
+            if (raw_layout_specific &&
+                xmlStrEqual(raw_layout_specific, (const xmlChar*)"true"))
+                config->layout_specific = true;
+            xmlFree(raw_layout_specific);
 
             /* Process children */
             for (node = ci->children; node; node = node->next) {
@@ -751,7 +966,7 @@ parse_config_item(struct rxkb_context *ctx, xmlNode *parent,
 
             if (!config->name || !strlen(config->name))  {
                 log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
-                        "xml:%d: missing required element 'name'\n",
+                        "xml:%u: missing required element 'name'\n",
                         ci->line);
                 config_item_free(config);
                 return false;
@@ -1017,6 +1232,7 @@ parse_option(struct rxkb_context *ctx, struct rxkb_option_group *group,
         o->name = steal(&config.name);
         o->description = steal(&config.description);
         o->popularity = config.popularity;
+        o->layout_specific = config.layout_specific;
         list_append(&group->options, &o->base.link);
     }
 }
@@ -1174,6 +1390,7 @@ validate(struct rxkb_context *ctx, xmlDoc *doc)
         "<!ATTLIST group allowMultipleSelection (true|false) \"false\">\n"
         "<!ELEMENT option (configItem)>\n"
         "<!ELEMENT configItem (name, shortDescription?, description?, vendor?, countryList?, languageList?, hwList?)>\n"
+        "<!ATTLIST configItem layout-specific (true|false) \"false\">\n"
         "<!ATTLIST configItem popularity (standard|exotic) #IMPLIED>\n"
         "<!ELEMENT name (#PCDATA)>\n"
         "<!ELEMENT shortDescription (#PCDATA)>\n"
@@ -1192,6 +1409,9 @@ validate(struct rxkb_context *ctx, xmlDoc *doc)
     xmlParserCtxtPtr xmlCtxt = xmlNewParserCtxt();
     if (!xmlCtxt)
         return false;
+    static_assert(HAVE_XML_CTXT_SET_ERRORHANDLER,
+                  "xmlCtxtSetErrorHandler (2.13) introduced before "
+                  "xmlCtxtParseDtd (2.14)");
     xmlCtxtSetErrorHandler(xmlCtxt, xml_structured_error_func, ctx);
     xmlCtxtSetOptions(xmlCtxt, _XML_OPTIONS | XML_PARSE_DTDLOAD);
 
@@ -1222,11 +1442,17 @@ validate(struct rxkb_context *ctx, xmlDoc *doc)
     success = xmlCtxtValidateDtd(xmlCtxt, doc, dtd);
 #else
     xmlValidCtxt *dtdvalid = xmlNewValidCtxt();
+    if (!dtdvalid) {
+        success = false;
+        goto ctx_error;
+    }
+    dtdvalid->error = &xml_error_func;
+    dtdvalid->userData = ctx;
     success = xmlValidateDtd(dtdvalid, doc, dtd);
-    if (dtdvalid)
-        xmlFreeValidCtxt(dtdvalid);
-#endif
+    xmlFreeValidCtxt(dtdvalid);
 
+ctx_error:
+#endif
     xmlFreeDtd(dtd);
 
 dtd_error:

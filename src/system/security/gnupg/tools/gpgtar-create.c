@@ -39,7 +39,6 @@
 
 #include "../common/i18n.h"
 #include <gpg-error.h>
-#include "../common/exechelp.h"
 #include "../common/sysutils.h"
 #include "../common/ccparray.h"
 #include "../common/membuf.h"
@@ -1069,7 +1068,7 @@ gpgtar_create (char **inpattern, const char *files_from, int null_names,
   estream_t files_from_stream = NULL;
   estream_t outstream = NULL;
   int eof_seen = 0;
-  pid_t pid = (pid_t)(-1);
+  gpgrt_process_t proc = NULL;
   unsigned int skipped_open = 0;
 
   memset (scanctrl, 0, sizeof *scanctrl);
@@ -1228,8 +1227,13 @@ gpgtar_create (char **inpattern, const char *files_from, int null_names,
     {
       strlist_t arg;
       ccparray_t ccp;
+#ifdef HAVE_W32_SYSTEM
+      HANDLE except[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+#else
       int except[2] = { -1, -1 };
+#endif
       const char **argv;
+      gpgrt_spawn_actions_t act = NULL;
 
       /* '--encrypt' may be combined with '--symmetric', but 'encrypt'
        * is set either way.  Clear it if no recipients are specified.
@@ -1246,13 +1250,19 @@ gpgtar_create (char **inpattern, const char *files_from, int null_names,
         ccparray_put (&ccp, "--no");
       if (opt.require_compliance)
         ccparray_put (&ccp, "--require-compliance");
-      if (opt.status_fd != -1)
+      if (opt.status_fd)
         {
           static char tmpbuf[40];
+          es_syshd_t hd;
 
-          snprintf (tmpbuf, sizeof tmpbuf, "--status-fd=%d", opt.status_fd);
+          snprintf (tmpbuf, sizeof tmpbuf, "--status-fd=%s", opt.status_fd);
           ccparray_put (&ccp, tmpbuf);
-          except[0] = opt.status_fd;
+          es_syshd (opt.status_stream, &hd);
+#ifdef HAVE_W32_SYSTEM
+          except[0] = hd.u.handle;
+#else
+          except[0] = hd.u.fd;
+#endif
         }
 
       ccparray_put (&ccp, "--output");
@@ -1286,15 +1296,28 @@ gpgtar_create (char **inpattern, const char *files_from, int null_names,
           goto leave;
         }
 
-      err = gnupg_spawn_process (opt.gpg_program, argv,
-                                 except[0] == -1? NULL : except,
-                                 (GNUPG_SPAWN_KEEP_STDOUT
-                                  | GNUPG_SPAWN_KEEP_STDERR),
-                                 &outstream, NULL, NULL, &pid);
+      err = gpgrt_spawn_actions_new (&act);
+      if (err)
+        {
+          xfree (argv);
+          goto leave;
+        }
+
+#ifdef HAVE_W32_SYSTEM
+      gpgrt_spawn_actions_set_inherit_handles (act, except);
+#else
+      gpgrt_spawn_actions_set_inherit_fds (act, except);
+#endif
+      err = gpgrt_process_spawn (opt.gpg_program, argv,
+                                 (GPGRT_PROCESS_STDIN_PIPE
+                                  | GPGRT_PROCESS_STDOUT_KEEP
+                                  | GPGRT_PROCESS_STDERR_KEEP), act, &proc);
+      gpgrt_spawn_actions_release (act);
       xfree (argv);
       if (err)
         goto leave;
       /* Note that OUTSTREAM is our tar output which is fed to gpg.  */
+      gpgrt_process_get_streams (proc, 0, &outstream, NULL, NULL);
       es_set_binary (outstream);
     }
   else if (opt.outfile) /* No crypto  */
@@ -1333,23 +1356,25 @@ gpgtar_create (char **inpattern, const char *files_from, int null_names,
   write_progress (1, global_written_files, global_total_files);
   write_progress (0, global_written_data, global_total_data);
 
-  if (pid != (pid_t)(-1))
+  if (proc)
     {
-      int exitcode;
-
       err = es_fclose (outstream);
       outstream = NULL;
       if (err)
         log_error ("error closing pipe: %s\n", gpg_strerror (err));
-      else
+
+      err = gpgrt_process_wait (proc, 1);
+      if (!err)
         {
-          err = gnupg_wait_process (opt.gpg_program, pid, 1, &exitcode);
-          if (err)
+          int exitcode;
+
+          gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &exitcode);
+          if (exitcode)
             log_error ("running %s failed (exitcode=%d): %s",
                        opt.gpg_program, exitcode, gpg_strerror (err));
-          gnupg_release_process (pid);
-          pid = (pid_t)(-1);
         }
+      gpgrt_process_release (proc);
+      proc = NULL;
     }
 
   if (skipped_open)
@@ -1362,7 +1387,7 @@ gpgtar_create (char **inpattern, const char *files_from, int null_names,
   if (!err)
     {
       gpg_error_t first_err;
-      if (outstream != es_stdout || pid != (pid_t)(-1))
+      if (outstream != es_stdout)
         first_err = es_fclose (outstream);
       else
         first_err = es_fflush (outstream);

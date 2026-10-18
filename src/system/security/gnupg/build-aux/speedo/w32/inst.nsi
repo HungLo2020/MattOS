@@ -45,11 +45,10 @@ Unicode true
 !define PACKAGE_SHORT "gnupg"
 !define PRETTY_PACKAGE "GNU Privacy Guard"
 !define PRETTY_PACKAGE_SHORT "GnuPG"
+!define INSTALL_DIR "GnuPG"
 !define COMPANY "The GnuPG Project"
 !define COPYRIGHT "Copyright (C) 2024 g10 Code GmbH"
 !define DESCRIPTION "GnuPG: The GNU Privacy Guard for Windows"
-
-!define INSTALL_DIR "GnuPG"
 
 !define WELCOME_TITLE_ENGLISH \
  "Welcome to the installation of GnuPG"
@@ -63,13 +62,13 @@ Unicode true
   GnuPG includes an advanced key management facility and is compliant \
   with the OpenPGP Internet standard as described in RFC-4880. \
   \r\n\r\n$_CLICK \
-  \r\n\r\n\r\n\r\n\r\nThis is GnuPG version ${VERSION} (32 bit).\r\n\
+  \r\n\r\n\r\n\r\n\r\nThis is GnuPG version ${VERSION} (64 bit).\r\n\
   File version: ${PROD_VERSION}\r\n\
   Release date: ${BUILD_ISODATE}"
 !define ABOUT_GERMAN \
  "GnuPG is die häufigst verwendete Software zur Mail- und Datenverschlüsselung.\
    \r\n\r\n$_CLICK \
-   \r\n\r\n\r\n\r\n\r\nDies ist GnuPG Version ${VERSION} (32 bit).\r\n\
+   \r\n\r\n\r\n\r\n\r\nDies ist GnuPG Version ${VERSION} (64 bit).\r\n\
    Dateiversion: ${PROD_VERSION}\r\n\
    Releasedatum: ${BUILD_ISODATE}"
 
@@ -91,6 +90,10 @@ SetCompressor lzma
 !include "LogicLib.nsh"
 !include "x64.nsh"
 
+# Set the default installation directory. This is used by
+# MultiUser.nsh which then sets the actual INSTDIR.
+InstallDir "$PROGRAMFILES64\${INSTALL_DIR}"
+
 # We support user mode installation but prefer system wide
 !define MULTIUSER_EXECUTIONLEVEL Highest
 !define MULTIUSER_MUI
@@ -99,7 +102,8 @@ SetCompressor lzma
 !define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME ""
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "Software\${PACKAGE_SHORT}"
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "Install Directory"
-!define MULTIUSER_INSTALLMODE_INSTDIR "${PACKAGE_SHORT}"
+!define MULTIUSER_INSTALLMODE_INSTDIR "${INSTALL_DIR}"
+!define MULTIUSER_USE_PROGRAMFILES64
 !include "MultiUser.nsh"
 
 # Set the package name.  Note that this name should not be suffixed
@@ -114,12 +118,6 @@ OutFile "${NAME}-${VERSION}_${BUILD_DATESTR}.exe"
 #Fixme: Do we need a logo?
 #Icon "${TOP_SRCDIR}/doc/logo/gnupg-logo-icon.ico"
 #UninstallIcon "${TOP_SRCDIR}/doc/logo/gnupg-logo-icon.ico"
-
-# Set the installation directory.
-!ifndef INSTALL_DIR
-!define INSTALL_DIR "GnuPG"
-!endif
-InstallDir "$PROGRAMFILES\${INSTALL_DIR}"
 
 # Add version information to the file properties.
 VIProductVersion "${PROD_VERSION}"
@@ -576,8 +574,32 @@ FunctionEnd
 #
 # Define the installer sections.
 #
-
+Var MYTMP
 Section "-gnupginst"
+  # Check if GnuPG is already installed and uninstall it (Update)
+  #
+  # Before GnuPG 2.5 the Windows installer was 32 bit
+  # so look for 32 bit installations, too.
+  SetRegView 32
+uninst_old_version:
+  ClearErrors
+  ReadRegStr $0 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\GnuPG" "UninstallString"
+  IfErrors skip_uninst 0
+  ReadRegStr $1 SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\GnuPG" "InstallLocation"
+  IfErrors skip_uninst 0
+
+  ExecWait '$0 /S _?=$1'
+  Delete /REBOOTOK "$1\gnupg-uninstall.exe"
+  RmDir "$1"
+skip_uninst:
+  StrCmp $MYTMP "1" skip_uninst2 0
+  SetRegView 64
+  StrCpy $MYTMP "1"
+  goto uninst_old_version
+skip_uninst2:
+
+  # We are now 64 bit only
+  SetRegView 64
   SetOutPath "$INSTDIR"
 
   File "${BUILD_DIR}/README.txt"
@@ -652,7 +674,16 @@ Section "GnuPG" SEC_gnupg
 
   SetOutPath "$INSTDIR\share\gnupg"
   File "share/gnupg/distsigkey.gpg"
-  File "share/gnupg/sks-keyservers.netCA.pem"
+  File "${BUILD_DIR}/pkgversioninfo.txt"
+  File /nonfatal "share/gnupg/help.txt"
+  File /nonfatal "share/gnupg/help.de.txt"
+  File /nonfatal "share/gnupg/help.fr.txt"
+  File /nonfatal "share/gnupg/mail-tube.txt"
+  File /nonfatal "share/gnupg/mail-tube.de.txt"
+  File /nonfatal "share/gnupg/mail-tube.fr.txt"
+  File /nonfatal "share/gnupg/wks-utils.txt"
+  File /nonfatal "share/gnupg/wks-utils.de.txt"
+  File /nonfatal "share/gnupg/wks-utils.fr.txt"
 
   SetOutPath "$INSTDIR\share\doc\gnupg\examples"
   File "share/doc/gnupg/examples/pwpattern.list"
@@ -817,18 +848,6 @@ Section "-ksba" SEC_ksba
   File /oname=libksba.imp lib/libksba.dll.a
   SetOutPath "$INSTDIR\include"
   File include/ksba.h
-SectionEnd
-
-Section "-gpgme" SEC_gpgme
-  SetOutPath "$INSTDIR\bin"
-  File bin/libgpgme-11.dll
-  File /nonfatal bin/libgpgme-glib-11.dll
-  File libexec/gpgme-w32spawn.exe
-  SetOutPath "$INSTDIR\lib"
-  File /oname=libgpgme.imp      lib/libgpgme.dll.a
-  File /nonfatal /oname=libgpgme-glib.imp lib/libgpgme-glib.dll.a
-  SetOutPath "$INSTDIR\include"
-  File include/gpgme.h
 SectionEnd
 
 Section "-sqlite" SEC_sqlite
@@ -1203,15 +1222,6 @@ Section "-un.libiconv"
   Delete "$INSTDIR\bin\libiconv-2.dll"
 SectionEnd
 
-Section "-un.gpgme"
-  Delete "$INSTDIR\bin\libgpgme-11.dll"
-  Delete "$INSTDIR\bin\libgpgme-glib-11.dll"
-  Delete "$INSTDIR\bin\gpgme-w32spawn.exe"
-  Delete "$INSTDIR\lib\libgpgme.imp"
-  Delete "$INSTDIR\lib\libgpgme-glib.imp"
-  Delete "$INSTDIR\include\gpgme.h"
-SectionEnd
-
 Section "-un.ksba"
   Delete "$INSTDIR\bin\libksba-8.dll"
   Delete "$INSTDIR\lib\libksba.imp"
@@ -1329,10 +1339,15 @@ Section "-un.gnupg"
   RMDir  "$INSTDIR\share\doc\gnupg"
   RMDir  "$INSTDIR\share\doc"
 
-  Delete "$INSTDIR\share\gnupg\sks-keyservers.netCA.pem"
   Delete "$INSTDIR\share\gnupg\dirmngr-conf.skel"
   Delete "$INSTDIR\share\gnupg\distsigkey.gpg"
   Delete "$INSTDIR\share\gnupg\gpg-conf.skel"
+  Delete "$INSTDIR\share\gnupg\help.txt"
+  Delete "$INSTDIR\share\gnupg\help.*.txt"
+  Delete "$INSTDIR\share\gnupg\mail-tube.txt"
+  Delete "$INSTDIR\share\gnupg\mail-tube.*.txt"
+  Delete "$INSTDIR\share\gnupg\wks-utils.txt"
+  Delete "$INSTDIR\share\gnupg\wks-utils.*.txt"
   RMDir  "$INSTDIR\share\gnupg"
 
   Delete "$INSTDIR\share\locale\ca\LC_MESSAGES\gnupg2.mo"
@@ -1459,6 +1474,12 @@ Function .onInit
 
   Call G4wRunOnce
 
+  ${IfNot} ${RunningX64}
+      MessageBox MB_OK "Sorry this version runs only on x64 machines"
+      Abort
+  ${EndIf}
+  SetRegView 64
+
   # We can't use TOP_SRCDIR dir as the name of the file needs to be
   # the same while building and running the installer.  Thus we
   # generate the file from a template.
@@ -1468,7 +1489,7 @@ Function .onInit
 
   Var /GLOBAL changed_dir
   # Check if the install directory was modified on the command line
-  StrCmp "$INSTDIR" "$PROGRAMFILES\${INSTALL_DIR}" unmodified 0
+  StrCmp "$INSTDIR" "$PROGRAMFILES64\${INSTALL_DIR}" unmodified 0
   # It is modified. Save that value.
   StrCpy $changed_dir "$INSTDIR"
 
@@ -1482,6 +1503,7 @@ initDone:
 FunctionEnd
 
 Function "un.onInit"
+  SetRegView 64
   !insertmacro MULTIUSER_UNINIT
 FunctionEnd
 
@@ -1590,18 +1612,29 @@ SectionEnd
 #
 # Now for the generic parts to end the installation.
 #
-Var MYTMP
 
 # Last section is a hidden one.
 Section
   WriteUninstaller "$INSTDIR\gnupg-uninstall.exe"
+
+  # Make sure the etc direcory tree exists and is only writable with
+  # aministrator rights.
+  Push $0
+  ReadEnvStr $0 ALLUSERSPROFILE
+  CreateDirectory "$0\GNU\etc"
+  ExecShell "$SYSDIR\icacls" '"$0\GNU\etc" /setintegritylevel h /c /q' SW_HIDE
+  Pop $0
 
   # Windows Add/Remove Programs support
   StrCpy $MYTMP "Software\Microsoft\Windows\CurrentVersion\Uninstall\GnuPG"
   WriteRegExpandStr SHCTX $MYTMP "UninstallString" '"$INSTDIR\gnupg-uninstall.exe"'
   WriteRegExpandStr SHCTX $MYTMP "InstallLocation" "$INSTDIR"
   WriteRegStr       SHCTX $MYTMP "DisplayName"     "${PRETTY_PACKAGE}"
+!ifdef WITH_GUI
+  WriteRegStr       SHCTX $MYTMP "DisplayIcon"     "$INSTDIR\bin\gpa.exe,0"
+!else
   WriteRegStr       SHCTX $MYTMP "DisplayIcon"     "$INSTDIR\bin\gpg.exe,0"
+!endif
   WriteRegStr       SHCTX $MYTMP "DisplayVersion"  "${VERSION}"
   WriteRegStr       SHCTX $MYTMP "Publisher"       "The GnuPG Project"
   WriteRegStr       SHCTX $MYTMP "URLInfoAbout"    "https://gnupg.org"

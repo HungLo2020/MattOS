@@ -56,63 +56,6 @@ gpgsm_print_further_info (const char *format, ...)
 }
 
 
-/* Setup the environment so that the pinentry is able to get all
-   required information.  This is used prior to an exec of the
-   protect-tool. */
-void
-setup_pinentry_env (void)
-{
-#ifndef HAVE_W32_SYSTEM
-  char *lc;
-  const char *name, *value;
-  int iterator;
-
-  /* Try to make sure that GPG_TTY has been set.  This is needed if we
-     call for example the protect-tools with redirected stdin and thus
-     it won't be able to ge a default by itself.  Try to do it here
-     but print a warning.  */
-  value = session_env_getenv (opt.session_env, "GPG_TTY");
-  if (value)
-    gnupg_setenv ("GPG_TTY", value, 1);
-  else if (!(lc=getenv ("GPG_TTY")) || !*lc)
-    {
-      log_error (_("GPG_TTY has not been set - "
-                   "using maybe bogus default\n"));
-      lc = gnupg_ttyname (0);
-      if (!lc)
-        lc = "/dev/tty";
-      gnupg_setenv ("GPG_TTY", lc, 1);
-    }
-
-  if (opt.lc_ctype)
-    gnupg_setenv ("LC_CTYPE", opt.lc_ctype, 1);
-#if defined(HAVE_SETLOCALE) && defined(LC_CTYPE)
-  else if ( (lc = setlocale (LC_CTYPE, "")) )
-    gnupg_setenv ("LC_CTYPE", lc, 1);
-#endif
-
-  if (opt.lc_messages)
-    gnupg_setenv ("LC_MESSAGES", opt.lc_messages, 1);
-#if defined(HAVE_SETLOCALE) && defined(LC_MESSAGES)
-  else if ( (lc = setlocale (LC_MESSAGES, "")) )
-    gnupg_setenv ("LC_MESSAGES", lc, 1);
-#endif
-
-  iterator = 0;
-  while ((name = session_env_list_stdenvnames (&iterator, NULL)))
-    {
-      if (!strcmp (name, "GPG_TTY"))
-        continue;  /* Already set.  */
-      value = session_env_getenv (opt.session_env, name);
-      if (value)
-        gnupg_setenv (name, value, 1);
-    }
-
-#endif /*!HAVE_W32_SYSTEM*/
-}
-
-
-
 /* Transform a sig-val style s-expression as returned by Libgcrypt to
    one which includes an algorithm identifier encoding the public key
    and the hash algorithm.  The public key algorithm is taken directly
@@ -308,7 +251,7 @@ transform_sigval (const unsigned char *sigval, size_t sigvallen, int mdalgo,
 
 
 /* Wrapper around ksba_cms_get_sig_val to return a gcrypt object
- * instaed of ksba's canonical s-expression.  On errror NULL is return
+ * instead of ksba's canonical s-expression.  On error NULL is return
  * and in some cases an error message is printed.  */
 gcry_sexp_t
 gpgsm_ksba_cms_get_sig_val (ksba_cms_t cms, int idx)
@@ -394,4 +337,59 @@ gpgsm_get_hash_algo_from_sigval (gcry_sexp_t sigval_arg,
   gcry_free (string);
 
   return hashalgo;
+}
+
+
+/* Map OIDSTR to an OID.  Returns NULL is OIDSTR is not looking like
+ * an OID or if a string which has no known mapping to an OID.  */
+const char *
+gpgsm_map_cipher_name_to_oid (const char *oidstr)
+{
+  static struct {
+    const char *oidstr;
+    const char *name;
+    const char *altname;
+  } oidtbl[] =
+    {
+      { "2.16.840.1.101.3.4.1.2",    "AES",    "AES-CBC"  },
+      { "2.16.840.1.101.3.4.1.2",    "AES128", "AES128-CBC" },
+      { "2.16.840.1.101.3.4.1.22",   "AES192", "AES192-CBC" },
+      { "2.16.840.1.101.3.4.1.42",   "AES256", "AES256-CBC" },
+      { "2.16.840.1.101.3.4.1.6",    "AES-GCM"    },
+      { "2.16.840.1.101.3.4.1.6",    "AES128-GCM" },
+      { "2.16.840.1.101.3.4.1.26",   "AES192-GCM" },
+      { "2.16.840.1.101.3.4.1.46",   "AES256-GCM" },
+      { "1.2.392.200011.61.1.1.1.2", "CAMELLIA",    "CAMELLIA-CBC" },
+      { "1.2.392.200011.61.1.1.1.2", "CAMELLIA128", "CAMELLIA128-CBC" },
+      { "1.2.392.200011.61.1.1.1.3", "CAMELLIA192", "CAMELLIA192-CBC" },
+      { "1.2.392.200011.61.1.1.1.4", "CAMELLIA256", "CAMELLIA256-CBC" },
+      { "1.2.410.200004.1.4",        "SEED", "SEED-CBC" },
+      { "1.3.6.1.4.1.11591.13.2.2",  "SERPENT",    "SERPENT-CBC" },
+      { "1.3.6.1.4.1.11591.13.2.2",  "SERPENT128", "SERPENT128-CBC" },
+      { "1.3.6.1.4.1.11591.13.2.22", "SERPENT192", "SERPENT192-CBC" },
+      { "1.3.6.1.4.1.11591.13.2.42", "SERPENT256", "SERPENT256-CBC" },
+      { "1.2.840.113549.3.7",        "3DES",  "3DES-CBC" }
+    };
+  int idx;
+  const char *s;
+
+  if (!oidstr || !*oidstr)
+    return NULL;
+
+  /* Do a simple syntax check to see whether it looks like an OID.
+   * Note that checking just the first char for a digit is not
+   * sufficent due to the algo name "3DES".  */
+  for (s=oidstr; *s; s++)
+    if (*s != '.' && !digitp (s))
+      break;
+  if (!*s)
+    return oidstr;   /* Looks like an OID - return as-is.  */
+
+  for (idx=0; idx < DIM (oidtbl); idx++)
+    if (!ascii_strcasecmp (oidtbl[idx].name, oidstr)
+        || (oidtbl[idx].altname
+            && !ascii_strcasecmp (oidtbl[idx].altname, oidstr)))
+      return oidtbl[idx].oidstr;
+
+  return NULL;
 }

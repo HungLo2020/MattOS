@@ -103,7 +103,7 @@ keybox_is_writable (void *token)
 }
 
 
-/* Change the default buffering to KBYTES KiB; using 0 uses the syste
+/* Change the default buffering to KBYTES KiB; using 0 uses the system
  * buffers.  This function must be called early.  */
 void
 keybox_set_buffersize (unsigned int kbytes, int reserved)
@@ -193,6 +193,18 @@ keybox_new_x509 (void *token, int secret)
 
 
 void
+keybox_fp_close (KEYBOX_HANDLE hd)
+{
+  if (!hd)
+    return;
+  if (hd->fp)
+    {
+      _keybox_ll_close (hd->fp);
+      hd->fp = NULL;
+    }
+}
+
+void
 keybox_release (KEYBOX_HANDLE hd)
 {
   if (!hd)
@@ -206,11 +218,6 @@ keybox_release (KEYBOX_HANDLE hd)
     }
   _keybox_release_blob (hd->found.blob);
   _keybox_release_blob (hd->saved_found.blob);
-  if (hd->fp)
-    {
-      _keybox_ll_close (hd->fp);
-      hd->fp = NULL;
-    }
   xfree (hd->word_match.name);
   xfree (hd->word_match.pattern);
   xfree (hd);
@@ -283,10 +290,10 @@ _keybox_ll_open (estream_t *rfp, const char *fname, unsigned int mode)
 
   fp = es_fopen (fname,
                  mode == KEYBOX_LL_OPEN_CREATE
-                 ? "wb,sysopen,sequential" :
+                 ? "wb,sysopen,sequential,share=rw" :
                  mode == KEYBOX_LL_OPEN_UPDATE
-                 ? "r+b,sysopen,sequential" :
-                 "rb,sysopen,sequential");
+                 ? "r+b,sysopen,sequential,share=rw" :
+                 "rb,sysopen,sequential,share=rw");
   if (!fp)
     return gpg_error_from_syserror ();
 

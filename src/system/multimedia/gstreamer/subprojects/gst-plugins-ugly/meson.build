@@ -1,8 +1,9 @@
 project('gst-plugins-ugly', 'c',
-  version : '1.26.11',
+  version : '1.28.8',
   meson_version : '>= 1.4',
   default_options : [ 'warning_level=1',
-                      'buildtype=debugoptimized' ])
+                      'buildtype=debugoptimized',
+                      'c_std=gnu11,c11' ])
 
 gst_version = meson.project_version()
 version_arr = gst_version.split('.')
@@ -197,7 +198,7 @@ else
   cdata.set('DISABLE_ORC', 1)
 endif
 
-gmodule_dep = dependency('gmodule-no-export-2.0', version: glib_req)
+gmodule_dep = dependency('gmodule-no-export-2.0', version: glib_req, default_options: {'sysprof': 'disabled'})
 
 if gmodule_dep.version().version_compare('< 2.67.4')
   cdata.set('g_memdup2(ptr,sz)', '(G_LIKELY(((guint64)(sz)) < G_MAXUINT)) ? g_memdup(ptr,sz) : (g_abort(),NULL)')
@@ -352,7 +353,12 @@ endif
 
 configure_file(output : 'config.h', configuration : cdata)
 
-meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.24.0', meson.project_version())
+meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.26.0', meson.project_version())
+
+# dist common files from monorepo root
+if not meson.is_subproject()
+  meson.add_dist_script('scripts/dist-common-files.py', meson.project_version())
+endif
 
 plugin_names = []
 gst_plugins = []

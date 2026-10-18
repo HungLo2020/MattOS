@@ -37,12 +37,16 @@
 #include "util.h"
 
 /*-- asshelp.c --*/
+#define ASSHELP_FLAG_AUTOSTART 1  /* Autostart the new service.  */
+
 
 void setup_libassuan_logging (unsigned int *debug_var_address,
                               int (*log_monitor)(assuan_context_t ctx,
                                                  unsigned int cat,
                                                  const char *msg));
 void set_libassuan_log_cats (unsigned int newcats);
+
+void log_libassuan_system_error (assuan_fd_t fd);
 
 
 gpg_error_t
@@ -61,7 +65,8 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
                      const char *opt_lc_ctype,
                      const char *opt_lc_messages,
                      session_env_t session_env,
-                     int autostart, int verbose, int debug,
+                     unsigned int flags,
+                     int verbose, int debug,
                      gpg_error_t (*status_cb)(ctrl_t, int, ...),
                      ctrl_t status_cb_arg);
 
@@ -71,7 +76,8 @@ gpg_error_t
 start_new_keyboxd (assuan_context_t *r_ctx,
                    gpg_err_source_t errsource,
                    const char *keyboxd_program,
-                   int autostart, int verbose, int debug,
+                   unsigned int flags,
+                   int verbose, int debug,
                    gpg_error_t (*status_cb)(ctrl_t, int, ...),
                    ctrl_t status_cb_arg);
 
@@ -81,7 +87,8 @@ gpg_error_t
 start_new_dirmngr (assuan_context_t *r_ctx,
                    gpg_err_source_t errsource,
                    const char *dirmngr_program,
-                   int autostart, int verbose, int debug,
+                   unsigned int flags,
+                   int verbose, int debug,
                    gpg_error_t (*status_cb)(ctrl_t, int, ...),
                    ctrl_t status_cb_arg);
 
@@ -98,6 +105,11 @@ gpg_error_t warn_server_version_mismatch (assuan_context_t ctx,
                                                             ...),
                                           void *status_func_ctrl,
                                           int print_hints);
+
+#ifdef HAVE_W32_SYSTEM
+/* Say hello to the frontend.  */
+void w32_ack_to_frontend (void);
+#endif
 
 
 /*-- asshelp2.c --*/

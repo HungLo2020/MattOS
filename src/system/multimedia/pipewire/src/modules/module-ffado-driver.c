@@ -2,6 +2,8 @@
 /* SPDX-FileCopyrightText: Copyright © 2021 Wim Taymans */
 /* SPDX-License-Identifier: MIT */
 
+#include "config.h"
+
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -13,8 +15,6 @@
 #include <signal.h>
 #include <limits.h>
 #include <math.h>
-
-#include "config.h"
 
 #include <spa/utils/result.h>
 #include <spa/utils/string.h>
@@ -66,6 +66,7 @@
  * Options with well-known behavior.
  *
  * - \ref PW_KEY_REMOTE_NAME
+ * - \ref SPA_KEY_AUDIO_LAYOUT
  * - \ref SPA_KEY_AUDIO_POSITION
  * - \ref PW_KEY_NODE_NAME
  * - \ref PW_KEY_NODE_DESCRIPTION
@@ -112,6 +113,7 @@
 PW_LOG_TOPIC_STATIC(mod_topic, "mod." NAME);
 #define PW_LOG_TOPIC_DEFAULT mod_topic
 
+#define MAX_CHANNELS	SPA_AUDIO_MAX_CHANNELS
 #define MAX_PORTS	128
 #define FFADO_RT_PRIORITY_PACKETIZER_RELATIVE   5
 
@@ -179,7 +181,7 @@ struct port {
 struct volume {
 	bool mute;
 	uint32_t n_volumes;
-	float volumes[SPA_AUDIO_MAX_CHANNELS];
+	float volumes[MAX_CHANNELS];
 };
 
 struct stream {
@@ -317,21 +319,21 @@ static inline void fix_midi_event(uint8_t *data, size_t size)
 
 static void midi_to_ffado(struct port *p, float *src, uint32_t n_samples)
 {
-	struct spa_pod *pod;
-	struct spa_pod_sequence *seq;
-	struct spa_pod_control *c;
+	struct spa_pod_parser parser;
+	struct spa_pod_frame frame;
+	struct spa_pod_sequence seq;
+	struct spa_pod_control c;
+	const void *seq_body, *c_body;
 	uint32_t i, index = 0, unhandled = 0;
 	uint32_t *dst = p->buffer;
 
 	if (src == NULL)
 		return;
 
-	if ((pod = spa_pod_from_data(src, n_samples * sizeof(float), 0, n_samples * sizeof(float))) == NULL)
+	spa_pod_parser_init_from_data(&parser, src, n_samples * sizeof(float),
+			0, n_samples * sizeof(float));
+	if (spa_pod_parser_push_sequence_body(&parser, &frame, &seq, &seq_body) < 0)
 		return;
-	if (!spa_pod_is_sequence(pod))
-		return;
-
-	seq = (struct spa_pod_sequence*)pod;
 
 	clear_port_buffer(p, n_samples);
 
@@ -342,20 +344,16 @@ static void midi_to_ffado(struct port *p, float *src, uint32_t n_samples)
 	}
 	p->event_pos = 0;
 
-	SPA_POD_SEQUENCE_FOREACH(seq, c) {
-		uint8_t data[16];
-		int j, size;
+	while (spa_pod_parser_get_control_body(&parser, &c, &c_body) >= 0) {
+		uint32_t j, size = c.value.size;
+		const uint8_t *data = c_body;
 
-		if (c->type != SPA_CONTROL_UMP)
+		if (c.type != SPA_CONTROL_Midi)
 			continue;
 
-		size = spa_ump_to_midi(SPA_POD_BODY(&c->value),
-				SPA_POD_BODY_SIZE(&c->value), data, sizeof(data));
-		if (size <= 0)
-			continue;
+		if (index < c.offset)
+			index = SPA_ROUND_UP_N(c.offset, 8);
 
-		if (index < c->offset)
-			index = SPA_ROUND_UP_N(c->offset, 8);
 		for (j = 0; j < size; j++) {
 			if (index >= n_samples) {
 				/* keep events that don't fit for the next cycle */
@@ -491,16 +489,8 @@ static void ffado_to_midi(struct port *p, float *dst, uint32_t *src, uint32_t si
 			continue;
 
 		if (process_byte(p, i, data & 0xff, &frame, &bytes, &size)) {
-			uint64_t state = 0;
-			while (size > 0) {
-				uint32_t ev[4];
-				int ev_size = spa_ump_from_midi(&bytes, &size, ev, sizeof(ev), 0, &state);
-				if (ev_size <= 0)
-					break;
-
-				spa_pod_builder_control(&b, frame, SPA_CONTROL_UMP);
-		                spa_pod_builder_bytes(&b, ev, ev_size);
-			}
+			spa_pod_builder_control(&b, frame, SPA_CONTROL_Midi);
+	                spa_pod_builder_bytes(&b, bytes, size);
 		}
         }
 	spa_pod_builder_pop(&b, &f);
@@ -756,7 +746,7 @@ static int make_stream_ports(struct stream *s)
 		struct port *port = s->ports[i];
 		char channel[32];
 
-		snprintf(channel, sizeof(channel), "AUX%u", n_channels % SPA_AUDIO_MAX_CHANNELS);
+		snprintf(channel, sizeof(channel), "AUX%u", n_channels);
 
 		switch (port->stream_type) {
 		case ffado_stream_type_audio:
@@ -869,9 +859,9 @@ static void parse_props(struct stream *s, const struct spa_pod *param)
 		case SPA_PROP_channelVolumes:
 		{
 			uint32_t n;
-			float vols[SPA_AUDIO_MAX_CHANNELS];
+			float vols[MAX_CHANNELS];
 			if ((n = spa_pod_copy_array(&prop->value, SPA_TYPE_Float,
-					vols, SPA_AUDIO_MAX_CHANNELS)) > 0) {
+					vols, SPA_N_ELEMENTS(vols))) > 0) {
 				s->volume.n_volumes = n;
 				for (n = 0; n < s->volume.n_volumes; n++)
 					s->volume.volumes[n] = vols[n];
@@ -1223,8 +1213,9 @@ static int probe_ffado_device(struct impl *impl)
 		impl->source.ports[i] = port;
 	}
 	if (impl->source.info.channels != n_channels) {
-		impl->source.info.channels = n_channels;
-		for (i = 0; i < SPA_MIN(impl->source.info.channels, SPA_AUDIO_MAX_CHANNELS); i++)
+		uint32_t n_pos = SPA_MIN(n_channels, SPA_N_ELEMENTS(impl->source.info.position));
+		impl->source.info.channels = n_pos;
+		for (i = 0; i < n_pos; i++)
 			impl->source.info.position[i] = SPA_AUDIO_CHANNEL_AUX0 + i;
 	}
 
@@ -1249,8 +1240,9 @@ static int probe_ffado_device(struct impl *impl)
 		impl->sink.ports[i] = port;
 	}
 	if (impl->sink.info.channels != n_channels) {
-		impl->sink.info.channels = n_channels;
-		for (i = 0; i < SPA_MIN(impl->sink.info.channels, SPA_AUDIO_MAX_CHANNELS); i++)
+		uint32_t n_pos = SPA_MIN(n_channels, SPA_N_ELEMENTS(impl->sink.info.position));
+		impl->sink.info.channels = n_pos;
+		for (i = 0; i < n_pos; i++)
 			impl->sink.info.position[i] = SPA_AUDIO_CHANNEL_AUX0 + i;
 	}
 
@@ -1422,14 +1414,15 @@ static void parse_devices(struct impl *impl, const char *val, size_t len)
 	}
 }
 
-static void parse_audio_info(const struct pw_properties *props, struct spa_audio_info_raw *info)
+static int parse_audio_info(const struct pw_properties *props, struct spa_audio_info_raw *info)
 {
-	spa_audio_info_raw_init_dict_keys(info,
+	return spa_audio_info_raw_init_dict_keys(info,
 			&SPA_DICT_ITEMS(
 				 SPA_DICT_ITEM(SPA_KEY_AUDIO_FORMAT, "F32P"),
 				 SPA_DICT_ITEM(SPA_KEY_AUDIO_POSITION, DEFAULT_POSITION)),
 			&props->dict,
 			SPA_KEY_AUDIO_CHANNELS,
+			SPA_KEY_AUDIO_LAYOUT,
 			SPA_KEY_AUDIO_POSITION, NULL);
 }
 
@@ -1547,8 +1540,6 @@ int pipewire__module_init(struct pw_impl_module *module, const char *args)
 		pw_properties_set(props, PW_KEY_NODE_VIRTUAL, "true");
 	if (pw_properties_get(props, PW_KEY_NODE_GROUP) == NULL)
 		pw_properties_set(props, PW_KEY_NODE_GROUP, "ffado-group");
-	if (pw_properties_get(props, PW_KEY_NODE_LINK_GROUP) == NULL)
-		pw_properties_set(props, PW_KEY_NODE_LINK_GROUP, "ffado-group");
 	if (pw_properties_get(props, PW_KEY_NODE_PAUSE_ON_IDLE) == NULL)
 		pw_properties_set(props, PW_KEY_NODE_PAUSE_ON_IDLE, "false");
 
@@ -1575,8 +1566,11 @@ int pipewire__module_init(struct pw_impl_module *module, const char *args)
 	copy_props(impl, props, PW_KEY_NODE_VIRTUAL);
 	copy_props(impl, props, PW_KEY_NODE_PAUSE_ON_IDLE);
 
-	parse_audio_info(impl->source.props, &impl->source.info);
-	parse_audio_info(impl->sink.props, &impl->sink.info);
+	if ((res = parse_audio_info(impl->source.props, &impl->source.info)) < 0 ||
+	    (res = parse_audio_info(impl->sink.props, &impl->sink.info)) < 0) {
+		pw_log_error( "can't parse format: %s", spa_strerror(res));
+		goto error;
+	}
 
 	impl->core = pw_context_get_object(impl->context, PW_TYPE_INTERFACE_Core);
 	if (impl->core == NULL) {

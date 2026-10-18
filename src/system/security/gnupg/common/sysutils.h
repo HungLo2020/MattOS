@@ -38,12 +38,20 @@
 typedef void *gnupg_fd_t;
 #define GNUPG_INVALID_FD ((void*)(-1))
 #define INT2FD(s) ((void *)(s))
-#define FD2INT(h) ((unsigned int)(h))
+# ifdef _WIN64
+# define FD2INT(h) ((intptr_t)(h))
+# else
+# define FD2INT(h) ((unsigned int)(h))
+# endif
+#define FD_DBG(h) ((int)(intptr_t)(h))
+#define FD2NUM(h) ((int)(intptr_t)(h))
 #else
 typedef int gnupg_fd_t;
 #define GNUPG_INVALID_FD (-1)
 #define INT2FD(s) (s)
 #define FD2INT(h) (h)
+#define FD_DBG(h) (h)
+#define FD2NUM(h) (h)
 #endif
 
 #ifdef HAVE_STAT
@@ -67,18 +75,22 @@ void trap_unaligned (void);
 int  disable_core_dumps (void);
 int  enable_core_dumps (void);
 void enable_special_filenames (void);
+void disable_translate_sys2libc_fd (void);
+
 const unsigned char *get_session_marker (size_t *rlen);
 unsigned int get_uint_nonce (void);
 /*int check_permissions (const char *path,int extension,int checkonly);*/
 void gnupg_sleep (unsigned int seconds);
 void gnupg_usleep (unsigned int usecs);
-int translate_sys2libc_fd (gnupg_fd_t fd, int for_write);
 int translate_sys2libc_fd_int (int fd, int for_write);
+gpg_error_t gnupg_parse_fdstr (const char *fdstr, es_syshd_t *r_syshd);
 int check_special_filename (const char *fname, int for_write, int notranslate);
+gnupg_fd_t gnupg_check_special_filename (const char *fname);
 FILE *gnupg_tmpfile (void);
 void gnupg_reopen_std (const char *pgmname);
 void gnupg_inhibit_set_foregound_window (int yes);
 void gnupg_allow_set_foregound_window (pid_t pid);
+int  gnupg_remove_ext (const char *fname, int wait_for_access);
 int  gnupg_remove (const char *fname);
 gpg_error_t gnupg_rename_file (const char *oldname, const char *newname,
                                int *block_signals);
@@ -108,6 +120,9 @@ gpg_error_t gnupg_inotify_watch_delete_self (int *r_fd, const char *fname);
 gpg_error_t gnupg_inotify_watch_socket (int *r_fd, const char *socket_name);
 int gnupg_inotify_has_name (int fd, const char *name);
 
+estream_t open_stream_nc (gnupg_fd_t fd, const char *mode);
+
+void output_debug_string (const char *format, ...) GPGRT_ATTR_PRINTF(1,2);
 
 #ifdef HAVE_W32_SYSTEM
 int gnupg_w32_set_errno (int ec);

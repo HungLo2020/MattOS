@@ -7,8 +7,10 @@
 
 #include <assert.h>
 
-#include "x11-priv.h"
 #include "xkbcommon/xkbcommon.h"
+#include "atom.h"
+#include "keymap.h"
+#include "x11-priv.h"
 
 /*
  * References for the lonesome traveler:
@@ -399,6 +401,9 @@ get_types(struct xkb_keymap *keymap, xcb_connection_t *conn,
             }
         }
 
+        /* Checked only when compiling a keymap from text */
+        type->required = true;
+
         xcb_xkb_key_type_next(&types_iter);
     }
 
@@ -422,6 +427,7 @@ get_sym_maps(struct xkb_keymap *keymap, xcb_connection_t *conn,
 
     keymap->min_key_code = reply->minKeyCode;
     keymap->max_key_code = reply->maxKeyCode;
+    keymap->num_keys = keymap->num_keys_low = reply->maxKeyCode + 1;
 
     ALLOC_OR_FAIL(keymap->keys, keymap->max_key_code + 1);
 
@@ -436,7 +442,7 @@ get_sym_maps(struct xkb_keymap *keymap, xcb_connection_t *conn,
         FAIL_UNLESS(key->num_groups <= ARRAY_SIZE(wire_sym_map->kt_index));
         ALLOC_OR_FAIL(key->groups, key->num_groups);
 
-        for (unsigned j = 0; j < key->num_groups; j++) {
+        for (xkb_layout_index_t j = 0; j < key->num_groups; j++) {
             FAIL_UNLESS(wire_sym_map->kt_index[j] < keymap->num_types);
             key->groups[j].type = &keymap->types[wire_sym_map->kt_index[j]];
 
@@ -559,7 +565,9 @@ get_vmods(struct xkb_keymap *keymap, xcb_connection_t *conn,
 
     keymap->mods.num_mods =
         NUM_REAL_MODS + MIN(msb_pos(reply->virtualMods), NUM_VMODS);
+    FAIL_UNLESS(keymap->mods.num_mods <= XKB_MAX_MODS);
 
+    static_assert(NUM_REAL_MODS + NUM_VMODS <= XKB_MAX_MODS, "");
     for (unsigned i = 0; i < NUM_VMODS; i++) {
         if (reply->virtualMods & (1u << i)) {
             uint8_t wire = *iter;
@@ -573,6 +581,9 @@ get_vmods(struct xkb_keymap *keymap, xcb_connection_t *conn,
     }
 
     return true;
+
+fail:
+    return false;
 }
 
 static bool
@@ -737,7 +748,9 @@ get_indicators(struct xkb_keymap *keymap, xcb_connection_t *conn,
         xcb_xkb_get_indicator_map_maps_iterator(reply);
 
     keymap->num_leds = msb_pos(reply->which);
+    FAIL_UNLESS(keymap->num_leds <= XKB_MAX_LEDS);
 
+    static_assert(XKB_MAX_LEDS == NUM_INDICATORS, "");
     for (unsigned i = 0; i < NUM_INDICATORS; i++) {
         if (reply->which & (UINT32_C(1) << i)) {
             xcb_xkb_indicator_map_t *wire = iter.data;
@@ -777,6 +790,9 @@ get_indicators(struct xkb_keymap *keymap, xcb_connection_t *conn,
     }
 
     return true;
+
+fail:
+    return false;
 }
 
 static bool
@@ -857,6 +873,9 @@ get_sym_interprets(struct xkb_keymap *keymap, xcb_connection_t *conn,
         sym_interpret->num_actions =
             (sym_interpret->a.action.type != ACTION_TYPE_NONE);
 
+        /* Checked only when compiling a keymap from text */
+        sym_interpret->required = true;
+
         xcb_xkb_sym_interpret_next(&iter);
     }
 
@@ -910,9 +929,10 @@ get_type_names(struct xkb_keymap *keymap, struct x11_atom_interner *interner,
         uint8_t wire_num_levels = *n_levels_per_type_iter;
         struct xkb_key_type *type = &keymap->types[i];
 
-        /* Levels must have names. */
-        FAIL_UNLESS(type->num_levels == wire_num_levels);
+        /* Levels names are optional, but the maximum is the level count */
+        FAIL_UNLESS(type->num_levels >= wire_num_levels);
 
+        /* Allocate names for all levels, even if some names are missing */
         ALLOC_OR_FAIL(type->level_names, type->num_levels);
 
         x11_atom_interner_adopt_atom(interner, wire_type_name, &type->name);
@@ -920,6 +940,10 @@ get_type_names(struct xkb_keymap *keymap, struct x11_atom_interner *interner,
             x11_atom_interner_adopt_atom(interner, kt_level_names_iter[j],
                                          &type->level_names[j]);
         }
+        /* We may have received less names than there are levels: ensure
+         * missing names have a fallback. */
+        for (size_t j = wire_num_levels; j < type->num_levels; j++)
+            type->level_names[j] = XKB_ATOM_NONE;
 
         type->num_level_names = type->num_levels;
         kt_level_names_iter += wire_num_levels;
@@ -974,7 +998,9 @@ get_vmod_names(struct xkb_keymap *keymap, struct x11_atom_interner *interner,
      */
     keymap->mods.num_mods =
         NUM_REAL_MODS + MIN(msb_pos(reply->virtualMods), NUM_VMODS);
+    FAIL_UNLESS(keymap->mods.num_mods <= XKB_MAX_MODS);
 
+    static_assert(NUM_REAL_MODS + NUM_VMODS <= XKB_MAX_MODS, "");
     for (unsigned i = 0; i < NUM_VMODS; i++) {
         if (reply->virtualMods & (1u << i)) {
             xcb_atom_t wire = *iter;
@@ -987,6 +1013,9 @@ get_vmod_names(struct xkb_keymap *keymap, struct x11_atom_interner *interner,
     }
 
     return true;
+
+fail:
+    return false;
 }
 
 static bool
@@ -1174,7 +1203,7 @@ xkb_x11_keymap_new_from_device(struct xkb_context *ctx,
 
     if (device_id < 0 || device_id > 127) {
         log_err_func(ctx, XKB_LOG_MESSAGE_NO_ID,
-                     "illegal device ID: %d\n", device_id);
+                     "illegal device ID: %"PRId32"\n", device_id);
         return NULL;
     }
 

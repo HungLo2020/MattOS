@@ -40,6 +40,19 @@
    that error counter is set to 0.  After setting the RC the error
    counter will be initialized to 3.
 
+   OPGP Attestation on Yubikeys:
+   <https://developers.yubico.com/PGP/Attestation.html:
+
+   Key-ID: 81
+   CRT:    B6 03 84 01 81
+
+   DOs for Attestation Key metadata:
+
+   0xDA   Algorithm Attributes
+   0xDB   Key Fingerprint
+   0xDC   CA Fingerprint
+   0xDD   Key Generation Date
+   0xD9   User Interaction Flag (UIF)
  */
 
 #include <config.h>
@@ -119,8 +132,16 @@ static struct {
   { 0x00D6, 0, 0x6E, 1, 0, 0, 0, 0, "UIF for Signature"},
   { 0x00D7, 0, 0x6E, 1, 0, 0, 0, 0, "UIF for Decryption"},
   { 0x00D8, 0, 0x6E, 1, 0, 0, 0, 0, "UIF for Authentication"},
-  { 0x00F9, 0,    0, 1, 0, 0, 0, 0, "KDF data object"},
-  { 0x00FA, 0,    0, 1, 0, 0, 0, 2, "Algorithm Information"},
+  { 0x00D9, 0, 0x6E, 1, 0, 0, 0, 0, "UIF for Attestation"},
+  { 0x00DA, 0, 0x6E, 1, 0, 0, 0, 0, "Algorithm Attributes Attestation"},
+  { 0x00DB, 0, 0x6E, 1, 0, 0, 0, 0, "Key Fingerprint Attestation"},
+  { 0x00DC, 0, 0x6E, 1, 0, 0, 0, 0, "CA Fingerprint Attestation"},
+  { 0x00DA, 0, 0x6E, 1, 0, 0, 0, 0, "Key Generation Date Attestation"},
+  { 0x00DE, 1,    0, 1, 0, 0, 0, 0, "Key information" },
+  { 0x00F9, 1,    0, 1, 0, 0, 0, 0, "KDF data object"},
+  { 0x00FA, 1,    0, 1, 0, 0, 0, 2, "Algorithm Information"},
+  { 0x00FB, 1,    0, 1, 0, 0, 0, 2, "Secure Messaging Certificate"},
+  { 0x00FC, 1,    0, 1, 0, 0, 0, 2, "Attestation Certificate"},
   { 0 }
 };
 
@@ -190,7 +211,7 @@ struct app_local_s {
   struct
   {
     unsigned int is_v2:1;              /* Compatible to v2 or later.        */
-    unsigned int is_v3:1;              /* Comatible to v3 or later.         */
+    unsigned int is_v3:1;              /* Compatible to v3 or later.        */
     unsigned int has_button:1;         /* Has confirmation button or not.   */
 
     unsigned int sm_supported:1;       /* Secure Messaging is supported.    */
@@ -319,6 +340,7 @@ app_openpgp_manufacturer (unsigned int no)
     case 0x1337: return "Warsaw Hackerspace";
     case 0x2342: return "warpzone"; /* hackerspace Muenster.  */
     case 0x4354: return "Confidential Technologies";   /* cotech.de */
+    case 0x4d52: return "Miralium Research";
     case 0x5343: return "SSE Carte à puce";
     case 0x5443: return "TIF-IT e.V.";
     case 0x63AF: return "Trustica";
@@ -1475,7 +1497,7 @@ get_disp_name (app_t app)
 /* Return the number of remaining tries for the standard or the admin
  * pw.  Returns -1 on card error.  */
 static int
-get_remaining_tries (app_t app, int adminpw)
+get_remaining_tries (app_t app, int chvno)
 {
   void *relptr;
   unsigned char *value;
@@ -1489,7 +1511,7 @@ get_remaining_tries (app_t app, int adminpw)
       xfree (relptr);
       return -1;
     }
-  remaining = value[adminpw? 6 : 4];
+  remaining = value[(chvno == 3)? 6 : ((chvno == 2)? 5: 4)];
   xfree (relptr);
   return remaining;
 }
@@ -1759,7 +1781,7 @@ ecdh_params (const char *curve)
 {
   unsigned int nbits;
 
-  openpgp_curve_to_oid (curve, &nbits, NULL);
+  openpgp_curve_to_oid (curve, &nbits, NULL, -1);
 
   /* See RFC-6637 for those constants.
          0x03: Number of bytes
@@ -1801,7 +1823,7 @@ ecc_read_pubkey (app_t app, ctrl_t ctrl, int meta_update,
     }
 
   curve = app->app_local->keyattr[keyno].ecc.curve;
-  oidstr = openpgp_curve_to_oid (curve, NULL, NULL);
+  oidstr = openpgp_curve_to_oid (curve, NULL, NULL, 0);
   err = openpgp_oid_from_str (oidstr, &oid);
   if (err)
     return err;
@@ -2474,7 +2496,7 @@ get_prompt_info (app_t app, int chvno, unsigned long sigcount, int remaining)
     return NULL;
 
   disp_name = get_disp_name (app);
-  if (chvno == 1)
+  if (chvno == 1 && sigcount)
     {
       /* TRANSLATORS: Put a \x1f right before a colon.  This can be
        * used by pinentry to nicely align the names and values.  Keep
@@ -2690,6 +2712,55 @@ pin_from_cache (app_t app, ctrl_t ctrl, int chvno, char **r_pin)
 }
 
 
+/* Build the prompt to enter the User PIN.  The prompt depends on the
+ * current state of the card.  If R_REMAINING is not NULL the
+ * remaining tries are stored there.  */
+static gpg_error_t
+build_enter_pin_prompt (app_t app, int chvno, const char *firstline,
+                        unsigned long sigcount,
+                        char **r_prompt, int *r_remaining)
+{
+  int remaining;
+  char *prompt;
+  char *infoblock;
+
+  *r_prompt = NULL;
+  if (r_remaining)
+    *r_remaining = 0;
+
+  remaining = get_remaining_tries (app, chvno);
+  if (remaining == -1)
+    return gpg_error (GPG_ERR_CARD);
+  if (!remaining)
+    {
+      log_info (_("card is permanently locked!\n"));
+      return gpg_error (GPG_ERR_PIN_BLOCKED);
+    }
+
+  if (chvno == 3)
+    {
+      log_info (ngettext("%d Admin PIN attempt remaining before card"
+                         " is permanently locked\n",
+                         "%d Admin PIN attempts remaining before card"
+                         " is permanently locked\n",
+                         remaining), remaining);
+    }
+
+  infoblock = get_prompt_info (app, chvno, sigcount,
+                               remaining < 3? remaining : -1);
+
+  prompt = strconcat (firstline, "%0A%0A", infoblock, NULL);
+  xfree (infoblock);
+  if (!prompt)
+    return gpg_error_from_syserror ();
+
+  *r_prompt = prompt;
+  if (r_remaining)
+    *r_remaining = remaining;
+  return 0;
+}
+
+
 /* Verify a CHV either using the pinentry or if possible by
    using a pinpad.  PINCB and PINCB_ARG describe the usual callback
    for the pinentry.  CHVNO must be either 1 or 2. SIGCOUNT is only
@@ -2707,21 +2778,23 @@ verify_a_chv (app_t app, ctrl_t ctrl,
               char **r_pinvalue, size_t *r_pinlen)
 {
   int rc = 0;
-  char *prompt_buffer = NULL;
-  const char *prompt;
+  char *prompt;
   pininfo_t pininfo;
   int minlen = 6;
   int remaining;
   char *pin = NULL;
+  const char *firstline = _("||Please unlock the card");
 
   log_assert (chvno == 1 || chvno == 2);
 
   *r_pinvalue = NULL;
   *r_pinlen = 0;
 
-  remaining = get_remaining_tries (app, 0);
-  if (remaining == -1)
-    return gpg_error (GPG_ERR_CARD);
+  rc = build_enter_pin_prompt (app,
+                               1, /* Use 1, even if CHVNO==2.  */
+                               firstline, sigcount, &prompt, &remaining);
+  if (rc)
+    return rc;
 
   if (chvno == 2 && app->app_local->flags.def_chv2)
     {
@@ -2746,20 +2819,6 @@ verify_a_chv (app_t app, ctrl_t ctrl,
   pininfo.fixedlen = -1;
   pininfo.minlen = minlen;
 
-  {
-    const char *firstline = _("||Please unlock the card");
-    char *infoblock = get_prompt_info (app, chvno, sigcount,
-                                       remaining < 3? remaining : -1);
-
-    prompt_buffer = strconcat (firstline, "%0A%0A", infoblock, NULL);
-    if (prompt_buffer)
-      prompt = prompt_buffer;
-    else
-      prompt = firstline;  /* ENOMEM fallback.  */
-
-    xfree (infoblock);
-  }
-
   if (!opt.disable_pinpad
       && !iso7816_check_pinpad (app_get_slot (app), ISO7816_VERIFY, &pininfo)
       && !check_pinpad_request (app, &pininfo, 0))
@@ -2770,9 +2829,8 @@ verify_a_chv (app_t app, ctrl_t ctrl,
        * Note that the pincb appends a text to the prompt telling the
        * user to use the pinpad. */
       rc = pincb (pincb_arg, prompt, NULL);
+      xfree (prompt);
       prompt = NULL;
-      xfree (prompt_buffer);
-      prompt_buffer = NULL;
       if (rc)
         {
           log_info (_("PIN callback returned error: %s\n"),
@@ -2794,9 +2852,8 @@ verify_a_chv (app_t app, ctrl_t ctrl,
         rc = 0;
       else
         rc = pincb (pincb_arg, prompt, &pin);
+      xfree (prompt);
       prompt = NULL;
-      xfree (prompt_buffer);
-      prompt_buffer = NULL;
       if (rc)
         {
           log_info (_("PIN callback returned error: %s\n"),
@@ -2897,43 +2954,13 @@ verify_chv2 (app_t app, ctrl_t ctrl,
 static gpg_error_t
 build_enter_admin_pin_prompt (app_t app, char **r_prompt, int *r_remaining)
 {
-  int remaining;
-  char *prompt;
-  char *infoblock;
+  gpg_error_t rc;
+  /* TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+     start of the string.  */
+  const char *firstline = _("|A|Please enter the Admin PIN");
 
-  *r_prompt = NULL;
-  if (r_remaining)
-    *r_remaining = 0;
-
-  remaining = get_remaining_tries (app, 1);
-  if (remaining == -1)
-    return gpg_error (GPG_ERR_CARD);
-  if (!remaining)
-    {
-      log_info (_("card is permanently locked!\n"));
-      return gpg_error (GPG_ERR_PIN_BLOCKED);
-    }
-
-  log_info (ngettext("%d Admin PIN attempt remaining before card"
-                     " is permanently locked\n",
-                     "%d Admin PIN attempts remaining before card"
-                     " is permanently locked\n",
-                     remaining), remaining);
-
-  infoblock = get_prompt_info (app, 3, 0, remaining < 3? remaining : -1);
-
-  /* TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-     the start of the string.  Use %0A (single percent) for a linefeed.  */
-  prompt = strconcat (_("|A|Please enter the Admin PIN"),
-                      "%0A%0A", infoblock, NULL);
-  xfree (infoblock);
-  if (!prompt)
-    return gpg_error_from_syserror ();
-
-  *r_prompt = prompt;
-  if (r_remaining)
-    *r_remaining = remaining;
-  return 0;
+  rc = build_enter_pin_prompt (app, 3, firstline, 0, r_prompt, r_remaining);
+  return rc;
 }
 
 
@@ -3077,6 +3104,7 @@ do_setattr (app_t app, ctrl_t ctrl, const char *name,
     { "UIF-2",        0x00D7, 0,      3, 5, 1 },
     { "UIF-3",        0x00D8, 0,      3, 5, 1 },
     { "KDF",          0x00F9, 0,      0, 4, 1 },
+    { "GEN-ATTST",    0,      0,      3,21, 1 },  /* Yubikey specific */
     { NULL, 0 }
   };
   int exmode;
@@ -3125,7 +3153,7 @@ do_setattr (app_t app, ctrl_t ctrl, const char *name,
   else
     exmode = 0;
 
-  if (table[idx].special == 4)
+  if (table[idx].special == 4)  /* KDF */
     {
       if (APP_CARD(app)->cardtype == CARDTYPE_YUBIKEY
           || APP_CARD(app)->cardtype == CARDTYPE_GNUK)
@@ -3226,6 +3254,31 @@ do_setattr (app_t app, ctrl_t ctrl, const char *name,
           /* We better reset the curDO.  */
           iso7816_select_data (app_get_slot (app), 0, table[idx].tag);
         }
+    }
+  else if (table[idx].special == 21)
+    {
+      /* Generate attestation.  This will write the attestation to the
+       * respective cert slot and thus delete an existsing certificate
+       * stored there.  The expected value is "OPENPGP.<n>". The APDU
+       * is: CLA=0x80, INS=0xFB, P1=1 (SIG) or 2 (DEC) or 3 (AUT),
+       *     P2=0x00, Lc=0x00, Data=None, Le=0x00
+       */
+      unsigned char apdu[5];
+
+      apdu[0] = 0x80;
+      apdu[1] = 0xfb;
+      if (!ascii_strncasecmp (value, "OPENPGP.1", valuelen))
+        apdu[2] = 0x01;
+      else if (!ascii_strncasecmp (value, "OPENPGP.2", valuelen))
+        apdu[2] = 0x02;
+      else if (!ascii_strncasecmp (value, "OPENPGP.3", valuelen))
+        apdu[2] = 0x03;
+      else
+        return gpg_error (GPG_ERR_INV_ID);
+      apdu[3] = 0;
+
+      rc = iso7816_apdu_direct (app_get_slot (app), apdu, 4, 0,
+                                NULL, NULL, NULL);
     }
   else  /* Standard.  */
     rc = iso7816_put_data (app_get_slot (app),
@@ -3362,6 +3415,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
   pininfo_t pininfo;
   int use_pinpad = 0;
   int minlen = 6;
+  char *prompt = NULL;
 
   if (digitp (chvnostr))
     chvno = atoi (chvnostr);
@@ -3450,22 +3504,25 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
         {
           if (!use_pinpad)
             {
-              char *promptbuf = NULL;
-              const char *prompt;
-
               if (chvno == 3)
                 {
                   minlen = 8;
-                  rc = build_enter_admin_pin_prompt (app, &promptbuf, NULL);
+                  rc = build_enter_admin_pin_prompt (app, &prompt, NULL);
                   if (rc)
                     goto leave;
-                  prompt = promptbuf;
                 }
               else
-                prompt = _("||Please enter the PIN");
+                {
+                  const char *firstline = _("||Please enter the PIN");
+
+                  rc = build_enter_pin_prompt (app, chvno, firstline, 0,
+                                               &prompt, NULL);
+                  if (rc)
+                    goto leave;
+                }
               rc = pincb (pincb_arg, prompt, &oldpinvalue);
-              xfree (promptbuf);
-              promptbuf = NULL;
+              xfree (prompt);
+              prompt = NULL;
               if (rc)
                 {
                   log_info (_("PIN callback returned error: %s\n"),
@@ -3486,33 +3543,26 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
         {
           /* There is no PW2 for v2 cards.  We use this condition to
              allow a PW reset using the Reset Code.  */
-          void *relptr;
-          unsigned char *value;
-          size_t valuelen;
-          int remaining;
+          const char *firstline
+            = _("|R|Please enter the Reset Code for the card");
 
           use_pinpad = 0;
           minlen = 8;
-          relptr = get_one_do (app, 0x00C4, &value, &valuelen, NULL);
-          if (!relptr || valuelen < 7)
-            {
-              log_error (_("error retrieving CHV status from card\n"));
-              xfree (relptr);
-              rc = gpg_error (GPG_ERR_CARD);
-              goto leave;
-            }
-          remaining = value[5];
-          xfree (relptr);
-          if (!remaining)
+
+          rc = build_enter_pin_prompt (app, chvno, firstline, 0,
+                                       &prompt, NULL);
+          if (gpg_err_code (rc) == GPG_ERR_PIN_BLOCKED)
             {
               log_error (_("Reset Code not or not anymore available\n"));
               rc = gpg_error (GPG_ERR_NO_RESET_CODE);
               goto leave;
             }
+          else if (rc)
+            goto leave;
 
-          rc = pincb (pincb_arg,
-                      _("|R|Please enter the Reset Code for the card"),
-                      &resetcode);
+          rc = pincb (pincb_arg, prompt, &resetcode);
+          xfree (prompt);
+          prompt = NULL;
           if (rc)
             {
               log_info (_("PIN callback returned error: %s\n"),
@@ -3620,6 +3670,9 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
       wipe_and_free (result1, resultlen1);
       wipe_and_free (result2, resultlen2);
       wipe_and_free (buffer, bufferlen);
+
+      if (gpg_err_code (rc) == GPG_ERR_BAD_PIN)
+        rc = gpg_error (GPG_ERR_BAD_RESET_CODE);
     }
   else if (set_resetcode)
     {
@@ -3675,10 +3728,21 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
 
       if (use_pinpad)
         {
-          rc = pincb (pincb_arg,
-                      chvno == 3 ?
-                      _("||Please enter the Admin PIN and New Admin PIN") :
-                      _("||Please enter the PIN and New PIN"), NULL);
+          const char *firstline;
+
+          if (chvno == 3)
+            firstline = _("||Please enter the Admin PIN and New Admin PIN");
+          else
+            firstline = _("||Please enter the PIN and New PIN");
+
+          rc = build_enter_pin_prompt (app, chvno, firstline, 0,
+                                       &prompt, NULL);
+          if (rc)
+            goto leave;
+
+          rc = pincb (pincb_arg, prompt, NULL);
+          xfree (prompt);
+          prompt = NULL;
           if (rc)
             {
               log_info (_("PIN callback returned error: %s\n"),
@@ -3699,6 +3763,9 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *chvnostr,
           rc = pin2hash_if_kdf (app, chvno, oldpinvalue, &buffer1, &bufferlen1);
           if (!rc)
             rc = pin2hash_if_kdf (app, chvno, pinvalue, &buffer2, &bufferlen2);
+          if (!rc)
+            rc = iso7816_verify (app_get_slot (app),
+                                 0x80 + chvno, buffer1, bufferlen1);
           if (!rc)
             rc = iso7816_change_reference_data (app_get_slot (app),
                                                 0x80 + chvno,
@@ -4194,7 +4261,7 @@ change_keyattr_from_string (app_t app, ctrl_t ctrl,
       else
         {
           nbits = 0;
-          oidstr = openpgp_curve_to_oid (keyalgo, NULL, &algo);
+          oidstr = openpgp_curve_to_oid (keyalgo, NULL, &algo, 0);
           if (!oidstr)
             {
               err = gpg_error (GPG_ERR_INV_DATA);
@@ -4244,7 +4311,7 @@ change_keyattr_from_string (app_t app, ctrl_t ctrl,
       else if (algo == PUBKEY_ALGO_ECDH || algo == PUBKEY_ALGO_ECDSA
                || algo == PUBKEY_ALGO_EDDSA)
         {
-          oidstr = openpgp_curve_to_oid (string+n, NULL, NULL);
+          oidstr = openpgp_curve_to_oid (string+n, NULL, NULL, 0);
           if (!oidstr)
             {
               err = gpg_error (GPG_ERR_INV_DATA);
@@ -4821,7 +4888,7 @@ ecc_writekey (app_t app, ctrl_t ctrl,
       ecdh_param_len = 4;
     }
 
-  oidstr = openpgp_curve_to_oid (curve, &n, NULL);
+  oidstr = openpgp_curve_to_oid (curve, &n, NULL, 0);
   ecc_d_fixed_len = (n+7)/8;
   err = openpgp_oid_from_str (oidstr, &oid);
   if (err)
@@ -5552,7 +5619,7 @@ gen_challenge (app_t app, const void **r_data, size_t *r_datalen)
     {
       unsigned int n;
 
-      openpgp_curve_to_oid (app->app_local->keyattr[2].ecc.curve, &n, NULL);
+      openpgp_curve_to_oid (app->app_local->keyattr[2].ecc.curve, &n, NULL, -1);
       /* No hash algo header, and appropriate length of random octets,
          determined by field size of the curve.  */
       datalen = (n+7)/8;
@@ -5641,14 +5708,15 @@ do_auth (app_t app, ctrl_t ctrl, const char *keyidstr,
 
   if (app->app_local->keyattr[2].key_type == KEY_TYPE_ECC)
     {
-      if (!(app->app_local->keyattr[2].ecc.flags & ECC_FLAG_DJB_TWEAK)
-          && (indatalen == 51 || indatalen == 67 || indatalen == 83))
+      /* This is a heuristic to strip off the OID of digest.  Fully
+         implemented, it would be use of X macro in do_sign above.  */
+      if (indatalen == 51 || indatalen == 67 || indatalen == 83)
         {
           const char *p = (const char *)indata + 19;
           indata = p;
           indatalen -= 19;
         }
-      else
+      else if (indatalen > 15)
         {
           const char *p = (const char *)indata + 15;
           indata = p;
@@ -6063,22 +6131,12 @@ do_check_pin (app_t app, ctrl_t ctrl, const char *keyidstr,
 
   if (admin_pin)
     {
-      void *relptr;
-      unsigned char *value;
-      size_t valuelen;
       int count;
 
-      relptr = get_one_do (app, 0x00C4, &value, &valuelen, NULL);
-      if (!relptr || valuelen < 7)
-        {
-          log_error (_("error retrieving CHV status from card\n"));
-          xfree (relptr);
-          return gpg_error (GPG_ERR_CARD);
-        }
-      count = value[6];
-      xfree (relptr);
-
-      if (!count)
+      count = get_remaining_tries (app, 3);
+      if (count == -1)
+        return gpg_error (GPG_ERR_CARD);
+      else if (!count)
         {
           log_info (_("card is permanently locked!\n"));
           return gpg_error (GPG_ERR_PIN_BLOCKED);
@@ -6502,7 +6560,8 @@ do_reselect (app_t app, ctrl_t ctrl)
   /* An extra check which should not be necessary because the caller
    * should have made sure that a re-select is only called for
    * appropriate cards.  */
-  if (APP_CARD(app)->cardtype != CARDTYPE_YUBIKEY)
+  if (APP_CARD(app)->cardtype != CARDTYPE_YUBIKEY
+      && APP_CARD(app)->cardtype != CARDTYPE_NITROKEY)
     return gpg_error (GPG_ERR_NOT_SUPPORTED);
 
   /* Note that the card can't cope with P2=0xCO, thus we need to pass

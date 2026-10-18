@@ -1551,7 +1551,7 @@ gst_rtsp_client_sink_provide_clock (GstElement * element)
 static gboolean
 gst_rtsp_client_sink_set_proxy (GstRTSPClientSink * rtsp, const gchar * proxy)
 {
-  gchar *p, *at, *col;
+  const gchar *p, *at, *col;
 
   g_free (rtsp->proxy_user);
   rtsp->proxy_user = NULL;
@@ -1561,7 +1561,7 @@ gst_rtsp_client_sink_set_proxy (GstRTSPClientSink * rtsp, const gchar * proxy)
   rtsp->proxy_host = NULL;
   rtsp->proxy_port = 0;
 
-  p = (gchar *) proxy;
+  p = proxy;
 
   if (p == NULL)
     return TRUE;
@@ -3033,7 +3033,7 @@ static void
 gst_rtsp_client_sink_set_state (GstRTSPClientSink * sink, GstState state)
 {
   GST_DEBUG_OBJECT (sink, "Setting internal state to %s",
-      gst_element_state_get_name (state));
+      gst_state_get_name (state));
   gst_element_set_state (GST_ELEMENT (sink->internal_bin), state);
 }
 
@@ -3988,6 +3988,18 @@ do_send_data_list (GstBufferList * buffer_list, guint8 channel,
   return res == GST_RTSP_OK;
 }
 
+static void
+transport_timed_out_notify_cb (GstRTSPStreamTransport * transport,
+    GParamSpec * unused, GstRTSPClientSink * sink)
+{
+  gboolean timed_out;
+
+  g_object_get (G_OBJECT (transport), "timed-out", &timed_out, NULL);
+
+  GST_DEBUG_OBJECT (sink, "Transport %p timed out notify: %d", transport,
+      timed_out);
+}
+
 static GstRTSPResult
 gst_rtsp_client_sink_setup_streams (GstRTSPClientSink * sink, gboolean async)
 {
@@ -4273,10 +4285,13 @@ gst_rtsp_client_sink_setup_streams (GstRTSPClientSink * sink, gboolean async)
       if (!retry) {
         GST_DEBUG ("Configuring the stream transport for stream %d",
             context->index);
-        if (context->stream_transport == NULL)
+        if (context->stream_transport == NULL) {
           context->stream_transport =
               gst_rtsp_stream_transport_new (stream, transport);
-        else
+
+          g_signal_connect (context->stream_transport, "notify::timed-out",
+              (GCallback) transport_timed_out_notify_cb, sink);
+        } else
           gst_rtsp_stream_transport_set_transport (context->stream_transport,
               transport);
 
@@ -4917,8 +4932,8 @@ gst_rtsp_client_sink_handle_message (GstBin * bin, GstMessage * message)
         g_mutex_unlock (&rtsp_client_sink->preroll_lock);
         GST_DEBUG_OBJECT (bin,
             "Internal bin changed state to %s (pending %s). Prerolled now %d",
-            gst_element_state_get_name (newstate),
-            gst_element_state_get_name (pending), rtsp_client_sink->prerolled);
+            gst_state_get_name (newstate),
+            gst_state_get_name (pending), rtsp_client_sink->prerolled);
       }
     }
       /* FALLTHROUGH */

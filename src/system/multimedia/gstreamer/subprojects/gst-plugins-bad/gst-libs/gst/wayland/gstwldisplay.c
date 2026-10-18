@@ -23,7 +23,10 @@
 #endif
 
 #include "gstwldisplay.h"
+#include "gstwloutput-private.h"
 
+#include "color-management-v1-client-protocol.h"
+#include "color-representation-v1-client-protocol.h"
 #include "fullscreen-shell-unstable-v1-client-protocol.h"
 #include "linux-dmabuf-unstable-v1-client-protocol.h"
 #include "single-pixel-buffer-v1-client-protocol.h"
@@ -53,9 +56,23 @@ typedef struct _GstWlDisplayPrivate
   struct wl_shm *shm;
   struct wp_viewporter *viewporter;
   struct zwp_linux_dmabuf_v1 *dmabuf;
+  struct wp_color_manager_v1 *color;
+  struct wp_color_representation_manager_v1 *color_representation;
+
   GArray *shm_formats;
   GArray *dmabuf_formats;
   GArray *dmabuf_modifiers;
+
+  gboolean color_parametric_creator_supported;
+  gboolean color_mastering_display_supported;
+  GArray *color_transfer_functions;
+  GArray *color_primaries;
+  GArray *color_alpha_modes;
+  GArray *color_coefficients;
+  GArray *color_coefficients_range;
+
+  GMutex outputs_mutex;
+  GHashTable *outputs;
 
   /* private */
   gboolean own_display;
@@ -92,10 +109,21 @@ gst_wl_display_init (GstWlDisplay * self)
   priv->shm_formats = g_array_new (FALSE, FALSE, sizeof (uint32_t));
   priv->dmabuf_formats = g_array_new (FALSE, FALSE, sizeof (uint32_t));
   priv->dmabuf_modifiers = g_array_new (FALSE, FALSE, sizeof (guint64));
+  priv->color_transfer_functions =
+      g_array_new (FALSE, FALSE, sizeof (uint32_t));
+  priv->color_primaries = g_array_new (FALSE, FALSE, sizeof (uint32_t));
+  priv->color_coefficients = g_array_new (FALSE, FALSE, sizeof (uint32_t));
+  priv->color_coefficients_range =
+      g_array_new (FALSE, FALSE, sizeof (uint32_t));
+  priv->color_alpha_modes = g_array_new (FALSE, FALSE, sizeof (uint32_t));
   priv->wl_fd_poll = gst_poll_new (TRUE);
   priv->buffers = g_hash_table_new (g_direct_hash, g_direct_equal);
   g_mutex_init (&priv->buffers_mutex);
   g_rec_mutex_init (&priv->sync_mutex);
+
+  g_mutex_init (&priv->outputs_mutex);
+  priv->outputs = g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
+      (GDestroyNotify) g_object_unref);
 
   gst_wl_linux_dmabuf_init_once ();
   gst_wl_shm_init_once ();
@@ -133,10 +161,26 @@ gst_wl_display_finalize (GObject * gobject)
   g_array_unref (priv->shm_formats);
   g_array_unref (priv->dmabuf_formats);
   g_array_unref (priv->dmabuf_modifiers);
+
+  g_array_unref (priv->color_transfer_functions);
+  g_array_unref (priv->color_primaries);
+  g_array_unref (priv->color_alpha_modes);
+  g_array_unref (priv->color_coefficients);
+  g_array_unref (priv->color_coefficients_range);
+
   gst_poll_free (priv->wl_fd_poll);
   g_hash_table_unref (priv->buffers);
   g_mutex_clear (&priv->buffers_mutex);
   g_rec_mutex_clear (&priv->sync_mutex);
+
+  g_mutex_clear (&priv->outputs_mutex);
+  g_hash_table_unref (priv->outputs);
+
+  if (priv->color)
+    wp_color_manager_v1_destroy (priv->color);
+
+  if (priv->color_representation)
+    wp_color_representation_manager_v1_destroy (priv->color_representation);
 
   if (priv->viewporter)
     wp_viewporter_destroy (priv->viewporter);
@@ -240,6 +284,193 @@ static const struct zwp_linux_dmabuf_v1_listener dmabuf_listener = {
   dmabuf_modifier,
 };
 
+static void
+color_supported_intent (void *data,
+    struct wp_color_manager_v1 *wp_color_manager_v1, uint32_t render_intent)
+{
+}
+
+static void
+color_supported_feature (void *data,
+    struct wp_color_manager_v1 *wp_color_manager_v1, uint32_t feature)
+{
+  GstWlDisplay *self = data;
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  switch (feature) {
+    case WP_COLOR_MANAGER_V1_FEATURE_PARAMETRIC:
+      GST_INFO_OBJECT (self, "New_parametric_creator supported");
+      priv->color_parametric_creator_supported = TRUE;
+      break;
+    case WP_COLOR_MANAGER_V1_FEATURE_SET_MASTERING_DISPLAY_PRIMARIES:
+      GST_INFO_OBJECT (self, "Mastering Display supported");
+      priv->color_mastering_display_supported = TRUE;
+      break;
+    default:
+      break;
+  }
+}
+
+static void
+color_supported_tf_named (void *data,
+    struct wp_color_manager_v1 *wp_color_manager_v1, uint32_t tf)
+{
+  GstWlDisplay *self = data;
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  GST_INFO_OBJECT (self, "Supported transfer function 0x%x", tf);
+  g_array_append_val (priv->color_transfer_functions, tf);
+}
+
+static void
+color_supported_primaries_named (void *data,
+    struct wp_color_manager_v1 *wp_color_manager_v1, uint32_t primaries)
+{
+  GstWlDisplay *self = data;
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  GST_INFO_OBJECT (self, "Supported primaries: 0x%x", primaries);
+  g_array_append_val (priv->color_primaries, primaries);
+}
+
+static void
+color_done (void *data, struct wp_color_manager_v1 *wp_color_manager_v1)
+{
+}
+
+static const struct wp_color_manager_v1_listener color_listener = {
+  .supported_intent = color_supported_intent,
+  .supported_feature = color_supported_feature,
+  .supported_tf_named = color_supported_tf_named,
+  .supported_primaries_named = color_supported_primaries_named,
+  .done = color_done,
+};
+
+static void
+color_representation_supported_alpha_mode (void *data,
+    struct wp_color_representation_manager_v1
+    *wp_color_representation_manager_v1, uint32_t alpha_mode)
+{
+  GstWlDisplay *self = data;
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  GST_INFO_OBJECT (self, "Supported alpha mode: 0x%x", alpha_mode);
+  g_array_append_val (priv->color_alpha_modes, alpha_mode);
+}
+
+static void
+color_representation_supported_coefficients_and_ranges (void *data,
+    struct wp_color_representation_manager_v1
+    *wp_color_representation_manager_v1, uint32_t coefficients, uint32_t range)
+{
+  GstWlDisplay *self = data;
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  GST_INFO_OBJECT (self, "Supported coefficients and range: 0x%x/0x%x",
+      coefficients, range);
+  g_array_append_val (priv->color_coefficients, coefficients);
+  g_array_append_val (priv->color_coefficients_range, range);
+}
+
+static void
+color_representation_done (void *data, struct wp_color_representation_manager_v1
+    *wp_color_representation_manager_v1)
+{
+}
+
+static const struct wp_color_representation_manager_v1_listener
+    color_representation_listener = {
+  .supported_alpha_mode = color_representation_supported_alpha_mode,
+  .supported_coefficients_and_ranges =
+      color_representation_supported_coefficients_and_ranges,
+  .done = color_representation_done,
+};
+
+static void
+output_geometry (void *data, struct wl_output *wl_output,
+    int32_t x, int32_t y, int32_t physical_width, int32_t physical_height,
+    int32_t subpixel, const char *make, const char *model, int32_t transform)
+{
+  GstWlOutput *output = GST_WL_OUTPUT (data);
+  gst_wl_output_set_geometry (output, x, y, physical_width, physical_height,
+      subpixel, make, model, transform);
+}
+
+static void
+output_mode (void *data, struct wl_output *wl_output,
+    uint32_t flags, int32_t width, int32_t height, int32_t refresh)
+{
+  GstWlOutput *output = GST_WL_OUTPUT (data);
+  gst_wl_output_set_mode (output, flags, width, height, refresh);
+}
+
+static void
+output_scale (void *data, struct wl_output *wl_output, int32_t factor)
+{
+  GstWlOutput *output = GST_WL_OUTPUT (data);
+  gst_wl_output_set_scale (output, factor);
+}
+
+static void
+output_name (void *data, struct wl_output *wl_output, const char *name)
+{
+  GstWlOutput *output = GST_WL_OUTPUT (data);
+  gst_wl_output_set_name (output, name);
+}
+
+static void
+output_description (void *data, struct wl_output *wl_output,
+    const char *description)
+{
+  GstWlOutput *output = GST_WL_OUTPUT (data);
+  gst_wl_output_set_description (output, description);
+}
+
+static void
+output_done (void *data, struct wl_output *wl_output)
+{
+  GstWlOutput *output = GST_WL_OUTPUT (data);
+  GstWlDisplay *self = g_object_steal_data (G_OBJECT (output), "display");
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+  const gchar *name = gst_wl_output_get_name (output);
+
+  GST_INFO ("Adding output %s (%p):", name, wl_output);
+  GST_INFO ("  Make:       %s", gst_wl_output_get_make (output));
+  GST_INFO ("  Model:      %s", gst_wl_output_get_model (output));
+
+#define ARGS(r) (r) /1000 , (r) % 1000
+  GST_INFO ("  Mode:       %ix%i px %i.%ifps flags %x",
+      gst_wl_output_get_width (output), gst_wl_output_get_height (output),
+      ARGS (gst_wl_output_get_refresh (output)),
+      gst_wl_output_get_mode_flags (output));
+#undef ARGS
+
+  GST_INFO ("  Geometry:   %i,%i %ix%i mm scale %i",
+      gst_wl_output_get_x (output), gst_wl_output_get_y (output),
+      gst_wl_output_get_physical_width (output),
+      gst_wl_output_get_physical_height (output),
+      gst_wl_output_get_scale (output));
+  GST_INFO ("  Subpixel    %i", gst_wl_output_get_subpixel (output));
+  GST_INFO ("  Transform:  %i", gst_wl_output_get_transform (output));
+  GST_INFO ("---");
+
+  g_mutex_lock (&priv->outputs_mutex);
+  if (name)
+    g_hash_table_replace (priv->outputs, g_strdup (name), output);
+  else
+    GST_WARNING ("Compositor has provided an unnamed output, ignoring.");
+  g_mutex_unlock (&priv->outputs_mutex);
+}
+
+static const struct wl_output_listener output_listener = {
+  output_geometry,
+  output_mode,
+  output_done,
+  output_scale,
+  output_name,
+  output_description,
+};
+
 gboolean
 gst_wl_display_check_format_for_shm (GstWlDisplay * self,
     const GstVideoInfo * video_info)
@@ -334,6 +565,23 @@ registry_handle_global (void *data, struct wl_registry *registry,
     priv->single_pixel_buffer =
         wl_registry_bind (registry, id,
         &wp_single_pixel_buffer_manager_v1_interface, 1);
+  } else if (g_strcmp0 (interface, wp_color_manager_v1_interface.name) == 0) {
+    priv->color = wl_registry_bind (registry, id,
+        &wp_color_manager_v1_interface, 1);
+    wp_color_manager_v1_add_listener (priv->color, &color_listener, self);
+  } else if (g_strcmp0 (interface,
+          wp_color_representation_manager_v1_interface.name) == 0) {
+    priv->color_representation =
+        wl_registry_bind (registry, id,
+        &wp_color_representation_manager_v1_interface, 1);
+    wp_color_representation_manager_v1_add_listener (priv->color_representation,
+        &color_representation_listener, self);
+  } else if (g_strcmp0 (interface, "wl_output") == 0) {
+    struct wl_output *wl_output =
+        wl_registry_bind (registry, id, &wl_output_interface, MIN (version, 4));
+    GstWlOutput *output = gst_wl_output_new (wl_output, id);
+    g_object_set_data (G_OBJECT (output), "display", self);
+    wl_output_add_listener (wl_output, &output_listener, output);
   }
 }
 
@@ -341,7 +589,24 @@ static void
 registry_handle_global_remove (void *data, struct wl_registry *registry,
     uint32_t name)
 {
-  /* temporarily do nothing */
+  GstWlDisplay *self = data;
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  g_mutex_lock (&priv->outputs_mutex);
+
+  GHashTableIter iter;
+  gpointer key, value;
+  g_hash_table_iter_init (&iter, priv->outputs);
+  while (g_hash_table_iter_next (&iter, &key, &value)) {
+    GstWlOutput *output = value;
+
+    if (gst_wl_output_get_id (output) == name) {
+      g_hash_table_iter_remove (&iter);
+      break;
+    }
+  }
+
+  g_mutex_unlock (&priv->outputs_mutex);
 }
 
 static const struct wl_registry_listener registry_listener = {
@@ -766,4 +1031,211 @@ gst_wl_display_has_own_display (GstWlDisplay * self)
   GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
 
   return priv->own_display;
+}
+
+/**
+ * gst_wl_display_get_color_manager_v1:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: (transfer none): The color manager global or %NULL
+ *
+ * Since: 1.28
+ */
+struct wp_color_manager_v1 *
+gst_wl_display_get_color_manager_v1 (GstWlDisplay * self)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  return priv->color;
+}
+
+/**
+ * gst_wl_display_get_color_representation_manager_v1:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: (transfer none): The color representation global or %NULL
+ *
+ * Since: 1.28
+ */
+struct wp_color_representation_manager_v1 *
+gst_wl_display_get_color_representation_manager_v1 (GstWlDisplay * self)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  return priv->color_representation;
+}
+
+/**
+ * gst_wl_display_is_color_parametric_creator_supported:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: %TRUE if the compositor supports parametric image descriptions
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_wl_display_is_color_parametric_creator_supported (GstWlDisplay * self)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  return priv->color_parametric_creator_supported;
+}
+
+/**
+ * gst_wl_display_is_color_mastering_display_supported:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: %TRUE if the compositor supports mastering display primaries
+ *          image descriptions
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_wl_display_is_color_mastering_display_supported (GstWlDisplay * self)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+
+  return priv->color_mastering_display_supported;
+}
+
+/**
+ * gst_wl_display_is_color_transfer_function_supported:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: %TRUE if the compositor supports @transfer_function
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_wl_display_is_color_transfer_function_supported (GstWlDisplay * self,
+    uint32_t transfer_function)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+  guint i;
+
+  /* A value of 0 is invalid and will never be present in the list of enums. */
+  if (transfer_function == 0)
+    return FALSE;
+
+  for (i = 0; i < priv->color_transfer_functions->len; i++) {
+    uint32_t candidate =
+        g_array_index (priv->color_transfer_functions, uint32_t, i);
+
+    if (candidate == transfer_function)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * gst_wl_display_are_color_primaries_supported:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: %TRUE if the compositor supports @primaries
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_wl_display_are_color_primaries_supported (GstWlDisplay * self,
+    uint32_t primaries)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+  guint i;
+
+  /* A value of 0 is invalid and will never be present in the list of enums. */
+  if (primaries == 0)
+    return FALSE;
+
+  for (i = 0; i < priv->color_primaries->len; i++) {
+    uint32_t candidate = g_array_index (priv->color_primaries, uint32_t, i);
+
+    if (candidate == primaries)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * gst_wl_display_is_color_alpha_mode_supported:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: %TRUE if the compositor supports @alpha_mode
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_wl_display_is_color_alpha_mode_supported (GstWlDisplay * self,
+    uint32_t alpha_mode)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+  guint i;
+
+  for (i = 0; i < priv->color_alpha_modes->len; i++) {
+    uint32_t candidate = g_array_index (priv->color_alpha_modes, uint32_t, i);
+
+    if (candidate == alpha_mode)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * gst_wl_display_are_color_coefficients_supported:
+ * @self: A #GstWlDisplay
+ *
+ * Returns: %TRUE if the compositor supports the combination of @coefficients and @range
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_wl_display_are_color_coefficients_supported (GstWlDisplay * self,
+    uint32_t coefficients, uint32_t range)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+  guint i;
+
+  /* A value of 0 is invalid and will never be present in the list of enums. */
+  if (coefficients == 0 || range == 0)
+    return FALSE;
+
+  for (i = 0; i < priv->color_coefficients->len; i++) {
+    uint32_t candidate = g_array_index (priv->color_coefficients, uint32_t, i);
+    uint32_t candidate_range =
+        g_array_index (priv->color_coefficients_range, uint32_t, i);
+
+    if (candidate == coefficients && candidate_range == range)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+* gst_wl_display_get_output_by_name:
+* @self: A #GstWlDisplay
+* @output_name: Name of the output
+*
+* Lookup for a wl_output with the specified name.
+*
+* Returns: (transfer full): A #GstWlOutput or %NULL if not found.
+*
+* Since: 1.28
+*/
+GstWlOutput *
+gst_wl_display_get_output_by_name (GstWlDisplay * self,
+    const gchar * output_name)
+{
+  GstWlDisplayPrivate *priv = gst_wl_display_get_instance_private (self);
+  GstWlOutput *output;
+
+  g_mutex_lock (&priv->outputs_mutex);
+  output = GST_WL_OUTPUT (g_hash_table_lookup (priv->outputs, output_name));
+  if (output)
+    g_object_ref (output);
+  g_mutex_unlock (&priv->outputs_mutex);
+
+  return output;
 }

@@ -118,7 +118,7 @@ gst_avtp_src_class_init (GstAvtpSrcClass * klass)
 
   gst_element_class_set_static_metadata (element_class,
       "Audio/Video Transport Protocol (AVTP) Source",
-      "Src/Network", "Receive AVTPDUs from the network",
+      "Source/Network", "Receive AVTPDUs from the network",
       "Andre Guedes <andre.guedes@intel.com>");
 
   basesrc_class->start = GST_DEBUG_FUNCPTR (gst_avtp_src_start);
@@ -136,6 +136,7 @@ gst_avtp_src_init (GstAvtpSrc * avtpsrc)
   gst_base_src_set_live (GST_BASE_SRC (avtpsrc), TRUE);
   gst_base_src_set_format (GST_BASE_SRC (avtpsrc), GST_FORMAT_TIME);
   gst_base_src_set_blocksize (GST_BASE_SRC (avtpsrc), MAX_AVTPDU_SIZE);
+  gst_base_src_set_do_timestamp (GST_BASE_SRC (avtpsrc), TRUE);
 
   avtpsrc->ifname = g_strdup (DEFAULT_IFNAME);
   avtpsrc->address = g_strdup (DEFAULT_ADDRESS);

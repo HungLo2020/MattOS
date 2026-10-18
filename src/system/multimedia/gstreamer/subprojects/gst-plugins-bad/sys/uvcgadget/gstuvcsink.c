@@ -193,6 +193,9 @@ gst_v4l2_object_v4l2fourcc_to_video_format (guint32 fourcc)
     case V4L2_PIX_FMT_UYVY:
       format = GST_VIDEO_FORMAT_UYVY;
       break;
+    case V4L2_PIX_FMT_VYUY:
+      format = GST_VIDEO_FORMAT_VYUY;
+      break;
     case V4L2_PIX_FMT_YUV411P:
       format = GST_VIDEO_FORMAT_Y41B;
       break;
@@ -442,7 +445,7 @@ gst_uvc_sink_class_init (GstUvcSinkClass * klass)
 
   element_class->change_state = gst_uvc_sink_change_state;
 
-  gst_element_class_set_metadata (element_class,
+  gst_element_class_set_static_metadata (element_class,
       "UVC Sink", "Sink/Video",
       "Streams Video via UVC Gadget", "Michael Grzeschik <mgr@pengutronix.de>");
 
@@ -977,8 +980,8 @@ gst_uvc_sink_change_state (GstElement * element, GstStateChange transition)
   int bret = GST_STATE_CHANGE_SUCCESS;
 
   GST_DEBUG_OBJECT (self, "%s -> %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:

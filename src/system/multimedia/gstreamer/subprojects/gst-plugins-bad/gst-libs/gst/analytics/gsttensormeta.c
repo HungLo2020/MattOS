@@ -23,6 +23,33 @@
 #include "gsttensormeta.h"
 
 static gboolean
+gst_tensor_meta_transform (GstBuffer * dest, GstMeta * meta,
+    GstBuffer * buffer, GQuark type, gpointer data)
+{
+  GstTensorMeta *dmeta, *smeta;
+
+  smeta = (GstTensorMeta *) meta;
+
+  if (GST_META_TRANSFORM_IS_COPY (type)) {
+    smeta = (GstTensorMeta *) meta;
+    dmeta = gst_buffer_add_tensor_meta (dest);
+    if (!dmeta)
+      return FALSE;
+    GST_TRACE ("copy tensor metadata");
+    dmeta->num_tensors = smeta->num_tensors;
+    dmeta->tensors = g_new (GstTensor *, smeta->num_tensors);
+    for (int i = 0; i < smeta->num_tensors; i++) {
+      dmeta->tensors[i] = gst_tensor_copy (smeta->tensors[i]);
+    }
+  } else {
+    GST_WARNING ("gst_tensor_meta_transform: transform type %u not supported",
+        type);
+    return FALSE;
+  }
+  return TRUE;
+}
+
+static gboolean
 gst_tensor_meta_init (GstMeta * meta, gpointer params, GstBuffer * buffer)
 {
   GstTensorMeta *tmeta = (GstTensorMeta *) meta;
@@ -80,7 +107,7 @@ gst_tensor_meta_get_info (void)
         sizeof (GstTensorMeta),
         gst_tensor_meta_init,
         gst_tensor_meta_free,
-        NULL);                  /* tensor_meta_transform not implemented */
+        gst_tensor_meta_transform);
     g_once_init_leave (&tmeta_info, meta);
   }
   return tmeta_info;
@@ -145,6 +172,69 @@ gst_tensor_meta_set (GstTensorMeta * tmeta, guint num_tensors,
 
   tmeta->num_tensors = num_tensors;
   tmeta->tensors = tensors;
+}
+
+/**
+ * gst_tensor_meta_get_by_id:
+ * @tmeta: A #GstTensorMeta
+ * @id: A #GQuark identifying tensor-encoding
+ *
+ * Get the first tensor from the #GstTensorMeta identified by @id.
+ *
+ * Return: (nullable)(transfer none): a GstTensor with id matching @id.
+ * Otherwise NULL will be returned.
+ *
+ * Since: 1.28
+ */
+const GstTensor *
+gst_tensor_meta_get_by_id (GstTensorMeta * tmeta, GQuark id)
+{
+  g_return_val_if_fail (tmeta != NULL, NULL);
+  g_return_val_if_fail (tmeta->tensors, NULL);
+
+  for (int i = 0; i < tmeta->num_tensors; ++i) {
+    if (tmeta->tensors[i]->id == id)
+      return tmeta->tensors[i];
+  }
+
+  return NULL;
+}
+
+/**
+ * gst_tensor_meta_get_typed_tensor:
+ * @tmeta: A #GstTensorMeta
+ * @tensor_id: A #GQuark identifying the tensor-encoding
+ * @data_type: The data type of the tensor
+ * @order: The order of the tensor to read from the memory
+ * @num_dims: The number of dimensions that the tensor can have
+ * @dims: (array length=num_dims)(nullable): An optional array of dimensions, where G_MAXSIZE means ANY.
+ *
+ * Get the first tensor from the #GstTensorMeta identified by
+ * @tensor_id, matching the reading order, dimensions and the data
+ * type and optionally the dimensions.  Validate whether the
+ * #GstBuffer has enough size to hold the tensor data.
+ *
+ * Return: (nullable) (transfer none): a matching #GstTensor,
+ * otherwise NULL
+ *
+ * Since: 1.28
+ */
+const GstTensor *
+gst_tensor_meta_get_typed_tensor (GstTensorMeta * tmeta,
+    GQuark tensor_id, GstTensorDataType data_type, GstTensorDimOrder order,
+    gsize num_dims, const gsize * dims)
+{
+  const GstTensor *tensor;
+
+  tensor = gst_tensor_meta_get_by_id (tmeta, tensor_id);
+
+  if (tensor == NULL)
+    return NULL;
+
+  if (!gst_tensor_check_type (tensor, data_type, order, num_dims, dims))
+    return NULL;
+
+  return tensor;
 }
 
 /**

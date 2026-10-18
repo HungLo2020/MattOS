@@ -153,7 +153,7 @@ make_canon_sexp (gcry_sexp_t sexp, unsigned char **r_buffer, size_t *r_buflen)
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, NULL, 0);
   if (!len)
     return gpg_error (GPG_ERR_BUG);
-  buf = xtrymalloc (len);
+  buf = gcry_is_secure (sexp)? xtrymalloc_secure (len) : xtrymalloc (len);
   if (!buf)
     return gpg_error_from_syserror ();
   len = gcry_sexp_sprint (sexp, GCRYSEXP_FMT_CANON, buf, len);
@@ -199,7 +199,7 @@ make_canon_sexp_pad (gcry_sexp_t sexp, int secure,
 }
 
 /* Return the so called "keygrip" which is the SHA-1 hash of the
-   public key parameters expressed in a way dependend on the algorithm.
+   public key parameters expressed in a way dependent on the algorithm.
 
    KEY is expected to be an canonical encoded S-expression with a
    public or private key. KEYLEN is the length of that buffer.
@@ -992,7 +992,7 @@ get_pk_algo_from_key (gcry_sexp_t key)
   gcry_sexp_t list;
   const char *s;
   size_t n;
-  char algoname[6];
+  char algoname[10];
   int algo = 0;
 
   list = gcry_sexp_nth (key, 1);
@@ -1104,8 +1104,7 @@ pubkey_algo_string (gcry_sexp_t s_pkey, enum gcry_pk_algos *r_algoid)
   else if (prefix)
     {
       const char *curve = gcry_pk_get_curve (s_pkey, 0, NULL);
-      const char *name = openpgp_oid_to_curve
-        (openpgp_curve_to_oid (curve, NULL, NULL), 0);
+      const char *name = openpgp_oid_or_name_to_curve (curve, 0);
 
       if (name)
         result = xtrystrdup (name);
@@ -1193,4 +1192,48 @@ cipher_mode_to_string (int mode)
     case 14:                   return "EAX";  /* Only in gcrypt 1.9 */
     default: return "[?]";
     }
+}
+
+/* Return the canonical name of the ECC curve in KEY.  */
+const char *
+get_ecc_curve_from_key (gcry_sexp_t key)
+{
+  gcry_sexp_t list = NULL;
+  gcry_sexp_t l2 = NULL;
+  const char *curve_name = NULL;
+  char *name = NULL;
+
+  /* Check that the first element is valid. */
+  list = gcry_sexp_find_token (key, "public-key", 0);
+  if (!list)
+    list = gcry_sexp_find_token (key, "private-key", 0);
+  if (!list)
+    list = gcry_sexp_find_token (key, "protected-private-key", 0);
+  if (!list)
+    list = gcry_sexp_find_token (key, "shadowed-private-key", 0);
+  if (!list)
+    goto leave;
+
+  l2 = gcry_sexp_cadr (list);
+  gcry_sexp_release (list);
+  list = l2;
+  l2 = NULL;
+
+  name = gcry_sexp_nth_string (list, 0);
+  if (!name)
+    goto leave;
+
+  if (gcry_pk_map_name (name) != GCRY_PK_ECC)
+    goto leave;
+
+  l2 = gcry_sexp_find_token (list, "curve", 0);
+  xfree (name);
+  name = gcry_sexp_nth_string (l2, 1);
+  curve_name = openpgp_oid_or_name_to_curve (name, 1);
+  gcry_sexp_release (l2);
+
+ leave:
+  xfree (name);
+  gcry_sexp_release (list);
+  return curve_name;
 }

@@ -37,13 +37,18 @@
 #define set_error(e,t) assuan_set_error (ctx, gpg_error (e), (t))
 
 
+/* Used to track whether we printed any FAILURE status in non-server
+ * mode.  */
+static int any_failure_printed;
+
+
 /* The filepointer for status message used in non-server mode */
 static FILE *statusfp;
 
 /* Data used to assuciate an Assuan context with local server data */
 struct server_local_s {
   assuan_context_t assuan_ctx;
-  int message_fd;
+  estream_t message_fp;
   int list_internal;
   int list_external;
   int list_to_output;           /* Write keylistings to the output fd. */
@@ -130,12 +135,12 @@ data_line_cookie_close (void *cookie)
 
 
 static void
-close_message_fd (ctrl_t ctrl)
+close_message_fp (ctrl_t ctrl)
 {
-  if (ctrl->server_local->message_fd != -1)
+  if (ctrl->server_local->message_fp)
     {
-      close (ctrl->server_local->message_fd);
-      ctrl->server_local->message_fd = -1;
+      es_fclose (ctrl->server_local->message_fp);
+      ctrl->server_local->message_fp = NULL;
     }
 }
 
@@ -313,6 +318,11 @@ option_handler (assuan_context_t ctx, const char *key, const char *value)
     {
       ctrl->input_size_hint = string_to_u64 (value);
     }
+  else if (!strcmp (key, "no-protection"))
+    {
+      int i = *value? atoi (value) : 0;
+      ctrl->no_protection = !!i;
+    }
   else
     err = gpg_error (GPG_ERR_UNKNOWN_OPTION);
 
@@ -327,12 +337,14 @@ reset_notify (assuan_context_t ctx, char *line)
 
   (void) line;
 
+  gpgsm_flush_keyinfo_cache (ctrl);
   gpgsm_release_certlist (ctrl->server_local->recplist);
   gpgsm_release_certlist (ctrl->server_local->signerlist);
   ctrl->server_local->recplist = NULL;
   ctrl->server_local->signerlist = NULL;
   ctrl->always_trust = 0;
-  close_message_fd (ctrl);
+  ctrl->no_protection = 0;
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
   return 0;
@@ -463,20 +475,26 @@ cmd_encrypt (assuan_context_t ctx, char *line)
 {
   ctrl_t ctrl = assuan_get_pointer (ctx);
   certlist_t cl;
-  int inp_fd, out_fd;
+  gnupg_fd_t inp_fd;
+  gnupg_fd_t out_fd;
+  estream_t inp_fp;
   estream_t out_fp;
   int rc;
 
   (void)line;
 
-  inp_fd = translate_sys2libc_fd (assuan_get_input_fd (ctx), 0);
-  if (inp_fd == -1)
+  inp_fd = assuan_get_input_fd (ctx);
+  if (inp_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
-  out_fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
-  if (out_fd == -1)
+  out_fd = assuan_get_output_fd (ctx);
+  if (out_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
 
-  out_fp = es_fdopen_nc (out_fd, "w");
+  inp_fp = open_stream_nc (inp_fd, "r");
+  if (!inp_fp)
+    return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+
+  out_fp = open_stream_nc (out_fd, "w");
   if (!out_fp)
     return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
 
@@ -495,14 +513,15 @@ cmd_encrypt (assuan_context_t ctx, char *line)
   if (!rc)
     rc = gpgsm_encrypt (assuan_get_pointer (ctx),
                         ctrl->server_local->recplist,
-                        inp_fd, out_fp);
+                        inp_fp, out_fp);
+  es_fclose (inp_fp);
   es_fclose (out_fp);
 
   gpgsm_release_certlist (ctrl->server_local->recplist);
   ctrl->server_local->recplist = NULL;
   ctrl->always_trust = 0;
-  /* Close and reset the fd */
-  close_message_fd (ctrl);
+  /* Close and reset the fp and the fds */
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
   return rc;
@@ -521,30 +540,37 @@ static gpg_error_t
 cmd_decrypt (assuan_context_t ctx, char *line)
 {
   ctrl_t ctrl = assuan_get_pointer (ctx);
-  int inp_fd, out_fd;
+  gnupg_fd_t inp_fd;
+  gnupg_fd_t out_fd;
+  estream_t inp_fp;
   estream_t out_fp;
   int rc;
 
   (void)line;
 
-  inp_fd = translate_sys2libc_fd (assuan_get_input_fd (ctx), 0);
-  if (inp_fd == -1)
+  inp_fd = assuan_get_input_fd (ctx);
+  if (inp_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
-  out_fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
-  if (out_fd == -1)
+  out_fd = assuan_get_output_fd (ctx);
+  if (out_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
 
-  out_fp = es_fdopen_nc (out_fd, "w");
+  inp_fp = open_stream_nc (inp_fd, "r");
+  if (!inp_fp)
+    return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+
+  out_fp = open_stream_nc (out_fd, "w");
   if (!out_fp)
     return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
 
   rc = start_audit_session (ctrl);
   if (!rc)
-    rc = gpgsm_decrypt (ctrl, inp_fd, out_fp);
+    rc = gpgsm_decrypt (ctrl, inp_fp, out_fp);
+  es_fclose (inp_fp);
   es_fclose (out_fp);
 
   /* Close and reset the fds. */
-  close_message_fd (ctrl);
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
 
@@ -566,34 +592,103 @@ cmd_verify (assuan_context_t ctx, char *line)
 {
   int rc;
   ctrl_t ctrl = assuan_get_pointer (ctx);
-  int fd = translate_sys2libc_fd (assuan_get_input_fd (ctx), 0);
-  int out_fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
+  gnupg_fd_t fd = assuan_get_input_fd (ctx);
+  gnupg_fd_t out_fd = assuan_get_output_fd (ctx);
+  estream_t fp = NULL;
   estream_t out_fp = NULL;
 
   (void)line;
 
-  if (fd == -1)
+  if (fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
 
-  if (out_fd != -1)
+  fp = open_stream_nc (fd, "r");
+  if (!fp)
+    return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+
+  if (out_fd != GNUPG_INVALID_FD)
     {
-      out_fp = es_fdopen_nc (out_fd, "w");
+      out_fp = open_stream_nc (out_fd, "w");
       if (!out_fp)
         return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
     }
 
   rc = start_audit_session (ctrl);
   if (!rc)
-    rc = gpgsm_verify (assuan_get_pointer (ctx), fd,
-                       ctrl->server_local->message_fd, out_fp);
+    rc = gpgsm_verify (assuan_get_pointer (ctx), fp,
+                       ctrl->server_local->message_fp, out_fp);
+  es_fclose (fp);
   es_fclose (out_fp);
 
-  /* Close and reset the fd.  */
-  close_message_fd (ctrl);
+  /* Close and reset the fp and the fd.  */
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
 
   return rc;
+}
+
+
+static const char hlp_setattr[] =
+  "SETATTR [--append|--clear] <string>\n"
+  "\n"
+  "The client may use this command to setup attributes to be included\n"
+  "in the signature.  For details see the CLI option --attributes.  This\n"
+  "command can be used several times to include different attributes.  With\n"
+  "--append, <string> is appended to the string provided by the previous\n"
+  "SETATTR command.  With --clear, the list of attributes is cleared\n"
+  "including those copied from the configuration file or the CLI; the\n"
+  "collected attributes are not cleared by a RESET or SIGN command.";
+static gpg_error_t
+cmd_setattr (assuan_context_t ctx, char *line)
+{
+  ctrl_t ctrl = assuan_get_pointer (ctx);
+  int append, clear;
+  gpg_error_t err;
+
+  append = has_option (line, "--append");
+  clear  = has_option (line, "--clear");
+
+  line = skip_options (line);
+
+  if (clear)
+    FREE_STRLIST (ctrl->attributes);
+
+  if (!*line)
+    return 0;  /* No value given - ignore.  */
+
+  /* Note that we ignore append if no attributes are already set.  */
+  /* We should do a syntax check on the finished attributes but that
+   * would require the use of a "--more" option which is more
+   * cumbersome for the client side.  Maybe a --check option can be
+   * implemented but it in the end it is easier to wait for the
+   * outcome of the SIGN command.  */
+  if (append && ctrl->attributes)
+    {
+      char *tmp, *tmp2;
+
+      err = gpg_error (strlist_pop_try (&ctrl->attributes, &tmp));
+      if (!err)
+        {
+          tmp2 = strconcat (tmp, line, NULL);
+          if (!tmp2)
+            err = gpg_error_from_syserror ();
+          else if (!add_to_strlist_try (&ctrl->attributes, tmp2))
+            err = gpg_error_from_syserror ();
+
+          xfree (tmp);
+          xfree (tmp2);
+        }
+    }
+  else
+    {
+      if (!add_to_strlist_try (&ctrl->attributes, line))
+        err = out_of_core ();
+      else
+        err = 0;
+    }
+
+  return err;
 }
 
 
@@ -607,32 +702,39 @@ static gpg_error_t
 cmd_sign (assuan_context_t ctx, char *line)
 {
   ctrl_t ctrl = assuan_get_pointer (ctx);
-  int inp_fd, out_fd;
+  gnupg_fd_t inp_fd;
+  gnupg_fd_t out_fd;
+  estream_t inp_fp;
   estream_t out_fp;
   int detached;
   int rc;
 
-  inp_fd = translate_sys2libc_fd (assuan_get_input_fd (ctx), 0);
-  if (inp_fd == -1)
+  inp_fd = assuan_get_input_fd (ctx);
+  if (inp_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
-  out_fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
-  if (out_fd == -1)
+  out_fd = assuan_get_output_fd (ctx);
+  if (out_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
 
   detached = has_option (line, "--detached");
 
-  out_fp = es_fdopen_nc (out_fd, "w");
+  inp_fp = open_stream_nc (inp_fd, "r");
+  if (!inp_fp)
+    return set_error (gpg_err_code_from_syserror (), "fdopen() failed");
+
+  out_fp = open_stream_nc (out_fd, "w");
   if (!out_fp)
     return set_error (GPG_ERR_ASS_GENERAL, "fdopen() failed");
 
   rc = start_audit_session (ctrl);
   if (!rc)
     rc = gpgsm_sign (assuan_get_pointer (ctx), ctrl->server_local->signerlist,
-                     inp_fd, detached, out_fp);
+                     inp_fp, detached, out_fp);
+  es_fclose (inp_fp);
   es_fclose (out_fp);
 
-  /* close and reset the fd */
-  close_message_fd (ctrl);
+  /* close and reset the fp and the fds */
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
 
@@ -657,18 +759,24 @@ cmd_import (assuan_context_t ctx, char *line)
 {
   ctrl_t ctrl = assuan_get_pointer (ctx);
   int rc;
-  int fd = translate_sys2libc_fd (assuan_get_input_fd (ctx), 0);
+  gnupg_fd_t fd = assuan_get_input_fd (ctx);
   int reimport = has_option (line, "--re-import");
+  estream_t fp;
 
   (void)line;
 
-  if (fd == -1)
+  if (fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
 
-  rc = gpgsm_import (assuan_get_pointer (ctx), fd, reimport);
+  fp = open_stream_nc (fd, "r");
+  if (!fp)
+    return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
 
-  /* close and reset the fd */
-  close_message_fd (ctrl);
+  rc = gpgsm_import (assuan_get_pointer (ctx), fp, reimport);
+  es_fclose (fp);
+
+  /* close and reset the fp and the fds */
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
 
@@ -769,15 +877,15 @@ cmd_export (assuan_context_t ctx, char *line)
     }
   else
     {
-      int fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
+      gnupg_fd_t fd = assuan_get_output_fd (ctx);
       estream_t out_fp;
 
-      if (fd == -1)
+      if (fd == GNUPG_INVALID_FD)
         {
           free_strlist (list);
           return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
         }
-      out_fp = es_fdopen_nc (fd, "w");
+      out_fp = open_stream_nc (fd, "w");
       if (!out_fp)
         {
           free_strlist (list);
@@ -793,8 +901,8 @@ cmd_export (assuan_context_t ctx, char *line)
     }
 
   free_strlist (list);
-  /* Close and reset the fds. */
-  close_message_fd (ctrl);
+  /* Close and reset the fp and the fds. */
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
   return 0;
@@ -842,8 +950,8 @@ cmd_delkeys (assuan_context_t ctx, char *line)
   rc = gpgsm_delete (ctrl, list);
   free_strlist (list);
 
-  /* close and reset the fd */
-  close_message_fd (ctrl);
+  /* close and reset the fp and the fds */
+  close_message_fp (ctrl);
   assuan_close_input_fd (ctx);
   assuan_close_output_fd (ctx);
 
@@ -877,19 +985,18 @@ static gpg_error_t
 cmd_message (assuan_context_t ctx, char *line)
 {
   int rc;
-  gnupg_fd_t sysfd;
-  int fd;
+  gnupg_fd_t fd;
+  estream_t fp;
   ctrl_t ctrl = assuan_get_pointer (ctx);
 
-  rc = assuan_command_parse_fd (ctx, line, &sysfd);
+  rc = assuan_command_parse_fd (ctx, line, &fd);
   if (rc)
     return rc;
 
-
-  fd = translate_sys2libc_fd (sysfd, 0);
-  if (fd == -1)
+  fp = open_stream_nc (fd, "r");
+  if (!fp)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
-  ctrl->server_local->message_fd = fd;
+  ctrl->server_local->message_fp = fp;
   return 0;
 }
 
@@ -1024,14 +1131,14 @@ do_listkeys (assuan_context_t ctx, char *line, int mode)
 
   if (ctrl->server_local->list_to_output)
     {
-      int outfd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
+      gnupg_fd_t outfd = assuan_get_output_fd (ctx);
 
-      if ( outfd == -1 )
+      if ( outfd == GNUPG_INVALID_FD )
         {
           free_strlist (list);
           return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
         }
-      fp = es_fdopen_nc (outfd, "w");
+      fp = open_stream_nc (outfd, "w");
       if (!fp)
         {
           free_strlist (list);
@@ -1100,24 +1207,24 @@ static gpg_error_t
 cmd_genkey (assuan_context_t ctx, char *line)
 {
   ctrl_t ctrl = assuan_get_pointer (ctx);
-  int inp_fd, out_fd;
+  gnupg_fd_t inp_fd, out_fd;
   estream_t in_stream, out_stream;
   int rc;
 
   (void)line;
 
-  inp_fd = translate_sys2libc_fd (assuan_get_input_fd (ctx), 0);
-  if (inp_fd == -1)
+  inp_fd = assuan_get_input_fd (ctx);
+  if (inp_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_INPUT, NULL);
-  out_fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
-  if (out_fd == -1)
+  out_fd = assuan_get_output_fd (ctx);
+  if (out_fd == GNUPG_INVALID_FD)
     return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
 
-  in_stream = es_fdopen_nc (inp_fd, "r");
+  in_stream = open_stream_nc (inp_fd, "r");
   if (!in_stream)
     return set_error (GPG_ERR_ASS_GENERAL, "es_fdopen failed");
 
-  out_stream = es_fdopen_nc (out_fd, "w");
+  out_stream = open_stream_nc (out_fd, "w");
   if (!out_stream)
     {
       es_fclose (in_stream);
@@ -1148,7 +1255,7 @@ static gpg_error_t
 cmd_getauditlog (assuan_context_t ctx, char *line)
 {
   ctrl_t ctrl = assuan_get_pointer (ctx);
-  int  out_fd;
+  gnupg_fd_t out_fd;
   estream_t out_stream;
   int opt_data, opt_html;
   int rc;
@@ -1169,11 +1276,11 @@ cmd_getauditlog (assuan_context_t ctx, char *line)
     }
   else
     {
-      out_fd = translate_sys2libc_fd (assuan_get_output_fd (ctx), 1);
-      if (out_fd == -1)
+      out_fd = assuan_get_output_fd (ctx);
+      if (out_fd == GNUPG_INVALID_FD)
         return set_error (GPG_ERR_ASS_NO_OUTPUT, NULL);
 
-      out_stream = es_fdopen_nc (out_fd, "w");
+      out_stream = open_stream_nc (out_fd, "w");
       if (!out_stream)
         {
           return set_error (GPG_ERR_ASS_GENERAL, "es_fdopen() failed");
@@ -1336,6 +1443,7 @@ register_commands (assuan_context_t ctx)
     { "ENCRYPT",       cmd_encrypt,   hlp_encrypt },
     { "DECRYPT",       cmd_decrypt,   hlp_decrypt },
     { "VERIFY",        cmd_verify,    hlp_verify },
+    { "SETATTR",       cmd_setattr,   hlp_setattr },
     { "SIGN",          cmd_sign,      hlp_sign },
     { "IMPORT",        cmd_import,    hlp_import },
     { "EXPORT",        cmd_export,    hlp_export },
@@ -1441,7 +1549,7 @@ gpgsm_server (certlist_t default_recplist)
   assuan_set_pointer (ctx, &ctrl);
   ctrl.server_local = xcalloc (1, sizeof *ctrl.server_local);
   ctrl.server_local->assuan_ctx = ctx;
-  ctrl.server_local->message_fd = -1;
+  ctrl.server_local->message_fp = NULL;
   ctrl.server_local->list_internal = 1;
   ctrl.server_local->list_external = 0;
   ctrl.server_local->default_recplist = default_recplist;
@@ -1482,6 +1590,24 @@ gpgsm_server (certlist_t default_recplist)
 }
 
 
+void
+gpgsm_init_statusfp (ctrl_t ctrl)
+{
+  if (statusfp || ctrl->status_fd == -1)
+    return;
+
+  if (ctrl->status_fd == 1)
+    statusfp = stdout;
+  else if (ctrl->status_fd == 2)
+    statusfp = stderr;
+  else
+    statusfp = fdopen (ctrl->status_fd, "w");
+
+  if (!statusfp)
+    log_fatal ("can't open fd %d for status output: %s\n",
+               ctrl->status_fd, strerror(errno));
+}
+
 
 gpg_error_t
 gpgsm_status2 (ctrl_t ctrl, int no, ...)
@@ -1494,23 +1620,11 @@ gpgsm_status2 (ctrl_t ctrl, int no, ...)
 
   if (ctrl->no_server && ctrl->status_fd == -1)
     ; /* No status wanted. */
+  else if (ctrl->no_server && no == STATUS_FAILURE && any_failure_printed)
+    ; /* Don't emit FAILURE a second time.  */
   else if (ctrl->no_server)
     {
-      if (!statusfp)
-        {
-          if (ctrl->status_fd == 1)
-            statusfp = stdout;
-          else if (ctrl->status_fd == 2)
-            statusfp = stderr;
-          else
-            statusfp = fdopen (ctrl->status_fd, "w");
-
-          if (!statusfp)
-            {
-              log_fatal ("can't open fd %d for status output: %s\n",
-                         ctrl->status_fd, strerror(errno));
-            }
-        }
+      gpgsm_init_statusfp (ctrl);
 
       fputs ("[GNUPG:] ", statusfp);
       fputs (get_status_string (no), statusfp);
@@ -1529,6 +1643,10 @@ gpgsm_status2 (ctrl_t ctrl, int no, ...)
             }
         }
       putc ('\n', statusfp);
+
+      if (no == STATUS_FAILURE)
+        any_failure_printed = 1;
+
       if (ferror (statusfp))
         err = gpg_error_from_syserror ();
       else
@@ -1578,6 +1696,25 @@ gpgsm_status_with_error (ctrl_t ctrl, int no, const char *text,
     return gpgsm_status2 (ctrl, no, text, buf, NULL);
   else
     return gpgsm_status2 (ctrl, no, buf, NULL);
+}
+
+
+/* Function to print a FAILURE status line on exit.  This is quite
+ * special and only used by gpgsm_exit - it needs to be here because
+ * of the considered global variables.  */
+void
+gpgsm_exit_failure_status (void)
+{
+  /* stderr is used as a last but possible wrong resort if no status
+   * has yet been printed. */
+  FILE *fp = statusfp? statusfp : stderr;
+
+  if (any_failure_printed)
+    return;
+
+  fputs ("[GNUPG:] ", fp);
+  fputs (get_status_string (STATUS_FAILURE), fp);
+  fputs (" gpgsm-exit 50331649\n", fp);
 }
 
 

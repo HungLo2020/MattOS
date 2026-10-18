@@ -571,6 +571,16 @@ test_strndup (void)
   g_assert_nonnull (str);
   g_assert_cmpstr (str, ==, "aa");
   g_free (str);
+
+  if (g_test_undefined ())
+    {
+      /* Testing degenerated cases */
+      g_test_expect_message (G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL,
+                             "*assertion* < G_MAXSIZE*");
+      g_assert_null (
+          g_strndup ("aaaa", G_MAXSIZE));
+      g_test_assert_expected_messages ();
+    }
 }
 
 /* Testing g_strdup_printf() function with various positive and negative cases */
@@ -616,6 +626,16 @@ test_strnfill (void)
   g_assert_nonnull (str);
   g_assert_cmpstr (str, ==, "aaaaa");
   g_free (str);
+
+  if (g_test_undefined ())
+    {
+      /* Testing degenerated cases */
+      g_test_expect_message (G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL,
+                             "*assertion* < G_MAXSIZE*");
+      g_assert_null (
+          g_strnfill (G_MAXSIZE, 'a'));
+      g_test_assert_expected_messages ();
+    }
 }
 
 /* Testing g_strconcat() function with various positive and negative cases */
@@ -638,6 +658,46 @@ test_strconcat (void)
   g_free (str);
 
   g_assert_null (g_strconcat (NULL, "bla", NULL));
+}
+
+/* Testing g_strjoinv() function with strings which cannot be joined in heap */
+static void
+test_strjoinv_overflow (void)
+{
+#if GLIB_SIZEOF_SIZE_T > (UINT_WIDTH / 8)
+  g_test_skip ("Overflow joining strings requires G_MAXSIZE <= G_MAXUINT.");
+#else
+  if (!g_test_undefined ())
+    return;
+
+  if (g_test_subprocess ())
+    {
+      /* compromise between memory consumption and performance */
+      const size_t count = 256;
+      gchar **array;
+      gchar *result;
+      gchar *string;
+
+      string = g_strnfill (G_MAXSIZE / ((count - 1) * 2), 'A');
+      array = g_malloc_n (count + 1, sizeof (*array));
+
+      for (size_t i = 0; i < count; i++)
+        array[i] = string;
+      array[count] = NULL;
+
+      result = g_strjoinv (string, array);
+
+      g_free (array);
+      g_free (result);
+      g_free (string);
+    }
+  else
+    {
+      g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
+      g_test_trap_assert_failed ();
+      g_test_trap_assert_stderr ("*overflow joining strings*");
+    }
+#endif
 }
 
 /* Testing g_strjoinv() function with various positive and negative cases */
@@ -1518,6 +1578,7 @@ test_strsplit_set (void)
 
   strv_check (g_strsplit_set ("", ",/", 0), NULL);
   strv_check (g_strsplit_set (":def/ghi:", ":/", -1), "", "def", "ghi", "", NULL);
+  strv_check (g_strsplit_set (":def/ghi:/x", ":/", -1), "", "def", "ghi", "", "x", NULL);
   strv_check (g_strsplit_set ("abc:def/ghi", ":/", -1), "abc", "def", "ghi", NULL);
   strv_check (g_strsplit_set (",;,;,;,;", ",;", -1), "", "", "", "", "", "", "", "", "", NULL);
   strv_check (g_strsplit_set (",,abc.def", ".,", -1), "", "", "abc", "def", NULL);
@@ -1742,6 +1803,25 @@ test_ascii_strtod (void)
   check_strtod_number (-0.75, "%0.2f", "-0.75");
   check_strtod_number (-0.75, "%5.2f", "-0.75");
   check_strtod_number (1e99, "%.0e", "1e+99");
+
+  /* Underflow: errno is reset before the call, so a pre-existing error
+   * is cleared even for a normal conversion. */
+  errno = ERANGE;
+  d = g_ascii_strtod ("1.0", NULL);
+  g_assert_cmpfloat (d, ==, 1.0);
+  g_assert_cmpint (errno, ==, 0);
+
+  /* Underflow: result magnitude must be <= DBL_MIN (subnormals are
+   * allowed; zero is not required). errno is not checked here because
+   * whether ERANGE is set for gradual underflow is implementation-defined. */
+  {
+    gchar *end;
+    errno = 0;
+    d = g_ascii_strtod ("5e-324", &end);
+    g_assert_cmpstr (end, ==, "");
+    g_assert_cmpfloat (d, >=, 0.0);
+    g_assert_cmpfloat (d, <=, DBL_MIN);
+  }
 }
 
 static void
@@ -2720,6 +2800,104 @@ test_set_str (void)
 }
 
 static void
+test_set_str_take (void)
+{
+  char *str = NULL;
+  const char *empty_str = "";
+
+  g_assert_false (g_set_str_take (&str, NULL));
+  g_assert_null (str);
+
+  g_assert_true (g_set_str_take (&str, g_strdup (empty_str)));
+  g_assert_false (g_set_str_take (&str, g_strdup (empty_str)));
+  g_assert_nonnull (str);
+  g_assert_true ((gpointer)str != (gpointer)empty_str);
+  g_assert_cmpstr (str, ==, empty_str);
+
+  g_assert_true (g_set_str_take (&str, NULL));
+  g_assert_null (str);
+
+  g_assert_true (g_set_str_take (&str, g_strdup (empty_str)));
+  g_assert_true (g_set_str_take (&str, g_strdup ("test")));
+  g_assert_cmpstr (str, ==, "test");
+
+  g_assert_false (g_set_str_take (&str, g_strdup (str)));
+  g_assert_cmpstr (str, ==, "test");
+
+  g_assert_false (g_set_str_take (&str, str));
+  g_assert_cmpstr (str, ==, "test");
+
+  g_assert_true (g_set_str_take (&str, g_strconcat (str, "-suffix", NULL)));
+  g_assert_cmpstr (str, ==, "test-suffix");
+
+  g_free (str);
+}
+
+static void
+test_set_strv (void)
+{
+  char **strv = NULL;
+  char **taken_strv = NULL;
+  const char * const empty_strv[] = { NULL };
+  const char * const values1[] = { "a", "b", NULL };
+  const char * const values2[] = { "a", "b", NULL };
+  const char * const values3[] = { "a", "c", NULL };
+
+  g_assert_false (g_set_strv (&strv, NULL));
+  g_assert_null (strv);
+
+  g_assert_true (g_set_strv (&strv, empty_strv));
+  g_assert_nonnull (strv);
+  g_assert_true ((gpointer)strv != (gpointer)empty_strv);
+  g_assert_true (g_strv_equal ((const char * const *)strv, empty_strv));
+
+  g_assert_false (g_set_strv (&strv, empty_strv));
+  g_assert_true (g_strv_equal ((const char * const *)strv, empty_strv));
+
+  g_assert_false (g_set_strv (&strv, (const char * const *)strv));
+  g_assert_true (g_strv_equal ((const char * const *)strv, empty_strv));
+
+  g_assert_true (g_set_strv (&strv, values1));
+  g_assert_true (g_strv_equal ((const char * const *)strv, values1));
+
+  g_assert_false (g_set_strv (&strv, values2));
+  g_assert_true (g_strv_equal ((const char * const *)strv, values1));
+
+  g_assert_true (g_set_strv (&strv, values3));
+  g_assert_true (g_strv_equal ((const char * const *)strv, values3));
+
+  g_assert_true (g_set_strv (&strv, NULL));
+  g_assert_null (strv);
+
+  g_assert_false (g_set_strv_take (&strv, NULL));
+  g_assert_null (strv);
+
+  taken_strv = g_strdupv ((char **) empty_strv);
+  g_assert_true (g_set_strv_take (&strv, g_steal_pointer (&taken_strv)));
+  g_assert_nonnull (strv);
+  g_assert_true (g_strv_equal ((const char * const *)strv, empty_strv));
+
+  taken_strv = g_strdupv ((char **) empty_strv);
+  g_assert_false (g_set_strv_take (&strv, g_steal_pointer (&taken_strv)));
+  g_assert_true (g_strv_equal ((const char * const *)strv, empty_strv));
+
+  taken_strv = g_strdupv ((char **) values1);
+  g_assert_true (g_set_strv_take (&strv, g_steal_pointer (&taken_strv)));
+  g_assert_true (g_strv_equal ((const char * const *)strv, values1));
+
+  taken_strv = g_strdupv ((char **) values2);
+  g_assert_false (g_set_strv_take (&strv, g_steal_pointer (&taken_strv)));
+  g_assert_true (g_strv_equal ((const char * const *)strv, values1));
+
+  taken_strv = g_strdupv ((char **) values3);
+  g_assert_true (g_set_strv_take (&strv, g_steal_pointer (&taken_strv)));
+  g_assert_true (g_strv_equal ((const char * const *)strv, values3));
+
+  g_assert_true (g_set_strv_take (&strv, NULL));
+  g_assert_null (strv);
+}
+
+static void
 test_str_is_ascii (void)
 {
   const char *ascii_strings[] = {
@@ -2760,6 +2938,8 @@ main (int   argc,
   g_test_add_func ("/strfuncs/memdup", test_memdup);
   g_test_add_func ("/strfuncs/memdup2", test_memdup2);
   g_test_add_func ("/strfuncs/set_str", test_set_str);
+  g_test_add_func ("/strfuncs/set_str_take", test_set_str_take);
+  g_test_add_func ("/strfuncs/set_strv", test_set_strv);
   g_test_add_func ("/strfuncs/stpcpy", test_stpcpy);
   g_test_add_func ("/strfuncs/str_match_string", test_str_match_string);
   g_test_add_func ("/strfuncs/str_tokenize_and_fold", test_str_tokenize_and_fold);
@@ -2777,6 +2957,7 @@ main (int   argc,
   g_test_add_func ("/strfuncs/strip-context", test_strip_context);
   g_test_add_func ("/strfuncs/strjoin", test_strjoin);
   g_test_add_func ("/strfuncs/strjoinv", test_strjoinv);
+  g_test_add_func ("/strfuncs/strjoinv/overflow", test_strjoinv_overflow);
   g_test_add_func ("/strfuncs/strlcat", test_strlcat);
   g_test_add_func ("/strfuncs/strlcpy", test_strlcpy);
   g_test_add_func ("/strfuncs/strncasecmp", test_strncasecmp);

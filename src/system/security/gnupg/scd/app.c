@@ -126,6 +126,7 @@ strcardtype (cardtype_t t)
     case CARDTYPE_YUBIKEY:     return "yubikey";
     case CARDTYPE_ZEITCONTROL: return "zeitcontrol";
     case CARDTYPE_SCE7:        return "smartcafe";
+    case CARDTYPE_NITROKEY:    return "nitrokey";
     }
   return "?";
 }
@@ -414,7 +415,7 @@ card_list_wait (ctrl_t ctrl)
     {
       FD_ZERO (&fdset);
       FD_SET (FD2INT (fd), &fdset);
-      nfd = FD2INT (fd);
+      nfd = FD2NUM (fd);
 
 #ifdef HAVE_W32_SYSTEM
       ret = npth_eselect (nfd+1, &fdset, NULL, NULL, NULL,
@@ -597,7 +598,8 @@ check_application_conflict (card_t card, const char *name,
   if (card->app->apptype == APPTYPE_UNDEFINED)
     return 0;
 
-  if (card->cardtype == CARDTYPE_YUBIKEY)
+  if (card->cardtype == CARDTYPE_YUBIKEY
+      || card->cardtype == CARDTYPE_NITROKEY)
     {
       if (card->app->apptype == APPTYPE_OPENPGP)
         {
@@ -661,7 +663,7 @@ atr_to_cardtype (int slot, const unsigned char *atr, size_t atrlen)
   cardtype_t cardtype = 0;
   int i;
 
-  if (atr)
+  if (!atr)
     {
       atrbuf = apdu_get_atr (slot, &atrlen);
       if (!atrbuf)
@@ -791,8 +793,9 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
                       xfree (buf);
                       buf = NULL;
                       if (!iso7816_select_application_ext (slot,
-                                                       otp_aid, sizeof otp_aid,
-                                                       1, &buf, &buflen)
+                                                      otp_aid, sizeof otp_aid,
+                                                      ISO7816_SELECT_FCI,
+                                                      &buf, &buflen)
                           && buflen > 3)
                         card->cardversion = ((buf[0]<<16)|(buf[1]<<8)|buf[2]);
                     }
@@ -802,31 +805,59 @@ app_new_register (int slot, ctrl_t ctrl, const char *name,
           else
             card->cardtype = atr_to_cardtype (slot, NULL, 0);
         }
-      else  /* Got 3F00 */
+      else /* Either we got a 3F00 or some other error. */
         {
           unsigned char *atr;
           size_t atrlen;
+          int gottype = 0;
 
-          /* This is heuristics to identify different implementations.  */
-          /* FIXME: The first two checks are pretty OpenPGP card specific. */
-          atr = apdu_get_atr (slot, &atrlen);
-          if (atr)
+          if (err)
             {
-              if (atrlen == 21 && atr[2] == 0x11)
-                card->cardtype = CARDTYPE_GNUK;
-              else if (atrlen == 21 && atr[7] == 0x75)
-                card->cardtype = CARDTYPE_ZEITCONTROL;
-              else
-                card->cardtype = atr_to_cardtype (slot, atr, atrlen);
-              xfree (atr);
+              /* We got an error readin 3F00.  Try to get the historical
+               * bytes by 0x5f52 (select application is not required).
+               * This is heuristics to identify Nitrokey.  Note that
+               * its ATR and historical bytes are unrelated.  */
+              unsigned char *buffer;
+              size_t buflen;
+
+              if (!iso7816_get_data (slot, 0, 0x5f52, &buffer, &buflen)
+                  && buflen == 10
+                  && !memcmp (buffer,
+                              "\x00\x31\xF5\x73\xC0\x01\x60\x05\x90\x00", 10))
+                {
+                  card->cardtype = CARDTYPE_NITROKEY;
+                  gottype = 1;
+                }
+              xfree (buffer);
+            }
+
+          if (!gottype)
+            {
+              /* This is heuristics to identify different implementations.  */
+              /* FIXME: The first two checks are pretty OpenPGP card
+               * specific. */
+              atr = apdu_get_atr (slot, &atrlen);
+              if (atr)
+                {
+                  if (atrlen == 21 && atr[2] == 0x11)
+                    card->cardtype = CARDTYPE_GNUK;
+                  else if (atrlen == 21 && atr[7] == 0x75)
+                    card->cardtype = CARDTYPE_ZEITCONTROL;
+                  else
+                    card->cardtype = atr_to_cardtype (slot, atr, atrlen);
+                  xfree (atr);
+                }
             }
         }
 
-      if (!err && card->cardtype != CARDTYPE_YUBIKEY)
+      if (!err && card->cardtype != CARDTYPE_YUBIKEY
+          && card->cardtype != CARDTYPE_NITROKEY)
         err = iso7816_select_file (slot, 0x2F02, 0);
-      if (!err && card->cardtype != CARDTYPE_YUBIKEY)
+      if (!err && card->cardtype != CARDTYPE_YUBIKEY
+          && card->cardtype != CARDTYPE_NITROKEY)
         err = iso7816_read_binary (slot, 0, 0, &result, &resultlen);
-      if (!err && card->cardtype != CARDTYPE_YUBIKEY)
+      if (!err && card->cardtype != CARDTYPE_YUBIKEY
+          && card->cardtype != CARDTYPE_NITROKEY)
         {
           size_t n;
           const unsigned char *p;
@@ -1171,7 +1202,8 @@ select_all_additional_applications_internal (ctrl_t ctrl, card_t card)
   int i, j;
   int any_new = 0;
 
-  if (card->cardtype == CARDTYPE_YUBIKEY)
+  if (card->cardtype == CARDTYPE_YUBIKEY
+      || card->cardtype == CARDTYPE_NITROKEY)
     {
       candidates[0] = APPTYPE_OPENPGP;
       candidates[1] = APPTYPE_PIV;
@@ -1488,7 +1520,7 @@ app_munge_serialno (card_t card)
        *   !     !----------- Form factor
        *   !----------------- Our prefix
        * Yubico seems to use the decimalized version of their S/N
-       * as the OpenPGP card S/N.  Thus in theory we can contruct the
+       * as the OpenPGP card S/N.  Thus in theory we can construct the
        * number from this information so that we do not rely on having
        * the OpenPGP app enabled.
        */
@@ -1744,15 +1776,17 @@ static int
 check_external_interference (app_t app, ctrl_t ctrl)
 {
   /*
-   * Only when a user is using Yubikey with pcsc-shared configuration,
-   * we need this detection.  Otherwise, the card/token is under full
-   * control of scdaemon, there's no problem at all.  However, if the
-   * APDU command has been used we better also check whether the AID
-   * is still valid.
+   * Only when a user is using Yubikey/Nitrokey with pcsc-shared
+   * configuration, we need this detection.  Otherwise, the card/token
+   * is under full control of scdaemon, there's no problem at all.
+   * However, if the APDU command has been used we better also check
+   * whether the AID is still valid.
    */
   if (app && app->card && app->card->maybe_check_aid)
     app->card->maybe_check_aid = 0;
-  else if (!opt.pcsc_shared || app->card->cardtype != CARDTYPE_YUBIKEY)
+  else if (!opt.pcsc_shared
+           || (app->card->cardtype != CARDTYPE_YUBIKEY
+               && app->card->cardtype != CARDTYPE_NITROKEY))
     return 0;
 
   if (app->fnc.check_aid)
@@ -1791,12 +1825,14 @@ maybe_switch_app (ctrl_t ctrl, card_t card, const char *keyref)
   if (!card->app)
     return gpg_error (GPG_ERR_CARD_NOT_INITIALIZED);
 
-  if (card->maybe_check_aid && card->app->fnc.reselect
+  if ((card->maybe_check_aid || opt.pcsc_shared)
+      && card->app->fnc.reselect
       && check_external_interference (card->app, ctrl))
     {
       if (DBG_APP)
-        log_debug ("slot %d, app %s: forced re-select due to direct APDU use\n",
-                   card->slot, xstrapptype (card->app));
+        log_debug ("slot %d, app %s: forced re-select due to %s\n",
+                   card->slot, xstrapptype (card->app),
+                   card->maybe_check_aid? "direct APDU use" : "pcsc-shared");
       err = card->app->fnc.reselect (card->app, ctrl);
       if (err)
         log_error ("slot %d, app %s: forced re-select failed: %s - ignored\n",
@@ -2472,7 +2508,6 @@ app_check_pin (card_t card, ctrl_t ctrl, const char *keyidstr,
   return err;
 }
 
-
 static void
 report_change (int slot, int old_status, int cur_status)
 {
@@ -2500,11 +2535,9 @@ report_change (int slot, int old_status, int cur_status)
   else
     {
       gpg_error_t err;
-      const char *args[9], *envs[2];
+      const char *args[9];
       char numbuf1[30], numbuf2[30], numbuf3[30];
-
-      envs[0] = envstr;
-      envs[1] = NULL;
+      gpgrt_spawn_actions_t act = NULL;
 
       sprintf (numbuf1, "%d", slot);
       sprintf (numbuf2, "0x%04X", old_status);
@@ -2522,7 +2555,16 @@ report_change (int slot, int old_status, int cur_status)
       args[8] = NULL;
 
       fname = make_filename (gnupg_homedir (), "scd-event", NULL);
-      err = gnupg_spawn_process_detached (fname, args, envs);
+      err = gpgrt_spawn_actions_new (&act);
+      if (!err)
+        {
+          const char *envchange[2] = { envstr, NULL };
+
+          gpgrt_spawn_actions_set_env_rev (act, envchange);
+          err = gpgrt_process_spawn (fname, args, GPGRT_PROCESS_DETACHED,
+                                     act, NULL);
+          gpgrt_spawn_actions_release (act);
+        }
       if (err && gpg_err_code (err) != GPG_ERR_ENOENT)
         log_error ("failed to run event handler '%s': %s\n",
                    fname, gpg_strerror (err));
@@ -2652,7 +2694,7 @@ initialize_module_command (void)
 #ifdef HAVE_W32_SYSTEM
   scd_init_event (&card_list_lock.the_event, card_list_lock.events);
 #else
-  ret = gnupg_create_pipe (card_list_lock.notify_pipe);
+  ret = gnupg_create_pipe (card_list_lock.notify_pipe, 0);
   if (ret)
     {
       err = gpg_error_from_syserror ();

@@ -51,14 +51,16 @@
 
    On success, the caller is responsible for calling xfree on *FNAMEP
    and calling es_close on *FPP.  */
-gpg_error_t
+static gpg_error_t
 get_output_file (const byte *embedded_name, int embedded_namelen,
-                 iobuf_t data, char **fnamep, estream_t *fpp)
+                 iobuf_t data, struct pfg *pfg)
 {
   gpg_error_t err = 0;
   char *fname = NULL;
+  char *fname_part = NULL;
   estream_t fp = NULL;
   int nooutput = 0;
+  int using_file = 0;
 
   /* Create the filename as C string.  */
   if (opt.outfp)
@@ -111,20 +113,20 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
     {
       /* Special file name, no filename, or "-" given; write to the
        * file descriptor or to stdout. */
-      int fd;
+      gnupg_fd_t fd;
       char xname[64];
 
-      fd = check_special_filename (fname, 1, 0);
-      if (fd == -1)
+      fd = gnupg_check_special_filename (fname);
+      if (fd == GNUPG_INVALID_FD)
         {
           /* Not a special filename, thus we want stdout.  */
           fp = es_stdout;
           es_set_binary (fp);
         }
-      else if (!(fp = es_fdopen_nc (fd, "wb")))
+      else if (!(fp = open_stream_nc (fd, "wb")))
         {
           err = gpg_error_from_syserror ();
-          snprintf (xname, sizeof xname, "[fd %d]", fd);
+          snprintf (xname, sizeof xname, "[fd %d]", FD_DBG (fd));
           log_error (_("can't open '%s': %s\n"), xname, gpg_strerror (err));
           goto leave;
         }
@@ -137,8 +139,7 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
 	  if (!tmp || !*tmp)
 	    {
 	      xfree (tmp);
-              /* FIXME: Below used to be GPG_ERR_CREATE_FILE */
-	      err = gpg_error (GPG_ERR_GENERAL);
+              err = gpg_error (GPG_ERR_EEXIST);
 	      goto leave;
 	    }
 	  xfree (fname);
@@ -146,13 +147,7 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
 	}
     }
 
-  if (opt.outfp && is_secured_file (es_fileno (opt.outfp)))
-    {
-      err = gpg_error (GPG_ERR_EPERM);
-      log_error (_("error creating '%s': %s\n"), fname, gpg_strerror (err));
-      goto leave;
-    }
-  else if (fp || nooutput)
+  if (fp || nooutput)
     ;
   else if (is_secured_filename (fname))
     {
@@ -161,11 +156,35 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
       log_error (_("error creating '%s': %s\n"), fname, gpg_strerror (err));
       goto leave;
     }
-  else if (!(fp = es_fopen (fname, "wb")))
+  else
     {
-      err = gpg_error_from_syserror ();
-      log_error (_("error creating '%s': %s\n"), fname, gpg_strerror (err));
-      goto leave;
+      char *filename;
+
+      if ((opt.compat_flags & COMPAT_NO_PARTIALFILEGUARD)
+          /* Don't enable the partial file guard if it's already prepared.  */
+          || has_suffix (fname, EXTSEP_S "part"))
+        filename = fname;
+      else
+        {
+          filename = xstrconcat (fname, EXTSEP_S "part", NULL);
+          if (!filename)
+            {
+              err = gpg_error_from_syserror ();
+              log_error ("error building .part filename '%s': %s\n",
+                         fname, gpg_strerror (err));
+              goto leave;
+            }
+          fname_part = filename;
+        }
+
+      if (!(fp = es_fopen (filename, "wb")))
+        {
+          err = gpg_error_from_syserror ();
+          log_error (_("error creating '%s': %s\n"), filename,
+                     gpg_strerror (err));
+          goto leave;
+        }
+      using_file = 1;
     }
 
  leave:
@@ -174,13 +193,64 @@ get_output_file (const byte *embedded_name, int embedded_namelen,
       if (fp && fp != es_stdout && fp != opt.outfp)
         es_fclose (fp);
       xfree (fname);
+      xfree (fname_part);
       return err;
     }
 
-  *fnamep = fname;
-  *fpp = fp;
+  pfg->using_file = using_file;
+  pfg->fname_part = fname_part;
+  pfg->fname = fname;
+  pfg->fp = fp;
   return 0;
 }
+
+
+gpg_error_t
+pfg_open_file (const byte *embedded_name, int embedded_namelen,
+               iobuf_t data, struct pfg *pfg)
+{
+  return get_output_file (embedded_name, embedded_namelen, data, pfg);
+}
+
+void
+pfg_close_file (struct pfg *pfg, gpg_error_t err)
+{
+  if (err)
+    {
+      gpgrt_fcancel (pfg->fp);
+      if (pfg->using_file)
+        {
+          const char *fname;
+
+          if (pfg->fname_part)
+            fname = pfg->fname_part;
+          else
+            fname = pfg->fname;
+
+          if (opt.verbose)
+            log_info (_("Note: partial file '%s' removed\n"), fname);
+
+          gnupg_remove (fname);
+        }
+    }
+  else
+    {
+      if (es_fclose (pfg->fp))
+        {
+          err = gpg_error_from_syserror ();
+          log_error ("error closing '%s': %s\n",
+                     pfg->fname_part ? pfg->fname_part : pfg->fname,
+                     gpg_strerror (err));
+        }
+
+      if (pfg->fname_part)
+        gnupg_register_partial_file (pfg->fname_part, pfg->fname);
+    }
+
+  xfree (pfg->fname);
+  xfree (pfg->fname_part);
+}
+
 
 /* Handle a plaintext packet.  If MFX is not NULL, update the MDs
  * Note: We should have used the filter stuff here, but we have to add
@@ -196,9 +266,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
   int err = 0;
   int c;
   int convert;
-#ifdef __riscos__
-  int filetype = 0xfff;
-#endif
+  struct pfg pfg;
 
   if (pt->mode == 't' || pt->mode == 'u' || pt->mode == 'm')
     convert = pt->mode;
@@ -232,9 +300,11 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 
   if (! nooutput)
     {
-      err = get_output_file (pt->name, pt->namelen, pt->buf, &fname, &fp);
+      err = pfg_open_file (pt->name, pt->namelen, pt->buf, &pfg);
       if (err)
         goto leave;
+      fp = pfg.fp;
+      fname = pfg.fname;
     }
 
   if (!pt->is_partial)
@@ -254,7 +324,9 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 	    {
 	      if ((c = iobuf_get (pt->buf)) == -1)
 		{
-		  err = gpg_error_from_syserror ();
+		  err = iobuf_error (pt->buf);
+                  if (!err)
+                    err = gpg_error_from_syserror ();
 		  log_error ("problem reading source (%u bytes remaining)\n",
 			     (unsigned) pt->len);
 		  goto leave;
@@ -314,7 +386,9 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 	      len = iobuf_read (pt->buf, buffer, len);
 	      if (len == -1)
 		{
-		  err = gpg_error_from_syserror ();
+		  err = iobuf_error (pt->buf);
+                  if (!err)
+                    err = gpg_error_from_syserror ();
 		  log_error ("problem reading source (%u bytes remaining)\n",
 			     (unsigned) pt->len);
 		  xfree (buffer);
@@ -335,6 +409,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		  else if (es_fwrite (buffer, 1, len, fp) != len)
 		    {
 		      err = gpg_error_from_syserror ();
+                      write_status_failure ("handle_plaintext.write", err);
 		      log_error ("error writing to '%s': %s\n",
 				 fname, gpg_strerror (err));
 		      xfree (buffer);
@@ -345,6 +420,12 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 	    }
 	  xfree (buffer);
 	}
+
+      /* Even if all data can be read successfully, by the AEAD tag
+       * checking at last, it may be failed.  */
+      if ((err = iobuf_error (pt->buf)))
+        log_error ("problem reading source: %s\n", gpg_strerror (err));
+      pt->buf = NULL;
     }
   else if (!clearsig)
     {
@@ -362,7 +443,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		{
 		  if (opt.max_output && (++count) > opt.max_output)
 		    {
-		      log_error ("Error writing to '%s': %s\n",
+		      log_error ("error writing to '%s': %s\n",
 				 fname, "exceeded --max-output limit\n");
 		      err = gpg_error (GPG_ERR_TOO_LARGE);
 		      goto leave;
@@ -379,6 +460,8 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		    }
 		}
 	    }
+          if ((err = iobuf_error (pt->buf)))
+            log_error ("problem reading source: %s\n", gpg_strerror (err));
 	}
       else
 	{			/* binary mode */
@@ -428,6 +511,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		  else if (es_fwrite (buffer, 1, len, fp) != len)
 		    {
 		      err = gpg_error_from_syserror ();
+                      write_status_failure ("handle_plaintext.write", err);
 		      log_error ("error writing to '%s': %s\n",
 				 fname, gpg_strerror (err));
 		      xfree (buffer);
@@ -435,6 +519,8 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		    }
 		}
 	    }
+          if ((err = iobuf_error (pt->buf)))
+            log_error ("problem reading source: %s\n", gpg_strerror (err));
 	  xfree (buffer);
 	}
       pt->buf = NULL;
@@ -496,16 +582,13 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
 		}
 	    }
 	}
+      if ((err = iobuf_error (pt->buf)))
+        log_error ("problem reading source: %s\n", gpg_strerror (err));
       pt->buf = NULL;
     }
 
-  if (fp && fp != es_stdout && fp != opt.outfp && es_fclose (fp))
-    {
-      err = gpg_error_from_syserror ();
-      log_error ("error closing '%s': %s\n", fname, gpg_strerror (err));
-      fp = NULL;
-      goto leave;
-    }
+  if (fp && fp != es_stdout && fp != opt.outfp)
+    pfg_close_file (&pfg, err);
   fp = NULL;
 
  leave:
@@ -524,8 +607,7 @@ handle_plaintext (PKT_plaintext * pt, md_filter_context_t * mfx,
     }
 
   if (fp && fp != es_stdout && fp != opt.outfp)
-    es_fclose (fp);
-  xfree (fname);
+    pfg_close_file (&pfg, err);
   return err;
 }
 
@@ -729,8 +811,8 @@ hash_datafiles (gcry_md_hd_t md, gcry_md_hd_t md2, strlist_t files,
 /* Hash the data from file descriptor DATA_FD and append the hash to hash
    contexts MD and MD2.  */
 int
-hash_datafile_by_fd (gcry_md_hd_t md, gcry_md_hd_t md2, int data_fd,
-		     int textmode)
+hash_datafile_by_fd (gcry_md_hd_t md, gcry_md_hd_t md2,
+                     gnupg_fd_t data_fd, int textmode)
 {
   progress_filter_context_t *pfx = new_progress_context ();
   iobuf_t fp;
@@ -747,7 +829,7 @@ hash_datafile_by_fd (gcry_md_hd_t md, gcry_md_hd_t md2, int data_fd,
     {
       int rc = gpg_error_from_syserror ();
       log_error (_("can't open signed data fd=%d: %s\n"),
-		 data_fd, strerror (errno));
+		 FD_DBG (data_fd), strerror (errno));
       release_progress_context (pfx);
       return rc;
     }

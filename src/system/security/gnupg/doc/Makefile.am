@@ -33,7 +33,9 @@ helpfiles = help.txt help.be.txt help.ca.txt help.cs.txt		\
             help.gl.txt help.hu.txt help.id.txt help.it.txt		\
             help.ja.txt help.nb.txt help.pl.txt help.pt.txt		\
             help.pt_BR.txt help.ro.txt help.ru.txt help.sk.txt		\
-            help.sv.txt help.tr.txt help.zh_CN.txt help.zh_TW.txt
+            help.sv.txt help.tr.txt help.zh_CN.txt help.zh_TW.txt       \
+            mail-tube.txt mail-tube.de.txt \
+            wks-utils.txt wks-utils.de.txt
 
 EXTRA_DIST = samplekeys.asc mksamplekeys com-certs.pem \
 	     gnupg-logo.pdf gnupg-logo.png gnupg-logo-tr.png \
@@ -41,8 +43,8 @@ EXTRA_DIST = samplekeys.asc mksamplekeys com-certs.pem \
              gnupg-card-architecture.png gnupg-card-architecture.pdf \
              FAQ gnupg7.texi mkdefsinc.c defsincdate \
              opt-homedir.texi see-also-note.texi specify-user-id.texi \
-	     gpgv.texi yat2m.c ChangeLog-2011 whats-new-in-2.1.txt \
-             trust-values.texi
+	     gpgv.texi ChangeLog-2011 whats-new-in-2.1.txt \
+             trust-values.texi keyformat.txt
 
 BUILT_SOURCES = gnupg-module-overview.png gnupg-module-overview.pdf \
                 gnupg-card-architecture.png gnupg-card-architecture.pdf \
@@ -74,7 +76,7 @@ DVIPS = TEXINPUTS="$(srcdir)$(PATH_SEPARATOR)$$TEXINPUTS" dvips
 AM_MAKEINFOFLAGS = -I $(srcdir) --css-ref=/share/site.css
 
 YAT2M_OPTIONS = -I $(srcdir) \
-        --release "GnuPG @PACKAGE_VERSION@" --source "GNU Privacy Guard 2.4"
+        --release "GnuPG @PACKAGE_VERSION@" --source "GNU Privacy Guard 2.6"
 
 myman_sources = gnupg7.texi gpg.texi gpgsm.texi gpg-agent.texi \
 	        dirmngr.texi scdaemon.texi tools.texi wks.texi \
@@ -101,13 +103,10 @@ man_MANS = $(myman_pages) gnupg.7
 watchgnupg_SOURCE = gnupg.texi
 
 
-CLEANFILES = yat2m mkdefsinc defs.inc
+CLEANFILES = mkdefsinc defs.inc
 
 DISTCLEANFILES = gnupg.tmp gnupg.ops yat2m-stamp.tmp yat2m-stamp \
 		 $(myman_pages) gnupg.7 $(myhtmlman_pages)
-
-yat2m: yat2m.c
-	$(CC_FOR_BUILD) -o $@ $(srcdir)/yat2m.c
 
 mkdefsinc: mkdefsinc.c Makefile ../config.h
 	$(CC_FOR_BUILD) -I. -I.. -I$(srcdir) $(AM_CPPFLAGS) \
@@ -144,14 +143,13 @@ yat2m-stamp: $(myman_sources) defs.inc
 	for file in $(myman_sources); do \
               $(YAT2M) $(YAT2M_OPTIONS) --store \
                   --date "`cat $$incd 2>/dev/null`" \
-	          `test -f '$$file' || echo '$(srcdir)/'`$$file ; \
+	          `test -f '$$file' || echo '$(srcdir)/'`$$file ;\
               $(YAT2M) $(YAT2M_OPTIONS) --store --html --gnupgorg \
                   --date "`cat $$incd 2>/dev/null`" \
 	          `test -f '$$file' || echo '$(srcdir)/'`$$file ;\
         done
 	@mv -f yat2m-stamp.tmp $@
 
-yat2m-stamp: $(YAT2M)
 
 $(myman_pages) $(myhtmlman_pages) gnupg.7 : yat2m-stamp defs.inc
 	@if test -f $@; then :; else \
@@ -190,12 +188,13 @@ online: gnupg.html gnupg.pdf gnupg-module-overview.png \
 	cp $(srcdir)/gnupg-logo-tr.png gnupg.html/; \
 	cp gnupg-module-overview.png gnupg.html/; \
 	cp gnupg-card-architecture.png gnupg.html/; \
-        user=werner ; webhost="ftp.gnupg.org" ; dashdevel="" ; \
+        webhost="www.gnupg.org"; webdir="webspace/documentation/manuals" ; \
+        dashdevel="" ; \
         if echo "@PACKAGE_VERSION@" | grep -- "-beta" >/dev/null; then \
 	  dashdevel="-devel" ; \
 	else \
-          rsync -v gnupg.pdf $${user}@$${webhost}:webspace/manuals/ ; \
+          rsync -v gnupg.pdf $${USER}@$${webhost}:$${webdir}/ ; \
         fi ; \
 	cd gnupg.html ; \
         rsync -vr --exclude='.git' .  \
-	  $${user}@$${webhost}:webspace/manuals/gnupg$${dashdevel}/
+	  $${USER}@$${webhost}:$${webdir}/gnupg$${dashdevel}/

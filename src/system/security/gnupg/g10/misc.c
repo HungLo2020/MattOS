@@ -160,7 +160,7 @@ unregister_secured_file (const char *fname)
 /* Return true if FD is corresponds to a secured file.  Using -1 for
    FS is allowed and will return false. */
 int
-is_secured_file (int fd)
+is_secured_file (gnupg_fd_t fd)
 {
 #ifdef ENABLE_SELINUX_HACKS
   struct stat buf;
@@ -641,6 +641,11 @@ openpgp_aead_test_algo (aead_algo_t algo)
     case AEAD_ALGO_NONE:
       break;
 
+    case AEAD_ALGO_GCM:
+      if (RFC9980)
+        return 0;
+      break;
+
     case AEAD_ALGO_EAX:
     case AEAD_ALGO_OCB:
       return 0;
@@ -659,8 +664,9 @@ openpgp_aead_algo_name (aead_algo_t algo)
   switch (algo)
     {
     case AEAD_ALGO_NONE:  break;
-    case AEAD_ALGO_EAX:   return "EAX";
-    case AEAD_ALGO_OCB:   return "OCB";
+    case AEAD_ALGO_EAX:   return gnupg_cipher_mode_name (GCRY_CIPHER_MODE_EAX);
+    case AEAD_ALGO_OCB:   return gnupg_cipher_mode_name (GCRY_CIPHER_MODE_OCB);
+    case AEAD_ALGO_GCM:   return gnupg_cipher_mode_name (GCRY_CIPHER_MODE_GCM);
     }
 
   return "?";
@@ -686,6 +692,15 @@ openpgp_aead_algo_info (aead_algo_t algo, enum gcry_cipher_modes *r_mode,
       *r_mode = MY_GCRY_CIPHER_MODE_EAX;
       *r_noncelen = 16;
       break;
+
+    case AEAD_ALGO_GCM:
+      if (RFC9980)
+        {
+          *r_mode = GCRY_CIPHER_MODE_GCM;
+          *r_noncelen = 12;
+          break;
+        }
+      /* FALLTHRU */
 
     default:
       log_error ("unsupported AEAD algo %d\n", algo);
@@ -750,6 +765,28 @@ openpgp_pk_test_algo2 (pubkey_algo_t algo, unsigned int use)
         ga = GCRY_PK_ELG;
       break;
 
+    case PUBKEY_ALGO_KYBER:     ga = GCRY_PK_KEM; break;
+
+    case PUBKEY_ALGO_ED25519:
+      if (RFC9980)
+        ga = GCRY_PK_EDDSA;
+      break;
+
+    case PUBKEY_ALGO_X25519:
+      if (RFC9980)
+        ga = GCRY_PK_KEM;
+      break;
+
+    case PUBKEY_ALGO_MLK768_25519:
+    case PUBKEY_ALGO_MLK768_NP384:
+    case PUBKEY_ALGO_MLK768_BP384:
+    case PUBKEY_ALGO_MLK1024_448:
+    case PUBKEY_ALGO_MLK1024_NP521:
+    case PUBKEY_ALGO_MLK1024_BP512:
+      if (RFC9980)
+        ga = GCRY_PK_KEM;
+      break;
+
     default:
       break;
     }
@@ -799,6 +836,31 @@ openpgp_pk_algo_usage ( int algo )
       case PUBKEY_ALGO_ECDSA:
       case PUBKEY_ALGO_EDDSA:
           use = PUBKEY_USAGE_CERT | PUBKEY_USAGE_SIG | PUBKEY_USAGE_AUTH;
+          break;
+      case PUBKEY_ALGO_ED25519:
+        if (RFC9980)
+          use= PUBKEY_USAGE_CERT | PUBKEY_USAGE_SIG | PUBKEY_USAGE_AUTH;
+        break;
+      case PUBKEY_ALGO_X25519:
+        if (RFC9980)
+          use= PUBKEY_USAGE_ENC | PUBKEY_USAGE_RENC;
+        break;
+
+      case PUBKEY_ALGO_KYBER:
+      case PUBKEY_ALGO_MLK768_25519:
+      case PUBKEY_ALGO_MLK768_NP384:
+      case PUBKEY_ALGO_MLK768_BP384:
+      case PUBKEY_ALGO_MLK1024_448:
+      case PUBKEY_ALGO_MLK1024_NP521:
+      case PUBKEY_ALGO_MLK1024_BP512:
+          use = PUBKEY_USAGE_ENC | PUBKEY_USAGE_RENC;
+          break;
+
+      case PUBKEY_ALGO_MLD65_25519:
+      case PUBKEY_ALGO_MLD87_448:
+          use = PUBKEY_USAGE_CERT | PUBKEY_USAGE_SIG;
+          break;
+
       default:
           break;
     }
@@ -822,13 +884,22 @@ openpgp_pk_algo_name (pubkey_algo_t algo)
     case PUBKEY_ALGO_ECDH:      return "ECDH";
     case PUBKEY_ALGO_ECDSA:     return "ECDSA";
     case PUBKEY_ALGO_EDDSA:     return "EDDSA";
+    case PUBKEY_ALGO_KYBER:     return "Kyber";
+    case PUBKEY_ALGO_X25519:    return "ietf25";
+    case PUBKEY_ALGO_ED25519:   return "ietf27";
+    case PUBKEY_ALGO_MLK768_25519: return "mlk768";
+    case PUBKEY_ALGO_MLK768_NP384: return "mlk768_np384";
+    case PUBKEY_ALGO_MLK768_BP384: return "mlk768_bp384";
+    case PUBKEY_ALGO_MLK1024_448:  return "mlk1024";
+    case PUBKEY_ALGO_MLK1024_NP521:return "mlk1024_np521";
+    case PUBKEY_ALGO_MLK1024_BP512:return "mlk1024_bp512";
     default: return "?";
     }
 }
 
 
 /* Explicit mapping of OpenPGP digest algos to Libgcrypt.  */
-/* FIXME: We do not yes use it everywhere.  */
+/* FIXME: We do not yet use it everywhere.  */
 enum gcry_md_algos
 map_md_openpgp_to_gcry (digest_algo_t algo)
 {
@@ -1216,7 +1287,10 @@ obsolete_scdaemon_option (const char *configname, unsigned int configlineno,
 
 /*
  * Wrapper around gcry_cipher_map_name to provide a fallback using the
- * "Sn" syntax as used by the preference strings.
+ * "Sn" syntax as used by the preference strings.  Note that only the
+ * second syntax does a check on the actual availibily of the
+ * algorithm.  That might make a difference in case Libgcrypt is
+ * running in FIPS mode.
  */
 int
 string_to_cipher_algo (const char *string)
@@ -1432,6 +1506,10 @@ compliance_failure(void)
     case CO_DE_VS:
       ver="DE-VS applications";
       break;
+
+    case CO_FIPS:
+      ver="FIPS applications";
+      break;
     }
 
   log_info(_("this message may not be usable by %s\n"),ver);
@@ -1563,25 +1641,37 @@ parse_options(char *str,unsigned int *options,
 {
   char *tok;
 
-  if (str && (!strcmp (str, "help") || !strcmp (str, "full-help")))
+  if (str && (!strcmp (str, "help")
+              || !strcmp (str, "full-help") || !strcmp (str, "fullhelp")))
     {
       int i,maxlen=0;
       int full = *str == 'f';
+      int set;
 
       /* Figure out the longest option name so we can line these up
 	 neatly. */
       for(i=0;opts[i].name;i++)
-	if(opts[i].help && maxlen<strlen(opts[i].name))
+	if((full || opts[i].help) && maxlen<strlen(opts[i].name))
 	  maxlen=strlen(opts[i].name);
 
       for(i=0;opts[i].name;i++)
         if(opts[i].help)
-	  es_printf("%s%*s%s\n",opts[i].name,
-                    maxlen+2-(int)strlen(opts[i].name),"",_(opts[i].help));
+          {
+            set = (*options & opts[i].bit);
+            es_printf("%s%*s%s%s%s%s\n",opts[i].name,
+                      maxlen+2-(int)strlen(opts[i].name),"",_(opts[i].help),
+                      set?"  [":"", set? _("enabled"):"", set?"]":"");
+          }
+
       if (full)
         for (i=0; opts[i].name; i++)
           if(!opts[i].help)
-            es_printf("%s\n",opts[i].name);
+            {
+              set = (*options & opts[i].bit);
+              es_printf("%s%*s%s%s%s\n",opts[i].name,
+                        set? (maxlen+2-(int)strlen(opts[i].name)):0,"",
+                        set?"[":"", set? _("enabled"):"", set?"]":"");
+            }
 
       g10_exit(0);
     }
@@ -1711,7 +1801,13 @@ pubkey_get_npkey (pubkey_algo_t algo)
     case PUBKEY_ALGO_ECDSA:     return 2;
     case PUBKEY_ALGO_ELGAMAL:   return 3;
     case PUBKEY_ALGO_EDDSA:     return 2;
-    default: return 0;
+    case PUBKEY_ALGO_KYBER:     return 3;
+    case PUBKEY_ALGO_X25519:       return 1;
+    case PUBKEY_ALGO_ED25519:      return 1;
+    default:
+      if (IS_PUBKEY_ALGO_MLK (algo))
+        return 2;
+      return 0;
     }
 }
 
@@ -1731,7 +1827,13 @@ pubkey_get_nskey (pubkey_algo_t algo)
     case PUBKEY_ALGO_ECDSA:     return 3;
     case PUBKEY_ALGO_ELGAMAL:   return 4;
     case PUBKEY_ALGO_EDDSA:     return 3;
-    default: return 0;
+    case PUBKEY_ALGO_KYBER:     return 5;
+    case PUBKEY_ALGO_X25519:    return 2;
+    case PUBKEY_ALGO_ED25519:   return 2;
+    default:
+      if (IS_PUBKEY_ALGO_MLK (algo))
+        return 4;
+      return 0;
     }
 }
 
@@ -1750,6 +1852,7 @@ pubkey_get_nsig (pubkey_algo_t algo)
     case PUBKEY_ALGO_ECDSA:     return 2;
     case PUBKEY_ALGO_ELGAMAL:   return 2;
     case PUBKEY_ALGO_EDDSA:     return 2;
+    case PUBKEY_ALGO_ED25519:   return 1;
     default: return 0;
     }
 }
@@ -1770,7 +1873,12 @@ pubkey_get_nenc (pubkey_algo_t algo)
     case PUBKEY_ALGO_ECDSA:     return 0;
     case PUBKEY_ALGO_ELGAMAL:   return 2;
     case PUBKEY_ALGO_EDDSA:     return 0;
-    default: return 0;
+    case PUBKEY_ALGO_KYBER:     return 3;
+    case PUBKEY_ALGO_X25519:    return 2;
+    default:
+      if (IS_PUBKEY_ALGO_MLK (algo))
+        return 3;
+      return 0;
     }
 }
 
@@ -1930,4 +2038,103 @@ is_weak_digest (digest_algo_t algo)
     if (weak->algo == galgo)
       return 1;
   return 0;
+}
+
+
+/* We keep a list of partial files so that they are handled later.
+ * When it fails at the end, all the partial files will be removed.
+ * If it succeeds, those partial files are renamed as valid ones.  */
+struct partial_file_item
+{
+  struct partial_file_item *next;
+  char *fname_part;
+  char *fname;
+};
+
+/* List of partial files, registered.  */
+static struct partial_file_item *registered_file_list;
+
+/* Remember a partial file so that it will be handled later.
+ * FNAME_PART is a name of a partial file.  FNAME is a name of
+ * original file.  */
+gpg_error_t
+gnupg_register_partial_file (const char *fname_part, const char *fname)
+{
+  struct partial_file_item *pfi;
+
+  if (!(pfi = xtrymalloc (sizeof (*pfi))))
+    return gpg_error_from_syserror ();
+
+  if (!(pfi->fname_part = xtrystrdup (fname_part)))
+    {
+      xfree (pfi);
+      return gpg_error_from_syserror ();
+    }
+
+  if (!(pfi->fname = xtrystrdup (fname)))
+    {
+      xfree (pfi->fname_part);
+      xfree (pfi);
+      return gpg_error_from_syserror ();
+    }
+
+  pfi->next = registered_file_list;
+  registered_file_list = pfi;
+  return 0;
+}
+
+
+/* Remove the partial files. */
+gpg_error_t
+gnupg_rollback_partial_file (void)
+{
+  gpg_error_t err = 0;
+  struct partial_file_item *pfi = registered_file_list;
+  struct partial_file_item *next;
+
+  registered_file_list = NULL;
+
+  while (pfi)
+    {
+      next = pfi->next;
+
+      err = gnupg_remove (pfi->fname_part);
+      if (opt.verbose)
+        log_info (_("Note: partial file '%s' removed\n"), pfi->fname_part);
+
+      xfree (pfi->fname_part);
+      xfree (pfi->fname);
+      xfree (pfi);
+
+      pfi = next;
+    }
+
+  return err;
+}
+
+
+/* Rename the partial files. */
+gpg_error_t
+gnupg_commit_partial_file (void)
+{
+  gpg_error_t err = 0;
+  struct partial_file_item *pfi = registered_file_list;
+  struct partial_file_item *next;
+
+  registered_file_list = NULL;
+
+  while (pfi)
+    {
+      next = pfi->next;
+
+      err = gnupg_rename_file (pfi->fname_part, pfi->fname, NULL);
+
+      xfree (pfi->fname_part);
+      xfree (pfi->fname);
+      xfree (pfi);
+
+      pfi = next;
+    }
+
+  return err;
 }

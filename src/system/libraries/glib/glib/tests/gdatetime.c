@@ -34,6 +34,7 @@
 #include <locale.h>
 
 #include "gdatetime-private.h"
+#include "glib-private.h"
 
 #ifdef G_OS_WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -42,6 +43,11 @@
 #ifndef NAN
 #define NAN HUGE_VAL * 0.0f
 #endif
+#endif
+
+#ifdef HAVE_UNSHARE
+#include <sched.h>
+#include <unistd.h>
 #endif
 
 #define ASSERT_DATE(dt,y,m,d) G_STMT_START { \
@@ -140,6 +146,54 @@ test_GDateTime_now (void)
 }
 
 static void
+test_GDateTime_set_date_time (void)
+{
+  GDateTime *beginning = g_date_time_new_from_iso8601 ("1970-01-01T00:00:00Z", NULL);
+  GDateTime *beginning_elsewhere = g_date_time_new_from_iso8601 ("1970-01-01T12:00:00+12:00", NULL);
+  GDateTime *millennium = g_date_time_new_from_iso8601 ("2000-01-01T00:00:00Z", NULL);
+  GDateTime *test = NULL;
+  gboolean was_set = FALSE;
+
+  g_assert_nonnull (beginning);
+  g_assert_nonnull (beginning_elsewhere);
+  g_assert_nonnull (millennium);
+  g_assert_true (g_date_time_equal (beginning, beginning_elsewhere));
+
+  was_set = g_set_date_time (&test, millennium);
+  g_assert_true (was_set);
+  g_assert_false (g_date_time_equal (test, beginning));
+  g_assert_true (g_date_time_equal (test, millennium));
+
+  was_set = g_set_date_time (&test, beginning);
+  g_assert_true (was_set);
+  g_assert_true (g_date_time_equal (test, beginning));
+  g_assert_false (g_date_time_equal (test, millennium));
+
+  was_set = g_set_date_time (&test, beginning);
+  g_assert_false (was_set);
+  g_assert_true (g_date_time_equal (test, beginning));
+  g_assert_false (g_date_time_equal (test, millennium));
+
+  was_set = g_set_date_time (&test, beginning_elsewhere);
+  g_assert_true (was_set);
+  g_assert_true (g_date_time_equal (test, beginning_elsewhere));
+  g_assert_false (g_date_time_equal (test, millennium));
+
+  was_set = g_set_date_time (&test, millennium);
+  g_assert_true (was_set);
+  g_assert_false (g_date_time_equal (test, beginning));
+  g_assert_true (g_date_time_equal (test, millennium));
+
+  was_set = g_set_date_time (&test, NULL);
+  g_assert_true (was_set);
+  g_assert_null (test);
+
+  g_date_time_unref (beginning);
+  g_date_time_unref (beginning_elsewhere);
+  g_date_time_unref (millennium);
+}
+
+static void
 test_GDateTime_new_from_unix (void)
 {
   GDateTime *dt;
@@ -222,6 +276,7 @@ test_GDateTime_compare (void)
 {
   GDateTime *dt1, *dt2;
   gint       i;
+  GTimeZone *utc_plus_one = g_time_zone_new_identifier ("+01:00");
 
   dt1 = g_date_time_new_utc (2000, 1, 1, 0, 0, 0);
 
@@ -243,6 +298,13 @@ test_GDateTime_compare (void)
   dt2 = g_date_time_new_utc (2000, 1, 1, 0, 0, 0);
   g_assert_cmpint (0, ==, g_date_time_compare (dt1, dt2));
   g_date_time_unref (dt2);
+
+  /* Check that the same instant in a different time zone compares equal too */
+  dt2 = g_date_time_new (utc_plus_one, 2000, 1, 1, 1, 0, 0);
+  g_assert_cmpint (0, ==, g_date_time_compare (dt1, dt2));
+  g_date_time_unref (dt2);
+
+  g_time_zone_unref (utc_plus_one);
   g_date_time_unref (dt1);
 }
 
@@ -1141,6 +1203,24 @@ test_GDateTime_add_full (void)
   TEST_ADD_FULL (2010,  8, 25, 22, 45, 0,
                     0,  1,  6,  1, 25, 0,
                  2010, 10,  2,  0, 10, 0);
+
+#define TEST_ADD_FULL_ERROR(y,m,d,h,mi,s,ay,am,ad,ah,ami,as) G_STMT_START { \
+  GDateTime *dt; \
+  dt = g_date_time_new_utc (y, m, d, h, mi, s); \
+  g_assert_null (g_date_time_add_full (dt, ay, am, ad, ah, ami, as)); \
+  g_date_time_unref (dt); \
+} G_STMT_END
+
+  TEST_ADD_FULL_ERROR (     1, 12,  1,  0,  0, 0,
+                           -1,  0,  0,  0,  0, 0);
+  TEST_ADD_FULL_ERROR (     1, 12,  1,  0,  0, 0,
+                        10000,  0,  0,  0,  0, 0);
+  TEST_ADD_FULL_ERROR (  9999, 12,  1,  0,  0, 0,
+                       -10000,  0,  0,  0,  0, 0);
+  TEST_ADD_FULL_ERROR (     1, 12,  1,  0,  0, 0,
+                            0,  0, 3660001,  0,  0, 0);
+  TEST_ADD_FULL_ERROR (  9999, 12,  1,  0,  0, 0,
+                            0,  0, -3660001,  0,  0, 0);
 }
 
 static void
@@ -3478,6 +3558,229 @@ test_date_time_unix_usec (void)
   g_date_time_unref (local);
 }
 
+typedef struct
+{
+  char *rootdir;
+  gboolean expect_null;
+} LocaltimeFixture;
+
+static void
+localtime_teardown (LocaltimeFixture *fixture,
+                    gconstpointer     data)
+{
+  g_free (fixture->rootdir);
+}
+
+#ifdef HAVE_UNSHARE
+/* Creates:
+ * $tmp/etc/
+ * $tmp/usr/share/zoneinfo/Europe/Zurich
+ */
+static char *
+mkdir_localtime_root (GError **error)
+{
+  size_t len;
+  char *root, *path;
+  char *contents = NULL;
+
+  root = g_dir_make_tmp ("glib-localtime-root-XXXXXXX", error);
+  if (!root)
+    return NULL;
+
+  path = g_build_filename (root, "etc", NULL);
+  if (g_mkdir_with_parents (path, 0755) != 0)
+    {
+      int errsv = errno;
+      g_set_error (error, G_FILE_ERROR, g_file_error_from_errno (errsv),
+                   "Failed to create ‘%s’: %s", path, g_strerror (errsv));
+      g_free (path);
+      g_free (root);
+      return NULL;
+    }
+  g_free (path);
+
+  path = g_build_filename (root, "usr", "share", "zoneinfo", "Europe", NULL);
+  if (g_mkdir_with_parents (path, 0755) != 0)
+    {
+      int errsv = errno;
+      g_set_error (error, G_FILE_ERROR, g_file_error_from_errno (errsv),
+                   "Failed to create ‘%s’: %s", path, g_strerror (errsv));
+      g_free (path);
+      g_free (root);
+      return NULL;
+    }
+  g_free (path);
+
+  path = g_test_build_filename (G_TEST_DIST, "time-zones", "Zurich", NULL);
+  if (!g_file_get_contents (path, &contents, &len, error))
+    {
+      g_free (path);
+      g_free (root);
+      return NULL;
+    }
+  g_free (path);
+
+  path = g_build_filename (root, "usr", "share", "zoneinfo", "Europe", "Zurich", NULL);
+  if (!g_file_set_contents (path, contents, len, error))
+    {
+      g_free (contents);
+      g_free (path);
+      g_free (root);
+      return NULL;
+    }
+  g_free (contents);
+  g_free (path);
+
+  return root;
+}
+#endif
+
+static void
+localtime_regular_setup (LocaltimeFixture *fixture,
+                         gconstpointer     data)
+{
+#ifdef HAVE_UNSHARE
+  char *path;
+  GError *error = NULL;
+
+  fixture->rootdir = mkdir_localtime_root (&error);
+  g_assert_no_error (error);
+
+  path = g_build_filename (fixture->rootdir, "etc", "localtime", NULL);
+  g_assert_no_errno (symlink ("../usr/share/zoneinfo/Europe/Zurich", path));
+  g_free (path);
+
+  fixture->expect_null = FALSE;
+#endif
+}
+
+static void
+localtime_symlink_setup (LocaltimeFixture *fixture,
+                         gconstpointer     data)
+{
+#ifdef HAVE_UNSHARE
+  char *path;
+  GError *error = NULL;
+
+  fixture->rootdir = mkdir_localtime_root (&error);
+  g_assert_no_error (error);
+
+  path = g_build_filename (fixture->rootdir, "usr", "share", "zoneinfo", "Europe", "Busingen", NULL);
+  g_assert_no_errno (symlink ("Zurich", path));
+  g_free (path);
+
+  path = g_build_filename (fixture->rootdir, "etc", "localtime", NULL);
+  g_assert_no_errno (symlink ("../usr/share/zoneinfo/Europe/Busingen", path));
+  g_free (path);
+
+  fixture->expect_null = FALSE;
+#endif
+}
+
+static void
+localtime_symlink_loop_setup (LocaltimeFixture *fixture,
+                              gconstpointer     data)
+{
+#ifdef HAVE_UNSHARE
+  char *path;
+  GError *error = NULL;
+
+  fixture->rootdir = mkdir_localtime_root (&error);
+  g_assert_no_error (error);
+
+  path = g_build_filename (fixture->rootdir, "usr", "share", "zoneinfo", "Europe", "Busingen", NULL);
+  g_assert_no_errno (symlink ("Rome", path));
+  g_free (path);
+
+  path = g_build_filename (fixture->rootdir, "usr", "share", "zoneinfo", "Europe", "Rome", NULL);
+  g_assert_no_errno (symlink ("Busingen", path));
+  g_free (path);
+
+  path = g_build_filename (fixture->rootdir, "etc", "localtime", NULL);
+  g_assert_no_errno (symlink ("../usr/share/zoneinfo/Europe/Busingen", path));
+  g_free (path);
+
+  fixture->expect_null = TRUE;
+#endif
+}
+
+static void
+localtime_not_a_symlink_setup (LocaltimeFixture *fixture,
+                               gconstpointer     data)
+{
+#ifdef HAVE_UNSHARE
+  char *path;
+  char *contents;
+  size_t len;
+  GError *error = NULL;
+
+  fixture->rootdir = mkdir_localtime_root (&error);
+  g_assert_nonnull (fixture->rootdir);
+  g_assert_no_error (error);
+
+  path = g_build_filename (fixture->rootdir, "usr", "share", "zoneinfo", "Europe", "Zurich", NULL);
+  g_file_get_contents (path, &contents, &len, &error);
+  g_assert_no_error (error);
+  g_free (path);
+
+  path = g_build_filename (fixture->rootdir, "etc", "localtime", NULL);
+  g_file_set_contents (path, contents, len, &error);
+  g_assert_no_error (error);
+  g_free (path);
+  g_free (contents);
+
+  fixture->expect_null = TRUE;
+#endif
+}
+
+static void
+test_unix_localtime (LocaltimeFixture *fixture,
+                     gconstpointer     data)
+{
+#ifndef G_OS_UNIX
+  g_test_skip ("unix specific behaviour, skipping test on non-unix");
+  return;
+#elif !defined(HAVE_UNSHARE)
+  g_test_skip ("requires Linux unshare() syscall, skipping test");
+  return;
+#else
+#ifdef _GLIB_ADDRESS_SANITIZER
+  g_test_skip ("chroot() breaks LeakSanitizer, skipping under ASAN");
+  return;
+#endif
+
+  if (g_test_subprocess ())
+    {
+      int ret;
+      GTimeZone *tz;
+
+      ret = unshare (CLONE_NEWUSER);
+      if (ret != 0)
+        {
+          g_test_skip ("" /* message from subprocess is not visible*/);
+          return;
+        }
+
+      ret = chroot (fixture->rootdir);
+      if (ret != 0)
+        {
+          g_test_skip ("" /* message from subprocess is not visible*/);
+          return;
+        }
+
+      tz = g_time_zone_new_identifier (NULL);
+      g_assert_cmpint ((tz == NULL), ==, fixture->expect_null);
+      return;
+    }
+
+  g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_INHERIT_DESCRIPTORS);
+  if (g_test_trap_has_skipped ())
+    g_test_skip ("Could not create user namespace, skipping test");
+  else
+    g_test_trap_assert_passed ();
+#endif
+}
+
 gint
 main (gint   argc,
       gchar *argv[])
@@ -3491,7 +3794,7 @@ main (gint   argc,
   g_unsetenv ("CHARSET");
 
   setlocale (LC_ALL, "C.UTF-8");
-  g_test_init (&argc, &argv, NULL);
+  g_test_init (&argc, &argv, G_TEST_OPTION_ISOLATE_DIRS, NULL);
 
   /* GDateTime Tests */
   bind_textdomain_codeset ("glib20", "UTF-8");
@@ -3529,6 +3832,7 @@ main (gint   argc,
   g_test_add_func ("/GDateTime/new_from_iso8601/2", test_GDateTime_new_from_iso8601_2);
   g_test_add_func ("/GDateTime/new_full", test_GDateTime_new_full);
   g_test_add_func ("/GDateTime/now", test_GDateTime_now);
+  g_test_add_func ("/GDateTime/set_date_time", test_GDateTime_set_date_time);
   g_test_add_func ("/GDateTime/test-6-days-until-end-of-the-month", test_6_days_until_end_of_the_month);
   g_test_add_func ("/GDateTime/printf", test_GDateTime_printf);
   g_test_add_func ("/GDateTime/non_utf8_printf", test_non_utf8_printf);
@@ -3573,6 +3877,10 @@ main (gint   argc,
   g_test_add_func ("/GTimeZone/new-offset", test_new_offset);
   g_test_add_func ("/GTimeZone/parse-rfc8536", test_time_zone_parse_rfc8536);
   g_test_add_func ("/GTimeZone/caching", test_time_zone_caching);
+  g_test_add ("/GTimeZone/unix_localtime/regular", LocaltimeFixture, NULL, localtime_regular_setup, test_unix_localtime, localtime_teardown);
+  g_test_add ("/GTimeZone/unix_localtime/symlink", LocaltimeFixture, NULL, localtime_symlink_setup, test_unix_localtime, localtime_teardown);
+  g_test_add ("/GTimeZone/unix_localtime/symlink-loop", LocaltimeFixture, NULL, localtime_symlink_loop_setup, test_unix_localtime, localtime_teardown);
+  g_test_add ("/GTimeZone/unix_localtime/not-a-symlink", LocaltimeFixture, NULL, localtime_not_a_symlink_setup, test_unix_localtime, localtime_teardown);
 
   return g_test_run ();
 }

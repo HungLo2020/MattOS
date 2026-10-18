@@ -1414,7 +1414,7 @@ error:
 /******** API *************/
 
 /**
- * gst_h264_nal_parser_new:
+ * gst_h264_nal_parser_new: (skip)
  *
  * Creates a new #GstH264NalParser. It should be freed with
  * gst_h264_nal_parser_free after use.
@@ -1650,7 +1650,7 @@ gst_h264_parser_identify_nalu_avc (GstH264NalParser * nalparser,
  * @offset: the offset in @data from which to parse the NAL unit
  * @size: the size of @data
  * @nal_length_size: the size in bytes of the AVC nal length prefix.
- * @nalus: a caller allocated GArray of #GstH264NalUnit where to store parsed nal headers
+ * @nalus: (element-type GstH264NalUnit): a caller allocated GArray of #GstH264NalUnit where to store parsed nal headers
  * @consumed: (out): the size of consumed bytes
  *
  * Parses @data for packetized (e.g., avc/avc3) bitstream and
@@ -1830,18 +1830,26 @@ gst_h264_parser_identify_and_split_nalu_avc (GstH264NalParser * nalparser,
 GstH264ParserResult
 gst_h264_parser_parse_nal (GstH264NalParser * nalparser, GstH264NalUnit * nalu)
 {
-  GstH264SPS sps;
-  GstH264PPS pps;
+  GstH264ParserResult res = GST_H264_PARSER_OK;
 
   switch (nalu->type) {
-    case GST_H264_NAL_SPS:
-      return gst_h264_parser_parse_sps (nalparser, nalu, &sps);
+    case GST_H264_NAL_SPS:{
+      GstH264SPS sps;
+
+      res = gst_h264_parser_parse_sps (nalparser, nalu, &sps);
+      gst_h264_sps_clear (&sps);
       break;
-    case GST_H264_NAL_PPS:
-      return gst_h264_parser_parse_pps (nalparser, nalu, &pps);
+    }
+    case GST_H264_NAL_PPS:{
+      GstH264PPS pps;
+
+      res = gst_h264_parser_parse_pps (nalparser, nalu, &pps);
+      gst_h264_pps_clear (&pps);
+      break;
+    }
   }
 
-  return GST_H264_PARSER_OK;
+  return res;
 }
 
 /**
@@ -2036,8 +2044,6 @@ gst_h264_parse_sps_mvc_data (NalReader * nr, GstH264SPS * sps)
   READ_UE_MAX (nr, mvc->num_views_minus1, GST_H264_MAX_VIEW_COUNT - 1);
 
   mvc->view = g_new0 (GstH264SPSExtMVCView, mvc->num_views_minus1 + 1);
-  if (!mvc->view)
-    goto error_allocation_failed;
 
   for (i = 0; i <= mvc->num_views_minus1; i++)
     READ_UE_MAX (nr, mvc->view[i].view_id, GST_H264_MAX_VIEW_ID);
@@ -2075,8 +2081,6 @@ gst_h264_parse_sps_mvc_data (NalReader * nr, GstH264SPS * sps)
   mvc->level_value =
       g_new0 (GstH264SPSExtMVCLevelValue,
       mvc->num_level_values_signalled_minus1 + 1);
-  if (!mvc->level_value)
-    goto error_allocation_failed;
 
   for (i = 0; i <= mvc->num_level_values_signalled_minus1; i++) {
     GstH264SPSExtMVCLevelValue *const level_value = &mvc->level_value[i];
@@ -2087,8 +2091,6 @@ gst_h264_parse_sps_mvc_data (NalReader * nr, GstH264SPS * sps)
     level_value->applicable_op =
         g_new0 (GstH264SPSExtMVCLevelValueOp,
         level_value->num_applicable_ops_minus1 + 1);
-    if (!level_value->applicable_op)
-      goto error_allocation_failed;
 
     for (j = 0; j <= level_value->num_applicable_ops_minus1; j++) {
       GstH264SPSExtMVCLevelValueOp *const op = &level_value->applicable_op[j];
@@ -2097,8 +2099,6 @@ gst_h264_parse_sps_mvc_data (NalReader * nr, GstH264SPS * sps)
 
       READ_UE_MAX (nr, op->num_target_views_minus1, 1023);
       op->target_view_id = g_new (guint16, op->num_target_views_minus1 + 1);
-      if (!op->target_view_id)
-        goto error_allocation_failed;
 
       for (k = 0; k <= op->num_target_views_minus1; k++)
         READ_UE_MAX (nr, op->target_view_id[k], GST_H264_MAX_VIEW_ID);
@@ -2106,11 +2106,6 @@ gst_h264_parse_sps_mvc_data (NalReader * nr, GstH264SPS * sps)
     }
   }
   return TRUE;
-
-error_allocation_failed:
-  GST_WARNING ("failed to allocate memory");
-  gst_h264_sps_clear (sps);
-  return FALSE;
 
 error:
   gst_h264_sps_clear (sps);
@@ -2278,6 +2273,7 @@ gst_h264_parse_pps (GstH264NalParser * nalparser, GstH264NalUnit * nalu,
     return GST_H264_PARSER_BROKEN_LINK;
   }
   pps->sequence = sps;
+  pps->sps_id = sps_id;
   qp_bd_offset = 6 * (sps->bit_depth_luma_minus8 +
       sps->separate_colour_plane_flag);
 
@@ -2470,6 +2466,7 @@ gst_h264_parser_parse_slice_hdr (GstH264NalParser * nalparser,
   }
 
   slice->pps = pps;
+  slice->pps_id = pps_id;
   sps = pps->sequence;
   if (!sps) {
     GST_WARNING ("couldn't find associated sequence parameter set with id: %d",
@@ -2626,15 +2623,19 @@ gst_h264_sps_mvc_clear (GstH264SPS * sps)
   g_free (mvc->view);
   mvc->view = NULL;
 
-  for (i = 0; i <= mvc->num_level_values_signalled_minus1; i++) {
-    GstH264SPSExtMVCLevelValue *const level_value = &mvc->level_value[i];
+  if (mvc->level_value) {
+    for (i = 0; i <= mvc->num_level_values_signalled_minus1; i++) {
+      GstH264SPSExtMVCLevelValue *const level_value = &mvc->level_value[i];
 
-    for (j = 0; j <= level_value->num_applicable_ops_minus1; j++) {
-      g_free (level_value->applicable_op[j].target_view_id);
-      level_value->applicable_op[j].target_view_id = NULL;
+      if (level_value->applicable_op) {
+        for (j = 0; j <= level_value->num_applicable_ops_minus1; j++) {
+          g_free (level_value->applicable_op[j].target_view_id);
+          level_value->applicable_op[j].target_view_id = NULL;
+        }
+      }
+      g_free (level_value->applicable_op);
+      level_value->applicable_op = NULL;
     }
-    g_free (level_value->applicable_op);
-    level_value->applicable_op = NULL;
   }
   g_free (mvc->level_value);
   mvc->level_value = NULL;
@@ -2707,7 +2708,7 @@ gst_h264_sei_clear (GstH264SEIMessage * sei)
  * gst_h264_parser_parse_sei:
  * @nalparser: a #GstH264NalParser
  * @nalu: The %GST_H264_NAL_SEI #GstH264NalUnit to parse
- * @messages: The GArray of #GstH264SEIMessage to fill. The caller must free it when done.
+ * @messages: (element-type GstH264SEIMessage): The GArray of #GstH264SEIMessage to fill. The caller must free it when done.
  *
  * Parses @nalu containing one or more Supplementary Enhancement Information messages,
  * and allocates and fills the @messages array.
@@ -3483,7 +3484,7 @@ error:
 /**
  * gst_h264_create_sei_memory:
  * @start_code_prefix_length: a length of start code prefix, must be 3 or 4
- * @messages: (transfer none): a GArray of #GstH264SEIMessage
+ * @messages: (element-type GstH264SEIMessage) (transfer none): a GArray of #GstH264SEIMessage
  *
  * Creates raw byte-stream format (a.k.a Annex B type) SEI nal unit data
  * from @messages
@@ -3507,7 +3508,7 @@ gst_h264_create_sei_memory (guint8 start_code_prefix_length, GArray * messages)
 /**
  * gst_h264_create_sei_memory_avc:
  * @nal_length_size: a size of nal length field, allowed range is [1, 4]
- * @messages: (transfer none): a GArray of #GstH264SEIMessage
+ * @messages: (element-type GstH264SEIMessage) (transfer none): a GArray of #GstH264SEIMessage
  *
  * Creates raw packetized format SEI nal unit data from @messages
  *
@@ -3911,7 +3912,7 @@ static const H264ProfileMapping h264_profiles[] = {
 
 /**
  * gst_h264_profile_from_string:
- * @string: the descriptive name for #GstH264Profile
+ * @profile: the descriptive name for #GstH264Profile
  *
  * Returns a #GstH264Profile for the @string.
  *

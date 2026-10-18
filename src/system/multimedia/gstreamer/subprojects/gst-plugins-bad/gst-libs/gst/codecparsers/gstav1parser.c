@@ -21,6 +21,7 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA 02110-1301, USA.
  */
+
 /**
  * SECTION:gstav1parser
  * @title: GstAV1Parser
@@ -67,7 +68,7 @@
  * should call gst_av1_parser_reference_frame_update() to update the parser's inside
  * state(such as reference information, global segmentation information, etc).
  *
- * @since: 1.18.00
+ * Since: 1.18
  */
 
 #ifdef HAVE_CONFIG_H
@@ -294,13 +295,18 @@ av1_bitstreamfn_leb128 (GstBitReader * br, GstAV1ParserResult * retval)
     if (*retval != GST_AV1_PARSER_OK)
       return 0;
 
-    value |= (((gint) leb128_byte & 0x7f) << (i * 7));
+    value |= (((guint64) leb128_byte & 0x7f) << (i * 7));
     if (!(leb128_byte & 0x80))
       break;
+
+    if (i == 7 && leb128_byte & 0x80) {
+      *retval = GST_AV1_PARSER_BITSTREAM_ERROR;
+      return 0;
+    }
   }
 
   /* check for bitstream conformance see chapter4.10.5 */
-  if (value < G_MAXUINT32) {
+  if (value <= G_MAXUINT32) {
     return (guint32) value;
   } else {
     GST_WARNING ("invalid leb128");
@@ -2045,7 +2051,7 @@ gst_av1_parse_segmentation_params (GstAV1Parser * parser, GstBitReader * br,
   gint i, j;
   GstAV1ParserResult retval = GST_AV1_PARSER_OK;
   gint clipped_value /* clippedValue */ ;
-  GstAV1SegmenationParams *seg_params;
+  GstAV1SegmentationParams *seg_params;
   gint feature_value = 0;
 
   const guint8 segmentation_feature_bits[GST_AV1_SEG_LVL_MAX] = {
@@ -2119,7 +2125,7 @@ gst_av1_parse_segmentation_params (GstAV1Parser * parser, GstBitReader * br,
       }
     } else {
       gint8 ref_idx;
-      GstAV1SegmenationParams *ref_seg_params;
+      GstAV1SegmentationParams *ref_seg_params;
 
       /* Copy it from prime_ref */
       if (frame_header->primary_ref_frame >= GST_AV1_PRIMARY_REF_NONE) {
@@ -4339,6 +4345,8 @@ gst_av1_parser_parse_tile_list_obu (GstAV1Parser * parser,
   }
 
   for (tile = 0; tile <= tile_list->tile_count_minus_1; tile++) {
+    guint32 tile_data_size;
+
     if (AV1_REMAINING_BITS (br) < 8 + 8 + 8 + 16) {
       retval = GST_AV1_PARSER_NO_MORE_DATA;
       goto error;
@@ -4353,8 +4361,8 @@ gst_av1_parser_parse_tile_list_obu (GstAV1Parser * parser,
     tile_list->entry[tile].coded_tile_data =
         obu->data + gst_bit_reader_get_pos (br) / 8;
     /* skip the coded_tile_data */
-    if (!gst_bit_reader_skip (br,
-            tile_list->entry[tile].tile_data_size_minus_1 + 1)) {
+    tile_data_size = tile_list->entry[tile].tile_data_size_minus_1 + 1;
+    if (!gst_bit_reader_skip (br, tile_data_size * 8)) {
       retval = GST_AV1_PARSER_NO_MORE_DATA;
       goto error;
     }
@@ -4668,7 +4676,7 @@ gst_av1_parser_set_operating_point (GstAV1Parser * parser,
 }
 
 /**
- * gst_av1_parser_new:
+ * gst_av1_parser_new: (skip)
  *
  * Allocates a new #GstAV1Parser,
  *

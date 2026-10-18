@@ -538,6 +538,11 @@ msgstr ""
 msgid "a gpg-agent is already running - not starting a new one\n"
 msgstr "gpg-agent вже запущено, потреби у запуску нової копії немає\n"
 
+#, fuzzy, c-format
+#| msgid "key %s: removed multiple subkey binding\n"
+msgid "socket file removed - retrying binding\n"
+msgstr "ключ %s: вилучено кратне зв’язування підключів\n"
+
 #, c-format
 msgid "error getting nonce for the socket\n"
 msgstr "помилка під час спроби отримання поточного стану сокета\n"
@@ -680,10 +685,6 @@ msgid "error opening '%s': %s\n"
 msgstr "помилка під час відкриття «%s»: %s\n"
 
 #, c-format
-msgid "file '%s', line %d: %s\n"
-msgstr "файл «%s», рядок %d: %s\n"
-
-#, c-format
 msgid "statement \"%s\" ignored in '%s', line %d\n"
 msgstr "проігноровано інструкцію «%s» у «%s», рядок %d\n"
 
@@ -734,7 +735,7 @@ msgstr "Ні"
 #. insert a line break.  The double percent sign is actually
 #. needed because it is also a printf format string.  If you
 #. need to insert a plain % sign, you need to encode it as
-#. "%%25".  The second "%s" gets replaced by a hexdecimal
+#. "%%25".  The second "%s" gets replaced by a hexadecimal
 #. fingerprint string whereas the first one receives the name
 #. as stored in the certificate.
 #, c-format
@@ -747,7 +748,8 @@ msgstr ""
 
 #. TRANSLATORS: "Correct" is the label of a button and intended
 #. to be hit if the fingerprint matches the one of the CA.  The
-#. other button is "the default "Cancel" of the Pinentry.
+#. other button is "the default "Cancel" of the Pinentry.  We
+#. fix the English strings with hacks to avoid a string changes.
 msgid "Correct"
 msgstr "Підтверджую"
 
@@ -772,6 +774,11 @@ msgstr "Змінити пароль"
 
 msgid "I'll change it later"
 msgstr "Я зміню його пізніше"
+
+#, fuzzy, c-format
+#| msgid "receiving line failed: %s\n"
+msgid "Unprotecting key failed: %s\n"
+msgstr "помилка під час спроби отримання рядка: %s\n"
 
 msgid "Please insert the card with serial number"
 msgstr "Будь ласка, вставте картку з серійним номером"
@@ -843,35 +850,6 @@ msgstr "помилка під час спроби створення канал�
 #, c-format
 msgid "error creating a stream for a pipe: %s\n"
 msgstr "помилка під час спроби створення потоку для каналу: %s\n"
-
-#, c-format
-msgid "error forking process: %s\n"
-msgstr "помилка під час спроби розгалужування процесу: %s\n"
-
-#, c-format
-msgid "waiting for process %d to terminate failed: %s\n"
-msgstr "не вдалося дочекатися завершення процесу %d: %s\n"
-
-#, c-format
-msgid "error running '%s': probably not installed\n"
-msgstr ""
-"помилка під час спроби виконання «%s»: ймовірно, програму не встановлено\n"
-
-#, c-format
-msgid "error running '%s': exit status %d\n"
-msgstr "помилка під час спроби виконання «%s»: стан виходу %d\n"
-
-#, c-format
-msgid "error running '%s': terminated\n"
-msgstr "помилка під час спроби виконання «%s»: виконання перервано\n"
-
-#, c-format
-msgid "waiting for processes to terminate failed: %s\n"
-msgstr "не вдалося дочекатися переривання процесу: %s\n"
-
-#, c-format
-msgid "error getting exit code of process %d: %s\n"
-msgstr "помилка під час спроби отримання коду виходу процесу %d: %s\n"
 
 #, c-format
 msgid "can't connect to '%s': %s\n"
@@ -1157,6 +1135,10 @@ msgstr "Dirmngr придатна до використання"
 #, c-format
 msgid "No help available for '%s'."
 msgstr "Довідки щодо «%s» не виявлено."
+
+#, c-format
+msgid "file '%s', line %d: %s\n"
+msgstr "файл «%s», рядок %d: %s\n"
 
 msgid "ignoring garbage line"
 msgstr "ігноруємо беззмістовний рядок"
@@ -1449,6 +1431,16 @@ msgstr "увімкнено"
 msgid "Please try command \"%s\" if the listing does not look correct\n"
 msgstr ""
 
+#, c-format
+msgid ""
+"Please note that the factory settings of the PINs are\n"
+"   PIN = '%s'     Admin PIN = '%s'\n"
+"You should change them using the command --change-pin\n"
+msgstr ""
+"Зауважте, що типовими параметрами пінкоду є\n"
+"   PIN = «%s»     Адміністративний PIN = «%s»\n"
+"Вам слід змінити параметри за допомогою команди --change-pin\n"
+
 msgid "Error: Only plain ASCII is currently allowed.\n"
 msgstr ""
 "Помилка: у поточній версії можна використовувати лише звичайний ASCII.\n"
@@ -1609,16 +1601,6 @@ msgstr "ЗАУВАЖЕННЯ: ключі вже збережено на карт
 msgid "Replace existing keys? (y/N) "
 msgstr "Замірити вже створені ключі? (y/N або т/Н) "
 
-#, c-format
-msgid ""
-"Please note that the factory settings of the PINs are\n"
-"   PIN = '%s'     Admin PIN = '%s'\n"
-"You should change them using the command --change-pin\n"
-msgstr ""
-"Зауважте, що типовими параметрами пінкоду є\n"
-"   PIN = «%s»     Адміністративний PIN = «%s»\n"
-"Вам слід змінити параметри за допомогою команди --change-pin\n"
-
 msgid "Please select the type of key to generate:\n"
 msgstr "Виберіть тип ключа, який слід створити:\n"
 
@@ -1745,6 +1727,16 @@ msgstr "Команди адміністрування заборонено\n"
 msgid "Invalid command  (try \"help\")\n"
 msgstr "Некоректна команда  (скористайтеся командою «help»)\n"
 
+#, fuzzy, c-format
+#| msgid "key operation not possible: %s\n"
+msgid "modifying the recipients is not possible: %s\n"
+msgstr "дія над ключем неможлива: %s\n"
+
+#, fuzzy
+#| msgid "decryption failed: %s\n"
+msgid "decryption failed"
+msgstr "невдала спроба розшифрування: %s\n"
+
 #, c-format
 msgid "--output doesn't work for this command\n"
 msgstr "--output не працює з цією командою\n"
@@ -1822,6 +1814,11 @@ msgid "use option \"--delete-secret-keys\" to delete it first.\n"
 msgstr ""
 "спершу скористайтеся параметром «--delete-secret-keys» для його вилучення.\n"
 
+#, fuzzy, c-format
+#| msgid "%s/%s encrypted for: \"%s\"\n"
+msgid "%s/%s.%s encrypted for: \"%s\"\n"
+msgstr "%s/%s зашифровано для «%s»\n"
+
 #, c-format
 msgid ""
 "WARNING: forcing symmetric cipher %s (%d) violates recipient preferences\n"
@@ -1878,6 +1875,11 @@ msgstr ""
 msgid "reading from '%s'\n"
 msgstr "читання з «%s»\n"
 
+#, fuzzy, c-format
+#| msgid "problem handling encrypted packet\n"
+msgid "Note: Using the %s encryption packet\n"
+msgstr "проблема з обробкою зашифрованого пакета\n"
+
 #, c-format
 msgid ""
 "WARNING: forcing compression algorithm %s (%d) violates recipient "
@@ -1887,13 +1889,18 @@ msgstr ""
 "параметрам отримувача\n"
 
 #, fuzzy, c-format
-#| msgid "%s/%s encrypted for: \"%s\"\n"
-msgid "%s/%s.%s encrypted for: \"%s\"\n"
-msgstr "%s/%s зашифровано для «%s»\n"
+#| msgid "Number of recipients"
+msgid "number of removed recipients: %u\n"
+msgstr "Кількість отримувачів"
 
 #, c-format
 msgid "option '%s' may not be used in %s mode\n"
 msgstr "параметр «%s» не можна використовувати у режимі %s\n"
+
+#, fuzzy, c-format
+#| msgid "can't encrypt to '%s'\n"
+msgid "already encrypted to %08lX\n"
+msgstr "не вдалося зашифрувати до «%s»\n"
 
 #, fuzzy, c-format
 #| msgid "%s encrypted data\n"
@@ -2088,6 +2095,11 @@ msgstr "швидко підписати ключ"
 
 msgid "quickly sign a key locally"
 msgstr "швидко підписати ключ локально"
+
+#, fuzzy
+#| msgid "sign selected user IDs with a trust signature"
+msgid "quickly sign a key with a trust signature"
+msgstr "підписати вибрані ідентифікатори користувача підписом надійності"
 
 #, fuzzy
 #| msgid "quickly revoke a user-id"
@@ -2419,6 +2431,11 @@ msgstr "список переваг (експертний)"
 #| msgid "change the ownertrust"
 msgid "show ownertrust"
 msgstr "змінити рівень довіри до власника"
+
+#, fuzzy
+#| msgid "Critical signature notation: "
+msgid "show trust signature information"
+msgstr "Критична примітка підпису: "
 
 #, c-format
 msgid "unknown TOFU policy '%s'\n"
@@ -2765,6 +2782,9 @@ msgstr "|FD|записувати до дескриптора файла дані
 msgid "|ALGO|reject signatures made with ALGO"
 msgstr "|ALGO|відкидати підписи, створені за допомогою алгоритму ALGO"
 
+msgid "|NAME|print the notation NAME to stdout"
+msgstr ""
+
 msgid "Usage: gpgv [options] [files] (-h for help)"
 msgstr "Використання: gpgv [параметри] [файли] (-h — довідка)"
 
@@ -2827,6 +2847,14 @@ msgstr "припускати формат резервних копій ключ
 
 msgid "repair keys on import"
 msgstr "відновлювати ключі при імпортуванні"
+
+msgid "update even unchanged keys"
+msgstr ""
+
+#, fuzzy
+#| msgid "list secret keys"
+msgid "do not import secret keys"
+msgstr "показати список закритих ключів"
 
 #, c-format
 msgid "skipping block of type %d\n"
@@ -3096,9 +3124,15 @@ msgstr "Ідентифікатор користувача втратив чин�
 msgid "reason for revocation: "
 msgstr "причина відкликання: "
 
-#, c-format
-msgid "revocation comment: "
-msgstr "коментар щодо відкликання: "
+#, fuzzy, c-format
+#| msgid "key %s: can't locate original keyblock: %s\n"
+msgid "key %s: can't locate keyblock: %s\n"
+msgstr "ключ %s: не вдалося знайти початковий блок ключів: %s\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: can't read original keyblock: %s\n"
+msgid "key %s: can't read keyblock: %s\n"
+msgstr "ключ %s: не вдалося прочитати початковий блок ключів: %s\n"
 
 #, c-format
 msgid "key %s: no public key - can't apply revocation certificate\n"
@@ -3695,6 +3729,18 @@ msgstr "Вилучити всі вибрані ідентифікатори ко
 msgid "Really remove this user ID? (y/N) "
 msgstr "Вилучити цей ідентифікатор користувача? (y/N або т/Н) "
 
+msgid "Command expects a filename argument\n"
+msgstr "Для команди слід вказати аргумент з назвою файла\n"
+
+#, c-format
+msgid "Can't open '%s': %s\n"
+msgstr "Не вдалося відкрити «%s»: %s\n"
+
+#, fuzzy, c-format
+#| msgid "Error reading backup key from '%s': %s\n"
+msgid "Error reading key from '%s': %s\n"
+msgstr "Помилка читання резервного ключа з «%s»: %s\n"
+
 #. TRANSLATORS: Please take care: This is about
 #. moving the key and not about removing it.
 msgid "Really move the primary key? (y/N) "
@@ -3702,13 +3748,6 @@ msgstr "Вилучити основний ключ? (y/N або т/Н) "
 
 msgid "You must select exactly one key.\n"
 msgstr "Вам слід вибрати лише один ключ.\n"
-
-msgid "Command expects a filename argument\n"
-msgstr "Для команди слід вказати аргумент з назвою файла\n"
-
-#, c-format
-msgid "Can't open '%s': %s\n"
-msgstr "Не вдалося відкрити «%s»: %s\n"
 
 #, c-format
 msgid "Error reading backup key from '%s': %s\n"
@@ -3805,6 +3844,11 @@ msgstr "Немає відповідних ідентифікаторів кор�
 
 msgid "Nothing to sign.\n"
 msgstr "Нічого підписувати.\n"
+
+#, fuzzy, c-format
+#| msgid "checking created signature failed: %s\n"
+msgid "creating key signature failed: %s\n"
+msgstr "невдала спроба перевірити створений підпис: %s\n"
 
 #, c-format
 msgid "Not signed by you.\n"
@@ -4354,15 +4398,25 @@ msgstr "  (%d) Вже записаний ключ\n"
 msgid "  (%d) Existing key from card%s\n"
 msgstr "  (%d) Вже записаний ключ з картки\n"
 
+#, fuzzy, c-format
+#| msgid "   (%d) ECC and ECC\n"
+msgid "  (%d) ECC and Kyber%s\n"
+msgstr "   (%d) ECC та ECC\n"
+
+#, fuzzy, c-format
+#| msgid "  (%d) ECC (encrypt only)\n"
+msgid "  (%d) Kyber (encrypt only)%s\n"
+msgstr "  (%d) ECC (лише шифрування)\n"
+
 msgid "Enter the keygrip: "
 msgstr "Вкажіть keygrip: "
+
+msgid "No key with this keygrip\n"
+msgstr "Немає ключів з таким значенням keygrip\n"
 
 #, c-format
 msgid "Not a valid keygrip (expecting 40 hex digits)\n"
 msgstr "Некоректний keygrip (мало бути вказано 40 шістнадцяткових цифр)\n"
-
-msgid "No key with this keygrip\n"
-msgstr "Немає ключів з таким значенням keygrip\n"
 
 #, c-format
 msgid "error reading the card: %s\n"
@@ -4393,6 +4447,11 @@ msgstr "Запитана довжина ключа — %u бітів\n"
 
 msgid "Please select which elliptic curve you want:\n"
 msgstr "Вкажіть потрібну вам еліптичну криву:\n"
+
+#, fuzzy, c-format
+#| msgid "Please select what kind of key you want:\n"
+msgid "Please select the %s variant you want:\n"
+msgstr "Вкажіть потрібний вам тип ключа:\n"
 
 msgid ""
 "Please specify how long the key should be valid.\n"
@@ -4741,8 +4800,16 @@ msgstr[2] ""
 msgid "Keyring"
 msgstr "Сховище ключів"
 
+#, c-format
+msgid "revocation comment: "
+msgstr "коментар щодо відкликання: "
+
 msgid "Revocable by: "
 msgstr ""
+
+#, c-format
+msgid "error writing to stdout: %s\n"
+msgstr "помилка під час спроби запису до stdout: %s\n"
 
 msgid "Primary key fingerprint:"
 msgstr "Основний відбиток ключа:"
@@ -4811,6 +4878,9 @@ msgstr "автоматично отримувати ключі під час п�
 msgid "honor the preferred keyserver URL set on the key"
 msgstr "брати до уваги адресу основного сервера ключів, встановлену у ключі"
 
+msgid "update a key before sending it"
+msgstr ""
+
 msgid "disabled"
 msgstr "вимкнено"
 
@@ -4824,6 +4894,11 @@ msgstr "некоректний протокол сервера ключів (н�
 #, c-format
 msgid "\"%s\" not a key ID: skipping\n"
 msgstr "«%s» не є ідентифікатором ключа: пропускаємо\n"
+
+#, fuzzy, c-format
+#| msgid "\"%s\" is not a fingerprint\n"
+msgid "\"%s\" not a fingerprint: skipping\n"
+msgstr "«%s» не є відбитком\n"
 
 #, c-format
 msgid "refreshing %d key from %s\n"
@@ -4851,6 +4926,10 @@ msgstr "надсилаємо запит щодо ключа %s з %s\n"
 #, c-format
 msgid "no keyserver known\n"
 msgstr "немає відомих серверів ключів\n"
+
+#, c-format
+msgid "upload skipped due to non-LDAP keyserver\n"
+msgstr ""
 
 #, c-format
 msgid "skipped \"%s\": %s\n"
@@ -4911,6 +4990,10 @@ msgstr "      «%s»\n"
 #, c-format
 msgid "encrypted with %s key, ID %s\n"
 msgstr "зашифровано ключем %s, ідентифікатор %s\n"
+
+#, c-format
+msgid "WARNING: key is not quantum-resistant\n"
+msgstr ""
 
 #, c-format
 msgid "WARNING: multiple plaintexts seen\n"
@@ -5184,6 +5267,11 @@ msgstr "uncompressed|немає"
 msgid "this message may not be usable by %s\n"
 msgstr "використання цього повідомлення щодо %s може бути неможливим\n"
 
+#, fuzzy
+#| msgid "enable key"
+msgid "enabled"
+msgstr "увімкнути ключ"
+
 #, c-format
 msgid "ambiguous option '%s'\n"
 msgstr "неоднозначний параметр «%s»\n"
@@ -5200,6 +5288,11 @@ msgstr ""
 #, c-format
 msgid "unknown weak digest '%s'\n"
 msgstr "невідома слабка контрольна сума «%s»\n"
+
+#, fuzzy, c-format
+#| msgid "Note: old default options file '%s' ignored\n"
+msgid "Note: partial file '%s' removed\n"
+msgstr "ЗАУВАЖЕННЯ: застарілий файл типових параметрів «%s» проігноровано\n"
 
 #, c-format
 msgid "File '%s' exists. "
@@ -5686,6 +5779,11 @@ msgstr "ключ %s не можна використовувати для роз
 msgid "okay, we are the anonymous recipient.\n"
 msgstr "добре, ми є анонімним отримувачем.\n"
 
+#, fuzzy, c-format
+#| msgid "WARNING: signing subkey %s is not cross-certified\n"
+msgid "WARNING: session key is not quantum-resistant\n"
+msgstr "УВАГА: підписування підключа %s не є перехресно сертифікованим\n"
+
 #, c-format
 msgid "old encoding of the DEK is not supported\n"
 msgstr "застаріле кодування DEK не підтримується\n"
@@ -5952,6 +6050,13 @@ msgstr "окремий підпис класу 0x%02x\n"
 msgid "assuming bad signature from key %s due to an unknown critical bit\n"
 msgstr ""
 "припускаємо помилковий підпису від ключа %s через невідомий критичний біт\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: no public key - can't apply revocation certificate\n"
+msgid "key %s: no public key - can't check revocation signature.\n"
+msgstr ""
+"ключ %s: немає відкритого ключа — не можна застосовувати сертифікат "
+"відкликання\n"
 
 #, c-format
 msgid "key %s: no subkey for subkey revocation signature\n"
@@ -6840,8 +6945,8 @@ msgstr ""
 "||Будь ласка, вкажіть пінкод для ключа, призначеного для створення якісних "
 "підписів."
 
-#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-#. the start of the string.  Use %0A (single percent) for a linefeed.
+#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+#. start of the string.
 msgid "|A|Please enter the Admin PIN"
 msgstr "|A|Вкажіть адміністративний пінкод"
 
@@ -6929,27 +7034,6 @@ msgid "%sNumber: %s%%0AHolder: %s%%0ACounter: %lu%s"
 msgstr ""
 
 #, c-format
-msgid "using default PIN as %s\n"
-msgstr "використовуємо типовий пінкод як %s\n"
-
-#, c-format
-msgid "failed to use default PIN as %s: %s - disabling further default use\n"
-msgstr ""
-"не вдалося використати типовий пінкод як %s: %s — вимикаємо подальше типове "
-"використання\n"
-
-msgid "||Please unlock the card"
-msgstr "||Будь ласка, розблокуйте картку"
-
-#, c-format
-msgid "PIN for CHV%d is too short; minimum length is %d\n"
-msgstr "Пінкод для CHV%d занадто короткий; мінімальна довжина — %d\n"
-
-#, c-format
-msgid "verify CHV%d failed: %s\n"
-msgstr "помилка перевірки CHV%d: %s\n"
-
-#, c-format
 msgid "card is permanently locked!\n"
 msgstr "картку заблоковано!\n"
 
@@ -6966,6 +7050,27 @@ msgstr[1] ""
 msgstr[2] ""
 "залишилося %d спроб визначення адміністративного пінкоду перед тим, як "
 "картку буде остаточно заблоковано\n"
+
+msgid "||Please unlock the card"
+msgstr "||Будь ласка, розблокуйте картку"
+
+#, c-format
+msgid "using default PIN as %s\n"
+msgstr "використовуємо типовий пінкод як %s\n"
+
+#, c-format
+msgid "failed to use default PIN as %s: %s - disabling further default use\n"
+msgstr ""
+"не вдалося використати типовий пінкод як %s: %s — вимикаємо подальше типове "
+"використання\n"
+
+#, c-format
+msgid "PIN for CHV%d is too short; minimum length is %d\n"
+msgstr "Пінкод для CHV%d занадто короткий; мінімальна довжина — %d\n"
+
+#, c-format
+msgid "verify CHV%d failed: %s\n"
+msgstr "помилка перевірки CHV%d: %s\n"
 
 #, c-format
 msgid "access to admin commands is not configured\n"
@@ -7549,6 +7654,11 @@ msgstr " (необов’язковий; завершується порожні
 msgid "Enter URIs"
 msgstr "Вкажіть адреси"
 
+#, fuzzy
+#| msgid "Enter the notation: "
+msgid "Enter extensions"
+msgstr "Вкажіть примітку: "
+
 msgid "Create self-signed certificate? (y/N) "
 msgstr "Створити самопідписаний сертифікат? (y/N або т/Н) "
 
@@ -7725,6 +7835,11 @@ msgstr "ЗАУВАЖЕННЯ: не вдасться зашифрувати до 
 msgid "unknown validation model '%s'\n"
 msgstr "невідома модель перевірки «%s»\n"
 
+#, fuzzy, c-format
+#| msgid "cipher algorithm %d%s is unknown or disabled\n"
+msgid "given cipher algorithm '%s' is unknown - using '%s'\n"
+msgstr "алгоритм шифрування %d%s є невідомим або вимкненим\n"
+
 #, c-format
 msgid "importing common certificates '%s'\n"
 msgstr "імпортуємо загальні сертифікати «%s»\n"
@@ -7732,6 +7847,11 @@ msgstr "імпортуємо загальні сертифікати «%s»\n"
 #, c-format
 msgid "can't sign using '%s': %s\n"
 msgstr "підписування за допомогою «%s» неможливе: %s\n"
+
+#, fuzzy, c-format
+#| msgid "can't open fd %d: %s\n"
+msgid "can't open outputfile: %s\n"
+msgstr "не вдалося відкрити fd %d: %s\n"
 
 #, c-format
 msgid "invalid command (there is no implicit command)\n"
@@ -7783,20 +7903,20 @@ msgid "error storing certificate: %s\n"
 msgstr "помилка під час спроби збереження сертифіката: %s\n"
 
 #, c-format
-msgid "problem re-searching certificate: %s\n"
-msgstr "проблема з повторним пошуком сертифіката: %s\n"
-
-#, c-format
 msgid "error storing flags: %s\n"
 msgstr "помилка під час спроби збереження позначок: %s\n"
+
+#, c-format
+msgid "problem re-searching certificate: %s\n"
+msgstr "проблема з повторним пошуком сертифіката: %s\n"
 
 msgid "Error - "
 msgstr "Помилка - "
 
-#, c-format
-msgid "GPG_TTY has not been set - using maybe bogus default\n"
-msgstr ""
-"GPG_TTY не встановлено — можливе використання підробного типового значення\n"
+#, fuzzy, c-format
+#| msgid "error writing to stdout: %s\n"
+msgid "error writing to output: %s\n"
+msgstr "помилка під час спроби запису до stdout: %s\n"
 
 #, c-format
 msgid "invalid formatted fingerprint in '%s', line %d\n"
@@ -8647,6 +8767,10 @@ msgid "colons are not allowed in the socket name\n"
 msgstr "не можна використовувати двокрапки у назві сокета\n"
 
 #, c-format
+msgid "error forking process: %s\n"
+msgstr "помилка під час спроби розгалужування процесу: %s\n"
+
+#, c-format
 msgid "fetching CRL from '%s' failed: %s\n"
 msgstr "помилка під час спроби отримання CRL з «%s»: %s\n"
 
@@ -9289,8 +9413,40 @@ msgid "manage the command history"
 msgstr ""
 
 #, c-format
+#~ msgid "GPG_TTY has not been set - using maybe bogus default\n"
+#~ msgstr ""
+#~ "GPG_TTY не встановлено — можливе використання підробного типового "
+#~ "значення\n"
+
+#, c-format
 #~ msgid "public key of ultimately trusted key %s not found\n"
 #~ msgstr "не знайдено відкритий ключ ключа з необмеженою довірою %s\n"
+
+#, c-format
+#~ msgid "waiting for process %d to terminate failed: %s\n"
+#~ msgstr "не вдалося дочекатися завершення процесу %d: %s\n"
+
+#, fuzzy, c-format
+#~| msgid "waiting for processes to terminate failed: %s\n"
+#~ msgid "waiting for process to terminate failed: ec=%d\n"
+#~ msgstr "не вдалося дочекатися переривання процесу: %s\n"
+
+#, c-format
+#~ msgid "error running '%s': probably not installed\n"
+#~ msgstr ""
+#~ "помилка під час спроби виконання «%s»: ймовірно, програму не встановлено\n"
+
+#, c-format
+#~ msgid "error running '%s': exit status %d\n"
+#~ msgstr "помилка під час спроби виконання «%s»: стан виходу %d\n"
+
+#, c-format
+#~ msgid "error running '%s': terminated\n"
+#~ msgstr "помилка під час спроби виконання «%s»: виконання перервано\n"
+
+#, c-format
+#~ msgid "error getting exit code of process %d: %s\n"
+#~ msgstr "помилка під час спроби отримання коду виходу процесу %d: %s\n"
 
 #~ msgid "use canonical text mode"
 #~ msgstr "використовувати канонічний текстовий режим"
@@ -9393,9 +9549,6 @@ msgstr ""
 
 #~ msgid "scanning result for attribute '%s'\n"
 #~ msgstr "сканування результату для атрибуту «%s»\n"
-
-#~ msgid "error writing to stdout: %s\n"
-#~ msgstr "помилка під час спроби запису до stdout: %s\n"
 
 #~ msgid "          available attribute '%s'\n"
 #~ msgstr "          доступний атрибут «%s»\n"
@@ -9576,9 +9729,6 @@ msgstr ""
 #~ msgid "elevate the trust of signatures with valid PKA data"
 #~ msgstr "підняти рівень довіри до підписів з коректними даними PKA"
 
-#~ msgid "   (%d) ECC and ECC\n"
-#~ msgstr "   (%d) ECC та ECC\n"
-
 #~ msgid "honor the PKA record set on a key when retrieving keys"
 #~ msgstr ""
 #~ "брати до уваги запис PKA, встановлений у ключі під час отримання ключів"
@@ -9613,9 +9763,6 @@ msgstr ""
 
 #~ msgid "LDAP server list"
 #~ msgstr "список серверів LDAP"
-
-#~ msgid "Note: old default options file '%s' ignored\n"
-#~ msgstr "ЗАУВАЖЕННЯ: застарілий файл типових параметрів «%s» проігноровано\n"
 
 #~ msgid ""
 #~ "@\n"

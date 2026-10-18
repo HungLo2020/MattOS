@@ -251,7 +251,8 @@ start_agent (ctrl_t ctrl, int flag_for_card)
                                 opt.agent_program,
                                 opt.lc_ctype, opt.lc_messages,
                                 opt.session_env,
-                                opt.autostart, opt.verbose, DBG_IPC,
+                                opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
+                                opt.verbose, DBG_IPC,
                                 NULL, NULL);
       if (!opt.autostart && gpg_err_code (rc) == GPG_ERR_NO_AGENT)
         {
@@ -790,7 +791,7 @@ learn_status_cb (void *opaque, const char *line)
  * Used by:
  *  card-util.c
  *  keyedit_menu
- *  card_store_key_with_backup  (Woth force to remove secret key data)
+ *  card_store_key_with_backup  (With force to remove secret key data)
  */
 int
 agent_scd_learn (struct agent_card_info_s *info, int force)
@@ -1079,6 +1080,12 @@ agent_keytotpm (ctrl_t ctrl, const char *hexgrip)
 
   snprintf(line, DIM(line), "KEYTOTPM %s\n", hexgrip);
 
+  if (strchr (hexgrip, ','))
+    {
+      log_error ("storing a part of a composite key is not yet supported\n");
+      return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    }
+
   rc = start_agent (ctrl, 0);
   if (rc)
     return rc;
@@ -1107,6 +1114,13 @@ agent_keytocard (const char *hexgrip, int keyno, int force,
   struct default_inq_parm_s parm;
 
   memset (&parm, 0, sizeof parm);
+
+  if (strchr (hexgrip, ','))
+    {
+      log_error ("storing a part of a composite key is not yet supported\n");
+      return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    }
+
 
   snprintf (line, DIM(line), "KEYTOCARD %s%s %s OPENPGP.%d %s%s%s",
             force?"--force ": "", hexgrip, serialno, keyno, timestamp,
@@ -2239,9 +2253,9 @@ agent_probe_secret_key (ctrl_t ctrl, PKT_public_key *pk)
 {
   gpg_error_t err;
   char line[ASSUAN_LINELENGTH];
-  char *hexgrip;
-
+  char *hexgrip, *p;
   struct keyinfo_data_parm_s keyinfo;
+  int result, result2;
 
   memset (&keyinfo, 0, sizeof keyinfo);
 
@@ -2252,27 +2266,63 @@ agent_probe_secret_key (ctrl_t ctrl, PKT_public_key *pk)
   err = hexkeygrip_from_pk (pk, &hexgrip);
   if (err)
     return 0;
+  if ((p=strchr (hexgrip, ',')))
+    *p++ = 0;
 
   snprintf (line, sizeof line, "KEYINFO %s", hexgrip);
-  xfree (hexgrip);
 
   err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL,
                          keyinfo_status_cb, &keyinfo);
   xfree (keyinfo.serialno);
   if (err)
-    return 0;
+    result = 0;
+  else if (keyinfo.card_available)
+    result = 4;
+  else if (keyinfo.passphrase_cached)
+    result = 3;
+  else if (keyinfo.is_smartcard)
+    result = 2;
+  else
+    result = 1;
 
-  if (keyinfo.card_available)
-    return 4;
+  if (!p)
+    {
+      xfree (hexgrip);
+      return result;  /* Not a dual algo - we are ready.  */
+    }
 
-  if (keyinfo.passphrase_cached)
-    return 3;
+  /* Now check the second keygrip.  */
+  memset (&keyinfo, 0, sizeof keyinfo);
+  snprintf (line, sizeof line, "KEYINFO %s", p);
 
-  if (keyinfo.is_smartcard)
-    return 2;
+  err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL,
+                         keyinfo_status_cb, &keyinfo);
+  xfree (keyinfo.serialno);
+  if (err)
+    result2 = 0;
+  else if (keyinfo.card_available)
+    result2 = 4;
+  else if (keyinfo.passphrase_cached)
+    result2 = 3;
+  else if (keyinfo.is_smartcard)
+    result2 = 2;
+  else
+    result2 = 1;
 
-  return 1;
+  xfree (hexgrip);
+
+  if (result == result2)
+    return result;  /* Both keys have the same status.  */
+  else if (!result && result2)
+    return 0;       /* Only first key available - return no key.  */
+  else if (result && !result2)
+    return 0;       /* Only second key not available - return no key.  */
+  else if (result == 4 || result == 2)
+    return result;  /* First key on card - don't care where the second is.  */
+  else
+    return result;
 }
+
 
 /* Ask the agent whether a secret key is available for any of the
    keys (primary or sub) in KEYBLOCK.  Returns 0 if available.  */
@@ -2285,6 +2335,8 @@ agent_probe_any_secret_key (ctrl_t ctrl, kbnode_t keyblock)
   kbnode_t kbctx, node;
   int nkeys;  /* (always zero in secret_keygrips mode)  */
   unsigned char grip[KEYGRIP_LEN];
+  unsigned char grip2[KEYGRIP_LEN];
+  int grip2_valid;
   const unsigned char *s;
   unsigned int n;
 
@@ -2293,7 +2345,7 @@ agent_probe_any_secret_key (ctrl_t ctrl, kbnode_t keyblock)
     return err;
 
   /* If we have not yet issued a "HAVEKEY --list" do that now.  We use
-   * a more or less arbitray limit of 1000 keys.  */
+   * a more or less arbitrary limit of 1000 keys.  */
   if (ctrl && !ctrl->secret_keygrips && !ctrl->no_more_secret_keygrips)
     {
       membuf_t data;
@@ -2340,14 +2392,21 @@ agent_probe_any_secret_key (ctrl_t ctrl, kbnode_t keyblock)
         if (ctrl && ctrl->secret_keygrips)
           {
             /* We got an array with all secret keygrips.  Check this.  */
-            err = keygrip_from_pk (node->pkt->pkt.public_key, grip);
+            err = keygrip_from_pk (node->pkt->pkt.public_key, grip, 0);
             if (err)
               return err;
+            err = keygrip_from_pk (node->pkt->pkt.public_key, grip2, 1);
+            if (err && gpg_err_code (err) != GPG_ERR_FALSE)
+              return err;
+            grip2_valid = !err;
+
             for (s=ctrl->secret_keygrips, n = 0;
                  n < ctrl->secret_keygrips_len;
                  s += 20, n += 20)
               {
                 if (!memcmp (s, grip, 20))
+                  return 0;
+                if (grip2_valid && !memcmp (s, grip2, 20))
                   return 0;
               }
             err = gpg_error (GPG_ERR_NO_SECKEY);
@@ -2355,7 +2414,8 @@ agent_probe_any_secret_key (ctrl_t ctrl, kbnode_t keyblock)
           }
         else
           {
-            if (nkeys && ((p - line) + 41) > (ASSUAN_LINELENGTH - 2))
+            if (nkeys
+                && ((p - line) + 4*KEYGRIP_LEN+1+1) > (ASSUAN_LINELENGTH - 2))
               {
                 err = assuan_transact (agent_ctx, line,
                                        NULL, NULL, NULL, NULL, NULL, NULL);
@@ -2365,13 +2425,29 @@ agent_probe_any_secret_key (ctrl_t ctrl, kbnode_t keyblock)
                 nkeys = 0;
               }
 
-            err = keygrip_from_pk (node->pkt->pkt.public_key, grip);
+            err = keygrip_from_pk (node->pkt->pkt.public_key, grip, 0);
             if (err)
               return err;
             *p++ = ' ';
             bin2hex (grip, 20, p);
             p += 40;
             nkeys++;
+
+            err = keygrip_from_pk (node->pkt->pkt.public_key, grip2, 1);
+            if (err)
+              {
+                if (gpg_err_code (err) == GPG_ERR_FALSE) /* No second keygrip.  */
+                  err = 0;
+                else
+                  return err;
+              }
+            else /* Add the second keygrip from dual algos.  */
+              {
+                *p++ = ' ';
+                bin2hex (grip2, 20, p);
+                p += 40;
+                nkeys++;
+              }
           }
       }
 
@@ -2398,6 +2474,7 @@ agent_get_keyinfo (ctrl_t ctrl, const char *hexkeygrip,
   gpg_error_t err;
   char line[ASSUAN_LINELENGTH];
   struct keyinfo_data_parm_s keyinfo;
+  const char *s;
 
   memset (&keyinfo, 0,sizeof keyinfo);
 
@@ -2407,10 +2484,18 @@ agent_get_keyinfo (ctrl_t ctrl, const char *hexkeygrip,
   if (err)
     return err;
 
-  if (!hexkeygrip || strlen (hexkeygrip) != 40)
+  if (!hexkeygrip)
+    return gpg_error (GPG_ERR_INV_VALUE);
+  s = strchr (hexkeygrip, ',');
+  if (!s)
+    s = hexkeygrip + strlen (hexkeygrip);
+  if (s - hexkeygrip != 40)
     return gpg_error (GPG_ERR_INV_VALUE);
 
-  snprintf (line, DIM(line), "KEYINFO %s", hexkeygrip);
+  /* Note that for a dual algo we only get info for the first key.
+   * FIXME: We need to see how we can show the status of the second
+   * key in a key listing. */
+  snprintf (line, DIM(line), "KEYINFO %.40s", hexkeygrip);
 
   err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL,
                          keyinfo_status_cb, &keyinfo);
@@ -2582,6 +2667,30 @@ agent_genkey (ctrl_t ctrl, char **cache_nonce_addr, char **passwd_nonce_addr,
       err = gcry_sexp_sscan (r_pubkey, NULL, buf, len);
       xfree (buf);
     }
+  return err;
+}
+
+
+/* Add the Link attribute to both given keys.  */
+gpg_error_t
+agent_crosslink_keys (ctrl_t ctrl, const char *hexgrip1, const char *hexgrip2)
+{
+  gpg_error_t err;
+  char line[ASSUAN_LINELENGTH];
+
+  err = start_agent (ctrl, 0);
+  if (err)
+    goto leave;
+
+  snprintf (line, sizeof line, "KEYATTR %s Link: %s", hexgrip1, hexgrip2);
+  err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
+  if (err)
+    goto leave;
+
+  snprintf (line, sizeof line, "KEYATTR %s Link: %s", hexgrip2, hexgrip1);
+  err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
+
+ leave:
   return err;
 }
 
@@ -2796,7 +2905,9 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   membuf_t data;
   size_t n, len;
   char *p, *buf, *endp;
+  const char *keygrip2 = NULL;
   struct default_inq_parm_s dfltparm;
+  const char *cmdline;
 
   memset (&dfltparm, 0, sizeof dfltparm);
   dfltparm.ctrl = ctrl;
@@ -2804,12 +2915,32 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   dfltparm.keyinfo.mainkeyid   = mainkeyid;
   dfltparm.keyinfo.pubkey_algo = pubkey_algo;
 
-  if (!keygrip || strlen(keygrip) != 40
-      || !s_ciphertext || !r_buf || !r_buflen || !r_padding)
+  if (!keygrip || !s_ciphertext || !r_buf || !r_buflen || !r_padding)
     return gpg_error (GPG_ERR_INV_VALUE);
 
   *r_buf = NULL;
   *r_padding = -1;
+
+  /* Parse the keygrip in case of a dual algo.  */
+  keygrip2 = strchr (keygrip, ',');
+  if (!keygrip2)
+    keygrip2 = keygrip + strlen (keygrip);
+  if (keygrip2 - keygrip != 40)
+    return gpg_error (GPG_ERR_INV_VALUE);
+  if (*keygrip2)
+    {
+      keygrip2++;
+      if (strlen (keygrip2) != 40)
+        return gpg_error (GPG_ERR_INV_VALUE);
+    }
+
+  if (*keygrip2)
+    cmdline = "PKDECRYPT --kem=PQC-PGP";
+  else if (pubkey_algo  == PUBKEY_ALGO_ECDH
+           || pubkey_algo  == PUBKEY_ALGO_X25519)
+    cmdline = "PKDECRYPT --kem=PGP";
+  else
+    cmdline = "PKDECRYPT";
 
   err = start_agent (ctrl, 0);
   if (err)
@@ -2821,10 +2952,18 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
   if (err)
     return err;
 
-  snprintf (line, sizeof line, "SETKEY %s", keygrip);
+  snprintf (line, sizeof line, "SETKEY %.40s", keygrip);
   err = assuan_transact (agent_ctx, line, NULL, NULL, NULL, NULL, NULL, NULL);
   if (err)
     return err;
+
+  if (*keygrip2)
+    {
+      snprintf (line, sizeof line, "SETKEY --another %.40s", keygrip2);
+      err = assuan_transact (agent_ctx, line, NULL, NULL,NULL,NULL,NULL,NULL);
+      if (err)
+        return err;
+    }
 
   if (desc)
     {
@@ -2844,7 +2983,7 @@ agent_pkdecrypt (ctrl_t ctrl, const char *keygrip, const char *desc,
     err = make_canon_sexp (s_ciphertext, &parm.ciphertext, &parm.ciphertextlen);
     if (err)
       return err;
-    err = assuan_transact (agent_ctx, "PKDECRYPT",
+    err = assuan_transact (agent_ctx, cmdline,
                            put_membuf_cb, &data,
                            inq_ciphertext_cb, &parm,
                            padding_info_cb, r_padding);
@@ -2966,7 +3105,8 @@ inq_import_key_parms (void *opaque, const char *line)
 
 /* Call the agent to import a key into the agent.  */
 gpg_error_t
-agent_import_key (ctrl_t ctrl, const char *desc, char **cache_nonce_addr,
+agent_import_key (ctrl_t ctrl, const char *desc, int mode1003,
+                  char **cache_nonce_addr,
                   const void *key, size_t keylen, int unattended, int force,
 		  u32 *keyid, u32 *mainkeyid, int pubkey_algo, u32 timestamp)
 {
@@ -2987,6 +3127,12 @@ agent_import_key (ctrl_t ctrl, const char *desc, char **cache_nonce_addr,
   if (err)
     return err;
   dfltparm.ctx = agent_ctx;
+
+  /* Check that the gpg-agent supports the --mode1003 option.  */
+  if (mode1003 && assuan_transact (agent_ctx,
+                                   "GETINFO cmd_has_option IMPORT_KEY mode1003",
+                                   NULL, NULL, NULL, NULL, NULL, NULL))
+    return gpg_error (GPG_ERR_NOT_SUPPORTED);
 
   /* Do not use our cache of secret keygrips anymore - this command
    * would otherwise requiring to update that cache.  */
@@ -3017,9 +3163,10 @@ agent_import_key (ctrl_t ctrl, const char *desc, char **cache_nonce_addr,
   parm.key    = key;
   parm.keylen = keylen;
 
-  snprintf (line, sizeof line, "IMPORT_KEY%s%s%s%s%s",
+  snprintf (line, sizeof line, "IMPORT_KEY%s%s%s%s%s%s",
             *timestamparg? timestamparg : "",
             unattended? " --unattended":"",
+            mode1003? " --mode1003":"",
             force? " --force":"",
             cache_nonce_addr && *cache_nonce_addr? " ":"",
             cache_nonce_addr && *cache_nonce_addr? *cache_nonce_addr:"");
@@ -3088,7 +3235,7 @@ agent_export_key (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
 
   snprintf (line, DIM(line), "EXPORT_KEY %s%s%s %s",
             mode1003? "--mode1003" : openpgp_protected ? "--openpgp ":"",
-            cache_nonce_addr && *cache_nonce_addr? "--cache-nonce=":"",
+            cache_nonce_addr && *cache_nonce_addr? " --cache-nonce=":"",
             cache_nonce_addr && *cache_nonce_addr? *cache_nonce_addr:"",
             hexkeygrip);
 
@@ -3144,13 +3291,14 @@ confirm_status_cb (void *opaque, const char *line)
    message.  If FORCE is true the agent is advised not to ask for
    confirmation. */
 gpg_error_t
-agent_delete_key (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
+agent_delete_key (ctrl_t ctrl, const char *keygrip, const char *desc,
                   int force)
 {
   gpg_error_t err;
   char line[ASSUAN_LINELENGTH];
   struct default_inq_parm_s dfltparm;
   struct confirm_parm_s confirm_parm;
+  const char *keygrip2 = NULL;
 
   memset (&confirm_parm, 0, sizeof confirm_parm);
   memset (&dfltparm, 0, sizeof dfltparm);
@@ -3162,8 +3310,21 @@ agent_delete_key (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
     return err;
   dfltparm.ctx = agent_ctx;
 
-  if (!hexkeygrip || strlen (hexkeygrip) != 40)
+  if (!keygrip)
     return gpg_error (GPG_ERR_INV_VALUE);
+
+  /* Parse the keygrip in case of a composite key.  */
+  keygrip2 = strchr (keygrip, ',');
+  if (!keygrip2)
+    keygrip2 = keygrip + strlen (keygrip);
+  if (keygrip2 - keygrip != 40)
+    return gpg_error (GPG_ERR_INV_VALUE);
+  if (*keygrip2)
+    {
+      keygrip2++;
+      if (strlen (keygrip2) != 40)
+        return gpg_error (GPG_ERR_INV_VALUE);
+    }
 
   if (desc)
     {
@@ -3174,11 +3335,19 @@ agent_delete_key (ctrl_t ctrl, const char *hexkeygrip, const char *desc,
         return err;
     }
 
-  snprintf (line, DIM(line), "DELETE_KEY%s %s",
-            force? " --force":"", hexkeygrip);
+  snprintf (line, DIM(line), "DELETE_KEY%s %.40s",
+            force? " --force":"", keygrip);
   err = assuan_transact (agent_ctx, line, NULL, NULL,
                          default_inq_cb, &dfltparm,
                          confirm_status_cb, &confirm_parm);
+  if (!err && *keygrip2)
+    {
+      snprintf (line, DIM(line), "DELETE_KEY%s %.40s",
+                force? " --force":"", keygrip2);
+      err = assuan_transact (agent_ctx, line, NULL, NULL,
+                             default_inq_cb, &dfltparm,
+                             confirm_status_cb, &confirm_parm);
+    }
   xfree (confirm_parm.desc);
   xfree (confirm_parm.ok);
   xfree (confirm_parm.notok);

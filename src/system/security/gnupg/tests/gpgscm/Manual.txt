@@ -232,6 +232,10 @@ Please read accompanying file COPYING.
      the library in a directory other than the current one. Please refer to the
      appropriate 'man' page.
 
+          System predicates
+     (*long-time-t?*) returns true if the C type_t is either unsigned
+     or larger than 32 bits.
+
           Esoteric procedures
      (oblist)
      Returns the oblist, an immutable list of all the symbols.

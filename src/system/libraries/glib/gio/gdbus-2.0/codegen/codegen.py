@@ -41,6 +41,54 @@ LICENSE_STR = """/*
 # flake8: noqa: E501
 
 
+def extensionpoint(func):
+    def wrapper(self, *args, **kwargs):
+        # ensures same signature
+        func(*args, **kwargs)
+        if not self._ext:
+            return
+        method = getattr(self._ext, func.__name__, None)
+        if not method:
+            return
+        method(*args, **kwargs)
+
+    return wrapper
+
+
+class ExtensionGenerator:
+    def __init__(self, ext, generator):
+        if self.extending != generator.__class__.__name__:
+            raise Exception("Trying to extend wrong class")
+        self._ext = None
+        klass = getattr(ext, self.extending, None)
+        if klass:
+            self._ext = klass(generator)
+
+
+class ExtensionHeaderCodeGenerator(ExtensionGenerator):
+    extending = "HeaderCodeGenerator"
+
+    @extensionpoint
+    def generate_includes():
+        pass
+
+    @extensionpoint
+    def declare_types():
+        pass
+
+
+class ExtensionCodeGenerator(ExtensionGenerator):
+    extending = "CodeGenerator"
+
+    @extensionpoint
+    def generate_body_preamble():
+        pass
+
+    @extensionpoint
+    def generate():
+        pass
+
+
 def generate_namespace(namespace):
     ns = namespace
     if len(namespace) > 0:
@@ -84,6 +132,7 @@ class HeaderCodeGenerator:
         symbol_decorator,
         symbol_decorator_header,
         outfile,
+        ext,
     ):
         self.ifaces = ifaces
         self.namespace, self.ns_upper, self.ns_lower = generate_namespace(namespace)
@@ -95,7 +144,9 @@ class HeaderCodeGenerator:
         self.glib_min_required = glib_min_required
         self.symbol_decorator = symbol_decorator
         self.symbol_decorator_header = symbol_decorator_header
+        self.skeleton_type_camel = "GDBusInterfaceSkeleton"
         self.outfile = outfile
+        self.ext = ExtensionHeaderCodeGenerator(ext, self)
 
     # ----------------------------------------------------------------------------------------------------
 
@@ -116,6 +167,7 @@ class HeaderCodeGenerator:
 
         self.outfile.write("\n")
         self.outfile.write("#include <gio/gio.h>\n")
+        self.ext.generate_includes()
         self.outfile.write("\n")
         self.outfile.write("G_BEGIN_DECLS\n")
         self.outfile.write("\n")
@@ -226,9 +278,7 @@ class HeaderCodeGenerator:
                 self.outfile.write("\n")
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
-            self.outfile.write(
-                "GType %s_get_type (void) G_GNUC_CONST;\n" % (i.name_lower)
-            )
+            self.outfile.write("GType %s_get_type (void);\n" % (i.name_lower))
             self.outfile.write("\n")
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
@@ -325,7 +375,7 @@ class HeaderCodeGenerator:
                         "    %s *proxy" % (i.name_lower, m.name_lower, i.camel_name)
                     )
                     for a in m.out_args:
-                        self.outfile.write(",\n    %sout_%s" % (a.ctype_out, a.name))
+                        self.outfile.write(",\n    %s* out_%s" % (a.ctype_out, a.name))
                     if m.unix_fd:
                         self.outfile.write(",\n    GUnixFDList **out_fd_list")
                     self.outfile.write(
@@ -351,7 +401,7 @@ class HeaderCodeGenerator:
                     if m.unix_fd:
                         self.outfile.write(",\n    GUnixFDList  *fd_list")
                     for a in m.out_args:
-                        self.outfile.write(",\n    %sout_%s" % (a.ctype_out, a.name))
+                        self.outfile.write(",\n    %s* out_%s" % (a.ctype_out, a.name))
                     if m.unix_fd:
                         self.outfile.write(",\n    GUnixFDList **out_fd_list")
                     self.outfile.write(
@@ -360,6 +410,7 @@ class HeaderCodeGenerator:
                         "    GError **error);\n"
                     )
                     self.outfile.write("\n")
+
                 self.outfile.write("\n")
 
             # Then the property accessor declarations
@@ -456,9 +507,7 @@ class HeaderCodeGenerator:
             self.outfile.write("\n")
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
-            self.outfile.write(
-                "GType %s_proxy_get_type (void) G_GNUC_CONST;\n" % (i.name_lower)
-            )
+            self.outfile.write("GType %s_proxy_get_type (void);\n" % (i.name_lower))
             self.outfile.write("\n")
             if self.generate_autocleanup in ("objects", "all"):
                 self.outfile.write("#if GLIB_CHECK_VERSION(2, 44, 0)\n")
@@ -468,6 +517,7 @@ class HeaderCodeGenerator:
                 )
                 self.outfile.write("#endif\n")
                 self.outfile.write("\n")
+            # async begin
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
             if i.deprecated:
@@ -482,6 +532,7 @@ class HeaderCodeGenerator:
                 "    GAsyncReadyCallback  callback,\n"
                 "    gpointer             user_data);\n" % (i.name_lower)
             )
+            # async finish
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
             if i.deprecated:
@@ -491,6 +542,7 @@ class HeaderCodeGenerator:
                 "    GAsyncResult        *res,\n"
                 "    GError             **error);\n" % (i.camel_name, i.name_lower)
             )
+            # sync
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
             if i.deprecated:
@@ -588,20 +640,18 @@ class HeaderCodeGenerator:
             self.outfile.write("struct _%sSkeleton\n" % (i.camel_name))
             self.outfile.write("{\n")
             self.outfile.write("  /*< private >*/\n")
-            self.outfile.write("  GDBusInterfaceSkeleton parent_instance;\n")
+            self.outfile.write("  %s parent_instance;\n" % self.skeleton_type_camel)
             self.outfile.write("  %sSkeletonPrivate *priv;\n" % (i.camel_name))
             self.outfile.write("};\n")
             self.outfile.write("\n")
             self.outfile.write("struct _%sSkeletonClass\n" % (i.camel_name))
             self.outfile.write("{\n")
-            self.outfile.write("  GDBusInterfaceSkeletonClass parent_class;\n")
+            self.outfile.write("  %sClass parent_class;\n" % self.skeleton_type_camel)
             self.outfile.write("};\n")
             self.outfile.write("\n")
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
-            self.outfile.write(
-                "GType %s_skeleton_get_type (void) G_GNUC_CONST;\n" % (i.name_lower)
-            )
+            self.outfile.write("GType %s_skeleton_get_type (void);\n" % (i.name_lower))
             self.outfile.write("\n")
             if self.generate_autocleanup in ("objects", "all"):
                 self.outfile.write("#if GLIB_CHECK_VERSION(2, 44, 0)\n")
@@ -658,7 +708,7 @@ class HeaderCodeGenerator:
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
             self.outfile.write(
-                "GType %sobject_get_type (void) G_GNUC_CONST;\n" "\n" % (self.ns_lower)
+                "GType %sobject_get_type (void);\n" "\n" % (self.ns_lower)
             )
             if self.generate_autocleanup == "all":
                 self.outfile.write("#if GLIB_CHECK_VERSION(2, 44, 0)\n")
@@ -750,7 +800,7 @@ class HeaderCodeGenerator:
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
             self.outfile.write(
-                "GType %sobject_proxy_get_type (void) G_GNUC_CONST;\n" % (self.ns_lower)
+                "GType %sobject_proxy_get_type (void);\n" % (self.ns_lower)
             )
             self.outfile.write("\n")
             if self.generate_autocleanup in ("objects", "all"):
@@ -821,8 +871,7 @@ class HeaderCodeGenerator:
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
             self.outfile.write(
-                "GType %sobject_skeleton_get_type (void) G_GNUC_CONST;\n"
-                % (self.ns_lower)
+                "GType %sobject_skeleton_get_type (void);\n" % (self.ns_lower)
             )
             self.outfile.write("\n")
             if self.generate_autocleanup in ("objects", "all"):
@@ -922,8 +971,7 @@ class HeaderCodeGenerator:
             if self.symbol_decorator is not None:
                 self.outfile.write("%s\n" % self.symbol_decorator)
             self.outfile.write(
-                "GType %sobject_manager_client_get_type (void) G_GNUC_CONST;\n"
-                % (self.ns_lower)
+                "GType %sobject_manager_client_get_type (void);\n" % (self.ns_lower)
             )
             self.outfile.write("\n")
             if self.symbol_decorator is not None:
@@ -1011,6 +1059,7 @@ class HeaderCodeGenerator:
     def generate(self):
         self.generate_header_preamble()
         self.declare_types()
+        self.ext.declare_types()
         self.generate_header_postamble()
 
 
@@ -1455,6 +1504,7 @@ class CodeGenerator:
         glib_min_required,
         symbol_decoration_define,
         outfile,
+        ext,
     ):
         self.ifaces = ifaces
         self.namespace, self.ns_upper, self.ns_lower = generate_namespace(namespace)
@@ -1464,8 +1514,10 @@ class CodeGenerator:
         self.docbook_gen = docbook_gen
         self.glib_min_required = glib_min_required
         self.symbol_decoration_define = symbol_decoration_define
+        self.skeleton_type_upper = "G_TYPE_DBUS_INTERFACE_SKELETON"
         self.outfile = outfile
         self.marshallers = set()
+        self.ext = ExtensionCodeGenerator(ext, self)
 
     # ----------------------------------------------------------------------------------------------------
 
@@ -2856,7 +2908,7 @@ class CodeGenerator:
                 "    %s *proxy" % (i.name_lower, m.name_lower, i.camel_name)
             )
             for a in m.out_args:
-                self.outfile.write(",\n    %sout_%s" % (a.ctype_out, a.name))
+                self.outfile.write(",\n    %s* out_%s" % (a.ctype_out, a.name))
             if m.unix_fd:
                 self.outfile.write(",\n    GUnixFDList **out_fd_list")
             self.outfile.write(
@@ -2944,7 +2996,7 @@ class CodeGenerator:
             if m.unix_fd:
                 self.outfile.write(",\n    GUnixFDList  *fd_list")
             for a in m.out_args:
-                self.outfile.write(",\n    %sout_%s" % (a.ctype_out, a.name))
+                self.outfile.write(",\n    %s* out_%s" % (a.ctype_out, a.name))
             if m.unix_fd:
                 self.outfile.write(",\n    GUnixFDList **out_fd_list")
             self.outfile.write(
@@ -3486,6 +3538,7 @@ class CodeGenerator:
         self.outfile.write("}\n" "\n")
 
         # constructors
+        # async begin
         self.outfile.write(
             self.docbook_gen.expand(
                 "/**\n"
@@ -3524,6 +3577,7 @@ class CodeGenerator:
             "}\n"
             "\n" % (i.name_lower, i.ns_upper, i.name_upper, i.name)
         )
+        # async finish
         self.outfile.write(
             "/**\n"
             " * %s_proxy_new_finish:\n"
@@ -3554,6 +3608,7 @@ class CodeGenerator:
             "}\n"
             "\n" % (i.camel_name, i.name_lower, i.ns_upper, i.name_upper)
         )
+        # sync
         self.outfile.write(
             self.docbook_gen.expand(
                 "/**\n"
@@ -4086,8 +4141,8 @@ class CodeGenerator:
 
         self.outfile.write("#if GLIB_VERSION_MAX_ALLOWED >= GLIB_VERSION_2_38\n")
         self.outfile.write(
-            "G_DEFINE_TYPE_WITH_CODE (%sSkeleton, %s_skeleton, G_TYPE_DBUS_INTERFACE_SKELETON,\n"
-            % (i.camel_name, i.name_lower)
+            "G_DEFINE_TYPE_WITH_CODE (%sSkeleton, %s_skeleton, %s,\n"
+            % (i.camel_name, i.name_lower, self.skeleton_type_upper)
         )
         self.outfile.write(
             "                         G_ADD_PRIVATE (%sSkeleton)\n" % (i.camel_name)
@@ -4098,8 +4153,8 @@ class CodeGenerator:
         )
         self.outfile.write("#else\n")
         self.outfile.write(
-            "G_DEFINE_TYPE_WITH_CODE (%sSkeleton, %s_skeleton, G_TYPE_DBUS_INTERFACE_SKELETON,\n"
-            % (i.camel_name, i.name_lower)
+            "G_DEFINE_TYPE_WITH_CODE (%sSkeleton, %s_skeleton, %s,\n"
+            % (i.camel_name, i.name_lower, self.skeleton_type_upper)
         )
         self.outfile.write(
             "                         G_IMPLEMENT_INTERFACE (%sTYPE_%s, %s_skeleton_iface_init))\n\n"
@@ -4128,12 +4183,23 @@ class CodeGenerator:
         self.outfile.write(
             "  g_list_free_full (skeleton->priv->changed_properties, (GDestroyNotify) _changed_property_free);\n"
         )
+
+        self.outfile.write("#if GLIB_VERSION_MAX_ALLOWED >= GLIB_VERSION_2_38\n")
+        self.outfile.write("  /* coverity[missing_lock : SUPPRESS] */\n")
+        self.outfile.write(
+            "  g_clear_pointer (&skeleton->priv->changed_properties_idle_source, g_source_destroy);\n"
+        )
+        self.outfile.write("#else\n")
+
         self.outfile.write(
             "  if (skeleton->priv->changed_properties_idle_source != NULL)\n"
         )
         self.outfile.write(
             "    g_source_destroy (skeleton->priv->changed_properties_idle_source);\n"
         )
+        self.outfile.write("skeleton->priv->changed_properties_idle_source = NULL;\n")
+
+        self.outfile.write("#endif\n")
         self.outfile.write("  g_main_context_unref (skeleton->priv->context);\n")
         self.outfile.write("  g_mutex_clear (&skeleton->priv->lock);\n")
         self.outfile.write(
@@ -5461,6 +5527,7 @@ class CodeGenerator:
 
     def generate(self):
         self.generate_body_preamble()
+        self.ext.generate_body_preamble()
         for i in self.ifaces:
             self.generate_generic_marshallers(i)
         for i in self.ifaces:
@@ -5479,3 +5546,4 @@ class CodeGenerator:
         if self.generate_objmanager:
             self.generate_object()
             self.generate_object_manager_client()
+        self.ext.generate()

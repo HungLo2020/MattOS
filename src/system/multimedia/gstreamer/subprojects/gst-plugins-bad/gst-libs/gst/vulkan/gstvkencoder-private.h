@@ -21,6 +21,7 @@
 #pragma once
 
 #include <gst/vulkan/vulkan.h>
+#include "gstvkvideoutils-private.h"
 
 #define GST_TYPE_VULKAN_ENCODER         (gst_vulkan_encoder_get_type())
 #define GST_VULKAN_ENCODER(o)           (G_TYPE_CHECK_INSTANCE_CAST((o), GST_TYPE_VULKAN_ENCODER, GstVulkanEncoder))
@@ -131,6 +132,7 @@ union _GstVulkanEncoderParameters
   /*< private >*/
   VkVideoEncodeH264SessionParametersCreateInfoKHR h264;
   VkVideoEncodeH265SessionParametersCreateInfoKHR h265;
+  VkVideoEncodeAV1SessionParametersCreateInfoKHR av1;
 };
 
 union _GstVulkanEncoderParametersOverrides
@@ -153,6 +155,7 @@ struct _GstVulkanEncoderQualityPoperties
   {
     VkVideoEncodeH264QualityLevelPropertiesKHR h264;
     VkVideoEncodeH265QualityLevelPropertiesKHR h265;
+    VkVideoEncodeAV1QualityLevelPropertiesKHR av1;
   } codec;
 };
 
@@ -209,6 +212,8 @@ GST_VULKAN_API
 GstCaps *               gst_vulkan_encoder_profile_caps         (GstVulkanEncoder * self);
 GST_VULKAN_API
 gint32                  gst_vulkan_encoder_quality_level        (GstVulkanEncoder * self);
+GST_VULKAN_API
+gint32                  gst_vulkan_encoder_rc_mode              (GstVulkanEncoder * self);
 
 GST_VULKAN_API
 gboolean                gst_vulkan_encoder_picture_init         (GstVulkanEncoderPicture * pic,

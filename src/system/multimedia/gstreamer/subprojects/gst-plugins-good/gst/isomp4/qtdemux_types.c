@@ -99,6 +99,10 @@ static const QtNodeType qt_node_types[] = {
   {FOURCC_dfLa, "dfLa", 0, qtdemux_dump_dfLa},
   {FOURCC_opus, "opus", 0, qtdemux_dump_opus},
   {FOURCC_dops, "dOps", 0, qtdemux_dump_dops},
+  {FOURCC_ac_4, "AC-4 audio", 0},
+  {FOURCC_dac4, "AC-4 specific box", 0},
+  {FOURCC_ec_3, "EAC-3 audio", 0},
+  {FOURCC_dec3, "EAC-3 specific box", 0},
   {FOURCC_wave, "wave", QT_FLAG_CONTAINER},
   {FOURCC_appl, "appl", QT_FLAG_CONTAINER},
   {FOURCC_cfhd, "cfhd", QT_FLAG_CONTAINER},
@@ -256,6 +260,9 @@ static const QtNodeType qt_node_types[] = {
   {FOURCC_fpcm, "RAW Float PCM", 0},
   {FOURCC_pcmC, "RAW PCM Configuration Box", 0},
   {FOURCC_chnl, "Channel Layout Box", 0},
+  {FOURCC_mha1, "MPEG-H 3D Audio sample entry (mha1)", 0},
+  {FOURCC_mhm1, "MPEG-H 3D Audio sample entry (mhm1)", 0},
+  {FOURCC_mhaC, "MPEG-H 3D Audio Configuration Box", 0, qtdemux_dump_mhaC},
   {0, "unknown", 0,},
 };
 

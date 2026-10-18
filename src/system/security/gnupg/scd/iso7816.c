@@ -152,9 +152,20 @@ iso7816_select_application_ext (int slot, const char *aid, size_t aidlen,
                                 unsigned int flags,
                                 unsigned char **result, size_t *resultlen)
 {
+  int p2;
   int sw;
-  sw = apdu_send (slot, 0, 0x00, CMD_SELECT_FILE, 4,
-                  (flags&1)? 0:0x0c, aidlen, aid,
+
+  switch (flags)
+    {
+    case ISO7816_SELECT_FCI: p2 = 0x00; break;
+    case ISO7816_SELECT_FCP: p2 = 0x04; break;
+    case ISO7816_SELECT_NORESP:
+    default:
+      p2 = 0x0c;
+    }
+
+  sw = apdu_send (slot, 0, 0x00, CMD_SELECT_FILE, 4, p2,
+                  aidlen, aid,
                   result, resultlen);
   return map_sw (sw);
 }
@@ -471,7 +482,7 @@ iso7816_reset_retry_counter (int slot, int chvno,
 }
 
 
-/* Perform a SELECT DATA command to OCCURANCE of TAG.  */
+/* Perform a SELECT DATA command to OCCURRENCE of TAG.  */
 gpg_error_t
 iso7816_select_data (int slot, int occurrence, int tag)
 {
@@ -660,7 +671,7 @@ iso7816_manage_security_env (int slot, int p1, int p2,
 }
 
 
-/* Perform the security operation COMPUTE DIGITAL SIGANTURE.  On
+/* Perform the security operation COMPUTE DIGITAL SIGNATURE.  On
    success 0 is returned and the data is available in a newly
    allocated buffer stored at RESULT with its length stored at
    RESULTLEN.  For LE see do_generate_keypair. */

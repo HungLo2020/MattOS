@@ -129,6 +129,9 @@ gst_mpeg2dec_init (GstMpeg2dec * mpeg2dec)
       (mpeg2dec), TRUE);
   GST_PAD_SET_ACCEPT_TEMPLATE (GST_VIDEO_DECODER_SINK_PAD (mpeg2dec));
 
+  g_warning_once
+      ("The `mpeg2dec` plugin is deprecated and will be removed in the next release cycle. `avdec_mpeg2video` from gst-libav should be used instead");
+
   /* initialize the mpeg2dec acceleration */
 }
 
@@ -256,6 +259,11 @@ gst_mpeg2dec_create_generic_pool (GstAllocator * allocator,
   GstStructure *config;
 
   pool = gst_video_buffer_pool_new ();
+  {
+    gchar *name = g_strdup_printf ("mpeg2dec-%p-pool", pool);
+    g_object_set (pool, "name", name, NULL);
+    g_free (name);
+  }
   config = gst_buffer_pool_get_config (pool);
 
   gst_buffer_pool_config_set_allocator (config, allocator, params);
@@ -1172,6 +1180,8 @@ done:
 static gboolean
 plugin_init (GstPlugin * plugin)
 {
+  gst_plugin_add_status_warning (plugin,
+      "The `mpeg2dec` plugin is deprecated and will be removed in the next release cycle. `avdec_mpeg2video` from gst-libav should be used instead");
   return GST_ELEMENT_REGISTER (mpeg2dec, plugin);
 }
 

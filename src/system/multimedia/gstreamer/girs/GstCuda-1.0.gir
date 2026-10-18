@@ -205,6 +205,31 @@ This method is conceptually identical to gst_buffer_pool_set_active method.</doc
           </parameter>
         </parameters>
       </method>
+      <method name="alloc_stream_ordered" c:identifier="gst_cuda_allocator_alloc_stream_ordered" version="1.28">
+        <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.h"/>
+        <return-value transfer-ownership="full" nullable="1">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.cpp">a newly allocated #GstCudaMemory</doc>
+          <type name="Gst.Memory" c:type="GstMemory*"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="allocator" transfer-ownership="none" nullable="1" allow-none="1">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.cpp">a #GstCudaAllocator</doc>
+            <type name="CudaAllocator" c:type="GstCudaAllocator*"/>
+          </instance-parameter>
+          <parameter name="context" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.cpp">a #GstCudaContext</doc>
+            <type name="CudaContext" c:type="GstCudaContext*"/>
+          </parameter>
+          <parameter name="stream" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.cpp">a #GstCudaStream</doc>
+            <type name="CudaStream" c:type="GstCudaStream*"/>
+          </parameter>
+          <parameter name="info" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.cpp">a #GstVideoInfo</doc>
+            <type name="GstVideo.VideoInfo" c:type="const GstVideoInfo*"/>
+          </parameter>
+        </parameters>
+      </method>
       <method name="alloc_wrapped" c:identifier="gst_cuda_allocator_alloc_wrapped" version="1.24">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.cpp">Allocates a new memory that wraps the given CUDA device memory.
 
@@ -430,6 +455,21 @@ to wrap</doc>
           </parameter>
         </parameters>
       </constructor>
+      <function name="find_dxgi_adapter_luid" c:identifier="gst_cuda_context_find_dxgi_adapter_luid" version="1.28.2">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudacontext.cpp">Finds the DXGI adapter LUID corresponding to the given CUDA device.
+This is useful for matching CUDA devices with Direct3D adapters on Windows.</doc>
+        <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudacontext.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudacontext.cpp">The DXGI adapter LUID or 0 if not found or on non-Windows platforms</doc>
+          <type name="gint64" c:type="gint64"/>
+        </return-value>
+        <parameters>
+          <parameter name="cuda_device" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudacontext.cpp">a CUDA device index</doc>
+            <type name="CudaGst.device" c:type="CUdevice"/>
+          </parameter>
+        </parameters>
+      </function>
       <function name="pop" c:identifier="gst_cuda_context_pop" version="1.22">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudacontext.cpp">Pops the current CUDA context from CPU thread</doc>
         <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudacontext.h"/>
@@ -1294,6 +1334,16 @@ Conversely, combining #GST_MAP_CUDA with
 CUDA device/host memory</doc>
       <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.h"/>
       <type name="gint" c:type="gint"/>
+    </constant>
+    <constant name="MAP_READ_CUDA" value="131073" c:type="GST_MAP_READ_CUDA" version="1.28">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.h">GstMapFlags value alias for GST_MAP_READ | GST_MAP_CUDA</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.h"/>
+      <type name="Gst.MapFlags" c:type="GstMapFlags"/>
+    </constant>
+    <constant name="MAP_WRITE_CUDA" value="131074" c:type="GST_MAP_WRITE_CUDA" version="1.28">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.h">GstMapFlags value alias for GST_MAP_WRITE | GST_MAP_CUDA</doc>
+      <source-position filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudamemory.h"/>
+      <type name="Gst.MapFlags" c:type="GstMapFlags"/>
     </constant>
     <function name="buffer_pool_config_get_cuda_alloc_method" c:identifier="gst_buffer_pool_config_get_cuda_alloc_method" version="1.24">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-bad/gst-libs/gst/cuda/gstcudabufferpool.cpp">Gets configured allocation method</doc>

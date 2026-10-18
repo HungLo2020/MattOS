@@ -153,6 +153,7 @@ _g_test_watcher_remove_pid (GPid pid)
 #define ADD_PID_FORMAT "add pid %d\n"
 #define REMOVE_PID_FORMAT "remove pid %d\n"
 
+#if !defined(__APPLE__) || (!TARGET_OS_TV && !TARGET_OS_WATCH)
 static void
 watch_parent (gint fd)
 {
@@ -192,7 +193,11 @@ watch_parent (gint fd)
 
           g_array_unref (pids_to_kill);
           g_io_channel_shutdown (channel, FALSE, &error);
-          g_assert_no_error (error);
+          if (error != NULL)
+            {
+              g_error ("Error shutting down channel: %s", error->message);
+              g_clear_error (&error);
+            }
           g_io_channel_unref (channel);
 
           exit (0);
@@ -200,7 +205,11 @@ watch_parent (gint fd)
 
       /* Read the command from the input */
       g_io_channel_read_line (channel, &command, NULL, NULL, &error);
-      g_assert_no_error (error);
+      if (error != NULL)
+        {
+          g_error ("Error reading line: %s", error->message);
+          g_clear_error (&error);
+        }
 
       /* Check for known commands */
       if (sscanf (command, ADD_PID_FORMAT, &pid) == 1)
@@ -300,11 +309,26 @@ watcher_send_command (const gchar *command)
   do
    status = g_io_channel_write_chars (channel, command, -1, NULL, &error);
   while (status == G_IO_STATUS_AGAIN);
-  g_assert_no_error (error);
+
+  if (error != NULL)
+    {
+      g_error ("Error writing chars: %s", error->message);
+      g_clear_error (&error);
+    }
 
   g_io_channel_flush (channel, &error);
-  g_assert_no_error (error);
+
+  if (error != NULL)
+    {
+      g_error ("Error flushing channel: %s", error->message);
+      g_clear_error (&error);
+    }
 }
+#else
+#define watcher_send_command(x) \
+  g_error("GTestDBus spawns processes which is not allowed on tvOS and " \
+      "watchOS");
+#endif
 
 /* This could be interesting to expose in public API */
 static void
@@ -438,6 +462,7 @@ struct _GTestDBusPrivate
   GPid bus_pid;
   gchar *bus_address;
   gboolean up;
+  char *config_path;  /* (type filename) */
 };
 
 enum
@@ -550,7 +575,11 @@ write_config_file (GTestDBus *self)
   gchar *path = NULL;
 
   fd = g_file_open_tmp ("g-test-dbus-XXXXXX", &path, &error);
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      g_error ("Error opening temporary file: %s", error->message);
+      g_clear_error (&error);
+    }
 
   contents = g_string_new (NULL);
   g_string_append (contents,
@@ -586,7 +615,11 @@ write_config_file (GTestDBus *self)
   g_file_set_contents_full (path, contents->str, contents->len,
                             G_FILE_SET_CONTENTS_NONE,
                             0600, &error);
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      g_error ("Error saving D-Bus config: %s", error->message);
+      g_clear_error (&error);
+    }
 
   g_string_free (contents, TRUE);
 
@@ -622,7 +655,6 @@ start_daemon (GTestDBus *self)
 {
   const gchar *argv[] = {"dbus-daemon", "--print-address", "--config-file=foo", NULL};
   gint pipe_fds[2] = {-1, -1};
-  gchar *config_path;
   gchar *config_arg;
   gchar *print_address;
   GIOChannel *channel;
@@ -633,15 +665,18 @@ start_daemon (GTestDBus *self)
     argv[0] = (gchar *)g_getenv ("G_TEST_DBUS_DAEMON");
 
   make_pipe (pipe_fds, &error);
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      g_error ("Error making pipe: %s", error->message);
+      g_clear_error (&error);
+    }
 
   print_address = g_strdup_printf ("--print-address=%d", pipe_fds[1]);
   argv[1] = print_address;
-  g_assert_no_error (error);
 
   /* Write config file and set its path in argv */
-  config_path = write_config_file (self);
-  config_arg = g_strdup_printf ("--config-file=%s", config_path);
+  self->priv->config_path = write_config_file (self);
+  config_arg = g_strdup_printf ("--config-file=%s", self->priv->config_path);
   argv[2] = config_arg;
 
   /* Spawn dbus-daemon */
@@ -660,7 +695,11 @@ start_daemon (GTestDBus *self)
                                     &self->priv->bus_pid,
                                     NULL, NULL, NULL,
                                     &error);
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      g_error ("Error spawning dbus-daemon: %s", error->message);
+      g_clear_error (&error);
+    }
 
   _g_test_watcher_add_pid (self->priv->bus_pid);
 
@@ -670,7 +709,11 @@ start_daemon (GTestDBus *self)
   g_io_channel_set_close_on_unref (channel, TRUE);
   g_io_channel_read_line (channel, &self->priv->bus_address, NULL,
       &termpos, &error);
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      g_error ("Error reading line: %s", error->message);
+      g_clear_error (&error);
+    }
   self->priv->bus_address[termpos] = '\0';
   close (pipe_fds[1]);
   pipe_fds[1] = -1;
@@ -690,15 +733,14 @@ start_daemon (GTestDBus *self)
 
   /* Cleanup */
   g_io_channel_shutdown (channel, FALSE, &error);
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      g_error ("Error shutting down channel: %s", error->message);
+      g_clear_error (&error);
+    }
   g_io_channel_unref (channel);
 
-  /* Don't use g_file_delete since it calls into gvfs */
-  if (g_unlink (config_path) != 0)
-    g_assert_not_reached ();
-
   g_free (print_address);
-  g_free (config_path);
   g_free (config_arg);
 }
 
@@ -717,6 +759,16 @@ stop_daemon (GTestDBus *self)
 
   g_free (self->priv->bus_address);
   self->priv->bus_address = NULL;
+
+  /* Don't use g_file_delete since it calls into gvfs */
+  if (g_unlink (self->priv->config_path) != 0 && errno != ENOENT)
+    {
+      int errsv = errno;
+      g_warning ("Can’t delete dbus-daemon config file ‘%s’: %s",
+                 self->priv->config_path, g_strerror (errsv));
+    }
+
+  g_clear_pointer (&self->priv->config_path, g_free);
 }
 
 /**

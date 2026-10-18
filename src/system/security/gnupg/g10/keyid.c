@@ -74,12 +74,18 @@ pubkey_letter( int algo )
    is copied to the supplied buffer up a length of BUFSIZE-1.
    Examples for the output are:
 
-   "rsa3072"  - RSA with 3072 bit
-   "elg1024"  - Elgamal with 1024 bit
-   "ed25519"  - ECC using the curve Ed25519.
-   "E_1.2.3.4"  - ECC using the unsupported curve with OID "1.2.3.4".
+   "rsa3072"     - RSA with 3072 bit
+   "elg1024"     - Elgamal with 1024 bit
+   "ed25519"     - EdDSA using the curve Ed25519.
+   "cv25519"     - ECDH using the curve X25519.
+   "ky768_cv448  - Kyber-768 with X448 as second algo.
+   "ky1024_bp512 - Kyber-1024 with BrainpoolP256r1 as second algo.
+   "E_1.2.3.4"   - ECC using the unsupported curve with OID "1.2.3.4".
+   "unknown_N"   - Unknown OpenPGP algorithm N.
    "E_1.3.6.1.4.1.11591.2.12242973" ECC with a bogus OID.
-   "unknown_N"  - Unknown OpenPGP algorithm N.
+
+   Note that with Kyber we use "bp" as abbreviation for BrainpoolP and
+   ignore the final r1 part.
 
    If the option --legacy-list-mode is active, the output use the
    legacy format:
@@ -97,6 +103,10 @@ char *
 pubkey_string (PKT_public_key *pk, char *buffer, size_t bufsize)
 {
   const char *prefix = NULL;
+  const char *fixed = NULL;
+  int dual = 0;
+  char *curve;
+  const char *name;
 
   if (opt.legacy_list_mode)
     {
@@ -110,20 +120,47 @@ pubkey_string (PKT_public_key *pk, char *buffer, size_t bufsize)
     case PUBKEY_ALGO_RSA:
     case PUBKEY_ALGO_RSA_E:
     case PUBKEY_ALGO_RSA_S:	prefix = "rsa"; break;
+    case PUBKEY_ALGO_KYBER:     prefix = "ky"; dual = 1;  break;
     case PUBKEY_ALGO_ELGAMAL_E: prefix = "elg"; break;
     case PUBKEY_ALGO_DSA:	prefix = "dsa"; break;
     case PUBKEY_ALGO_ELGAMAL:   prefix = "xxx"; break;
     case PUBKEY_ALGO_ECDH:
     case PUBKEY_ALGO_ECDSA:
     case PUBKEY_ALGO_EDDSA:     prefix = "";    break;
+    case PUBKEY_ALGO_X25519:       fixed = "ietf25";     break;
+    case PUBKEY_ALGO_ED25519:      fixed = "ietf27";     break;
+    case PUBKEY_ALGO_MLD65_25519:  fixed = "mld65";      break;
+    case PUBKEY_ALGO_MLD87_448:    fixed = "mld87";      break;
+    case PUBKEY_ALGO_MLK768_25519: fixed = "mlk768";        break;
+    case PUBKEY_ALGO_MLK768_NP384: fixed = "mlk768_np384";  break;
+    case PUBKEY_ALGO_MLK768_BP384: fixed = "mlk768_bp384";  break;
+    case PUBKEY_ALGO_MLK1024_448:  fixed = "mlk1024";       break;
+    case PUBKEY_ALGO_MLK1024_NP521:fixed = "mlk1024_np521"; break;
+    case PUBKEY_ALGO_MLK1024_BP512:fixed = "mlk1024_bp512"; break;
     }
 
+
   if (prefix && *prefix)
-    snprintf (buffer, bufsize, "%s%u", prefix, nbits_from_pk (pk));
+    {
+      if (dual)
+        {
+          curve = openpgp_oid_to_str (pk->pkey[0]);
+          /* Note that we prefer the abbreviated name of the curve. */
+          name = openpgp_oid_to_curve (curve, 2);
+          if (!name)
+            name = "unknown";
+
+          snprintf (buffer, bufsize, "%s%u_%s",
+                    prefix, nbits_from_pk (pk), name);
+          xfree (curve);
+        }
+      else
+        snprintf (buffer, bufsize, "%s%u", prefix, nbits_from_pk (pk));
+    }
   else if (prefix)
     {
-      char *curve = openpgp_oid_to_str (pk->pkey[0]);
-      const char *name = openpgp_oid_to_curve (curve, 0);
+      curve = openpgp_oid_to_str (pk->pkey[0]);
+      name = openpgp_oid_to_curve (curve, 0);
 
       if (name)
         snprintf (buffer, bufsize, "%s", name);
@@ -133,6 +170,8 @@ pubkey_string (PKT_public_key *pk, char *buffer, size_t bufsize)
         snprintf (buffer, bufsize, "E_error");
       xfree (curve);
     }
+  else if (fixed)
+    snprintf (buffer, bufsize, "%s", fixed);
   else
     snprintf (buffer, bufsize, "unknown_%u", (unsigned int)pk->pubkey_algo);
 
@@ -283,11 +322,13 @@ compare_pubkey_string (const char *astr, const char *bstr)
 
 
 
-/* Hash a public key and allow to specify the to be used format.
- * Note that if the v5 format is requested for a v4 key, a 0x04 as
- * version is hashed instead of the 0x05. */
+/* Hash a public key and allow to specify the to be used format.  Note
+ * that if the v5 format is requested for a v4 key, a 0x04 as version
+ * is hashed instead of the 0x05.  If SIG is not NULL it is tested for
+ * a version 6 signature and used appropiate.  */
 static void
-do_hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, int use_v5)
+do_hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, int force_v5,
+                    PKT_signature *sig)
 {
   unsigned int n;
   unsigned int nn[PUBKEY_MAX_NPKEY];
@@ -297,7 +338,7 @@ do_hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, int use_v5)
   size_t nbytes;
   int npkey = pubkey_get_npkey (pk->pubkey_algo);
 
-  n = use_v5? 10 : 6;
+  n = (force_v5 || pk->version >= 5)? 10 : 6;
   /* FIXME: We can avoid the extra malloc by calling only the first
      mpi_print here which computes the required length and calling the
      real mpi_print only at the end.  The speed advantage would only be
@@ -321,6 +362,30 @@ do_hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, int use_v5)
                  during "gpg KEYFILE".  */
               pp[i] = NULL;
               nn[i] = 0;
+            }
+          else if (pk->pubkey_algo == PUBKEY_ALGO_KYBER && i == 2)
+            {
+              /* Ugly: We need to re-construct the wire format of the
+               * key parameter.  It would be easier to use a second
+               * index for pp and nn which we could bump independent of
+               * i.  */
+              const char *p;
+
+              p = gcry_mpi_get_opaque (pk->pkey[i], &nbits);
+              nn[i] = (nbits+7)/8;
+              pp[i] = xmalloc (4 + nn[i] + 1);
+              if (p)
+                {
+                  pp[i][0] = nn[i] >> 24;
+                  pp[i][1] = nn[i] >> 16;
+                  pp[i][2] = nn[i] >> 8;
+                  pp[i][3] = nn[i];
+                  memcpy (pp[i] + 4 , p, nn[i]);
+                  nn[i] += 4;
+                }
+              else
+                pp[i] = NULL;
+              n += nn[i];
             }
           else if (gcry_mpi_get_flag (pk->pkey[i], GCRYMPI_FLAG_OPAQUE))
             {
@@ -374,9 +439,21 @@ do_hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, int use_v5)
         }
     }
 
-  if (use_v5)
+  if (force_v5 || pk->version == 5)
     {
       gcry_md_putc ( md, 0x9a );     /* ctb */
+      gcry_md_putc ( md, n >> 24 );  /* 4 byte length header (upper bits) */
+      gcry_md_putc ( md, n >> 16 );
+    }
+  else if (pk->version == 6)
+    {
+      const void *salt;
+
+      if (sig && sig->version == 6 && sig->salt
+          && gcry_mpi_get_flag (sig->salt, GCRYMPI_FLAG_OPAQUE)
+          && (salt = gcry_mpi_get_opaque (sig->salt, &nbits)) && nbits)
+        gcry_md_write (md, salt, (nbits+7)/8);
+      gcry_md_putc ( md, 0x9b );     /* ctb */
       gcry_md_putc ( md, n >> 24 );  /* 4 byte length header (upper bits) */
       gcry_md_putc ( md, n >> 16 );
     }
@@ -394,7 +471,7 @@ do_hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, int use_v5)
 
   gcry_md_putc ( md, pk->pubkey_algo );
 
-  if (use_v5) /* Hash the 32 bit length */
+  if (force_v5 || pk->version >= 5) /* Hash the 32 bit length */
     {
       n -= 10;
       gcry_md_putc ( md, n >> 24 );
@@ -422,11 +499,12 @@ do_hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, int use_v5)
 
 
 /* Hash a public key.  This function is useful for v4 and v5
- * fingerprints and for v3 or v4 key signing. */
+ * fingerprints and for v3 or v4 key signing.  To partly support v6
+ * signatures SIG must be given.  */
 void
-hash_public_key (gcry_md_hd_t md, PKT_public_key *pk)
+hash_public_key (gcry_md_hd_t md, PKT_public_key *pk, PKT_signature *sig)
 {
-  do_hash_public_key (md, pk, (pk->version == 5));
+  do_hash_public_key (md, pk, 0, sig);
 }
 
 
@@ -690,16 +768,16 @@ compute_fingerprint (PKT_public_key *pk)
   gcry_md_hd_t md;
   size_t len;
 
-  if (gcry_md_open (&md, pk->version == 5 ? GCRY_MD_SHA256 : GCRY_MD_SHA1, 0))
+  if (gcry_md_open (&md, pk->version >= 5 ? GCRY_MD_SHA256 : GCRY_MD_SHA1, 0))
     BUG ();
-  hash_public_key (md, pk);
+  hash_public_key (md, pk, NULL);
   gcry_md_final (md);
   dp = gcry_md_read (md, 0);
   len = gcry_md_get_algo_dlen (gcry_md_get_algo (md));
   log_assert (len <= MAX_FINGERPRINT_LEN);
   memcpy (pk->fpr, dp, len);
   pk->fprlen = len;
-  if (pk->version == 5)
+  if (pk->version >= 5)
     {
       pk->keyid[0] = buf32_to_u32 (dp);
       pk->keyid[1] = buf32_to_u32 (dp+4);
@@ -744,25 +822,24 @@ keyid_from_pk (PKT_public_key *pk, u32 *keyid)
  * keyid is not part of the fingerprint.
  */
 u32
-keyid_from_fingerprint (ctrl_t ctrl, const byte *fprint,
-                        size_t fprint_len, u32 *keyid)
+keyid_from_fingerprint (ctrl_t ctrl, const byte *fpr, size_t fprlen, u32 *keyid)
 {
   u32 dummy_keyid[2];
 
   if( !keyid )
     keyid = dummy_keyid;
 
-  if (fprint_len != 20 && fprint_len != 32)
+  if (fprlen != 20 && fprlen != 32)
     {
       /* This is special as we have to lookup the key first.  */
       PKT_public_key pk;
       int rc;
 
       memset (&pk, 0, sizeof pk);
-      rc = get_pubkey_byfprint (ctrl, &pk, NULL, fprint, fprint_len);
+      rc = get_pubkey_byfpr (ctrl, &pk, NULL, fpr, fprlen);
       if( rc )
         {
-          log_printhex (fprint, fprint_len,
+          log_printhex (fpr, fprlen,
                         "Oops: keyid_from_fingerprint: no pubkey; fpr:");
           keyid[0] = 0;
           keyid[1] = 0;
@@ -772,8 +849,8 @@ keyid_from_fingerprint (ctrl_t ctrl, const byte *fprint,
     }
   else
     {
-      const byte *dp = fprint;
-      if (fprint_len == 20)  /* v4 key */
+      const byte *dp = fpr;
+      if (fprlen == 20)  /* v4 key */
         {
           keyid[0] = buf32_to_u32 (dp+12);
           keyid[1] = buf32_to_u32 (dp+16);
@@ -819,11 +896,29 @@ namehash_from_uid (PKT_user_id *uid)
 
 
 /*
- * Return the number of bits used in PK.
+ * Return the number of bits used in PK.  For Kyber we return the
+ * octet count of the Kyber part and not of the ECC (thus likely
+ * values are 768 or 1024).  Note that this function may be called
+ * with only pubkey_algo and pkey[] correctly set.
  */
 unsigned int
 nbits_from_pk (PKT_public_key *pk)
 {
+  if (pk->pubkey_algo == PUBKEY_ALGO_KYBER)
+    {
+      unsigned int nbits;
+      if (!gcry_mpi_get_opaque (pk->pkey[2], &nbits))
+        return 0;
+      switch (nbits/8)
+        {
+        case 800:  nbits =  512; break;
+        case 1184: nbits =  768; break;
+        case 1568: nbits = 1024; break;
+        default:   nbits = 0;    break;  /* Unknown version.  */
+        }
+      return nbits;
+    }
+  else
     return pubkey_nbits (pk->pubkey_algo, pk->pkey);
 }
 
@@ -1042,7 +1137,7 @@ fingerprint_from_pk (PKT_public_key *pk, byte *array, size_t *ret_len)
  * Return a byte array with the fingerprint for the given PK/SK The
  * length of the array is returned in ret_len. Caller must free the
  * array or provide an array of length MAX_FINGERPRINT_LEN.  This
- * version creates a v5 fingerprint even vor v4 keys.
+ * version creates a v5 fingerprint even for v4 keys.
  */
 byte *
 v5_fingerprint_from_pk (PKT_public_key *pk, byte *array, size_t *ret_len)
@@ -1050,12 +1145,12 @@ v5_fingerprint_from_pk (PKT_public_key *pk, byte *array, size_t *ret_len)
   const byte *dp;
   gcry_md_hd_t md;
 
-  if (pk->version == 5)
+  if (pk->version >= 5)
     return fingerprint_from_pk (pk, array, ret_len);
 
   if (gcry_md_open (&md, GCRY_MD_SHA256, 0))
     BUG ();
-  do_hash_public_key (md, pk, 1);
+  do_hash_public_key (md, pk, 5, NULL);
   gcry_md_final (md);
   dp = gcry_md_read (md, 0);
   if (!array)
@@ -1249,16 +1344,24 @@ format_hexfingerprint (const char *fingerprint, char *buffer, size_t buflen)
 
 
 /* Return the so called KEYGRIP which is the SHA-1 hash of the public
-   key parameters expressed as an canonical encoded S-Exp.  ARRAY must
-   be 20 bytes long.  Returns 0 on success or an error code.  */
+ * key parameters expressed as an canonical encoded S-Exp.  ARRAY must
+ * be 20 bytes long.  Returns 0 on success or an error code.  If
+ * GET_SECOND Is one and PK has dual algorithm, the keygrip of the
+ * second algorithm is return; GPG_ERR_FALSE is returned if the algo
+ * is not a dual algorithm.  */
 gpg_error_t
-keygrip_from_pk (PKT_public_key *pk, unsigned char *array)
+keygrip_from_pk (PKT_public_key *pk, unsigned char *array, int get_second)
 {
   gpg_error_t err;
   gcry_sexp_t s_pkey;
 
   if (DBG_PACKET)
-    log_debug ("get_keygrip for public key\n");
+    log_debug ("get_keygrip for public key%s (v%d,a=%d)\n",
+               get_second?" (second)":"", pk->version, pk->pubkey_algo);
+
+  if (get_second && !(pk->pubkey_algo == PUBKEY_ALGO_KYBER
+                      || IS_PUBKEY_ALGO_MLK (pk->pubkey_algo)))
+    return gpg_error (GPG_ERR_FALSE);
 
   switch (pk->pubkey_algo)
     {
@@ -1294,7 +1397,8 @@ keygrip_from_pk (PKT_public_key *pk, unsigned char *array)
         else
           {
             err = gcry_sexp_build (&s_pkey, NULL,
-                                   pk->pubkey_algo == PUBKEY_ALGO_EDDSA?
+                                   (pk->pubkey_algo == PUBKEY_ALGO_EDDSA
+                                    && openpgp_oid_is_ed25519 (pk->pkey[0]))?
                                    "(public-key(ecc(curve%s)(flags eddsa)(q%m)))":
                                    (pk->pubkey_algo == PUBKEY_ALGO_ECDH
                                     && openpgp_oid_is_cv25519 (pk->pkey[0]))?
@@ -1304,6 +1408,111 @@ keygrip_from_pk (PKT_public_key *pk, unsigned char *array)
             xfree (curve);
           }
       }
+      break;
+
+    case PUBKEY_ALGO_X25519:
+      err = gcry_sexp_build (&s_pkey, NULL,
+                             "(public-key(ecc(curve ietf25)(q%m)))",
+                             pk->pkey[0]);
+      break;
+
+    case PUBKEY_ALGO_ED25519:
+      err = gcry_sexp_build (&s_pkey, NULL,
+                             "(public-key(ecc(curve Ed25519)"
+                             "(flags eddsa)(q%m)))", pk->pkey[0]);
+      break;
+
+    case PUBKEY_ALGO_KYBER:
+      if (get_second)
+        {
+          char tmpname[15];
+
+          snprintf (tmpname, sizeof tmpname, "kyber%u", nbits_from_pk (pk));
+          err = gcry_sexp_build (&s_pkey, NULL,
+                                 "(public-key(%s(p%m)))",
+                                 tmpname, pk->pkey[2]);
+        }
+      else
+        {
+          char *curve = openpgp_oid_to_str (pk->pkey[0]);
+          if (!curve)
+            err = gpg_error_from_syserror ();
+          else
+            {
+              err = gcry_sexp_build (&s_pkey, NULL,
+                           openpgp_oid_is_cv25519 (pk->pkey[0])
+                           ? "(public-key(ecc(curve%s)(flags djb-tweak)(q%m)))"
+                           : "(public-key(ecc(curve%s)(q%m)))",
+                           curve, pk->pkey[1]);
+              xfree (curve);
+            }
+        }
+      break;
+
+    case PUBKEY_ALGO_MLK768_25519:
+      if (get_second)
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(kyber768(p%m)))",
+                               pk->pkey[1]);
+      else
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(ecc(curve ietf25)(q%m)))",
+                               pk->pkey[0]);
+      break;
+
+    case PUBKEY_ALGO_MLK768_NP384:
+      if (get_second)
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(kyber768(p%m)))",
+                               pk->pkey[1]);
+      else
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(ecc(curve nistp384)(q%m)))",
+                               pk->pkey[0]);
+      break;
+
+    case PUBKEY_ALGO_MLK768_BP384:
+      if (get_second)
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(kyber768(p%m)))",
+                               pk->pkey[1]);
+      else
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(ecc(curve bp384)(q%m)))",
+                               pk->pkey[0]);
+      break;
+
+    case PUBKEY_ALGO_MLK1024_448:
+      if (get_second)
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(kyber1024(p%m)))",
+                               pk->pkey[1]);
+      else
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(ecc(curve X448)(q%m)))",
+                               pk->pkey[0]);
+      break;
+
+    case PUBKEY_ALGO_MLK1024_NP521:
+      if (get_second)
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(kyber1024(p%m)))",
+                               pk->pkey[1]);
+      else
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(ecc(curve nistp521)(q%m)))",
+                               pk->pkey[0]);
+      break;
+
+    case PUBKEY_ALGO_MLK1024_BP512:
+      if (get_second)
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(kyber1024(p%m)))",
+                               pk->pkey[1]);
+      else
+        err = gcry_sexp_build (&s_pkey, NULL,
+                               "(public-key(ecc(curve bp512)(q%m)))",
+                               pk->pkey[0]);
       break;
 
     default:
@@ -1338,26 +1547,48 @@ keygrip_from_pk (PKT_public_key *pk, unsigned char *array)
 
 
 /* Store an allocated buffer with the keygrip of PK encoded as a
-   hexstring at r_GRIP.  Returns 0 on success.  */
+ * hexstring at r_GRIP.  Returns 0 on success.  For dual algorithms
+ * the keygrips are delimited by a comma. */
 gpg_error_t
 hexkeygrip_from_pk (PKT_public_key *pk, char **r_grip)
 {
   gpg_error_t err;
+  char *buf;
   unsigned char grip[KEYGRIP_LEN];
+  unsigned char grip2[KEYGRIP_LEN];
+  int composite = 0;
 
   *r_grip = NULL;
-  err = keygrip_from_pk (pk, grip);
+  err = keygrip_from_pk (pk, grip, 0);
   if (!err)
     {
-      char * buf = xtrymalloc (KEYGRIP_LEN * 2 + 1);
-      if (!buf)
-        err = gpg_error_from_syserror ();
-      else
+      if (pk->pubkey_algo == PUBKEY_ALGO_KYBER
+          || IS_PUBKEY_ALGO_MLK (pk->pubkey_algo))
         {
-          bin2hex (grip, KEYGRIP_LEN, buf);
-          *r_grip = buf;
+          err = keygrip_from_pk (pk, grip2, 1);
+          if (err)
+            goto leave;
+          composite = 1;
+          buf = xtrymalloc (2 * KEYGRIP_LEN * 2 + 1 + 1);
         }
+      else
+        buf = xtrymalloc (KEYGRIP_LEN * 2 + 1);
+
+      if (!buf)
+        {
+          err = gpg_error_from_syserror ();
+          goto leave;
+        }
+
+      bin2hex (grip, KEYGRIP_LEN, buf);
+      if (composite)
+        {
+          buf[2*KEYGRIP_LEN] = ',';
+          bin2hex (grip2, KEYGRIP_LEN, buf+2*KEYGRIP_LEN+1);
+        }
+      *r_grip = buf;
     }
+ leave:
   return err;
 }
 

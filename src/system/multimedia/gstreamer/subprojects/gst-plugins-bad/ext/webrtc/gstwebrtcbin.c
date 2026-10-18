@@ -656,6 +656,7 @@ enum
   REQUEST_AUX_SENDER,
   REQUEST_POST_RTP_AUX_SENDER,
   ADD_ICE_CANDIDATE_FULL_SIGNAL,
+  CLOSE_SIGNAL,
   LAST_SIGNAL,
 };
 
@@ -871,6 +872,28 @@ _find_transport_for_ice_transport (GstWebRTCBin * webrtc,
   return stream;
 }
 
+static gboolean
+match_stream_for_dtls_transport (TransportStream * trans,
+    GstWebRTCDTLSTransport * transport)
+{
+  return trans->transport == transport;
+}
+
+static TransportStream *
+_find_transport_for_dtls_transport (GstWebRTCBin * webrtc,
+    GstWebRTCDTLSTransport * transport)
+{
+  TransportStream *stream;
+
+  stream = _find_transport (webrtc, transport,
+      (FindTransportFunc) match_stream_for_dtls_transport);
+
+  GST_TRACE_OBJECT (webrtc,
+      "Found transport %" GST_PTR_FORMAT " for dtls transport %" GST_PTR_FORMAT,
+      stream, transport);
+
+  return stream;
+}
 
 typedef gboolean (*FindPadFunc) (GstWebRTCBinPad * p1, gconstpointer data);
 
@@ -1169,12 +1192,8 @@ _start_thread (GstWebRTCBin * webrtc)
 }
 
 static void
-_stop_thread (GstWebRTCBin * webrtc)
+_quit_pc_loop (GstWebRTCBin * webrtc)
 {
-  GST_OBJECT_LOCK (webrtc);
-  webrtc->priv->is_closed = TRUE;
-  GST_OBJECT_UNLOCK (webrtc);
-
   PC_LOCK (webrtc);
   g_main_loop_quit (webrtc->priv->loop);
   while (webrtc->priv->loop)
@@ -1182,6 +1201,20 @@ _stop_thread (GstWebRTCBin * webrtc)
   PC_UNLOCK (webrtc);
 
   g_thread_unref (webrtc->priv->thread);
+}
+
+static void
+_stop_thread (GstWebRTCBin * webrtc)
+{
+  GST_OBJECT_LOCK (webrtc);
+  if (webrtc->priv->is_closed) {
+    GST_OBJECT_UNLOCK (webrtc);
+    return;
+  }
+  webrtc->priv->is_closed = TRUE;
+  GST_OBJECT_UNLOCK (webrtc);
+
+  _quit_pc_loop (webrtc);
 }
 
 static gboolean
@@ -1213,6 +1246,13 @@ _execute_op (GstWebRTCBinTask * op)
 
   PC_UNLOCK (op->webrtc);
 
+  if (op->deferred) {
+    GST_DEBUG_OBJECT (op->webrtc,
+        "Task successfully submitted, promise result is expected to be notified asynchronously");
+    gst_clear_structure (&s);
+    goto out;
+  }
+
   if (op->promise)
     gst_promise_reply (op->promise, s);
   else if (s)
@@ -1238,9 +1278,10 @@ _free_op (GstWebRTCBinTask * op)
  * be replied to in the case that @webrtc becomes closed between the idle
  * source addition and the the execution of the idle source.
  */
-gboolean
-gst_webrtc_bin_enqueue_task (GstWebRTCBin * webrtc, GstWebRTCBinFunc func,
-    gpointer data, GDestroyNotify notify, GstPromise * promise)
+static gboolean
+gst_webrtc_bin_enqueue_task_full (GstWebRTCBin * webrtc,
+    GstWebRTCBinFunc func, gpointer data,
+    GDestroyNotify notify, GstPromise * promise, gboolean deferred)
 {
   GstWebRTCBinTask *op;
   GMainContext *ctx;
@@ -1261,6 +1302,7 @@ gst_webrtc_bin_enqueue_task (GstWebRTCBin * webrtc, GstWebRTCBinFunc func,
 
   op = g_new0 (GstWebRTCBinTask, 1);
   op->webrtc = webrtc;
+  op->deferred = deferred;
   op->op = func;
   op->data = data;
   op->notify = notify;
@@ -1276,6 +1318,14 @@ gst_webrtc_bin_enqueue_task (GstWebRTCBin * webrtc, GstWebRTCBinFunc func,
   g_main_context_unref (ctx);
 
   return TRUE;
+}
+
+gboolean
+gst_webrtc_bin_enqueue_task (GstWebRTCBin * pc, GstWebRTCBinFunc func,
+    gpointer data, GDestroyNotify notify, GstPromise * promise)
+{
+  return gst_webrtc_bin_enqueue_task_full (pc, func, data, notify, promise,
+      FALSE);
 }
 
 void
@@ -1640,7 +1690,15 @@ _update_ice_gathering_state_task (GstWebRTCBin * webrtc, gpointer data)
   if (new_state == GST_WEBRTC_ICE_GATHERING_STATE_COMPLETE) {
     ICE_LOCK (webrtc);
     if (webrtc->priv->pending_local_ice_candidates->len != 0) {
-      /* ICE candidates queued for emissiong -> we're gathering, not complete */
+      /* ICE candidates queued for emission -> we're gathering, not complete */
+
+      const gchar *new_s =
+          _enum_value_to_string (GST_TYPE_WEBRTC_ICE_GATHERING_STATE,
+          GST_WEBRTC_ICE_GATHERING_STATE_GATHERING);
+      GST_INFO_OBJECT (webrtc,
+          "Deferring ICE gathering state change to %s(%u) due to pending candidates",
+          new_s, GST_WEBRTC_ICE_GATHERING_STATE_GATHERING);
+
       new_state = GST_WEBRTC_ICE_GATHERING_STATE_GATHERING;
     }
     ICE_UNLOCK (webrtc);
@@ -2153,7 +2211,7 @@ out:
 
 static GstCaps *
 _add_supported_attributes_to_caps (GstWebRTCBin * webrtc,
-    WebRTCTransceiver * trans, const GstCaps * caps)
+    WebRTCTransceiver * trans, GstCaps * caps)
 {
   GstWebRTCKind kind;
   GstCaps *ret;
@@ -2219,9 +2277,62 @@ _on_ice_transport_notify_gathering_state (GstWebRTCICETransport * transport,
 }
 
 static void
+validate_transport_fingerprint (GstWebRTCSessionDescription *
+    remote_description, TransportStream * stream)
+{
+  if (!remote_description || !stream) {
+    return;
+  }
+  // early return if the fingerprint has already been validated.
+  if (stream->receive_bin->validated_fingerprint)
+    return;
+
+  GChecksumType checksum;
+  char *fingerprint = _get_fingerprint_from_sdp_media (remote_description->sdp,
+      stream->session_id, &checksum);
+
+  if (!fingerprint)
+    return;
+
+  char *peer_pem;
+  g_object_get (stream->transport, "remote-certificate", &peer_pem, NULL);
+  if (peer_pem) {
+    char *expected_fingerprint =
+        _generate_fingerprint_from_certificate (peer_pem, checksum);
+    if (g_strcmp0 (expected_fingerprint, fingerprint) == 0) {
+      transport_receive_bin_set_data_receive_state (stream->receive_bin,
+          RECEIVE_STATE_PASS);
+      stream->receive_bin->validated_fingerprint = TRUE;
+    }
+
+    g_free (expected_fingerprint);
+    g_free (peer_pem);
+  }
+  g_free (fingerprint);
+}
+
+static void
 _on_dtls_transport_notify_state (GstWebRTCDTLSTransport * transport,
     GParamSpec * pspec, GstWebRTCBin * webrtc)
 {
+  GstWebRTCDTLSTransportState dtls_state;
+
+  g_object_get (transport, "state", &dtls_state, NULL);
+
+  if (dtls_state == GST_WEBRTC_DTLS_TRANSPORT_STATE_CONNECTED) {
+    TransportStream *stream =
+        _find_transport_for_dtls_transport (webrtc, transport);
+    GstWebRTCSessionDescription *sdp = NULL;
+
+    if (webrtc->current_remote_description) {
+      sdp = webrtc->current_remote_description;
+    } else if (webrtc->pending_remote_description) {
+      sdp = webrtc->pending_remote_description;
+    }
+
+    validate_transport_fingerprint (sdp, stream);
+  }
+
   _update_peer_connection_state (webrtc);
 }
 
@@ -4172,7 +4283,7 @@ _create_offer_task (GstWebRTCBin * webrtc, const GstStructure * options,
 
         /* Verify that we didn't ignore any locked m-line transceivers */
         for (i = 0; i < webrtc->priv->transceivers->len; i++) {
-          WebRTCTransceiver *wtrans;
+          WebRTCTransceiver *wtrans GST_UNUSED_ASSERT;
 
           trans = g_ptr_array_index (webrtc->priv->transceivers, i);
           wtrans = WEBRTC_TRANSCEIVER (trans);
@@ -4404,16 +4515,6 @@ _update_transceiver_kind_from_caps (GstWebRTCRTPTransceiver * trans,
   }
 }
 
-static void
-_get_rtx_target_pt_and_ssrc_from_caps (GstCaps * answer_caps, gint * target_pt,
-    guint * target_ssrc)
-{
-  const GstStructure *s = gst_caps_get_structure (answer_caps, 0);
-
-  gst_structure_get_int (s, "payload", target_pt);
-  gst_structure_get_uint (s, "ssrc", target_ssrc);
-}
-
 /* TODO: use the options argument */
 static GstSDPMessage *
 _create_answer_task (GstWebRTCBin * webrtc, const GstStructure * options,
@@ -4541,8 +4642,6 @@ _create_answer_task (GstWebRTCBin * webrtc, const GstStructure * options,
     }
 
     mid = gst_sdp_media_get_attribute_val (media, "mid");
-    /* XXX: not strictly required but a lot of functionality requires a mid */
-    g_assert (mid);
 
     /* set the a=setup: attribute */
     offer_setup = _get_dtls_setup_from_media (offer_media);
@@ -4595,21 +4694,28 @@ _create_answer_task (GstWebRTCBin * webrtc, const GstStructure * options,
       GstWebRTCRTPTransceiver *rtp_trans = NULL;
       WebRTCTransceiver *trans = NULL;
       GstWebRTCRTPTransceiverDirection offer_dir, answer_dir;
-      gint target_pt = -1;
-      gint original_target_pt = -1;
-      guint target_ssrc = 0;
 
       gst_sdp_media_set_proto (media, "UDP/TLS/RTP/SAVPF");
       offer_caps = _rtp_caps_from_media (offer_media);
 
       _remove_optional_offer_fields (offer_caps);
 
-      rtp_trans = _find_transceiver_for_mid (webrtc, mid);
-      if (!rtp_trans) {
-        g_set_error (error, GST_WEBRTC_ERROR, GST_WEBRTC_ERROR_INVALID_STATE,
-            "Transceiver for media with mid %s not found", mid);
-        gst_caps_unref (offer_caps);
-        goto rejected;
+      if (mid) {
+        rtp_trans = _find_transceiver_for_mid (webrtc, mid);
+        if (!rtp_trans) {
+          g_set_error (error, GST_WEBRTC_ERROR, GST_WEBRTC_ERROR_INVALID_STATE,
+              "Transceiver for media with mid %s not found", mid);
+          gst_caps_unref (offer_caps);
+          goto rejected;
+        }
+      } else {
+        rtp_trans = _find_transceiver_for_mline (webrtc, i);
+        if (!rtp_trans) {
+          g_set_error (error, GST_WEBRTC_ERROR, GST_WEBRTC_ERROR_INVALID_STATE,
+              "Transceiver for media with mline %u not found", i);
+          gst_caps_unref (offer_caps);
+          goto rejected;
+        }
       }
       GstCaps *current_caps =
           _find_codec_preferences (webrtc, rtp_trans, i, error);
@@ -4624,7 +4730,8 @@ _create_answer_task (GstWebRTCBin * webrtc, const GstStructure * options,
         const gchar *last_mid =
             gst_sdp_media_get_attribute_val (last_media, "mid");
         /* FIXME: assumes no shenanigans with recycling transceivers */
-        g_assert (g_strcmp0 (mid, last_mid) == 0);
+        if (mid != last_mid)
+          g_assert (g_strcmp0 (mid, last_mid) == 0);
         if (!current_caps)
           current_caps = _rtp_caps_from_media (last_media);
       }
@@ -4677,25 +4784,53 @@ _create_answer_task (GstWebRTCBin * webrtc, const GstStructure * options,
           gst_structure_remove_fields (s, "rtcp-fb-nack", NULL);
       }
 
-      if (gst_sdp_media_set_media_from_caps (answer_caps, media) != GST_SDP_OK) {
-        GST_WARNING_OBJECT (webrtc,
-            "Could not build media from caps %" GST_PTR_FORMAT, answer_caps);
-        gst_clear_caps (&answer_caps);
-        gst_clear_caps (&offer_caps);
-        goto rejected;
-      }
+      static const gchar *disallowed_payloads[4] = { "rtx", "red", "ulpfec",
+        NULL
+      };
+      guint answer_caps_size = gst_caps_get_size (answer_caps);
+      for (guint l = 0; l < answer_caps_size; l++) {
+        const GstStructure *s = gst_caps_get_structure (answer_caps, l);
+        const gchar *enc_name = NULL;
+        gchar *tmp = NULL;
+        gint target_pt = -1;
+        gint original_target_pt = -1;
+        guint target_ssrc = 0;
 
-      _get_rtx_target_pt_and_ssrc_from_caps (answer_caps, &target_pt,
-          &target_ssrc);
+        enc_name = gst_structure_get_string (s, "encoding-name");
 
-      original_target_pt = target_pt;
+        /* The SDP might have been munged and we have no guarantee that
+         * gst_sdp_media_get_caps_from_media() adds an encoding-name field to all caps. */
+        if (!enc_name) {
+          GST_WARNING_OBJECT (webrtc,
+              "encoding-name missing in %" GST_PTR_FORMAT, s);
+          continue;
+        }
 
-      _media_add_fec (media, trans, offer_caps, &target_pt);
-      if (trans->do_nack) {
-        _media_add_rtx (media, trans, offer_caps, target_pt, target_ssrc);
-        if (target_pt != original_target_pt)
-          _media_add_rtx (media, trans, offer_caps, original_target_pt,
-              target_ssrc);
+        tmp = g_ascii_strdown (enc_name, -1);
+        if (g_strv_contains (disallowed_payloads, tmp)) {
+          g_free (tmp);
+          continue;
+        }
+        g_free (tmp);
+        if (gst_sdp_media_add_media_from_structure (s, media) != GST_SDP_OK) {
+          GST_WARNING_OBJECT (webrtc,
+              "Could not set media from %" GST_PTR_FORMAT, s);
+          gst_clear_caps (&answer_caps);
+          gst_clear_caps (&offer_caps);
+          goto rejected;
+        }
+
+        gst_structure_get_int (s, "payload", &target_pt);
+        gst_structure_get_uint (s, "ssrc", &target_ssrc);
+        original_target_pt = target_pt;
+
+        _media_add_fec (media, trans, offer_caps, &target_pt);
+        if (trans->do_nack) {
+          _media_add_rtx (media, trans, offer_caps, target_pt, target_ssrc);
+          if (target_pt != original_target_pt)
+            _media_add_rtx (media, trans, offer_caps, original_target_pt,
+                target_ssrc);
+        }
       }
 
       if (answer_dir != GST_WEBRTC_RTP_TRANSCEIVER_DIRECTION_RECVONLY)
@@ -5080,7 +5215,9 @@ connect_rtpbin_with_sendbin (GstWebRTCBin * webrtc, guint session_id,
   gboolean aux_success = FALSE;
   gchar *rtp_pad_name = g_strdup_printf ("send_rtp_src_%u", session_id);
   if (aux_sender) {
-    gst_object_ref_sink (aux_sender);
+    if (g_object_is_floating (aux_sender)) {
+      aux_sender = gst_object_ref_sink (aux_sender);
+    }
     if (!gst_bin_add (GST_BIN (webrtc), aux_sender)) {
       GST_ERROR_OBJECT (webrtc,
           "Unable to add aux_sender %" GST_PTR_FORMAT " to webrtcbin"
@@ -5431,6 +5568,7 @@ _add_ice_candidate (GstWebRTCBin * webrtc, IceCandidateItem * item,
       ICE_LOCK (webrtc);
       g_array_append_val (webrtc->priv->pending_remote_ice_candidates, new);
       ICE_UNLOCK (webrtc);
+      gst_promise_reply (item->promise, NULL);
     }
     return;
   }
@@ -5952,7 +6090,7 @@ _update_transceiver_from_sdp_media (GstWebRTCBin * webrtc,
    * the dtlssrtp elements before the ssl direction has been set which will
    * throw SSL errors */
   if (receive_state != RECEIVE_STATE_UNSET)
-    transport_receive_bin_set_receive_state (stream->receive_bin,
+    transport_receive_bin_set_dtls_receive_state (stream->receive_bin,
         receive_state);
 }
 
@@ -6092,7 +6230,7 @@ _update_data_channel_from_sdp_media (GstWebRTCBin * webrtc,
   stream->active = TRUE;
 
   receive = TRANSPORT_RECEIVE_BIN (stream->receive_bin);
-  transport_receive_bin_set_receive_state (receive, RECEIVE_STATE_PASS);
+  transport_receive_bin_set_dtls_receive_state (receive, RECEIVE_STATE_PASS);
 }
 
 static gboolean
@@ -6196,6 +6334,7 @@ _update_transceivers_from_sdp (GstWebRTCBin * webrtc, SDPSource source,
 
     stream = _get_or_create_transport_stream (webrtc, transport_idx,
         _message_media_is_datachannel (sdp->sdp, transport_idx));
+    validate_transport_fingerprint (webrtc->current_remote_description, stream);
     if (!bundled) {
       /* When bundling, these were all set up above, but when not
        * bundling we need to do it now */
@@ -6234,7 +6373,7 @@ _update_transceivers_from_sdp (GstWebRTCBin * webrtc, SDPSource source,
      * this bundle is completely inactive */
     GST_LOG_OBJECT (webrtc,
         "All mlines in bundle %u are inactive. Blocking receiver", bundle_idx);
-    transport_receive_bin_set_receive_state (bundle_stream->receive_bin,
+    transport_receive_bin_set_dtls_receive_state (bundle_stream->receive_bin,
         RECEIVE_STATE_BLOCK);
   }
 
@@ -6434,11 +6573,10 @@ _create_and_associate_transceivers_from_sdp (GstWebRTCBin * webrtc,
     mid = gst_sdp_media_get_attribute_val (media, "mid");
     direction = _get_direction_from_media (media);
 
-    /* XXX: not strictly required but a lot of functionality requires a mid */
-    if (!mid) {
-      g_set_error (error, GST_WEBRTC_ERROR, GST_WEBRTC_ERROR_SDP_SYNTAX_ERROR,
-          "Missing mid attribute in media");
-      goto out;
+    if (mid) {
+      trans = _find_transceiver_for_mid (webrtc, mid);
+    } else {
+      trans = _find_transceiver_for_mline (webrtc, i);
     }
 
     if (bundled)
@@ -6446,7 +6584,6 @@ _create_and_associate_transceivers_from_sdp (GstWebRTCBin * webrtc,
     else
       transport_idx = i;
 
-    trans = _find_transceiver_for_mid (webrtc, mid);
 
     if (sd->source == SDP_LOCAL) {
       /* If the media description was not yet associated with an RTCRtpTransceiver object then run the following steps: */
@@ -6470,8 +6607,10 @@ _create_and_associate_transceivers_from_sdp (GstWebRTCBin * webrtc,
         }
         trans->mline = i;
         /* Set transceiver.[[Mid]] to transceiver.[[JsepMid]] */
-        g_free (trans->mid);
-        trans->mid = g_strdup (mid);
+        g_clear_pointer (&trans->mid, g_free);
+        if (mid) {
+          trans->mid = g_strdup (mid);
+        }
         g_object_notify (G_OBJECT (trans), "mid");
         /* If transceiver.[[Stopped]] is true, abort these sub steps */
         if (trans->stopped)
@@ -7117,6 +7256,9 @@ _add_ice_candidate_task (GstWebRTCBin * webrtc, IceCandidateItem * item)
     ICE_LOCK (webrtc);
     g_array_append_val (webrtc->priv->pending_remote_ice_candidates, new);
     ICE_UNLOCK (webrtc);
+    if (item->promise) {
+      gst_promise_reply (item->promise, NULL);
+    }
   } else {
     _add_ice_candidate (webrtc, item, FALSE);
   }
@@ -7136,6 +7278,7 @@ gst_webrtc_bin_add_ice_candidate (GstWebRTCBin * webrtc, guint mline,
     const gchar * attr, GstPromise * promise)
 {
   IceCandidateItem *item;
+  gboolean defer_result = promise != NULL;
 
   item = g_new0 (IceCandidateItem, 1);
   item->mlineindex = mline;
@@ -7146,9 +7289,10 @@ gst_webrtc_bin_add_ice_candidate (GstWebRTCBin * webrtc, guint mline,
     else if (!g_ascii_strncasecmp (attr, "candidate:", 10))
       item->candidate = g_strdup_printf ("a=%s", attr);
   }
-  if (!gst_webrtc_bin_enqueue_task (webrtc,
+
+  if (!gst_webrtc_bin_enqueue_task_full (webrtc,
           (GstWebRTCBinFunc) _add_ice_candidate_task, item,
-          (GDestroyNotify) _free_ice_candidate_item, promise)) {
+          (GDestroyNotify) _free_ice_candidate_item, promise, defer_result)) {
     GError *error =
         g_error_new (GST_WEBRTC_ERROR, GST_WEBRTC_ERROR_INVALID_STATE,
         "Could not add ICE candidate. webrtcbin is closed");
@@ -7162,7 +7306,7 @@ gst_webrtc_bin_add_ice_candidate (GstWebRTCBin * webrtc, guint mline,
 }
 
 static GstStructure *
-_on_local_ice_candidate_task (GstWebRTCBin * webrtc)
+_on_local_ice_candidate_task (GstWebRTCBin * webrtc, gpointer data)
 {
   gsize i;
   GArray *items;
@@ -7231,7 +7375,9 @@ _on_local_ice_candidate_task (GstWebRTCBin * webrtc)
   }
   g_array_free (items, TRUE);
 
-  return NULL;
+  /* Clearing all pending ice candidates may have allowed the gathering
+   * state to transition to complete - so check it before exiting */
+  return _update_ice_gathering_state_task (webrtc, data);
 }
 
 static void
@@ -7434,7 +7580,10 @@ gst_webrtc_bin_create_data_channel (GstWebRTCBin * webrtc, const gchar * label,
   g_return_val_if_fail (GST_IS_WEBRTC_BIN (webrtc), NULL);
   g_return_val_if_fail (label != NULL, NULL);
   g_return_val_if_fail (strlen (label) <= 65535, NULL);
-  g_return_val_if_fail (webrtc->priv->is_closed != TRUE, NULL);
+
+  if (webrtc->priv->is_closed) {
+    return NULL;
+  }
 
   if (!init_params
       || !gst_structure_get_boolean (init_params, "ordered", &ordered))
@@ -7576,7 +7725,7 @@ on_rtpbin_pad_added (GstElement * rtpbin, GstPad * new_pad,
     guint32 session_id = 0, ssrc = 0, pt = 0;
     SsrcMapItem *mid_entry;
     GstWebRTCRTPTransceiver *rtp_trans = NULL;
-    WebRTCTransceiver *trans;
+    WebRTCTransceiver *trans GST_UNUSED_ASSERT;
     TransportStream *stream;
     GstWebRTCBinPad *pad;
     guint media_idx;
@@ -8235,8 +8384,8 @@ gst_webrtc_bin_change_state (GstElement * element, GstStateChange transition)
   GstStateChangeReturn ret = GST_STATE_CHANGE_SUCCESS;
 
   GST_DEBUG ("changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:{
@@ -8271,6 +8420,7 @@ gst_webrtc_bin_change_state (GstElement * element, GstStateChange transition)
       webrtc->priv->running = FALSE;
       break;
     case GST_STATE_CHANGE_READY_TO_NULL:
+      gst_webrtc_ice_close (webrtc->priv->ice, NULL);
       _stop_thread (webrtc);
       break;
     default:
@@ -8616,6 +8766,164 @@ _update_rtpstorage_latency (GstWebRTCBin * webrtc)
   }
 }
 
+struct close_data
+{
+  GWeakRef webrtc_weak;
+  GstPromise *promise;
+};
+
+static struct close_data *
+close_data_new (GstWebRTCBin * webrtc, GstPromise * p)
+{
+  struct close_data *d = g_atomic_rc_box_new0 (struct close_data);
+  g_weak_ref_init (&d->webrtc_weak, webrtc);
+  if (p)
+    d->promise = gst_promise_ref (p);
+  return d;
+}
+
+static void
+close_data_clear (struct close_data *d)
+{
+  g_weak_ref_clear (&d->webrtc_weak);
+  if (d->promise)
+    gst_promise_unref (d->promise);
+}
+
+static void
+close_data_unref (struct close_data *d)
+{
+  g_atomic_rc_box_release_full (d, (GDestroyNotify) close_data_clear);
+}
+
+static void
+on_ice_closed (GstPromise * close_promise, gpointer user_data)
+{
+  struct close_data *d = (struct close_data *) user_data;
+  GstWebRTCBin *webrtc = g_weak_ref_get (&d->webrtc_weak);
+
+  if (webrtc) {
+    GST_OBJECT_LOCK (webrtc);
+    /* 10. Set connection.[[IceConnectionState]] to "closed". This does not fire
+     * any event. */
+    webrtc->ice_connection_state = GST_WEBRTC_ICE_CONNECTION_STATE_CLOSED;
+
+    /* 11. Set connection.[[ConnectionState]] to "closed". This does not fire
+     * any event. */
+    webrtc->peer_connection_state = GST_WEBRTC_PEER_CONNECTION_STATE_CLOSED;
+    GST_OBJECT_UNLOCK (webrtc);
+    gst_object_unref (webrtc);
+  }
+
+  if (d->promise)
+    gst_promise_reply (d->promise, NULL);
+}
+
+static void
+gst_webrtc_bin_close (GstWebRTCBin * webrtc, GstPromise * promise)
+{
+  guint i;
+  GstPromise *close_promise = NULL;
+  struct close_data *d = NULL;
+
+  /* https://www.w3.org/TR/webrtc/#dom-rtcpeerconnection-close */
+
+  GST_OBJECT_LOCK (webrtc);
+
+  /* 1. If connection.[[IsClosed]] is true, abort these steps. */
+  if (webrtc->priv->is_closed) {
+    GError *error = NULL;
+    GstStructure *s = NULL;
+
+    GST_OBJECT_UNLOCK (webrtc);
+
+    error =
+        g_error_new (GST_WEBRTC_ERROR, GST_WEBRTC_ERROR_INVALID_STATE,
+        "Connection is already closed");
+    s = gst_structure_new ("application/x-gst-promise", "error",
+        G_TYPE_ERROR, error, NULL);
+    gst_promise_reply (promise, s);
+    g_clear_error (&error);
+    return;
+  }
+
+  /* 2. Set connection.[[IsClosed]] to true. */
+  webrtc->priv->is_closed = TRUE;
+  GST_OBJECT_UNLOCK (webrtc);
+
+  _quit_pc_loop (webrtc);
+
+  /* 3. Set connection.[[SignalingState]] to "closed". This does not fire any
+   * event. */
+  GST_OBJECT_LOCK (webrtc);
+  webrtc->signaling_state = GST_WEBRTC_SIGNALING_STATE_CLOSED;
+
+  /* 4. Let transceivers be the result of executing the CollectTransceivers
+   * algorithm.
+   * For every RTCRtpTransceiver transceiver in transceivers, run the
+   * following steps: */
+  for (i = 0; i < webrtc->priv->transceivers->len; i++) {
+    GstWebRTCRTPTransceiver *rtp_trans =
+        g_ptr_array_index (webrtc->priv->transceivers, i);
+
+    /* 4.1. If transceiver.[[Stopped]] is true, abort these sub steps. */
+    if (rtp_trans->stopped) {
+      GST_TRACE_OBJECT (webrtc, "transceiver %p stopped", rtp_trans);
+      continue;
+    }
+    /* 4.2. Stop the RTCRtpTransceiver with transceiver and disappear. (Currently unsupported) */
+  }
+  GST_OBJECT_UNLOCK (webrtc);
+
+  /* 5. Set the [[ReadyState]] slot of each of connection's RTCDataChannels to
+   * "closed". */
+  DC_LOCK (webrtc);
+  for (i = 0; i < webrtc->priv->data_channels->len; i++) {
+    WebRTCDataChannel *channel =
+        g_ptr_array_index (webrtc->priv->data_channels, i);
+    channel->parent.ready_state = GST_WEBRTC_DATA_CHANNEL_STATE_CLOSED;
+  }
+  DC_UNLOCK (webrtc);
+
+  /* 6. If connection.[[SctpTransport]] is not null, tear down the underlying
+   * SCTP association by sending an SCTP ABORT chunk and set the
+   * [[SctpTransportState]] to "closed". */
+  if (webrtc->priv->sctp_transport) {
+    gst_element_set_state (webrtc->priv->sctp_transport->sctpenc,
+        GST_STATE_READY);
+  }
+
+  GST_OBJECT_LOCK (webrtc);
+
+  /* 7. Set the [[DtlsTransportState]] slot of each of connection's
+   * RTCDtlsTransports to "closed". */
+  for (i = 0; i < webrtc->priv->transceivers->len; i++) {
+    GstWebRTCRTPTransceiver *rtp_trans =
+        g_ptr_array_index (webrtc->priv->transceivers, i);
+    GstWebRTCDTLSTransport *transport;
+
+    transport = webrtc_transceiver_get_dtls_transport (rtp_trans);
+    if (transport) {
+      transport->state = GST_WEBRTC_DTLS_TRANSPORT_STATE_CLOSED;
+    }
+  }
+
+  GST_OBJECT_UNLOCK (webrtc);
+
+  /* 8. Destroy connection's ICE Agent, abruptly ending any active ICE
+   * processing and releasing any relevant resources (e.g. TURN permissions).
+   * 9. Set the [[IceTransportState]] slot of each of connection's
+   * RTCIceTransports to "closed". */
+  /* NOTE: We perform these operations asynchronously while the "abruptly" word
+   * from the spec suggests this should be done synchronously. */
+  d = close_data_new (webrtc, promise);
+  close_promise =
+      gst_promise_new_with_change_func (on_ice_closed, d,
+      (GDestroyNotify) close_data_unref);
+  gst_webrtc_ice_close (webrtc->priv->ice, close_promise);
+  gst_promise_unref (close_promise);
+}
+
 static void
 gst_webrtc_bin_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec)
@@ -8789,6 +9097,14 @@ gst_webrtc_bin_dispose (GObject * object)
     g_array_free (webrtc->priv->ice_stream_map, TRUE);
   webrtc->priv->ice_stream_map = NULL;
 
+  if (webrtc->priv->sctp_transport) {
+    gst_element_set_locked_state (webrtc->priv->sctp_transport->sctpdec, FALSE);
+    gst_element_set_locked_state (webrtc->priv->sctp_transport->sctpenc, FALSE);
+    gst_element_set_state (webrtc->priv->sctp_transport->sctpdec,
+        GST_STATE_NULL);
+    gst_element_set_state (webrtc->priv->sctp_transport->sctpenc,
+        GST_STATE_NULL);
+  }
   g_clear_object (&webrtc->priv->sctp_transport);
 
   G_OBJECT_CLASS (parent_class)->dispose (object);
@@ -8877,7 +9193,7 @@ gst_webrtc_bin_class_init (GstWebRTCBinClass * klass)
   gst_element_class_add_static_pad_template_with_gtype (element_class,
       &src_template, GST_TYPE_WEBRTC_BIN_SRC_PAD);
 
-  gst_element_class_set_metadata (element_class, "WebRTC Bin",
+  gst_element_class_set_static_metadata (element_class, "WebRTC Bin",
       "Filter/Network/WebRTC", "A bin for webrtc connections",
       "Matthew Waters <matthew@centricular.com>");
 
@@ -9159,6 +9475,22 @@ gst_webrtc_bin_class_init (GstWebRTCBinClass * klass)
       G_TYPE_NONE, 3, G_TYPE_UINT, G_TYPE_STRING, GST_TYPE_PROMISE);
 
   /**
+   * GstWebRTCBin::close:
+   * @object: the #webrtcbin
+   * @promise: (nullable): a #GstPromise to be notified when the task is
+   * complete.
+   *
+   * Invoke the close procedure as specified in
+   * https://www.w3.org/TR/webrtc/#dom-rtcpeerconnection-close.
+   *
+   * Since: 1.28
+   */
+  gst_webrtc_bin_signals[CLOSE_SIGNAL] =
+      g_signal_new_class_handler ("close", G_TYPE_FROM_CLASS (klass),
+      G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION, G_CALLBACK (gst_webrtc_bin_close),
+      NULL, NULL, NULL, G_TYPE_NONE, 1, GST_TYPE_PROMISE);
+
+  /**
    * GstWebRTCBin::get-stats:
    * @object: the #webrtcbin
    * @pad: (nullable): A #GstPad to get the stats for, or %NULL for all
@@ -9251,6 +9583,11 @@ gst_webrtc_bin_class_init (GstWebRTCBinClass * klass)
    *  "protocol"             G_TYPE_STRING              Either "udp" or "tcp". Based on the "transport" defined in RFC 5245
    *  "relay-protocol"       G_TYPE_STRING              protocol used by the endpoint to communicate with the TURN server. Only present for local candidates. Either "udp", "tcp" or "tls"
    *  "url"                  G_TYPE_STRING              URL of the ICE server from which the candidate was obtained. Only present for local candidates
+   * "foundation"            G_TYPE_STRING              ICE foundation as defined in RFC 5245 section 15.1 (Since: 1.28)
+   * "related-address"       G_TYPE_STRING              ICE rel-addr as defined in RFC 5245 section 15.1. Only set for server-reflexive, peer-reflexive and relay candidates (Since: 1.28)
+   * "related-port"          G_TYPE_UINT                ICE rel-port as defined in RFC 5245 section 15.1. Only set for serverreflexive, peer-reflexive and relay candidates (Since: 1.28)
+   * "username-fragment"     G_TYPE_STRING              ICE username fragment as defined in RFC 5245 section 7.1.2.3 (Since: 1.28)
+   * "tcp-type"              G_TYPE_STRING              ICE candidate TCP type as defined in RTCIceTcpCandidateType (Since: 1.28)
    *
    * RTCIceCandidatePairStats supported fields (https://www.w3.org/TR/webrtc-stats/#candidatepair-dict*) (Since: 1.22)
    *

@@ -40,6 +40,11 @@
 #include "dirmngr-status.h"
 #include "http.h"     /* (parsed_uri_t) */
 
+
+/* The maximum length of a binary digest.  */
+#define MAX_DIGEST_LEN 64     /* Fits for SHA-512 */
+
+
 /* This objects keeps information about a particular LDAP server and
    is used as item of a single linked list of servers. */
 struct ldap_server_s
@@ -55,7 +60,9 @@ struct ldap_server_s
   unsigned int ldap_over_tls:1;  /* Use LDAP over an TLS tunnel */
   unsigned int ntds:1;           /* Use Active Directory authentication.  */
   unsigned int areconly:1;       /* Set LDAP_OPT_AREC_EXCLUSIVE.  */
+  unsigned int upload:1;         /* Use this server only for upload.  */
 };
+
 typedef struct ldap_server_s *ldap_server_t;
 
 
@@ -160,6 +167,8 @@ struct
 
   strlist_t keyserver;              /* List of default keyservers.  */
 
+  const char *user_agent;           /* The HTTP Use-Agent (never NULL).  */
+
   /* Compatibility flags (COMPAT_FLAG_xxxx).  */
   unsigned int compat_flags;
 } opt;
@@ -177,6 +186,7 @@ struct
 #define DBG_LOOKUP_VALUE  8192  /* debug lookup details */
 #define DBG_EXTPROG_VALUE 16384 /* debug external program calls */
 #define DBG_KEEPTMP_VALUE 32768 /* keep some temporary files    */
+#define DBG_LDAP_VALUE    65536 /* debug ldap connection problems.  */
 
 #define DBG_X509    (opt.debug & DBG_X509_VALUE)
 #define DBG_CRYPTO  (opt.debug & DBG_CRYPTO_VALUE)
@@ -189,6 +199,7 @@ struct
 #define DBG_LOOKUP  (opt.debug & DBG_LOOKUP_VALUE)
 #define DBG_EXTPROG (opt.debug & DBG_EXTPROG_VALUE)
 #define DBG_KEEPTMP (opt.debug & DBG_KEEPTMP_VALUE)
+#define DBG_LDAP    (opt.debug & DBG_LDAP_VALUE)
 
 /* Compatibility flags */
 
@@ -200,6 +211,10 @@ struct
  * old behaviour by using this compatibility flag.  For details see
  * https://dev.gnupg.org/T6477.  */
 #define COMPAT_RESTRICT_HTTP_REDIR   1
+
+/* There is a demand to use SHA-256 for hashing elements of the OCSP
+ * CertID.  Allow to enable this with a recent enough Libksba.  */
+#define COMPAT_OCSP_SHA256_CERTID   2
 
 
 /* A simple list of certificate references.  FIXME: Better use
@@ -241,7 +256,7 @@ struct server_control_s
   int audit_events;  /* Send audit events to client.  */
   char *http_proxy;  /* The used http_proxy or NULL.  */
 
-  nvc_t rootdse;     /* Container wit the rootDSE properties.  */
+  nvc_t rootdse;     /* Container with the rootDSE properties.  */
 
   unsigned int timeout; /* Timeout for connect calls in ms.  */
 

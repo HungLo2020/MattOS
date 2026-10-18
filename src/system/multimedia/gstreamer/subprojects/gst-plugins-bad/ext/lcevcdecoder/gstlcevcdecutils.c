@@ -25,10 +25,30 @@ gst_lcevc_dec_utils_get_color_format (GstVideoFormat format)
   switch (format) {
     case GST_VIDEO_FORMAT_I420:
       return LCEVC_I420_8;
+    case GST_VIDEO_FORMAT_I420_10LE:
+      return LCEVC_I420_10_LE;
+    case GST_VIDEO_FORMAT_I420_12LE:
+      return LCEVC_I420_12_LE;
+
+    case GST_VIDEO_FORMAT_Y42B:
+      return LCEVC_I422_8;
+    case GST_VIDEO_FORMAT_I422_10LE:
+      return LCEVC_I422_10_LE;
+    case GST_VIDEO_FORMAT_I422_12LE:
+      return LCEVC_I422_12_LE;
+
+    case GST_VIDEO_FORMAT_Y444:
+      return LCEVC_I444_8;
+    case GST_VIDEO_FORMAT_Y444_10LE:
+      return LCEVC_I444_10_LE;
+    case GST_VIDEO_FORMAT_Y444_12LE:
+      return LCEVC_I444_12_LE;
+
     case GST_VIDEO_FORMAT_NV12:
       return LCEVC_NV12_8;
     case GST_VIDEO_FORMAT_NV21:
       return LCEVC_NV21_8;
+
     case GST_VIDEO_FORMAT_RGB:
       return LCEVC_RGB_8;
     case GST_VIDEO_FORMAT_BGR:
@@ -41,6 +61,12 @@ gst_lcevc_dec_utils_get_color_format (GstVideoFormat format)
       return LCEVC_ARGB_8;
     case GST_VIDEO_FORMAT_ABGR:
       return LCEVC_ABGR_8;
+
+    case GST_VIDEO_FORMAT_GRAY8:
+      return LCEVC_GRAY_8;
+    case GST_VIDEO_FORMAT_GRAY16_LE:
+      return LCEVC_GRAY_16_LE;
+
     default:
       break;
   }
@@ -50,7 +76,8 @@ gst_lcevc_dec_utils_get_color_format (GstVideoFormat format)
 
 gboolean
 gst_lcevc_dec_utils_alloc_picture_handle (LCEVC_DecoderHandle decoder_handle,
-    GstVideoFrame * frame, LCEVC_PictureHandle * picture_handle)
+    GstVideoFrame * frame, LCEVC_PictureHandle * picture_handle,
+    LCEVC_Access access)
 {
   LCEVC_PictureDesc picture_desc = { 0, };
   LCEVC_PictureBufferDesc buffer_desc = { 0, };
@@ -67,21 +94,19 @@ gst_lcevc_dec_utils_alloc_picture_handle (LCEVC_DecoderHandle decoder_handle,
           GST_VIDEO_FRAME_WIDTH (frame), GST_VIDEO_FRAME_HEIGHT (frame))
       != LCEVC_Success)
     return FALSE;
+  picture_desc.sampleAspectRatioNum = GST_VIDEO_INFO_PAR_N (&frame->info);
+  picture_desc.sampleAspectRatioDen = GST_VIDEO_INFO_PAR_D (&frame->info);
 
   /* Set buffer description */
   buffer_desc.data = GST_VIDEO_FRAME_PLANE_DATA (frame, 0);
   buffer_desc.byteSize = GST_VIDEO_FRAME_SIZE (frame);
-  buffer_desc.access = LCEVC_Access_Write;
+  buffer_desc.access = access;
 
   /* Set plane description */
   for (i = 0; i < GST_VIDEO_FRAME_N_PLANES (frame); i++) {
     plane_desc[i].firstSample = GST_VIDEO_FRAME_PLANE_DATA (frame, i);
     plane_desc[i].rowByteStride = GST_VIDEO_FRAME_PLANE_STRIDE (frame, i);
   }
-
-  /* FIXME: We set the stride on all the array (needed for LCEVCdec 2.0.0) */
-  for (; i < GST_VIDEO_MAX_PLANES; i++)
-    plane_desc[i].rowByteStride = GST_VIDEO_FRAME_WIDTH (frame);
 
   /* Allocate LCEVC Picture */
   if (LCEVC_AllocPictureExternal (decoder_handle, &picture_desc, &buffer_desc,

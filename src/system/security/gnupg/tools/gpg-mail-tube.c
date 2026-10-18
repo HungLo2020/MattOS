@@ -35,9 +35,9 @@
 #include "../common/init.h"
 #include "../common/sysutils.h"
 #include "../common/ccparray.h"
-#include "../common/exechelp.h"
 #include "../common/mbox-util.h"
 #include "../common/zb32.h"
+#include "../common/i18n.h"
 #include "rfc822parse.h"
 #include "mime-maker.h"
 
@@ -154,7 +154,7 @@ struct parser_context_s
 static gpg_error_t mail_tube_encrypt (estream_t fpin, strlist_t recipients);
 static void prepare_for_appimage (void);
 static gpg_error_t start_gpg_encrypt (estream_t *r_input,
-                                      pid_t *r_pid,
+                                      gpgrt_process_t *r_proc,
                                       strlist_t recipients);
 
 
@@ -250,12 +250,14 @@ main (int argc, char **argv)
   enum cmd_and_opt_values cmd;
   strlist_t recipients = NULL;
   int i;
+  const char *s;
 
   gnupg_reopen_std ("gpg-mail-tube");
   gpgrt_set_strusage (my_strusage);
   log_set_prefix ("gpg-mail-tube", GPGRT_LOG_WITH_PREFIX);
 
   /* Make sure that our subsystems are ready.  */
+  i18n_init();  /* Required for gnupg_get_template.  */
   init_common_subsystems (&argc, &argv);
 
   /* Parse the command line. */
@@ -319,14 +321,31 @@ main (int argc, char **argv)
         }
     }
 
-  /* The remaining argumenst are the recipients - put them into a list.  */
+  /* The remaining arguments are the recipients - put them into a list.  */
   /* TODO: Check that these are all valid mail addresses so that gpg
    * will consider them as such.  */
   for (i=0; i < argc; i++)
     add_to_strlist (&recipients, argv[i]);
 
   if (opt.vsd)
-    prepare_for_appimage ();
+    {
+      prepare_for_appimage ();
+
+      /* In VSD mode we set GNUPGHOME unless it has already been set.
+       * This is the same what the AppImage shell does.  This has to
+       * be done after the appimage has been started because otherwise
+       * the AppImage won't write the run-gpgconf script. */
+      if (!(s=getenv ("GNUPGHOME")) || !*s)
+        {
+          char *tmpstr, *estr;
+
+          tmpstr = make_filename ("~/.gnupg-vsd", NULL);
+          estr = xstrconcat ("GNUPGHOME=", tmpstr, NULL);
+          xfree (tmpstr);
+          gpgrt_annotate_leaked_object (estr);
+          putenv (estr);
+        }
+    }
 
   if (log_get_errorcount (0))
     exit (2);
@@ -349,6 +368,18 @@ main (int argc, char **argv)
     log_error ("command failed: %s\n", gpg_strerror (err));
   free_strlist (recipients);
   return log_get_errorcount (0)? 1:0;
+}
+
+
+/* Return true if STRING has only ascii characters or is NULL.  */
+static int
+only_ascii (const char *string)
+{
+  if (string)
+    for ( ; *string; string++)
+      if ((*string & 0x80))
+        return 0;
+  return 1;
 }
 
 
@@ -409,7 +440,7 @@ mail_tube_encrypt (estream_t fpin, strlist_t recipients)
   const char *s;
   char *boundary = NULL;  /* Actually only the random part of it.  */
   estream_t gpginfp = NULL;
-  pid_t pid = (pid_t)(-1);
+  gpgrt_process_t proc = NULL;
   int exitcode;
   int i, found;
   int ct_is_text = 0;
@@ -532,20 +563,47 @@ mail_tube_encrypt (estream_t fpin, strlist_t recipients)
   /* Output the plain or PGP/MIME boilerplate.  */
   if (opt.as_attach)
     {
-      /* FIXME: Need to have a configurable message here.  */
+      char *templ, *tmpstr;
+      const char *charset = "us-ascii";
+      const char *ctencode = "";
+
+      templ = gnupg_get_template ("mail-tube",
+                                  ct_is_text? "encrypted-file-attached"
+                                            : "encrypted-mail-attached",
+                                  (GET_TEMPLATE_SUBST_ENVVARS
+                                   | GET_TEMPLATE_CRLF),
+                                  NULL);
+      if (templ && !only_ascii (templ))
+        {
+          charset = "utf-8";
+          ctencode = "Content-Transfer-Encoding: quoted-printable\r\n";
+          tmpstr = mime_maker_qp_encode (templ);
+          if (!tmpstr)
+            {
+              log_error ("QP encoding failed: %s\n",
+                         gpg_strerror (gpg_error_from_syserror ()));
+              exit (1);
+            }
+          xfree (templ);
+          templ = tmpstr;
+        }
       es_fprintf (es_stdout,
                   "\r\n"
                   "\r\n"
                   "--=-=mt-%s=-=\r\n"
-                  "Content-Type: text/plain; charset=us-ascii\r\n"
+                  "Content-Type: text/plain; charset=%s\r\n"
+                  "%s"
                   "Content-Disposition: inline\r\n"
                   "\r\n"
-                  "Please find attached an encrypted %s.\r\n"
+                  "%s"
                   "\r\n"
                   "--=-=mt-%s=-=\r\n",
                   boundary,
-                  ct_is_text? "file":"message",
+                  charset, ctencode,
+                  templ? templ
+                       : "Please find attached an encrypted file/mail.\r\n",
                   boundary);
+      xfree (templ);
       if (ct_is_text)
         es_fprintf (es_stdout,
                     "Content-Type: text/plain; charset=us-ascii\r\n"
@@ -576,7 +634,7 @@ mail_tube_encrypt (estream_t fpin, strlist_t recipients)
               "\r\n", boundary, boundary);
 
   /* Start gpg and get a stream to fed data to gpg */
-  err = start_gpg_encrypt (&gpginfp, &pid, recipients);
+  err = start_gpg_encrypt (&gpginfp, &proc, recipients);
   if (err)
     {
       log_error ("failed to start gpg process: %s\n", gpg_strerror (err));
@@ -627,20 +685,23 @@ mail_tube_encrypt (estream_t fpin, strlist_t recipients)
   if (err)
     log_error ("error closing pipe: %s\n", gpg_strerror (err));
 
-  err = gnupg_wait_process (opt.gpg_program, pid, 1 /* hang */, &exitcode);
+  err = gpgrt_process_wait (proc, 1 /* hang */);
   if (err)
     {
       log_error ("waiting for process %s failed: %s\n",
                  opt.gpg_program, gpg_strerror (err));
       goto leave;
     }
-  pid = (pid_t)(-1);
+  gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &exitcode);
   if (exitcode)
     {
       log_error ("running %s failed: exitcode=%d\n",
                  opt.gpg_program, exitcode);
       goto leave;
     }
+
+  gpgrt_process_release (proc);
+  proc = NULL;
 
   /* Output the final boundary.  */
   es_fflush (es_stdout);
@@ -659,6 +720,7 @@ mail_tube_encrypt (estream_t fpin, strlist_t recipients)
 
  leave:
   gpgrt_fcancel (gpginfp);
+  gpgrt_process_release (proc);
   rfc822parse_cancel (ctx->msg);
   xfree (boundary);
   return err;
@@ -749,13 +811,37 @@ prepare_for_appimage (void)
     {
       /* Run the sleep program for 2^30 seconds (34 years). */
       static const char *args[4] = { "-c", "sleep", "1073741824", NULL };
+      static char *save_gpghome;
+      static int gpghome_saved;
+      gpgrt_spawn_actions_t act;
 
+      /* Reset the GNUPGHOME so that the AppRun shell can do the Right
+       * Thing; i.e. creating a ~/.gnupg-vsd/run-gpgconf script.  */
+      if (!gpghome_saved)
+        {
+          if ((save_gpghome = getenv ("GNUPGHOME")) && *save_gpghome)
+            {
+              save_gpghome = xstrconcat ("GNUPGHOME=", save_gpghome, NULL);
+              gpgrt_annotate_leaked_object (save_gpghome);
+              putenv ("GNUPGHOME=");
+            }
+          gpghome_saved = 1;
+        }
+
+      /* Note that we need to  use that fixed GNUPGHOME.  */
       fname = make_filename ("~/.gnupg-vsd/gnupg-vs-desktop.AppImage", NULL);
 
-      err = gnupg_spawn_process_detached (fname, args, NULL);
+      err = gpgrt_spawn_actions_new (&act);
+      if (!err)
+        {
+          err = gpgrt_process_spawn (fname, args,
+                                     GPGRT_PROCESS_DETACHED, act, NULL);
+          gpgrt_spawn_actions_release (act);
+        }
       if (err)
         {
-          log_error ("failed to spawn '%s': %s\n", fname, gpg_strerror (err));
+          log_error ("failed to start '%s': %s\n",
+                     fname, gpg_strerror (err));
           return;
         }
       for (i=0; i < 30 && !(gpgbin = get_vsd_gpgbin ()); i++)
@@ -764,6 +850,8 @@ prepare_for_appimage (void)
             log_info ("waiting until the AppImage has started ...\n");
           gnupg_sleep (1);
         }
+      if (gpgbin && gpghome_saved && save_gpghome && *save_gpghome)
+        putenv (save_gpghome);
       if (opt.verbose && gpgbin)
         log_info ("using AppImage gpg binary '%s'\n", gpgbin);
     }
@@ -780,27 +868,37 @@ prepare_for_appimage (void)
 
 
 /* Create a new gpg process for encryption.  On success a new stream
- * is stored at R_INPUT and the process' pid at R_PID.  The gpg
+ * is stored at R_INPUT and the process objectat R_PROC.  The gpg
  * output is sent to stdout and is always armored.  */
 static gpg_error_t
-start_gpg_encrypt (estream_t *r_input, pid_t *r_pid,
+start_gpg_encrypt (estream_t *r_input, gpgrt_process_t *r_proc,
                    strlist_t recipients)
 {
   gpg_error_t err;
   strlist_t sl;
   ccparray_t ccp;
+#ifdef HAVE_W32_SYSTEM
+  HANDLE except[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+#else
   int except[2] = { -1, -1 };
+#endif
   const char **argv;
+  gpgrt_spawn_actions_t act = NULL;
   char *logfilebuf = NULL;
+  const char *s;
 
   *r_input = NULL;
-  *r_pid = (pid_t)(-1);
+  *r_proc = NULL;
   es_fflush (es_stdout);
 
   if (opt.verbose)
-    log_info ("starting gpg as %u:%u with HOME=%s\n",
-              (unsigned int)getuid (), (unsigned int)getgid (),
-              getenv ("HOME"));
+    {
+      if (!(s = getenv ("GNUPGHOME")))
+        s = "";
+      log_info ("starting gpg as %u:%u with %s%s\n",
+                (unsigned int)getuid (), (unsigned int)getgid (),
+                *s? "GNUPGHOME=":"HOME=", *s? s : getenv ("HOME"));
+    }
   ccparray_init (&ccp, 0);
   ccparray_put (&ccp, "--batch");
   if (opt.logfile)
@@ -834,19 +932,34 @@ start_gpg_encrypt (estream_t *r_input, pid_t *r_pid,
       goto leave;
     }
 
-  err = gnupg_spawn_process (opt.gpg_program, argv,
-                             except[0] == -1? NULL : except,
-                             (GNUPG_SPAWN_KEEP_STDOUT
-                              | GNUPG_SPAWN_KEEP_STDERR),
-                             r_input, NULL, NULL, r_pid);
+  err = gpgrt_spawn_actions_new (&act);
+  if (err)
+    {
+      xfree (argv);
+      goto leave;
+    }
 
+#ifdef HAVE_W32_SYSTEM
+  gpgrt_spawn_actions_set_inherit_handles (act, except);
+#else
+  gpgrt_spawn_actions_set_inherit_fds (act, except);
+#endif
+  err = gpgrt_process_spawn (opt.gpg_program, argv,
+                             (GPGRT_PROCESS_STDIN_PIPE
+                              | GPGRT_PROCESS_STDOUT_KEEP
+                              | GPGRT_PROCESS_STDERR_KEEP), act, r_proc);
+  gpgrt_spawn_actions_release (act);
   xfree (argv);
   if (err)
     goto leave;
+  gpgrt_process_get_streams (*r_proc, 0, r_input, NULL, NULL);
 
  leave:
   if (err)
-    *r_pid = (pid_t)(-1);
+    {
+      gpgrt_process_release (*r_proc);
+      *r_proc = NULL;
+    }
   xfree (logfilebuf);
   return err;
 }

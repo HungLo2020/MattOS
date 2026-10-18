@@ -28,7 +28,6 @@
 
 #include "gstglelements.h"
 #include "gstgluploadelement.h"
-#include "gstglutils.h"
 
 GST_DEBUG_CATEGORY_STATIC (gst_gl_upload_element_debug);
 #define GST_CAT_DEFAULT gst_gl_upload_element_debug
@@ -128,7 +127,7 @@ gst_gl_upload_element_class_init (GstGLUploadElementClass * klass)
       gst_pad_template_new ("sink", GST_PAD_SINK, GST_PAD_ALWAYS, upload_caps));
   gst_caps_unref (upload_caps);
 
-  gst_element_class_set_metadata (element_class,
+  gst_element_class_set_static_metadata (element_class,
       "OpenGL uploader", "Filter/Video",
       "Uploads data into OpenGL", "Matthew Waters <matthew@centricular.com>");
 
@@ -381,8 +380,8 @@ gst_gl_upload_element_change_state (GstElement * element,
   GstStateChangeReturn ret = GST_STATE_CHANGE_SUCCESS;
 
   GST_DEBUG_OBJECT (upload, "changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   ret = GST_ELEMENT_CLASS (parent_class)->change_state (element, transition);
   if (ret == GST_STATE_CHANGE_FAILURE)

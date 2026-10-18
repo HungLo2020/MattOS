@@ -36,27 +36,6 @@
 #include "iobuf.h"
 #include "i18n.h"
 
-/* Used by libgcrypt for logging.  */
-static void
-my_gcry_logger (void *dummy, int level, const char *fmt, va_list arg_ptr)
-{
-  (void)dummy;
-
-  /* Map the log levels.  */
-  switch (level)
-    {
-    case GCRY_LOG_CONT: level = GPGRT_LOGLVL_CONT; break;
-    case GCRY_LOG_INFO: level = GPGRT_LOGLVL_INFO; break;
-    case GCRY_LOG_WARN: level = GPGRT_LOGLVL_WARN; break;
-    case GCRY_LOG_ERROR:level = GPGRT_LOGLVL_ERROR; break;
-    case GCRY_LOG_FATAL:level = GPGRT_LOGLVL_FATAL; break;
-    case GCRY_LOG_BUG:  level = GPGRT_LOGLVL_BUG; break;
-    case GCRY_LOG_DEBUG:level = GPGRT_LOGLVL_DEBUG; break;
-    default:            level = GPGRT_LOGLVL_ERROR; break;
-    }
-  log_logv (level, fmt, arg_ptr);
-}
-
 
 /* This function is called by libgcrypt on a fatal error.  */
 static void
@@ -100,7 +79,6 @@ my_gcry_outofcore_handler (void *opaque, size_t req_n, unsigned int flags)
 void
 setup_libgcrypt_logging (void)
 {
-  gcry_set_log_handler (my_gcry_logger, NULL);
   gcry_set_fatalerror_handler (my_gcry_fatalerror_handler, NULL);
   gcry_set_outofcore_handler (my_gcry_outofcore_handler, NULL);
 }
@@ -143,6 +121,22 @@ gnupg_cipher_algo_name (int algo)
   if (!strcmp (s, "AES"))
     s = "AES128";
   return s;
+}
+
+
+/* Return a string for the cipher MODE.  For unknown modes "?" is
+ * returned.  */
+const char *
+gnupg_cipher_mode_name (int mode)
+{
+  switch (mode)
+    {
+    case GCRY_CIPHER_MODE_CBC: return "CBC";
+    case GCRY_CIPHER_MODE_GCM: return "GCM";
+    case GCRY_CIPHER_MODE_OCB: return "OCB";
+    case GCRY_CIPHER_MODE_EAX: return "EAX";
+    default: return "?";
+    }
 }
 
 
@@ -686,4 +680,54 @@ parse_compatibility_flags (const char *string, unsigned int *flagvar,
 
   *flagvar |= result;
   return 0;
+}
+
+
+/* Convert STRING consisting of base64 characters into its binary
+ * representation and store the result in a newly allocated buffer at
+ * R_BUFFER with its length at R_BUFLEN.  If TITLE is NULL a plain
+ * base64 decoding is done.  If it is the empty string the decoder
+ * will skip everything until a "-----BEGIN " line has been seen,
+ * decoding then ends at a "----END " line.  On failure the function
+ * returns an error code and sets R_BUFFER to NULL.  If the decoded
+ * data has a length of 0 a dummy buffer will still be allocated and
+ * the length is set to 0. */
+gpg_error_t
+b64decode (const char *string, const char *title,
+           void **r_buffer, size_t *r_buflen)
+{
+  gpg_error_t err;
+  gpgrt_b64state_t state;
+  size_t nbytes;
+  char *buffer;
+
+  *r_buffer = NULL;
+  *r_buflen = 0;
+
+  buffer = xtrystrdup (string);
+  if (!buffer)
+    return gpg_error_from_syserror();
+
+  state = gpgrt_b64dec_start (title);
+  if (!state)
+    {
+      err = gpg_error_from_syserror ();
+      xfree (buffer);
+      return err;
+    }
+  err = gpgrt_b64dec_proc (state, buffer, strlen (buffer), &nbytes);
+  if (!err)
+    {
+      err = gpgrt_b64dec_finish (state);
+      state = NULL;
+    }
+  if (err)
+    xfree (buffer);
+  else
+    {
+      *r_buffer = buffer;
+      *r_buflen = nbytes;
+    }
+  gpgrt_b64dec_finish (state);  /* Make sure it is released.  */
+  return err;
 }

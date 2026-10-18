@@ -58,9 +58,13 @@ GString*     g_string_new_len           (const gchar     *init,
                                          gssize           len);
 GLIB_AVAILABLE_IN_ALL
 GString*     g_string_sized_new         (gsize            dfl_size);
+GLIB_AVAILABLE_IN_2_86
+GString     *g_string_copy              (GString         *string);
 GLIB_AVAILABLE_IN_ALL
 gchar*      (g_string_free)             (GString         *string,
                                          gboolean         free_segment);
+GLIB_AVAILABLE_IN_2_90
+void        (g_string_free_deep)        (GString         *string);
 GLIB_AVAILABLE_IN_2_76
 gchar*       g_string_free_and_steal    (GString         *string) G_GNUC_WARN_UNUSED_RESULT;
 
@@ -232,10 +236,10 @@ g_string_append_len_inline (GString    *gstring,
   else
     len_unsigned = (gsize) len;
 
-  if (G_LIKELY (gstring->len + len_unsigned < gstring->allocated_len))
+  if (G_LIKELY (len_unsigned < gstring->allocated_len - gstring->len))
     {
       char *end = gstring->str + gstring->len;
-      if (G_LIKELY (val + len_unsigned <= end || val > end + len_unsigned))
+      if (G_LIKELY (val + len_unsigned <= end || val >= end + len_unsigned))
         memcpy (end, val, len_unsigned);
       else
         memmove (end, val, len_unsigned);
@@ -268,10 +272,10 @@ g_string_truncate_inline (GString *gstring,
 #define g_string_append(gstr, val)                  \
   (__builtin_constant_p (val) ?                     \
     G_GNUC_EXTENSION ({                             \
-      const char * const __val = (val);             \
-      g_string_append_len (gstr, __val,             \
-        G_LIKELY (__val != NULL) ?                  \
-          (gssize) strlen (_G_STR_NONNULL (__val))  \
+      const char * const _val = (val);              \
+      g_string_append_len (gstr, _val,              \
+        G_LIKELY (_val != NULL) ?                   \
+          (gssize) strlen (_G_STR_NONNULL (_val))   \
         : (gssize) -1);                             \
     })                                              \
     :                                               \

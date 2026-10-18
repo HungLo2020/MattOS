@@ -1,7 +1,7 @@
 foreach plugin : ['accurip', 'adpcmdec', 'adpcmenc', 'aiff', 'asfmux',
                   'audiobuffersplit', 'audiofxbad', 'audiomixmatrix',
                   'audiolatency', 'audiovisualizers', 'autoconvert', 'bayer',
-                  'camerabin2', 'codecalpha', 'codectimestamper', 'coloreffects',
+                  'camerabin2', 'closedcaption', 'codecalpha', 'codectimestamper', 'coloreffects',
                   'debugutils', 'dvbsubenc',
                   'dvbsuboverlay', 'dvdspu', 'faceoverlay', 'festival',
                   'fieldanalysis', 'freeverb', 'frei0r', 'gaudieffects', 'gdp',
@@ -13,6 +13,6 @@ foreach plugin : ['accurip', 'adpcmdec', 'adpcmenc', 'aiff', 'asfmux',
                   'segmentclip', 'siren', 'smooth', 'speed', 'subenc', 'switchbin',
                   'tensordecoders', 'timecode', 'transcode', 'unixfd', 'videofilters',
                   'videoframe_audiolevel', 'videoparsers', 'videosignal',
-                  'vmnc', 'y4m']
+                  'vmnc']
   subdir(plugin)
 endforeach

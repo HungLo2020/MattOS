@@ -25,11 +25,12 @@
 #include <unistd.h>
 
 #include "util.h"
+#include "sysutils.h"
 #include "exechelp.h"
 
 static int verbose;
 
-
+#ifndef HAVE_W32_SYSTEM
 static void
 print_open_fds (int *array)
 {
@@ -169,20 +170,103 @@ test_close_all_fds (void)
     }
 
 }
+#endif
+
+static char buff12k[1024*12];
+static char buff4k[1024*4];
+
+static void
+run_server (void)
+{
+  estream_t fp;
+  int i;
+  char *p;
+  unsigned int len;
+  int ret;
+  es_syshd_t syshd;
+  size_t n;
+  off_t o;
+
+#ifdef HAVE_W32_SYSTEM
+  syshd.type = ES_SYSHD_HANDLE;
+  syshd.u.handle = (HANDLE)_get_osfhandle (1);
+#else
+  syshd.type = ES_SYSHD_FD;
+  syshd.u.fd = 1;
+#endif
+
+  fp = es_sysopen_nc (&syshd, "w");
+  if (fp == NULL)
+    {
+      fprintf (stderr, "es_fdopen failed\n");
+      exit (1);
+    }
+
+  /* Fill the buffer by ASCII chars.  */
+  p = buff12k;
+  for (i = 0; i < sizeof (buff12k); i++)
+    if ((i % 64) == 63)
+      *p++ = '\n';
+    else
+      *p++ = (i % 64) + '@';
+
+  len = sizeof (buff12k);
+
+  ret = es_write (fp, (void *)&len, sizeof (len), NULL);
+  if (ret)
+    {
+      fprintf (stderr, "es_write (1) failed\n");
+      exit (1);
+    }
+
+  es_fflush (fp);
+
+  o = 0;
+  n = len;
+
+  while (1)
+    {
+      size_t n0, n1;
+
+      n0 = n > 4096 ? 4096 : n;
+      memcpy (buff4k, buff12k + o, n0);
+
+      ret = es_write (fp, buff4k, n0, &n1);
+      if (ret || n0 != n1)
+        {
+          fprintf (stderr, "es_write (2) failed\n");
+          exit (1);
+        }
+
+      o += n0;
+      n -= n0;
+      if (n == 0)
+        break;
+    }
+
+  es_fclose (fp);
+  exit (0);
+}
 
 
 int
 main (int argc, char **argv)
 {
   if (argc)
-    { argc--; argv++; }
+    {
+      argc--; argv++;
+    }
   if (argc && !strcmp (argv[0], "--verbose"))
     {
       verbose = 1;
       argc--; argv++;
     }
+  if (argc && !strcmp (argv[0], "--server"))
+    run_server ();
 
+#ifndef HAVE_W32_SYSTEM
   test_close_all_fds ();
+#endif
 
   return 0;
 }

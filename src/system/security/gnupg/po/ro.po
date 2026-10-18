@@ -548,6 +548,11 @@ msgid "a gpg-agent is already running - not starting a new one\n"
 msgstr "gpg-agent nu este disponibil în această sesiune\n"
 
 #, fuzzy, c-format
+#| msgid "key %s: removed multiple subkey binding\n"
+msgid "socket file removed - retrying binding\n"
+msgstr "cheia %s: am şters multiple legături de subchei\n"
+
+#, fuzzy, c-format
 msgid "error getting nonce for the socket\n"
 msgstr "eroare la obţinere noului PIN: %s\n"
 
@@ -691,10 +696,6 @@ msgid "error opening '%s': %s\n"
 msgstr "eroare în `%s': %s\n"
 
 #, fuzzy, c-format
-msgid "file '%s', line %d: %s\n"
-msgstr "fişier opţiuni `%s': %s\n"
-
-#, fuzzy, c-format
 msgid "statement \"%s\" ignored in '%s', line %d\n"
 msgstr "eroare citire în `%s': %s\n"
 
@@ -744,7 +745,7 @@ msgstr ""
 #. insert a line break.  The double percent sign is actually
 #. needed because it is also a printf format string.  If you
 #. need to insert a plain % sign, you need to encode it as
-#. "%%25".  The second "%s" gets replaced by a hexdecimal
+#. "%%25".  The second "%s" gets replaced by a hexadecimal
 #. fingerprint string whereas the first one receives the name
 #. as stored in the certificate.
 #, c-format
@@ -755,7 +756,8 @@ msgstr ""
 
 #. TRANSLATORS: "Correct" is the label of a button and intended
 #. to be hit if the fingerprint matches the one of the CA.  The
-#. other button is "the default "Cancel" of the Pinentry.
+#. other button is "the default "Cancel" of the Pinentry.  We
+#. fix the English strings with hacks to avoid a string changes.
 msgid "Correct"
 msgstr ""
 
@@ -778,6 +780,10 @@ msgstr "schimbă fraza-parolă"
 
 msgid "I'll change it later"
 msgstr ""
+
+#, fuzzy, c-format
+msgid "Unprotecting key failed: %s\n"
+msgstr "citirea cheii publice a eşuat: %s\n"
 
 #, fuzzy
 msgid "Please insert the card with serial number"
@@ -848,34 +854,6 @@ msgstr "eroare la crearea frazei-parolă: %s\n"
 #, fuzzy, c-format
 msgid "error creating a stream for a pipe: %s\n"
 msgstr "eroare la crearea frazei-parolă: %s\n"
-
-#, fuzzy, c-format
-msgid "error forking process: %s\n"
-msgstr "eroare la citire `%s': %s\n"
-
-#, c-format
-msgid "waiting for process %d to terminate failed: %s\n"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "error running '%s': probably not installed\n"
-msgstr "eroare la citire `%s': %s\n"
-
-#, fuzzy, c-format
-msgid "error running '%s': exit status %d\n"
-msgstr "eroare la citire `%s': %s\n"
-
-#, fuzzy, c-format
-msgid "error running '%s': terminated\n"
-msgstr "eroare la citire `%s': %s\n"
-
-#, fuzzy, c-format
-msgid "waiting for processes to terminate failed: %s\n"
-msgstr "actualizarea a eşuat: %s\n"
-
-#, fuzzy, c-format
-msgid "error getting exit code of process %d: %s\n"
-msgstr "eroare la obţinerea informaţiei pentru cheia curentă: %s\n"
 
 #, fuzzy, c-format
 #| msgid "can't connect to `%s': %s\n"
@@ -1187,6 +1165,10 @@ msgstr ""
 msgid "No help available for '%s'."
 msgstr "Nici un disponibil disponibil pentru `%s'"
 
+#, fuzzy, c-format
+msgid "file '%s', line %d: %s\n"
+msgstr "fişier opţiuni `%s': %s\n"
+
 #, fuzzy
 msgid "ignoring garbage line"
 msgstr "eroare linia de trailer\n"
@@ -1489,6 +1471,20 @@ msgstr "forţat(ă)"
 msgid "Please try command \"%s\" if the listing does not look correct\n"
 msgstr ""
 
+#, fuzzy, c-format
+#| msgid ""
+#| "Please note that the factory settings of the PINs are\n"
+#| "   PIN = `%s'     Admin PIN = `%s'\n"
+#| "You should change them using the command --change-pin\n"
+msgid ""
+"Please note that the factory settings of the PINs are\n"
+"   PIN = '%s'     Admin PIN = '%s'\n"
+"You should change them using the command --change-pin\n"
+msgstr ""
+"Vă rugăm să observaţi că setările din fabrică ale PIN-urilor sunt\n"
+"   PIN = `%s'     PIN Admin = `%s'\n"
+"Ar trebui să le schimbaţi folosind comanda --change-pin\n"
+
 msgid "Error: Only plain ASCII is currently allowed.\n"
 msgstr "Eroare: Deocamdată sunt permise numai caractere ASCII.\n"
 
@@ -1647,20 +1643,6 @@ msgstr "cheia secretă deja stocată pe un card\n"
 msgid "Replace existing keys? (y/N) "
 msgstr "Înlocuiesc cheile existente? (d/N) "
 
-#, fuzzy, c-format
-#| msgid ""
-#| "Please note that the factory settings of the PINs are\n"
-#| "   PIN = `%s'     Admin PIN = `%s'\n"
-#| "You should change them using the command --change-pin\n"
-msgid ""
-"Please note that the factory settings of the PINs are\n"
-"   PIN = '%s'     Admin PIN = '%s'\n"
-"You should change them using the command --change-pin\n"
-msgstr ""
-"Vă rugăm să observaţi că setările din fabrică ale PIN-urilor sunt\n"
-"   PIN = `%s'     PIN Admin = `%s'\n"
-"Ar trebui să le schimbaţi folosind comanda --change-pin\n"
-
 msgid "Please select the type of key to generate:\n"
 msgstr "Vă rugăm selectaţi tipul de cheie de generat:\n"
 
@@ -1787,6 +1769,16 @@ msgstr "Nu sunt permise comenzi administrare\n"
 msgid "Invalid command  (try \"help\")\n"
 msgstr "Comandă invalidă  (încercaţi \"ajutor\")\n"
 
+#, fuzzy, c-format
+#| msgid "key operation not possible: %s\n"
+msgid "modifying the recipients is not possible: %s\n"
+msgstr "operaţia pe cheie nu e posibilă: %s\n"
+
+#, fuzzy
+#| msgid "decryption failed: %s\n"
+msgid "decryption failed"
+msgstr "decriptarea a eşuat: %s\n"
+
 #, c-format
 msgid "--output doesn't work for this command\n"
 msgstr "--output nu merge pentru această comandă\n"
@@ -1869,6 +1861,11 @@ msgstr ""
 "folosiţi opţiunea \"--delete-secret-keys\" pentru a o şterge pe aceasta mai "
 "întâi.\n"
 
+#, fuzzy, c-format
+#| msgid "%s/%s encrypted for: \"%s\"\n"
+msgid "%s/%s.%s encrypted for: \"%s\"\n"
+msgstr "%s/%s cifrat pentru: \"%s\"\n"
+
 #, c-format
 msgid ""
 "WARNING: forcing symmetric cipher %s (%d) violates recipient preferences\n"
@@ -1928,6 +1925,11 @@ msgstr "nu puteţi folosi algorimul de rezumat `%s' câtă vreme în modul %s\n"
 msgid "reading from '%s'\n"
 msgstr "citesc din `%s'\n"
 
+#, fuzzy, c-format
+#| msgid "problem handling encrypted packet\n"
+msgid "Note: Using the %s encryption packet\n"
+msgstr "problemă cu mânuirea pachetului cifrat\n"
+
 #, c-format
 msgid ""
 "WARNING: forcing compression algorithm %s (%d) violates recipient "
@@ -1937,14 +1939,18 @@ msgstr ""
 "destinatarului\n"
 
 #, fuzzy, c-format
-#| msgid "%s/%s encrypted for: \"%s\"\n"
-msgid "%s/%s.%s encrypted for: \"%s\"\n"
-msgstr "%s/%s cifrat pentru: \"%s\"\n"
+msgid "number of removed recipients: %u\n"
+msgstr "Destinatari curenţi:\n"
 
 #, fuzzy, c-format
 #| msgid "you may not use %s while in %s mode\n"
 msgid "option '%s' may not be used in %s mode\n"
 msgstr "nu puteţi folosi %s câtă vreme în modul %s\n"
+
+#, fuzzy, c-format
+#| msgid "can't connect to `%s': %s\n"
+msgid "already encrypted to %08lX\n"
+msgstr "nu mă pot conecta la `%s': %s\n"
 
 #, fuzzy, c-format
 #| msgid "%s encrypted data\n"
@@ -2157,6 +2163,11 @@ msgstr "semnează o cheie"
 #| msgid "sign a key locally"
 msgid "quickly sign a key locally"
 msgstr "semnează o cheie local"
+
+#, fuzzy
+#| msgid "sign selected user IDs with a trust signature"
+msgid "quickly sign a key with a trust signature"
+msgstr "semnează ID-urile utilizatorilor selectaţi cu o semnătură de încredere"
 
 #, fuzzy
 #| msgid "generate a new key pair"
@@ -2521,6 +2532,11 @@ msgstr "showpref"
 msgid "show ownertrust"
 msgstr "schimbă încrederea pentru proprietar"
 
+#, fuzzy
+#| msgid "Critical signature notation: "
+msgid "show trust signature information"
+msgstr "Notare semnătură critică: "
+
 #, fuzzy, c-format
 #| msgid "unknown option `%s'\n"
 msgid "unknown TOFU policy '%s'\n"
@@ -2869,6 +2885,9 @@ msgstr "|FD|scrie informaţii de stare în acest FD"
 msgid "|ALGO|reject signatures made with ALGO"
 msgstr ""
 
+msgid "|NAME|print the notation NAME to stdout"
+msgstr ""
+
 msgid "Usage: gpgv [options] [files] (-h for help)"
 msgstr "Folosire: gpgv [opţiuni] [fişiere] (-h pentru ajutor)"
 
@@ -2940,6 +2959,14 @@ msgstr ""
 #| msgid "show key fingerprint"
 msgid "repair keys on import"
 msgstr "afişează amprenta cheii"
+
+msgid "update even unchanged keys"
+msgstr ""
+
+#, fuzzy
+#| msgid "list secret keys"
+msgid "do not import secret keys"
+msgstr "enumeră chei secrete"
 
 #, c-format
 msgid "skipping block of type %d\n"
@@ -3210,9 +3237,15 @@ msgstr "ID utilizator nu mai este valid"
 msgid "reason for revocation: "
 msgstr "motiv pentru revocare: "
 
-#, c-format
-msgid "revocation comment: "
-msgstr "comentariu revocare: "
+#, fuzzy, c-format
+#| msgid "key %s: can't locate original keyblock: %s\n"
+msgid "key %s: can't locate keyblock: %s\n"
+msgstr "cheia %s: nu pot găsi keyblock-ul original: %s\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: can't read original keyblock: %s\n"
+msgid "key %s: can't read keyblock: %s\n"
+msgstr "cheia %s: nu pot citi keyblock-ul original: %s\n"
 
 #, c-format
 msgid "key %s: no public key - can't apply revocation certificate\n"
@@ -3821,14 +3854,6 @@ msgstr "Ştergeţi într-adevăr toate ID-urile utilizator selectate? (d/N) "
 msgid "Really remove this user ID? (y/N) "
 msgstr "Ştergeţi într-adevăr acest ID utilizator? (d/N) "
 
-#. TRANSLATORS: Please take care: This is about
-#. moving the key and not about removing it.
-msgid "Really move the primary key? (y/N) "
-msgstr "Mutaţi într-adevăr cheia primară? (d/N) "
-
-msgid "You must select exactly one key.\n"
-msgstr "Trebuie să selectaţi exact o cheie.\n"
-
 msgid "Command expects a filename argument\n"
 msgstr "Comanda aşteaptă un nume de fişier ca argument\n"
 
@@ -3836,6 +3861,19 @@ msgstr "Comanda aşteaptă un nume de fişier ca argument\n"
 #| msgid "Can't open `%s': %s\n"
 msgid "Can't open '%s': %s\n"
 msgstr "Nu pot deschide `%s': %s\n"
+
+#, fuzzy, c-format
+#| msgid "Error reading backup key from `%s': %s\n"
+msgid "Error reading key from '%s': %s\n"
+msgstr "Eroare citind cheia de rezervă de pe `%s': %s\n"
+
+#. TRANSLATORS: Please take care: This is about
+#. moving the key and not about removing it.
+msgid "Really move the primary key? (y/N) "
+msgstr "Mutaţi într-adevăr cheia primară? (d/N) "
+
+msgid "You must select exactly one key.\n"
+msgstr "Trebuie să selectaţi exact o cheie.\n"
 
 #, fuzzy, c-format
 #| msgid "Error reading backup key from `%s': %s\n"
@@ -3937,6 +3975,11 @@ msgstr "Nu există acest ID utilizator.\n"
 #| msgid "Nothing to sign with key %s\n"
 msgid "Nothing to sign.\n"
 msgstr "Nimic de semnat cu cheia %s\n"
+
+#, fuzzy, c-format
+#| msgid "checking created signature failed: %s\n"
+msgid "creating key signature failed: %s\n"
+msgstr "verificarea semnăturii create a eşuat: %s\n"
 
 #, c-format
 msgid "Not signed by you.\n"
@@ -4494,17 +4537,26 @@ msgstr "   (2) Cheie de cifrare\n"
 msgid "  (%d) Existing key from card%s\n"
 msgstr "   (2) Cheie de cifrare\n"
 
+#, fuzzy, c-format
+msgid "  (%d) ECC and Kyber%s\n"
+msgstr "   (%d) DSA şi Elgamal (implicit)\n"
+
+#, fuzzy, c-format
+#| msgid "   (%d) RSA (encrypt only)\n"
+msgid "  (%d) Kyber (encrypt only)%s\n"
+msgstr "  (%d) RSA (numai cifrare)\n"
+
 #, fuzzy
 msgid "Enter the keygrip: "
 msgstr "Notare semnătură: "
 
-#, c-format
-msgid "Not a valid keygrip (expecting 40 hex digits)\n"
-msgstr ""
-
 #, fuzzy
 msgid "No key with this keygrip\n"
 msgstr "Nici o subcheie cu indicele %d\n"
+
+#, c-format
+msgid "Not a valid keygrip (expecting 40 hex digits)\n"
+msgstr ""
 
 #, fuzzy, c-format
 msgid "error reading the card: %s\n"
@@ -4538,6 +4590,11 @@ msgstr "Lungimea cheii necesară este %u biţi\n"
 #, fuzzy
 #| msgid "Please select what kind of key you want:\n"
 msgid "Please select which elliptic curve you want:\n"
+msgstr "Selectaţi ce fel de cheie doriţi:\n"
+
+#, fuzzy, c-format
+#| msgid "Please select what kind of key you want:\n"
+msgid "Please select the %s variant you want:\n"
 msgstr "Selectaţi ce fel de cheie doriţi:\n"
 
 msgid ""
@@ -4888,8 +4945,16 @@ msgstr[1] ""
 msgid "Keyring"
 msgstr "Inel de chei"
 
+#, c-format
+msgid "revocation comment: "
+msgstr "comentariu revocare: "
+
 msgid "Revocable by: "
 msgstr ""
+
+#, fuzzy, c-format
+msgid "error writing to stdout: %s\n"
+msgstr "eroare la scrierea inelului de chei `%s': %s\n"
 
 msgid "Primary key fingerprint:"
 msgstr "Amprentă cheie primară:"
@@ -4959,6 +5024,9 @@ msgstr ""
 msgid "honor the preferred keyserver URL set on the key"
 msgstr "Introduceţi URL-ul serverului de chei preferat: "
 
+msgid "update a key before sending it"
+msgstr ""
+
 msgid "disabled"
 msgstr "deactivat(ă)"
 
@@ -4972,6 +5040,11 @@ msgstr "protocol server de chei invalid (us %d!=handler %d)\n"
 #, c-format
 msgid "\"%s\" not a key ID: skipping\n"
 msgstr "\"%s\" nu este un ID de cheie: sărit\n"
+
+#, fuzzy, c-format
+#| msgid "invalid fingerprint"
+msgid "\"%s\" not a fingerprint: skipping\n"
+msgstr "amprentă invalidă"
 
 #, fuzzy, c-format
 #| msgid "refreshing %d keys from %s\n"
@@ -5000,6 +5073,10 @@ msgstr "cer cheia %s de la %s\n"
 #| msgid "no keyserver action!\n"
 msgid "no keyserver known\n"
 msgstr "nici o acţiune pentru serverul de chei!\n"
+
+#, c-format
+msgid "upload skipped due to non-LDAP keyserver\n"
+msgstr ""
 
 #, c-format
 msgid "skipped \"%s\": %s\n"
@@ -5057,6 +5134,10 @@ msgstr "      \"%s\"\n"
 #, c-format
 msgid "encrypted with %s key, ID %s\n"
 msgstr "cifrat cu cheia %s, ID %s\n"
+
+#, c-format
+msgid "WARNING: key is not quantum-resistant\n"
+msgstr ""
 
 #, c-format
 msgid "WARNING: multiple plaintexts seen\n"
@@ -5335,6 +5416,11 @@ msgstr "necompresat|niciunul"
 msgid "this message may not be usable by %s\n"
 msgstr "acest mesaj s-ar putea să nu poată fi folosit de %s\n"
 
+#, fuzzy
+#| msgid "enable key"
+msgid "enabled"
+msgstr "activează cheia"
+
 #, fuzzy, c-format
 #| msgid "ambiguous option `%s'\n"
 msgid "ambiguous option '%s'\n"
@@ -5353,6 +5439,11 @@ msgstr ""
 #| msgid "Unknown signature type `%s'\n"
 msgid "unknown weak digest '%s'\n"
 msgstr "Tip de semnătură necunoscut `%s'\n"
+
+#, fuzzy, c-format
+#| msgid "NOTE: old default options file `%s' ignored\n"
+msgid "Note: partial file '%s' removed\n"
+msgstr "NOTĂ: fisier opţiuni implicite vechi `%s' ignorat\n"
 
 #, fuzzy, c-format
 #| msgid "File `%s' exists. "
@@ -5864,6 +5955,13 @@ msgstr "cheia %s nu are nici un ID utilizator\n"
 msgid "okay, we are the anonymous recipient.\n"
 msgstr "OK, noi suntem destinatarul anonim.\n"
 
+#, fuzzy, c-format
+#| msgid "WARNING: signing subkey %s is not cross-certified\n"
+msgid "WARNING: session key is not quantum-resistant\n"
+msgstr ""
+"AVERTISMENT: subcheia de semnare %s nu este certificată reciproc (cross-"
+"certified)\n"
+
 #, c-format
 msgid "old encoding of the DEK is not supported\n"
 msgstr "vechea encodare a lui DEK nu este suportată\n"
@@ -6125,6 +6223,12 @@ msgid "assuming bad signature from key %s due to an unknown critical bit\n"
 msgstr ""
 "presupun semnătură incorectă din cheia %s datorită unui bit critic "
 "necunoscut\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: no public key - can't apply revocation certificate\n"
+msgid "key %s: no public key - can't check revocation signature.\n"
+msgstr ""
+"cheia %s: nici o cheie publică - nu pot aplica certificatul de revocare\n"
 
 #, c-format
 msgid "key %s: no subkey for subkey revocation signature\n"
@@ -6969,8 +7073,8 @@ msgstr "răspunsul nu conţine datele cheii publice\n"
 msgid "||Please enter the PIN for the key to create qualified signatures."
 msgstr ""
 
-#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-#. the start of the string.  Use %0A (single percent) for a linefeed.
+#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+#. start of the string.
 #, fuzzy
 msgid "|A|Please enter the Admin PIN"
 msgstr "||Vă rugăm introduceţi PIN%%0A[semnături făcute: %lu]"
@@ -7049,26 +7153,6 @@ msgid "%sNumber: %s%%0AHolder: %s%%0ACounter: %lu%s"
 msgstr ""
 
 #, c-format
-msgid "using default PIN as %s\n"
-msgstr ""
-
-#, c-format
-msgid "failed to use default PIN as %s: %s - disabling further default use\n"
-msgstr ""
-
-#, fuzzy
-msgid "||Please unlock the card"
-msgstr "||Vă rugăm introduceţi PIN%%0A[semnături făcute: %lu]"
-
-#, c-format
-msgid "PIN for CHV%d is too short; minimum length is %d\n"
-msgstr "PIN-ul pentru CHV%d este prea scurt; lungimea minimă este %d\n"
-
-#, c-format
-msgid "verify CHV%d failed: %s\n"
-msgstr "verificarea CHV%d a eşuat: %s\n"
-
-#, c-format
 msgid "card is permanently locked!\n"
 msgstr "cardul este încuiat permanent!\n"
 
@@ -7081,6 +7165,26 @@ msgstr[0] ""
 "%d încercări PIN Admin rămase înainte de a încuia cardul permanent\n"
 msgstr[1] ""
 "%d încercări PIN Admin rămase înainte de a încuia cardul permanent\n"
+
+#, fuzzy
+msgid "||Please unlock the card"
+msgstr "||Vă rugăm introduceţi PIN%%0A[semnături făcute: %lu]"
+
+#, c-format
+msgid "using default PIN as %s\n"
+msgstr ""
+
+#, c-format
+msgid "failed to use default PIN as %s: %s - disabling further default use\n"
+msgstr ""
+
+#, c-format
+msgid "PIN for CHV%d is too short; minimum length is %d\n"
+msgstr "PIN-ul pentru CHV%d este prea scurt; lungimea minimă este %d\n"
+
+#, c-format
+msgid "verify CHV%d failed: %s\n"
+msgstr "verificarea CHV%d a eşuat: %s\n"
 
 #, c-format
 msgid "access to admin commands is not configured\n"
@@ -7682,6 +7786,10 @@ msgid "Enter URIs"
 msgstr "Introduceţi PIN: "
 
 #, fuzzy
+msgid "Enter extensions"
+msgstr "Notare semnătură: "
+
+#, fuzzy
 #| msgid "Create a designated revocation certificate for this key? (y/N) "
 msgid "Create self-signed certificate? (y/N) "
 msgstr "Creaţi un certificat de revocare desemnat pentru această cheie? (d/N) "
@@ -7869,12 +7977,21 @@ msgid "unknown validation model '%s'\n"
 msgstr "opţiune necunoscută `%s'\n"
 
 #, fuzzy, c-format
+#| msgid "cipher algorithm %d%s is unknown or disabled\n"
+msgid "given cipher algorithm '%s' is unknown - using '%s'\n"
+msgstr "algoritm cifrare %d%s este necunoscut sau deactivat\n"
+
+#, fuzzy, c-format
 msgid "importing common certificates '%s'\n"
 msgstr "eroare la obţinerea numărului serial: %s\n"
 
 #, fuzzy, c-format
 msgid "can't sign using '%s': %s\n"
 msgstr "nu pot accesa `%s': %s\n"
+
+#, fuzzy, c-format
+msgid "can't open outputfile: %s\n"
+msgstr "nu pot deschide `%s': %s\n"
 
 #, c-format
 msgid "invalid command (there is no implicit command)\n"
@@ -7925,19 +8042,19 @@ msgid "error storing certificate: %s\n"
 msgstr "eroare la obţinerea numărului serial: %s\n"
 
 #, fuzzy, c-format
-msgid "problem re-searching certificate: %s\n"
-msgstr "rev? probleme la verificare revocării: %s\n"
-
-#, fuzzy, c-format
 msgid "error storing flags: %s\n"
 msgstr "eroare la citire `%s': %s\n"
+
+#, fuzzy, c-format
+msgid "problem re-searching certificate: %s\n"
+msgstr "rev? probleme la verificare revocării: %s\n"
 
 msgid "Error - "
 msgstr ""
 
-#, c-format
-msgid "GPG_TTY has not been set - using maybe bogus default\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "error writing to output: %s\n"
+msgstr "eroare la scrierea inelului de chei `%s': %s\n"
 
 #, fuzzy, c-format
 msgid "invalid formatted fingerprint in '%s', line %d\n"
@@ -8794,6 +8911,10 @@ msgid "colons are not allowed in the socket name\n"
 msgstr "%s nu este permis cu %s!\n"
 
 #, fuzzy, c-format
+msgid "error forking process: %s\n"
+msgstr "eroare la citire `%s': %s\n"
+
+#, fuzzy, c-format
 #| msgid "renaming `%s' to `%s' failed: %s\n"
 msgid "fetching CRL from '%s' failed: %s\n"
 msgstr "redenumirea `%s' ca `%s' a eşuat: %s\n"
@@ -9454,6 +9575,26 @@ msgstr ""
 #~ msgid "public key of ultimately trusted key %s not found\n"
 #~ msgstr "cheia publică a cheii cu încredere supremă %s nu a fost găsită\n"
 
+#, fuzzy, c-format
+#~ msgid "waiting for process to terminate failed: ec=%d\n"
+#~ msgstr "actualizarea a eşuat: %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': probably not installed\n"
+#~ msgstr "eroare la citire `%s': %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': exit status %d\n"
+#~ msgstr "eroare la citire `%s': %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': terminated\n"
+#~ msgstr "eroare la citire `%s': %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error getting exit code of process %d: %s\n"
+#~ msgstr "eroare la obţinerea informaţiei pentru cheia curentă: %s\n"
+
 #~ msgid "use canonical text mode"
 #~ msgstr "foloseşte modul text canonic"
 
@@ -9527,10 +9668,6 @@ msgstr ""
 #~| msgid "invalid import options\n"
 #~ msgid "invalid port number %d\n"
 #~ msgstr "opţiuni import invalide\n"
-
-#, fuzzy
-#~ msgid "error writing to stdout: %s\n"
-#~ msgstr "eroare la scrierea inelului de chei `%s': %s\n"
 
 #, fuzzy
 #~ msgid "attribute '%s' not found\n"
@@ -9708,18 +9845,9 @@ msgstr ""
 #~ msgstr "nu pot citi răspunsul programului extern: %s\n"
 
 #, fuzzy
-#~ msgid "   (%d) ECC and ECC\n"
-#~ msgstr "   (%d) DSA şi Elgamal (implicit)\n"
-
-#, fuzzy
 #~| msgid "Quit without saving? (y/N) "
 #~ msgid "run without asking a user"
 #~ msgstr "Terminaţi fără a salva?  (d/N) "
-
-#, fuzzy
-#~| msgid "NOTE: old default options file `%s' ignored\n"
-#~ msgid "Note: old default options file '%s' ignored\n"
-#~ msgstr "NOTĂ: fisier opţiuni implicite vechi `%s' ignorat\n"
 
 #, fuzzy
 #~ msgid ""

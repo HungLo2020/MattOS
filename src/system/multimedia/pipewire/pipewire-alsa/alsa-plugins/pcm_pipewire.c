@@ -30,8 +30,8 @@ PW_LOG_TOPIC_STATIC(alsa_log_topic, "alsa.pcm");
 #define MIN_BUFFERS	2u
 #define MAX_BUFFERS	64u
 
-#define MAX_CHANNELS	64
 #define MAX_RATE	(48000*8)
+#define MAX_CHANNELS	SPA_AUDIO_MAX_CHANNELS
 
 #define MIN_PERIOD	64
 
@@ -87,7 +87,7 @@ typedef struct {
 
 static int snd_pcm_pipewire_stop(snd_pcm_ioplug_t *io);
 
-static int update_active(snd_pcm_ioplug_t *io)
+static int update_active(snd_pcm_ioplug_t *io, bool force_wakeup)
 {
 	snd_pcm_pipewire_t *pw = io->private_data;
 	snd_pcm_sframes_t avail;
@@ -96,7 +96,9 @@ static int update_active(snd_pcm_ioplug_t *io)
 
 	avail = snd_pcm_ioplug_avail(io, pw->hw_ptr, io->appl_ptr);
 
-	if (pw->error > 0) {
+	if (pw->error > 0 || force_wakeup ||
+	    io->state == SND_PCM_STATE_SETUP ||
+	    pw->xrun_detected) {
 		active = true;
 	}
 	else if (io->state == SND_PCM_STATE_DRAINING) {
@@ -167,8 +169,10 @@ static int snd_pcm_pipewire_poll_revents(snd_pcm_ioplug_t *io,
 		return pw->error;
 
 	*revents = pfds[0].revents & ~(POLLIN | POLLOUT);
-	if (pfds[0].revents & POLLIN && update_active(io))
+	if (pfds[0].revents & POLLIN && update_active(io, false))
 		*revents |= (io->stream == SND_PCM_STREAM_PLAYBACK) ? POLLOUT : POLLIN;
+	if (io->state == SND_PCM_STATE_SETUP || pw->xrun_detected)
+		*revents |= POLLERR;
 
 	pw_log_trace_fp("poll %d", *revents);
 
@@ -392,7 +396,7 @@ static void on_stream_state_changed(void *data, enum pw_stream_state old, enum p
 	if (state == PW_STREAM_STATE_ERROR) {
 		pw_log_warn("%s", error);
 		pw->error = -errno;
-		update_active(&pw->io);
+		update_active(&pw->io, false);
 	}
 }
 
@@ -466,7 +470,7 @@ static void on_stream_process(void *data)
 		}
 	}
 done:
-	update_active(io);
+	update_active(io, false);
 }
 
 static const struct pw_stream_events stream_events = {
@@ -611,7 +615,7 @@ static int snd_pcm_pipewire_stop(snd_pcm_ioplug_t *io)
 	snd_pcm_pipewire_t *pw = io->private_data;
 
 	pw_log_debug("%p: stop", pw);
-	update_active(io);
+	update_active(io, true);
 
 	pw_thread_loop_lock(pw->main_loop);
 	if (pw->activated && pw->stream != NULL) {
@@ -643,7 +647,7 @@ static int snd_pcm_pipewire_pause(snd_pcm_ioplug_t * io, int enable)
 #define _FORMAT_BE(p, fmt)  p ? SPA_AUDIO_FORMAT_UNKNOWN : SPA_AUDIO_FORMAT_ ## fmt ## _OE
 #endif
 
-static int set_default_channels(uint32_t channels, uint32_t position[SPA_AUDIO_MAX_CHANNELS])
+static int set_default_channels(uint32_t channels, uint32_t position[MAX_CHANNELS])
 {
 	switch (channels) {
 	case 8:
@@ -916,12 +920,16 @@ static int snd_pcm_pipewire_set_chmap(snd_pcm_ioplug_t * io,
 	default:
 		return -EINVAL;
 	}
+	if (map->channels > MAX_CHANNELS)
+		return -ENOTSUP;
+
 	for (i = 0; i < map->channels; i++) {
+		char buf[8];
 		position[i] = chmap_to_channel(map->pos[i]);
 		pw_log_debug("map %d: %s / %s", i,
 				snd_pcm_chmap_name(map->pos[i]),
-				spa_debug_type_find_short_name(spa_type_audio_channel,
-					position[i]));
+				spa_type_audio_channel_make_short_name(position[i],
+					buf, sizeof(buf), "UNK"));
 	}
 	return 1;
 }
@@ -1215,7 +1223,7 @@ static void on_core_error(void *data, uint32_t id, int seq, int res, const char 
 	if (id == PW_ID_CORE) {
 		pw->error = res;
 		if (pw->fd != -1)
-			update_active(&pw->io);
+			update_active(&pw->io, false);
 	}
 	pw_thread_loop_signal(pw->main_loop, false);
 }
@@ -1240,7 +1248,7 @@ static ssize_t log_write(void *cookie, const char *buf, size_t size)
 	return size;
 }
 
-static cookie_io_functions_t io_funcs = {
+static const cookie_io_functions_t io_funcs = {
 	.write = log_write,
 };
 

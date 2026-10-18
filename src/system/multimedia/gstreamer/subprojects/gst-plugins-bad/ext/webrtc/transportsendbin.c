@@ -163,8 +163,8 @@ transport_send_bin_change_state (GstElement * element,
   GstStateChangeReturn ret = GST_STATE_CHANGE_SUCCESS;
 
   GST_DEBUG_OBJECT (element, "changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:{
@@ -509,8 +509,9 @@ transport_send_bin_class_init (TransportSendBinClass * klass)
   gst_element_class_add_static_pad_template (element_class,
       &data_sink_template);
 
-  gst_element_class_set_metadata (element_class, "WebRTC Transport Send Bin",
-      "Filter/Network/WebRTC", "A bin for webrtc connections",
+  gst_element_class_set_static_metadata (element_class,
+      "WebRTC Transport Send Bin", "Filter/Network/WebRTC",
+      "A bin for webrtc connections",
       "Matthew Waters <matthew@centricular.com>");
 
   gobject_class->constructed = transport_send_bin_constructed;

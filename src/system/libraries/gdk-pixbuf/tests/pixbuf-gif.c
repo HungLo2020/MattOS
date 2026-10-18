@@ -22,6 +22,8 @@
 #include "test-common.h"
 #include <string.h>
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
 const gchar *
 get_test_path (const gchar *filename)
 {
@@ -129,7 +131,7 @@ run_gif_test (gconstpointer data)
     {
       const gchar *frame = frames[i];
       GdkPixbuf *pixbuf;
-      gint delay_time, expected_delay_time = 100;
+      gint delay_time, expected_delay_time = -1;
       gchar *pixels_filename;
       GFile *pixels_file;
       GBytes *expected_pixels, *pixels;
@@ -147,7 +149,15 @@ run_gif_test (gconstpointer data)
         expected_delay_time = g_key_file_get_integer (config_file, frame, "delay", &error) * 10;
       g_assert_no_error (error);
 
-      g_assert_cmpint (delay_time, ==, expected_delay_time);
+      if (expected_delay_time == -1 && delay_time != expected_delay_time)
+        {
+          // FIXME: some loaders return a default '100ms' instead of -1 for non-animated gifs
+          g_assert_cmpint (delay_time, ==, 100);
+        }
+      else
+        {
+          g_assert_cmpint (delay_time, ==, expected_delay_time);
+        }
 
       pixbuf = gdk_pixbuf_animation_iter_get_pixbuf (iter);
 

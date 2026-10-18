@@ -59,7 +59,8 @@ strlist_t strlist_copy (strlist_t list);
 
 strlist_t strlist_prev (strlist_t head, strlist_t node);
 strlist_t strlist_last (strlist_t node);
-char * strlist_pop (strlist_t *list);
+char *strlist_pop (strlist_t *list);
+int strlist_pop_try (strlist_t *list, char **r_result);
 
 strlist_t strlist_find (strlist_t haystack, const char *needle);
 int strlist_length (strlist_t list);

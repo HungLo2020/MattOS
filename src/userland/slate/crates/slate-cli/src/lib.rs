@@ -16,9 +16,10 @@ use ratatui::{
 use slate_core::{layout::Axis, terminal::Screen, App, Command, Key, Snapshot};
 use std::{
     io::{self, Write},
+    os::fd::{AsRawFd, RawFd},
     sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
+        atomic::{AtomicBool, AtomicI32, Ordering},
+        Arc, Mutex,
     },
     time::Duration,
 };
@@ -29,9 +30,67 @@ use colors::ColorMode;
 
 /// Set by SIGHUP/SIGTERM; the main loop saves unsaved work and exits.
 static TERMINATE: AtomicBool = AtomicBool::new(false);
+/// The input thread sleeps until the terminal has input or this pipe is
+/// written: by signal handlers, pause/resume and shutdown. Its write end is
+/// never closed, so a signal handler can always use the descriptor.
+static WAKE_PIPE: std::sync::OnceLock<(
+    std::os::unix::net::UnixStream,
+    std::os::unix::net::UnixStream,
+)> = std::sync::OnceLock::new();
+static WAKE_FD: AtomicI32 = AtomicI32::new(-1);
+/// Async-signal-safe.
+fn wake_input() {
+    let fd = WAKE_FD.load(Ordering::SeqCst);
+    if fd >= 0 {
+        #[cfg(target_os = "linux")]
+        let errno = unsafe { *libc::__errno_location() };
+        unsafe {
+            libc::write(fd, [1u8].as_ptr().cast(), 1);
+        }
+        #[cfg(target_os = "linux")]
+        unsafe {
+            *libc::__errno_location() = errno;
+        }
+    }
+}
+/// The read end of the wake pipe, created on first use.
+fn wake_reader() -> io::Result<RawFd> {
+    if WAKE_PIPE.get().is_none() {
+        let (reader, writer) = std::os::unix::net::UnixStream::pair()?;
+        reader.set_nonblocking(true)?;
+        writer.set_nonblocking(true)?;
+        let _ = WAKE_PIPE.set((reader, writer));
+    }
+    let (reader, writer) = WAKE_PIPE.get().unwrap();
+    WAKE_FD.store(writer.as_raw_fd(), Ordering::SeqCst);
+    Ok(reader.as_raw_fd())
+}
+fn drain_wakes(fd: RawFd) {
+    let mut bytes = [0u8; 64];
+    while unsafe { libc::read(fd, bytes.as_mut_ptr().cast(), bytes.len()) } > 0 {}
+}
+/// Block until one of `fds` is readable; reports which ones are.
+fn wait_readable<const N: usize>(fds: [RawFd; N]) -> [bool; N] {
+    let mut polled = fds.map(|fd| libc::pollfd {
+        fd,
+        events: libc::POLLIN,
+        revents: 0,
+    });
+    if unsafe { libc::poll(polled.as_mut_ptr(), N as libc::nfds_t, -1) } <= 0 {
+        // Interrupted by a signal: its handler wrote the wake pipe.
+        return [false; N];
+    }
+    polled.map(|p| p.revents != 0)
+}
 #[cfg(unix)]
 extern "C" fn on_terminate(_: libc::c_int) {
     TERMINATE.store(true, Ordering::SeqCst);
+    wake_input();
+}
+/// The main loop measures the terminal when it wakes.
+#[cfg(unix)]
+extern "C" fn on_resize(_: libc::c_int) {
+    wake_input();
 }
 
 struct InputReader {
@@ -45,6 +104,7 @@ impl InputReader {
     /// suspend) receives the keyboard.
     fn pause(&self) {
         self.paused.store(true, Ordering::SeqCst);
+        wake_input();
         let deadline = std::time::Instant::now() + Duration::from_millis(500);
         while !self.idle.load(Ordering::SeqCst) && std::time::Instant::now() < deadline {
             std::thread::sleep(Duration::from_millis(5));
@@ -52,16 +112,89 @@ impl InputReader {
     }
     fn resume(&self) {
         self.paused.store(false, Ordering::SeqCst);
+        wake_input();
     }
 }
 impl Drop for InputReader {
     fn drop(&mut self) {
         self.running.store(false, Ordering::Release);
         self.paused.store(false, Ordering::SeqCst);
+        wake_input();
         if let Some(thread) = self.thread.take() {
             let _ = thread.join();
         }
     }
+}
+/// The terminal crossterm reads: standard input when it is a terminal,
+/// otherwise /dev/tty.
+fn terminal_input() -> io::Result<(RawFd, Option<std::fs::File>)> {
+    if unsafe { libc::isatty(libc::STDIN_FILENO) } == 1 {
+        return Ok((libc::STDIN_FILENO, None));
+    }
+    let tty = std::fs::File::open("/dev/tty")?;
+    Ok((tty.as_raw_fd(), Some(tty)))
+}
+
+type PanicHook = Arc<dyn Fn(&std::panic::PanicHookInfo<'_>) + Send + Sync>;
+/// Reinstates the panic hook that was active before the interface started.
+struct PanicHookGuard(Option<PanicHook>);
+impl Drop for PanicHookGuard {
+    fn drop(&mut self) {
+        // Setting a hook while unwinding would abort; the process is ending.
+        if let (Some(previous), false) = (self.0.take(), std::thread::panicking()) {
+            let _ = std::panic::take_hook();
+            std::panic::set_hook(Box::new(move |info| previous(info)));
+        }
+    }
+}
+/// A panic on the interface thread restores the outer terminal before the
+/// previous hook prints its message. A worker thread's panic (language
+/// servers, highlighting, file I/O) leaves the screen alone: printing over
+/// the running editor would garble it and leaving raw mode would break it.
+/// Its message is recorded in `failures` for the interface thread to show,
+/// and `notify` wakes that thread. Panics their caller catches and handles
+/// (see `slate_core::panics`) are neither.
+fn install_panic_hook(
+    restore: impl Fn() + Send + Sync + 'static,
+    failures: Arc<Mutex<Option<String>>>,
+    notify: impl Fn() + Send + Sync + 'static,
+) -> PanicHookGuard {
+    let interface = std::thread::current().id();
+    let previous: PanicHook = Arc::from(std::panic::take_hook());
+    let chained = previous.clone();
+    std::panic::set_hook(Box::new(move |info| {
+        // Its caller catches it and reports what failed; the session is fine.
+        if slate_core::panics::is_handled() {
+            return;
+        }
+        let thread = std::thread::current();
+        if thread.id() == interface {
+            restore();
+            chained(info);
+            return;
+        }
+        let payload = info
+            .payload()
+            .downcast_ref::<&str>()
+            .copied()
+            .or_else(|| info.payload().downcast_ref::<String>().map(String::as_str))
+            .unwrap_or("unknown cause");
+        let location = info
+            .location()
+            .map(|l| format!(" at {}:{}", l.file(), l.line()))
+            .unwrap_or_default();
+        let message = format!(
+            "thread '{}' panicked{location}: {}",
+            thread.name().unwrap_or("<unnamed>"),
+            payload.chars().take(300).collect::<String>()
+        );
+        failures
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .get_or_insert(message);
+        notify();
+    }));
+    PanicHookGuard(Some(previous))
 }
 
 /// Terminal modes Slate enables; restored on exit, suspend and sudo handover.
@@ -111,33 +244,154 @@ struct TabRegion {
     index: usize,
     x: u16,
     width: u16,
+    label: String,
     close: Option<u16>,
 }
-fn tab_regions(tabs: &[slate_core::Tab], width: u16) -> Vec<TabRegion> {
-    let widths: Vec<usize> = tabs
-        .iter()
-        .map(|tab| {
-            Span::raw(clean(&tab.title)).width() + 2 + if tab.close_id.is_some() { 3 } else { 0 }
-        })
-        .collect();
-    let crowded = widths.iter().sum::<usize>() > width as usize;
-    let mut x = 0u16;
-    let mut regions = Vec::new();
-    for (index, tab) in tabs.iter().enumerate() {
-        if crowded && !tab.active {
-            continue;
-        }
-        let size = widths[index].min(width.saturating_sub(x) as usize) as u16;
-        if size == 0 {
+/// Cut `text` to `columns` display columns, ending in … when shortened.
+fn truncate_columns(text: &str, columns: usize) -> String {
+    if Span::raw(text).width() <= columns {
+        return text.into();
+    }
+    let mut out = String::new();
+    let mut used = 0;
+    for c in text.chars() {
+        let w = Span::raw(c.encode_utf8(&mut [0; 4]).to_string()).width();
+        if used + w + 1 > columns {
             break;
+        }
+        out.push(c);
+        used += w;
+    }
+    if columns > 0 {
+        out.push('…');
+    }
+    out
+}
+/// Shortest title kept before a crowded tab bar falls back to numbers alone.
+const MIN_TAB_TITLE: usize = 3;
+fn tab_regions(tabs: &[slate_core::Tab], width: u16) -> Vec<TabRegion> {
+    let width = width as usize;
+    let titles: Vec<String> = tabs.iter().map(|tab| clean(&tab.title)).collect();
+    let columns = |text: &str| Span::raw(text).width();
+    let full: usize = titles
+        .iter()
+        .zip(tabs)
+        .map(|(title, tab)| columns(title) + 2 + if tab.close_id.is_some() { 3 } else { 0 })
+        .sum();
+    let mut regions = Vec::new();
+    let mut x = 0;
+    let mut place = |index: usize, mut label: String, close: bool, regions: &mut Vec<TabRegion>| {
+        let room = width.saturating_sub(x);
+        while columns(&label) > room {
+            label.pop();
+        }
+        let close = close && columns(&label) + 3 <= room;
+        let size = columns(&label) + if close { 3 } else { 0 };
+        if size == 0 {
+            return;
         }
         regions.push(TabRegion {
             index,
-            x,
-            width: size,
-            close: (tab.close_id.is_some() && size >= 3).then(|| x + size - 3),
+            x: x as u16,
+            width: size as u16,
+            label,
+            close: close.then(|| (x + size - 3) as u16),
         });
         x += size;
+    };
+    if full <= width {
+        for (index, title) in titles.iter().enumerate() {
+            place(
+                index,
+                format!(" {title} "),
+                tabs[index].close_id.is_some(),
+                &mut regions,
+            );
+        }
+        return regions;
+    }
+    // Crowded: number every tab so shortened titles stay distinguishable,
+    // and keep a close button on the active tab only.
+    let Some(active) = tabs.iter().position(|tab| tab.active) else {
+        return regions;
+    };
+    let close = if tabs[active].close_id.is_some() {
+        3
+    } else {
+        0
+    };
+    let label = |index: usize, cap: usize| {
+        if cap == 0 {
+            format!(" {} ", index + 1)
+        } else {
+            format!(" {}:{} ", index + 1, truncate_columns(&titles[index], cap))
+        }
+    };
+    // Columns for tabs lo..=hi, with `cap` title columns on the active tab
+    // and `others` on the rest, plus ‹ and › for any hidden tabs.
+    let span = |lo: usize, hi: usize, cap: usize, others: usize| {
+        (lo..=hi)
+            .map(|i| columns(&label(i, if i == active { cap } else { others })))
+            .sum::<usize>()
+            + close
+            + usize::from(lo > 0)
+            + usize::from(hi + 1 < tabs.len())
+    };
+    let last = tabs.len() - 1;
+    let title = columns(&titles[active]);
+    let caps = |longest: usize| (MIN_TAB_TITLE.min(longest).max(1)..=longest).rev();
+    // The active tab keeps its whole title while the others shrink, first
+    // to shortened titles, then to numbers; only then is it shortened too.
+    let longest = (0..tabs.len())
+        .filter(|&i| i != active)
+        .map(|i| columns(&titles[i]))
+        .max()
+        .unwrap_or(0);
+    let (cap, others) =
+        if let Some(others) = caps(longest).find(|&others| span(0, last, title, others) <= width) {
+            (title, others)
+        } else {
+            let cap = caps(title)
+                .chain([0])
+                .find(|&cap| span(0, last, cap, 0) <= width)
+                .unwrap_or(0);
+            (cap, 0)
+        };
+    // When even numbers do not fit, show a window of tabs around the active
+    // one, with ‹ and › standing for (and selecting) the hidden neighbours.
+    let (mut lo, mut hi) = (active, active);
+    loop {
+        let grown = (lo, hi);
+        if hi < last && span(lo, hi + 1, cap, others) <= width {
+            hi += 1;
+        }
+        if lo > 0 && span(lo - 1, hi, cap, others) <= width {
+            lo -= 1;
+        }
+        if (lo, hi) == grown {
+            break;
+        }
+    }
+    // Spare columns in a window lengthen the active tab's title.
+    let cap = caps(title)
+        .find(|&longer| longer > cap && span(lo, hi, longer, others) <= width)
+        .unwrap_or(cap);
+    // Too narrow even for the arrows: the active tab alone.
+    let arrows = span(lo, hi, cap, others) <= width;
+    if arrows && lo > 0 {
+        place(lo - 1, "‹".into(), false, &mut regions);
+    }
+    for index in lo..=hi {
+        let cap = if index == active { cap } else { others };
+        place(
+            index,
+            label(index, cap),
+            index == active && close > 0,
+            &mut regions,
+        );
+    }
+    if arrows && hi < last {
+        place(hi + 1, "›".into(), false, &mut regions);
     }
     regions
 }
@@ -147,6 +401,7 @@ const CHOICE_PROMPTS: &[&str] = &[
     "close-tab",
     "switch-workspace",
     "trash-file",
+    "discard-changes",
     "quit",
     "save-read-only",
     "save-elevated",
@@ -172,7 +427,7 @@ fn erase_is_control_h() -> bool {
 }
 
 /// Programs that hold the desktop clipboard, when a display is available.
-fn clipboard_programs(read: bool) -> Vec<(&'static str, &'static [&'static str])> {
+fn clipboard_programs(read: bool) -> Vec<(std::path::PathBuf, &'static [&'static str])> {
     let mut programs: Vec<(&'static str, &'static [&'static str])> = vec![];
     if std::env::var_os("WAYLAND_DISPLAY").is_some() {
         programs.push(if read {
@@ -193,21 +448,23 @@ fn clipboard_programs(read: bool) -> Vec<(&'static str, &'static [&'static str])
             ("xsel", &["-ib"])
         });
     }
+    // Resolved to absolute paths: never a helper in the current folder.
     programs
         .into_iter()
-        .filter(|(p, _)| slate_core::fsio::which(p).is_some())
+        .filter_map(|(p, args)| Some((slate_core::fsio::which(p)?, args)))
         .collect()
 }
 fn write_system_clipboard(text: &str) {
     if let Some((program, args)) = clipboard_programs(false).into_iter().next() {
         let text = text.to_string();
         std::thread::spawn(move || {
-            if let Ok(mut child) = std::process::Command::new(program)
-                .args(args)
-                .stdin(std::process::Stdio::piped())
-                .stdout(std::process::Stdio::null())
-                .stderr(std::process::Stdio::null())
-                .spawn()
+            if let Ok(mut child) =
+                slate_core::process::sanitize(&mut std::process::Command::new(program))
+                    .args(args)
+                    .stdin(std::process::Stdio::piped())
+                    .stdout(std::process::Stdio::null())
+                    .stderr(std::process::Stdio::null())
+                    .spawn()
             {
                 if let Some(mut stdin) = child.stdin.take() {
                     let _ = stdin.write_all(text.as_bytes());
@@ -219,7 +476,7 @@ fn write_system_clipboard(text: &str) {
 }
 fn read_system_clipboard() -> Option<String> {
     let (program, args) = clipboard_programs(true).into_iter().next()?;
-    let output = std::process::Command::new(program)
+    let output = slate_core::process::sanitize(&mut std::process::Command::new(program))
         .args(args)
         .stderr(std::process::Stdio::null())
         .output()
@@ -241,6 +498,9 @@ pub fn run(mut app: App) -> Result<()> {
             libc::SIGTERM,
             on_terminate as *const () as libc::sighandler_t,
         );
+        // Installed before crossterm reads events: its own SIGWINCH handler
+        // chains to this one.
+        libc::signal(libc::SIGWINCH, on_resize as *const () as libc::sighandler_t);
     }
     if slate_core::fsio::which("sudo").is_some() && unsafe { libc::geteuid() } != 0 {
         app.elevation_mode = slate_core::ElevationMode::Terminal;
@@ -261,16 +521,17 @@ pub fn run(mut app: App) -> Result<()> {
     modes.lock().unwrap().enhanced = enhanced;
     let _guard = Guard(modes.clone());
     enter(*modes.lock().unwrap())?;
-    // Restore the outer terminal before a panic message is printed.
+    let events = app.events();
+    let worker_failures = Arc::new(Mutex::new(None));
     let hook_modes = modes.clone();
-    let default_hook = std::panic::take_hook();
-    std::panic::set_hook(Box::new(move |info| {
-        leave(*hook_modes.lock().unwrap_or_else(|e| e.into_inner()));
-        default_hook(info);
-    }));
+    let hook_events = events.clone();
+    let _panic_hook = install_panic_hook(
+        move || leave(*hook_modes.lock().unwrap_or_else(|e| e.into_inner())),
+        worker_failures.clone(),
+        move || hook_events.notify(),
+    );
     let backspace_is_ctrl_h = erase_is_control_h();
     let mut terminal = Terminal::new(CrosstermBackend::new(io::stdout()))?;
-    let events = app.events();
     let (input_tx, input_rx) = std::sync::mpsc::channel();
     let running = Arc::new(AtomicBool::new(true));
     let paused = Arc::new(AtomicBool::new(false));
@@ -278,17 +539,40 @@ pub fn run(mut app: App) -> Result<()> {
     let (reader_running, reader_paused, reader_idle) =
         (running.clone(), paused.clone(), idle.clone());
     let input_events = events.clone();
+    let wake = wake_reader()?;
+    let (tty, tty_file) = terminal_input()?;
     let thread = std::thread::spawn(move || {
+        let _tty_file = tty_file;
+        // Set after the terminal reported input: give crossterm a moment to
+        // see it, so input it has not consumed yet cannot spin this loop.
+        let mut input_ready = false;
         while reader_running.load(Ordering::Acquire) {
             if reader_paused.load(Ordering::SeqCst) {
                 reader_idle.store(true, Ordering::SeqCst);
-                std::thread::sleep(Duration::from_millis(10));
+                // Another program owns the keyboard: wait for resume or exit.
+                wait_readable([wake]);
+                drain_wakes(wake);
                 continue;
             }
             reader_idle.store(false, Ordering::SeqCst);
-            match event::poll(Duration::from_millis(50)) {
-                Ok(false) => continue,
+            let timeout = if input_ready {
+                Duration::from_millis(50)
+            } else {
+                Duration::ZERO
+            };
+            match event::poll(timeout) {
+                Ok(false) => {
+                    // Idle: sleep until the terminal has input or a signal,
+                    // pause or shutdown writes the wake pipe.
+                    let [input, woken] = wait_readable([tty, wake]);
+                    input_ready = input;
+                    if woken {
+                        drain_wakes(wake);
+                        input_events.notify();
+                    }
+                }
                 Ok(true) => {
+                    input_ready = false;
                     if reader_paused.load(Ordering::SeqCst) {
                         continue;
                     }
@@ -354,6 +638,16 @@ pub fn run(mut app: App) -> Result<()> {
     let mut terminal_capture = None;
     let mut clipboard = String::new();
     while !app.quit {
+        if let Some(failure) = worker_failures
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .take()
+        {
+            // The interface keeps running so unsaved work can still be saved.
+            app.report_internal_failure(format!(
+                "A background task stopped unexpectedly ({failure}); save your documents and restart Slate"
+            ));
+        }
         if TERMINATE.load(Ordering::SeqCst) {
             // The terminal is going away. Keep unsaved work: recovery
             // checkpoints for workspaces, nano-style NAME.save files otherwise.
@@ -376,6 +670,11 @@ pub fn run(mut app: App) -> Result<()> {
         app.process_events();
         if let Some(request) = app.take_elevation() {
             let mut result = Ok(());
+            // Outside raw mode Ctrl+C, Ctrl+\ and Ctrl+Z signal the
+            // terminal's foreground: sudo while it runs, Slate just before
+            // and after. Slate must survive them with its unsaved buffers.
+            #[cfg(unix)]
+            let signals = slate_core::process::HoldTerminalSignals::new();
             handover(&mut terminal, &mut || {
                 println!(
                     "Slate: saving {} with sudo (Ctrl+C cancels)",
@@ -389,6 +688,8 @@ pub fn run(mut app: App) -> Result<()> {
                     true,
                 );
             })?;
+            #[cfg(unix)]
+            drop(signals);
             app.finish_elevation(request, result);
             redraw = true;
         }
@@ -422,7 +723,7 @@ pub fn run(mut app: App) -> Result<()> {
             prior_size = size;
             redraw = true;
         }
-        let mut catalog = app.command_catalog(palette.as_deref().unwrap_or_default());
+        let mut catalog = palette_catalog(&app, palette.as_deref());
         if redraw {
             terminal.draw(|frame| {
                 render(
@@ -476,7 +777,7 @@ pub fn run(mut app: App) -> Result<()> {
                         3,
                     );
                 }
-                catalog = app.command_catalog(palette.as_deref().unwrap_or_default());
+                catalog = palette_catalog(&app, palette.as_deref());
             }
             if burst < 256 {
                 if let Ok(event) = input_rx.try_recv() {
@@ -695,7 +996,7 @@ pub fn run(mut app: App) -> Result<()> {
                                         let len = if pane.kind == "files" {
                                             snapshot.files.len()
                                         } else {
-                                            snapshot.git.len()
+                                            snapshot.git.len() + snapshot.history.len()
                                         };
                                         let height = pane.rect.height.saturating_sub(3) as usize;
                                         let top = pane
@@ -760,7 +1061,6 @@ pub fn run(mut app: App) -> Result<()> {
         }
     }
     terminal.show_cursor()?;
-    let _ = std::panic::take_hook();
     Ok(())
 }
 /// Read the desktop clipboard into Slate's clipboard before pasting.
@@ -831,6 +1131,82 @@ fn clean(s: &str) -> String {
         .map(|c| if c.is_control() { '�' } else { c })
         .collect()
 }
+/// A file or Git pane's colours: its palette, or the terminal's own colours
+/// when it follows the desktop.
+fn tool_style(pane: &slate_core::theme::PaneColors, colors: ColorMode) -> Style {
+    if pane.desktop {
+        Style::default()
+    } else {
+        colors.style(&pane.foreground, &pane.background)
+    }
+}
+/// " ↑2 ↓1 origin/main" for a branch with an upstream.
+fn sync_summary(s: &Snapshot) -> String {
+    if s.git_upstream.is_empty() {
+        return String::new();
+    }
+    let mut text = String::new();
+    if s.git_ahead > 0 {
+        text.push_str(&format!(" ↑{}", s.git_ahead));
+    }
+    if s.git_behind > 0 {
+        text.push_str(&format!(" ↓{}", s.git_behind));
+    }
+    format!("{text} → {}", clean(&s.git_upstream))
+}
+/// "5m", "3h", "2d", "4mo", "1y": how long ago `time` was.
+fn age(time: i64, now: i64) -> String {
+    let seconds = (now - time).max(0);
+    match seconds {
+        0..60 => "now".into(),
+        60..3_600 => format!("{}m", seconds / 60),
+        3_600..86_400 => format!("{}h", seconds / 3_600),
+        86_400..2_592_000 => format!("{}d", seconds / 86_400),
+        2_592_000..31_536_000 => format!("{}mo", seconds / 2_592_000),
+        _ => format!("{}y", seconds / 31_536_000),
+    }
+}
+/// A commit row: its lanes in their graph colours, then hash, subject,
+/// references, author and age.
+fn commit_item(
+    commit: &slate_core::git_history::HistoryRow,
+    colors: ColorMode,
+    now: i64,
+) -> ListItem<'static> {
+    const LANES: usize = 6;
+    let mut spans: Vec<Span> = slate_core::git_history::glyphs(commit, LANES)
+        .into_iter()
+        .map(|(glyph, color)| {
+            let style = match color {
+                Some(index) if colors != ColorMode::None => Style::default().fg(colors.color(
+                    slate_core::git_history::PALETTE
+                        [index as usize % slate_core::git_history::PALETTE.len()],
+                )),
+                _ => Style::default(),
+            };
+            Span::styled(glyph.to_string(), style)
+        })
+        .collect();
+    let dim = if colors == ColorMode::None {
+        Style::default().add_modifier(Modifier::DIM)
+    } else {
+        Style::default().fg(Color::DarkGray)
+    };
+    spans.push(Span::styled(format!(" {} ", commit.short), dim));
+    spans.push(Span::raw(clean(&commit.subject)));
+    if !commit.refs.is_empty() {
+        let names: Vec<String> = commit.refs.iter().map(|r| clean(&r.name)).collect();
+        spans.push(Span::styled(
+            format!(" ({})", names.join(", ")),
+            Style::default().add_modifier(Modifier::BOLD),
+        ));
+    }
+    spans.push(Span::styled(
+        format!(" · {}, {}", clean(&commit.author), age(commit.time, now)),
+        dim,
+    ));
+    ListItem::new(Line::from(spans))
+}
 /// Text, title and height of each prompt kind.
 fn prompt_view(
     prompt: &slate_core::search::Prompt,
@@ -839,6 +1215,8 @@ fn prompt_view(
     let input = clean(&prompt.input);
     match prompt.kind.as_str() {
         "trash-file" => (format!("Move {input} to desktop Trash?\nY: move to Trash · N / Escape: cancel"), "Move to Trash", 5),
+        "discard-changes" if prompt.replacement == "untracked" => (format!("Move the untracked file {input} to desktop Trash?\nY: discard · N / Escape: cancel"), "Discard changes", 5),
+        "discard-changes" => (format!("Discard the working changes to {input}? This cannot be undone.\nY: discard · N / Escape: cancel"), "Discard changes", 5),
         "close-tab" => (
             format!("Save changes to {input} before closing?\nS: save and close · D: discard and close\nEscape / Enter: cancel"),
             "Unsaved changes",
@@ -910,6 +1288,8 @@ fn prompt_view(
                 "debug-program" => "Program to debug",
                 "goto" => "Go to line",
                 "find" => "Find",
+                "git-switch" => "Switch to branch",
+                "git-branch" => "Create and switch to branch",
                 _ => "Input",
             },
             6,
@@ -928,17 +1308,24 @@ fn render(
     for p in &s.panes {
         let area = Rect::new(p.rect.x, p.rect.y, p.rect.width, p.rect.height);
         let focus = p.id == s.focus;
+        // Tool panes have their own themes; "desktop" keeps the terminal's colours.
+        let pane_style = match p.kind.as_str() {
+            "files" => tool_style(&s.files_colors, colors),
+            "git" => tool_style(&s.git_colors, colors),
+            _ => base,
+        };
         let block = Block::default()
             .borders(Borders::ALL)
-            .style(base)
+            .style(pane_style)
             .title(if p.kind == "git" {
                 format!(
-                    " Git: {} #{} ",
+                    " Git: {}{} #{} ",
                     if s.git_repository {
                         &s.git_branch
                     } else {
                         "No repository"
                     },
+                    sync_summary(s),
                     p.id
                 )
             } else {
@@ -953,7 +1340,7 @@ fn render(
                     .width
                     .saturating_sub(if region.close.is_some() { 3 } else { 0 });
             frame.render_widget(
-                Paragraph::new(format!(" {} ", clean(&tab.title))).style(colors.tab(tab.active)),
+                Paragraph::new(region.label).style(colors.tab(tab.active)),
                 Rect::new(area.x + 1 + region.x, area.y + 1, label_width, 1),
             );
             if let Some(close) = region.close {
@@ -990,8 +1377,15 @@ fn render(
                 }
             }
         } else {
+            // Build only the rows that fit: lists may hold 100,000 entries.
+            let total = if p.kind == "files" {
+                s.files.len()
+            } else {
+                s.git.len() + s.history.len()
+            };
+            let (rows, selected) = list_window(total, p.selected, content.height as usize);
             let items: Vec<ListItem> = if p.kind == "files" {
-                s.files
+                s.files[rows]
                     .iter()
                     .map(|e| {
                         ListItem::new(clean(&format!(
@@ -1002,14 +1396,19 @@ fn render(
                     })
                     .collect()
             } else {
-                s.git
-                    .iter()
-                    .map(|e| {
+                // Changes, then the commit graph.
+                let now = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map_or(0, |d| d.as_secs() as i64);
+                rows.map(|row| match s.git.get(row) {
+                    Some(e) => {
                         ListItem::new(clean(&format!("[{}] {} {}", e.group, e.status, e.path)))
-                    })
-                    .collect()
+                    }
+                    None => commit_item(&s.history[row - s.git.len()], colors, now),
+                })
+                .collect()
             };
-            let mut state = ListState::default().with_selected(Some(p.selected));
+            let mut state = ListState::default().with_selected(Some(selected));
             frame.render_stateful_widget(
                 List::new(items).highlight_style(colors.highlight()),
                 content,
@@ -1168,6 +1567,13 @@ fn render(
         ));
     }
 }
+/// The rows of a `total`-row list that fit `height`, and the selection
+/// within them: the window List scrolls to for a selection given afresh.
+fn list_window(total: usize, selected: usize, height: usize) -> (std::ops::Range<usize>, usize) {
+    let selected = selected.min(total.saturating_sub(1));
+    let first = (selected + 1).saturating_sub(height.max(1));
+    (first..total.min(first + height), selected - first)
+}
 /// The command palette's box on a screen of `size`.
 fn palette_area(size: Rect) -> Rect {
     let height = size.height.saturating_sub(4).min(16);
@@ -1191,6 +1597,11 @@ fn palette_rows(size: Rect) -> Rect {
 /// The first command drawn, keeping `selected` in view (two rows each).
 fn palette_top(rows: Rect, selected: usize) -> usize {
     (selected + 1).saturating_sub((rows.height as usize / 2).max(1))
+}
+/// The palette's matching commands. Describing every action (with its
+/// availability) is only worth doing while the palette shows them.
+fn palette_catalog(app: &App, palette: Option<&str>) -> Vec<slate_core::commands::CommandInfo> {
+    palette.map_or_else(Vec::new, |query| app.command_catalog(query))
 }
 fn run_palette_action(app: &mut App, id: String) {
     if id == "paste" {
@@ -1229,7 +1640,7 @@ impl Widget for Grid<'_> {
                 if c.underline {
                     modifiers |= Modifier::UNDERLINED;
                 }
-                let mut style = self.colors.style(&c.fg, &c.bg).add_modifier(modifiers);
+                let mut style = self.colors.cell_style(c.fg, c.bg).add_modifier(modifiers);
                 if self.colors == ColorMode::None && c.bg == self.selection {
                     style = style.add_modifier(Modifier::REVERSED);
                 }
@@ -1245,6 +1656,156 @@ impl Widget for Grid<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn tabs(titles: &[&str], active: usize) -> Vec<slate_core::Tab> {
+        titles
+            .iter()
+            .enumerate()
+            .map(|(i, title)| slate_core::Tab {
+                title: title.to_string(),
+                active: i == active,
+                editor_id: None,
+                close_id: Some(i as u64),
+            })
+            .collect()
+    }
+    fn bar(tabs: &[slate_core::Tab], width: u16) -> String {
+        let regions = tab_regions(tabs, width);
+        let mut line = String::new();
+        for region in &regions {
+            assert_eq!(region.x as usize, Span::raw(line.as_str()).width());
+            line += &region.label;
+            if region.close.is_some() {
+                line += "[x]";
+            }
+            assert_eq!(
+                Span::raw(line.as_str()).width(),
+                (region.x + region.width) as usize
+            );
+        }
+        assert!(Span::raw(line.as_str()).width() <= width as usize, "{line}");
+        line
+    }
+
+    #[test]
+    fn crowded_tab_bars_shrink_titles_and_keep_every_tab_reachable() {
+        let names = ["Terminal 1", "Terminal 2", "Terminal 3"];
+        // Room for everything: full titles, each with a close button.
+        assert_eq!(
+            bar(&tabs(&names, 1), 60),
+            " Terminal 1 [x] Terminal 2 [x] Terminal 3 [x]"
+        );
+        // A side pane: numbered tabs; the active one keeps its whole title
+        // while the others shorten, then show numbers alone.
+        assert_eq!(
+            bar(&tabs(&names, 1), 38),
+            " 1:Termi…  2:Terminal 2 [x] 3:Termi… "
+        );
+        assert_eq!(bar(&tabs(&names, 0), 24), " 1:Terminal 1 [x] 2  3 ");
+        // Then the active title shortens too.
+        assert_eq!(bar(&tabs(&names, 1), 20), " 1  2:Termin… [x] 3 ");
+        // Numbers only, then a window around the active tab with ‹ and ›.
+        assert_eq!(bar(&tabs(&names, 2), 14), " 1  2  3 [x]");
+        assert_eq!(bar(&tabs(&names, 0), 10), " 1 [x] 2 ›");
+        assert_eq!(bar(&tabs(&names, 0), 3), " 1 ");
+        let many: Vec<String> = (1..=12).map(|n| format!("Terminal {n}")).collect();
+        let many: Vec<&str> = many.iter().map(String::as_str).collect();
+        assert_eq!(bar(&tabs(&many, 6), 20), "‹ 5  6  7 [x] 8  9 ›");
+        let regions = tab_regions(&tabs(&many, 6), 20);
+        // The arrows select the nearest hidden tab on their side.
+        assert_eq!(regions[0].index + 1, regions[1].index);
+        assert_eq!(
+            regions[regions.len() - 1].index,
+            regions[regions.len() - 2].index + 1
+        );
+        assert!(regions.iter().any(|r| r.index == 6 && r.close.is_some()));
+        // Every tab stays reachable from the first and the last.
+        assert_eq!(bar(&tabs(&many, 0), 20), " 1 [x] 2  3  4  5 ›");
+        assert_eq!(bar(&tabs(&many, 11), 20), "‹ 9  10  11  12 [x]");
+        assert_eq!(bar(&tabs(&many, 6), 12), "‹ 7 [x] 8 ›");
+        assert_eq!(
+            bar(&tabs(&many, 6), 60),
+            " 1  2  3  4  5  6  7:Terminal 7 [x] 8  9  10  11  12 "
+        );
+        // Wide characters are cut whole; short titles show in full.
+        assert_eq!(
+            bar(&tabs(&["sh", "猫猫猫猫猫猫.txt", "vim"], 1), 22),
+            " 1  2:猫猫猫猫… [x] 3 "
+        );
+        assert_eq!(
+            bar(&tabs(&["sh", "猫猫猫猫猫猫.txt", "vim"], 0), 22),
+            " 1:sh [x] 2  3 "
+        );
+        // At every width the active tab is drawn and the layout fits.
+        let wide = ["sh", "猫猫猫猫猫猫.txt", "vim"];
+        for width in 1..70 {
+            for (titles, active) in [
+                (&many[..], 0),
+                (&many[..], 5),
+                (&many[..], 11),
+                (&wide[..], 2),
+            ] {
+                bar(&tabs(titles, active), width);
+                let regions = tab_regions(&tabs(titles, active), width);
+                assert!(regions
+                    .iter()
+                    .any(|r| r.index == active && !r.label.starts_with(['‹', '›'])));
+            }
+        }
+    }
+
+    #[test]
+    fn worker_panics_are_recorded_and_only_the_interface_restores_the_terminal() {
+        use std::sync::atomic::AtomicUsize;
+        let restored = Arc::new(AtomicUsize::new(0));
+        let notified = Arc::new(AtomicUsize::new(0));
+        let failures = Arc::new(Mutex::new(None));
+        let (restore, notify) = (restored.clone(), notified.clone());
+        let hook = install_panic_hook(
+            move || {
+                restore.fetch_add(1, Ordering::SeqCst);
+            },
+            failures.clone(),
+            move || {
+                notify.fetch_add(1, Ordering::SeqCst);
+            },
+        );
+        let worker = std::thread::Builder::new()
+            .name("highlight".into())
+            .spawn(|| panic!("worker failure marker"))
+            .unwrap();
+        assert!(worker.join().is_err());
+        // The editor's screen and raw mode stay; the main loop is told.
+        assert_eq!(restored.load(Ordering::SeqCst), 0);
+        assert!(notified.load(Ordering::SeqCst) >= 1);
+        let failure = failures.lock().unwrap().take().unwrap();
+        assert!(
+            failure.starts_with("thread 'highlight' panicked at ")
+                && failure.ends_with(": worker failure marker"),
+            "{failure}"
+        );
+        // A panic its caller catches and reports is not a session failure.
+        let notifications = notified.load(Ordering::SeqCst);
+        let handled = std::thread::spawn(|| {
+            slate_core::panics::catch_handled(|| panic!("handled marker")).is_err()
+        });
+        assert!(handled.join().unwrap());
+        assert!(slate_core::panics::catch_handled(|| panic!("handled marker")).is_err());
+        assert_eq!(notified.load(Ordering::SeqCst), notifications);
+        assert_eq!(restored.load(Ordering::SeqCst), 0);
+        assert!(failures.lock().unwrap().is_none());
+        // The interface thread's own panic restores the terminal first.
+        assert!(std::panic::catch_unwind(|| panic!("interface failure marker")).is_err());
+        assert_eq!(restored.load(Ordering::SeqCst), 1);
+        // Leaving the interface reinstates the previous hook.
+        drop(hook);
+        let notifications = notified.load(Ordering::SeqCst);
+        assert!(std::thread::spawn(|| panic!("after exit marker"))
+            .join()
+            .is_err());
+        assert_eq!(notified.load(Ordering::SeqCst), notifications);
+        assert!(failures.lock().unwrap().is_none());
+    }
 
     #[test]
     fn legacy_control_bytes_map_to_their_punctuation() {
@@ -1275,5 +1836,35 @@ mod tests {
         );
         let chord = slate_core::key_chord(&translate(normalize_key(ctrl('5'), false, false)));
         assert_eq!(chord, "Ctrl+]");
+    }
+
+    #[test]
+    fn windowed_lists_draw_like_the_whole_list() {
+        let draw = |items: Vec<String>, selected: usize, height: u16| {
+            let area = Rect::new(0, 0, 12, height);
+            let mut buffer = Buffer::empty(area);
+            let mut state = ListState::default().with_selected(Some(selected));
+            StatefulWidget::render(
+                List::new(items.into_iter().map(ListItem::new))
+                    .highlight_style(Style::default().add_modifier(Modifier::REVERSED)),
+                area,
+                &mut buffer,
+                &mut state,
+            );
+            buffer
+        };
+        for total in [0, 1, 5, 40] {
+            let items: Vec<String> = (0..total).map(|i| format!("row {i}")).collect();
+            for height in [1, 3, 10] {
+                for selected in 0..total + 3 {
+                    let (rows, within) = list_window(total, selected, height as usize);
+                    assert_eq!(
+                        draw(items[rows].to_vec(), within, height),
+                        draw(items.clone(), selected, height),
+                        "{total} rows, {height} high, row {selected} selected"
+                    );
+                }
+            }
+        }
     }
 }

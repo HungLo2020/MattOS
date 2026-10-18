@@ -1,12 +1,12 @@
 runtests = files('runtests.py')
 
 tests = [
-    ['Test gst', 'test_gst.py'],
+    ['gst', 'test_gst.py'],
     ['gstinit', 'test_gst_init.py'],
-    ['Test fundamentals', 'test_types.py'],
-    ['Test plugins', 'test_plugin.py'],
-    ['Test analytics', 'test_analytics.py', ['gst-plugins-bad/gst-libs/gst/analytics', 'gst-plugins-base/gst-libs/gst/video']],
-    ['Test appsink', 'test_appsink.py', ['gst-plugins-base/gst-libs/gst/app']],
+    ['fundamentals', 'test_types.py'],
+    ['plugins', 'test_plugin.py'],
+    ['analytics', 'test_analytics.py', ['gst-plugins-bad/gst-libs/gst/analytics', 'gst-plugins-base/gst-libs/gst/video']],
+    ['appsink', 'test_appsink.py', ['gst-plugins-base/gst-libs/gst/app']],
 ]
 
 runcmd = run_command(python, '-c', '''with open("@0@/mesonconfig.py", "w") as f:
@@ -87,7 +87,8 @@ foreach i: tests
         l += 1
     endforeach
 
-    foreach j: i.get(2, [])
+    gir_dirs = ['gstreamer/libs/gst/base/', 'gstreamer/gst/'] + i.get(2, [])
+    foreach j: gir_dirs
       path = meson.project_build_root() / '..' / j
       env.append('GI_TYPELIB_PATH', path)
       testsenv_ld_library_path += path

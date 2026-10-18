@@ -5,11 +5,15 @@
 
 #include "config.h"
 
+#include <assert.h>
+
+#include "xkbcommon/xkbcommon.h"
+#include "messages-codes.h"
 #include "utils.h"
+#include "constants.h"
 #include "table.h"
 #include "parser.h"
 #include "paths.h"
-#include "xkbcommon/xkbcommon.h"
 
 static struct xkb_compose_table *
 xkb_compose_table_new(struct xkb_context *ctx,
@@ -55,6 +59,7 @@ xkb_compose_table_new(struct xkb_context *ctx,
 struct xkb_compose_table *
 xkb_compose_table_ref(struct xkb_compose_table *table)
 {
+    assert(table->refcnt > 0);
     table->refcnt++;
     return table;
 }
@@ -62,6 +67,7 @@ xkb_compose_table_ref(struct xkb_compose_table *table)
 void
 xkb_compose_table_unref(struct xkb_compose_table *table)
 {
+    assert(!table || table->refcnt > 0);
     if (!table || --table->refcnt > 0)
         return;
     free(table->locale);
@@ -186,7 +192,7 @@ xkb_compose_table_new_from_locale(struct xkb_context *ctx,
         goto found_path;
     free(path);
 
-    log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
+    log_err(ctx, XKB_ERROR_INVALID_COMPOSE_LOCALE,
             "couldn't find a Compose file for locale \"%s\" (mapped to \"%s\")\n",
             locale, table->locale);
     xkb_compose_table_unref(table);
@@ -257,7 +263,7 @@ xkb_compose_table_iterator_new(struct xkb_compose_table *table)
         return NULL;
     }
     iter->table = xkb_compose_table_ref(table);
-    sequence = calloc(MAX_LHS_LEN, sizeof(xkb_keysym_t));
+    sequence = calloc(COMPOSE_MAX_LHS_LEN, sizeof(xkb_keysym_t));
     if (!sequence) {
         free(iter);
         return NULL;

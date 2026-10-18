@@ -444,7 +444,8 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
                   break;
 
                 case 5: /* Init search context to enum all secret keys.  */
-                  err = getkey_bynames (ctrl, &c->ctx, NULL, NULL, 1,
+                  err = getkey_bynames (ctrl, &c->ctx, NULL, NULL,
+                                        GETKEY_WANT_SECRET,
                                         &keyblock);
                   if (err)
                     {
@@ -510,7 +511,7 @@ enum_secret_keys (ctrl_t ctrl, void **context, PKT_public_key *sk)
                       if (opt.debug)
                         log_debug ("using LDAP to find public key"
                                    " for current card\n");
-                      if (!keyserver_import_fprint
+                      if (!keyserver_import_fpr
                           (ctrl, cinfo.fpr2, cinfo.fpr2len, opt.keyserver,
                            KEYSERVER_IMPORT_FLAG_LDAP))
                         {

@@ -2,6 +2,10 @@
 #include "gdk-pixbuf/gdk-pixbuf.h"
 #include <glib.h>
 
+#include "test-common.h"
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
 /*
  * Reads count_bytes from the channel and write them to the loader.
  * Returns number of bytes written.
@@ -39,7 +43,14 @@ static void
 test_short_gif_write (void)
 {
     GdkPixbufLoader *loader;
-    GIOChannel* channel = g_io_channel_new_file (g_test_get_filename (G_TEST_DIST, "test-animation.gif", NULL), "r", NULL);
+    GIOChannel* channel;
+
+    if (!format_supported ("gif")) {
+        g_test_skip ("GIF format not supported");
+        return;
+    }
+
+    channel = g_io_channel_new_file (g_test_get_filename (G_TEST_DIST, "test-animation.gif", NULL), "r", NULL);
 
     g_assert (channel != NULL);
     g_io_channel_set_encoding (channel, NULL, NULL);
@@ -64,6 +75,11 @@ test_load_first_frame (void)
     GError *error = NULL;
     GdkPixbuf *pixbuf;
     GdkPixbufLoader *loader;
+
+    if (!format_supported ("gif")) {
+        g_test_skip ("GIF format not supported");
+        return;
+    }
 
     channel = g_io_channel_new_file (g_test_get_filename (G_TEST_DIST, "1_partyanimsm2.gif", NULL), "r", NULL);
     g_assert (channel != NULL);

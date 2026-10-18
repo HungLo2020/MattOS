@@ -113,7 +113,7 @@
 
 ;; Note that the entry for pinentry relies on the fact that
 ;; GNUPG_BUILD_ROOT is the top of the build root.  The second element
-;; in each list is an envvar which can be used to specifiy a different
+;; in each list is an envvar which can be used to specify a different
 ;; tool than the installed one.
 (define tools
   '((gpgv "GPGV" "g10/gpgv")
@@ -268,13 +268,14 @@
 (define (gpg-pipe args0 args1 errfd)
   (lambda (source sink)
     (let* ((p (pipe))
-	   (task0 (spawn-process-fd `(,@GPG ,@args0)
+	   (task0 (process-spawn-fd `(,@GPG ,@args0)
 		   source (:write-end p) errfd))
 	   (_ (close (:write-end p)))
-	   (task1 (spawn-process-fd `(,@GPG ,@args1)
+	   (task1 (process-spawn-fd `(,@GPG ,@args1)
 		   (:read-end p) sink errfd)))
       (close (:read-end p))
-      (wait-processes (list GPG GPG) (list task0 task1) #t))))
+      (process-wait task0 #t)
+      (process-wait task1 #t))))
 
 (setenv "GPG_AGENT_INFO" "" #t)
 (setenv "GNUPGHOME" (getcwd) #t)
@@ -325,7 +326,7 @@
       (for-each (lambda (line) (display line port) (newline port))
 		lines))))
 
-(define (create-gpghome)
+(define (create-gpghome-with-mode modeflag)
   (log "Creating test environment...")
 
   (srandom (getpid))
@@ -354,6 +355,7 @@
 	       "allow-weak-digest-algos"
 	       "allow-old-cipher-algos"
                "ignore-mdc-error"
+               (if (= modeflag 9980) "allow-9980" "")
 	       (if have-opt-always-trust
 		   "no-auto-check-trustdb" "#no-auto-check-trustdb")
 	       (string-append "agent-program "
@@ -374,10 +376,19 @@
 	       (string-append "pinentry-program " (tool 'pinentry))
 	       "disable-scdaemon"))
 
+(define (create-gpghome)
+  (create-gpghome-with-mode 0))
+
+
 ;; Initialize the test environment, install appropriate configuration
 ;; and start the agent, without any keys.
 (define (setup-environment)
   (create-gpghome)
+  (start-agent))
+
+(define (setup-9980-environment)
+  (create-gpghome-with-mode 9980)
+  (create-sample-files)
   (start-agent))
 
 (define (setup-environment-no-atexit)
@@ -463,12 +474,12 @@
 ;; Initialize the test environment, install appropriate configuration
 ;; and start the agent, with the keys from the legacy test suite.
 (define (setup-legacy-environment)
-  (create-gpghome)
   (if (member "--unpack-tarball" *args*)
       (begin
 	(call-check `(,(tool 'gpgtar) --extract --directory=. ,(cadr *args*)))
 	(start-agent))
       (begin
+        (create-gpghome)
 	(start-agent)
 	(create-legacy-gpghome)))
   (preset-passphrases))

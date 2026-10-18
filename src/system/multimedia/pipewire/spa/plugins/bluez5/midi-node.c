@@ -23,7 +23,6 @@
 #include <spa/utils/ringbuffer.h>
 #include <spa/monitor/device.h>
 #include <spa/control/control.h>
-#include <spa/control/ump-utils.h>
 
 #include <spa/node/node.h>
 #include <spa/node/utils.h>
@@ -450,7 +449,7 @@ static void midi_event_recv(void *user_data, uint16_t timestamp, uint8_t *data, 
 	struct impl *this = user_data;
 	struct port *port = &this->ports[PORT_OUT];
 	struct time_sync *sync = &port->sync;
-	uint64_t time, state = 0;
+	uint64_t time;
 	int res;
 
 	spa_assert(size > 0);
@@ -460,19 +459,11 @@ static void midi_event_recv(void *user_data, uint16_t timestamp, uint8_t *data, 
 	spa_log_trace(this->log, "%p: event:0x%x size:%d timestamp:%d time:%"PRIu64"",
 			this, (int)data[0], (int)size, (int)timestamp, (uint64_t)time);
 
-	while (size > 0) {
-		uint32_t ump[4];
-		int ump_size = spa_ump_from_midi(&data, &size,
-					ump, sizeof(ump), 0, &state);
-		if (ump_size <= 0)
-			break;
-
-		res = midi_event_ringbuffer_push(&this->event_rbuf, time, (uint8_t*)ump, ump_size);
-		if (res < 0) {
-			midi_event_ringbuffer_init(&this->event_rbuf);
-			spa_log_warn(this->log, "%p: MIDI receive buffer overflow: %s",
-					this, spa_strerror(res));
-		}
+	res = midi_event_ringbuffer_push(&this->event_rbuf, time, data, size);
+	if (res < 0) {
+		midi_event_ringbuffer_init(&this->event_rbuf);
+		spa_log_warn(this->log, "%p: MIDI receive buffer overflow: %s",
+				this, spa_strerror(res));
 	}
 }
 
@@ -713,7 +704,7 @@ static int process_output(struct impl *this)
 			offset = time * this->rate / SPA_NSEC_PER_SEC;
 			offset = SPA_CLAMP(offset, 0u, this->duration - 1);
 
-			spa_pod_builder_control(&port->builder, offset, SPA_CONTROL_UMP);
+			spa_pod_builder_control(&port->builder, offset, SPA_CONTROL_Midi);
 			buf = spa_pod_builder_reserve_bytes(&port->builder, size);
 			if (buf) {
 				midi_event_ringbuffer_pop(&this->event_rbuf, buf, size);
@@ -766,34 +757,33 @@ static int flush_packet(struct impl *this)
 static int write_data(struct impl *this, struct spa_data *d)
 {
 	struct port *port = &this->ports[PORT_IN];
-	struct spa_pod_sequence *pod;
-	struct spa_pod_control *c;
+	struct spa_pod_parser parser;
+	struct spa_pod_frame frame;
+	struct spa_pod_sequence seq;
+	const void *seq_body, *c_body;
+	struct spa_pod_control c;
 	uint64_t time;
 	int res;
 
-	pod = spa_pod_from_data(d->data, d->maxsize, d->chunk->offset, d->chunk->size);
-	if (pod == NULL) {
+	spa_pod_parser_init_from_data(&parser, d->data, d->maxsize, d->chunk->offset, d->chunk->size);
+	if (spa_pod_parser_push_sequence_body(&parser, &frame, &seq, &seq_body) < 0) {
 		spa_log_warn(this->log, "%p: invalid sequence in buffer max:%u offset:%u size:%u",
 				this, d->maxsize, d->chunk->offset, d->chunk->size);
 		return -EINVAL;
 	}
 
+
 	spa_bt_midi_writer_init(&this->writer, port->mtu);
 	time = 0;
 
-	SPA_POD_SEQUENCE_FOREACH(pod, c) {
-		int size;
-		uint8_t event[32];
+	while (spa_pod_parser_get_control_body(&parser, &c, &c_body) >= 0) {
+		const uint8_t *event = c_body;
+		uint32_t size = c.value.size;
 
-		if (c->type != SPA_CONTROL_UMP)
+		if (c.type != SPA_CONTROL_Midi)
 			continue;
 
-		time = SPA_MAX(time, this->current_time + c->offset * SPA_NSEC_PER_SEC / this->rate);
-
-		size = spa_ump_to_midi(SPA_POD_BODY(&c->value),
-				SPA_POD_BODY_SIZE(&c->value), event, sizeof(event));
-		if (size <= 0)
-			continue;
+		time = SPA_MAX(time, this->current_time + c.offset * SPA_NSEC_PER_SEC / this->rate);
 
 		spa_log_trace(this->log, "%p: output event:0x%x time:%"PRIu64, this,
 				(size > 0) ? event[0] : 0, time);
@@ -1135,7 +1125,7 @@ static int do_stop(struct impl *this)
 
 	spa_log_debug(this->log, "%p: stop", this);
 
-	spa_loop_invoke(this->data_loop, do_remove_source, 0, NULL, 0, true, this);
+	spa_loop_locked(this->data_loop, do_remove_source, 0, NULL, 0, this);
 
 	this->started = false;
 
@@ -1149,7 +1139,7 @@ static int do_release(struct impl *this)
 
 	spa_log_debug(this->log, "%p: release", this);
 
-	spa_loop_invoke(this->data_loop, do_remove_port_source, 0, NULL, 0, true, this);
+	spa_loop_locked(this->data_loop, do_remove_port_source, 0, NULL, 0, this);
 
 	for (i = 0; i < N_PORTS; ++i) {
 		struct port *port = &this->ports[i];
@@ -1260,7 +1250,7 @@ static int impl_node_set_io(void *object, uint32_t id, void *data, size_t size)
 	if (this->started && following != this->following) {
 		spa_log_debug(this->log, "%p: reassign follower %d->%d", this, this->following, following);
 		this->following = following;
-		spa_loop_invoke(this->data_loop, do_reassign_follower, 0, NULL, 0, true, this);
+		spa_loop_locked(this->data_loop, do_reassign_follower, 0, NULL, 0, this);
 	}
 
 	return 0;
@@ -1567,8 +1557,7 @@ next:
 		param = spa_pod_builder_add_object(&b,
 				SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
 				SPA_FORMAT_mediaType,	   SPA_POD_Id(SPA_MEDIA_TYPE_application),
-				SPA_FORMAT_mediaSubtype,   SPA_POD_Id(SPA_MEDIA_SUBTYPE_control),
-				SPA_FORMAT_CONTROL_types,  SPA_POD_CHOICE_FLAGS_Int(1u<<SPA_CONTROL_UMP));
+				SPA_FORMAT_mediaSubtype,   SPA_POD_Id(SPA_MEDIA_SUBTYPE_control));
 		break;
 
 	case SPA_PARAM_Format:
@@ -1580,8 +1569,7 @@ next:
 		param = spa_pod_builder_add_object(&b,
 				SPA_TYPE_OBJECT_Format, SPA_PARAM_Format,
 				SPA_FORMAT_mediaType,	   SPA_POD_Id(SPA_MEDIA_TYPE_application),
-				SPA_FORMAT_mediaSubtype,   SPA_POD_Id(SPA_MEDIA_SUBTYPE_control),
-				SPA_FORMAT_CONTROL_types,  SPA_POD_Int(1u<<SPA_CONTROL_UMP));
+				SPA_FORMAT_mediaSubtype,   SPA_POD_Id(SPA_MEDIA_SUBTYPE_control));
 		break;
 
 	case SPA_PARAM_Buffers:

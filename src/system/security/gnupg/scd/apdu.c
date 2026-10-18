@@ -43,7 +43,6 @@
 
 #if defined(GNUPG_MAJOR_VERSION)
 # include "scdaemon.h"
-# include "../common/exechelp.h"
 #endif /*GNUPG_MAJOR_VERSION*/
 
 #include "../common/host2net.h"
@@ -2310,7 +2309,7 @@ apdu_open_reader (struct dev_list *dl)
 /* Open an remote reader and return an internal slot number or -1 on
    error. This function is an alternative to apdu_open_reader and used
    with remote readers only.  Note that the supplied CLOSEFNC will
-   only be called once and the slot will not be valid afther this.
+   only be called once and the slot will not be valid after this.
 
    If PORTSTR is NULL we default to the first available port.
 */
@@ -3145,6 +3144,9 @@ send_le (int slot, int class, int ins, int p0, int p1,
                   if (p - *retbuf + resultlen > bufsize)
                     {
                       bufsize += resultlen > 4096? resultlen: 4096;
+                      /* Avoid possible DoS by a device.  */
+                      if (bufsize > 65535)
+                        return SW_WRONG_LENGTH;
                       tmp = xtryrealloc (*retbuf, bufsize);
                       if (!tmp)
                         {
@@ -3418,6 +3420,9 @@ apdu_send_direct (int slot, size_t extended_length,
                   if (p - *retbuf + resultlen > bufsize)
                     {
                       bufsize += resultlen > 4096? resultlen: 4096;
+                      /* Avoid possible DoS by a device.  */
+                      if (bufsize > 65535)
+                        return SW_WRONG_LENGTH;
                       tmp = xtryrealloc (*retbuf, bufsize + 2);
                       if (!tmp)
                         {

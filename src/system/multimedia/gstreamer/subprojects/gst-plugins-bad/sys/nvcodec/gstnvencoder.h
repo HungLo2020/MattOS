@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "cuviddec.h"
 #include <gst/gst.h>
 #include <gst/video/video.h>
 
@@ -221,6 +222,8 @@ typedef struct
   GstNvEncoderDeviceMode device_mode;
   GstNvEncoderDeviceCaps device_caps;
 
+  cudaVideoCodec codec;
+
   GList *formats;
   GList *profiles;
 
@@ -275,6 +278,10 @@ struct _GstNvEncoderClass
                                        GstNvEncoderDeviceData * data);
 
   guint       (*calculate_min_buffers) (GstNvEncoder * encoder);
+
+  NV_ENC_PIC_STRUCT (*get_pic_struct)  (GstNvEncoder * encoder,
+                                        const GstVideoInfo * info,
+                                        GstBuffer * buffer);
 };
 
 GType gst_nv_encoder_get_type (void);

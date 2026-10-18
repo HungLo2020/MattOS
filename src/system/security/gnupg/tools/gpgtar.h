@@ -45,10 +45,12 @@ struct
   int batch;
   int answer_yes;
   int answer_no;
-  int status_fd;
+  const char *status_fd;
   estream_t status_stream;
   int require_compliance;
   int with_log;
+  /* Compatibility flags (COMPAT_FLAG_xxxx).  */
+  unsigned int compat_flags;
 } opt;
 
 
@@ -140,6 +142,12 @@ struct tar_header_s
 
   char name[1];             /* Filename (UTF-8, dynamically extended).  */
 };
+
+
+/* Compatibility flags */
+/* When using -C on extract the specified directory is checked to be
+ * empty and not be a symlink.  This flag disables the check.  */
+#define COMPAT_NO_DIR_CHECK  1
 
 
 /*-- gpgtar.c --*/

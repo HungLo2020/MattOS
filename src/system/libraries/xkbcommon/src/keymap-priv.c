@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "xkbcommon/xkbcommon-names.h"
 #include "keymap.h"
@@ -38,6 +39,7 @@ update_builtin_keymap_fields(struct xkb_keymap *keymap)
         keymap->mods.mods[i].mapping = UINT32_C(1) << i;
     }
     keymap->mods.num_mods = ARRAY_SIZE(builtin_mods);
+    keymap->canonical_state_mask = MOD_REAL_MASK_ALL;
 }
 
 struct xkb_keymap *
@@ -60,34 +62,6 @@ xkb_keymap_new(struct xkb_context *ctx,
     update_builtin_keymap_fields(keymap);
 
     return keymap;
-}
-
-struct xkb_key *
-XkbKeyByName(struct xkb_keymap *keymap, xkb_atom_t name, bool use_aliases)
-{
-    struct xkb_key *key;
-
-    xkb_keys_foreach(key, keymap)
-        if (key->name == name)
-            return key;
-
-    if (use_aliases) {
-        xkb_atom_t new_name = XkbResolveKeyAlias(keymap, name);
-        if (new_name != XKB_ATOM_NONE)
-            return XkbKeyByName(keymap, new_name, false);
-    }
-
-    return NULL;
-}
-
-xkb_atom_t
-XkbResolveKeyAlias(const struct xkb_keymap *keymap, xkb_atom_t name)
-{
-    for (unsigned i = 0; i < keymap->num_key_aliases; i++)
-        if (keymap->key_aliases[i].alias == name)
-            return keymap->key_aliases[i].real;
-
-    return XKB_ATOM_NONE;
 }
 
 void
@@ -146,12 +120,13 @@ action_equal(const union xkb_action *a, const union xkb_action *b)
         return false;
 
     /* Ensure we support all action types */
-    static_assert(ACTION_TYPE_PRIVATE == 15 &&
-                  ACTION_TYPE_PRIVATE + 1 == _ACTION_TYPE_NUM_ENTRIES,
+    static_assert(ACTION_TYPE_INTERNAL == 18 &&
+                  ACTION_TYPE_INTERNAL + 1 == _ACTION_TYPE_NUM_ENTRIES,
                   "Missing action type");
 
     switch (a->type) {
     case ACTION_TYPE_NONE:
+    case ACTION_TYPE_VOID:
         return true;
     case ACTION_TYPE_MOD_SET:
     case ACTION_TYPE_MOD_LATCH:
@@ -185,11 +160,20 @@ action_equal(const union xkb_action *a, const union xkb_action *b)
     case ACTION_TYPE_CTRL_LOCK:
         return (a->ctrls.flags == b->ctrls.flags &&
                 a->ctrls.ctrls == b->ctrls.ctrls);
-    case ACTION_TYPE_PRIVATE:
-        return (a->priv.data == b->priv.data);
+    case ACTION_TYPE_UNSUPPORTED_LEGACY:
+        return true;
+    /* ACTION_TYPE_PRIVATE processed in the default case */
+    case ACTION_TYPE_INTERNAL:
+        return (a->internal.flags == b->internal.flags) &&
+               (a->internal.clear_latched_mods == b->internal.clear_latched_mods);
     default:
-        assert(!"Unsupported action");
-        return false;
+        {} /* Label followed by declaration requires C23 */
+        /* Ensure to not miss `xkb_action_type` updates */
+        static_assert(ACTION_TYPE_INTERNAL == 18 &&
+                      ACTION_TYPE_INTERNAL + 1 == _ACTION_TYPE_NUM_ENTRIES,
+                      "Missing action type");
+        /* Private/custom action */
+        return memcmp(a->priv.data, b->priv.data, sizeof(a->priv.data)) == 0;
     }
 }
 
@@ -256,14 +240,13 @@ XkbWrapGroupIntoRange(int32_t group,
     }
 }
 
-unsigned int
+xkb_action_count_t
 xkb_keymap_key_get_actions_by_level(struct xkb_keymap *keymap,
-                                    xkb_keycode_t kc,
+                                    const struct xkb_key *key,
                                     xkb_layout_index_t layout,
                                     xkb_level_index_t level,
                                     const union xkb_action **actions)
 {
-    const struct xkb_key *key = XkbKey(keymap, kc);
     if (!key)
         goto err;
 
@@ -287,7 +270,7 @@ xkb_keymap_key_get_actions_by_level(struct xkb_keymap *keymap,
         default:
             *actions = key->groups[layout].levels[level].a.actions;
     }
-    return (int) count;
+    return count;
 
 err:
     *actions = NULL;

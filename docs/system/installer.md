@@ -194,6 +194,17 @@ check requires Firefox to be deployed and the optional-application log to record
 success. This covers the graphical backend's default selection and provisioning
 hook; it does not automate Calamares' partitioning wizard UI.
 
+The Plasma checks execute the installed GLib/GIO, GdkPixbuf, libxkbcommon,
+libarchive, GStreamer and GnuPG runtimes through
+`DevUtils/upstream_validation.py`. Disposable fixtures cover UTF-8 and file
+loading, built-in PNG and cached GIF decoding, US/German keymaps, tar/gzip/ZIP
+reading and truncated-input rejection, a finite audio conversion pipeline, and
+OpenPGP signing/verification with tamper rejection. The GnuPG probe uses a
+private temporary keyring and stops its own agent. Slate editing and PipeWire
+hardware playback are checked separately in the same installed session. The
+same probes run after a release upgrade. Probe payloads travel in short,
+acknowledged chunks so UART input limits cannot truncate a test command.
+
 The Plasma checks also exercise Discover's update path end to end. The host
 rebuilds one installed leaf package (KCalc) with a higher version
 (`+updatetest1`). As a publish would, it also rebuilds every package that pins

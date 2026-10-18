@@ -52,14 +52,22 @@ struct _GstWaylandSink
   GstWlWindow *window;
   GstBufferPool *pool;
 
-  gboolean video_info_changed;
+  gboolean render_info_changed;
+  GstVideoInfo render_info;
   GstVideoInfo video_info;
   GstVideoInfoDmaDrm drm_info;
+  GstVideoMasteringDisplayInfo minfo;
+  GstVideoContentLightLevel linfo;
+  gboolean have_mastering_info;
+  gboolean have_light_info;
   gboolean fullscreen;
+  gchar *fullscreen_output;
   GstCaps *caps;
 
   gchar *display_name;
 
+  /* If both OBJECT_LOCK and render_lock are needed,
+   * OBJECT_LOCK must be taken first */
   GMutex render_lock;
   GstBuffer *last_buffer;
 
@@ -69,6 +77,7 @@ struct _GstWaylandSink
 
   gchar *drm_device;
   gboolean skip_dumb_buffer_copy;
+  gboolean force_aspect_ratio;
 };
 
 struct _GstWaylandSinkClass
@@ -76,7 +85,7 @@ struct _GstWaylandSinkClass
   GstVideoSinkClass parent;
 };
 
-GType gst_wayland_sink_get_type (void) G_GNUC_CONST;
+GType gst_wayland_sink_get_type (void);
 
 GST_ELEMENT_REGISTER_DECLARE (waylandsink);
 

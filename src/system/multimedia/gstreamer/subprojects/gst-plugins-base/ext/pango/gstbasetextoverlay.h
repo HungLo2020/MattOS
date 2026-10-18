@@ -231,7 +231,6 @@ struct _GstBaseTextOverlay {
 
     gboolean                    attach_compo_to_buffer;
     GstVideoOverlayComposition *composition;
-    GstVideoOverlayComposition *upstream_composition;
 };
 
 struct _GstBaseTextOverlayClass {
@@ -240,7 +239,7 @@ struct _GstBaseTextOverlayClass {
     gchar *     (*get_text) (GstBaseTextOverlay *overlay, GstBuffer *video_frame);
 };
 
-GType gst_base_text_overlay_get_type(void) G_GNUC_CONST;
+GType gst_base_text_overlay_get_type(void);
 
 G_END_DECLS
 

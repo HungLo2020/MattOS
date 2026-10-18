@@ -29,6 +29,9 @@ typedef struct {
     size_t maxbuf_size;
 } md_filter_context_t;
 
+typedef struct md_thd_filter_context *md_thd_filter_context_t;
+void md_thd_filter_set_md (md_thd_filter_context_t mfx, gcry_md_hd_t md);
+
 typedef struct {
     int  refcount;          /* Initialized to 1.  */
 
@@ -96,6 +99,9 @@ typedef struct
   /* Length of the data to encrypt if known - 32 bit because OpenPGP
    * requires partial encoding for a larger data size.  */
   u32 datalen;
+
+  /* Set if the RFC-9850 SEIPD version 2 packet is to be used.  */
+  unsigned int seipdv2 : 1;
 
   /* The current cipher handle.  */
   gcry_cipher_hd_t cipher_hd;
@@ -165,12 +171,14 @@ typedef struct {
 
 /*-- mdfilter.c --*/
 int md_filter( void *opaque, int control, iobuf_t a, byte *buf, size_t *ret_len);
+int md_thd_filter( void *opaque, int control, iobuf_t a, byte *buf, size_t *ret_len);
 void free_md_filter_context( md_filter_context_t *mfx );
 
 /*-- armor.c --*/
 armor_filter_context_t *new_armor_context (void);
 void release_armor_context (armor_filter_context_t *afx);
 int push_armor_filter (armor_filter_context_t *afx, iobuf_t iobuf);
+int was_armored (armor_filter_context_t *afx);
 int use_armor_filter( iobuf_t a );
 
 /*-- compress.c --*/

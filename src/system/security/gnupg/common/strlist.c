@@ -272,7 +272,7 @@ strlist_copy (strlist_t list)
       strcpy(sl->d, list->d);
       sl->next = NULL;
       *last = sl;
-      last = &sl;
+      last = &sl->next;
     }
   return newlist;
 }
@@ -318,6 +318,30 @@ strlist_pop (strlist_t *list)
     }
 
   return str;
+}
+
+
+/* Remove the first item from LIST and return its content as an
+ * allocated string at R_RESULT.  This function returns 0 on success
+ * or an error code.  */
+int
+strlist_pop_try (strlist_t *list, char **r_result)
+{
+  strlist_t sl = *list;
+
+  if (sl)
+    {
+      *r_result = xtrymalloc (strlen (sl->d) + 1);
+      if (!*r_result)
+        return gpg_err_code_from_syserror ();
+      strcpy (*r_result, sl->d);
+      *list = sl->next;
+      xfree (sl);
+    }
+  else
+    *r_result = NULL;
+
+  return 0;
 }
 
 /* Return the first element of the string list HAYSTACK whose string

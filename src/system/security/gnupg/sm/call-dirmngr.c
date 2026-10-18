@@ -228,7 +228,8 @@ start_dirmngr_ext (ctrl_t ctrl, assuan_context_t *ctx_r)
 
   err = start_new_dirmngr (&ctx, GPG_ERR_SOURCE_DEFAULT,
                            opt.dirmngr_program,
-                           opt.autostart, opt.verbose, DBG_IPC,
+                           opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
+                           opt.verbose, DBG_IPC,
                            gpgsm_status2, ctrl);
   if (!opt.autostart && gpg_err_code (err) == GPG_ERR_NO_DIRMNGR)
     {
@@ -448,6 +449,18 @@ warning_and_note_printer (const char *line)
       || (s2 = has_leading_keyword (s, "no_ldap_due_to_tor"))
       || (s2 = has_leading_keyword (s, "no_ocsp_due_to_tor")))
     warn = _("Tor might be in use - network access is limited");
+  else if ((s2 = has_leading_keyword (s, "http_redirect")))
+    warn = _("unacceptable HTTP redirect from server");
+  else if ((s2 = has_leading_keyword (s, "http_redirect_cleanup")))
+    warn = _("unacceptable HTTP redirect from server was cleaned up");
+  else if ((s2 = has_leading_keyword (s, "tls_cert_error")))
+    warn = _("server uses an invalid certificate");
+  else if ((s2 = has_leading_keyword (s, "http_open_error")))
+    warn = "http connection failed";
+  else if ((s2 = has_leading_keyword (s, "crl_fetch_error")))
+    warn = "fetching CRL failed";
+  else if ((s2 = has_leading_keyword (s, "crl_cache_insert_error")))
+    warn = "inserting CRL into cache failed";
   else
     warn = NULL;
 
@@ -1142,6 +1155,8 @@ gpgsm_dirmngr_run_command (ctrl_t ctrl, const char *command,
   struct run_command_parm_s parm;
 
   rc = start_dirmngr (ctrl);
+  if (gpg_err_code (rc) == GPG_ERR_NO_DIRMNGR)
+    fputs (_("no dirmngr running in this session\n"), stdout);
   if (rc)
     return rc;
 

@@ -42,7 +42,7 @@ strip_lines(const char *input, size_t input_length, const char *prefix)
         }
 
         /* Append string */
-        darray_append_items(buf, start, count);
+        darray_append_items(buf, start, (darray_size_t) count);
 
         /* Find end of line */
         if (next >= end) {
@@ -64,11 +64,11 @@ strip_lines(const char *input, size_t input_length, const char *prefix)
     /* Append remaining */
     if (start < end) {
         count = (size_t)(end - start);
-        darray_append_items(buf, start, count);
+        darray_append_items(buf, start, (darray_size_t) count);
     }
 
     darray_append(buf, '\0');
-    return buf.item;
+    return darray_items(buf);
 }
 
 char *
@@ -79,11 +79,11 @@ uncomment(const char *input, size_t input_length, const char *prefix)
     const char *start = input;
     const char *end = input + input_length;
 
-    char *next = strstr(start, prefix);
+    const char *next = strstr(start, prefix);
     size_t count;
     while (start < end && next != NULL) {
         count = (size_t)(next - start);
-        darray_append_items(buf, start, count);
+        darray_append_items(buf, start, (darray_size_t) count);
 
         /* Skip prefix */
         start += count + prefix_len;
@@ -100,11 +100,11 @@ uncomment(const char *input, size_t input_length, const char *prefix)
     /* Append remaining */
     if (start < end) {
         count = (size_t)(end - start);
-        darray_append_items(buf, start, count);
+        darray_append_items(buf, start, (darray_size_t) count);
     }
 
     darray_append(buf, '\0');
-    return buf.item;
+    return darray_items(buf);
 }
 
 /* Split string into lines */
@@ -113,7 +113,7 @@ split_lines(const char *input, size_t input_length,
             struct text_line *output, size_t output_length)
 {
     const char *start = input;
-    char *next;
+    const char *next;
     size_t l;
     size_t i = 0;
 

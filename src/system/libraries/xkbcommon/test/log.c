@@ -82,7 +82,7 @@ test_basic(void)
     log_err(ctx, XKB_ERROR_MALFORMED_NUMBER_LITERAL, "second error: %lu\n", 115415UL);
     log_vrb(ctx, 6, XKB_LOG_MESSAGE_NO_ID, "second verbose 6\n");
 
-    xkb_context_set_log_verbosity(ctx, 0);
+    xkb_context_set_log_verbosity(ctx, XKB_LOG_VERBOSITY_MINIMAL);
     xkb_context_set_log_level(ctx, XKB_LOG_LEVEL_CRITICAL);
     log_warn(ctx, XKB_LOG_MESSAGE_NO_ID, "third warning: %d\n", 87);
     log_dbg(ctx, XKB_LOG_MESSAGE_NO_ID, "third debug: %s %s\n", "hello", "world");
@@ -123,7 +123,7 @@ test_keymaps(void)
     xkb_context_set_log_fn(ctx, log_fn);
 
     xkb_context_set_log_level(ctx, XKB_LOG_LEVEL_WARNING);
-    xkb_context_set_log_verbosity(ctx, 10);
+    xkb_context_set_log_verbosity(ctx, XKB_LOG_VERBOSITY_COMPREHENSIVE);
 
     const struct test_data keymaps[] = {
         {
@@ -144,7 +144,7 @@ test_keymaps(void)
         {
             .input = "xkb_keymap {\n",
             .log =
-                "error: [XKB-769] (input string):1:12: syntax error\n"
+                "error: [XKB-769] (input string):1:12: syntax error, unexpected end of file\n"
                 "error: [XKB-822] Failed to parse input xkb string\n",
             .error = true
         },
@@ -155,7 +155,7 @@ test_keymaps(void)
                 "};",
             .log =
                 "warning: [XKB-645] (input string):1:12: unknown escape sequence \"\\j\" in string literal\n"
-                "error: [XKB-769] (input string):2:16: syntax error\n"
+                "error: [XKB-769] (input string):2:16: syntax error, unexpected =, expecting {\n"
                 "error: [XKB-822] Failed to parse input xkb string\n",
             .error = true
         },
@@ -170,6 +170,7 @@ test_keymaps(void)
                 "error: [XKB-822] Failed to parse input xkb string\n",
             .error = true
         },
+        /* Extra lines & spaces intented to check the file positions */
         {
             .input =
                 "xkb_keymap {\n"
@@ -196,16 +197,118 @@ test_keymaps(void)
                 "warning: [XKB-433] No map in include statement, but \"(input string)\" contains several; Using first defined map, \"(unnamed map)\"\n"
                 "warning: [XKB-523] Alias of <1> for <> declared more than once; First definition ignored\n"
                 "warning: [XKB-286] The type \"TWO_LEVEL\" for key '<>' group 1 was not previously defined; Using the default type\n"
-                "warning: [XKB-516] Type \"default\" has 1 levels, but <> has 2 levels; Ignoring extra symbols\n",
+                "warning: [XKB-516] Type \"ONE_LEVEL\" has 1 levels, but <> has 2 levels; Ignoring extra symbols\n",
             .error = false
-        }
+        },
+        /* Invalid action fields */
+        {
+            .input =
+                "default xkb_keymap {\n"
+                "  xkb_compat {\n"
+                "    NoAction.data = 1;\n"
+                "    interpret VoidSymbol { action= VoidAction(data=<garbage>); };\n"
+                "  };\n"
+                "};",
+            .log =
+                "error: [XKB-563] The \"NoAction\" action takes no argument, but got \"data\" field; Action definition ignored\n"
+                "error: [XKB-563] The \"VoidAction\" action takes no argument, but got \"data\" field; Action definition ignored\n"
+                "error: Failed to compile xkb_compatibility\n"
+                "error: [XKB-822] Failed to compile keymap\n",
+            .error = true
+        },
+        /* Invalid action fields */
+        {
+            .input =
+                "default xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_symbols {\n"
+                "    NoAction.data = 1;\n"
+                "    key <> { [TerminateServer(data=<garbage>)] };\n"
+                "  };\n"
+                "};",
+            .log =
+                "error: [XKB-563] The \"NoAction\" action takes no argument, but got \"data\" field; Action definition ignored\n"
+                "error: [XKB-563] The \"Terminate\" action takes no argument, but got \"data\" field; Action definition ignored\n"
+                "error: [XKB-796] Illegal action definition for <>; Action for group 1/level 1 ignored\n"
+                "error: Failed to compile xkb_symbols\n"
+                "error: [XKB-822] Failed to compile keymap\n",
+            .error = true
+        },
+        /* Unsupported legacy X11 actions */
+        {
+            .input =
+                "default xkb_keymap {\n"
+                "  xkb_compat {\n"
+                /* This is a valid entry */
+                "    interpret ISO_Lock+AnyOf(all) {\n"
+                "      action= ISOLock(modifiers=modMapMods,affect=all);\n"
+                "    };\n"
+                /* This uses invalid field, but we do not check fields of
+                 * legacy actions */
+                "    interpret VoidSymbol+AnyOf(all) {\n"
+                "      action= RedirectKey(data=<garbage>);\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .log =
+                "warning: [XKB-362] Unsupported legacy action type \"ISOLock\".\n"
+                "warning: [XKB-362] Unsupported legacy action type \"RedirectKey\".\n",
+            .error = false
+        },
+        /* Invalid global var */
+        {
+            .input =
+                "default xkb_keymap {\n"
+                "  xkb_keycodes { foobar; };\n"
+                "};",
+            .log =
+                "error: [XKB-639] Default defined for unknown field \"foobar\"; Ignored\n"
+                "error: Failed to compile xkb_keycodes\n"
+                "error: [XKB-822] Failed to compile keymap\n",
+            .error = true
+        },
+        {
+            .input =
+                "default xkb_keymap {\n"
+                "  xkb_types { foobar; };\n"
+                "};",
+            .log =
+                "error: [XKB-639] Default defined for unknown field \"foobar\"; Ignored\n"
+                "error: Failed to compile xkb_types\n"
+                "error: [XKB-822] Failed to compile keymap\n",
+            .error = true
+        },
+        {
+            .input =
+                "default xkb_keymap {\n"
+                "  xkb_compat { foobar; };\n"
+                "};",
+            .log =
+                "error: [XKB-639] Default defined for unknown field \"foobar\"; Ignored\n"
+                "error: Failed to compile xkb_compatibility\n"
+                "error: [XKB-822] Failed to compile keymap\n",
+            .error = true
+        },
+        {
+            .input =
+                "default xkb_keymap {\n"
+                "  xkb_symbols { foobar; };\n"
+                "};",
+            .log =
+                "error: [XKB-639] Default defined for unknown field \"foobar\"; Ignored\n"
+                "error: Failed to compile xkb_symbols\n"
+                "error: [XKB-822] Failed to compile keymap\n",
+            .error = true
+        },
     };
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
         struct xkb_keymap *keymap =
-            test_compile_buffer(ctx, keymaps[k].input, strlen(keymaps[k].input));
-        assert(keymaps[k].error ^ !!keymap);
+            test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                keymaps[k].input, strlen(keymaps[k].input));
+        assert_printf(keymaps[k].error ^ !!keymap,
+                      "%s\n", darray_items(log_string));
         xkb_keymap_unref(keymap);
         assert_printf(streq_not_null(darray_items(log_string), keymaps[k].log),
                       "Expected:\n%s\nGot:\n%s\n",
@@ -228,7 +331,7 @@ test_compose(void)
     xkb_context_set_log_fn(ctx, log_fn);
 
     xkb_context_set_log_level(ctx, XKB_LOG_LEVEL_WARNING);
-    xkb_context_set_log_verbosity(ctx, 10);
+    xkb_context_set_log_verbosity(ctx, XKB_LOG_VERBOSITY_VERBOSE);
 
     const struct test_data composes[] = {
         {
@@ -301,7 +404,7 @@ test_compose(void)
             .log =
                 "warning: (input string):2:7: this compose sequence is a duplicate of another; skipping line\n"
                 "warning: (input string):4:11: a sequence already exists which is a prefix of this sequence; overriding\n"
-                "warning: (input string):6:11: this compose sequence is a prefix of another; skipping line\n",
+                "warning: (input string):6:11: this compose sequence is a prefix of another; overriding\n",
             .error = false
         }
     };

@@ -25,8 +25,8 @@ GST_DEBUG_CATEGORY_STATIC (avtpbasepayload_debug);
 #define GST_CAT_DEFAULT (avtpbasepayload_debug)
 
 #define DEFAULT_STREAMID 0xAABBCCDDEEFF0000
-#define DEFAULT_MTT 50000000
-#define DEFAULT_TU 1000000
+#define DEFAULT_MTT (50 * GST_MSECOND)
+#define DEFAULT_TU (GST_MSECOND)
 #define DEFAULT_PROCESSING_DEADLINE (20 * GST_MSECOND)
 
 enum
@@ -55,6 +55,9 @@ static void gst_avtp_base_payload_get_property (GObject * object, guint prop_id,
 
 static gboolean gst_avtp_base_payload_sink_event (GstPad * pad,
     GstObject * parent, GstEvent * event);
+static gboolean gst_avtp_base_payload_src_query (GstPad * pad,
+    GstObject * parent, GstQuery * query);
+
 
 GType
 gst_avtp_base_payload_get_type (void)
@@ -133,6 +136,8 @@ gst_avtp_base_payload_init (GstAvtpBasePayload * avtpbasepayload,
 
   avtpbasepayload->srcpad = gst_pad_new_from_static_template (&src_template,
       "src");
+  gst_pad_set_query_function (avtpbasepayload->srcpad,
+      gst_avtp_base_payload_src_query);
   gst_element_add_pad (element, avtpbasepayload->srcpad);
 
   templ = gst_element_class_get_pad_template (element_class, "sink");
@@ -225,25 +230,60 @@ gst_avtp_base_payload_sink_event (GstPad * pad, GstObject * parent,
   }
 }
 
+static gboolean
+gst_avtp_base_payload_src_query (GstPad * pad, GstObject * parent,
+    GstQuery * query)
+{
+  GstAvtpBasePayload *avtpbasepayload = GST_AVTP_BASE_PAYLOAD (parent);
+  gboolean ret;
+
+  ret = gst_pad_query_default (pad, parent, query);
+
+  if (ret && GST_QUERY_TYPE (query) == GST_QUERY_LATENCY) {
+    gboolean live;
+    GstClockTime min_latency;
+
+    gst_query_parse_latency (query, &live, &min_latency, NULL);
+
+    if (live)
+      avtpbasepayload->latency = min_latency;
+    else
+      avtpbasepayload->latency = 0;
+
+    GST_DEBUG_OBJECT (avtpbasepayload, "live: %d latency %" GST_TIME_FORMAT,
+        live, GST_TIME_ARGS (avtpbasepayload->latency));
+  }
+
+  return ret;
+}
+
+
 GstClockTime
 gst_avtp_base_payload_calc_ptime (GstAvtpBasePayload * avtpbasepayload,
     GstBuffer * buffer)
 {
   GstClockTime base_time, running_time;
+  GstClockTime avtp_timestamp;
 
   g_assert (GST_BUFFER_PTS (buffer) != GST_CLOCK_TIME_NONE);
 
   if (G_UNLIKELY (avtpbasepayload->latency == GST_CLOCK_TIME_NONE)) {
     GstQuery *query;
+    gboolean live;
+    GstClockTime min_latency;
 
     query = gst_query_new_latency ();
     if (!gst_pad_peer_query (avtpbasepayload->sinkpad, query))
       return GST_CLOCK_TIME_NONE;
-    gst_query_parse_latency (query, NULL, &avtpbasepayload->latency, NULL);
+    gst_query_parse_latency (query, &live, &min_latency, NULL);
+    if (live)
+      avtpbasepayload->latency = min_latency;
+    else
+      avtpbasepayload->latency = 0;
     gst_query_unref (query);
 
-    GST_DEBUG_OBJECT (avtpbasepayload, "latency %" GST_TIME_FORMAT,
-        GST_TIME_ARGS (avtpbasepayload->latency));
+    GST_DEBUG_OBJECT (avtpbasepayload, "live: %d latency %" GST_TIME_FORMAT,
+        live, GST_TIME_ARGS (avtpbasepayload->latency));
   }
 
   base_time = gst_element_get_base_time (GST_ELEMENT (avtpbasepayload));
@@ -251,7 +291,22 @@ gst_avtp_base_payload_calc_ptime (GstAvtpBasePayload * avtpbasepayload,
   running_time = gst_segment_to_running_time (&avtpbasepayload->segment,
       avtpbasepayload->segment.format, GST_BUFFER_PTS (buffer));
 
-  return base_time + running_time + avtpbasepayload->latency +
+  avtp_timestamp = base_time + running_time + avtpbasepayload->latency +
       avtpbasepayload->processing_deadline + avtpbasepayload->mtt +
       avtpbasepayload->tu;
+
+  GST_TRACE_OBJECT (avtpbasepayload,
+      "Converting PTS: %" GST_TIME_FORMAT " into AVTP: %" GST_TIME_FORMAT
+      " using running_time: %" GST_TIME_FORMAT " + latency: %"
+      GST_TIME_FORMAT " + deadline: %" GST_TIME_FORMAT " + mtt: %"
+      GST_TIME_FORMAT " + tu: %" GST_TIME_FORMAT,
+      GST_TIME_ARGS (GST_BUFFER_PTS (buffer)),
+      GST_TIME_ARGS (avtp_timestamp),
+      GST_TIME_ARGS (running_time),
+      GST_TIME_ARGS (avtpbasepayload->latency),
+      GST_TIME_ARGS (avtpbasepayload->processing_deadline),
+      GST_TIME_ARGS (avtpbasepayload->mtt),
+      GST_TIME_ARGS (avtpbasepayload->tu));
+
+  return avtp_timestamp;
 }

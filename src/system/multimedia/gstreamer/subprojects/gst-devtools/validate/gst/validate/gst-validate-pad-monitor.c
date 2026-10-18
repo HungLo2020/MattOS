@@ -1211,6 +1211,11 @@ static void
       GST_PAD (gst_validate_monitor_get_target (GST_VALIDATE_MONITOR
           (monitor)));
 
+  if (PAD_PARENT_IS_ENCODER (monitor)) {
+    GST_DEBUG_OBJECT (pad, "Skipping timestamp in range check for encoder pad");
+    goto done;
+  }
+
   if (!GST_CLOCK_TIME_IS_VALID (GST_BUFFER_TIMESTAMP (buffer))
       || !GST_CLOCK_TIME_IS_VALID (GST_BUFFER_DURATION (buffer))) {
     GST_DEBUG_OBJECT (pad,
@@ -2014,11 +2019,22 @@ gst_validate_pad_monitor_downstream_event_check (GstValidatePadMonitor *
       if (seekdata && seekdata != pad_monitor->current_seek) {
         /* Check for accurate seeks */
         if (seekdata->flags & GST_SEEK_FLAG_ACCURATE) {
-          if (segment->time != seekdata->start)
-            GST_VALIDATE_REPORT (pad_monitor, SEGMENT_HAS_WRONG_START,
-                "After an accurate seek, got: %" GST_TIME_FORMAT
-                " Expected: %" GST_TIME_FORMAT, GST_TIME_ARGS (segment->time),
-                GST_TIME_ARGS (seekdata->start));
+          if (segment->time != seekdata->start) {
+            /* For reverse playback, demux elements may have issues with accurate segment.time,
+             * so make it a warning instead of critical */
+            if (seekdata->rate < 0) {
+              GST_VALIDATE_REPORT (pad_monitor, EVENT_NEW_SEGMENT_MISMATCH,
+                  "After an accurate seek in reverse playback, segment.time got: %"
+                  GST_TIME_FORMAT " Expected: %" GST_TIME_FORMAT,
+                  GST_TIME_ARGS (segment->time),
+                  GST_TIME_ARGS (seekdata->start));
+            } else {
+              GST_VALIDATE_REPORT (pad_monitor, SEGMENT_HAS_WRONG_START,
+                  "After an accurate seek, got: %" GST_TIME_FORMAT
+                  " Expected: %" GST_TIME_FORMAT, GST_TIME_ARGS (segment->time),
+                  GST_TIME_ARGS (seekdata->start));
+            }
+          }
         }
       }
 

@@ -49,13 +49,29 @@ init_substitution(struct bsdtar *bsdtar)
 	subst->first_rule = subst->last_rule = NULL;
 }
 
+static int
+is_escaped(const char *start, const char *delim)
+{
+	int escaped = 0;
+
+	if (*delim == '\\')
+		return (0);
+
+	while (delim > start && delim[-1] == '\\') {
+		delim--;
+		escaped = !escaped;
+	}
+
+	return (escaped);
+}
+
 void
 add_substitution(struct bsdtar *bsdtar, const char *rule_text)
 {
 	struct subst_rule *rule;
 	struct substitution *subst;
-	const char *end_pattern, *start_subst;
-	char *pattern;
+	const char *end_pattern, *q, *start_subst;
+	char *pattern, *p;
 	int r;
 
 	if ((subst = bsdtar->substitution) == NULL) {
@@ -75,11 +91,14 @@ add_substitution(struct bsdtar *bsdtar, const char *rule_text)
 		subst->last_rule->next = rule;
 	subst->last_rule = rule;
 
-	if (*rule_text == '\0')
+	const char delim = *rule_text;
+	if (delim == '\0')
 		lafe_errc(1, 0, "Empty replacement string");
-	end_pattern = strchr(rule_text + 1, *rule_text);
+	end_pattern = strchr(rule_text + 1, delim);
 	if (end_pattern == NULL)
-		lafe_errc(1, 0, "Invalid replacement string");
+		lafe_errc(1, 0, "Invalid replacement string \"%s\": "
+		    "missing closing delimiter '%c' after pattern",
+		    rule_text, delim);
 
 	pattern = malloc(end_pattern - rule_text);
 	if (pattern == NULL)
@@ -95,15 +114,29 @@ add_substitution(struct bsdtar *bsdtar, const char *rule_text)
 	free(pattern);
 
 	start_subst = end_pattern + 1;
-	end_pattern = strchr(start_subst, *rule_text);
-	if (end_pattern == NULL)
-		lafe_errc(1, 0, "Invalid replacement string");
+	do {
+		end_pattern = strchr(end_pattern + 1, delim);
+		if (end_pattern == NULL)
+			lafe_errc(1, 0, "Invalid replacement string \"%s\": "
+			    "missing closing delimiter '%c' after replacement",
+			    rule_text, delim);
+	} while (is_escaped(start_subst, end_pattern));
 
 	rule->result = malloc(end_pattern - start_subst + 1);
 	if (rule->result == NULL)
 		lafe_errc(1, errno, "Out of memory");
-	memcpy(rule->result, start_subst, end_pattern - start_subst);
-	rule->result[end_pattern - start_subst] = '\0';
+	p = rule->result;
+	q = start_subst;
+	while (q < end_pattern) {
+		if (*q == '\\' && delim != '\\')
+			q++;
+		if (q == end_pattern)
+			lafe_errc(1, 0, "Invalid replacement string \"%s\": "
+			    "missing closing delimiter '%c' after replacement",
+			    rule_text, delim);
+		*p++ = *q++;
+	}
+	*p = '\0';
 
 	/* Defaults */
 	rule->global = 0; /* Don't do multiple replacements. */
@@ -235,7 +268,9 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result,
 			(*result)[0] = 0;
 		}
 
-		while (1) {
+		char isEnd = 0;
+		do {
+			isEnd = *name == '\0';
 			if (regexec(&rule->re, name, 10, matches, 0))
 				break;
 
@@ -257,6 +292,8 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result,
 
 				++i;
 				c = rule->result[i];
+				if (c == '\0')
+					break;
 				switch (c) {
 				case '~':
 				case '\\':
@@ -290,12 +327,15 @@ apply_substitution(struct bsdtar *bsdtar, const char *name, char **result,
 			}
 
 			realloc_strcat(result, rule->result + j);
-
-			name += matches[0].rm_eo;
-
-			if (!rule->global)
-				break;
-		}
+			if (matches[0].rm_eo > 0) {
+				name += matches[0].rm_eo;
+			} else if (!isEnd) {
+				// We skip a character because the match is 0-length
+				// so we need to add it to the output
+				realloc_strncat(result, name, 1);
+				name += 1;
+			}
+		} while (rule->global && !isEnd); // Testing one step after because sed et al. run 0-length patterns a last time on the empty string at the end
 	}
 
 	if (got_match)

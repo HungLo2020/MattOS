@@ -32,6 +32,16 @@
 
 #include "gstdtlscertificate.h"
 
+/**
+ * SECTION: element-dtlsdec
+ * @title: dtlsdec
+ *
+ * This element decodes DTLS packets. Before 1.28 the default X509 PEM
+ * certificate was encoded using a RSA 2048 bits private key. Since 1.28 the
+ * default certificate is encoded using a ECDSA P-256 private key.
+ *
+ */
+
 static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
@@ -108,6 +118,8 @@ static GstFlowReturn sink_chain_list (GstPad *, GstObject * parent,
 static GstDtlsAgent *get_agent_by_pem (const gchar * pem);
 static void agent_weak_ref_notify (gchar * pem, GstDtlsAgent *);
 static void create_connection (GstDtlsDec *, gchar * id);
+static void clear_signals (GstDtlsDec *);
+
 static void connection_weak_ref_notify (gchar * id, GstDtlsConnection *);
 
 static void
@@ -142,7 +154,7 @@ gst_dtls_dec_class_init (GstDtlsDecClass * klass)
   properties[PROP_PEM] =
       g_param_spec_string ("pem",
       "PEM string",
-      "A string containing a X509 certificate and RSA private key in PEM format",
+      "A string containing a X509 certificate and private key in PEM format",
       DEFAULT_PEM,
       G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | GST_PARAM_DOC_SHOW_DEFAULT);
 
@@ -189,7 +201,7 @@ gst_dtls_dec_class_init (GstDtlsDecClass * klass)
   gst_element_class_set_static_metadata (element_class,
       "DTLS Decoder",
       "Decoder/Network/DTLS",
-      "Decodes DTLS packets", "Patrik Oldsberg patrik.oldsberg@ericsson.com");
+      "Decodes DTLS packets", "Patrik Oldsberg <patrik.oldsberg@ericsson.com>");
 }
 
 static void
@@ -203,6 +215,10 @@ gst_dtls_dec_init (GstDtlsDec * self)
   self->decoder_key = NULL;
   self->srtp_cipher = DEFAULT_SRTP_CIPHER;
   self->srtp_auth = DEFAULT_SRTP_AUTH;
+
+  self->signal_peer_certificate = 0;
+  self->signal_decoder_key = 0;
+  self->signal_state_changed = 0;
 
   g_mutex_init (&self->src_mutex);
 
@@ -251,6 +267,7 @@ gst_dtls_dec_dispose (GObject * object)
   }
 
   if (self->connection) {
+    clear_signals (self);
     g_object_unref (self->connection);
     self->connection = NULL;
   }
@@ -332,11 +349,11 @@ gst_dtls_dec_change_state (GstElement * element, GstStateChange transition)
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:
       if (self->connection) {
-        g_signal_connect_object (self->connection,
-            "on-decoder-key", G_CALLBACK (on_key_received), self, 0);
-        g_signal_connect_object (self->connection,
+        self->signal_decoder_key = g_signal_connect (self->connection,
+            "on-decoder-key", G_CALLBACK (on_key_received), self);
+        self->signal_peer_certificate = g_signal_connect (self->connection,
             "on-peer-certificate", G_CALLBACK (on_peer_certificate_received),
-            self, 0);
+            self);
       } else {
         GST_WARNING_OBJECT (self,
             "trying to change state to ready without connection id and pem");
@@ -722,6 +739,27 @@ get_agent_by_pem (const gchar * pem)
 }
 
 static void
+clear_signals (GstDtlsDec * self)
+{
+  if (self->connection) {
+    if (self->signal_decoder_key) {
+      g_signal_handler_disconnect (self->connection, self->signal_decoder_key);
+      self->signal_decoder_key = 0;
+    }
+    if (self->signal_peer_certificate) {
+      g_signal_handler_disconnect (self->connection,
+          self->signal_peer_certificate);
+      self->signal_peer_certificate = 0;
+    }
+    if (self->signal_state_changed) {
+      g_signal_handler_disconnect (self->connection,
+          self->signal_state_changed);
+      self->signal_state_changed = 0;
+    }
+  }
+}
+
+static void
 agent_weak_ref_notify (gchar * pem, GstDtlsAgent * agent)
 {
   G_LOCK (agent_table);
@@ -776,8 +814,7 @@ create_connection (GstDtlsDec * self, gchar * id)
   g_return_if_fail (GST_IS_DTLS_AGENT (self->agent));
 
   if (self->connection) {
-    g_signal_handlers_disconnect_by_func (self->connection,
-        on_connection_state_changed, self);
+    clear_signals (self);
     g_object_unref (self->connection);
     self->connection = NULL;
   }
@@ -797,9 +834,9 @@ create_connection (GstDtlsDec * self, gchar * id)
 
   self->connection =
       g_object_new (GST_TYPE_DTLS_CONNECTION, "agent", self->agent, NULL);
-  g_signal_connect_object (self->connection,
+  g_signal_connect (self->connection,
       "notify::connection-state", G_CALLBACK (on_connection_state_changed),
-      self, 0);
+      self);
   on_connection_state_changed (NULL, NULL, self);
 
   g_object_weak_ref (G_OBJECT (self->connection),

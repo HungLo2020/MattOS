@@ -191,7 +191,7 @@ reason = "PCRE2 JIT receives the exact gitlink revision from the separately pinn
 
 [[component]]
 name = "glib"
-upstream_commit = "41eca60845d3fc309af361f5e7f801ba339099aa"
+upstream_commit = "e05063ccc6c8f222465a1080927f4c14349f3de6"
 
 [[component.gitlink]]
 path = "subprojects/gvdb"
@@ -205,11 +205,11 @@ reason = "GLib's required GVDB build subproject is materialized at the exact ups
 
 [[component]]
 name = "gstreamer"
-upstream_commit = "e6ee9e63e033b9c8e343ba0bdfa7590ef81449ee"
+upstream_commit = "1b2a95a1b72787cda146b46df9605b168e5b683b"
 
 [[component.gitlink]]
 path = "subprojects/gst-integration-testsuites/medias"
-upstream_commit = "5fc44893e68e26163e310d352a55aa3b2d2efeb1"
+upstream_commit = "8850d668e87752c863b3fb01954464b0d1fffe4c"
 action = "exclude"
 reason = "The GStreamer integration-test media corpus is not a build or runtime input for MattOS's configured core and pbutils runtime closure."
 

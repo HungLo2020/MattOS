@@ -27,7 +27,6 @@
 
 #include "agent.h"
 #include "../common/i18n.h"
-#include "../common/exechelp.h"
 #include "../common/sysutils.h"
 
 
@@ -120,7 +119,7 @@ store_key (ctrl_t ctrl, gcry_sexp_t private,
     }
   else
     err = agent_write_private_key (ctrl, grip, buf, len, force,
-                                   NULL, NULL, NULL, timestamp);
+                                   NULL, NULL, NULL, timestamp, NULL);
 
   if (!err)
     {
@@ -162,7 +161,7 @@ do_check_passphrase_pattern (ctrl_t ctrl, const char *pw, unsigned int flags)
   const char *pgmname = gnupg_module_name (GNUPG_MODULE_NAME_CHECK_PATTERN);
   estream_t stream_to_check_pattern = NULL;
   const char *argv[10];
-  pid_t pid;
+  gpgrt_process_t proc;
   int result, i;
   const char *pattern;
   char *patternfname;
@@ -205,11 +204,17 @@ do_check_passphrase_pattern (ctrl_t ctrl, const char *pw, unsigned int flags)
   argv[i] = NULL;
   log_assert (i < sizeof argv);
 
-  if (gnupg_spawn_process (pgmname, argv, NULL, 0,
-                           &stream_to_check_pattern, NULL, NULL, &pid))
+  if (gpgrt_process_spawn (pgmname, argv,
+                           GPGRT_PROCESS_STDIN_PIPE,
+                           NULL, &proc))
     result = 1; /* Execute error - assume password should no be used.  */
   else
     {
+      int status;
+
+      gpgrt_process_get_streams (proc, 0, &stream_to_check_pattern,
+                                 NULL, NULL);
+
       es_set_binary (stream_to_check_pattern);
       if (es_fwrite (pw, strlen (pw), 1, stream_to_check_pattern) != 1)
         {
@@ -220,11 +225,13 @@ do_check_passphrase_pattern (ctrl_t ctrl, const char *pw, unsigned int flags)
       else
         es_fflush (stream_to_check_pattern);
       es_fclose (stream_to_check_pattern);
-      if (gnupg_wait_process (pgmname, pid, 1, NULL))
+      gpgrt_process_wait (proc, 1);
+      gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &status);
+      if (status)
         result = 1; /* Helper returned an error - probably a match.  */
       else
         result = 0; /* Success; i.e. no match.  */
-      gnupg_release_process (pid);
+      gpgrt_process_release (proc);
     }
 
   xfree (patternfname);

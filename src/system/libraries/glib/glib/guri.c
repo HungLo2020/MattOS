@@ -430,7 +430,7 @@ _uri_encoder (GString      *out,
       if (multibyte_utf8_char > 0 &&
           multibyte_utf8_char != (gunichar) -1 && multibyte_utf8_char != (gunichar) -2)
         {
-          gint len = g_utf8_skip [*p];
+          unsigned int len = g_utf8_skip [*p];
           g_string_append_len (out, (gchar *)p, len);
           p += len;
         }
@@ -897,7 +897,7 @@ g_uri_split_internal (const gchar  *uri_string,
         {
           if (flags & G_URI_FLAGS_PARSE_RELAXED)
             {
-              gchar *next_at;
+              const gchar *next_at;
 
               /* Any "@"s in the userinfo must be %-encoded, but
                * people get this wrong sometimes. Since "@"s in the

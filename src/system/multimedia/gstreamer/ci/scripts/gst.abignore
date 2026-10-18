@@ -1,3 +1,0 @@
-[suppress_function] 
-  name = gst_h265_parser_link_slice_hdr  
-

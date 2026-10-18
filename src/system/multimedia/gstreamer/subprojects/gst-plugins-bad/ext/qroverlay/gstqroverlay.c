@@ -97,7 +97,7 @@ get_qrcode_content (GstBaseQROverlay * base, GstBuffer * buf,
       if (gst_structure_get_boolean (meta->structure, "keep_data", &keep_data)
           && keep_data) {
         g_free (self->data);
-        self->data = g_strdup (self->data);
+        self->data = g_strdup (data);
       }
       GST_OBJECT_UNLOCK (self);
 
@@ -181,7 +181,7 @@ gst_qr_overlay_class_init (GstQROverlayClass * klass)
 
   gst_element_class_set_details_simple (gstelement_class,
       "qroverlay",
-      "Qrcode overlay containing random data",
+      "Video/Overlay",
       "Overlay Qrcodes over each buffer with data passed in",
       "Thibault Saunier <tsaunier@igalia.com>");
 

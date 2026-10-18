@@ -21,8 +21,9 @@ d3d12_sources = [
   'gstd3d12ipcsrc.cpp',
   'gstd3d12mpeg2dec.cpp',
   'gstd3d12mipmapping.cpp',
-  'gstd3d12overlaycompositor.cpp',
+  'gstd3d12overlayblender.cpp',
   'gstd3d12pluginutils.cpp',
+  'gstd3d12remap.cpp',
   'gstd3d12screencapture.cpp',
   'gstd3d12screencapturedevice.cpp',
   'gstd3d12screencapturesrc.cpp',
@@ -34,6 +35,11 @@ d3d12_sources = [
   'gstd3d12window-swapchain.cpp',
   'gstd3d12window-win32.cpp',
   'gstd3d12window.cpp',
+  'gstd3d12fisheyedewarp.cpp',
+  'gstd3d12memorycopy.cpp',
+  'gstd3d12weaveinterlace.cpp',
+  'gstd3d12interlace.cpp',
+  'gstd3d12overlaycompositor.cpp',
   'plugin.cpp',
 ]
 
@@ -60,9 +66,10 @@ d3d12_headers = [
   'gstd3d12window-swapchain.h',
   'gstd3d12dpbstorage.h',
   'gstd3d12pluginutils.h',
+  'gstd3d12remap.h',
   'gstd3d12h265dec.h',
   'gstd3d12screencapturesrc.h',
-  'gstd3d12overlaycompositor.h',
+  'gstd3d12overlayblender.h',
   'gstd3d12window.h',
   'gstd3d12av1dec.h',
   'gstd3d12videosink.h',
@@ -79,23 +86,15 @@ d3d12_headers = [
   'gstd3d12basefilter.h',
   'gstd3d12testsrc.h',
   'gstd3d12vp8dec.h',
+  'gstd3d12fisheyedewarp.h',
 ]
 
 graphicscapture_sources = [
   'gstd3d12graphicscapture.cpp',
 ]
 
-memorycopy_sources = [
-  'gstd3d12memorycopy.cpp',
-]
-
-download_upload_sources = [
-  'gstd3d12download.cpp',
-  'gstd3d12upload.cpp',
-]
-
 doc_sources = []
-foreach s: d3d12_sources + graphicscapture_sources + memorycopy_sources + download_upload_sources + d3d12_headers
+foreach s: d3d12_sources + graphicscapture_sources + d3d12_headers
   doc_sources += meson.current_source_dir() / s
 endforeach
 
@@ -235,9 +234,6 @@ endif
 if gstd3d11_dep.found()
   d3d12_cdata.set('HAVE_GST_D3D11', true)
   extra_deps += [gstd3d11_dep]
-  d3d12_sources += memorycopy_sources
-else
-  d3d12_sources += download_upload_sources
 endif
 
 configure_file(

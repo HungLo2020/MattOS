@@ -29,9 +29,12 @@ import inspect
 import itertools
 import weakref
 import typing
+import gi
 
-from gi.overrides import override
+gi.require_version('GLib', '2.0')
+gi.require_version('GObject', '2.0')
 from gi.repository import GLib, GObject
+from gi.overrides import override
 
 # Typing relies on https://github.com/pygobject/pygobject-stubs.
 if typing.TYPE_CHECKING:
@@ -74,6 +77,17 @@ python module to use with Gst 0.10"
     warnings.warn(warn_msg, RuntimeWarning)
 
 
+class Float(float):
+    '''
+    A wrapper to force conversion to G_TYPE_FLOAT instead of G_TYPE_DOUBLE when
+    used in e.g. Gst.ValueArray.
+    '''
+    __gtype__ = GObject.TYPE_FLOAT
+
+
+__all__.append('Float')
+
+
 # Ensuring that PyGObject loads the URIHandler interface
 # so we can force our own implementation soon enough (in gstmodule.c)
 class URIHandler(Gst.URIHandler):
@@ -94,6 +108,15 @@ class Element(Gst.Element):
             if not pair[0].link(pair[1]):
                 raise LinkError(f'Failed to link {pair[0]} and {pair[1]}')
 
+    def iterate_pads(self) -> Iterator[Gst.Pad]:
+        return super().iterate_pads()  # type: ignore[return-value]
+
+    def iterate_sink_pads(self) -> Iterator[Gst.Pad]:
+        return super().iterate_sink_pads()  # type: ignore[return-value]
+
+    def iterate_src_pads(self) -> Iterator[Gst.Pad]:
+        return super().iterate_src_pads()  # type: ignore[return-value]
+
 
 override(Element)
 __all__.append('Element')
@@ -111,14 +134,34 @@ class Bin(Gst.Bin):
     def make_and_add(self, factoryname: str, name: typing.Optional[str] = None) -> Element:
         '''
         :raises Gst.AddError:
+        :raises Gst.MissingPluginError:
         '''
-        elem = Gst.ElementFactory.make(factoryname, name)
-        if not elem:
-            raise AddError(
-                'No such element: {}'.format(factoryname))
-        assert isinstance(elem, Element)  # Tell mypy we actually have our override subclass
+        elem = ElementFactory.make(factoryname, name)
         self.add(elem)
         return elem
+
+    def iterate_all_by_element_factory_name(self, factory_name: str) -> Iterator[Element]:
+        return super().iterate_all_by_element_factory_name(factory_name)  # type: ignore[return-value]
+
+    def iterate_elements(self) -> Iterator[Element]:
+        return super().iterate_elements()  # type: ignore[return-value]
+
+    def iterate_recurse(self) -> Iterator[Element]:
+        return super().iterate_recurse()  # type: ignore[return-value]
+
+    def iterate_sinks(self) -> Iterator[Element]:
+        return super().iterate_sinks()  # type: ignore[return-value]
+
+    def iterate_sources(self) -> Iterator[Element]:
+        return super().iterate_sources()  # type: ignore[return-value]
+
+    def iterate_sorted(self) -> Iterator[Element]:
+        return super().iterate_sorted()  # type: ignore[return-value]
+
+    def __iter__(self) -> typing.Iterator[Element]:
+        """Iterate over all elements in the bin, non-recursive."""
+        for elem in self.iterate_elements():
+            yield elem
 
 
 override(Bin)
@@ -258,6 +301,10 @@ class Caps(MiniObjectMixin, Gst.Caps):  # type: ignore[misc]
 
     def __getitem__(self, index: int) -> Structure:
         return self.get_structure(index)
+
+    def __iter__(self) -> typing.Iterator[Structure]:
+        for i in range(self.get_size()):
+            yield self.get_structure(i)
 
     def __len__(self) -> int:
         return self.get_size()
@@ -401,6 +448,13 @@ class IteratorError(Exception):
 __all__.append('IteratorError')
 
 
+class MissingPluginError(Exception):
+    pass
+
+
+__all__.append('MissingPluginError')
+
+
 class AddError(Exception):
     pass
 
@@ -422,8 +476,11 @@ class MapError(Exception):
 __all__.append('MapError')
 
 
-class Iterator(Gst.Iterator):
-    def __iter__(self) -> typing.Iterator[typing.Any]:
+T = typing.TypeVar('T')
+
+
+class Iterator(Gst.Iterator, typing.Generic[T]):
+    def __iter__(self) -> typing.Iterator[T]:
         while True:
             result, value = self.next()
             if result == Gst.IteratorResult.DONE:
@@ -452,11 +509,13 @@ class ElementFactory(Gst.ElementFactory):
         return self.get_metadata("klass")
 
     @staticmethod
-    def make(factoryname: str, name: typing.Optional[str] = None) -> typing.Optional[Element]:  # type: ignore[override]
+    def make(factoryname: str, name: typing.Optional[str] = None) -> Element:  # type: ignore[override]
         '''
         :raises Gst.PluginMissingError:
         '''
         elem = Gst.ElementFactory.make(factoryname, name)
+        if not elem:
+            raise MissingPluginError(f'No such element: {factoryname}')
         return elem  # type: ignore[return-value]
 
 
@@ -508,20 +567,39 @@ class Structure(Gst.Structure):
         return _gi_gst._get_object_ptr(self)
 
     def __getitem__(self, key: str) -> typing.Any:
-        return self.get_value(key)
-
-    def keys(self) -> typing.Iterable[str]:
-        keys = set()
-
-        def foreach(fid, value, unused1, udata):
-            keys.add(GLib.quark_to_string(fid))
-            return True
-
-        self.foreach(foreach, None, None)
-        return keys
+        val = self.get_value(key)
+        if val is None:
+            raise KeyError(f"key {key} not found")
+        return val
 
     def __setitem__(self, key: str, value: typing.Any) -> None:
         self.set_value(key, value)
+
+    def __len__(self) -> int:
+        return self.n_fields()
+
+    def __iter__(self) -> typing.Iterator[str]:
+        return self.keys()
+
+    def items(self) -> typing.Iterator[typing.Tuple[str, typing.Any]]:
+        pairs: typing.List[typing.Tuple[str, typing.Any]] = []
+
+        def foreach(fid, value):
+            pairs.append((GLib.quark_to_string(fid), value))
+            return True
+
+        self.foreach(foreach)
+        return iter(pairs)
+
+    def keys(self) -> typing.Iterator[str]:
+        keys: list[str] = []
+
+        def foreach(fid, value):
+            keys.append(GLib.quark_to_string(fid))
+            return True
+
+        self.foreach(foreach)
+        return iter(keys)
 
     def set_value(self, key: str, value: typing.Any) -> bool:
         if not _gi_gst.structure_is_writable(self):
@@ -784,8 +862,29 @@ __all__.append('FractionRange')
 
 
 class ValueArray(Gst.ValueArray):
-    def __init__(self, array: typing.List[typing.Any]):
-        self.array = list(array)
+    def __init__(self, array: typing.Optional[typing.List[typing.Any]] = None):
+        self.array = list(array or [])
+
+    def append(self, item: typing.Any) -> None:
+        self.array.append(item)
+
+    def prepend(self, item: typing.Any) -> None:
+        self.array = [item] + self.array
+
+    @staticmethod
+    def append_value(this: ValueArray, item: typing.Any) -> None:
+        this.append(item)
+
+    @staticmethod
+    def prepend_value(this: ValueArray, item: typing.Any) -> None:
+        this.prepend(item)
+
+    @staticmethod
+    def get_size(this: ValueArray) -> int:
+        return len(this.array)
+
+    def __iter__(self) -> typing.Iterator[typing.Any]:
+        return iter(self.array)
 
     def __getitem__(self, index: int) -> typing.Any:
         return self.array[index]
@@ -808,8 +907,29 @@ __all__.append('ValueArray')
 
 
 class ValueList(Gst.ValueList):
-    def __init__(self, array: typing.List[typing.Any]):
-        self.array = list(array)
+    def __init__(self, array: typing.Optional[typing.List[typing.Any]] = None):
+        self.array = list(array or [])
+
+    def append(self, item: typing.Any) -> None:
+        self.array.append(item)
+
+    def prepend(self, item: typing.Any) -> None:
+        self.array = [item] + self.array
+
+    @staticmethod
+    def append_value(this: ValueList, item: typing.Any) -> None:
+        this.append(item)
+
+    @staticmethod
+    def prepend_value(this: ValueList, item: typing.Any) -> None:
+        this.prepend(item)
+
+    @staticmethod
+    def get_size(this: ValueList) -> int:
+        return len(this.array)
+
+    def __iter__(self) -> typing.Iterator[typing.Any]:
+        return iter(self.array)
 
     def __getitem__(self, index: int) -> typing.Any:
         return self.array[index]
@@ -913,6 +1033,9 @@ class MapInfo:
     def __exit__(self, type, value, tb):
         if not self.__parent__.unmap(self):
             raise MapError('MappingError', 'Unmapping was not successful')
+
+    def get_data(self):
+        return self.data
 
 
 __all__.append("MapInfo")
@@ -1048,14 +1171,48 @@ def fake_method(*args):
     raise NotInitialized("Please call Gst.init(argv) before using GStreamer")
 
 
+def find_gi_repository_parent(klass):
+    """Find the gi.repository parent class in the MRO for introspection methods"""
+    for parent in klass.__mro__:
+        if parent.__module__.startswith('gi.repository.'):
+            return parent
+    return None
+
+
+def _collect_methods_from_dict(source_dict, klass, seen):
+    """Helper to collect methods from a class dictionary, avoiding dunder methods."""
+    methods = []
+    for attr_name in source_dict:
+        if attr_name in seen:
+            continue
+        attr = source_dict[attr_name]
+        if isinstance(attr, (type(Gst.init), staticmethod, classmethod)):
+            # Skip dunder methods as they're Python special methods used for
+            # object instantiation and other internals, replacing them breaks
+            # class behavior
+            if not attr_name.startswith('__'):
+                methods.append((attr_name, getattr(klass, attr_name)))
+            seen.add(attr_name)
+    return methods
+
+
 real_functions = [o for o in inspect.getmembers(Gst) if isinstance(o[1], type(Gst.init))]
 
 class_methods = []
 for cname_klass in [o for o in inspect.getmembers(Gst) if isinstance(o[1], type(Gst.Element)) or isinstance(o[1], type(Gst.Caps))]:
-    class_methods.append((cname_klass,
-                         [(o, cname_klass[1].__dict__[o])
-                          for o in cname_klass[1].__dict__
-                          if isinstance(cname_klass[1].__dict__[o], type(Gst.init))]))
+    klass = cname_klass[1]
+    methods = []
+    seen: set[str] = set()
+
+    # Collect methods from the override class itself
+    methods.extend(_collect_methods_from_dict(klass.__dict__, klass, seen))
+
+    # Collect methods from the gi.repository introspection parent class
+    gi_parent = find_gi_repository_parent(klass)
+    if gi_parent:
+        methods.extend(_collect_methods_from_dict(gi_parent.__dict__, klass, seen))
+
+    class_methods.append((cname_klass, methods))
 
 pre_init_functions = set([
     "init",
@@ -1103,7 +1260,11 @@ def init(argv: typing.Optional[list[str]] = None) -> None:
     if Gst.is_initialized():
         return
 
-    return real_init(argv)
+    # FIXME: Workaround for pygobject handling nullability wrong
+    if argv is None:
+        argv = []
+
+    real_init(argv)
 
 
 Gst.init = init

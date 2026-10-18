@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "xkbcommon/xkbcommon.h"
 #include "../test/test.h"
 #include "bench.h"
 
@@ -47,15 +48,15 @@ main(void)
     ctx = test_get_context(0);
     assert(ctx);
 
-    keymap = test_compile_rules(ctx, "evdev", "pc104", "us,ru,il,de",
+    keymap = test_compile_rules(ctx, XKB_KEYMAP_FORMAT_TEXT_V1, "evdev",
+                                "pc104", "us,ru,il,de",
                                 ",,,neo", "grp:menu_toggle");
     assert(keymap);
 
     state = xkb_state_new(keymap);
     assert(state);
 
-    xkb_context_set_log_level(ctx, XKB_LOG_LEVEL_CRITICAL);
-    xkb_context_set_log_verbosity(ctx, 0);
+    xkb_enable_quiet_logging(ctx);
 
     srand((unsigned) time(NULL));
 

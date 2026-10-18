@@ -192,9 +192,6 @@ static gnupg_fd_t create_server_socket (const char *name,
 static void *start_connection_thread (void *arg);
 static void handle_connections (gnupg_fd_t listen_fd);
 
-/* Pth wrapper function definitions. */
-ASSUAN_SYSTEM_NPTH_IMPL;
-
 static int active_connections;
 
 
@@ -368,7 +365,6 @@ main (int argc, char **argv )
   malloc_hooks.free = gcry_free;
   assuan_set_malloc_hooks (&malloc_hooks);
   assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
-  assuan_set_system_hooks (ASSUAN_SYSTEM_NPTH);
   assuan_sock_init ();
   setup_libassuan_logging (&opt.debug, NULL);
 
@@ -415,12 +411,12 @@ main (int argc, char **argv )
   */
 
 
-  /* The configuraton directories for use by gpgrt_argparser.  */
+  /* The configuration directories for use by gpgrt_argparser.  */
   gpgrt_set_confdir (GPGRT_CONFDIR_SYS, gnupg_sysconfdir ());
   gpgrt_set_confdir (GPGRT_CONFDIR_USER, gnupg_homedir ());
 
   /* We are re-using the struct, thus the reset flag.  We OR the
-   * flags so that the internal intialized flag won't be cleared. */
+   * flags so that the internal initialized flag won't be cleared. */
   argc = orig_argc;
   argv = orig_argv;
   pargs.argc = &argc;
@@ -599,6 +595,7 @@ main (int argc, char **argv )
 
       npth_init ();
       gpgrt_set_syscall_clamp (npth_unprotect, npth_protect);
+      assuan_control (ASSUAN_CONTROL_REINIT_SYSCALL_CLAMP, NULL);
 
       /* If --debug-allow-core-dump has been given we also need to
          switch the working directory to a place where we can actually
@@ -740,6 +737,7 @@ main (int argc, char **argv )
 
       npth_init ();
       gpgrt_set_syscall_clamp (npth_unprotect, npth_protect);
+      assuan_control (ASSUAN_CONTROL_REINIT_SYSCALL_CLAMP, NULL);
 
       /* Detach from tty and put process into a new session. */
       if (!nodetach )
@@ -897,7 +895,7 @@ handle_signal (int signo)
 /* Create a name for the socket.  We check for valid characters as
    well as against a maximum allowed length for a unix domain socket
    is done.  The function terminates the process in case of an error.
-   Retunrs: Pointer to an allcoated string with the absolute name of
+   Returns: Pointer to an allocated string with the absolute name of
    the socket used.  */
 static char *
 create_socket_name (char *standard_name)
@@ -975,9 +973,10 @@ create_server_socket (const char *name, char **r_redir_name,
     log_error (_("error getting nonce for the socket\n"));
  if (rc == -1)
     {
+      gpg_error_t myerr = gpg_error_from_syserror ();
+      log_libassuan_system_error (fd);
       log_error (_("error binding socket to '%s': %s\n"),
-                 unaddr->sun_path,
-                 gpg_strerror (gpg_error_from_syserror ()));
+                 unaddr->sun_path, gpg_strerror (myerr));
       assuan_sock_close (fd);
       tpm2d_exit (2);
     }
@@ -1012,7 +1011,7 @@ start_connection_thread (void *arg)
       && assuan_sock_check_nonce (ctrl->thread_startup.fd, &socket_nonce))
     {
       log_info (_("error reading nonce on fd %d: %s\n"),
-                FD2INT (ctrl->thread_startup.fd), strerror (errno));
+                FD_DBG (ctrl->thread_startup.fd), strerror (errno));
       assuan_sock_close (ctrl->thread_startup.fd);
       xfree (ctrl);
       return NULL;
@@ -1023,7 +1022,7 @@ start_connection_thread (void *arg)
   tpm2d_init_default_ctrl (ctrl);
   if (opt.verbose)
     log_info (_("handler for fd %d started\n"),
-              FD2INT (ctrl->thread_startup.fd));
+              FD_DBG (ctrl->thread_startup.fd));
 
   /* If this is a pipe server, we request a shutdown if the command
      handler asked for it.  With the next ticker event and given that
@@ -1035,7 +1034,7 @@ start_connection_thread (void *arg)
 
   if (opt.verbose)
     log_info (_("handler for fd %d terminated\n"),
-              FD2INT (ctrl->thread_startup.fd));
+              FD_DBG (ctrl->thread_startup.fd));
 
   tpm2d_deinit_default_ctrl (ctrl);
   xfree (ctrl);
@@ -1095,7 +1094,7 @@ handle_connections (gnupg_fd_t listen_fd)
 #ifdef HAVE_PSELECT_NO_EINTR
   int pipe_fd[2];
 
-  ret = gnupg_create_pipe (pipe_fd);
+  ret = gnupg_create_pipe (pipe_fd, 0);
   if (ret)
     {
       log_error ("pipe creation failed: %s\n", gpg_strerror (ret));
@@ -1154,7 +1153,7 @@ handle_connections (gnupg_fd_t listen_fd)
   if (listen_fd != GNUPG_INVALID_FD)
     {
       FD_SET (FD2INT (listen_fd), &fdset);
-      nfd = FD2INT (listen_fd);
+      nfd = FD2NUM (listen_fd);
     }
 
   for (;;)
@@ -1238,11 +1237,13 @@ handle_connections (gnupg_fd_t listen_fd)
           gnupg_fd_t fd;
 
           plen = sizeof paddr;
-          fd = INT2FD (npth_accept (FD2INT (listen_fd),
-                                    (struct sockaddr *)&paddr, &plen));
+          fd = assuan_sock_accept (listen_fd,
+                                   (struct sockaddr *)&paddr, &plen);
           if (fd == GNUPG_INVALID_FD)
             {
-              log_error ("accept failed: %s\n", strerror (errno));
+              gpg_error_t myerr = gpg_error_from_syserror ();
+              log_libassuan_system_error (listen_fd);
+              log_error ("accept failed: %s\n", gpg_strerror (myerr));
             }
           else if ( !(ctrl = xtrycalloc (1, sizeof *ctrl)) )
             {
@@ -1255,7 +1256,7 @@ handle_connections (gnupg_fd_t listen_fd)
               char threadname[50];
               npth_t thread;
 
-              snprintf (threadname, sizeof threadname, "conn fd=%d", FD2INT (fd));
+              snprintf (threadname, sizeof threadname, "conn fd=%d", FD_DBG (fd));
               ctrl->thread_startup.fd = fd;
               ret = npth_create (&thread, &tattr, start_connection_thread, ctrl);
               if (ret)

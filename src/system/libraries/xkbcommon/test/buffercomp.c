@@ -8,12 +8,16 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
+#include "keymap.h"
 #include "src/keysym.h"
 #include "test/keysym.h"
 #include "test.h"
 #include "utils.h"
 #include "xkbcommon/xkbcommon.h"
+#include "test-config.h"
 
 #define GOLDEN_TESTS_OUTPUTS "keymaps/"
 
@@ -23,14 +27,16 @@ struct keymap_test_data {
     /** Resulting file *path* to reference serialization,
      *  or NULL if the keymap string should not compile. */
     const char * const expected;
+    /** Optionally skip the test */
+    bool skip;
 };
 
 /* Our keymap compiler is the xkbcommon buffer compiler */
 static struct xkb_keymap *
-compile_buffer(struct xkb_context *context, const char *buf, size_t len,
-                     void *private)
+compile_buffer(struct xkb_context *context, enum xkb_keymap_format format,
+               const char *buf, size_t len, void *private)
 {
-    return test_compile_buffer(context, buf, len);
+    return test_compile_buffer(context, format, buf, len);
 }
 
 static void
@@ -40,24 +46,28 @@ test_encodings(struct xkb_context *ctx)
 
     /* Accept UTF-8 encoded BOM (U+FEFF) */
     const char utf8_with_bom[] = "\xef\xbb\xbfxkb_keymap {};";
-    keymap = test_compile_buffer(ctx, utf8_with_bom, sizeof(utf8_with_bom));
+    keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                 utf8_with_bom, sizeof(utf8_with_bom));
     assert(keymap);
     xkb_keymap_unref(keymap);
 
     /* Reject UTF-16LE encoded string */
     const char utf16_le[] = "x\0k\0b\0_\0k\0e\0y\0m\0a\0p\0 \0{\0}\0;\0";
-    keymap = test_compile_buffer(ctx, utf16_le, sizeof(utf16_le));
+    keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                 utf16_le, sizeof(utf16_le));
     assert(!keymap);
 
     /* Reject UTF-16LE with BOM encoded string */
     const char utf16_le_with_bom[] =
         "\xff\xfex\0k\0b\0_\0k\0e\0y\0m\0a\0p\0 \0{\0}\0;\0";
-    keymap = test_compile_buffer(ctx, utf16_le_with_bom, sizeof(utf16_le_with_bom));
+    keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                 utf16_le_with_bom, sizeof(utf16_le_with_bom));
     assert(!keymap);
 
     /* Reject UTF-16BE encoded string */
     const char utf16_be[] = "\0x\0k\0b\0_\0k\0e\0y\0m\0a\0p\0 \0{\0}\0;";
-    keymap = test_compile_buffer(ctx, utf16_be, sizeof(utf16_be));
+    keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                 utf16_be, sizeof(utf16_be));
     assert(!keymap);
 }
 
@@ -108,7 +118,8 @@ test_floats(struct xkb_context *ctx)
     for (unsigned int k = 0; k < ARRAY_SIZE(tests); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
         struct xkb_keymap *keymap =
-            test_compile_buffer(ctx, tests[k].keymap, strlen(tests[k].keymap));
+            test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                tests[k].keymap, strlen(tests[k].keymap));
         assert(tests[k].valid ^ !keymap);
         xkb_keymap_unref(keymap);
     }
@@ -149,7 +160,8 @@ test_component_syntax_error(struct xkb_context *ctx)
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
         const struct xkb_keymap *keymap =
-            test_compile_buffer(ctx, keymaps[k], strlen(keymaps[k]));
+            test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                keymaps[k], strlen(keymaps[k]));
         assert(!keymap);
     }
 }
@@ -222,7 +234,9 @@ test_optional_components(struct xkb_context *ctx, bool update_output_files)
     };
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -254,7 +268,9 @@ test_bidi_chars(struct xkb_context *ctx, bool update_output_files)
     };
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -331,9 +347,71 @@ test_recursive_includes(struct xkb_context *ctx)
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u %s ***\n", __func__, k, keymaps[k]);
         k++;
-        keymap = test_compile_buffer(ctx, keymaps[k], strlen(keymaps[k]));
+        keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                     keymaps[k], strlen(keymaps[k]));
         assert(!keymap);
     }
+}
+
+static void
+test_include_paths(struct xkb_context *ctx)
+{
+    struct xkb_keymap *keymap;
+    const char simple_str[] =
+        "xkb_keymap {\n"
+        "  xkb_keycodes \"test\" { include \"evdev\" };\n"
+        "  xkb_types    \"test\" { include \"complete\" };\n"
+        "  xkb_symbols  \"test\" { include \"pc+us(basic)+"
+                                            "level5\" };\n"
+        "};";
+    keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                 simple_str, sizeof(simple_str));
+    char *expected =
+        xkb_keymap_get_as_string(keymap, XKB_KEYMAP_USE_ORIGINAL_FORMAT);
+    xkb_keymap_unref(keymap);
+
+    static const char* keymaps[] = {
+        "xkb_keymap {\n"
+        "  xkb_keycodes \"test\" { include \"%S/evdev\" };\n"
+        "  xkb_types    \"test\" { include \"%S/complete\" };\n"
+        "  xkb_symbols  \"test\" { include \"%S/pc+%S/us(basic)+"
+                                            "%S/level5\" };\n"
+        "};",
+/* Windows absolute path contains “:”, which has special meaning in XKB includes,
+ * so skip it. */
+#ifndef _WIN32
+        "xkb_keymap {\n"
+        "  xkb_keycodes \"test\" { include \"" TEST_XKB_CONFIG_ROOT "/keycodes/evdev\" };\n"
+        "  xkb_types    \"test\" { include \"" TEST_XKB_CONFIG_ROOT "/types/complete\" };\n"
+        "  xkb_symbols  \"test\" { include \"" TEST_XKB_CONFIG_ROOT "/symbols/pc+"
+                                               TEST_XKB_CONFIG_ROOT "/symbols/us(basic)+"
+                                               TEST_XKB_CONFIG_ROOT "/symbols/level5\" };\n"
+        "};",
+#endif
+    };
+
+    /* Relative path, which does not work as expected, because it is
+     * not resolved before %-expansion. */
+    setenv("XKB_CONFIG_ROOT", "..", 1);
+    keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                 keymaps[0], strlen(keymaps[0]));
+    assert(!keymap);
+
+    setenv("XKB_CONFIG_ROOT", TEST_XKB_CONFIG_ROOT, 1);
+
+    for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
+        fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
+        keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                     keymaps[k], strlen(keymaps[k]));
+        assert(keymap);
+        char *got =
+            xkb_keymap_get_as_string(keymap, XKB_KEYMAP_USE_ORIGINAL_FORMAT);
+        assert_streq_not_null("test_include_paths", expected, got);
+        free(got);
+        xkb_keymap_unref(keymap);
+    }
+
+    free(expected);
 }
 
 static void
@@ -394,7 +472,9 @@ test_include_default_maps(bool update_output_files)
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -404,33 +484,134 @@ test_include_default_maps(bool update_output_files)
 
 /* Test some limits related to allocations */
 static void
-test_alloc_limits(struct xkb_context *ctx)
+test_alloc_limits(struct xkb_context *ctx, bool update_output_files)
 {
-    const char * const keymaps[] = {
+    const struct keymap_test_data keymaps[] = {
         /* Keycodes */
-        "xkb_keymap {\n"
-        /* Valid keycode value, but we should not handle it
-         * with our *continuous* array! */
-        "  xkb_keycodes { <> = 0xfffffffe; };\n"
-        "  xkb_symbols { key <> {[a]}; };\n"
-        "};",
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                /* Valid & supported high keycode value */
+                "  xkb_keycodes { <> = 0xfffffffe; };\n"
+                "  xkb_symbols { key <> {[a]}; };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "high-keycodes-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <xxx> = 0xfffffffe;\n"
+                "    <> = 0xfffffffd;\n"
+                "    <> = 0xfffffffe;\n"
+                "  };\n"
+                "  xkb_symbols { key <> {[a]}; };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "high-keycodes-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <> = 7;\n"
+                "    <> = 8;\n"
+                "    <> = 0xfffffffd;\n"
+                "    <> = 0xfffffffe;\n"
+                "  };\n"
+                "  xkb_symbols { key <> {[a]}; };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "high-keycodes-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <> = 0xfffffffd;\n"
+                "    <> = 0xfffffffe;\n"
+                "    <> = 7;\n"
+                "    <> = 8;\n"
+                "  };\n"
+                "  xkb_symbols { key <> {[a]}; };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "high-keycodes-2.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <min> = 0xfffffffd;\n"
+                "    <max> = 0xfffffffe;\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    key <min> {[a]};\n"
+                "    key <max> {[b]};\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "high-keycodes-3.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <max> = 0xfffffffe;\n"
+                "    <min> = 0xfffffffd;\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    key <min> {[a]};\n"
+                "    key <max> {[b]};\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "high-keycodes-3.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <a> = 0xf;\n"
+                "    <d> = 0x4000;\n"
+                "    <e> = 0xfffffffe;\n"
+                "    <c> = 0x2000;\n"
+                "    <b> = 0xfff;\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    key <a> {[a]};\n"
+                "    key <b> {[b]};\n"
+                "    key <c> {[c]};\n"
+                "    key <d> {[d]};\n"
+                "    key <e> {[e]};\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "high-keycodes-4.xkb"
+        },
         /* Key types */
-        "xkb_keymap {\n"
-        "  xkb_types {\n"
-        "    type \"X\" { map[none] = 0xfffffffe; };\n" /* Invalid level index */
-        "  };\n"
-        "};",
-        "xkb_keymap {\n"
-        "  xkb_types {\n"
-        "    type \"X\" {levelname[0xfffffffe]=\"x\";};\n" /* Invalid level index */
-        "  };\n"
-        "};"
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_types {\n"
+                /* Invalid level index */
+                "    type \"X\" { map[none] = 0xfffffffe; };\n"
+                "  };\n"
+                "};",
+            .expected = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_types {\n"
+                /* Invalid level index */
+                "    type \"X\" {levelname[0xfffffffe]=\"x\";};\n"
+                "  };\n"
+                "};",
+            .expected = NULL
+        }
     };
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        const struct xkb_keymap *keymap =
-            test_compile_buffer(ctx, keymaps[k], strlen(keymaps[k]));
-        assert(!keymap);
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
+                                   keymaps[k].keymap, strlen(keymaps[k].keymap),
+                                   keymaps[k].expected, update_output_files));
     }
 }
 
@@ -440,8 +621,13 @@ test_integers(struct xkb_context *ctx, bool update_output_files) {
      * syntax error, but it should still exit *cleanly*, not as previously where
      * the use of strtoll would trigger a memory violation. */
     const char not_null_terminated[] = { '1' };
-    assert(!test_compile_buffer(ctx, not_null_terminated,
-                                sizeof(not_null_terminated)));
+    assert(!test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                not_null_terminated, sizeof(not_null_terminated)));
+    const bool skipOverflow = sizeof(int64_t) >= sizeof (long long);
+    if (skipOverflow) {
+        fprintf(stderr,
+                "[WARNING] %s: cannot use checked arithmetic\n", __func__);
+    }
 
     const struct keymap_test_data keymaps[] = {
         {
@@ -462,13 +648,65 @@ test_integers(struct xkb_context *ctx, bool update_output_files) {
                 "  };\n"
                 "  xkb_symbols {\n"
                 "    key <> {\n"
-                /* FIXME: Unchecked overflow */
-                "      [MovePointer(x=0xffffffff + 1,\n"
-                "                   y=0x80000000 * 2)]\n"
+                /* Checked int64_t underflow */
+                "      [MovePointer(x=-0x7fffffffffffffff - 2,\n"
+                "                   y=0)]\n"
                 "    };\n"
                 "  };\n"
                 "};",
-            .expected = GOLDEN_TESTS_OUTPUTS "integers-overflow.xkb"
+            .expected = GOLDEN_TESTS_OUTPUTS "integers-overflow.xkb",
+            .skip = skipOverflow
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_compat {\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    key <> {\n"
+                /* Checked int64_t underflow */
+                "      [MovePointer(x=-0x7fffffffffffffff * 2,\n"
+                "                   y=0)]\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "integers-overflow.xkb",
+            .skip = skipOverflow
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_compat {\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    key <> {\n"
+                "      [MovePointer(x=0,\n"
+                /* Checked int64_t overflow */
+                "                   y=0x7fffffffffffffff + 1)]\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "integers-overflow.xkb",
+            .skip = skipOverflow
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_compat {\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    key <> {\n"
+                "      [MovePointer(x=0,\n"
+                /* Checked int64_t overflow */
+                "                   y=0x7fffffffffffffff * 2)]\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "integers-overflow.xkb",
+            .skip = skipOverflow
         },
         {
             .keymap =
@@ -508,11 +746,63 @@ test_integers(struct xkb_context *ctx, bool update_output_files) {
                 "  };\n"
                 "};",
             .expected = NULL
-        }
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <0> = 10;\n"
+                "    <1> = 11;\n"
+                "    <2> = 12;\n"
+                "    <a> = 20;\n"
+                "    <b> = 21;\n"
+                "    <c> = 22;\n"
+                "  };\n"
+                "  xkb_types {\n"
+                "    type \"FOUR_LEVEL\" {\n"
+                "      modifiers = Shift + Control;\n"
+                "      map[None] = 01;\n"
+                "      map[Shift] = 2;\n"
+                "      map[Control] = 3;\n"
+                "    };\n"
+                "  }\n;"
+                "  xkb_compat {\n"
+                "    interpret 0   { action = LockGroup(group=2); };\n"
+                "    interpret 00  { action = LockGroup(group=3); };\n"
+                "    interpret 0x0 { action = LockGroup(group=4); };\n"
+                "    interpret 1   { action = LockGroup(group=-1); };\n"
+                "    interpret 01  { action = LockGroup(group=1); };\n"
+                "    interpret 2   { action = LockGroup(group=-2); };\n"
+                "    interpret 02  { action = LockGroup(group=2); };\n"
+                "    interpret 3   { action = LockGroup(group=-3); };\n"
+                "    interpret 0x3 { action = LockGroup(group=3); };\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                /* Various numeric keysyms forms.
+                 * Single digits have a special interpretation in symbols */
+                "    key <0> { [ 0, 00, 0x0] };\n"
+                "    key <1> { [ 1, 01, 0x1] };\n"
+                "    key <2> { [ 2, 02, 0x2] };\n"
+                "    key <a> { [ 3   ] };\n"
+                "    key <b> { [ 04  ] };\n"
+                "    key <c> { [ 0x5 ] };\n"
+                "    modifier_map Shift   { 0,   3   };\n"
+                "    modifier_map Lock    { 00,  04  };\n"
+                "    modifier_map Control { 0x0, 0x5 };\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "digits.xkb"
+        },
     };
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        if (keymaps[k].skip) {
+            fprintf(stderr, "INFO: skip test\n");
+            continue;
+        }
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -537,9 +827,6 @@ test_keycodes(struct xkb_context *ctx, bool update_output_files) {
                 "    override <A> = 1;\n"
                 "    augment  <A> = 300;\n"
                 "  };\n"
-                "  xkb_compat {\n"
-                "    interpret.repeat= False;\n"
-                "  };\n"
                 "};",
             .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-single-1.xkb"
         },
@@ -550,9 +837,6 @@ test_keycodes(struct xkb_context *ctx, bool update_output_files) {
                 "    <A> = 300;\n"
                 "    override <A> = 1;\n"
                 "    augment  <A> = 0;\n"
-                "  };\n"
-                "  xkb_compat {\n"
-                "    interpret.repeat= False;\n"
                 "  };\n"
                 "};",
             /* NOTE: same as previous */
@@ -566,9 +850,6 @@ test_keycodes(struct xkb_context *ctx, bool update_output_files) {
                 "    override <A> = 1;\n"
                 "    override <A> = 301;\n"
                 "    override <A> = 300;\n"
-                "  };\n"
-                "  xkb_compat {\n"
-                "    interpret.repeat= False;\n"
                 "  };\n"
                 "};",
             .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-single-2.xkb"
@@ -584,11 +865,7 @@ test_keycodes(struct xkb_context *ctx, bool update_output_files) {
                 "    augment  <B> = 301;\n"
                 "    override <A> = 1;\n"
                 "  };\n"
-                "  xkb_compat {\n"
-                "    interpret.repeat= False;\n"
-                "  };\n"
                 "};",
-            /* NOTE: same as previous */
             .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-single-1.xkb"
         },
         {
@@ -599,9 +876,6 @@ test_keycodes(struct xkb_context *ctx, bool update_output_files) {
                 "    <B> = 1;\n"
                 "    augment  <B> = 300;\n"
                 "    override <A> = 1;\n"
-                "  };\n"
-                "  xkb_compat {\n"
-                "    interpret.repeat= False;\n"
                 "  };\n"
                 "};",
             /* NOTE: same as previous */
@@ -618,9 +892,6 @@ test_keycodes(struct xkb_context *ctx, bool update_output_files) {
                 "    override <B> = 300;\n"
                 "    augment  <A> = 0;\n"
                 "  };\n"
-                "  xkb_compat {\n"
-                "    interpret.repeat= False;\n"
-                "  };\n"
                 "};",
             .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-multiple-1.xkb"
         },
@@ -633,20 +904,309 @@ test_keycodes(struct xkb_context *ctx, bool update_output_files) {
                 "    override <A> = 1;\n"
                 "    augment  <B> = 302;\n"
                 "  };\n"
-                "  xkb_compat {\n"
-                "    interpret.repeat= False;\n"
-                "  };\n"
                 "};",
             /* NOTE: same as previous */
             .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-multiple-1.xkb"
+        },
+
+        /* High keycodes */
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <A> = 1;\n"
+                "    include \"high\"\n"
+                "    <B> = 2;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-multiple-2.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <A> = 0x10000;\n"
+                "    <B> = 0x10001;\n"
+                "    <A> = 1;\n"
+                "    <B> = 0x10002;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-multiple-3.xkb"
+        },
+
+        /* Aliases */
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <B> = 1;\n"
+                "    <A> = 1;\n"
+                "    alias <C> = <B>;\n" /* C target is invalid */
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-single-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    alias <C> = <B>;\n" /* C target is invalid */
+                "    <B> = 1;\n"
+                "    <A> = 1;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-single-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <B> = 1;\n"
+                "    <A> = 1;\n"
+                "    alias <C> = <B>;\n" /* C target is valid */
+                "    <B> = 2;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-aliases-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    alias <C> = <B>;\n" /* C target is valid */
+                "    <B> = 1;\n"
+                "    <A> = 1;\n"
+                "    <B> = 2;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-aliases-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    alias <A> = <B>;\n"
+                "    <A> = 1;\n" /* Override alias */
+                "    <B> = 300;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-multiple-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    alias <C> = <B>;\n"
+                "    augment <C> = 3;\n" /* Do not override alias */
+                "    <A> = 1;\n"
+                "    <B> = 2;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-aliases-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <A> = 1;\n"
+                "    <C> = 3;\n"
+                "    alias <C> = <B>;\n" /* Override key */
+                "    <B> = 2;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-aliases-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <A> = 1;\n"
+                "    augment alias <A> = <B>;\n" /* Do not override key */
+                "    <B> = 300;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-multiple-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <A> = 1;\n"
+                "    <B> = 2;\n"
+                "    alias <B> = <C>;\n" /* Override key, even if invalid entry */
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-single-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <B> = 1;\n"
+                "    alias <A> = <B>;\n"
+                "    <A> = 1;\n" /* Override both alias and key */
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-bounds-single-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                /*
+                 * Multiple aliases *before* names: check that the key name LUT
+                 * is replaced with new allocation.
+                 */
+                "    alias <A> = <X>;\n"
+                "    alias <B> = <X>;\n"
+                "    alias <C> = <X>;\n"
+                "    alias <D> = <X>;\n"
+                "    alias <E> = <X>;\n"
+                "    alias <F> = <X>;\n"
+                "    alias <G> = <X>;\n"
+                "    alias <H> = <X>;\n"
+                "    alias <I> = <X>;\n"
+                "    alias <J> = <X>;\n"
+                "    alias <K> = <X>;\n"
+                "    alias <L> = <X>;\n"
+                "    alias <M> = <X>;\n"
+                "    alias <N> = <X>;\n"
+                "    alias <O> = <X>;\n"
+                "    alias <P> = <X>;\n"
+                "    <X> = 1;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-aliases-2.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                /*
+                 * Multiple aliases *before* names: check that the key name LUT
+                 * overwrite is done properly after the last alias.
+                 */
+                "    alias <A> = <1>;\n"
+                "    alias <B> = <1>;\n"
+                "    alias <C> = <1>;\n"
+                "    alias <D> = <1>;\n"
+                "    alias <E> = <1>;\n"
+                "    <1> = 1;\n"
+                "    <2> = 2;\n"
+                "    <3> = 3;\n"
+                "    <4> = 4;\n"
+                "    <5> = 5;\n"
+                "    <6> = 6;\n"
+                "    <7> = 7;\n"
+                "    <8> = 8;\n"
+                "    <9> = 9;\n"
+                "    <10> = 10;\n"
+                "    <11> = 11;\n"
+                "    <12> = 12;\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "keycodes-aliases-3.xkb"
         },
     };
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        /*
+         * We use a new context because we want to check key name LUT is
+         * correctly implemented: it requires an empty atom table.
+         */
+        struct xkb_context * const ctx2 = test_get_context(CONTEXT_NO_FLAG);
+        assert(ctx2);
+        assert(test_compile_output(ctx2, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
+        xkb_context_unref(ctx2);
+    }
+
+    /* Test random high keycodes do not trigger xkbcomp asserts */
+    static const unsigned int max_iterations = 1000;
+    char buffer[2048] = "";
+    for (unsigned int i = 0; i < max_iterations; i++) {
+        size_t available = sizeof(buffer);
+        char *buf = buffer;
+        int count = snprintf(buf, available,
+                             "default xkb_keymap { xkb_keycodes {\n");
+        assert(count > 0 && (size_t) count < available);
+        available -= (size_t) count;
+        buf += count;
+
+        static const struct {
+            xkb_keycode_t min;
+            xkb_keycode_t max;
+            unsigned int max_count;
+        } bounds[] = {
+            {
+                .min = 10 << 3, /* Avoid issue with digits */
+                .max = XKB_KEYCODE_MAX_CONTIGUOUS,
+                .max_count = 3
+            },
+            {
+                .min = XKB_KEYCODE_MAX_CONTIGUOUS + 1,
+                .max = XKB_KEYCODE_MAX,
+                .max_count = 10
+            },
+        };
+
+        xkb_keycode_t keycodes[13] = {0};
+        unsigned int keycode_index = 0;
+
+        for (size_t b = 0; b < ARRAY_SIZE(bounds); b++) {
+            assert(bounds[b].min < bounds[b].max);
+            const unsigned int keycode_count = rand() % (bounds[b].max_count + 1);
+            for (unsigned int k = 0; k < keycode_count; k++) {
+                /* Note: we do not care about keycode uniqueness */
+                const xkb_keycode_t kc =
+                    bounds[b].min + (rand() % (bounds[b].max - bounds[b].min + 1));
+                assert(keycode_index < ARRAY_SIZE(keycodes));
+                keycodes[keycode_index++] = kc;
+                count = snprintf(buf, available,
+                                "<%"PRIu32"> = 0x%"PRIx32";\n", kc, kc);
+                assert(count > 0 && (size_t) count < available);
+                available -= (size_t) count;
+                buf += count;
+            }
+        }
+
+        count = snprintf(buf, available, "}; xkb_symbols {\n");
+        assert(count > 0 && (size_t) count < available);
+        available -= (size_t) count;
+        buf += count;
+
+        for (unsigned int k = 0; k < keycode_index; k++) {
+            const xkb_keycode_t kc = keycodes[k];
+            count = snprintf(buf, available,
+                             "key <%"PRIu32"> { [ 0x%"PRIx32" ] };\n",
+                             kc, (kc >> 3));
+            assert(count > 0 && (size_t) count < available);
+            available -= (size_t) count;
+            buf += count;
+        }
+
+        count = snprintf(buf, available, "}; };");
+        assert(count > 0 && (size_t) count < available);
+
+        struct xkb_keymap * const keymap = xkb_keymap_new_from_string(
+            ctx, buffer, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS
+        );
+        assert(keymap);
+        for (unsigned int k = 0; k < keycode_index; k++) {
+            const xkb_keycode_t kc = keycodes[k];
+            const xkb_keysym_t *ks = NULL;
+            count = xkb_keymap_key_get_syms_by_level(keymap, kc, 0, 0, &ks);
+            assert_printf(count == 1, "%d\n", count);
+            const xkb_keysym_t expected = kc >> 3;
+            assert_printf(*ks == expected,
+                          "<%"PRIu32"> 0x%"PRIx32" != 0x%"PRIx32"\n",
+                          kc, *ks, expected);
+        }
+        xkb_keymap_unref(keymap);
     }
 }
 
@@ -717,11 +1277,24 @@ test_masks(struct xkb_context *ctx, bool update_output_files) {
                 "  };\n"
                 "};",
             .expected = GOLDEN_TESTS_OUTPUTS "masks.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "    xkb_keycodes { <a> = 38; };\n"
+                "    xkb_symbols {\n"
+                "        virtual_modifiers X = 0xf0000000;\n"
+                "        key <a> { [ SetMods(mods = 0x00001100) ] };\n"
+                "    };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "masks-extra-bits.xkb"
         }
     };
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -783,7 +1356,203 @@ test_interpret(struct xkb_context *ctx, bool update_output_files)
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
+                                   keymaps[k].keymap, strlen(keymaps[k].keymap),
+                                   keymaps[k].expected, update_output_files));
+    }
+}
+
+static void
+test_group_indices_names(struct xkb_context *ctx, bool update_output_files)
+{
+    const struct {
+        const char* keymap;
+        const char* expected_v1;
+        const char* expected_v2;
+    } keymaps[] = {
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <> = 1;\n"
+                "    indicator 1 = \"1\";\n"
+                "    indicator 2 = \"2\";\n"
+                "  };\n"
+                "  xkb_compat {\n"
+                "    interpret a { action = SetGroup(group=Group1);  };\n"
+                "    interpret b { action = SetGroup(group=-Group2); };\n"
+                "    interpret c { action = SetGroup(group=+Group3); };\n"
+                "    indicator \"1\" { groups = Group4; };\n"
+                "    indicator \"2\" { groups = All-Group1; };\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    name[Group1] = \"1\";\n"
+                "    name[Group2] = \"2\";\n"
+                "    name[Group3] = \"3\";\n"
+                "    name[Group4] = \"4\";\n"
+                "    key <> {\n"
+                "      groupsredirect=Group4,\n"
+                "      symbols[Group1]=[a],\n"
+                "      symbols[Group2]=[b],\n"
+                "      symbols[Group3]=[c],\n"
+                "      symbols[Group4]=[d]\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected_v1 = GOLDEN_TESTS_OUTPUTS "group-index-names-1.xkb",
+            .expected_v2 = GOLDEN_TESTS_OUTPUTS "group-index-names-1.xkb"
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <> = 1;\n"
+                "    indicator 1 = \"1\";\n"
+                "    indicator 2 = \"2\";\n"
+                "  };\n"
+                "  xkb_compat {\n"
+                "    interpret a { action = SetGroup(group=Group32);  };\n"
+                "    interpret b { action = SetGroup(group=-Group32); };\n"
+                "    interpret c { action = SetGroup(group=+Group32); };\n"
+                "    indicator \"1\" { groups = Group32; };\n"
+                "    indicator \"2\" { groups = All-Group32; };\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    name[Group1] = \"1\";\n"
+                "    name[Group4] = \"4\";\n"
+                "    name[Group5] = \"5\";\n"
+                "    name[Group8] = \"8\";\n"
+                "    name[Group32] = \"32\";\n"
+                "    key <> {\n"
+                "      groupsredirect=Group32,\n"
+                "      symbols[Group1]=[a],\n"
+                "      symbols[Group4]=[b],\n"
+                "      symbols[Group5]=[c],\n"
+                "      symbols[Group8]=[d],\n"
+                "      symbols[Group32]=[e]\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected_v1 = NULL,
+            .expected_v2 = GOLDEN_TESTS_OUTPUTS "group-index-names-2.xkb"
+        },
+        /* No names for groups above 32 */
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_compat { interpret a { action = SetGroup(group=Group33); }; };\n"
+                "};",
+            .expected_v1 = NULL,
+            .expected_v2 = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { indicator 1 = \"1\"; };\n"
+                "  xkb_compat { indicator \"1\" { groups = Group33; }; };\n"
+                "};",
+            .expected_v1 = NULL,
+            .expected_v2 = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_symbols { name[Group33] = \"1\"; };\n"
+                "};",
+            .expected_v1 = NULL,
+            .expected_v2 = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_symbols { key <> { groupsredirect=Group33 };\n"
+                "};",
+            .expected_v1 = NULL,
+            .expected_v2 = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_symbols { key <> { symbols[Group33] = [a] };\n"
+                "};",
+            .expected_v1 = NULL,
+            .expected_v2 = NULL
+        }
+    };
+
+    for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
+        fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
+                                   keymaps[k].keymap, strlen(keymaps[k].keymap),
+                                   keymaps[k].expected_v1, update_output_files));
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V2,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
+                                   keymaps[k].keymap, strlen(keymaps[k].keymap),
+                                   keymaps[k].expected_v2, update_output_files));
+    }
+}
+
+static void
+test_level_indices_names(struct xkb_context *ctx,
+                            bool update_output_files)
+{
+    const struct {
+        const char* keymap;
+        const char* expected;
+    } keymaps[] = {
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_types {\n"
+                "    type \"X\" {\n"
+                "      modifiers = Shift;\n"
+                "      map[Shift] = Level2048;\n"
+                "      level_name[Level2048] = \"x\";\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = GOLDEN_TESTS_OUTPUTS "level-index-names.xkb"
+        },
+        /* No names above 2048 */
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_types {\n"
+                "    type \"X\" {\n"
+                "      modifiers = Shift;\n"
+                "      map[Shift] = Level2049;\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = NULL,
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_types {\n"
+                "    type \"X\" {\n"
+                "      modifiers = Shift;\n"
+                "      level_name[Level2049] = \"x\";\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = NULL,
+        },
+    };
+
+    for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
+        fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -943,7 +1712,9 @@ test_multi_keysyms_actions(struct xkb_context *ctx, bool update_output_files)
     };
     for (size_t k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%zu ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V2,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap,
                                    strlen(keymaps[k].keymap),
                                    keymaps[k].expected,
@@ -951,6 +1722,20 @@ test_multi_keysyms_actions(struct xkb_context *ctx, bool update_output_files)
     }
 #undef make_keymaps_with
 #undef make_keymap
+
+    /* V1 serialization */
+    const char keymap_str[] =
+        "xkb_keymap {\n"
+        "  xkb_keycodes { <> = 1; };\n"
+        "  xkb_compat { interpret A { action = {SetMods(), SetGroup()}; }; };\n"
+        "  xkb_symbols  { key <> { [{SetMods(), SetGroup()}] }; };\n"
+        "};";
+    assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                               XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                               compile_buffer, NULL, __func__,
+                               keymap_str, ARRAY_SIZE(keymap_str),
+                               GOLDEN_TESTS_OUTPUTS "symbols-multi-actions-v1.xkb",
+                               update_output_files));
 }
 
 /* Test keysyms as strings */
@@ -1100,7 +1885,9 @@ test_key_keysyms_as_strings(struct xkb_context *ctx, bool update_output_files)
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -1146,7 +1933,8 @@ test_invalid_symbols_fields(struct xkb_context *ctx)
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
         const struct xkb_keymap *keymap =
-            test_compile_buffer(ctx, keymaps[k], strlen(keymaps[k]));
+            test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                keymaps[k], strlen(keymaps[k]));
         assert(!keymap);
     }
 }
@@ -1258,7 +2046,9 @@ test_modifier_maps(struct xkb_context *ctx, bool update_output_files)
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -1359,7 +2149,9 @@ test_empty_compound_statements(struct xkb_context *ctx, bool update_output_files
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
@@ -1371,9 +2163,11 @@ test_escape_sequences(struct xkb_context *ctx, bool update_output_files)
     /* Similarly to `test_integers`, test that escape sequences at the end of
      * a buffer raise a syntax error but no memory violation */
     const char bad_octal[] = { '"', '\\', '1' };
-    assert(!test_compile_buffer(ctx, bad_octal, sizeof(bad_octal)));
+    assert(!test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                bad_octal, sizeof(bad_octal)));
     const char bad_unicode[] = { '"', '\\', 'u', '{', '1' };
-    assert(!test_compile_buffer(ctx, bad_unicode, sizeof(bad_unicode)));
+    assert(!test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                bad_unicode, sizeof(bad_unicode)));
 
     const char keymap[] =
         "default xkb_keymap \"\" {\n"
@@ -1421,7 +2215,9 @@ test_escape_sequences(struct xkb_context *ctx, bool update_output_files)
         "  };\n"
         "};";
     const char expected[] = GOLDEN_TESTS_OUTPUTS "escape-sequences.xkb";
-    assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+    assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                               XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                               compile_buffer, NULL, __func__,
                                keymap, ARRAY_SIZE(keymap),
                                expected, update_output_files));
 }
@@ -1489,10 +2285,58 @@ test_unicode_keysyms(struct xkb_context *ctx, bool update_output_files)
 
     for (unsigned int k = 0; k < ARRAY_SIZE(keymaps); k++) {
         fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
                                    keymaps[k].keymap, strlen(keymaps[k].keymap),
                                    keymaps[k].expected, update_output_files));
     }
+}
+
+static void
+test_no_action_void_action(struct xkb_context *ctx, bool update_output_files)
+{
+    const char keymap_str[] =
+        "xkb_keymap {\n"
+        "  xkb_keycodes { <1> = 1; <2> = 2; <3> = 3; };\n"
+        "  xkb_symbols {\n"
+        /* These actions take no argument */
+        "   key <1> { [x], [NoAction(mods=1)] };\n"
+        "   key <2> { [y], [VoidAction(mods=1)] };\n"
+        /* Check that we can overwrite NoAction, but not the contrary */
+        "   key <3> { [NoAction()] };\n"
+        "   key <3> { [VoidAction()] };\n"
+        "   key <3> { [NoAction()] };\n"
+        "  };\n"
+        "};";
+    /* v1 → v1 */
+    assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                               XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                               compile_buffer, NULL, __func__,
+                               keymap_str, sizeof(keymap_str),
+                               GOLDEN_TESTS_OUTPUTS "no_void_action-v1.xkb",
+                               update_output_files));
+    /* v1 → v2 */
+    assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                               XKB_KEYMAP_FORMAT_TEXT_V2,
+                               compile_buffer, NULL, __func__,
+                               keymap_str, sizeof(keymap_str),
+                               GOLDEN_TESTS_OUTPUTS "no_void_action-v2.xkb",
+                               update_output_files));
+    /* v2 → v2 */
+    assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V2,
+                               XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                               compile_buffer, NULL, __func__,
+                               keymap_str, sizeof(keymap_str),
+                               GOLDEN_TESTS_OUTPUTS "no_void_action-v2.xkb",
+                               update_output_files));
+    /* v2 → v1 */
+    assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V2,
+                               XKB_KEYMAP_FORMAT_TEXT_V1,
+                               compile_buffer, NULL, __func__,
+                               keymap_str, sizeof(keymap_str),
+                               GOLDEN_TESTS_OUTPUTS "no_void_action-v1.xkb",
+                               update_output_files));
 }
 
 static void
@@ -1501,20 +2345,42 @@ test_prebuilt_keymap_roundtrip(struct xkb_context *ctx, bool update_output_files
     /* Load in a prebuilt keymap, make sure we can compile it from memory,
      * then compare it to make sure we get the same result when dumping it
      * to a string. */
-    const char * const path = GOLDEN_TESTS_OUTPUTS "stringcomp.data";
-    char *original = test_read_file(path);
-    assert(original);
-
-    /* Load a prebuild keymap, once without, once with the trailing \0 */
-    for (unsigned int i = 0; i <= 1; i++) {
-        fprintf(stderr, "------\n*** %s, trailing '\\0': %d ***\n", __func__, i);
-
-        assert(test_compile_output(ctx, compile_buffer, NULL, __func__,
-                                   original, strlen(original) + i, path,
-                                   update_output_files));
+    static const struct {
+        const char* path;
+        enum xkb_keymap_format format;
+        enum xkb_keymap_serialize_flags serialize_flags;
+    } data[] = {
+        {
+            .path = "keymaps/stringcomp-v1.xkb",
+            .format = XKB_KEYMAP_FORMAT_TEXT_V1,
+            .serialize_flags = TEST_KEYMAP_SERIALIZE_FLAGS
+        },
+        {
+            .path = "keymaps/stringcomp-v1-no-prettyfied.xkb",
+            .format = XKB_KEYMAP_FORMAT_TEXT_V1,
+            .serialize_flags = TEST_KEYMAP_SERIALIZE_FLAGS
+                             & ~XKB_KEYMAP_SERIALIZE_PRETTY
+        },
+        {
+            .path = "keymaps/stringcomp-v2.xkb",
+            .format = XKB_KEYMAP_FORMAT_TEXT_V2,
+            .serialize_flags = TEST_KEYMAP_SERIALIZE_FLAGS
+        },
+    };
+    for (unsigned int k = 0; k < ARRAY_SIZE(data); k++) {
+        char *original = test_read_file(data[k].path);
+        assert(original);
+        /* Load a prebuild keymap, once without, once with the trailing \0 */
+        for (unsigned int i = 0; i <= 1; i++) {
+            assert(test_compile_output2(ctx, data[k].format,
+                                        XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                        data[k].serialize_flags,
+                                        compile_buffer, NULL, "Round-trip",
+                                        original, strlen(original) + i,
+                                        data[k].path, update_output_files));
+        }
+        free(original);
     }
-
-    free(original);
 }
 
 static void
@@ -1522,17 +2388,255 @@ test_keymap_from_rules(struct xkb_context *ctx)
 {
     /* Make sure we can recompile our output for a normal keymap from rules. */
     fprintf(stderr, "------\n*** %s ***\n", __func__);
-    struct xkb_keymap *keymap = test_compile_rules(ctx, NULL, NULL,
+    struct xkb_keymap *keymap = test_compile_rules(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                                   NULL, NULL,
                                                    "ru,ca,de,us",
                                                    ",multix,neo,intl", NULL);
     assert(keymap);
     char *dump = xkb_keymap_get_as_string(keymap, XKB_KEYMAP_USE_ORIGINAL_FORMAT);
     assert(dump);
     xkb_keymap_unref(keymap);
-    keymap = test_compile_buffer(ctx, dump, strlen(dump));
+    keymap = test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                 dump, strlen(dump));
     assert(keymap);
     xkb_keymap_unref(keymap);
     free(dump);
+}
+
+static void
+test_unsupported_legacy_x11_actions(struct xkb_context *ctx,
+                                    bool update_output_files)
+{
+    const char keymap_str[] =
+        "xkb_keymap {\n"
+        "  xkb_keycodes {\n"
+        "    <1> = 1;\n"
+        "    <2> = 2;\n"
+        "    <3> = 3;\n"
+        "    <4> = 4;\n"
+        "    <5> = 5;\n"
+        "    <6> = 6;\n"
+        "  };\n"
+        "  xkb_compat {\n"
+        "    RedirectKey.key = <1>;\n"
+        "    RedirectKey.data = <1>;\n" /* invalid field */
+        "    ISOLock.modifiers = modMapMods;\n"
+        "    DeviceButton.data = <1>;\n" /* invalid field */
+        "    LockDeviceButton.data = <1>;\n" /* invalid field */
+        "    DeviceValuator.data = <1>;\n" /* invalid field */
+        "    ActionMessage.data = <1>;\n" /* invalid field */
+        "    interpret ISO_Lock {\n"
+        "      action=ISOLock(affect=all);\n"
+        "    };\n"
+        "    interpret VoidSymbol {\n"
+        "      action=RedirectKey(data=<1>);\n" /* invalid field */
+        "    };\n"
+        "  };\n"
+        "  xkb_symbols {\n"
+        "   key <1> { [ISOLock(affect=all)] };\n"
+        "   key <2> { [RedirectKey(data=<1>)] };\n" /* invalid field */
+        "   key <3> { [DeviceButton(data=<1>)] };\n" /* invalid field */
+        "   key <4> { [LockDeviceButton(data=<1>)] };\n" /* invalid field */
+        "   key <5> { [DeviceValuator(data=<1>)] };\n" /* invalid field */
+        "   key <6> { [ActionMessage(data=<1>)] };\n" /* invalid field */
+        "  };\n"
+        "};";
+    assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                               XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                               compile_buffer, NULL, __func__,
+                               keymap_str, sizeof(keymap_str),
+                               GOLDEN_TESTS_OUTPUTS "unsupported-x11-actions",
+                               update_output_files));
+}
+
+static void
+test_extended_layout_indices(struct xkb_context *ctx,
+                             bool update_output_files)
+{
+    const struct {
+        const char* keymap;
+        bool no_output;
+        union {
+            struct { bool compiles_v1; bool compiles_v2; };
+            struct {
+                const char* expected_v1;
+                const char* expected_v1_2;
+                const char* expected_v2;
+                const char* expected_v2_1;
+            };
+        };
+    } tests[] = {
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_compat { interpret a { action = SetGroup(group=5); }; };\n"
+                "};",
+            .no_output = true,
+            .compiles_v1 = false,
+            .compiles_v2 = true,
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { indicator 1 = \"a\"; };\n"
+                "  xkb_compat   { indicator \"a\" { groups=All-5; }; };\n"
+                "};",
+            .no_output = true,
+            .compiles_v1 = true,
+            .compiles_v2 = true,
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_symbols  { name[5] = \"5\"; };\n"
+                "};",
+            .no_output = true,
+            .compiles_v1 = false,
+            .compiles_v2 = true,
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes { <> = 1; };\n"
+                "  xkb_symbols  { key <> { [1], [2], [3], [4], [5] }; };\n"
+                "};",
+            .no_output = true,
+            .compiles_v1 = false,
+            .compiles_v2 = true,
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_keycodes {\n"
+                "    <a> = 1;\n"
+                "    <b> = 2;\n"
+                "    <c> = 3;\n"
+                "    indicator 1 = \"a\";\n"
+                "  };\n"
+                "  xkb_compat {\n"
+                "    interpret a { action = SetGroup(group=5); };\n"
+                "    indicator \"a\" { groups=All-5; };\n"
+                "  };\n"
+                "  xkb_symbols {\n"
+                "    name[5] = \"G5\";\n"
+                "    name[1] = \"G1\";\n"
+                "    key <a> { symbols[1]=[a], symbols[5]=[Greek_alpha] };\n"
+                "    key <b> { actions[1]=[Latchgroup(group=-5)], actions[5]=[LockGroup(group=5)], [SetGroup(+9)] };\n"
+                "    key <c> { [1], [2], [3], [4], [5], [6], [7], [8], [9] };\n"
+                "  };\n"
+                "};",
+            .expected_v1 = NULL,
+            .expected_v1_2 = NULL,
+            .expected_v2 = GOLDEN_TESTS_OUTPUTS "extended-layout-indices-v2.xkb",
+            .expected_v2_1 = GOLDEN_TESTS_OUTPUTS "extended-layout-indices-v1.xkb",
+        }
+    };
+
+    for (unsigned int k = 0; k < ARRAY_SIZE(tests); k++) {
+        fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, k);
+        if (tests[k].no_output) {
+            struct xkb_keymap *keymap =
+                test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                    tests[k].keymap, strlen(tests[k].keymap));
+            assert(!!keymap == tests[k].compiles_v1);
+            xkb_keymap_unref(keymap);
+            keymap =
+                test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V2,
+                                    tests[k].keymap, strlen(tests[k].keymap));
+            assert(!!keymap == tests[k].compiles_v2);
+            xkb_keymap_unref(keymap);
+            continue;
+        }
+        /* v1 → v1 */
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
+                                   tests[k].keymap, strlen(tests[k].keymap),
+                                   tests[k].expected_v1, update_output_files));
+        /* v1 → v2 */
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_FORMAT_TEXT_V2,
+                                   compile_buffer, NULL, __func__,
+                                   tests[k].keymap, strlen(tests[k].keymap),
+                                   tests[k].expected_v1_2, update_output_files));
+        /* v2 → v2 */
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V2,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
+                                   tests[k].keymap, strlen(tests[k].keymap),
+                                   tests[k].expected_v2, update_output_files));
+        /* v2 → v1 */
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V2,
+                                   XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   compile_buffer, NULL, __func__,
+                                   tests[k].keymap, strlen(tests[k].keymap),
+                                   tests[k].expected_v2_1, update_output_files));
+    }
+}
+
+static void
+test_compound_statement_errors(struct xkb_context *ctx)
+{
+    /* Check that any error invalidates the whole compound statement */
+    const struct keymap_test_data tests[] = {
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_types {\n"
+                "    type \"1\" {\n"
+                "      modifiers[0] = Shift;\n" /* error on field */
+                "      map[Shift] = 2;\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_types {\n"
+                "    type \"1\" {\n"
+                "      modifiers = \"xxx\";\n" /* error on value */
+                "      map[Shift] = 2;\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_compat {\n"
+                "    interpret a {\n"
+                "      action[0] = NoAction();\n" /* error on field */
+                "      repeat = true;\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = NULL
+        },
+        {
+            .keymap =
+                "xkb_keymap {\n"
+                "  xkb_compat {\n"
+                "    interpret a {\n"
+                "      action = \"xxx\";\n" /* error on value */
+                "      repeat = true;\n"
+                "    };\n"
+                "  };\n"
+                "};",
+            .expected = NULL
+        },
+    };
+    for (unsigned int t = 0; t < ARRAY_SIZE(tests); t++) {
+        fprintf(stderr, "------\n*** %s: #%u ***\n", __func__, t);
+        assert(test_compile_output(ctx, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                   XKB_KEYMAP_USE_ORIGINAL_FORMAT,
+                                   compile_buffer, NULL, __func__,
+                                   tests[t].keymap, strlen(tests[t].keymap),
+                                   tests[t].expected, false));
+    }
 }
 
 int
@@ -1541,21 +2645,33 @@ main(int argc, char *argv[])
     test_init();
 
     bool update_output_files = false;
-    if (argc > 1) {
-        if (streq(argv[1], "update")) {
+    /* Default seed for pseudo-random generator */
+    unsigned int seed = (unsigned int) time(NULL);
+
+    int arg_index = 0;
+    while (++arg_index < argc) {
+        if (streq(argv[arg_index], "update")) {
             /* Update files with *obtained* results */
             update_output_files = true;
+        } else if (streq(argv[arg_index], "--seed") && arg_index + 1 < argc) {
+            seed = (unsigned int) atoi(argv[arg_index + 1]);
         } else {
-            fprintf(stderr, "ERROR: unsupported argument: \"%s\".\n", argv[1]);
-            exit(EXIT_FAILURE);
+            fprintf(stderr, "ERROR: unsupported argument: \"%s\".\n",
+                    argv[arg_index]);
+            exit(EXIT_INVALID_USAGE);
         }
     }
+
+    /* Initialize pseudo-random generator with program arg or current time */
+    fprintf(stderr, "Seed for the pseudo-random generator: %u\n", seed);
+    srand(seed);
 
     struct xkb_context *ctx = test_get_context(CONTEXT_NO_FLAG);
     assert(ctx);
 
     /* Make sure we can't (falsely claim to) compile an empty string. */
-    struct xkb_keymap *keymap = test_compile_buffer(ctx, "", 0);
+    struct xkb_keymap *keymap =
+        test_compile_buffer(ctx, XKB_KEYMAP_FORMAT_TEXT_V1, "", 0);
     assert(!keymap);
 
     test_encodings(ctx);
@@ -1564,12 +2680,15 @@ main(int argc, char *argv[])
     test_optional_components(ctx, update_output_files);
     test_bidi_chars(ctx, update_output_files);
     test_recursive_includes(ctx);
+    test_include_paths(ctx);
     test_include_default_maps(update_output_files);
-    test_alloc_limits(ctx);
+    test_alloc_limits(ctx, update_output_files);
     test_integers(ctx, update_output_files);
     test_keycodes(ctx, update_output_files);
     test_masks(ctx, update_output_files);
     test_interpret(ctx, update_output_files);
+    test_group_indices_names(ctx, update_output_files);
+    test_level_indices_names(ctx, update_output_files);
     test_multi_keysyms_actions(ctx, update_output_files);
     test_key_keysyms_as_strings(ctx, update_output_files);
     test_invalid_symbols_fields(ctx);
@@ -1577,8 +2696,12 @@ main(int argc, char *argv[])
     test_empty_compound_statements(ctx, update_output_files);
     test_escape_sequences(ctx, update_output_files);
     test_unicode_keysyms(ctx, update_output_files);
+    test_no_action_void_action(ctx, update_output_files);
     test_prebuilt_keymap_roundtrip(ctx, update_output_files);
     test_keymap_from_rules(ctx);
+    test_unsupported_legacy_x11_actions(ctx, update_output_files);
+    test_extended_layout_indices(ctx, update_output_files);
+    test_compound_statement_errors(ctx);
 
     xkb_context_unref(ctx);
 

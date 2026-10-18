@@ -228,10 +228,6 @@ static void start_idle_task (void);
 static void join_idle_task (void);
 
 
-/* Begin NPth wrapper functions. */
-ASSUAN_SYSTEM_NPTH_IMPL;
-
-
 static const char *
 my_strusage( int level )
 {
@@ -378,6 +374,7 @@ main (int argc, char **argv)
   init_common_subsystems (&argc, &argv);
 
   npth_init ();
+  gpgrt_set_syscall_clamp (npth_unprotect, npth_protect);
 
   /* Take extra care of the random pool.  */
   gcry_control (GCRYCTL_USE_SECURE_RNDPOOL);
@@ -436,8 +433,8 @@ main (int argc, char **argv)
 
   /* Prepare libassuan.  */
   assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
-  assuan_set_system_hooks (ASSUAN_SYSTEM_NPTH);
   setup_libassuan_logging (&opt.debug, NULL);
+  assuan_control (ASSUAN_CONTROL_REINIT_SYSCALL_CLAMP, NULL);
 
   /* Setup a default control structure for command line mode.  */
   memset (&ctrl, 0, sizeof ctrl);
@@ -445,21 +442,19 @@ main (int argc, char **argv)
   ctrl.no_server = 1;
   ctrl.status_fd = -1; /* No status output. */
 
-  /* The configuraton directories for use by gpgrt_argparser.  */
+  /* The configuration directories for use by gpgrt_argparser.  */
   gpgrt_set_confdir (GPGRT_CONFDIR_SYS, gnupg_sysconfdir ());
   gpgrt_set_confdir (GPGRT_CONFDIR_USER, gnupg_homedir ());
 
   /* We are re-using the struct, thus the reset flag.  We OR the
-   * flags so that the internal intialized flag won't be cleared. */
+   * flags so that the internal initialized flag won't be cleared. */
   argc        = orig_argc;
   argv        = orig_argv;
   pargs.argc  = &argc;
   pargs.argv  = &argv;
   pargs.flags |=  (ARGPARSE_FLAG_RESET
                    | ARGPARSE_FLAG_KEEP
-#if GPGRT_VERSION_NUMBER >= 0x013000 /* >= 1.48 */
                    | ARGPARSE_FLAG_COMMAND
-#endif
                    | ARGPARSE_FLAG_SYS
                    | ARGPARSE_FLAG_USER);
 

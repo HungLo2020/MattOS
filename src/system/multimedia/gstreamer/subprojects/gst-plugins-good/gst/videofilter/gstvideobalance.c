@@ -52,8 +52,6 @@
 GST_DEBUG_CATEGORY_STATIC (videobalance_debug);
 #define GST_CAT_DEFAULT videobalance_debug
 
-static GQuark _tags_quark;
-
 /* GstVideoBalance properties */
 #define DEFAULT_PROP_CONTRAST		1.0
 #define DEFAULT_PROP_BRIGHTNESS		0.0
@@ -543,28 +541,6 @@ not_negotiated:
   }
 }
 
-/* This is public API in 1.28 */
-static gboolean
-gst_meta_api_type_tags_contain_only (GType api, const gchar ** valid_tags)
-{
-  const gchar **tags, **curr;
-  g_return_val_if_fail (api != 0, FALSE);
-
-  tags = g_type_get_qdata (api, _tags_quark);
-
-  if (!tags)
-    return TRUE;
-
-  for (curr = tags; *curr; ++curr) {
-
-    if (!g_strv_contains (valid_tags, *curr)) {
-      return FALSE;
-    }
-  }
-
-  return TRUE;
-}
-
 static gboolean
 gst_video_balance_transform_meta (GstBaseTransform * bt,
     GstBuffer * outbuf, GstMeta * meta, GstBuffer * inbuf)
@@ -624,8 +600,6 @@ gst_video_balance_class_init (GstVideoBalanceClass * klass)
 
   GST_DEBUG_CATEGORY_INIT (videobalance_debug, "videobalance", 0,
       "videobalance");
-
-  _tags_quark = g_quark_from_static_string ("tags");
 
   gobject_class->finalize = gst_video_balance_finalize;
   gobject_class->set_property = gst_video_balance_set_property;

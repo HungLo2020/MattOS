@@ -1,4 +1,4 @@
-/* keybox-search-desc.h - Keybox serch description
+/* keybox-search-desc.h - Keybox search description
  *	Copyright (C) 2001 Free Software Foundation, Inc.
  *
  * This file is part of GnuPG.
@@ -94,6 +94,11 @@ struct keydb_search_desc;
 typedef struct keydb_search_desc KEYDB_SEARCH_DESC;
 typedef struct keydb_search_desc KEYBOX_SEARCH_DESC;
 
+
+/*-- keybox-openpgp.c --*/
+/* Well, this does not belong here but it is easer than to create an
+ * extra header file.  */
+gpg_error_t kbx_get_first_opgp_keyid (const void *buffer, size_t len, u32 *kid);
 
 
 #endif /*KEYBOX_SEARCH_DESC_H*/

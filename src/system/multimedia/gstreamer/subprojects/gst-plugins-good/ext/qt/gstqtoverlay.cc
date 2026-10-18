@@ -186,7 +186,7 @@ gst_qt_overlay_class_init (GstQtOverlayClass * klass)
   gobject_class->get_property = gst_qt_overlay_get_property;
   gobject_class->finalize = gst_qt_overlay_finalize;
 
-  gst_element_class_set_metadata (gstelement_class, "Qt Video Overlay",
+  gst_element_class_set_static_metadata (gstelement_class, "Qt Video Overlay",
       "Filter/QML/Overlay", "A filter that renders a QML scene onto a video stream",
       "Matthew Waters <matthew@centricular.com>");
 
@@ -553,8 +553,8 @@ gst_qt_overlay_change_state (GstElement * element,
   GstStateChangeReturn ret = GST_STATE_CHANGE_SUCCESS;
 
   GST_DEBUG_OBJECT (filter, "changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY: {

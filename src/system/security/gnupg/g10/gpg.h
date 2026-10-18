@@ -41,6 +41,10 @@
 /* Number of bits we accept when reading or writing MPIs. */
 #define MAX_EXTERN_MPI_BITS 16384
 
+/* Number of bytes we accept when reading four-octet count prefixed
+ * key parameters.  Needs to fit as a positive number into an int. */
+#define MAX_EXTERN_KEYPARM_BITS (32768*8)
+
 /* The maximum length of a binary fingerprints.  This is used to
  * provide a static buffer and will be increased if we need to support
  * longer fingerprints.  Warning: At some places we have some
@@ -119,6 +123,18 @@ struct server_control_s
   unsigned char *secret_keygrips;
   size_t secret_keygrips_len;
   int no_more_secret_keygrips;
+
+  /* This first flag is set to true if we are running a
+   * --add-recipients or --change-recipients command.  The second if
+   * it is --change-recipients.  */
+  unsigned int modify_recipients:1;
+  unsigned int clear_recipients:1;
+
+  /* Temporary used to pass the last read byte up the call chain.  */
+  int last_read_ctb;
+
+  /* Variables to control recursion.  */
+  unsigned int in_check_revocation_keys:1;
 };
 
 

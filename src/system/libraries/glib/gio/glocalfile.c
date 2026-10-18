@@ -99,6 +99,9 @@
 #ifndef ECANCELED
 #define ECANCELED 105
 #endif
+#ifndef ERROR_CANCELLED
+#define ERROR_CANCELLED 1223
+#endif
 #endif
 
 
@@ -684,6 +687,8 @@ get_fs_type (long f_type)
       return "nsfs";
     case 0x5346544e:
       return "ntfs";
+    case 0x7366746e:
+      return "ntfs3";
     case 0x7461636f:
       return "ocfs2";
     case 0x9fa1:
@@ -766,7 +771,7 @@ static guint64 mount_info_hash_cache_time = 0;
 
 typedef enum {
   MOUNT_INFO_READONLY = 1<<0
-} MountInfo;
+} G_GNUC_FLAG_ENUM MountInfo;
 
 static gboolean
 device_equal (gconstpointer v1,
@@ -1267,15 +1272,32 @@ g_local_file_query_info (GFile                *file,
  * On Android (bionic as of 2015-02-24), faccess() returns EINVAL if any flags are set,
  * so we have to use the fallback path. See
  * https://cs.android.com/android/_/android/platform/bionic/+/35778253a5ed71e87a608ca590b63729d9f88567
+ * 
+ * On Solaris, combining AT_EACCESS and AT_SYMLINK_NOFOLLOW results in EINVAL,
+ * since only AT_EACCESS is supported for faccessat()
+ * https://docs.oracle.com/cd/E86824_01/html/E54765/faccessat-2.html
  */
-#if defined(HAVE_FACCESSAT) && !defined(__FreeBSD__) && !defined(__ANDROID__)
+#if defined(HAVE_FACCESSAT) && !defined(__FreeBSD__) && !defined(__ANDROID__) && \
+    !defined(__OpenBSD__) && !defined(__sun__)
 static gboolean
 g_local_file_query_exists (GFile        *file,
                            GCancellable *cancellable)
 {
   GLocalFile *local = G_LOCAL_FILE (file);
 
-  return faccessat (0, local->filename, F_OK, AT_EACCESS | AT_SYMLINK_NOFOLLOW) == 0;
+  if (faccessat (AT_FDCWD, local->filename, F_OK, AT_EACCESS | AT_SYMLINK_NOFOLLOW) == 0)
+    return TRUE;
+
+  if G_UNLIKELY (errno == EBADF)
+    {
+      g_critical ("g_local_file_query_exists: faccessat didn't accept supplied dirfd");
+    }
+  else if G_UNLIKELY (errno == EINVAL)
+    {
+      g_critical ("g_local_file_query_exists: faccessat doesn't support supplied flags");
+    }
+
+  return FALSE;
 }
 #endif
 
@@ -1551,7 +1573,7 @@ static char *
 strip_trailing_slashes (const char *path)
 {
   char *path_copy;
-  int len;
+  size_t len;
 
   path_copy = g_strdup (path);
   len = strlen (path_copy);
@@ -1672,6 +1694,7 @@ get_parent (const char *path,
   return res;
 }
 
+#ifndef HAVE_COCOA
 static char *
 expand_all_symlinks (const char *path)
 {
@@ -1698,6 +1721,7 @@ expand_all_symlinks (const char *path)
 
   return res;
 }
+#endif /* HAVE_COCOA */
 
 static char *
 find_mountpoint_for (const char *file,
@@ -1757,6 +1781,7 @@ _g_local_file_find_topdir_for (const char *file)
   return mountpoint;
 }
 
+#ifndef HAVE_COCOA
 static char *
 get_unique_filename (const char *basename, 
                      int         id)
@@ -1772,6 +1797,62 @@ get_unique_filename (const char *basename,
   else
     return g_strdup_printf ("%s.%d", basename, id);
 }
+
+/*
+ * Truncate @basename from the front so that @suffix_len more bytes (e.g. the
+ * ".trashinfo" suffix) can still be appended without exceeding NAME_MAX, while
+ * keeping the trailing part of the original name (its extension, if any).
+ *
+ * When the filename encoding is UTF-8, g_utf8_next_char() is used to skip
+ * whole characters from the front so the cut never lands in the middle of a
+ * multi-byte sequence, which would yield invalid UTF-8 (a garbled name) in
+ * the trash.
+ *
+ * For other (typically single-byte) encodings the cut is performed on a plain
+ * byte boundary, which is always safe for fixed-width encodings.  Rare
+ * multi-byte non-UTF-8 encodings (e.g. Shift-JIS) are handled best-effort, in
+ * line with GLib's general treatment of filename encodings.
+ *
+ * Returns the new length (always > 0) on success, or 0 when the name is too
+ * short to be truncated safely (the caller should then fail with ENAMETOOLONG).
+ */
+static size_t
+truncate_basename_front (char   *basename,
+                         size_t  basename_len,
+                         size_t  suffix_len)
+{
+  const char *start, *end;
+
+  if (basename_len <= suffix_len)
+    return 0;
+
+  if (g_get_filename_charsets (NULL))
+    {
+      /* UTF-8: skip whole characters from the front so the cut never lands
+       * in the middle of a multi-byte sequence. */
+      start = basename;
+      end = basename + basename_len;
+
+      while ((gsize) (start - basename) < suffix_len)
+        start = g_utf8_next_char (start);
+
+      if (start >= end)
+        return 0;
+
+      basename_len = end - start;
+    }
+  else
+    {
+      /* Non-UTF-8 (single-byte or best-effort): plain front cut. */
+      basename_len -= suffix_len;
+      start = basename + suffix_len;
+    }
+
+  memmove (basename, start, basename_len);
+  basename[basename_len] = '\0';
+  return basename_len;
+}
+#endif /* HAVE_COCOA */
 
 static gboolean
 path_has_prefix (const char *path, 
@@ -1794,6 +1875,7 @@ path_has_prefix (const char *path,
   return FALSE;
 }
 
+#ifndef HAVE_COCOA
 static char *
 try_make_relative (const char *path, 
                    const char *base)
@@ -1821,23 +1903,15 @@ try_make_relative (const char *path,
   /* Failed, use abs path */
   return g_strdup (path);
 }
+#endif /* HAVE_COCOA */
 
 static gboolean
 ignore_trash_mount (GUnixMountEntry *mount)
 {
-  GUnixMountPoint *mount_point = NULL;
   const gchar *mount_options;
+  gboolean is_system_internal;
 
   mount_options = g_unix_mount_entry_get_options (mount);
-  if (mount_options == NULL)
-    {
-      mount_point = g_unix_mount_point_at (g_unix_mount_entry_get_mount_path (mount),
-                                           NULL);
-      if (mount_point != NULL)
-        mount_options = g_unix_mount_point_get_options (mount_point);
-
-      g_clear_pointer (&mount_point, g_unix_mount_point_free);
-    }
 
   if (mount_options != NULL)
     {
@@ -1848,10 +1922,52 @@ ignore_trash_mount (GUnixMountEntry *mount)
         return TRUE;
     }
 
-  if (g_unix_mount_entry_is_system_internal (mount))
-    return TRUE;
+  is_system_internal = g_unix_mount_entry_is_system_internal (mount);
 
-  return FALSE;
+  if (mount_options == NULL || is_system_internal)
+    {
+      GUnixMountPoint *mount_point = NULL;
+      const gchar *fstab_options = NULL;
+      gboolean fstab_trash = FALSE;
+      gboolean fstab_notrash = FALSE;
+
+      /* The x-gvfs-* options are userspace-only mount options: the kernel does
+       * not know about them, so they never appear in /proc/self/mountinfo.
+       * libmount can only report them from /run/mount/utab, which requires the
+       * filesystem to have been mounted by mount(8) and that file to have
+       * survived since boot; filesystems mounted by systemd, by the initrd or
+       * by an image-based OS carry no utab entry at all. So fall back to the
+       * fstab entry for this mount path.
+       *
+       * The mount_options == NULL case is the pre-existing fallback path, kept
+       * unchanged for platforms whose mount entries carry no options at all.
+       * The system-internal case is the new one, and is deliberately limited to
+       * that branch, which would refuse trashing anyway: g_unix_mount_point_at()
+       * re-parses fstab and has no cache, while this function is on the hot path
+       * of the access::can-trash attribute, which is queried for every file of
+       * an enumeration.
+       */
+      mount_point = g_unix_mount_point_at (g_unix_mount_entry_get_mount_path (mount),
+                                           NULL);
+      if (mount_point != NULL)
+        fstab_options = g_unix_mount_point_get_options (mount_point);
+
+      if (fstab_options != NULL)
+        {
+          fstab_trash = strstr (fstab_options, "x-gvfs-trash") != NULL;
+          fstab_notrash = strstr (fstab_options, "x-gvfs-notrash") != NULL;
+        }
+
+      g_clear_pointer (&mount_point, g_unix_mount_point_free);
+
+      if (fstab_trash)
+        return FALSE;
+
+      if (fstab_notrash)
+        return TRUE;
+    }
+
+  return is_system_internal;
 }
 
 static gboolean
@@ -1999,13 +2115,93 @@ _g_local_file_is_lost_found_dir (const char *path, dev_t path_dev)
 }
 #endif
 
+/* Check whether subsequently deleting the original file from the trash
+ * (in the gvfsd-trash process) will succeed. If we think it won’t, return
+ * an error, as the trash spec says trashing should not be allowed.
+ * https://specifications.freedesktop.org/trash-spec/latest/#implementation-notes
+ *
+ * Check ownership to see if we can delete. gvfsd will automatically chmod
+ * a file to allow it to be deleted, so checking the permissions bitfield isn’t
+ * relevant.
+ */
+#ifndef HAVE_COCOA
+static gboolean
+check_removing_recursively (GFile        *file,
+                            gboolean      user_owned,
+                            uid_t         uid,
+                            GCancellable *cancellable,
+                            GError       **error)
+{
+  GFileEnumerator *enumerator;
+
+  enumerator = g_file_enumerate_children (file,
+                                          G_FILE_ATTRIBUTE_STANDARD_NAME ","
+                                          G_FILE_ATTRIBUTE_STANDARD_TYPE ","
+                                          G_FILE_ATTRIBUTE_UNIX_UID,
+                                          G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
+                                          cancellable,
+                                          error);
+
+  if (!enumerator)
+    return FALSE;
+
+  while (TRUE)
+    {
+      GFileInfo *info;
+      GFile *child;
+
+      if (!g_file_enumerator_iterate (enumerator, &info, &child, cancellable, error))
+        {
+          g_object_unref (enumerator);
+          return FALSE;
+        }
+
+      if (!info)
+        break;
+
+      if (!user_owned)
+        {
+          GLocalFile *local = G_LOCAL_FILE (child);
+
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                       _("Unable to trash child file %s"), local->filename);
+          g_object_unref (enumerator);
+          return FALSE;
+        }
+
+      if ((g_file_info_get_file_type (info) == G_FILE_TYPE_DIRECTORY))
+        {
+          uid_t fuid;
+
+          fuid = g_file_info_get_attribute_uint32 (info,
+                                                   G_FILE_ATTRIBUTE_UNIX_UID);
+          if (!check_removing_recursively (child,
+                                           fuid == uid,
+                                           uid,
+                                           cancellable,
+                                           error))
+            {
+              g_object_unref (enumerator);
+              return FALSE;
+            }
+        }
+    }
+  g_object_unref (enumerator);
+  return TRUE;
+}
+#endif /* HAVE_COCOA */
+
 static gboolean
 g_local_file_trash (GFile         *file,
 		    GCancellable  *cancellable,
 		    GError       **error)
 {
   GLocalFile *local = G_LOCAL_FILE (file);
+#ifdef HAVE_COCOA
+  return _g_local_file_trash_macos (local->filename, cancellable, error);
+#else
   GStatBuf file_stat, home_stat;
+  dev_t checked_st_dev;
   const char *homedir;
   char *trashdir, *topdir, *infodir, *filesdir;
   char *basename, *trashname, *trashfile, *infoname, *infofile;
@@ -2051,6 +2247,8 @@ g_local_file_trash (GFile         *file,
   is_homedir_trash = FALSE;
   trashdir = NULL;
 
+  checked_st_dev = file_stat.st_dev;
+
   /* On overlayfs, a file's st_dev will be different to the home directory's.
    * We still want to create our trash directory under the home directory, so
    * instead we should stat the directory that the file we're deleting is in as
@@ -2058,13 +2256,14 @@ g_local_file_trash (GFile         *file,
    */
   if (!S_ISDIR (file_stat.st_mode))
     {
+      GStatBuf parent_stat;
       path = g_path_get_dirname (local->filename);
       /* If the parent is a symlink to a different device then it might have
        * st_dev equal to the home directory's, in which case we will end up
        * trying to rename across a filesystem boundary, which doesn't work. So
        * we use g_stat here instead of g_lstat, to know where the symlink
        * points to. */
-      if (g_stat (path, &file_stat))
+      if (g_stat (path, &parent_stat))
 	{
 	  errsv = errno;
 	  g_free (path);
@@ -2074,10 +2273,11 @@ g_local_file_trash (GFile         *file,
 			  file, errsv);
 	  return FALSE;
 	}
+      checked_st_dev = parent_stat.st_dev;
       g_free (path);
     }
 
-  if (file_stat.st_dev == home_stat.st_dev)
+  if (checked_st_dev == home_stat.st_dev)
     {
       is_homedir_trash = TRUE;
       errno = 0;
@@ -2274,10 +2474,9 @@ g_local_file_trash (GFile         *file,
             continue;
           else if (errsv == ENAMETOOLONG)
             {
-              if (basename_len <= strlen (".trashinfo"))
+              basename_len = truncate_basename_front (basename, basename_len, strlen (".trashinfo"));
+              if (basename_len == 0)
                 break; /* fail with ENAMETOOLONG */
-              basename_len -= strlen (".trashinfo");
-              basename[basename_len] = '\0';
               i = 1;
               continue;
             }
@@ -2297,10 +2496,9 @@ g_local_file_trash (GFile         *file,
                                G_FILE_ERROR,
                                G_FILE_ERROR_NAMETOOLONG))
             {
-              if (basename_len <= strlen (".XXXXXX"))
+              basename_len = truncate_basename_front (basename, basename_len, strlen (".XXXXXX"));
+              if (basename_len == 0)
                 break; /* fail with ENAMETOOLONG */
-              basename_len -= strlen (".XXXXXX");
-              basename[basename_len] = '\0';
               i = 1;
               g_clear_error (&my_error);
               continue;
@@ -2379,9 +2577,22 @@ g_local_file_trash (GFile         *file,
 
   g_clear_pointer (&data, g_free);
 
-  /* TODO: Maybe we should verify that you can delete the file from the trash
-   * before moving it? OTOH, that is hard, as it needs a recursive scan
-   */
+  if (S_ISDIR (file_stat.st_mode))
+    {
+      uid_t uid = geteuid ();
+
+      if (file_stat.st_uid == uid &&
+          !check_removing_recursively (file, TRUE, uid, cancellable, error))
+        {
+          g_unlink (infofile);
+
+          g_free (filesdir);
+          g_free (trashname);
+          g_free (infofile);
+
+          return FALSE;
+        }
+    }
 
   trashfile = g_build_filename (filesdir, trashname, NULL);
 
@@ -2425,6 +2636,7 @@ g_local_file_trash (GFile         *file,
   g_free (trashname);
   
   return TRUE;
+#endif
 }
 #else /* G_OS_WIN32 */
 gboolean
@@ -2443,6 +2655,7 @@ g_local_file_trash (GFile         *file,
   gboolean success;
   wchar_t *wfilename;
   long len;
+  int errcode;
 
   wfilename = g_utf8_to_utf16 (local->filename, -1, NULL, &len, NULL);
   /* SHFILEOPSTRUCT.pFrom is double-zero-terminated */
@@ -2453,9 +2666,10 @@ g_local_file_trash (GFile         *file,
   op.pFrom = wfilename;
   op.fFlags = FOF_ALLOWUNDO;
 
-  success = SHFileOperationW (&op) == 0;
+  errcode = SHFileOperationW (&op);
+  success = errcode == 0;
 
-  if (success && op.fAnyOperationsAborted)
+  if ((success || errcode == ERROR_CANCELLED) && op.fAnyOperationsAborted)
     {
       if (cancellable && !g_cancellable_is_cancelled (cancellable))
 	g_cancellable_cancel (cancellable);
@@ -2607,7 +2821,7 @@ g_local_file_move (GFile                  *source,
 	  return FALSE;
 	}
     }
-  
+
   if (flags & G_FILE_COPY_BACKUP && destination_exist)
     {
       backup_name = g_strconcat (local_destination->filename, "~", NULL);
@@ -3162,7 +3376,8 @@ g_local_file_file_iface_init (GFileIface *iface)
   iface->monitor_dir = g_local_file_monitor_dir;
   iface->monitor_file = g_local_file_monitor_file;
   iface->measure_disk_usage = g_local_file_measure_disk_usage;
-#if defined(HAVE_FACCESSAT) && !defined(__FreeBSD__) && !defined(__ANDROID__)
+#if defined(HAVE_FACCESSAT) && !defined(__FreeBSD__) && !defined(__ANDROID__) && \
+    !defined(__OpenBSD__) && !defined(__sun__)
   iface->query_exists = g_local_file_query_exists;
 #endif
 

@@ -136,6 +136,26 @@ the current repository is not a snapshot rollback service. Separate testing and
 stable channels can be added later without changing the release numbering or
 package-version model.
 
+## Full release workflow
+
+Use the repository's [manage-release skill](../../.agents/skills/manage-release/SKILL.md)
+for an end-to-end release, for example: "Use $manage-release to release all
+local MattOS changes, push one commit, publish the packages, and give me the
+existing-machine upgrade instructions."
+
+The order is: choose or finish the next unpublished version, prepare package
+revisions and the lock, validate the artifacts and upgrade path, commit all
+local project changes together, push that commit, then publish the tested
+artifacts. Required third-party replacements go before the native release;
+`mattos-release` goes last. Final native publication uses
+`python3 DevUtils/PublishPackages.py --packages-only --no-build --no-bump`
+so it cannot silently change the committed packaging revisions. Verify the
+public repository before giving upgrade commands for the published version.
+
+A request to edit the skill, prepare a release, or leave changes uncommitted
+does not run the full publication workflow. Updating installed machines remains
+a separate action; the full release workflow supplies instructions for the user.
+
 Validate both a fresh installation and an upgrade from an unversioned ISO before
 calling the first release successful. See [installer upgrade tests](installer.md#upgrade-test),
 [package publishing](../packaging/publishing.md), and the repository's

@@ -2633,7 +2633,7 @@ gst_rtsp_media_create_stream (GstRTSPMedia * media, GstElement * payloader,
 
       gst_bin_add (GST_BIN (priv->element), appsrc);
 
-      GstPadLinkReturn pad_link = gst_pad_link (srcpad, pad);
+      GstPadLinkReturn pad_link GST_UNUSED_ASSERT = gst_pad_link (srcpad, pad);
       g_assert (pad_link == GST_PAD_LINK_OK);
 
       gst_object_unref (srcpad);
@@ -2651,7 +2651,7 @@ gst_rtsp_media_create_stream (GstRTSPMedia * media, GstElement * payloader,
 
       gst_bin_add (GST_BIN (priv->element), appsink);
 
-      GstPadLinkReturn pad_link = gst_pad_link (pad, sinkpad);
+      GstPadLinkReturn pad_link GST_UNUSED_ASSERT = gst_pad_link (pad, sinkpad);
       g_assert (pad_link == GST_PAD_LINK_OK);
 
       gst_object_unref (sinkpad);
@@ -3452,8 +3452,7 @@ set_state (GstRTSPMedia * media, GstState state)
   GstRTSPMediaPrivate *priv = media->priv;
   GstStateChangeReturn ret;
 
-  GST_INFO ("set state to %s for media %p", gst_element_state_get_name (state),
-      media);
+  GST_INFO ("set state to %s for media %p", gst_state_get_name (state), media);
   ret = gst_element_set_state (priv->pipeline, state);
 
   return ret;
@@ -3466,7 +3465,7 @@ set_target_state (GstRTSPMedia * media, GstState state, gboolean do_state)
   GstStateChangeReturn ret;
 
   GST_INFO ("set target state to %s for media %p",
-      gst_element_state_get_name (state), media);
+      gst_state_get_name (state), media);
   priv->target_state = state;
 
   g_signal_emit (media, gst_rtsp_media_signals[SIGNAL_TARGET_STATE], 0,
@@ -3540,8 +3539,8 @@ default_handle_message (GstRTSPMedia * media, GstMessage * message)
       gst_message_parse_state_changed (message, &old, &new, &pending);
 
       GST_DEBUG ("%p: went from %s to %s (pending %s)", media,
-          gst_element_state_get_name (old), gst_element_state_get_name (new),
-          gst_element_state_get_name (pending));
+          gst_state_get_name (old), gst_state_get_name (new),
+          gst_state_get_name (pending));
       if (priv->no_more_pads_pending == 0
           && gst_rtsp_media_is_receive_only (media) && old == GST_STATE_READY
           && new == GST_STATE_PAUSED) {
@@ -5201,7 +5200,7 @@ media_set_pipeline_state_locked (GstRTSPMedia * media, GstState state)
   if (state == GST_STATE_NULL) {
     gst_rtsp_media_unprepare (media);
   } else {
-    GST_INFO ("state %s media %p", gst_element_state_get_name (state), media);
+    GST_INFO ("state %s media %p", gst_state_get_name (state), media);
     set_target_state (media, state, FALSE);
 
     if (state == GST_STATE_PLAYING) {
@@ -5293,8 +5292,8 @@ gst_rtsp_media_set_state (GstRTSPMedia * media, GstState state,
   activate = deactivate = FALSE;
 
   GST_INFO ("going to state %s media %p, target state %s",
-      gst_element_state_get_name (state), media,
-      gst_element_state_get_name (priv->target_state));
+      gst_state_get_name (state), media,
+      gst_state_get_name (priv->target_state));
 
   switch (state) {
     case GST_STATE_NULL:

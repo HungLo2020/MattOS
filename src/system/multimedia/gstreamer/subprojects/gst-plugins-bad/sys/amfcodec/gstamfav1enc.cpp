@@ -695,7 +695,7 @@ gst_amf_av1_enc_class_init (GstAmfAv1EncClass * klass, gpointer data)
     }
   }
 
-  gst_element_class_set_metadata (element_class,
+  gst_element_class_set_static_metadata (element_class,
       "AMD AMF AV1 Video Encoder",
       "Codec/Encoder/Video/Hardware",
       "Encode AV1 video streams using AMF API",
@@ -1438,7 +1438,7 @@ gst_amf_av1_enc_set_surface_prop (GstAmfEncoder * encoder,
   AMF_RESULT result;
 
   if (GST_VIDEO_CODEC_FRAME_IS_FORCE_KEYFRAME (frame)) {
-    amf_int64 type = (amf_int64) AMF_VIDEO_ENCODER_AV1_FORCE_FRAME_TYPE_NONE;
+    amf_int64 type = (amf_int64) AMF_VIDEO_ENCODER_AV1_FORCE_FRAME_TYPE_KEY;
     result = surf->SetProperty (AMF_VIDEO_ENCODER_AV1_FORCE_FRAME_TYPE, type);
     if (result != AMF_OK) {
       GST_WARNING_OBJECT (encoder, "Failed to set force frame type, result %"

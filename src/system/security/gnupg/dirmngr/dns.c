@@ -3012,10 +3012,10 @@ int dns_rr_cmp(struct dns_rr *r0, struct dns_packet *P0, struct dns_rr *r1, stru
 		return (r0->section == DNS_S_QD)? -1 : 1;
 	}
 
-	if ((error = dns_any_parse(&any0, r0, P0)))
+	if ((error = dns_any_parse(dns_any_init (&any0, sizeof any0), r0, P0)))
 		return -1;
 
-	if ((error = dns_any_parse(&any1, r1, P1)))
+	if ((error = dns_any_parse(dns_any_init (&any1, sizeof any1), r1, P1)))
 		return 1;
 
 	return dns_any_cmp(&any0, r0->type, &any1, r1->type);
@@ -3441,6 +3441,7 @@ static int dns_aaaa_cmp0(const void *a, const void *b) {
 }
 
 size_t dns_aaaa_arpa(void *_dst, size_t lim, const struct dns_aaaa *aaaa) {
+	GPGRT_ATTR_NONSTRING
 	static const unsigned char hex[16] = "0123456789abcdef";
 	struct dns_buf dst = DNS_B_INTO(_dst, lim);
 	unsigned nyble;
@@ -4222,6 +4223,7 @@ static int dns_sshfp_cmp0(const void *a, const void *b) {
 
 
 size_t dns_sshfp_print(void *_dst, size_t lim, struct dns_sshfp *fp) {
+	GPGRT_ATTR_NONSTRING
 	static const unsigned char hex[16] = "0123456789abcdef";
 	struct dns_buf dst = DNS_B_INTO(_dst, lim);
 	size_t i;
@@ -7749,18 +7751,18 @@ retry:
 		error = dns_connect(so->udp, (struct sockaddr *)&so->remote, dns_sa_len(&so->remote));
 		dns_trace_sys_connect(so->trace, so->udp, SOCK_DGRAM, (struct sockaddr *)&so->remote, error);
 
-		/* Linux returns EINVAL when address was bound to
-		   localhost and it's external IP address now.  */
+#if __linux
+		/* Linux returns EINVAL when address was once bound to
+		   localhost and the socket is reused for an external
+		   IP address now.  */
 		if (error == EINVAL) {
 			struct sockaddr unspec_addr;
 			memset (&unspec_addr, 0, sizeof unspec_addr);
 			unspec_addr.sa_family = AF_UNSPEC;
 			connect(so->udp, &unspec_addr, sizeof unspec_addr);
 			goto udp_connect_retry;
-		} else if (error == ECONNREFUSED)
-			/* Error for previous socket operation may
-			   be reserved(?) asynchronously. */
-			goto udp_connect_retry;
+		}
+#endif
 
 		if (error)
 			goto error;
@@ -9761,7 +9763,7 @@ struct dns_addrinfo *dns_ai_open(const char *host, const char *serv, enum dns_ty
 	/*
 	 * FIXME: If an explicit A or AAAA record type conflicts with
 	 * .ai_family or with resconf.family (i.e. AAAA specified but
-	 * AF_INET6 not in interection of .ai_family and resconf.family),
+	 * AF_INET6 not in intersection of .ai_family and resconf.family),
 	 * then what?
 	 */
 	switch (ai->qtype) {

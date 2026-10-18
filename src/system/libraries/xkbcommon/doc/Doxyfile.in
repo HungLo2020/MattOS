@@ -31,7 +31,12 @@ INPUT                  = @INPUT@
 FILE_PATTERNS          = *.c \
                          *.h
 
+# These are included in other file but we do not want them as standalone
+EXCLUDE                = LICENSE NEWS.md meson_options.txt
+
 RECURSIVE              = YES
+
+EXAMPLE_PATH           = test
 
 USE_MDFILE_AS_MAINPAGE = README.md
 
@@ -54,7 +59,7 @@ FULL_SIDEBAR           = NO
 
 HTML_EXTRA_STYLESHEET  = doc/doxygen-extra.css
 
-HTML_EXTRA_FILES       = meson_options.txt
+HTML_COLORSTYLE        = TOGGLE
 
 TIMESTAMP              = NO
 
@@ -70,7 +75,10 @@ DOTFILE_DIRS           = doc/diagrams
 
 DOT_IMAGE_FORMAT       = svg
 
+# Workaround HTML tags not supported by Doxygen
 ALIASES                += figure="@htmlonly[block]<figure>@endhtmlonly"
 ALIASES                += endfigure="@htmlonly[block]</figure>@endhtmlonly"
 ALIASES                += figcaption="@htmlonly[block]<figcaption>@endhtmlonly"
 ALIASES                += endfigcaption="@htmlonly[block]</figcaption>@endhtmlonly"
+ALIASES                += rawHtml="@htmlonly<!--"
+ALIASES                += endRawHtml="-->@endhtmlonly"

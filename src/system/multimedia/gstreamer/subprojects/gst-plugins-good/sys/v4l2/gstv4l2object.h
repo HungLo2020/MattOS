@@ -167,12 +167,6 @@ struct _GstV4l2Object {
   /* We cache the frame duration if known */
   GstClockTime duration;
 
-  /* if the MPLANE device support both contiguous and non contiguous
-   * it allows to select which one we want. But we prefered_non_contiguous
-   * non contiguous mode.
-   */
-  gboolean prefered_non_contiguous;
-
   /* This will be set if supported in decide_allocation. It can be used to
    * calculate the minimum latency. */
   guint32 min_buffers;
@@ -232,9 +226,6 @@ struct _GstV4l2Object {
    * on slow USB firmwares. When this is set, gst_v4l2_set_format() will modify
    * the caps to reflect what was negotiated during fixation */
   gboolean skip_try_fmt_probes;
-
-  guint max_width;
-  guint max_height;
 };
 
 struct _GstV4l2ObjectClassHelper {

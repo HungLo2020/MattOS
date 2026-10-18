@@ -64,7 +64,16 @@ enum
   PROP_0,
   PROP_CC_INSERT,
   PROP_EXTERN_POOL,
+  PROP_EMIT_FRAME_STATS
 };
+
+enum
+{
+  SIGNAL_FRAME_STATS,
+  LAST_SIGNAL
+};
+
+static guint gst_nv_encoder_signals[LAST_SIGNAL] = { 0 };
 
 #define DEFAULT_CC_INSERT GST_NV_ENCODER_SEI_INSERT
 
@@ -74,11 +83,15 @@ struct _GstNvEncoderPrivate
   {
     memset (&init_params, 0, sizeof (NV_ENC_INITIALIZE_PARAMS));
     memset (&config, 0, sizeof (NV_ENC_CONFIG));
+    emit_frame_stats = FALSE;
+    frame_stats = gst_structure_new ("application/x-nvenc-stats",
+        "frame-idx", G_TYPE_UINT, 0, "frame-avg-qp", G_TYPE_UINT, 0, NULL);
   }
 
    ~_GstNvEncoderPrivate ()
   {
     gst_clear_object (&extern_pool);
+    gst_structure_free (frame_stats);
   }
 
   GstCudaContext *context = nullptr;
@@ -132,6 +145,8 @@ struct _GstNvEncoderPrivate
   /* properties */
   GstNvEncoderSeiInsertMode cc_insert = DEFAULT_CC_INSERT;
   GstBufferPool *extern_pool = nullptr;
+  gboolean emit_frame_stats;
+  GstStructure *frame_stats;
 };
 
 /**
@@ -211,6 +226,31 @@ gst_nv_encoder_class_init (GstNvEncoderClass * klass)
           (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS |
               GST_PARAM_MUTABLE_READY)));
 
+  /**
+   * GstNvEncoder:emit-frame-stats-signal:
+   *
+   * Whether to emit the 'frame-stats' signal for each encoded frame.
+   *
+   * Since: 1.28
+   */
+  g_object_class_install_property (object_class, PROP_EMIT_FRAME_STATS,
+      g_param_spec_boolean ("emit-frame-stats", "Emit Frame stats Signal",
+          "Emit the 'frame-stats' signal for each encoded frame",
+          FALSE, (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+
+  /**
+   * GstNvEncoder::frame-stats:
+   *
+   * Emitted for each encoded frame if the 'emit-frame-stats' property is TRUE.
+   * The signal provides a #GstStructure containing per-frame statistics such as
+   * "frame-idx" (frame index) and "frame-avg-qp" (average quantization parameter).
+   *
+   * Since: 1.28
+   */
+  gst_nv_encoder_signals[SIGNAL_FRAME_STATS] =
+      g_signal_new ("frame-stats", G_TYPE_FROM_CLASS (klass),
+      G_SIGNAL_RUN_LAST, 0, nullptr, nullptr, nullptr, G_TYPE_NONE, 1,
+      GST_TYPE_STRUCTURE | G_SIGNAL_TYPE_STATIC_SCOPE);
 
   element_class->set_context = GST_DEBUG_FUNCPTR (gst_nv_encoder_set_context);
 
@@ -300,6 +340,9 @@ gst_nv_encoder_set_property (GObject * object, guint prop_id,
         }
       }
       break;
+    case PROP_EMIT_FRAME_STATS:
+      priv->emit_frame_stats = g_value_get_boolean (value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -319,6 +362,9 @@ gst_nv_encoder_get_property (GObject * object, guint prop_id, GValue * value,
       break;
     case PROP_EXTERN_POOL:
       g_value_set_object (value, priv->extern_pool);
+      break;
+    case PROP_EMIT_FRAME_STATS:
+      g_value_set_boolean (value, priv->emit_frame_stats);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -859,43 +905,6 @@ gst_nv_encoder_propose_allocation (GstVideoEncoder * encoder, GstQuery * query)
   return TRUE;
 }
 
-static NV_ENC_PIC_STRUCT
-gst_nv_encoder_get_pic_struct (GstNvEncoder * self, GstBuffer * buffer)
-{
-  GstNvEncoderPrivate *priv = self->priv;
-  GstVideoInfo *info = &priv->input_state->info;
-
-  if (!GST_VIDEO_INFO_IS_INTERLACED (info))
-    return NV_ENC_PIC_STRUCT_FRAME;
-
-  if (GST_VIDEO_INFO_INTERLACE_MODE (info) == GST_VIDEO_INTERLACE_MODE_MIXED) {
-    if (!GST_BUFFER_FLAG_IS_SET (buffer, GST_VIDEO_BUFFER_FLAG_INTERLACED)) {
-      return NV_ENC_PIC_STRUCT_FRAME;
-    }
-
-    if (GST_BUFFER_FLAG_IS_SET (buffer, GST_VIDEO_BUFFER_FLAG_TFF))
-      return NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM;
-
-    return NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP;
-  }
-
-  switch (GST_VIDEO_INFO_FIELD_ORDER (info)) {
-    case GST_VIDEO_FIELD_ORDER_TOP_FIELD_FIRST:
-      return NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM;
-      break;
-    case GST_VIDEO_FIELD_ORDER_BOTTOM_FIELD_FIRST:
-      return NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP;
-      break;
-    default:
-      break;
-  }
-
-  if (GST_BUFFER_FLAG_IS_SET (buffer, GST_VIDEO_BUFFER_FLAG_TFF))
-    return NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM;
-
-  return NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP;
-}
-
 static GstVideoCodecFrame *
 gst_nv_encoder_find_output_frame (GstVideoEncoder * self, GstNvEncTask * task)
 {
@@ -997,6 +1006,14 @@ gst_nv_encoder_thread_func (GstNvEncoder * self)
 
     gst_nv_enc_task_unlock_bitstream (task);
     gst_nv_enc_task_unref (task);
+
+    if (priv->emit_frame_stats) {
+      gst_structure_set (priv->frame_stats,
+          "frame-idx", G_TYPE_UINT, bitstream.frameIdx,
+          "frame-avg-qp", G_TYPE_UINT, bitstream.frameAvgQP, NULL);
+      g_signal_emit (self, gst_nv_encoder_signals[SIGNAL_FRAME_STATS], 0,
+          priv->frame_stats);
+    }
 
     priv->last_flow = gst_video_encoder_finish_frame (encoder, frame);
     if (priv->last_flow != GST_FLOW_OK) {
@@ -2242,8 +2259,12 @@ gst_nv_encoder_handle_frame (GstVideoEncoder * encoder,
         gst_nv_enc_task_get_sei_payload (task));
   }
 
-  status = priv->object->Encode (frame,
-      gst_nv_encoder_get_pic_struct (self, in_buf), task);
+  auto pic_struct = NV_ENC_PIC_STRUCT_FRAME;
+  if (klass->get_pic_struct) {
+    pic_struct = klass->get_pic_struct (self, &priv->input_state->info, in_buf);
+  }
+
+  status = priv->object->Encode (frame, pic_struct, task);
   if (status != NV_ENC_SUCCESS) {
     GST_ERROR_OBJECT (self, "Failed to encode frame");
     gst_video_encoder_release_frame (encoder, frame);

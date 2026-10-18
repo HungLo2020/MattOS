@@ -1,5 +1,5 @@
 # speedo.mk - Speedo rebuilds speedily.
-# Copyright (C) 2008, 2014, 2019, 2024 g10 Code GmbH
+# Copyright (C) 2008, 2014, 2019 g10 Code GmbH
 #
 # speedo is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ help:
 	@echo 'Use WIXPREFIX to provide the WIX binaries for the MSI package.'
 	@echo '    Using WIX also requires wine with installed wine mono.'
 	@echo '    See help-wixlib for more information'
-	@echo 'Set W32VERSION=w64 to build a 64 bit Windows version.'
+	@echo 'Set W32VERSION=w32 to build a 32 bit Windows version.'
 
 help-wixlib:
 	@echo 'The buildsystem can create a wixlib to build MSI packages.'
@@ -161,8 +161,8 @@ WHAT=git
 # Set target to "native" or "w32".
 TARGETOS=
 
-# To build a 64 bit Windows version also change this to "w64"
-W32VERSION=w32
+# To build a 32 bit Windows version also change this to "w32"
+W32VERSION=w64
 
 # Set to 1 to use a pre-installed swdb.lst instead of the online version.
 CUSTOM_SWDB=0
@@ -225,7 +225,6 @@ AUTHENTICODE_FILES= \
                     gpg-wks-client.exe        \
                     gpg.exe                   \
                     gpgconf.exe               \
-                    gpgme-w32spawn.exe        \
                     gpgsm.exe                 \
                     gpgtar.exe                \
                     gpgv.exe                  \
@@ -234,7 +233,6 @@ AUTHENTICODE_FILES= \
                     libassuan-9.dll           \
                     libgcrypt-20.dll          \
                     libgpg-error-0.dll        \
-                    libgpgme-11.dll           \
                     libksba-8.dll             \
                     libnpth-0.dll             \
                     libntbtls-0.dll           \
@@ -272,10 +270,6 @@ speedo_spkgs  = \
 	zlib bzip2 sqlite \
         libassuan libksba ntbtls gnupg
 
-ifeq ($(STATIC),0)
-speedo_spkgs += gpgme
-endif
-
 ifeq ($(TARGETOS),w32)
 speedo_spkgs += pinentry
 endif
@@ -297,7 +291,7 @@ endif
 # Packages which use the gnupg autogen.sh build style
 speedo_gnupg_style = \
 	libgpg-error npth libgcrypt  \
-	libassuan libksba ntbtls gnupg gpgme \
+	libassuan libksba ntbtls gnupg \
 	pinentry
 
 # Packages which use only make and no build directory
@@ -323,9 +317,10 @@ endif
 endif
 
 # Version numbers of the released packages
-gnupg_ver_this = $(shell cat $(topsrc)/VERSION)
+gnupg_ver_this  = $(shell sed -n 1p $(topsrc)/VERSION)
+gnupg_commit_id = $(shell sed -n 2p $(topsrc)/VERSION)
 
-gnupg_ver        := $(shell awk '$$1=="gnupg24_ver" {print $$2}' swdb.lst)
+gnupg_ver        := $(shell awk '$$1=="gnupg26_ver" {print $$2}' swdb.lst)
 
 libgpg_error_ver := $(shell awk '$$1=="libgpg_error_ver" {print $$2}' swdb.lst)
 libgpg_error_sha1:= $(shell awk '$$1=="libgpg_error_sha1" {print $$2}' swdb.lst)
@@ -350,10 +345,6 @@ libksba_sha2 := $(shell awk '$$1=="libksba_sha2" {print $$2}' swdb.lst)
 ntbtls_ver  := $(shell awk '$$1=="ntbtls_ver" {print $$2}' swdb.lst)
 ntbtls_sha1 := $(shell awk '$$1=="ntbtls_sha1" {print $$2}' swdb.lst)
 ntbtls_sha2 := $(shell awk '$$1=="ntbtls_sha2" {print $$2}' swdb.lst)
-
-gpgme_ver  := $(shell awk '$$1=="gpgme_ver" {print $$2}' swdb.lst)
-gpgme_sha1 := $(shell awk '$$1=="gpgme_sha1" {print $$2}' swdb.lst)
-gpgme_sha2 := $(shell awk '$$1=="gpgme_sha2" {print $$2}' swdb.lst)
 
 pinentry_ver  := $(shell awk '$$1=="pinentry_ver" {print $$2}' swdb.lst)
 pinentry_sha1 := $(shell awk '$$1=="pinentry_sha1" {print $$2}' swdb.lst)
@@ -383,7 +374,6 @@ $(info Zlib ...........: $(zlib_ver))
 $(info Bzip2 ..........: $(bzip2_ver))
 $(info SQLite .........: $(sqlite_ver))
 $(info NtbTLS .. ......: $(ntbtls_ver))
-$(info GPGME ..........: $(gpgme_ver))
 $(info Pinentry .......: $(pinentry_ver))
 endif
 
@@ -391,10 +381,13 @@ $(info Information for this run:)
 $(info Build type .....: $(WHAT))
 $(info Target .........: $(TARGETOS))
 ifeq ($(TARGETOS),w32)
+ifeq ($(W32VERSION),w64)
+  $(info Windows version : 64 bit)
+else
   $(info Windows version : 32 bit)
 ifneq ($(W32VERSION),w32)
-# Noet that GnuPG 2.4 does not support 64 bit Windows - use GnuPG 2.6
-  $(error W32VERSION is not set to a proper value: Use only w32)
+  $(error W32VERSION is not set to a proper value: Use only w32 or w64)
+endif
 endif
 endif
 
@@ -451,8 +444,6 @@ else ifeq ($(WHAT),git)
   speedo_pkg_libksba_gitref = master
   speedo_pkg_ntbtls_git = $(gitrep)/ntbtls
   speedo_pkg_ntbtls_gitref = master
-  speedo_pkg_gpgme_git = $(gitrep)/gpgme
-  speedo_pkg_gpgme_gitref = master
   speedo_pkg_pinentry_git = $(gitrep)/pinentry
   speedo_pkg_pinentry_gitref = master
 else ifeq ($(WHAT),release)
@@ -468,8 +459,6 @@ else ifeq ($(WHAT),release)
 	$(pkgrep)/libksba/libksba-$(libksba_ver).tar.bz2
   speedo_pkg_ntbtls_tar = \
 	$(pkgrep)/ntbtls/ntbtls-$(ntbtls_ver).tar.bz2
-  speedo_pkg_gpgme_tar = \
-	$(pkgrep)/gpgme/gpgme-$(gpgme_ver).tar.bz2
   speedo_pkg_pinentry_tar = \
 	$(pkgrep)/pinentry/pinentry-$(pinentry_ver).tar.bz2
 else
@@ -532,13 +521,6 @@ define speedo_pkg_gnupg_post_install
     |sed 's/,/./g' >$(idir)/INST_PROD_VERSION )
 endef
 endif
-
-# The LDFLAGS was needed for -lintl for glib.
-speedo_pkg_gpgme_configure = \
-	--disable-static --disable-w32-glib \
-	--with-gpg-error-prefix=$(idir) \
-	LDFLAGS=-L$(idir)/lib
-
 
 speedo_pkg_pinentry_configure += \
         --disable-pinentry-qt5   \
@@ -761,7 +743,7 @@ define SETVARS
         pkgbdir="$(bdir)/$(1)";                                         \
         pkgcfg="$(call GETVAR,speedo_pkg_$(1)_configure)";              \
         if [ "$(TARGETOS)" != native ]; then                            \
-          pkgcfg="$(pkgcfg) --libdir=$(idir)/lib";                      \
+          pkgcfg="$$$${pkgcfg} --libdir=$(idir)/lib";                   \
         fi;                                                             \
         tmp="$(speedo_w32_cflags)                                       \
              $(call GETVAR,speedo_pkg_$(1)_extracflags)";               \
@@ -864,6 +846,8 @@ $(stampdir)/stamp-$(1)-00-unpack: $(stampdir)/stamp-directories
 	     *.xz) pretar=xzcat ;;                     	\
              *) pretar=cat ;;				\
            esac;					\
+	   base=`echo "$$$${tar}" | sed -e 's,^.*/,,'   \
+                 | sed -e 's,\.tar.*$$$$,,'`;		\
            [ -f tmp.tgz ] && rm tmp.tgz;                \
            case "$$$${tar}" in				\
 	     /*) $$$${pretar} < $$$${tar} | tar xf - ;;	\
@@ -892,19 +876,28 @@ $(stampdir)/stamp-$(1)-00-unpack: $(stampdir)/stamp-directories
                echo "speedo: Warning: No checksum known for $(1)";\
                echo "speedo:";                          \
              fi;                                        \
+	     $(topsrc)/build-aux/mk-sbom.sh             \
+		  --name="$$$${base}"                   \
+		  --uncompressor="$$$${pretar}"         \
+                  tmp.tgz >>$(sdir)/pkgversioninfo.raw; \
 	     rm tmp.tgz;                                \
+           else                                         \
+	     $(topsrc)/build-aux/mk-sbom.sh             \
+                  $$$${tar} >>$(sdir)/pkgversioninfo.raw; \
            fi;                                          \
-	   base=`echo "$$$${tar}" | sed -e 's,^.*/,,'   \
-                 | sed -e 's,\.tar.*$$$$,,'`;		\
 	   mv $$$${base} $(1);				\
 	   patch="$(patdir)/$(1)-$$$${base#$(1)-}.patch";\
 	   patchx="$(patdir)/$(1).patch";               \
 	   if [ -x "$$$${patch}" ]; then  		\
              echo "speedo: applying patch $$$${patch}"; \
              cd $(1); "$$$${patch}"; 	 		\
+	     $(topsrc)/build-aux/mk-sbom.sh --patch     \
+                  $$$${patch} >>$(sdir)/pkgversioninfo.raw; \
 	   elif [ -x "$$$${patchx}" ]; then  		\
              echo "speedo: applying patch $$$${patchx}";\
              cd $(1); "$$$${patchx}"; 	 		\
+	     $(topsrc)/build-aux/mk-sbom.sh --patch     \
+                  $$$${patchx} >>$(sdir)/pkgversioninfo.raw; \
 	   elif [ -f "$$$${patch}" ]; then  		\
              echo "speedo: warning: $$$${patch} is not executable"; \
 	   fi;						\
@@ -1111,13 +1104,30 @@ endif
 $(stampdir)/stamp-final: $(addprefix $(stampdir)/stamp-final-,$(speedo_build_list))
 	touch $(stampdir)/stamp-final
 
+# clean the version info files
 clean-pkg-versions:
         @: >$(bdir)/pkg-versions.txt
+        @: >$(sdir)/pkgversioninfo.raw
+        @: >$(bdir)/pkgversioninfo.txt
 
-all-speedo: $(stampdir)/stamp-final
+
+# Sort the file with the package versions (new style).
+$(bdir)/pkgversioninfo.txt: $(sdir)/pkgversioninfo.raw
+	set -e; \
+	( while read a b c; do echo "$$a $$b $$c"; \
+            done < $(sdir)/pkgversioninfo.raw \
+          | sort -k2 -sf | tac | uniq -f1 ; \
+          printf '%040d gnupg-%s %s\n' 0 $(gnupg_ver_this) $(gnupg_commit_id); \
+          echo '# Package version infos: SHA-1, name, commit-id' \
+         ) | tac | awk '{printf "%s\r\n", $$0}' > $(bdir)/pkgversioninfo.txt
+
+
+all-speedo: $(stampdir)/stamp-final $(bdir)/pkgversioninfo.txt
 ifneq ($(TARGETOS),w32)
 	@(set -e;\
 	 cd "$(idir)"; \
+         [ ! -d share/gnupg ] && $(MKDIR) -p share/gnupg ;\
+	 cp "$(bdir)/pkgversioninfo.txt" share/gnupg/ ; \
          echo "speedo: Making RPATH relative";\
          for d in bin sbin libexec lib; do \
            for f in $$(find $$d -type f); do \
@@ -1129,10 +1139,10 @@ ifneq ($(TARGETOS),w32)
 	 echo "sysconfdir = /etc/gnupg"  >bin/gpgconf.ctl ;\
 	 echo "rootdir = $(idir)" >>bin/gpgconf.ctl ;\
 	 echo "speedo: /*" ;\
-	 echo "speedo:  * Now copy $(idir)/ to the final location and" ;\
-	 echo "speedo:  * adjust $(idir)/bin/gpgconf.ctl accordingly" ;\
-	 echo "speedo:  * Or run run for example:" ;\
-	 echo "speedo:  *   make -f $(topsrc)/build-aux/speedo.mk install SYSROOT=/usr/local/gnupg24" ;\
+	 echo "speedo:  * Now run for example:" ;\
+	 echo "speedo:  *   make -f $(topsrc)/build-aux/speedo.mk install SYSROOT=/usr/local/gnupg26" ;\
+	 echo "speedo:  * This copies copy $(idir)/ to the final location and" ;\
+	 echo "speedo:  * adjusts $(idir)/bin/gpgconf.ctl accordingly" ;\
 	 echo "speedo:  */")
 endif
 
@@ -1147,7 +1157,7 @@ ifneq ($(TARGETOS),w32)
            echo "speedo: ERROR: SYSROOT has not been given";\
            echo "speedo: Set SYSROOT to the desired install directory";\
 	   echo "speedo: Example:";\
-           echo "speedo:   make -f $(topsrc)/build-aux/speedo.mk install SYSROOT=/usr/local/gnupg24";\
+           echo "speedo:   make -f $(topsrc)/build-aux/speedo.mk install SYSROOT=/usr/local/gnupg26";\
            exit 1;\
          fi;\
          if [ ! -d "$$SYSROOT"/bin ]; then if ! mkdir "$$SYSROOT"/bin; then \
@@ -1197,6 +1207,9 @@ clean-speedo:
 # {{{
 ifeq ($(TARGETOS),w32)
 
+# The exclude '*.[ao]' takes care of the zlib and bzip2 peculiarity
+# which keeps the build files in the source directory.  See also the
+# speedo_make_only_style macro.
 dist-source: installer
 	for i in 00 01 02 03; do sleep 1;touch PLAY/stamps/stamp-*-${i}-*;done
 	(set -e;\
@@ -1204,9 +1217,10 @@ dist-source: installer
 	 [ -f "$$tarname" ] && rm "$$tarname" ;\
          tar -C $(topsrc) -cf "$$tarname" --exclude-backups --exclude-vcs \
              --transform='s,^\./,$(INST_NAME)-$(INST_VERSION)/,' \
-             --anchored --exclude './PLAY' . ;\
+             --anchored --exclude './PLAY' --exclude './autom4te.cache' . ;\
 	 tar --totals -rf "$$tarname" --exclude-backups --exclude-vcs \
               --transform='s,^,$(INST_NAME)-$(INST_VERSION)/,' \
+              --exclude='*.[ao]' \
 	     PLAY/stamps/stamp-*-00-unpack PLAY/src swdb.lst swdb.lst.sig ;\
 	 [ -f "$$tarname".xz ] && rm "$$tarname".xz;\
          xz -T0 "$$tarname" ;\
@@ -1253,7 +1267,8 @@ $(bdir)/inst-options.ini: $(w32src)/inst-options.ini
 extra_installer_options =
 
 # Note that we sign only when doing the final installer.
-installer: all w32_insthelpers $(w32src)/inst-options.ini $(bdir)/README.txt
+installer: all w32_insthelpers $(w32src)/inst-options.ini $(bdir)/README.txt \
+           $(bdir)/pkgversioninfo.txt
 	(set -e;\
 	 cd "$(idir)"; \
 	 if echo "$(idir)" | grep -q '/PLAY-release/' ; then \
@@ -1339,7 +1354,7 @@ wixlib: installer $(bdir)/README.txt $(w32src)/wixlib.wxs
 	)
 
 define MKSWDB_commands
- ( pref="#+macro: gnupg24_w32_$(3)" ;\
+ ( pref="#+macro: gnupg26_w32_$(3)" ;\
    echo "$${pref}ver  $(INST_VERSION)_$(BUILD_DATESTR)"  ;\
    echo "$${pref}date $(2)" ;\
    echo "$${pref}size $$(wc -c <$(1)|awk '{print int($$1/1024)}')k";\

@@ -783,7 +783,7 @@ gst_audio_resample_process (GstAudioResample * resample, GstBuffer * inbuf,
       else
         zeros_to_push = in_len;
 
-      gst_audio_resample_push_drain (resample, zeros_to_push);
+      gst_audio_resample_dump_drain (resample, zeros_to_push);
       in_len -= zeros_to_push;
       resample->num_gap_samples += zeros_to_push;
     }

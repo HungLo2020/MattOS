@@ -42,8 +42,8 @@
 #endif
 
 #include "../../common/util.h"
-#include "../../common/exechelp.h"
 #include "../../common/sysutils.h"
+#include "../../common/exechelp.h"
 
 #ifdef HAVE_W32_SYSTEM
 #include <windows.h>
@@ -81,7 +81,7 @@ static pointer
 do_logand (scheme *sc, pointer args)
 {
   FFI_PROLOG ();
-  unsigned int v, acc = ~0;
+  unsigned int v, acc = ~0U;
   while (args != sc->NIL)
     {
       FFI_ARG_OR_RETURN (sc, unsigned int, v, number, args);
@@ -168,7 +168,7 @@ rl_gets (const char *prompt)
 
   /* Strip trailing whitespace.  */
   if (line && strlen (line) > 0)
-    for (p = &line[strlen (line) - 1]; isspace (*p); p--)
+    for (p = &line[strlen (line) - 1]; isspace ((unsigned char)*p); p--)
       *p = 0;
 
   return line;
@@ -644,6 +644,7 @@ static struct foreign_object_vtable es_object_vtable =
     es_object_to_string,
   };
 
+#if 0
 static pointer
 es_wrap (scheme *sc, estream_t stream)
 {
@@ -655,6 +656,7 @@ es_wrap (scheme *sc, estream_t stream)
   box->closed = 0;
   return sc->vptr->mk_foreign_object (sc, &es_object_vtable, box);
 }
+#endif
 
 static struct es_object_box *
 es_unwrap (scheme *sc, pointer object)
@@ -753,25 +755,166 @@ do_es_write (scheme *sc, pointer args)
 }
 
 
-
 /* Process handling.  */
 
+struct proc_object_box
+{
+  gpgrt_process_t proc;
+};
+
+static void
+proc_object_finalize (scheme *sc, void *data)
+{
+  struct proc_object_box *box = data;
+  (void) sc;
+
+  if (!box->proc)
+    gpgrt_process_release (box->proc);
+  xfree (box);
+}
+
+static void
+proc_object_to_string (scheme *sc, char *out, size_t size, void *data)
+{
+  struct proc_object_box *box = data;
+  (void) sc;
+
+  snprintf (out, size, "#proc %p", box->proc);
+}
+
+static struct foreign_object_vtable proc_object_vtable =
+  {
+    proc_object_finalize,
+    proc_object_to_string,
+  };
+
 static pointer
-do_spawn_process (scheme *sc, pointer args)
+proc_wrap (scheme *sc, gpgrt_process_t proc)
+{
+  struct proc_object_box *box = xmalloc (sizeof *box);
+  if (box == NULL)
+    return sc->NIL;
+
+  box->proc = proc;
+  return sc->vptr->mk_foreign_object (sc, &proc_object_vtable, box);
+}
+
+static struct proc_object_box *
+proc_unwrap (scheme *sc, pointer object)
+{
+  (void) sc;
+
+  if (! is_foreign_object (object))
+    return NULL;
+
+  if (sc->vptr->get_foreign_object_vtable (object) != &proc_object_vtable)
+    return NULL;
+
+  return sc->vptr->get_foreign_object_data (object);
+}
+
+#define CONVERSION_proc(SC, X)	proc_unwrap (SC, X)
+#define IS_A_proc(SC, X)		proc_unwrap (SC, X)
+
+
+#define SPAWN_IO_BUFSIZE 4096
+
+#ifdef HAVE_W32_SYSTEM
+struct rfp {
+  HANDLE hd;
+  char *buf;
+  size_t len;
+  off_t off;
+};
+
+static DWORD __attribute__((stdcall))
+read_from_pipe (void *arg)
+{
+  struct rfp *rfp = arg;
+  DWORD bytes_read;
+
+  if (rfp->hd == INVALID_HANDLE_VALUE)
+    goto errout;
+
+  while (1)
+    {
+      if (!ReadFile (rfp->hd, rfp->buf + rfp->off, rfp->len - rfp->off,
+                     &bytes_read, NULL))
+        {
+          DWORD ec = GetLastError ();
+
+          if (ec == ERROR_BROKEN_PIPE)
+            {
+              CloseHandle (rfp->hd);
+              rfp->hd = INVALID_HANDLE_VALUE;
+              break;
+            }
+
+          goto errout;
+        }
+
+      if (bytes_read == 0)
+        /* It may occur, when it writes WriteFile with zero-byte on
+           the other end of the pipe. */
+        continue;
+      else
+        {
+          rfp->off += bytes_read;
+          if (rfp->off == rfp->len)
+            {
+              rfp->len += SPAWN_IO_BUFSIZE;
+              rfp->buf = xtryrealloc (rfp->buf, rfp->len);
+              if (rfp->buf == NULL)
+                goto errout;
+            }
+        }
+    }
+
+  return 0;
+
+ errout:
+  if (rfp->hd != INVALID_HANDLE_VALUE)
+    {
+      CloseHandle (rfp->hd);
+      rfp->hd = INVALID_HANDLE_VALUE;
+    }
+  xfree (rfp->buf);
+  rfp->buf = NULL;
+  return 1;
+}
+#endif
+
+
+static pointer
+do_process_spawn_io (scheme *sc, pointer args)
 {
   FFI_PROLOG ();
   pointer arguments;
+  char *a_input;
   char **argv;
   size_t len;
   unsigned int flags;
-
+  gpgrt_process_t proc = NULL;
   estream_t infp;
-  estream_t outfp;
-  estream_t errfp;
-  pid_t pid;
+#ifdef HAVE_W32_SYSTEM
+  HANDLE out_hd, err_hd;
+#else
+  int out_fd, err_fd;
+#endif
+  char *out_string = NULL;
+  char *err_string = NULL;
+  size_t out_len = SPAWN_IO_BUFSIZE;
+  size_t err_len = SPAWN_IO_BUFSIZE;
+  off_t out_off = 0;
+  off_t err_off = 0;
+  int retcode = -1;
+  pointer p0, p1, p2;
 
   FFI_ARG_OR_RETURN (sc, pointer, arguments, list, args);
-  FFI_ARG_OR_RETURN (sc, unsigned int, flags, number, args);
+  FFI_ARG_OR_RETURN (sc, char *, a_input, string, args);
+  flags = (GPGRT_PROCESS_STDIN_PIPE
+           | GPGRT_PROCESS_STDOUT_PIPE
+           | GPGRT_PROCESS_STDERR_PIPE);
   FFI_ARGS_DONE_OR_RETURN (sc, args);
 
   err = ffi_list2argv (sc, arguments, &argv, &len);
@@ -791,38 +934,229 @@ do_spawn_process (scheme *sc, pointer args)
       fprintf (stderr, "\n");
     }
 
-  err = gnupg_spawn_process (argv[0], (const char **) &argv[1],
-                             NULL,
-                             flags,
-                             &infp, &outfp, &errfp, &pid);
+  err = gpgrt_process_spawn (argv[0], (const char **) &argv[1],
+                             flags, NULL, &proc);
+  if (err)
+    {
+      xfree (argv);
+      FFI_RETURN_ERR (sc, err);
+    }
+
+  err = gpgrt_process_get_streams (proc, 0, &infp, NULL, NULL);
+  if (!err)
+    {
+      err = es_write (infp, a_input, strlen (a_input), NULL);
+      es_fclose (infp);
+    }
+  if (err)
+    {
+      gpgrt_process_release (proc);
+      xfree (argv);
+      FFI_RETURN_ERR (sc, err);
+    }
+
+#ifdef HAVE_W32_SYSTEM
+  err = gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_HANDLES,
+                           NULL, &out_hd, &err_hd);
+#else
+  err = gpgrt_process_get_fds (proc, 0, NULL, &out_fd, &err_fd);
+#endif
+  if (err)
+    {
+      gpgrt_process_release (proc);
+      xfree (argv);
+      FFI_RETURN_ERR (sc, err);
+    }
+
+  out_string = xtrymalloc (out_len);
+  if (out_string == NULL)
+    goto errout;
+
+  err_string = xtrymalloc (err_len);
+  if (err_string == NULL)
+    goto errout;
+
+#ifdef HAVE_W32_SYSTEM
+  {
+    HANDLE h_thread_rfp_err;
+    struct rfp rfp_out;
+    struct rfp rfp_err;
+    DWORD thread_exit_code;
+
+    rfp_err.hd = err_hd;
+    rfp_err.buf = err_string;
+    rfp_err.len = err_len;
+    rfp_err.off = 0;
+    err_hd = INVALID_HANDLE_VALUE;
+    err_string = NULL;
+
+    h_thread_rfp_err = CreateThread (NULL, 0, read_from_pipe, (void *)&rfp_err,
+                                     0, NULL);
+    if (h_thread_rfp_err == NULL)
+      {
+        xfree (rfp_err.buf);
+        CloseHandle (rfp_err.hd);
+        goto errout;
+      }
+
+    rfp_out.hd = out_hd;
+    rfp_out.buf = out_string;
+    rfp_out.len = out_len;
+    rfp_out.off = 0;
+    out_hd = INVALID_HANDLE_VALUE;
+    out_string = NULL;
+
+    if (read_from_pipe (&rfp_out))
+      {
+        CloseHandle (h_thread_rfp_err);
+        xfree (rfp_err.buf);
+        goto errout;
+      }
+
+    out_string = rfp_out.buf;
+    out_off = rfp_out.off;
+
+    WaitForSingleObject (h_thread_rfp_err, INFINITE);
+    GetExitCodeThread (h_thread_rfp_err, &thread_exit_code);
+    CloseHandle (h_thread_rfp_err);
+    if (thread_exit_code)
+      goto errout;
+
+    err_string = rfp_err.buf;
+    err_off = rfp_err.off;
+  }
+#else
+  {
+    fd_set read_fdset;
+    ssize_t bytes_read;
+
+    while (1)
+      {
+        int nfd;
+        int ret;
+
+        FD_ZERO (&read_fdset);
+
+        if (out_fd >= 0)
+          FD_SET (out_fd, &read_fdset);
+
+        if (err_fd >= 0)
+          FD_SET (err_fd, &read_fdset);
+
+        if (out_fd > err_fd)
+          nfd = out_fd;
+        else
+          nfd = err_fd;
+
+        if (nfd == -1)
+          break;
+
+        ret = select (nfd+1, &read_fdset, NULL, NULL, NULL);
+        if (ret < 0)
+          break;
+
+        if (out_fd >= 0 && FD_ISSET (out_fd, &read_fdset))
+          {
+            bytes_read = read (out_fd, out_string + out_off,
+                               out_len - out_off);
+            if (bytes_read == 0)
+              {
+                close (out_fd);
+                out_fd = -1;
+              }
+            else if (bytes_read < 0)
+              goto errout;
+            else
+              {
+                out_off += bytes_read;
+                if (out_off == out_len)
+                  {
+                    out_len += SPAWN_IO_BUFSIZE;
+                    out_string = xtryrealloc (out_string, out_len);
+                    if (out_string == NULL)
+                      goto errout;
+                  }
+              }
+          }
+
+        if (err_fd >= 0 && FD_ISSET (err_fd, &read_fdset))
+          {
+            bytes_read = read (err_fd, err_string + err_off,
+                               err_len - err_off);
+            if (bytes_read == 0)
+              {
+                close (err_fd);
+                err_fd = -1;
+              }
+            else if (bytes_read < 0)
+              goto errout;
+            else
+              {
+                err_off += bytes_read;
+                if (err_off == err_len)
+                  {
+                    err_len += SPAWN_IO_BUFSIZE;
+                    err_string = xtryrealloc (err_string, err_len);
+                    if (err_string == NULL)
+                      goto errout;
+                  }
+              }
+          }
+      }
+  }
+#endif
+
+  err = gpgrt_process_wait (proc, 1);
+  if (!err)
+    err = gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &retcode);
+
+  gpgrt_process_release (proc);
   xfree (argv);
-#define IMC(A, B)                                                       \
-  _cons (sc, sc->vptr->mk_integer (sc, (unsigned long) (A)), (B), 1)
-#define IMS(A, B)                                                       \
-  _cons (sc, es_wrap (sc, (A)), (B), 1)
-  FFI_RETURN_POINTER (sc, IMS (infp,
-                              IMS (outfp,
-                                   IMS (errfp,
-                                        IMC (pid, sc->NIL)))));
-#undef IMS
-#undef IMC
+
+  p0 = sc->vptr->mk_integer (sc, (unsigned long)retcode);
+  p1 = sc->vptr->mk_counted_string (sc, out_string, out_off);
+  p2 = sc->vptr->mk_counted_string (sc, err_string, err_off);
+
+  xfree (out_string);
+  xfree (err_string);
+
+  FFI_RETURN_POINTER (sc, _cons (sc, p0,
+                                 _cons (sc, p1,
+                                        _cons (sc, p2, sc->NIL, 1), 1), 1));
+ errout:
+  xfree (out_string);
+  xfree (err_string);
+#ifdef HAVE_W32_SYSTEM
+  if (out_hd != INVALID_HANDLE_VALUE)
+    CloseHandle (out_hd);
+  if (err_hd != INVALID_HANDLE_VALUE)
+    CloseHandle (err_hd);
+#else
+  if (out_fd >= 0)
+    close (out_fd);
+  if (err_fd >= 0)
+    close (err_fd);
+#endif
+  gpgrt_process_release (proc);
+  xfree (argv);
+  FFI_RETURN_ERR (sc, err);
 }
 
 static pointer
-do_spawn_process_fd (scheme *sc, pointer args)
+do_process_spawn_fd (scheme *sc, pointer args)
 {
   FFI_PROLOG ();
   pointer arguments;
   char **argv;
   size_t len;
-  int infd, outfd, errfd;
-
-  pid_t pid;
+  int std_fds[3];
+  gpgrt_process_t proc = NULL;
+  gpgrt_spawn_actions_t act = NULL;
 
   FFI_ARG_OR_RETURN (sc, pointer, arguments, list, args);
-  FFI_ARG_OR_RETURN (sc, int, infd, number, args);
-  FFI_ARG_OR_RETURN (sc, int, outfd, number, args);
-  FFI_ARG_OR_RETURN (sc, int, errfd, number, args);
+  FFI_ARG_OR_RETURN (sc, int, std_fds[0], number, args);
+  FFI_ARG_OR_RETURN (sc, int, std_fds[1], number, args);
+  FFI_ARG_OR_RETURN (sc, int, std_fds[2], number, args);
   FFI_ARGS_DONE_OR_RETURN (sc, args);
 
   err = ffi_list2argv (sc, arguments, &argv, &len);
@@ -839,106 +1173,74 @@ do_spawn_process_fd (scheme *sc, pointer args)
       fprintf (stderr, "Executing:");
       for (p = argv; *p; p++)
         fprintf (stderr, " '%s'", *p);
-      fprintf (stderr, "\n");
+      fprintf (stderr, " (%d %d %d)\n", std_fds[0], std_fds[1], std_fds[2]);
     }
 
-  err = gnupg_spawn_process_fd (argv[0], (const char **) &argv[1],
-                                infd, outfd, errfd, &pid);
+  err = gpgrt_spawn_actions_new (&act);
+  if (err)
+    {
+      FFI_RETURN_ERR (sc, err);
+    }
+#ifdef HAVE_W32_SYSTEM
+  {
+    HANDLE std_in, std_out, std_err;
+
+    if (std_fds[0] == -1)
+      std_in = INVALID_HANDLE_VALUE;
+    else
+      std_in = (HANDLE)_get_osfhandle (std_fds[0]);
+    if (std_fds[1] == -1)
+      std_out = INVALID_HANDLE_VALUE;
+    else
+      std_out = (HANDLE)_get_osfhandle (std_fds[1]);
+    if (std_fds[2] == -1)
+      std_err = INVALID_HANDLE_VALUE;
+    else
+      std_err = (HANDLE)_get_osfhandle (std_fds[2]);
+
+    gpgrt_spawn_actions_set_redirect (act, std_in, std_out, std_err);
+  }
+#else
+  gpgrt_spawn_actions_set_redirect (act, std_fds[0], std_fds[1], std_fds[2]);
+#endif
+  err = gpgrt_process_spawn (argv[0], (const char **)&argv[1], 0, act, &proc);
+  gpgrt_spawn_actions_release (act);
   xfree (argv);
-  FFI_RETURN_INT (sc, pid);
+  if (err)
+    FFI_RETURN_ERR (sc, err);
+  FFI_RETURN_POINTER (sc, proc_wrap (sc, proc));
 }
 
 static pointer
-do_wait_process (scheme *sc, pointer args)
+do_process_wait (scheme *sc, pointer args)
 {
   FFI_PROLOG ();
-  const char *name;
-  pid_t pid;
+  struct proc_object_box *box;
   int hang;
+  int retcode = -1;
 
-  int retcode;
-
-  FFI_ARG_OR_RETURN (sc, const char *, name, string, args);
-  FFI_ARG_OR_RETURN (sc, pid_t, pid, number, args);
+  FFI_ARG_OR_RETURN (sc, struct proc_object_box *, box, proc, args);
   FFI_ARG_OR_RETURN (sc, int, hang, bool, args);
   FFI_ARGS_DONE_OR_RETURN (sc, args);
-  err = gnupg_wait_process (name, pid, hang, &retcode);
-  if (err == GPG_ERR_GENERAL)
-    err = 0;	/* Let the return code speak for itself.  */
-
+  if (!box->proc)
+    {
+      if (verbose)
+        fprintf (stderr, "caught already (%p)\n", box);
+    }
+  else
+    {
+      err = gpgrt_process_wait (box->proc, hang);
+      if (!err)
+        {
+          err = gpgrt_process_ctl (box->proc, GPGRT_PROCESS_GET_EXIT_ID, &retcode);
+          gpgrt_process_release (box->proc);
+          box->proc = NULL;
+        }
+      if (err == GPG_ERR_TIMEOUT)
+        err = 0;
+    }
   FFI_RETURN_INT (sc, retcode);
 }
-
-
-static pointer
-do_wait_processes (scheme *sc, pointer args)
-{
-  FFI_PROLOG ();
-  pointer list_names;
-  char **names;
-  pointer list_pids;
-  size_t i, count;
-  pid_t *pids;
-  int hang;
-  int *retcodes;
-  pointer retcodes_list = sc->NIL;
-
-  FFI_ARG_OR_RETURN (sc, pointer, list_names, list, args);
-  FFI_ARG_OR_RETURN (sc, pointer, list_pids, list, args);
-  FFI_ARG_OR_RETURN (sc, int, hang, bool, args);
-  FFI_ARGS_DONE_OR_RETURN (sc, args);
-
-  if (sc->vptr->list_length (sc, list_names)
-      != sc->vptr->list_length (sc, list_pids))
-    return
-      sc->vptr->mk_string (sc, "length of first two arguments must match");
-
-  err = ffi_list2argv (sc, list_names, &names, &count);
-  if (err == gpg_error (GPG_ERR_INV_VALUE))
-    return ffi_sprintf (sc, "%lu%s element of first argument is "
-                        "neither string nor symbol",
-                        (unsigned long) count,
-                        ordinal_suffix ((int) count));
-  if (err)
-    FFI_RETURN_ERR (sc, err);
-
-  err = ffi_list2intv (sc, list_pids, (int **) &pids, &count);
-  if (err == gpg_error (GPG_ERR_INV_VALUE))
-    return ffi_sprintf (sc, "%lu%s element of second argument is "
-                        "not a number",
-                        (unsigned long) count,
-                        ordinal_suffix ((int) count));
-  if (err)
-    FFI_RETURN_ERR (sc, err);
-
-  retcodes = xtrycalloc (sizeof *retcodes, count);
-  if (retcodes == NULL)
-    {
-      xfree (names);
-      xfree (pids);
-      FFI_RETURN_ERR (sc, gpg_error_from_syserror ());
-    }
-
-  err = gnupg_wait_processes ((const char **) names, pids, count, hang,
-                              retcodes);
-  if (err == GPG_ERR_GENERAL)
-    err = 0;	/* Let the return codes speak.  */
-  if (err == GPG_ERR_TIMEOUT)
-    err = 0;	/* We may have got some results.  */
-
-  for (i = 0; i < count; i++)
-    retcodes_list =
-      (sc->vptr->cons) (sc,
-                        sc->vptr->mk_integer (sc,
-                                              (long) retcodes[count-1-i]),
-                        retcodes_list);
-
-  xfree (names);
-  xfree (pids);
-  xfree (retcodes);
-  FFI_RETURN_POINTER (sc, retcodes_list);
-}
-
 
 static pointer
 do_pipe (scheme *sc, pointer args)
@@ -946,7 +1248,7 @@ do_pipe (scheme *sc, pointer args)
   FFI_PROLOG ();
   int filedes[2];
   FFI_ARGS_DONE_OR_RETURN (sc, args);
-  err = gnupg_create_pipe (filedes);
+  err = gnupg_create_pipe (filedes, GNUPG_PIPE_BOTH);
 #define IMC(A, B)                                                       \
   _cons (sc, sc->vptr->mk_integer (sc, (unsigned long) (A)), (B), 1)
   FFI_RETURN_POINTER (sc, IMC (filedes[0],
@@ -960,7 +1262,7 @@ do_inbound_pipe (scheme *sc, pointer args)
   FFI_PROLOG ();
   int filedes[2];
   FFI_ARGS_DONE_OR_RETURN (sc, args);
-  err = gnupg_create_inbound_pipe (filedes, NULL, 0);
+  err = gnupg_create_pipe (filedes, GNUPG_PIPE_INBOUND);
 #define IMC(A, B)                                                       \
   _cons (sc, sc->vptr->mk_integer (sc, (unsigned long) (A)), (B), 1)
   FFI_RETURN_POINTER (sc, IMC (filedes[0],
@@ -974,7 +1276,7 @@ do_outbound_pipe (scheme *sc, pointer args)
   FFI_PROLOG ();
   int filedes[2];
   FFI_ARGS_DONE_OR_RETURN (sc, args);
-  err = gnupg_create_outbound_pipe (filedes, NULL, 0);
+  err = gnupg_create_pipe (filedes, GNUPG_PIPE_OUTBOUND);
 #define IMC(A, B)                                                       \
   _cons (sc, sc->vptr->mk_integer (sc, (unsigned long) (A)), (B), 1)
   FFI_RETURN_POINTER (sc, IMC (filedes[0],
@@ -1270,7 +1572,7 @@ ffi_schemify_name (const char *s, int macro)
 
   for (p = n; *p; p++)
     {
-      *p = (char) tolower (*p);
+      *p = (char) tolower ((unsigned char)*p);
        /* We convert _ to - in identifiers.  We allow, however, for
 	  function names to start with a leading _.  The functions in
 	  this namespace are not yet finalized and might change or
@@ -1376,6 +1678,11 @@ ffi_init (scheme *sc, const char *argv0, const char *scriptname,
   ffi_define_function (sc, getenv);
   ffi_define_function (sc, setenv);
   ffi_define_function_name (sc, "_exit", exit);
+  /* AIX defines open to open64 which breaks the macro expansion to
+     'do_open' if it is not undefined.  */
+#ifdef open
+# undef open
+#endif
   ffi_define_function (sc, open);
   ffi_define_function (sc, fdopen);
   ffi_define_function (sc, close);
@@ -1398,13 +1705,12 @@ ffi_init (scheme *sc, const char *argv0, const char *scriptname,
   ffi_define_function (sc, make_random_string);
 
   /* Process management.  */
-  ffi_define_function (sc, spawn_process);
-  ffi_define_function (sc, spawn_process_fd);
-  ffi_define_function (sc, wait_process);
-  ffi_define_function (sc, wait_processes);
   ffi_define_function (sc, pipe);
   ffi_define_function (sc, inbound_pipe);
   ffi_define_function (sc, outbound_pipe);
+  ffi_define_function (sc, process_spawn_io);
+  ffi_define_function (sc, process_spawn_fd);
+  ffi_define_function (sc, process_wait);
 
   /* estream functions.  */
   ffi_define_function_name (sc, "es-fclose", es_fclose);

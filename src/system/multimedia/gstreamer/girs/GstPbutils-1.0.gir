@@ -807,7 +807,7 @@ the tags after the life-time of @info, you will need to copy them.</doc>
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstdiscoverer.c">Parses a #GVariant as produced by gst_discoverer_info_to_variant()
 back to a #GstDiscovererInfo.</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstdiscoverer.h"/>
-        <return-value transfer-ownership="full">
+        <return-value transfer-ownership="full" nullable="1">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstdiscoverer.c">A newly-allocated #GstDiscovererInfo.</doc>
           <type name="DiscovererInfo" c:type="GstDiscovererInfo*"/>
         </return-value>
@@ -2950,12 +2950,12 @@ in debugging.</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstpluginsbaseversion.h"/>
       <type name="gint" c:type="gint"/>
     </constant>
-    <constant name="PLUGINS_BASE_VERSION_MICRO" value="11" c:type="GST_PLUGINS_BASE_VERSION_MICRO">
+    <constant name="PLUGINS_BASE_VERSION_MICRO" value="8" c:type="GST_PLUGINS_BASE_VERSION_MICRO">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstpluginsbaseversion.h">The micro version of GStreamer's gst-plugins-base libraries at compile time.</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstpluginsbaseversion.h"/>
       <type name="gint" c:type="gint"/>
     </constant>
-    <constant name="PLUGINS_BASE_VERSION_MINOR" value="26" c:type="GST_PLUGINS_BASE_VERSION_MINOR">
+    <constant name="PLUGINS_BASE_VERSION_MINOR" value="28" c:type="GST_PLUGINS_BASE_VERSION_MINOR">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstpluginsbaseversion.h">The minor version of GStreamer's gst-plugins-base libraries at compile time.</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/pbutils/gstpluginsbaseversion.h"/>
       <type name="gint" c:type="gint"/>

@@ -50,6 +50,16 @@ remain available with a leading colon. Open, Save As, commit and layout actions
 use shared argument prompts; GUI settings offers direct persistent controls.
 
 Git status is parsed using NUL-delimited records, retaining rename source paths.
+The same read records HEAD, the branch's upstream with ahead/behind counts, and
+local branches. The commit graph is read on its own worker only when HEAD or the
+upstream commit changes (or on Refresh): `git log --topo-order` for HEAD and its
+upstream, then a lane layout in the core that gives every row its node and the
+line segments crossing it. Frontends draw those segments (curves in the GUI,
+box-drawing characters in the TUI) without recomputing the graph. The pane lists
+changes, then commits, under one selection: a selected commit stays selected as
+changes above it come and go. Remote commands never prompt; SSH runs in batch mode
+unless the user configured an SSH command. Discarding restores tracked files from
+the index and moves untracked files to the desktop Trash.
 Index and worktree changes are separate selectable entries, with groups for
 staged, unstaged, untracked and conflicts. Staging a working rename and
 unstaging an index rename include both names; restaging edits to an index rename
@@ -96,7 +106,9 @@ renderer. This provides basic accessible names/roles; complete platform screen
 reader integration is not claimed by the input-method tests.
 
 Editor and terminal content use independent shared-core palettes. Dark defaults
-are #1b1e26 for editors and #14171c for terminals; native GUI chrome follows Qt.
+are #1b1e26 for editors and #14171c for terminals, which follow the editor by
+default, as do the file browser and Git pane contents; native GUI chrome,
+including every pane's tabs, follows Qt.
 `editor_theme` chooses auto/dark/light, and `terminal_theme` additionally accepts
 editor to inherit its palette. Automatic palettes retain Qt's latest view/text/
 selection colors. The editor's background luminance chooses the syntax palette.
@@ -108,7 +120,10 @@ all tabs replace the full tab row. The tab model changes only when titles or
 active tabs change, so editing does not recreate controls. Git views receive
 repository/selection metadata without editor or PTY screen payloads. File/Git
 lists reserve separate scrollbar
-gutters. Buttons own their measured background and caption to avoid native style
+gutters. Directory listings mark entries excluded by ignore rules rather than
+omitting them; the GUI tree dims them, colors names from Git status using the
+repository root the snapshot carries, and receives expand/collapse as row
+insertions and removals so delegates and scroll position survive. Buttons own their measured background and caption to avoid native style
 insets clipping controls or painting captions twice. Git controls wrap at narrow
 widths, and a compact commit dialog preserves list space in short panes. Toolbar
 actions collapse into the menu. Focus borders, active tab
@@ -227,8 +242,9 @@ Portable PTYs run real shells; vt100 maintains the screen and scrollback. Input
 uses the application's cursor mode, modifiers and bracketed paste settings.
 Mouse presses/releases, button motion, all-motion and wheel events use the
 application's requested legacy, UTF-8 or SGR encoding. Shift bypasses application
-mouse capture for local selection and scrollback. Selection freezes a cloned VT
-viewport while output continues, providing stable copying of wrapped/wide text.
+mouse capture for local selection and scrollback. Selection freezes a copy of the
+visible VT rows (not the scrollback) while output continues, providing stable
+copying of wrapped/wide text.
 Typing, paste, scroll and resize release the frozen selection.
 
 GUI copy/paste uses the system clipboard; TUI copy uses OSC 52 and paste accepts

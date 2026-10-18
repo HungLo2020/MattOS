@@ -1,5 +1,5 @@
 project('glib', 'c',
-  version : '2.84.4',
+  version : '2.90.1',
   # NOTE: See the policy in docs/meson-version.md before changing the Meson dependency
   meson_version : '>= 1.4.0',
   default_options : [
@@ -7,9 +7,9 @@ project('glib', 'c',
     'warning_level=3',
     # FIXME: After https://github.com/mesonbuild/meson/issues/13639 is
     # fixed, change this to
-    # meson.version().version_compare('>=FIXED_MESON_VERSION') ? 'c_std=gnu99,c99' : 'c_std=gnu99'
+    # meson.version().version_compare('>=FIXED_MESON_VERSION') ? 'c_std=gnu11,c11' : 'c_std=gnu11'
     # to avoid a warning on MSVC.
-    'c_std=gnu99'
+    'c_std=gnu11',
   ]
 )
 
@@ -18,8 +18,8 @@ fs = import('fs')
 cc = meson.get_compiler('c')
 c_standards = {}
 
-foreach std : ['89', '99', '11', '17']
-  arg = (cc.get_id() == 'msvc' ? '/std:' : '-std=') + 'c' + std
+foreach std : ['89', '99', '11', '17', '23']
+  arg = (cc.get_argument_syntax() == 'msvc' ? '/std:' : '-std=') + 'c' + std
   if cc.has_argument(arg)
     c_standards += { std: arg }
   endif
@@ -41,8 +41,8 @@ if have_cxx
   cxx = meson.get_compiler('cpp')
   cxx_standards = {}
 
-  foreach std : ['98', '03', '11', '14', '17', '20', '2b', 'latest']
-    arg = (cxx.get_id() == 'msvc' ? '/std:' : '-std=') + 'c++' + std
+  foreach std : ['98', '03', '11', '14', '17', '20', '23', '2c', 'latest']
+    arg = (cxx.get_argument_syntax() == 'msvc' ? '/std:' : '-std=') + 'c++' + std
     if cxx.has_argument(arg)
       cxx_standards += { std: arg }
     endif
@@ -59,7 +59,7 @@ endif
 
 if cc.get_id() == 'msvc'
   # Set the input and exec encoding to utf-8, like is the default with GCC
-  add_project_arguments(cc.get_supported_arguments(['/utf-8']), language: 'c')
+  add_project_arguments(cc.get_supported_arguments(['/utf-8']), language: ['c', 'cpp'])
   # Disable SAFESEH with MSVC for plugins and libs that use external deps that
   # are built with MinGW
   noseh_link_args = ['/SAFESEH:NO']
@@ -69,16 +69,7 @@ else
 endif
 
 host_system = host_machine.system()
-
-if host_system == 'darwin'
-  ios_test_code = '''#include <TargetConditionals.h>
-  #if ! TARGET_OS_IPHONE
-  #error "Not iOS/tvOS/watchOS/iPhoneSimulator"
-  #endif'''
-  if cc.compiles(ios_test_code, name : 'building for iOS')
-    host_system = 'ios'
-  endif
-endif
+subsystem = ''
 
 linux_libc = ''
 if host_system == 'linux'
@@ -89,6 +80,12 @@ if host_system == 'linux'
   if cc.compiles(musl_test_code, name : 'building for musl libc')
     linux_libc = 'musl'
   endif
+elif host_system == 'darwin'
+  subsystem = host_machine.subsystem()
+elif host_system == 'ios'
+  warning('Setting system = \'ios\' in cross files is deprecated, please use subsystem names')
+  host_system = 'darwin'
+  subsystem = 'ios'
 endif
 
 glib_version = meson.project_version()
@@ -120,6 +117,7 @@ glib_bindir = join_paths(glib_prefix, get_option('bindir'))
 glib_libdir = join_paths(glib_prefix, get_option('libdir'))
 glib_libexecdir = join_paths(glib_prefix, get_option('libexecdir'))
 glib_datadir = join_paths(glib_prefix, get_option('datadir'))
+glib_localedir = join_paths(glib_prefix, get_option('localedir'))
 glib_pkgdatadir = join_paths(glib_datadir, 'glib-2.0')
 glib_includedir = join_paths(glib_prefix, get_option('includedir'), 'glib-2.0')
 if get_option('gio_module_dir') != ''
@@ -242,14 +240,15 @@ if valgrind.found()
     env: common_test_env,
     timeout_multiplier: 20,
   )
+  meson.add_devenv({'VALGRIND_OPTS': '--suppressions=' + valgrind_suppression_file.full_path()}, method : 'append')
 endif
 
-add_project_arguments('-D_GNU_SOURCE', language: 'c')
+add_project_arguments('-D_GNU_SOURCE', language: ['c', 'cpp', 'objc', 'objcpp'])
 
 if host_system == 'qnx'
-  add_project_arguments('-D_QNX_SOURCE', language: 'c')
+  add_project_arguments('-D_QNX_SOURCE', language: ['c', 'cpp'])
 elif host_system == 'sunos'
-  add_project_arguments('-D__EXTENSIONS__', language: 'c')
+  add_project_arguments('-D__EXTENSIONS__', language: ['c', 'cpp'])
 endif
 
 # dummy/empty dependency() object to declare fallbacks and simpler dependencies
@@ -258,7 +257,7 @@ not_found = dependency('', required: false)
 get_dll_paths_script = not_found
 
 if host_system == 'windows'
-  add_project_arguments(['-DUNICODE', '-D_UNICODE'], language: 'c')
+  add_project_arguments(['-DUNICODE', '-D_UNICODE'], language: ['c', 'cpp'])
 
   # Script to obtain paths where the DLLs that we will reside for g-ir-scanner
   get_dll_paths_script = find_program('tools/grab-gio-dll-paths.py', native: true)
@@ -267,7 +266,7 @@ endif
 # Disable strict aliasing;
 # see https://bugzilla.gnome.org/show_bug.cgi?id=791622
 if cc.has_argument('-fno-strict-aliasing')
-  add_project_arguments('-fno-strict-aliasing', language: 'c')
+  add_project_arguments('-fno-strict-aliasing', language: ['c', 'cpp', 'objc', 'objcpp'])
 endif
 
 ########################
@@ -296,6 +295,11 @@ glib_conf.set('ENABLE_NLS', 1)
 
 # used by the .rc.in files
 glibconfig_conf.set('LT_CURRENT_MINUS_AGE', soversion)
+
+process_spawn_allowed = true
+if subsystem.startswith('tvos') or subsystem.startswith('watchos')
+  process_spawn_allowed = false
+endif
 
 glib_conf.set('_GNU_SOURCE', 1)
 
@@ -338,8 +342,6 @@ if glib_build_static_only
   glibconfig_conf.set('GIO_STATIC_COMPILATION', '1')
   glibconfig_conf.set('GMODULE_STATIC_COMPILATION', '1')
   glibconfig_conf.set('GI_STATIC_COMPILATION', '1')
-  glibconfig_conf.set('G_INTL_STATIC_COMPILATION', '1')
-  glibconfig_conf.set('FFI_STATIC_BUILD', '1')
 endif
 
 # Cygwin glib port maintainers made it clear
@@ -395,7 +397,7 @@ if not get_option('glib_checks')
   message('Disabling GLib checks')
 endif
 
-add_project_arguments(glib_debug_cflags, language: 'c')
+add_project_arguments(glib_debug_cflags, language: ['c', 'cpp', 'objc', 'objcpp'])
 
 # check for header files
 
@@ -408,6 +410,7 @@ headers = [
   'fstab.h',
   'ftw.h',
   'grp.h',
+  'intsafe.h',
   'inttypes.h',
   'libproc.h',
   'limits.h',
@@ -423,6 +426,7 @@ headers = [
   'sched.h',
   'spawn.h',
   'stdatomic.h',
+  'stdckdint.h',
   'stdint.h',
   'stdlib.h',
   'string.h',
@@ -457,6 +461,7 @@ headers = [
   'termios.h',
   'unistd.h',
   'values.h',
+  'vcruntime.h',
   'wchar.h',
   'xlocale.h',
 ]
@@ -570,7 +575,7 @@ foreach m : struct_members
 endforeach
 
 # Compiler flags
-if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+if cc.get_argument_syntax() == 'gcc'
   warning_common_args = [
     '-Wduplicated-branches',
     '-Wfloat-conversion',
@@ -607,14 +612,11 @@ if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     '-Werror=implicit-function-declaration',
     '-Werror=missing-prototypes',
     '-Werror=pointer-sign',
+    # Public headers must support C99, even though GLib itself requires C11.
+    '-Werror=typedef-redefinition',
     '-Wno-string-plus-int',
-    # We require a compiler that supports C11 even though it's not yet a
-    # strict requirement, so allow typedef redefinition not to break clang and
-    # older gcc versions.
-    '-Wno-typedef-redefinition',
   ]
   warning_cxx_args = warning_common_args
-  warning_objc_args = warning_c_args
   warning_c_link_args = [
     '-Wl,-z,nodelete',
   ]
@@ -646,19 +648,28 @@ elif cc.get_id() == 'msvc'
   ]
 
   warning_cxx_args = []
-  warning_objc_args = []
   warning_c_link_args = []
 else
   warning_c_args = []
   warning_cxx_args = []
-  warning_objc_args = []
   warning_c_link_args = []
 endif
 
-add_project_arguments(cc.get_supported_arguments(warning_c_args), language: 'c')
+add_project_arguments(cc.get_supported_arguments(warning_c_args), language: ['c', 'objc'])
 if have_cxx
-  add_project_arguments(cxx.get_supported_arguments(warning_cxx_args), language: 'cpp')
+  add_project_arguments(cxx.get_supported_arguments(warning_cxx_args), language: ['cpp', 'objcpp'])
 endif
+
+# FIXME: This is checked and implemented separately from warning_common_args for
+# now because it causes so many warnings. Adding it as a variable in various
+# directories allows us to gradually tighten up support for it. Eventually, the
+# warning can be enabled unconditionally in warning_c_args, and this variable
+# removed. See https://gitlab.gnome.org/GNOME/glib/-/issues/3405
+warning_sign_conversion_args = cc.get_supported_arguments(['-Wsign-conversion'])
+
+# FIXME: As above
+# See https://gitlab.gnome.org/GNOME/glib/-/issues/3527
+warning_shorten_64_to_32_args = cc.get_supported_arguments(['-Wshorten-64-to-32'])
 
 # FIXME: We cannot build some of the GResource tests with -z nodelete, which
 # means we cannot use that flag in add_project_link_arguments(), and must add
@@ -715,7 +726,9 @@ functions = [
   'getfsent',
   'getfsstat',
   'getgrgid_r',
+  'getifaddrs',
   'getmntent_r',
+  'getpwnam_r',
   'getpwuid_r',
   'getresuid',
   'getvfsstat',
@@ -811,6 +824,11 @@ endif
 # AIX splice is something else
 if host_system != 'aix'
   functions += ['splice']
+endif
+
+# SVR4 sysinfo() does not behave the same as sysinfo() on other Unixes
+if host_system != 'sunos'
+  functions += ['sysinfo']
 endif
 
 foreach f : functions
@@ -949,6 +967,10 @@ if cc.has_type('loff_t', prefix: '#include <sys/types.h>')
   glib_conf.set('HAVE_LOFF_T', 1)
 endif
 
+if cc.has_function('unshare', prefix: '#include <sched.h>', args: '-D_GNU_SOURCE')
+  glib_conf.set('HAVE_UNSHARE', 1)
+endif
+
 # Check whether to use statfs or statvfs
 # Some systems have both statfs and statvfs, pick the most "native" for these
 if have_func_statfs and have_func_statvfs
@@ -982,7 +1004,7 @@ endif
 osx_ldflags = []
 glib_have_carbon = false
 glib_have_cocoa = false
-if host_system == 'darwin'
+if host_system == 'darwin' and subsystem == 'macos'
   add_languages('objc', native: false, required: true)
   objcc = meson.get_compiler('objc')
   if not objcc.compiles('''#include <AvailabilityMacros.h>
@@ -992,8 +1014,6 @@ if host_system == 'darwin'
                          name : 'macOS 10.13 or later')
     error('GLib requires macOS 10.13 or later.')
   endif
-
-  add_project_arguments(objcc.get_supported_arguments(warning_objc_args), language: 'objc')
 
   # Mac OS X Carbon support
   glib_have_carbon = objcc.compiles('''#include <Carbon/Carbon.h>
@@ -1102,6 +1122,10 @@ if cc.links(clock_gettime_test_code, name : 'clock_gettime')
 elif cc.links(clock_gettime_test_code, args : '-lrt', name : 'clock_gettime in librt')
   glib_conf.set('HAVE_CLOCK_GETTIME', 1)
   librt = cc.find_library('rt')
+endif
+
+if cc.has_function('clock_nanosleep', prefix : '#include <time.h>')
+  glib_conf.set('HAVE_CLOCK_NANOSLEEP', 1)
 endif
 
 dlopen_dlsym_test_code = '''
@@ -1216,7 +1240,7 @@ if host_system == 'windows' and (cc.get_id() == 'msvc' or cc.get_id() == 'clang-
   glib_conf.set('HAVE_C99_SNPRINTF', false)
   glib_conf.set('HAVE_C99_VSNPRINTF', false)
   glib_conf.set('HAVE_UNIX98_PRINTF', false)
-elif not cc_can_run and host_system in ['ios', 'darwin']
+elif not cc_can_run and host_system == 'darwin'
   # All these are true when compiling natively on macOS, so we should use good
   # defaults when building for iOS and tvOS.
   glib_conf.set('HAVE_C99_SNPRINTF', true)
@@ -1786,7 +1810,7 @@ g_sizet_compatibility = {
 # Do separate checks for gcc/clang (and ignore other compilers for now), since
 # we need to explicitly pass -Werror to the compilers.
 # FIXME: https://github.com/mesonbuild/meson/issues/5399
-if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+if cc.get_argument_syntax() == 'gcc'
   foreach type_name, size_compatibility : g_sizet_compatibility
     g_sizet_compatibility += { type_name: size_compatibility and
       cc.compiles(
@@ -1869,7 +1893,7 @@ glibconfig_conf.set('gsizebits', sizet_size * 8)
 glibconfig_conf.set('gssizebits', ssizet_size * 8)
 
 # XXX: https://gitlab.gnome.org/GNOME/glib/issues/1413
-if host_system == 'windows'
+if host_system == 'windows' or host_system == 'cygwin'
   g_module_suffix = 'dll'
 else
   g_module_suffix = 'so'
@@ -1996,7 +2020,7 @@ poll_defines = [
 
 if has_syspoll and has_systypes
   foreach d : poll_defines
-    val = cc.compute_int(d[0], prefix: poll_includes)
+    val = cc.compute_int(d[0], prefix: poll_includes, guess: d[2])
     glibconfig_conf.set(d[1], val)
   endforeach
 elif has_winsock2
@@ -2023,15 +2047,15 @@ else
 endif
 
 inet_defines = [
-  [ 'AF_UNIX', 'g_af_unix' ],
-  [ 'AF_INET', 'g_af_inet' ],
-  [ 'AF_INET6', 'g_af_inet6' ],
-  [ 'MSG_OOB', 'g_msg_oob' ],
-  [ 'MSG_PEEK', 'g_msg_peek' ],
-  [ 'MSG_DONTROUTE', 'g_msg_dontroute' ],
+  [ 'AF_UNIX', 'g_af_unix', 1 ],
+  [ 'AF_INET', 'g_af_inet', 2 ],
+  [ 'AF_INET6', 'g_af_inet6', 30 ],
+  [ 'MSG_OOB', 'g_msg_oob', 1 ],
+  [ 'MSG_PEEK', 'g_msg_peek', 2 ],
+  [ 'MSG_DONTROUTE', 'g_msg_dontroute', 4 ],
 ]
 foreach d : inet_defines
-  val = cc.compute_int(d[0], prefix: inet_includes)
+  val = cc.compute_int(d[0], prefix: inet_includes, guess: d[2])
   glibconfig_conf.set(d[1], val)
 endforeach
 
@@ -2084,7 +2108,7 @@ if cc.get_id() == 'msvc' or cc.get_id() == 'clang-cl' or cc.links(atomictest, na
     glib_conf.set('__GCC_HAVE_SYNC_COMPARE_AND_SWAP_4', true)
   endif
 
-  if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+  if cc.get_argument_syntax() == 'gcc'
     sync_swap_test = '''
       int main() {
         int atomic = 2;
@@ -2275,7 +2299,7 @@ subproject('gvdb', default_options: {'tests': false})
 gvdb_dep = dependency('gvdb')
 
 libm = cc.find_library('m', required : false)
-libffi_dep = dependency('libffi', version : '>= 3.0.0')
+libffi_dep = dependency('libffi', version : '>= 3.0.0', default_options: {'werror': false, 'tests': false, 'doc': false})
 
 libz_dep = dependency('zlib')
 
@@ -2290,7 +2314,7 @@ endif
 
 # First check in libc, fallback to libintl, and as last chance build
 # proxy-libintl subproject.
-# FIXME: glib-gettext.m4 has much more checks to detect broken/uncompatible
+# FIXME: glib-gettext.m4 has much more checks to detect broken/incompatible
 # implementations. This could be extended if issues are found in some platforms.
 libintl_deps = []
 libintl_prefix = '#include <libintl.h>'
@@ -2338,7 +2362,7 @@ glib_conf.set('HAVE_BIND_TEXTDOMAIN_CODESET', have_bind_textdomain_codeset)
 glib_conf.set('HAVE_DCGETTEXT', 1)
 glib_conf.set('HAVE_GETTEXT', 1)
 
-glib_conf.set_quoted('GLIB_LOCALE_DIR', join_paths(glib_datadir, 'locale'))
+glib_conf.set_quoted('GLIB_LOCALE_DIR', glib_localedir)
 
 glib_conf.set_quoted('GLIB_LOCALSTATEDIR', glib_localstatedir)
 glib_conf.set_quoted('GLIB_RUNSTATEDIR', glib_runstatedir)
@@ -2508,6 +2532,26 @@ if not python_version.version_compare(python_version_req)
 endif
 python_test_libraries_built = meson.project_build_root() / 'tests' / 'lib'
 
+# FIXME: https://github.com/mesonbuild/meson/issues/4668
+#
+# If we have a Python test which spawns a built native binary, that binary is
+# listed in the `depends` argument of the `test()`. On Linux, this results in
+# the directories containing the built libraries which the binary depends on
+# being added to the `LD_LIBRARY_PATH` of the test invocation. On Windows,
+# however, Meson currently doesn’t add those directories to `PATH` (which is the
+# equivalent of `LD_LIBRARY_PATH`), so we have to do it manually.
+python_test_env_common_path = []
+if host_system == 'windows'
+  build_root = meson.project_build_root()
+  python_test_env_common_path += [
+    build_root / 'gmodule',
+    build_root / 'girepository',
+    build_root / 'gio',
+    build_root / 'glib',
+    build_root / 'gobject',
+  ]
+endif
+
 # Determine which user environment-dependent files that we want to install
 bash = find_program('bash', required : false)
 have_bash = bash.found() # For completion scripts
@@ -2547,7 +2591,7 @@ if host_system == 'windows'
   export_dynamic_ldflags = []
 elif host_system == 'cygwin'
   export_dynamic_ldflags = ['-Wl,--export-all-symbols']
-elif host_system in ['darwin', 'ios']
+elif host_system == 'darwin'
   export_dynamic_ldflags = []
 elif host_system == 'sunos'
   export_dynamic_ldflags = []
@@ -2651,8 +2695,8 @@ if enable_systemtap
   endif
   stp_cdata = configuration_data()
   stp_cdata.set('ABS_GLIB_RUNTIME_LIBDIR', glib_libdir)
-  stp_cdata.set('LT_CURRENT', minor_version * 100)
-  stp_cdata.set('LT_REVISION', micro_version)
+  stp_cdata.set('LT_CURRENT', current)
+  stp_cdata.set('LT_REVISION', interface_age)
 endif
 
 # Introspection
@@ -2681,10 +2725,94 @@ if gobject_introspection.version().version_compare('>=1.83.2')
   ]
 endif
 
+glib_exec_preloaded_libs = []
+glib_exec_preloaded_env = {}
+
+if host_system in ['ios', 'darwin']
+  glib_exec_var_library_path = 'DYLD_LIBRARY_PATH'
+  glib_exec_var_preload = 'DYLD_INSERT_LIBRARIES'
+  glib_exec_var_preload_separator = ':'
+else
+  glib_exec_var_library_path = 'LD_LIBRARY_PATH'
+  glib_exec_var_preload = 'LD_PRELOAD'
+  glib_exec_var_preload_separator = ' '
+endif
+
+glib_exec_asan_options_disable = []
+glib_exec_asan_option_ignore_preload = ''
+if 'address' in glib_sanitizers
+  # libasan needs to be the first in the preload list, and that we can’t
+  # guarantee that, so we have to disable its link order checking when using
+  # LD_PRELOAD in tests.
+  glib_exec_asan_option_ignore_preload = 'verify_asan_link_order=false'
+  glib_exec_asan_options_disable = [
+    glib_exec_asan_option_ignore_preload,
+    'start_deactivated=true',
+    'detect_leaks=false',
+  ]
+endif
+
+if cc.get_argument_syntax() == 'gcc'
+  test_preloaded_libs = []
+
+  if 'address' in glib_sanitizers
+    # ASAN has to be the first in list
+    test_preloaded_libs += 'asan'
+  endif
+
+  if 'undefined' in glib_sanitizers
+    test_preloaded_libs += 'ubsan'
+  endif
+
+  if 'leak' in glib_sanitizers
+    test_preloaded_libs += 'lsan'
+  endif
+
+  if 'thread' in glib_sanitizers
+    test_preloaded_libs += 'tsan'
+
+    if enable_dtrace
+      # Tracing is not meant to be thread-safe, so let's make it incompatible with tsan.
+      error('Using Tracing together with thread sanitizer is not supported.')
+    endif
+  endif
+
+  # FIXME: Ideally meson should handle this for us
+  # https://github.com/mesonbuild/meson/issues/13249
+  foreach libname: test_preloaded_libs
+    lib = run_command(cc,
+      '-print-file-name=lib@0@.so'.format(libname),
+      check: true,
+    ).stdout().strip()
+
+    # Support linker script files
+    if run_command('grep', '-qI', '^INPUT', lib, check: false).returncode() == 0
+      out = run_command('cat', lib, check: true).stdout()
+      lib = out.split('(')[1].split(')')[0].strip()
+    endif
+
+    if lib != '' and lib[0] == '/'
+      message('Found @0@ library as @1@'.format(libname, lib))
+      glib_exec_preloaded_libs += '@0@'.format(files(lib)[0].full_path())
+    else
+      warning('No library found for ' + libname + ', sanitizers [' +
+        ', '.join(glib_sanitizers) + '] executions may fail')
+    endif
+  endforeach
+
+  if glib_exec_preloaded_libs.length() > 0
+    glib_exec_preloaded_env = {
+      glib_exec_var_preload: glib_exec_var_preload_separator.join(
+        glib_exec_preloaded_libs),
+    }
+  endif
+endif
+
 pkg = import('pkgconfig')
 windows = import('windows')
 gnome = import('gnome')
 
+subdir('build-aux')
 subdir('tools')
 subdir('glib')
 subdir('gobject')
@@ -2767,6 +2895,7 @@ summary({
   'libexecdir' : glib_libexecdir,
   'pkgdatadir' : glib_pkgdatadir,
   'datadir' : glib_datadir,
+  'localedir' : glib_localedir,
   'includedir' : glib_includedir,
   'giomodulesdir' : glib_giomodulesdir,
   'localstatedir' : glib_localstatedir,

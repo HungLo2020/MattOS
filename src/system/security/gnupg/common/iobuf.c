@@ -166,7 +166,8 @@ block_filter_ctx_t;
 /* Local prototypes.  */
 static int underflow (iobuf_t a, int clear_pending_eof);
 static int underflow_target (iobuf_t a, int clear_pending_eof, size_t target);
-static int translate_file_handle (int fd, int for_write);
+static iobuf_t do_iobuf_fdopen (gnupg_fd_t fp, const char *mode, int keep_open);
+
 
 /* Sends any pending data to the filter's FILTER function.  Note: this
    works on the filter and not on the whole pipeline.  That is,
@@ -285,7 +286,6 @@ direct_open (const char *fname, const char *mode, int mode700)
         return GNUPG_INVALID_FD;
       da = GENERIC_READ | GENERIC_WRITE;
       cd = OPEN_EXISTING;
-      sm = FILE_SHARE_READ | FILE_SHARE_WRITE;
     }
   else if (strchr (mode, 'w'))
     {
@@ -293,14 +293,13 @@ direct_open (const char *fname, const char *mode, int mode700)
         return GNUPG_INVALID_FD;
       da = GENERIC_WRITE;
       cd = CREATE_ALWAYS;
-      sm = FILE_SHARE_WRITE;
     }
   else
     {
       da = GENERIC_READ;
       cd = OPEN_EXISTING;
-      sm = FILE_SHARE_READ;
     }
+  sm = FILE_SHARE_READ | FILE_SHARE_WRITE;
 
   /* We always use the Unicode version because it supports file names
    * longer than MAX_PATH.  (requires gpgrt 1.45) */
@@ -389,7 +388,7 @@ fd_cache_close (const char *fname, gnupg_fd_t fp)
       close (fp);
 #endif
       if (DBG_IOBUF)
-	log_debug ("fd_cache_close (%d) real\n", (int)fp);
+	log_debug ("fd_cache_close (%d) real\n", FD_DBG (fp));
       return;
     }
   /* try to reuse a slot */
@@ -696,7 +695,7 @@ file_filter (void *opaque, int control, iobuf_t chain, byte * buf,
       if (f != FD_FOR_STDIN && f != FD_FOR_STDOUT)
 	{
 	  if (DBG_IOBUF)
-	    log_debug ("%s: close fd/handle %d\n", a->fname, FD2INT (f));
+	    log_debug ("%s: close fd/handle %d\n", a->fname, FD_DBG (f));
 	  if (!a->keep_open)
 	    fd_cache_close (a->no_cache ? NULL : a->fname, f);
 	}
@@ -1410,7 +1409,7 @@ iobuf_is_pipe_filename (const char *fname)
 {
   if (!fname || (*fname=='-' && !fname[1]) )
     return 1;
-  return check_special_filename (fname, 0, 1) != -1;
+  return gnupg_check_special_filename (fname) != GNUPG_INVALID_FD;
 }
 
 
@@ -1423,7 +1422,7 @@ do_open (const char *fname, int special_filenames,
   file_filter_ctx_t *fcx;
   size_t len = 0;
   int print_only = 0;
-  int fd;
+  gnupg_fd_t fd;
   byte desc[MAX_IOBUF_DESC];
 
   log_assert (use == IOBUF_INPUT || use == IOBUF_OUTPUT);
@@ -1447,9 +1446,8 @@ do_open (const char *fname, int special_filenames,
   else if (!fname)
     return NULL;
   else if (special_filenames
-           && (fd = check_special_filename (fname, 0, 1)) != -1)
-    return iobuf_fdopen (translate_file_handle (fd, use == IOBUF_INPUT ? 0 : 1),
-			 opentype);
+           && (fd = gnupg_check_special_filename (fname)) != GNUPG_INVALID_FD)
+    return do_iobuf_fdopen (fd, opentype, 0);
   else
     {
       if (use == IOBUF_INPUT)
@@ -1472,7 +1470,8 @@ do_open (const char *fname, int special_filenames,
   file_filter (fcx, IOBUFCTRL_INIT, NULL, NULL, &len);
   if (DBG_IOBUF)
     log_debug ("iobuf-%d.%d: open '%s' desc=%s fd=%d\n",
-	       a->no, a->subno, fname, iobuf_desc (a, desc), FD2INT (fcx->fp));
+	       a->no, a->subno, fname, iobuf_desc (a, desc),
+               FD_DBG (fcx->fp));
 
   return a;
 }
@@ -1497,14 +1496,11 @@ iobuf_openrw (const char *fname)
 
 
 static iobuf_t
-do_iobuf_fdopen (int fd, const char *mode, int keep_open)
+do_iobuf_fdopen (gnupg_fd_t fp, const char *mode, int keep_open)
 {
   iobuf_t a;
-  gnupg_fd_t fp;
   file_filter_ctx_t *fcx;
   size_t len = 0;
-
-  fp = INT2FD (fd);
 
   a = iobuf_alloc (strchr (mode, 'w') ? IOBUF_OUTPUT : IOBUF_INPUT,
 		   iobuf_buffer_size);
@@ -1512,7 +1508,7 @@ do_iobuf_fdopen (int fd, const char *mode, int keep_open)
   fcx->fp = fp;
   fcx->print_only_name = 1;
   fcx->keep_open = keep_open;
-  sprintf (fcx->fname, "[fd %d]", fd);
+  sprintf (fcx->fname, "[fd %d]", FD_DBG (fp));
   a->filter = file_filter;
   a->filter_ov = fcx;
   file_filter (fcx, IOBUFCTRL_INIT, NULL, NULL, &len);
@@ -1525,15 +1521,15 @@ do_iobuf_fdopen (int fd, const char *mode, int keep_open)
 
 
 iobuf_t
-iobuf_fdopen (int fd, const char *mode)
+iobuf_fdopen (gnupg_fd_t fp, const char *mode)
 {
-  return do_iobuf_fdopen (fd, mode, 0);
+  return do_iobuf_fdopen (fp, mode, 0);
 }
 
 iobuf_t
-iobuf_fdopen_nc (int fd, const char *mode)
+iobuf_fdopen_nc (gnupg_fd_t fp, const char *mode)
 {
-  return do_iobuf_fdopen (fd, mode, 1);
+  return do_iobuf_fdopen (fp, mode, 1);
 }
 
 
@@ -1585,7 +1581,7 @@ iobuf_sockopen (int fd, const char *mode)
     log_debug ("iobuf-%d.%d: sockopen '%s'\n", a->no, a->subno, scx->fname);
   iobuf_ioctl (a, IOBUF_IOCTL_NO_CACHE, 1, NULL);
 #else
-  a = iobuf_fdopen (fd, mode);
+  a = do_iobuf_fdopen (fd, mode, 0);
 #endif
   return a;
 }
@@ -1672,7 +1668,7 @@ iobuf_ioctl (iobuf_t a, iobuf_ioctl_t cmd, int intval, void *ptrval)
       /* Peek at a justed opened file.  Use this only directly after a
        * file has been opened for reading.  Don't use it after you did
        * a seek.  This works only if just file filter has been
-       * pushed.  Expects a buffer wit size INTVAL at PTRVAL and returns
+       * pushed.  Expects a buffer with size INTVAL at PTRVAL and returns
        * the number of bytes put into the buffer.  */
       if (DBG_IOBUF)
 	log_debug ("iobuf-%d.%d: ioctl '%s' peek\n",
@@ -1724,49 +1720,49 @@ iobuf_push_filter2 (iobuf_t a,
     }
 
   /* We want to create a new filter and put it in front of A.  A
-     simple implementation would do:
-
-       b = iobuf_alloc (...);
-       b->chain = a;
-       return a;
-
-     This is a bit problematic: A is the head of the pipeline and
-     there are potentially many pointers to it.  Requiring the caller
-     to update all of these pointers is a burden.
-
-     An alternative implementation would add a level of indirection.
-     For instance, we could use a pipeline object, which contains a
-     pointer to the first filter in the pipeline.  This is not what we
-     do either.
-
-     Instead, we allocate a new buffer (B) and copy the first filter's
-     state into that and use the initial buffer (A) for the new
-     filter.  One limitation of this approach is that it is not
-     practical to maintain a pointer to a specific filter's state.
-
-     Before:
-
-           A
-           |
-           v 0x100               0x200
-           +----------+          +----------+
-           | filter x |--------->| filter y |---->....
-           +----------+          +----------+
-
-     After:           B
-                      |
-                      v 0x300
-                      +----------+
-           A          | filter x |
-           |          +----------+
-           v 0x100    ^          v 0x200
-           +----------+          +----------+
-           | filter w |          | filter y |---->....
-           +----------+          +----------+
-
-     Note: filter x's address changed from 0x100 to 0x300, but A still
-     points to the head of the pipeline.
-  */
+   * simple implementation would do:
+   *
+   *    b = iobuf_alloc (...);
+   *    b->chain = a;
+   *    return a;
+   *
+   *  This is a bit problematic: A is the head of the pipeline and
+   *  there are potentially many pointers to it.  Requiring the caller
+   *  to update all of these pointers is a burden.
+   *
+   *  An alternative implementation would add a level of indirection.
+   *  For instance, we could use a pipeline object, which contains a
+   *  pointer to the first filter in the pipeline.  This is not what we
+   *  do either.
+   *
+   *  Instead, we allocate a new buffer (B) and copy the first filter's
+   *  state into that and use the initial buffer (A) for the new
+   *  filter.  One limitation of this approach is that it is not
+   *  practical to maintain a pointer to a specific filter's state.
+   *
+   *  Before:
+   *
+   *        A
+   *        |
+   *        v 0x100               0x200
+   *        +----------+          +----------+
+   *        | filter x |--------->| filter y |---->....
+   *        +----------+          +----------+
+   *
+   *  After:           B
+   *                   |
+   *                   v 0x300
+   *                   +----------+
+   *        A          | filter x |
+   *        |          +----------+
+   *        v 0x100    ^          v 0x200
+   *        +----------+          +----------+
+   *        | filter w |          | filter y |---->....
+   *        +----------+          +----------+
+   *
+   *  Note: filter x's address changed from 0x100 to 0x300, but A still
+   *  points to the head of the pipeline.
+   */
 
   b = xmalloc (sizeof *b);
   memcpy (b, a, sizeof *b);
@@ -1780,51 +1776,51 @@ iobuf_push_filter2 (iobuf_t a,
   a->filter_ov_owner = 0;
   a->filter_eof = 0;
   if (a->use == IOBUF_OUTPUT_TEMP)
-    /* A TEMP filter buffers any data sent to it; it does not forward
-       any data down the pipeline.  If we add a new filter to the
-       pipeline, it shouldn't also buffer data.  It should send it
-       downstream to be buffered.  Thus, the correct type for a filter
-       added in front of an IOBUF_OUTPUT_TEMP filter is IOBUF_OUPUT, not
-       IOBUF_OUTPUT_TEMP.  */
     {
+      /* A TEMP filter buffers any data sent to it; it does not
+       * forward any data down the pipeline.  If we add a new filter
+       * to the pipeline, it shouldn't also buffer data.  It should
+       * send it downstream to be buffered.  Thus, the correct type
+       * for a filter added in front of an IOBUF_OUTPUT_TEMP filter is
+       * IOBUF_OUPUT, not IOBUF_OUTPUT_TEMP.  */
       a->use = IOBUF_OUTPUT;
 
       /* When pipeline is written to, the temp buffer's size is
-	 increased accordingly.  We don't need to allocate a 10 MB
-	 buffer for a non-terminal filter.  Just use the default
-	 size.  */
+       * increased accordingly.  We don't need to allocate a 10 MB
+       * buffer for a non-terminal filter.  Just use the default
+       * size.  */
       a->d.size = iobuf_buffer_size;
     }
   else if (a->use == IOBUF_INPUT_TEMP)
-    /* Same idea as above.  */
     {
+      /* Same idea as above.  */
       a->use = IOBUF_INPUT;
       a->d.size = iobuf_buffer_size;
     }
 
   /* The new filter (A) gets a new buffer.
-
-     If the pipeline is an output or temp pipeline, then giving the
-     buffer to the new filter means that data that was written before
-     the filter was pushed gets sent to the filter.  That's clearly
-     wrong.
-
-     If the pipeline is an input pipeline, then giving the buffer to
-     the new filter (A) means that data that has read from (B), but
-     not yet read from the pipeline won't be processed by the new
-     filter (A)!  That's certainly not what we want.  */
+   *
+   * If the pipeline is an output or temp pipeline, then giving the
+   * buffer to the new filter means that data that was written before
+   * the filter was pushed gets sent to the filter.  That's clearly
+   * wrong.
+   *
+   * If the pipeline is an input pipeline, then giving the buffer to
+   * the new filter (A) means that data that has read from (B), but
+   * not yet read from the pipeline won't be processed by the new
+   * filter (A)!  That's certainly not what we want.  */
   a->d.buf = xmalloc (a->d.size);
   a->d.len = 0;
   a->d.start = 0;
 
-  /* disable nlimit for the new stream */
+  /* Disable nlimit for the new stream.  */
   a->ntotal = b->ntotal + b->nbytes;
   a->nlimit = a->nbytes = 0;
   a->nofast = 0;
-  /* make a link from the new stream to the original stream */
+  /* Make a link from the new stream to the original stream.  */
   a->chain = b;
 
-  /* setup the function on the new stream */
+  /* Setup the function on the new stream.  */
   a->filter = f;
   a->filter_ov = ov;
   a->filter_ov_owner = rel_ov;
@@ -1839,12 +1835,13 @@ iobuf_push_filter2 (iobuf_t a,
       print_chain (a);
     }
 
-  /* now we can initialize the new function if we have one */
+  /* Now we can initialize the new function if we have one.  */
   if (a->filter && (rc = a->filter (a->filter_ov, IOBUFCTRL_INIT, a->chain,
 				    NULL, &dummy_len)))
     log_error ("IOBUFCTRL_INIT failed: %s\n", gpg_strerror (rc));
   return rc;
 }
+
 
 /****************
  * Remove an i/o filter.
@@ -1869,7 +1866,7 @@ iobuf_pop_filter (iobuf_t a, int (*f) (void *opaque, int control,
       return 0;
     }
   if (!a->filter)
-    {				/* this is simple */
+    { /* (this is simple) */
       b = a->chain;
       log_assert (b);
       xfree (a->d.buf);
@@ -1884,14 +1881,14 @@ iobuf_pop_filter (iobuf_t a, int (*f) (void *opaque, int control,
   if (!b)
     log_bug ("iobuf_pop_filter(): filter function not found\n");
 
-  /* flush this stream if it is an output stream */
+  /* Flush this stream if it is an output stream ... */
   if (a->use == IOBUF_OUTPUT && (rc = filter_flush (b)))
     {
       log_error ("filter_flush failed in iobuf_pop_filter: %s\n",
                  gpg_strerror (rc));
       return rc;
     }
-  /* and tell the filter to free it self */
+  /* and tell the filter to free it self  */
   if (b->filter && (rc = b->filter (b->filter_ov, IOBUFCTRL_FREE, b->chain,
 				    NULL, &dummy_len)))
     {
@@ -1909,10 +1906,9 @@ iobuf_pop_filter (iobuf_t a, int (*f) (void *opaque, int control,
   if (a == b && !b->chain)
     log_bug ("can't remove the last filter from the chain\n");
   else if (a == b)
-    {				/* remove the first iobuf from the chain */
-      /* everything from b is copied to a. This is save because
-       * a flush has been done on the to be removed entry
-       */
+    { /* Remove the first iobuf from the chain.
+       * Everything from B is copied to A.  This is save because
+       * a flush has been done on the to be removed entry.   */
       b = a->chain;
       xfree (a->d.buf);
       xfree (a->real_fname);
@@ -1922,11 +1918,11 @@ iobuf_pop_filter (iobuf_t a, int (*f) (void *opaque, int control,
 	log_debug ("iobuf-%d.%d: popped filter\n", a->no, a->subno);
     }
   else if (!b->chain)
-    {				/* remove the last iobuf from the chain */
+    { /* Remove the last iobuf from the chain.  */
       log_bug ("Ohh jeee, trying to remove a head filter\n");
     }
   else
-    {				/* remove an intermediate iobuf from the chain */
+    { /* Remove an intermediate iobuf from the chain.  */
       log_bug ("Ohh jeee, trying to remove an intermediate filter\n");
     }
 
@@ -1962,17 +1958,19 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
 	       (int) (a->d.size - (a->d.len - a->d.start)));
 
   if (a->use == IOBUF_INPUT_TEMP)
-    /* By definition, there isn't more data to read into the
-       buffer.  */
-    return -1;
+    {
+      /* By definition, there isn't more data to read into the
+         buffer.  */
+      return -1;
+    }
 
   log_assert (a->use == IOBUF_INPUT);
 
   a->e_d.used = 0;
 
   /* If there is still some buffered data, then move it to the start
-     of the buffer and try to fill the end of the buffer.  (This is
-     useful if we are called from iobuf_peek().)  */
+   * of the buffer and try to fill the end of the buffer.  (This is
+   * useful if we are called from iobuf_peek().)  */
   log_assert (a->d.start <= a->d.len);
   a->d.len -= a->d.start;
   if (a->d.len)
@@ -1980,11 +1978,11 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
   a->d.start = 0;
 
   if (a->d.len < target && a->filter_eof)
-    /* The last time we tried to read from this filter, we got an EOF.
-       We couldn't return the EOF, because there was buffered data.
-       Since there is no longer any buffered data, return the
-       error.  */
     {
+      /* The last time we tried to read from this filter, we got an
+       * EOF.  We couldn't return the EOF, because there was buffered
+       * data.  Since there is no longer any buffered data, return the
+       * error.  */
       if (DBG_IOBUF)
 	log_debug ("iobuf-%d.%d: underflow: eof (pending eof)\n",
 		   a->no, a->subno);
@@ -1992,8 +1990,8 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
 	return -1;
 
       if (a->chain)
-	/* A filter follows this one.  Free this filter.  */
 	{
+          /* A filter follows this one.  Free this filter.  */
 	  iobuf_t b = a->chain;
 	  if (DBG_IOBUF)
 	    log_debug ("iobuf-%d.%d: filter popped (pending EOF returned)\n",
@@ -2010,11 +2008,11 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
     }
 
   if (a->d.len == 0 && a->error)
-    /* The last time we tried to read from this filter, we got an
-       error.  We couldn't return the error, because there was
-       buffered data.  Since there is no longer any buffered data,
-       return the error.  */
     {
+      /* The last time we tried to read from this filter, we got an
+       * error.  We couldn't return the error, because there was
+       * buffered data.  Since there is no longer any buffered data,
+       * return the error.  */
       if (DBG_IOBUF)
 	log_debug ("iobuf-%d.%d: pending error (%s) returned\n",
 		   a->no, a->subno, gpg_strerror (a->error));
@@ -2022,10 +2020,10 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
     }
 
   if (a->filter && ! a->filter_eof && ! a->error)
-    /* We have a filter function and the last time we tried to read we
-       didn't get an EOF or an error.  Try to fill the buffer.  */
     {
-      /* Be careful to account for any buffered data.  */
+      /* We have a filter function and the last time we tried to read
+       * we didn't get an EOF or an error.  Try to fill the buffer.
+       * Be careful to account for any buffered data.  */
       len = a->d.size - a->d.len;
 
       if (a->e_d.preferred && a->d.len < IOBUF_ZEROCOPY_THRESHOLD_SIZE
@@ -2038,57 +2036,60 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
 	}
 
       if (len == 0)
-	/* There is no space for more data.  Don't bother calling
-	   A->FILTER.  */
-	rc = 0;
+        {
+          /* There is no space for more data.  Don't bother calling
+           * A->FILTER.  */
+          rc = 0;
+        }
       else
-      {
-        size_t tmplen;
+        {
+          size_t tmplen;
 
-	/* If no buffered data and drain buffer has been setup, and drain
-	 * buffer is largish, read data directly to drain buffer. */
-	if (a->d.len == 0
-	    && a->e_d.buf
-	    && a->e_d.len >= IOBUF_ZEROCOPY_THRESHOLD_SIZE)
-	  {
-	    len = a->e_d.len;
+          /* If no buffered data and drain buffer has been setup, and
+           * drain buffer is largish, read data directly to drain buffer. */
+          if (a->d.len == 0
+              && a->e_d.buf
+              && a->e_d.len >= IOBUF_ZEROCOPY_THRESHOLD_SIZE)
+            {
+              len = a->e_d.len;
 
-	    if (DBG_IOBUF)
-	      log_debug ("iobuf-%d.%d: underflow: A->FILTER (%lu bytes, to external drain)\n",
-			 a->no, a->subno, (ulong)len);
+              if (DBG_IOBUF)
+                log_debug ("iobuf-%d.%d: underflow:"
+                           " A->FILTER (%lu bytes, to external drain)\n",
+                           a->no, a->subno, (ulong)len);
 
-            tmplen = len;  /* Used to check for bugs in the filter.  */
-            rc = a->filter (a->filter_ov, IOBUFCTRL_UNDERFLOW, a->chain,
-			    a->e_d.buf, &len);
-            log_assert (len <= tmplen);
-	    a->e_d.used = len;
-	    len = 0;
-	  }
-	else
-	  {
-	    if (DBG_IOBUF)
-	      log_debug ("iobuf-%d.%d: underflow: A->FILTER (%lu bytes)\n",
-			 a->no, a->subno, (ulong)len);
+              tmplen = len;  /* Used to check for bugs in the filter.  */
+              rc = a->filter (a->filter_ov, IOBUFCTRL_UNDERFLOW, a->chain,
+                              a->e_d.buf, &len);
+              log_assert (len <= tmplen);
+              a->e_d.used = len;
+              len = 0;
+            }
+          else
+            {
+              if (DBG_IOBUF)
+                log_debug ("iobuf-%d.%d: underflow: A->FILTER (%lu bytes)\n",
+                           a->no, a->subno, (ulong)len);
 
-            tmplen = len;  /* Used to check for bugs in the filter.  */
-	    rc = a->filter (a->filter_ov, IOBUFCTRL_UNDERFLOW, a->chain,
-			    &a->d.buf[a->d.len], &len);
-            log_assert (len <= tmplen);
-	  }
-      }
+              tmplen = len;
+              rc = a->filter (a->filter_ov, IOBUFCTRL_UNDERFLOW, a->chain,
+                              &a->d.buf[a->d.len], &len);
+              log_assert (len <= tmplen);
+            }
+        }
       a->d.len += len;
 
       if (DBG_IOBUF)
-	log_debug ("iobuf-%d.%d: A->FILTER() returned rc=%d (%s), read %lu bytes%s\n",
+	log_debug ("iobuf-%d.%d: A->FILTER() returned rc=%d (%s),"
+                   " read %lu bytes%s\n",
 		   a->no, a->subno,
 		   rc, rc == 0 ? "ok" : rc == -1 ? "EOF" : gpg_strerror (rc),
 		   (ulong)(a->e_d.used ? a->e_d.used : len),
 		   a->e_d.used ? " (to external buffer)" : "");
-/*  	    if( a->no == 1 ) */
-/*                   log_hexdump ("     data:", a->d.buf, len); */
+      /* if ( a->no == 1 ) */
+      /*   log_hexdump ("     data:", a->d.buf, len); */
 
-      if (rc == -1)
-	/* EOF.  */
+      if (rc == -1) /* EOF.  */
 	{
 	  size_t dummy_len = 0;
 
@@ -2106,39 +2107,40 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
 
 	  if (clear_pending_eof && a->d.len == 0 && a->e_d.used == 0
 	      && a->chain)
-	    /* We don't need to keep this filter around at all:
-
-	         - we got an EOF
-		 - we have no buffered data
-		 - a filter follows this one.
-
-	      Unlink this filter.  */
 	    {
+              /* We don't need to keep this filter around at all:
+               *
+	       *  - we got an EOF
+	       *  - we have no buffered data
+	       *  - a filter follows this one.
+               *
+               * Unlink this filter.  */
 	      iobuf_t b = a->chain;
 	      if (DBG_IOBUF)
-		log_debug ("iobuf-%d.%d: pop in underflow (nothing buffered, got EOF)\n",
-			   a->no, a->subno);
+		log_debug ("iobuf-%d.%d: pop in underflow"
+                           " (nothing buffered, got EOF)\n", a->no, a->subno);
 	      xfree (a->d.buf);
 	      xfree (a->real_fname);
 	      memcpy (a, b, sizeof *a);
 	      xfree (b);
 
 	      print_chain (a);
-
 	      return -1;
 	    }
 	  else if (a->d.len == 0 && a->e_d.used == 0)
-	    /* We can't unlink this filter (it is the only one in the
-	       pipeline), but we can immediately return EOF.  */
-	    return -1;
+            {
+              /* We can't unlink this filter (it is the only one in
+               * the pipeline), but we can immediately return EOF.  */
+              return -1;
+            }
+
 	}
-      else if (rc)
-	/* Record the error.  */
+      else if (rc) /* Record the error.  */
 	{
 	  a->error = rc;
 
+          /* If there is no buffered data, immediately return EOF.  */
 	  if (a->d.len == 0 && a->e_d.used == 0)
-	    /* There is no buffered data.  Immediately return EOF.  */
 	    return -1;
 	}
     }
@@ -2149,8 +2151,7 @@ underflow_target (iobuf_t a, int clear_pending_eof, size_t target)
   if (a->d.start < a->d.len)
     return a->d.buf[a->d.start++];
 
-  /* EOF.  */
-  return -1;
+  return -1; /* EOF.  */
 }
 
 
@@ -2166,7 +2167,7 @@ filter_flush (iobuf_t a)
   a->e_d.used = 0;
 
   if (a->use == IOBUF_OUTPUT_TEMP)
-    {				/* increase the temp buffer */
+    { /* Increase the temp buffer. */
       size_t newsize = a->d.size + iobuf_buffer_size;
 
       if (DBG_IOBUF)
@@ -2650,20 +2651,20 @@ iobuf_get_filelength (iobuf_t a)
 }
 
 
-int
+gnupg_fd_t
 iobuf_get_fd (iobuf_t a)
 {
   for (; a->chain; a = a->chain)
     ;
 
   if (a->filter != file_filter)
-    return -1;
+    return GNUPG_INVALID_FD;
 
   {
     file_filter_ctx_t *b = a->filter_ov;
     gnupg_fd_t fp = b->fp;
 
-    return FD2INT (fp);
+    return fp;
   }
 }
 
@@ -2954,36 +2955,6 @@ iobuf_read_line (iobuf_t a, byte ** addr_of_buffer,
   return nbytes;
 }
 
-static int
-translate_file_handle (int fd, int for_write)
-{
-#if defined(HAVE_W32_SYSTEM)
-  {
-    int x;
-
-    (void)for_write;
-
-    if (fd == 0)
-      x = (int) GetStdHandle (STD_INPUT_HANDLE);
-    else if (fd == 1)
-      x = (int) GetStdHandle (STD_OUTPUT_HANDLE);
-    else if (fd == 2)
-      x = (int) GetStdHandle (STD_ERROR_HANDLE);
-    else
-      x = fd;
-
-    if (x == -1)
-      log_debug ("GetStdHandle(%d) failed: ec=%d\n",
-		 fd, (int) GetLastError ());
-
-    fd = x;
-  }
-#else
-  (void)for_write;
-#endif
-  return fd;
-}
-
 
 void
 iobuf_skip_rest (iobuf_t a, unsigned long n, int partial)
@@ -3095,7 +3066,7 @@ is_file_compressed (iobuf_t inp)
   {
     byte len;
     byte extchk;
-    byte magic[5];
+    byte magic[6];
   } magic[] =
       {
        { 3, 0, { 0x42, 0x5a, 0x68, 0x00 } }, /* bzip2 */
@@ -3103,7 +3074,8 @@ is_file_compressed (iobuf_t inp)
        { 4, 0, { 0x50, 0x4b, 0x03, 0x04 } }, /* (pk)zip */
        { 5, 0, { '%', 'P', 'D', 'F', '-'} }, /* PDF */
        { 4, 1, { 0xff, 0xd8, 0xff, 0xe0 } }, /* Maybe JFIF */
-       { 5, 2, { 0x89, 'P','N','G', 0x0d} }  /* Likely PNG */
+       { 5, 2, { 0x89, 'P','N','G', 0x0d} }, /* Likely PNG */
+       { 6, 0, { '7', 'z', 0xbc, 0xaf, 0x27, 0x1c} } /* 7z */
   };
 
   if (!inp)

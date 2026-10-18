@@ -125,9 +125,9 @@
  * larger alignment than this, but we don't need to
  * do better than malloc.
  */
-#define STRUCT_ALIGNMENT (2 * sizeof (gsize))
+#define STRUCT_ALIGNMENT (2u * sizeof (gsize))
 #define ALIGN_STRUCT(offset) \
-      ((offset + (STRUCT_ALIGNMENT - 1)) & -STRUCT_ALIGNMENT)
+      (((size_t) (offset) + (STRUCT_ALIGNMENT - 1u)) & -STRUCT_ALIGNMENT)
 
 
 /* --- typedefs --- */
@@ -442,7 +442,7 @@ type_node_any_new_W (TypeNode             *pnode,
   else
     {
       node->supers[0] = type;
-      memcpy (node->supers + 1, pnode->supers, sizeof (GType) * (1 + pnode->n_supers + 1));
+      memcpy (node->supers + 1, pnode->supers, sizeof (GType) * (1u + pnode->n_supers + 1u));
       
       node->is_abstract = (type_flags & G_TYPE_FLAG_ABSTRACT) != 0;
       node->is_classed = pnode->is_classed;
@@ -481,7 +481,7 @@ type_node_any_new_W (TypeNode             *pnode,
       pnode->children[i] = type;
     }
 
-  TRACE(GOBJECT_TYPE_NEW(name, node->supers[1], type));
+  TRACE (GOBJECT_TYPE_NEW (name, node->supers[1], (uintmax_t) type));
 
   node->plugin = plugin;
   node->n_children = 0;
@@ -1239,7 +1239,7 @@ type_data_ref_Wm (TypeNode *node)
 static gboolean
 iface_node_has_available_offset_L (TypeNode *iface_node,
 				   gsize offset,
-				   int for_index)
+				   size_t for_index)
 {
   guint8 *offsets;
 
@@ -1263,8 +1263,7 @@ find_free_iface_offset_L (IFaceEntries *entries)
   IFaceEntry *entry;
   TypeNode *iface_node;
   gsize offset;
-  int i;
-  int n_entries;
+  size_t i, n_entries;
 
   n_entries = IFACE_ENTRIES_N_ENTRIES (entries);
   offset = 0;
@@ -1290,7 +1289,7 @@ find_free_iface_offset_L (IFaceEntries *entries)
 static void
 iface_node_set_offset_L (TypeNode *iface_node,
 			 gsize offset,
-			 int index)
+			 size_t index)
 {
   guint8 *offsets, *old_offsets;
   gsize new_size, old_size;
@@ -1328,8 +1327,8 @@ type_node_add_iface_entry_W (TypeNode   *node,
   IFaceEntries *entries;
   IFaceEntry *entry;
   TypeNode *iface_node;
-  guint i, j;
-  guint num_entries;
+  size_t i, j;
+  size_t num_entries;
 
   g_assert (node->is_instantiatable);
 
@@ -1445,7 +1444,7 @@ type_add_interface_Wm (TypeNode             *node,
    */
   if (node->data)
     {
-      InitState class_state = g_atomic_int_get (&node->data->class.init_state);
+      InitState class_state = (InitState) g_atomic_int_get (&node->data->class.init_state);
       
       if (class_state >= BASE_IFACE_INIT)
         type_iface_vtable_base_init_Wm (iface, node);
@@ -1466,7 +1465,7 @@ type_iface_add_prerequisite_W (TypeNode *iface,
 {
   GType prerequisite_type = NODE_TYPE (prerequisite_node);
   GType *prerequisites, *dependants;
-  guint n_dependants, i;
+  size_t n_dependants, i;
   
   g_assert (NODE_IS_IFACE (iface) &&
 	    IFACE_NODE_N_PREREQUISITES (iface) < MAX_N_PREREQUISITES &&
@@ -1821,8 +1820,8 @@ g_type_create_instance (GType type)
   GTypeInstance *instance;
   GTypeClass *class;
   gchar *allocated;
-  gint private_size;
-  gint ivar_size;
+  size_t private_size;
+  size_t ivar_size;
   guint i;
 
   node = lookup_type_node_I (type);
@@ -1907,7 +1906,7 @@ g_type_create_instance (GType type)
     }
 #endif
 
-  TRACE(GOBJECT_OBJECT_NEW(instance, type));
+  TRACE (GOBJECT_OBJECT_NEW (instance, (uintmax_t) type));
 
   return instance;
 }
@@ -1928,8 +1927,8 @@ g_type_free_instance (GTypeInstance *instance)
   TypeNode *node;
   GTypeClass *class;
   gchar *allocated;
-  gint private_size;
-  gint ivar_size;
+  size_t private_size;
+  size_t ivar_size;
 
   g_return_if_fail (instance != NULL && instance->g_class != NULL);
   
@@ -3629,7 +3628,7 @@ type_add_flags_W (TypeNode  *node,
 {
   guint dflags;
   
-  g_return_if_fail ((flags & ~TYPE_FLAG_MASK) == 0);
+  g_return_if_fail ((flags & (unsigned) ~TYPE_FLAG_MASK) == 0);
   g_return_if_fail (node != NULL);
   
   if ((flags & TYPE_FLAG_MASK) && node->is_classed && node->data && node->data->class.class)
@@ -3726,7 +3725,7 @@ _g_type_test_flags (GType type,
   node = lookup_type_node_I (type);
   if (node)
     {
-      if ((flags & ~NODE_FLAG_MASK) == 0)
+      if ((flags & (unsigned) ~NODE_FLAG_MASK) == 0)
         {
           if ((flags & G_TYPE_FLAG_CLASSED) && !node->is_classed)
             return FALSE;
@@ -4601,7 +4600,7 @@ g_type_add_instance_private (GType class_gtype,
    * should make the migration fully transparent even if we're effectively
    * copying this macro into everybody's code.
    */
-  return private_size;
+  return (gint) private_size;
 }
 
 /* semi-private function, should only be used by G_DEFINE_TYPE_EXTENDED */
@@ -4611,7 +4610,7 @@ g_type_class_adjust_private_offset (gpointer  g_class,
 {
   GType class_gtype = ((GTypeClass *) g_class)->g_type;
   TypeNode *node = lookup_type_node_I (class_gtype);
-  gssize private_size;
+  size_t private_size;
 
   g_return_if_fail (private_size_or_offset != NULL);
 
@@ -4826,15 +4825,18 @@ g_type_class_get_private (GTypeClass *klass,
  * Ensures that the indicated @type has been registered with the
  * type system, and its _class_init() method has been run.
  *
- * In theory, simply calling the type's _get_type() method (or using
- * the corresponding macro) is supposed take care of this. However,
- * _get_type() methods are often marked %G_GNUC_CONST for performance
- * reasons, even though this is technically incorrect (since
- * %G_GNUC_CONST requires that the function not have side effects,
- * which _get_type() methods do on the first call). As a result, if
- * you write a bare call to a _get_type() macro, it may get optimized
- * out by the compiler. Using g_type_ensure() guarantees that the
- * type's _get_type() method is called.
+ * Typically, calling the type’s `_get_type()` method (or using the
+ * corresponding macro) will take care of this. In situations where a
+ * type is looked up dynamically, however, you may need to explicitly call
+ * `g_type_ensure()` to ensure expected types are registered before the
+ * first lookup. This can happen when using custom widgets from a GTK
+ * `.ui` file, for example.
+ *
+ * Historically, `_get_type()` methods have sometimes been marked as
+ * [`G_GNUC_CONST`](macros.html#compiler). This is incorrect, as the
+ * first call to a `_get_type()` method has side-effects. These
+ * annotations should be removed, as they can cause code to be optimized
+ * out in unexpected ways by the compiler.
  *
  * Since: 2.34
  */
@@ -4847,4 +4849,10 @@ g_type_ensure (GType type)
    */
   if (G_UNLIKELY (type == (GType)-1))
     g_error ("can't happen");
+}
+
+void
+g_destroy_notify_assert_not_reached (gpointer object)
+{
+  g_return_if_reached ();
 }

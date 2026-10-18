@@ -606,7 +606,7 @@ static void do_handle_sync_rtp_info (GstRtpJitterBuffer * jitterbuffer,
 
 static void unschedule_current_timer (GstRtpJitterBuffer * jitterbuffer);
 
-static void wait_next_timeout (GstRtpJitterBuffer * jitterbuffer);
+static gpointer wait_next_timeout (GstRtpJitterBuffer * jitterbuffer);
 
 static GstStructure *gst_rtp_jitter_buffer_create_stats (GstRtpJitterBuffer *
     jitterbuffer);
@@ -4516,7 +4516,7 @@ push_rtx_events (GstRtpJitterBuffer * jitterbuffer, GQueue * events)
  *
  * If there are no timers, we wait on a gcond until something new happens.
  */
-static void
+static gpointer
 wait_next_timeout (GstRtpJitterBuffer * jitterbuffer)
 {
   GstRtpJitterBufferPrivate *priv = jitterbuffer->priv;
@@ -4644,7 +4644,7 @@ stopping:
   JBUF_UNLOCK (priv);
 
   GST_DEBUG_OBJECT (jitterbuffer, "we are stopping");
-  return;
+  return NULL;
 }
 
 /*
@@ -5072,8 +5072,13 @@ gst_rtp_jitter_buffer_chain_rtcp (GstPad * pad, GstObject * parent,
             guint8 len;
             const guint8 *data;
 
-            gst_rtcp_packet_sdes_get_entry (&packet, &type, &len,
-                (guint8 **) & data);
+            if (!gst_rtcp_packet_sdes_get_entry (&packet, &type, &len,
+                    (guint8 **) & data)) {
+              GST_WARNING_OBJECT (jitterbuffer, "malformed SDES packet for "
+                  "SSRC %08x, ignoring the rest of it",
+                  gst_rtcp_packet_sdes_get_ssrc (&packet));
+              break;
+            }
 
             if (type == GST_RTCP_SDES_CNAME) {
               cname = g_strndup ((const gchar *) data, len);

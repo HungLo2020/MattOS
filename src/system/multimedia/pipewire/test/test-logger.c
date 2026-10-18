@@ -344,7 +344,7 @@ PWTEST(logger_debug_env_invalid)
 	/* The error message during pw_init() will go to stderr because no
 	 * logger has been set up yet. Intercept that in our temp file */
 	pwtest_mkstemp(fname);
-	fd = open(fname, O_RDWR);
+	fd = open(fname, O_RDWR | O_CLOEXEC);
 	pwtest_errno_ok(fd);
 	rc = dup2(fd, STDERR_FILENO);
 	setlinebuf(stderr);
@@ -355,7 +355,7 @@ PWTEST(logger_debug_env_invalid)
 
 	fsync(STDERR_FILENO);
 	lseek(fd, SEEK_SET, 0);
-	while ((rc = read(fd, buf, sizeof(buf) - 1) > 0)) {
+	while ((rc = read(fd, buf, sizeof(buf) - 1)) > 0) {
 		if (strstr(buf, "Ignoring invalid format in log level")) {
 		    error_message_found = true;
 		    break;
@@ -496,6 +496,9 @@ PWTEST(logger_journal)
 	pwtest_ptr_notnull(iface);
 
 	rc = sd_journal_open(&journal, SD_JOURNAL_LOCAL_ONLY|SD_JOURNAL_CURRENT_USER);
+	if (rc == -ENOSYS)
+		return PWTEST_SKIP;
+
 	pwtest_neg_errno_ok(rc);
 
 	sd_journal_seek_head(journal);
@@ -565,6 +568,9 @@ PWTEST(logger_journal_chain)
 	pwtest_ptr_notnull(iface);
 
 	rc = sd_journal_open(&journal, SD_JOURNAL_LOCAL_ONLY);
+	if (rc == -ENOSYS)
+		return PWTEST_SKIP;
+
 	pwtest_neg_errno_ok(rc);
 	sd_journal_seek_head(journal);
 	if (sd_journal_next(journal) == 0) { /* No entries? We don't have a journal */

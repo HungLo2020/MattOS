@@ -127,6 +127,7 @@ static GstFlowReturn default_acquire_buffer (GstBufferPool * pool,
 static void default_reset_buffer (GstBufferPool * pool, GstBuffer * buffer);
 static void default_free_buffer (GstBufferPool * pool, GstBuffer * buffer);
 static void default_release_buffer (GstBufferPool * pool, GstBuffer * buffer);
+static void do_free_buffer (GstBufferPool * pool, GstBuffer * buffer);
 
 static void
 gst_buffer_pool_class_init (GstBufferPoolClass * klass)
@@ -326,8 +327,11 @@ default_start (GstBufferPool * pool)
   guint i;
   GstBufferPoolPrivate *priv = pool->priv;
   GstBufferPoolClass *pclass;
+  GPtrArray *buffers;
 
   pclass = GST_BUFFER_POOL_GET_CLASS (pool);
+
+  buffers = g_ptr_array_sized_new (priv->min_buffers);
 
   /* we need to prealloc buffers */
   for (i = 0; i < priv->min_buffers; i++) {
@@ -336,17 +340,31 @@ default_start (GstBufferPool * pool)
     if (do_alloc_buffer (pool, &buffer, NULL) != GST_FLOW_OK)
       goto alloc_failed;
 
+    g_ptr_array_add (buffers, buffer);
+  }
+
+  for (i = 0; i < buffers->len; i++) {
+    GstBuffer *buffer = g_ptr_array_index (buffers, i);
+
     /* release to the queue, we call the vmethod directly, we don't need to do
      * the other refcount handling right now. */
     if (G_LIKELY (pclass->release_buffer))
       pclass->release_buffer (pool, buffer);
   }
+
+  g_ptr_array_unref (buffers);
   return TRUE;
 
   /* ERRORS */
 alloc_failed:
   {
     GST_WARNING_OBJECT (pool, "failed to allocate buffer");
+    for (i = 0; i < buffers->len; i++) {
+      GstBuffer *buffer = g_ptr_array_index (buffers, i);
+
+      do_free_buffer (pool, buffer);
+    }
+    g_ptr_array_unref (buffers);
     return FALSE;
   }
 }
@@ -413,11 +431,14 @@ default_stop (GstBufferPool * pool)
   g_mutex_lock (&priv->queue_lock);
   while ((buffer = gst_vec_deque_pop_head (priv->queue))) {
     g_mutex_unlock (&priv->queue_lock);
+    GST_TRACER_POOL_BUFFER_DEQUEUED (pool, buffer);
+
     do_free_buffer (pool, buffer);
     g_mutex_lock (&priv->queue_lock);
   }
   cleared = priv->cur_buffers == 0;
   g_mutex_unlock (&priv->queue_lock);
+
   return cleared;
 }
 
@@ -1106,6 +1127,7 @@ default_acquire_buffer (GstBufferPool * pool, GstBuffer ** buffer,
     g_mutex_unlock (&priv->queue_lock);
 
     if (G_LIKELY (*buffer)) {
+      GST_TRACER_POOL_BUFFER_DEQUEUED (pool, *buffer);
       result = GST_FLOW_OK;
       GST_LOG_OBJECT (pool, "acquired buffer %p", *buffer);
       break;
@@ -1292,6 +1314,8 @@ default_release_buffer (GstBufferPool * pool, GstBuffer * buffer)
   gst_vec_deque_push_tail (pool->priv->queue, buffer);
   g_cond_signal (&pool->priv->queue_cond);
   g_mutex_unlock (&pool->priv->queue_lock);
+
+  GST_TRACER_POOL_BUFFER_QUEUED (pool, buffer);
 
   return;
 

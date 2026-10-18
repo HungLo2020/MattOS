@@ -241,8 +241,9 @@ gst_gl_transformation_class_init (GstGLTransformationClass * klass)
           "The final Graphene 4x4 Matrix for transformation",
           GRAPHENE_TYPE_MATRIX, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
-  gst_element_class_set_metadata (element_class, "OpenGL transformation filter",
-      "Filter/Effect/Video", "Transform video on the GPU",
+  gst_element_class_set_static_metadata (element_class,
+      "OpenGL transformation filter", "Filter/Effect/Video",
+      "Transform video on the GPU",
       "Lubosz Sarnecki <lubosz@gmail.com>, "
       "Matthew Waters <matthew@centricular.com>");
 
@@ -713,7 +714,7 @@ gst_gl_transformation_src_event (GstBaseTransform * trans, GstEvent * event)
           return TRUE;
         }
 
-        gst_navigation_event_set_coordinates (event, x, y);
+        gst_navigation_event_set_coordinates (event, new_x, new_y);
       }
       break;
     }
@@ -832,7 +833,7 @@ gst_gl_transformation_prepare_output_buffer (GstBaseTransform * trans,
 
     *outbuf = gst_buffer_make_writable (inbuf);
 
-    af_meta = gst_buffer_get_video_affine_transformation_meta (inbuf);
+    af_meta = gst_buffer_get_video_affine_transformation_meta (*outbuf);
     if (!af_meta)
       af_meta = gst_buffer_add_video_affine_transformation_meta (*outbuf);
 

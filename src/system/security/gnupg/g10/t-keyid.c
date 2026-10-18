@@ -29,6 +29,7 @@
 #include "gpg.h"
 #include "keydb.h"
 #include "../common/t-support.h"
+#include "../common/name-value.h"
 
 
 
@@ -131,4 +132,12 @@ main (int argc, char **argv)
   test_compare_pubkey_string ();
 
   return !!errcount;
+}
+
+
+nvc_t
+seckey_packet_to_nvc (PKT_public_key *pk)
+{
+  (void)pk;
+  return NULL;
 }

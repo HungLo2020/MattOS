@@ -516,6 +516,96 @@ GST_START_TEST (test_cyclic_relation_meta)
 
 GST_END_TEST;
 
+GST_START_TEST (test_copy_metas)
+{
+  GstBuffer *buf, *buf2;
+  GstAnalyticsRelationMeta *rmeta, *rmeta2;
+  gboolean ret;
+  GstAnalyticsODMtd od_mtd1, od_mtd2;
+  gpointer state = NULL;
+  GstAnalyticsMtd mtd1, mtd2;
+  gint x, y, w, h;
+  gfloat conf;
+
+  buf = gst_buffer_new ();
+
+  rmeta = gst_buffer_add_analytics_relation_meta (buf);
+
+  GQuark type = g_quark_from_string ("dog");
+  ret = gst_analytics_relation_meta_add_od_mtd (rmeta, type, 10, 10,
+      10, 10, 1.0, &od_mtd1);
+  fail_unless (ret == TRUE);
+
+  ret = gst_analytics_relation_meta_add_od_mtd (rmeta, type, 20, 20,
+      20, 20, 1.0, &od_mtd2);
+  fail_unless (ret == TRUE);
+
+  fail_unless_equals_int (gst_analytics_relation_get_length (rmeta), 2);
+
+  ret = gst_analytics_relation_meta_set_relation (rmeta,
+      GST_ANALYTICS_REL_TYPE_RELATE_TO, od_mtd1.id, od_mtd2.id);
+  fail_unless (ret == TRUE);
+
+
+  /* Lets copy it into a new buffer */
+  buf2 = gst_buffer_new ();
+  ret = gst_buffer_copy_into (buf2, buf, GST_BUFFER_COPY_META, 0, -1);
+  fail_unless (ret == TRUE);
+
+  rmeta2 = gst_buffer_get_analytics_relation_meta (buf2);
+  fail_unless (rmeta2 != NULL);
+
+  fail_unless_equals_int (gst_analytics_relation_get_length (rmeta2), 2);
+
+  /* First meta */
+  ret = gst_analytics_relation_meta_iterate (rmeta2, &state,
+      GST_ANALYTICS_MTD_TYPE_ANY, &mtd1);
+  fail_unless (ret == TRUE);
+  fail_unless_equals_int (od_mtd1.id, mtd1.id);
+
+
+  ret = gst_analytics_od_mtd_get_confidence_lvl (&mtd1, &conf);
+  fail_unless (ret == TRUE);
+  fail_unless_equals_float (conf, 1.0);
+
+  ret = gst_analytics_od_mtd_get_location (&mtd1, &x, &y, &w, &h, &conf);
+  fail_unless (ret == TRUE);
+  fail_unless_equals_int (x, 10);
+  fail_unless_equals_int (y, 10);
+  fail_unless_equals_int (w, 10);
+  fail_unless_equals_int (h, 10);
+
+  /* Second meta */
+  ret = gst_analytics_relation_meta_iterate (rmeta2, &state,
+      GST_ANALYTICS_MTD_TYPE_ANY, &mtd2);
+  fail_unless (ret == TRUE);
+  fail_unless_equals_int (od_mtd2.id, mtd2.id);
+
+  ret = gst_analytics_od_mtd_get_confidence_lvl (&mtd2, &conf);
+  fail_unless (ret == TRUE);
+  fail_unless_equals_float (conf, 1.0);
+
+  ret = gst_analytics_od_mtd_get_location (&mtd2, &x, &y, &w, &h, &conf);
+  fail_unless (ret == TRUE);
+  fail_unless_equals_int (x, 20);
+  fail_unless_equals_int (y, 20);
+  fail_unless_equals_int (w, 20);
+  fail_unless_equals_int (h, 20);
+
+  fail_unless_equals_int (gst_analytics_relation_meta_get_relation (rmeta,
+          mtd1.id, mtd2.id), GST_ANALYTICS_REL_TYPE_RELATE_TO);
+
+  /* No third meta */
+  ret = gst_analytics_relation_meta_iterate (rmeta2, &state,
+      GST_ANALYTICS_MTD_TYPE_ANY, &mtd1);
+  fail_unless (ret == FALSE);
+
+  gst_buffer_unref (buf);
+  gst_buffer_unref (buf2);
+}
+
+GST_END_TEST;
+
 GST_START_TEST (test_add_od_meta)
 {
   /* Verity we can add Object Detection relatable metadata to a relation
@@ -1089,10 +1179,11 @@ GST_START_TEST (test_add_tracking_meta)
   GstBuffer *buf1, *buf2;
   GstAnalyticsRelationMetaInitParams init_params = { 5, 150 };
   GstAnalyticsRelationMeta *rmeta;
-  GstAnalyticsTrackingMtd tracking_mtd;
-  guint tracking_id;
-  GstClockTime tracking_observation_time_1;
-  gboolean ret;
+  GstAnalyticsTrackingMtd tracking_mtd, tracking_mtd2;
+  guint64 tracking_id, ret_trk_id;
+  GstClockTime time_1, time_2, time_ret_f, time_ret_l;
+  gboolean ret, found = FALSE, lost;
+  gpointer state = NULL;
 
   /* Verify we can add multiple trackings to relation metadata
    */
@@ -1100,9 +1191,9 @@ GST_START_TEST (test_add_tracking_meta)
   buf1 = gst_buffer_new ();
   rmeta = gst_buffer_add_analytics_relation_meta_full (buf1, &init_params);
   tracking_id = 1;
-  tracking_observation_time_1 = GST_BUFFER_TIMESTAMP (buf1);
+  time_1 = GST_BUFFER_TIMESTAMP (buf1);
   ret = gst_analytics_relation_meta_add_tracking_mtd (rmeta, tracking_id,
-      tracking_observation_time_1, &tracking_mtd);
+      time_1, &tracking_mtd);
   fail_unless (ret == TRUE);
 
   gst_buffer_unref (buf1);
@@ -1111,13 +1202,128 @@ GST_START_TEST (test_add_tracking_meta)
   rmeta = gst_buffer_add_analytics_relation_meta_full (buf2, &init_params);
   tracking_id = 1;
   ret = gst_analytics_relation_meta_add_tracking_mtd (rmeta, tracking_id,
-      tracking_observation_time_1, &tracking_mtd);
+      time_1, &tracking_mtd);
   fail_unless (ret == TRUE);
+
+  /* add itermadiate tracking point to very first and last are correct */
+  time_2 = GST_BUFFER_TIMESTAMP (buf2) + 1;
+  ret = gst_analytics_tracking_mtd_update_last_seen (&tracking_mtd, time_2);
+
+  /* add last tracking point */
+  time_2 += 1;
+  ret = gst_analytics_tracking_mtd_update_last_seen (&tracking_mtd, time_2);
+
+  /* Verify we can retrieve tracking mtd */
+  found = gst_analytics_relation_meta_iterate (rmeta, &state,
+      GST_ANALYTICS_MTD_TYPE_ANY, &tracking_mtd2);
+
+  /* Verify retrieved mtd is correct */
+  fail_unless (found == TRUE);
+  fail_unless (tracking_mtd2.id == tracking_mtd.id);
+  fail_unless (tracking_mtd2.meta == tracking_mtd.meta);
+
+  /* Verify specific tracking mtd data */
+  gst_analytics_tracking_mtd_get_info (&tracking_mtd2, &ret_trk_id, &time_ret_f,
+      &time_ret_l, &lost);
+  fail_unless (tracking_id == ret_trk_id);
+  fail_unless (time_1 == time_ret_f);
+  fail_unless (time_2 == time_ret_l);
+  fail_unless (lost == FALSE);
+
+  /* Set tracking lost */
+  gst_analytics_tracking_mtd_set_lost (&tracking_mtd);
+
+  /* Verify tracking lost was updated but other tracking data are still
+   * available */
+  gst_analytics_tracking_mtd_get_info (&tracking_mtd2, &ret_trk_id, &time_ret_f,
+      &time_ret_l, &lost);
+
+  fail_unless (tracking_id == ret_trk_id);
+  fail_unless (time_1 == time_ret_f);
+  fail_unless (time_2 == time_ret_l);
+  fail_unless (lost == TRUE);
 
   gst_buffer_unref (buf2);
 }
 
 GST_END_TEST;
+
+GST_START_TEST (test_od_trk_relation)
+{
+  /* Verify we retrive tracking from relation with OD */
+  GstBuffer *buf1;
+  guint64 tracking_id;
+  GstAnalyticsRelationMetaInitParams init_params = { 5, 150 };
+  GstAnalyticsRelationMeta *rmeta;
+  GstAnalyticsTrackingMtd tracking_mtd, tracking_mtd2;
+  GstClockTime tracking_observation_time_1;
+  gboolean ret, found = FALSE;
+  gpointer state = NULL;
+  GQuark type = g_quark_from_string ("dog");
+  gint x = 20;
+  gint y = 20;
+  gint w = 10;
+  gint h = 15;
+  gfloat loc_conf_lvl = 0.6f;
+  GstAnalyticsODMtd od_mtd, od_mtd2;
+
+
+  /* creating a buffer where we add a relation-meta */
+  buf1 = gst_buffer_new ();
+  rmeta = gst_buffer_add_analytics_relation_meta_full (buf1, &init_params);
+  tracking_id = 1;
+  tracking_observation_time_1 = GST_BUFFER_TIMESTAMP (buf1);
+  ret = gst_analytics_relation_meta_add_tracking_mtd (rmeta, tracking_id,
+      tracking_observation_time_1, &tracking_mtd);
+  fail_unless (ret == TRUE);
+
+  /* adding object-detection to rmeta */
+  ret = gst_analytics_relation_meta_add_od_mtd (rmeta, type, x, y,
+      w, h, loc_conf_lvl, &od_mtd);
+
+  /* set relation from object-detection to tracking */
+  gst_analytics_relation_meta_set_relation (rmeta,
+      GST_ANALYTICS_REL_TYPE_RELATE_TO, od_mtd.id, tracking_mtd.id);
+
+  /* query for related mtd of any type on od_mtd */
+  found = gst_analytics_relation_meta_get_direct_related (rmeta, od_mtd.id,
+      GST_ANALYTICS_REL_TYPE_RELATE_TO, GST_ANALYTICS_MTD_TYPE_ANY, &state,
+      &tracking_mtd2);
+
+  fail_unless (found == TRUE);
+  fail_unless (tracking_mtd2.id == tracking_mtd.id);
+  fail_unless (tracking_mtd2.meta == tracking_mtd.meta);
+
+  state = NULL;
+  /* query for related mtd of any type on tracking. */
+  found = gst_analytics_relation_meta_get_direct_related (rmeta,
+      tracking_mtd.id, GST_ANALYTICS_REL_TYPE_RELATE_TO,
+      GST_ANALYTICS_MTD_TYPE_ANY, &state, &od_mtd2);
+
+  /* since relation are directed and we only set a relation from
+   * object-detection to tracking, we shouldn't find any relation */
+  fail_unless (found == FALSE);
+
+  /* set relation from tracking to object-detection */
+  gst_analytics_relation_meta_set_relation (rmeta,
+      GST_ANALYTICS_REL_TYPE_RELATE_TO, tracking_mtd.id, od_mtd.id);
+
+  state = NULL;
+  /* query for related mtd of any type on tracking. */
+  found = gst_analytics_relation_meta_get_direct_related (rmeta,
+      tracking_mtd.id, GST_ANALYTICS_REL_TYPE_RELATE_TO,
+      GST_ANALYTICS_MTD_TYPE_ANY, &state, &od_mtd2);
+
+  /* now we should find as it was added */
+  fail_unless (found == TRUE);
+  fail_unless (od_mtd2.id == od_mtd.id);
+  fail_unless (od_mtd2.meta == od_mtd.meta);
+
+  gst_buffer_unref (buf1);
+}
+
+GST_END_TEST;
+
 
 GST_START_TEST (test_verify_mtd_clear)
 {
@@ -1531,7 +1737,7 @@ GST_START_TEST (test_associate_segmentation_meta)
   /* Verify segmentation analytics-meta and associated classification
    * match truth vectors */
   gsize idx;
-  GstBufferMapInfo mmap_info;   /* mask map info */
+  GstMapInfo mmap_info;         /* mask map info */
   gst_buffer_map (mbuf, &mmap_info, GST_MAP_READ);
   for (gsize r = 0; r < 24; r++) {
     gsize mr = r / 2;
@@ -1581,6 +1787,326 @@ GST_START_TEST (test_associate_segmentation_meta)
 
 GST_END_TEST;
 
+GST_START_TEST (test_add_tensor_mtd)
+{
+  /* Verify we can add a tensor to analytics-meta and retrieve it */
+  GstBuffer *vbuf, *tbuf;
+  GstAnalyticsRelationMeta *rmeta;
+  GstTensor *tensor2;
+  GstTensor *tensor3;
+  GstAnalyticsTensorMtd tensor_mtd;
+  gboolean ret;
+  gsize dims[2] = { 2, 3 };
+
+  vbuf = gst_buffer_new ();
+
+  rmeta = gst_buffer_add_analytics_relation_meta (vbuf);
+  ret = gst_analytics_relation_meta_add_tensor_mtd (rmeta, 22, &tensor_mtd);
+  fail_unless (ret == TRUE);
+
+  tensor2 = gst_analytics_tensor_mtd_get_tensor (&tensor_mtd);
+  fail_unless (tensor2);
+
+  fail_unless_equals_int (tensor2->num_dims, 22);
+  fail_unless_equals_int (tensor2->id, 0);
+  fail_unless (tensor2->data == NULL);
+
+  tbuf = gst_buffer_new_allocate (NULL, sizeof (float) * dims[0] * dims[1],
+      NULL);
+
+  ret = gst_analytics_relation_meta_add_tensor_mtd_simple (rmeta,
+      g_quark_from_string ("test2"), GST_TENSOR_DATA_TYPE_FLOAT32,
+      tbuf, GST_TENSOR_DIM_ORDER_ROW_MAJOR, G_N_ELEMENTS (dims), dims,
+      &tensor_mtd);
+  fail_unless (ret == TRUE);
+
+  tensor3 = gst_analytics_tensor_mtd_get_tensor (&tensor_mtd);
+  fail_unless (tensor3);
+
+  fail_unless_equals_int (tensor3->num_dims, 2);
+  fail_unless_equals_int (tensor3->id, g_quark_from_string ("test2"));
+  fail_unless_equals_int (tensor3->dims_order, GST_TENSOR_DIM_ORDER_ROW_MAJOR);
+  fail_unless_equals_int (tensor3->dims[0], 2);
+  fail_unless_equals_int (tensor3->dims[1], 3);
+  fail_unless (tensor3->data == tbuf);
+
+  gst_buffer_unref (vbuf);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_iou_int)
+{
+  gint bb1_x = 30, bb1_y = 30, bb1_w = 10, bb1_h = 10;
+  gint bb2_x = 35, bb2_y = 30, bb2_w = 10, bb2_h = 10;
+  gfloat iou;
+
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_y = 35;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 175.0);
+
+  bb2_x = 40;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 0.0 / 200.0);
+
+  bb2_x = 30;
+  bb2_y = 35;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 25;
+  bb2_y = 35;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 175.0);
+
+  bb2_x = 25;
+  bb2_y = 30;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 25;
+  bb2_y = 25;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 175.0);
+
+  bb2_x = 30;
+  bb2_y = 25;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 30;
+  bb2_y = 25;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 30;
+  bb2_y = 30;
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 100.0 / 100.0);
+
+  bb1_x = 0;
+  bb1_y = 0;
+  bb1_w = 10;
+  bb1_h = 10;
+
+  bb2_x = -5;
+  bb2_y = 0;
+  bb2_w = 10;
+  bb2_h = 10;
+
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 100.0);
+
+  bb2_y = -5;
+
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 100.0);
+
+  bb1_x = -5;
+  bb1_y = -5;
+
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 25.0);
+
+  bb1_x = -5;
+  bb1_y = 0;
+
+  bb2_x = 0;
+  bb2_y = -5;
+
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 75.0);
+
+  bb2_y = -10;
+
+  iou = gst_analytics_image_util_iou_int (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 0.0 / 100.0);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_iou_float)
+{
+  gfloat bb1_x = 30.0, bb1_y = 30.0, bb1_w = 10.0, bb1_h = 10.0;
+  gfloat bb2_x = 35.0, bb2_y = 30.0, bb2_w = 10.0, bb2_h = 10.0;
+  gfloat iou;
+
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_y = 35;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 175.0);
+
+  bb2_x = 40;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 0.0 / 200.0);
+
+  bb2_x = 30;
+  bb2_y = 35;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 25;
+  bb2_y = 35;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 175.0);
+
+  bb2_x = 25;
+  bb2_y = 30;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 25;
+  bb2_y = 25;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 175.0);
+
+  bb2_x = 30;
+  bb2_y = 25;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 30;
+  bb2_y = 25;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 150.0);
+
+  bb2_x = 30;
+  bb2_y = 30;
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 100.0 / 100.0);
+
+  bb1_x = 0;
+  bb1_y = 0;
+  bb1_w = 10;
+  bb1_h = 10;
+
+  bb2_x = -5;
+  bb2_y = 0;
+  bb2_w = 10;
+  bb2_h = 10;
+
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 50.0 / 100.0);
+
+  bb2_y = -5;
+
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 100.0);
+
+  bb1_x = -5;
+  bb1_y = -5;
+
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 25.0);
+
+  bb1_x = -5;
+  bb1_y = 0;
+
+  bb2_x = 0;
+  bb2_y = -5;
+
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 25.0 / 75.0);
+
+  bb2_y = -10;
+
+  iou = gst_analytics_image_util_iou_float (bb1_x, bb1_y, bb1_w, bb1_h, bb2_x,
+      bb2_y, bb2_w, bb2_h);
+  fail_unless_equals_float (iou, 0.0 / 100.0);
+
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_get_tensor)
+{
+  GstBuffer *buf, *tensor_data;
+  GstTensorMeta *tmeta;
+  GstTensor *tensor;
+  const GstTensor *tensor2;
+  GstTensor **tensors;
+  GQuark tensor_id = g_quark_from_string ("tensor-encoding-1");
+  gsize dims[] = { 1 };
+  gsize index;
+
+  /* Verify we can add a tensor-meta to a buffer */
+
+  /* Create tensor data */
+  guint8 *data = g_malloc0 (1);
+  *data = 28;
+
+  /* Wrap tensor data into a GstBuffer */
+  tensor_data = gst_buffer_new_wrapped_full (0, data, 1, 0, 1, data, g_free);
+
+  /* Create a new buffer where we attach tensor-meta */
+  buf = gst_buffer_new ();
+  tmeta = gst_buffer_add_tensor_meta (buf);
+
+  /* Create a tensor */
+  tensor = gst_tensor_new_simple (tensor_id, GST_TENSOR_DATA_TYPE_UINT8,
+      tensor_data, GST_TENSOR_DIM_ORDER_COL_MAJOR, 1, dims);
+
+  /* Create an array of tensor to fullfil GstTensor API */
+  tensors = g_new (GstTensor *, 1);
+  tensors[0] = tensor;
+
+  /* Set tensor-meta's tensors */
+  gst_tensor_meta_set (tmeta, 1, tensors);
+
+  /* Retieve tensor using index interface */
+  index = gst_tensor_meta_get_index_from_id (tmeta, tensor_id);
+
+  fail_unless (index == 0);
+
+  tensor2 = gst_tensor_meta_get (tmeta, index);
+
+  /* Verify tensor retrieved */
+  fail_unless (tensor == tensor2);
+
+  /* Retrieve tensor using tensor-id directly */
+  tensor2 = gst_tensor_meta_get_by_id (tmeta, tensor_id);
+
+  fail_unless (tensor == tensor2);
+
+  gst_buffer_unref (buf);
+}
+
+GST_END_TEST;
+
 static Suite *
 analyticmeta_suite (void)
 {
@@ -1592,6 +2118,9 @@ analyticmeta_suite (void)
   TCase *tc_chain_od_cls;
   TCase *tc_chain_tracking;
   TCase *tc_chain_segmentation;
+  TCase *tc_chain_util;
+  TCase *tc_chain_tensors;
+  TCase *tc_chain_tensor_mtd;
 
   s = suite_create ("Analytic Meta Library");
 
@@ -1611,6 +2140,7 @@ analyticmeta_suite (void)
   tcase_add_test (tc_chain_relation, test_path_relation_meta);
   tcase_add_test (tc_chain_relation, test_cyclic_relation_meta);
   tcase_add_test (tc_chain_relation, test_verify_mtd_clear);
+  tcase_add_test (tc_chain_relation, test_copy_metas);
 
   tc_chain_od = tcase_create ("Object Detection Mtd");
   suite_add_tcase (s, tc_chain_od);
@@ -1631,12 +2161,25 @@ analyticmeta_suite (void)
   tc_chain_tracking = tcase_create ("Tracking Mtd");
   suite_add_tcase (s, tc_chain_tracking);
   tcase_add_test (tc_chain_tracking, test_add_tracking_meta);
+  tcase_add_test (tc_chain_tracking, test_od_trk_relation);
 
   tc_chain_segmentation = tcase_create ("Segmentation Mtd");
   suite_add_tcase (s, tc_chain_segmentation);
   tcase_add_test (tc_chain_segmentation, test_add_segmentation_meta);
   tcase_add_test (tc_chain_segmentation, test_associate_segmentation_meta);
 
+  tc_chain_util = tcase_create ("Utility");
+  suite_add_tcase (s, tc_chain_util);
+  tcase_add_test (tc_chain_util, test_iou_int);
+  tcase_add_test (tc_chain_util, test_iou_float);
+
+  tc_chain_tensors = tcase_create ("TensorMeta");
+  suite_add_tcase (s, tc_chain_tensors);
+  tcase_add_test (tc_chain_tensors, test_get_tensor);
+
+  tc_chain_tensor_mtd = tcase_create ("Tensor Mtd");
+  suite_add_tcase (s, tc_chain_tensor_mtd);
+  tcase_add_test (tc_chain_tensor_mtd, test_add_tensor_mtd);
   return s;
 }
 

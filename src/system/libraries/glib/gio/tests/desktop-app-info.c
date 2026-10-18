@@ -33,6 +33,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include "fake-document-portal.h"
+#include "gdbus-sessionbus.h"
+
 G_DECLARE_FINAL_TYPE (TestLaunchContext, test_launch_context, TEST,
                       LAUNCH_CONTEXT, GAppLaunchContext);
 
@@ -522,7 +525,7 @@ test_last_used (void)
     return;
 
   info1 = create_app_info ("Test1");
-  info2 = create_app_info ("Test2");
+  info2 = create_app_info ("Oh No / A Slash");
 
   g_app_info_set_as_default_for_type (info1, "application/x-test", &error);
   g_assert_no_error (error);
@@ -876,15 +879,15 @@ assert_implementations (const gchar *interface,
   g_free (result);
 }
 
-#define ALL_USR_APPS  "evince-previewer.desktop nautilus-classic.desktop gnome-font-viewer.desktop "         \
-                      "baobab.desktop yelp.desktop eog.desktop cheese.desktop org.gnome.clocks.desktop "         \
-                      "gnome-contacts.desktop kde4-kate.desktop gcr-prompter.desktop totem.desktop "         \
-                      "gnome-terminal.desktop nautilus-autorun-software.desktop gcr-viewer.desktop "         \
-                      "nautilus-connect-server.desktop kde4-dolphin.desktop gnome-music.desktop "            \
-                      "kde4-konqbrowser.desktop gucharmap.desktop kde4-okular.desktop nautilus.desktop "     \
-                      "gedit.desktop evince.desktop file-roller.desktop dconf-editor.desktop glade.desktop " \
-                      "invalid-desktop.desktop"
-#define HOME_APPS     "epiphany-weather-for-toronto-island-9c6a4e022b17686306243dada811d550d25eb1fb.desktop"
+#define ALL_USR_APPS "evince-previewer.desktop nautilus-classic.desktop gnome-font-viewer.desktop "         \
+                     "baobab.desktop yelp.desktop eog.desktop cheese.desktop org.gnome.clocks.desktop "     \
+                     "gnome-contacts.desktop kde4-kate.desktop gcr-prompter.desktop totem.desktop "         \
+                     "gnome-terminal.desktop nautilus-autorun-software.desktop gcr-viewer.desktop "         \
+                     "nautilus-connect-server.desktop kde4-dolphin.desktop gnome-music.desktop "            \
+                     "kde4-konqbrowser.desktop gucharmap.desktop kde4-okular.desktop nautilus.desktop "     \
+                     "gedit.desktop evince.desktop file-roller.desktop dconf-editor.desktop glade.desktop " \
+                     "invalid-desktop.desktop org.gnome.Calculator.desktop libreoffice-calc.desktop"
+#define HOME_APPS    "epiphany-weather-for-toronto-island-9c6a4e022b17686306243dada811d550d25eb1fb.desktop"
 #define ALL_HOME_APPS HOME_APPS " eog.desktop"
 
 static void
@@ -923,9 +926,14 @@ test_search (void)
    * match the prefix command ("/bin/sh") in the Exec= line though. Then with
    * substring matching, Image Viewer (eog) should be in next group because it
    * contains "Slideshow" in its keywords.
+   *
+   * Finally we have LibreOffice Calc, which contains "OpenDocument Spreadsheet".
+   * It is sorted last because its match ("sh" in "Spreadsheet") occurs in a
+   * later token.
    */
   assert_search ("sh", "gnome-terminal.desktop\n"
-                       "eog.desktop\n", TRUE, FALSE, NULL, NULL);
+                       "eog.desktop\n"
+                       "libreoffice-calc.desktop\n", TRUE, FALSE, NULL, NULL);
 
   /* "frobnicator.desktop" is ignored by get_all() because the binary is
    * missing, but search should still find it (to avoid either stale results
@@ -946,6 +954,18 @@ test_search (void)
   assert_search ("con", "gnome-contacts.desktop nautilus-connect-server.desktop\n"
                         "dconf-editor.desktop\n"
                         "nautilus-classic.desktop\n", TRUE, TRUE, NULL, NULL);
+
+  /* We prefer matches of tokens that come earlier in a string. In this case
+   * "LibreOffice Calc" and "Calculator" both have a name that contains a prefix
+   * match "cal", but the one in Calculator occurs in the first token.
+   */
+  assert_search ("cal", "org.gnome.Calculator.desktop\nlibreoffice-calc.desktop\n", TRUE, TRUE, NULL, NULL);
+
+  /* Same as above, but ensure that substring matches are sorted after prefix matches */
+  assert_search ("ca", "org.gnome.Calculator.desktop\n"
+                       "libreoffice-calc.desktop\n"
+                       "frobnicator.desktop\n"
+                       "cheese.desktop\n", TRUE, TRUE, NULL, NULL);
 
   /* "gnome" will match "eye of gnome" from the user's directory, plus
    * matching "GNOME Clocks" X-GNOME-FullName.
@@ -1110,6 +1130,22 @@ on_launch_failed (GAppLaunchContext *context, const char *startup_notify_id, gpo
   *invoked = TRUE;
 }
 
+static void
+wait_child_completed (GDesktopAppInfo *appinfo,
+                      GPid             pid,
+                      gpointer         user_data)
+{
+  gboolean *child_waited = user_data;
+  int wait_status = 0;
+  GError *error = NULL;
+
+  while (waitpid (pid, &wait_status, 0) != pid);
+  g_spawn_check_wait_status (wait_status, &error);
+  g_assert_no_error (error);
+  g_clear_error (&error);
+  *child_waited = TRUE;
+}
+
 /* Test g_desktop_app_info_launch_uris_as_manager() and
  * g_desktop_app_info_launch_uris_as_manager_with_fds()
  */
@@ -1123,6 +1159,7 @@ test_launch_as_manager (void)
   gboolean invoked = FALSE;
   gboolean launched = FALSE;
   gboolean failed = FALSE;
+  gboolean child_waited = FALSE;
   GAppLaunchContext *context;
 
   path = g_test_get_filename (G_TEST_BUILT, "appinfo-test.desktop", NULL);
@@ -1139,29 +1176,38 @@ test_launch_as_manager (void)
   g_signal_connect (context, "launch-failed",
                     G_CALLBACK (on_launch_failed),
                     &failed);
-  retval = g_desktop_app_info_launch_uris_as_manager (appinfo, NULL, context, 0,
-                                                      NULL, NULL,
-                                                      NULL, NULL,
+  retval = g_desktop_app_info_launch_uris_as_manager (appinfo, NULL, context,
+                                                      G_SPAWN_DO_NOT_REAP_CHILD,
+                                                      NULL,
+                                                      NULL,
+                                                      wait_child_completed,
+                                                      &child_waited,
                                                       &error);
   g_assert_no_error (error);
   g_assert_true (retval);
   g_assert_true (invoked);
   g_assert_true (launched);
+  g_assert_true (child_waited);
   g_assert_false (failed);
 
   invoked = FALSE;
   launched = FALSE;
   failed = FALSE;
+  child_waited = FALSE;
   retval = g_desktop_app_info_launch_uris_as_manager_with_fds (appinfo,
-                                                               NULL, context, 0,
-                                                               NULL, NULL,
-                                                               NULL, NULL,
+                                                               NULL, context,
+                                                               G_SPAWN_DO_NOT_REAP_CHILD,
+                                                               NULL,
+                                                               NULL,
+                                                               wait_child_completed,
+                                                               &child_waited,
                                                                -1, -1, -1,
                                                                &error);
   g_assert_no_error (error);
   g_assert_true (retval);
   g_assert_true (invoked);
   g_assert_true (launched);
+  g_assert_true (child_waited);
   g_assert_false (failed);
 
   g_object_unref (appinfo);
@@ -1179,6 +1225,7 @@ test_launch_as_manager_fail (void)
   gboolean launch_started = FALSE;
   gboolean launched = FALSE;
   gboolean failed = FALSE;
+  gboolean child_waited = FALSE;
 
   g_test_summary ("Tests that launch-errors are properly handled, we force " \
                   "this by using invalid FD's values when launching as manager");
@@ -1199,15 +1246,19 @@ test_launch_as_manager_fail (void)
                     &failed);
 
   retval = g_desktop_app_info_launch_uris_as_manager_with_fds (appinfo,
-                                                               NULL, context, 0,
-                                                               NULL, NULL,
-                                                               NULL, NULL,
+                                                               NULL, context,
+                                                               G_SPAWN_DO_NOT_REAP_CHILD,
+                                                               NULL,
+                                                               NULL,
+                                                               wait_child_completed,
+                                                               &child_waited,
                                                                3000, 3001, 3002,
                                                                &error);
   g_assert_error (error, G_SPAWN_ERROR, G_SPAWN_ERROR_FAILED);
   g_assert_false (retval);
   g_assert_true (launch_started);
   g_assert_false (launched);
+  g_assert_false (child_waited);
   g_assert_true (failed);
 
   g_clear_error (&error);
@@ -1382,6 +1433,76 @@ test_default_uri_handler_async (void)
   g_object_unref (info);
   g_main_loop_unref (loop);
   g_free (file_path);
+}
+
+static void
+launch_snap_uris_with_portal (void)
+{
+  GDesktopAppInfo *appinfo;
+  GError *error = NULL;
+  gboolean retval;
+  const gchar *path;
+  const gchar *path2;
+  gboolean invoked = FALSE;
+  gboolean launched = FALSE;
+  gboolean failed = FALSE;
+  gboolean child_waited = FALSE;
+  GAppLaunchContext *context;
+  GList *uris = NULL;
+  GFakeDocumentPortalThread *thread = NULL;
+
+  /* Run a fake-document-portal */
+  session_bus_up ();
+  thread = g_fake_document_portal_thread_new (session_bus_get_address (),
+                                              "snap.snap-app");
+  g_fake_document_portal_thread_run (thread);
+
+  path = g_test_get_filename (G_TEST_BUILT, "snap-app_appinfo-test.desktop", NULL);
+  appinfo = g_desktop_app_info_new_from_filename (path);
+  g_assert_true (G_IS_APP_INFO (appinfo));
+
+  path2 = g_test_get_filename (G_TEST_BUILT, "appinfo-test.desktop", NULL);
+  g_assert_true (g_file_test (path2, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR));
+
+  context = g_object_new (test_launch_context_get_type (), NULL);
+  g_signal_connect (context, "launch-started",
+                    G_CALLBACK (on_launch_started),
+                    &invoked);
+  g_signal_connect (context, "launched",
+                    G_CALLBACK (on_launched),
+                    &launched);
+  g_signal_connect (context, "launch-failed",
+                    G_CALLBACK (on_launch_failed),
+                    &failed);
+  g_app_launch_context_setenv (context, "DOCUMENT_PORTAL_MOUNT_POINT",
+                               g_fake_document_portal_thread_get_mount_point (thread));
+
+  uris = g_list_append (uris, g_strconcat ("file://", path, NULL));
+  uris = g_list_append (uris, g_strconcat ("file://", path2, NULL));
+
+  retval = g_desktop_app_info_launch_uris_as_manager (appinfo, uris,
+                                                      context,
+                                                      G_SPAWN_DO_NOT_REAP_CHILD,
+                                                      NULL,
+                                                      NULL,
+                                                      wait_child_completed,
+                                                      &child_waited,
+                                                      &error);
+
+  g_assert_no_error (error);
+  g_assert_true (retval);
+  g_assert_true (invoked);
+  g_assert_true (launched);
+  g_assert_true (child_waited);
+  g_assert_false (failed);
+
+  g_clear_list (&uris, g_free);
+  g_object_unref (appinfo);
+  g_assert_finalize_object (context);
+
+  g_fake_document_portal_thread_stop (thread);
+  g_clear_object (&thread);
+  session_bus_down ();
 }
 
 /* Test if Desktop-File Id is correctly formed */
@@ -1768,6 +1889,56 @@ test_app_path_wrong (void)
 }
 
 static void
+test_invalid_key_file (void)
+{
+  const char *vectors[] =
+    {
+      /* This .desktop file has invalid escaping in its Exec= line; `\"` is an
+       * invalid escape sequence in the Desktop Entry Spec
+       * (https://specifications.freedesktop.org/desktop-entry-spec/latest/value-types.html): */
+      "[Desktop Entry]\n"
+      "Type=Application\n"
+      "Name=Example2\n"
+      "Exec=gedit \"/home/dkondor/program/file with \\\"weird\\\" name\"\n",
+      /* This one has invalid escaping at the end of its Path= line: */
+      "[Desktop Entry]\n"
+      "Type=Application\n"
+      "Name=Example2\n"
+      "Path=some/path\\\n"
+      "Exec=gedit",
+      /* This one has invalid UTF-8 in its TryExec= line: */
+      "[Desktop Entry]\n"
+      "Type=Application\n"
+      "Name=Example2\n"
+      "TryExec=gedit \"\xc3\x28\"\n",
+    };
+
+  g_test_bug ("https://gitlab.gnome.org/GNOME/glib/-/issues/3771");
+  g_test_summary ("Test that loading invalid key files does not succeed");
+
+  for (size_t i = 0; i < G_N_ELEMENTS (vectors); i++)
+    {
+      int fd = -1;
+      char *tmp_filename = NULL;
+      GError *local_error = NULL;
+
+      /* Create a temp desktop file containing the invalid key file data */
+      fd = g_file_open_tmp ("desktop-app-info-test-XXXXXX.desktop", &tmp_filename, NULL);
+      g_assert_cmpint (fd, >, -1);
+      g_close (fd, NULL);
+
+      g_file_set_contents (tmp_filename, vectors[i], -1, &local_error);
+      g_assert_no_error (local_error);
+
+      /* Try loading the desktop file; it should fail */
+      g_assert_null (g_desktop_app_info_new_from_filename (tmp_filename));
+
+      g_unlink (tmp_filename);
+      g_free (tmp_filename);
+    }
+}
+
+static void
 test_launch_startup_notify_fail (void)
 {
   GAppInfo *app_info;
@@ -1830,6 +2001,39 @@ test_launch_fail (void)
 
   g_clear_error (&error);
   g_clear_object (&app_info);
+}
+
+static void
+test_launch_fail_argument (void)
+{
+  GAppInfo *app_info;
+  GList *args = NULL;
+  GFile *file;
+  GFileIOStream *iostream;
+  GError *error = NULL;
+
+  app_info = g_app_info_create_from_commandline ("this-must-not-exist‼",
+                                                 "failing app with argument",
+                                                 G_APP_INFO_CREATE_NONE,
+                                                 &error);
+  g_assert_no_error (error);
+
+  file = g_file_new_tmp ("test_desktop_app_info_launch_fail_argument_XXXXXX",
+                         &iostream, NULL);
+  g_assert_nonnull (file);
+  g_assert_nonnull (iostream);
+  g_clear_object (&iostream);
+
+  args = g_list_prepend (args, file);
+  g_assert_false (g_app_info_launch (app_info, args, NULL, &error));
+  g_assert_error (error, G_SPAWN_ERROR, G_SPAWN_ERROR_NOENT);
+
+  g_clear_error (&error);
+  g_clear_object (&app_info);
+
+  g_file_delete (file, NULL, NULL);
+  g_clear_object (&file);
+  g_list_free (args);
 }
 
 static void
@@ -1955,7 +2159,9 @@ main (int   argc,
   g_test_add_func ("/desktop-app-info/show-in", test_show_in);
   g_test_add_func ("/desktop-app-info/app-path", test_app_path);
   g_test_add_func ("/desktop-app-info/app-path/wrong", test_app_path_wrong);
+  g_test_add_func ("/desktop-app-info/invalid-key-file", test_invalid_key_file);
   g_test_add_func ("/desktop-app-info/launch/fail", test_launch_fail);
+  g_test_add_func ("/desktop-app-info/launch/fail-argument", test_launch_fail_argument);
   g_test_add_func ("/desktop-app-info/launch/fail-absolute-path", test_launch_fail_absolute_path);
   g_test_add_func ("/desktop-app-info/launch/fail-startup-notify", test_launch_startup_notify_fail);
   g_test_add_func ("/desktop-app-info/launch/fail-dbus", test_launch_fail_dbus);
@@ -1963,6 +2169,7 @@ main (int   argc,
   g_test_add_func ("/desktop-app-info/launch-as-manager/fail", test_launch_as_manager_fail);
   g_test_add_func ("/desktop-app-info/launch-default-uri-handler", test_default_uri_handler);
   g_test_add_func ("/desktop-app-info/launch-default-uri-handler-async", test_default_uri_handler_async);
+  g_test_add_func ("/desktop-app-info/launch-snap-uri-with-portal", launch_snap_uris_with_portal);
   g_test_add_func ("/desktop-app-info/id", test_id);
 
   for (i = 0; i < G_N_ELEMENTS (supported_terminals); i++)

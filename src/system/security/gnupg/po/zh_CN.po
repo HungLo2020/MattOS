@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNU gnupg 2.3.8\n"
 "Report-Msgid-Bugs-To: translations@gnupg.org\n"
-"PO-Revision-Date: 2022-10-22 19:41+0800\n"
+"PO-Revision-Date: 2026-05-26 11:35+0900\n"
 "Last-Translator: bobwxc <bobwxc@yeah.net>\n"
 "Language-Team: None\n"
 "Language: zh_CN\n"
@@ -509,6 +509,11 @@ msgstr "正尝试从运行的 %s 处夺取套接字\n"
 msgid "a gpg-agent is already running - not starting a new one\n"
 msgstr "有一个 gpg-agent 实例正在运行 - 无须启动新的实例\n"
 
+#, fuzzy, c-format
+#| msgid "key %s: removed multiple subkey binding\n"
+msgid "socket file removed - retrying binding\n"
+msgstr "密钥 %s：已删除多重子密钥绑定\n"
+
 #, c-format
 msgid "error getting nonce for the socket\n"
 msgstr "获取套接字 nonce 时出现错误\n"
@@ -647,10 +652,6 @@ msgid "error opening '%s': %s\n"
 msgstr "打开‘%s’时出现错误：%s\n"
 
 #, c-format
-msgid "file '%s', line %d: %s\n"
-msgstr "文件‘%s’ 的第 %d 行：%s\n"
-
-#, c-format
 msgid "statement \"%s\" ignored in '%s', line %d\n"
 msgstr "已忽略声明 “%s” ，其位于‘%s’的第 %d 行\n"
 
@@ -699,7 +700,7 @@ msgstr "否"
 #. insert a line break.  The double percent sign is actually
 #. needed because it is also a printf format string.  If you
 #. need to insert a plain % sign, you need to encode it as
-#. "%%25".  The second "%s" gets replaced by a hexdecimal
+#. "%%25".  The second "%s" gets replaced by a hexadecimal
 #. fingerprint string whereas the first one receives the name
 #. as stored in the certificate.
 #, c-format
@@ -710,7 +711,8 @@ msgstr "请确认被识别为%%0A “%s”%%0A的证书具有以下的指纹：%
 
 #. TRANSLATORS: "Correct" is the label of a button and intended
 #. to be hit if the fingerprint matches the one of the CA.  The
-#. other button is "the default "Cancel" of the Pinentry.
+#. other button is "the default "Cancel" of the Pinentry.  We
+#. fix the English strings with hacks to avoid a string changes.
 msgid "Correct"
 msgstr "正确"
 
@@ -732,6 +734,11 @@ msgstr "更改密码"
 
 msgid "I'll change it later"
 msgstr "稍后修改"
+
+#, fuzzy, c-format
+#| msgid "receiving line failed: %s\n"
+msgid "Unprotecting key failed: %s\n"
+msgstr "接收行失败：%s\n"
 
 msgid "Please insert the card with serial number"
 msgstr "请插入具有以下序列号的卡"
@@ -796,34 +803,6 @@ msgstr "创建管道时发生错误： %s\n"
 #, c-format
 msgid "error creating a stream for a pipe: %s\n"
 msgstr "为管道创建流时出现错误： %s\n"
-
-#, c-format
-msgid "error forking process: %s\n"
-msgstr "在 fork 进程时出现错误： %s\n"
-
-#, c-format
-msgid "waiting for process %d to terminate failed: %s\n"
-msgstr "等待进程 %d 终止时失败： %s\n"
-
-#, c-format
-msgid "error running '%s': probably not installed\n"
-msgstr "运行‘%s’时出现错误：可能未安装\n"
-
-#, c-format
-msgid "error running '%s': exit status %d\n"
-msgstr "运行‘%s’时出现错误：退出代码 %d\n"
-
-#, c-format
-msgid "error running '%s': terminated\n"
-msgstr "运行‘%s’时出现错误：被终止\n"
-
-#, c-format
-msgid "waiting for processes to terminate failed: %s\n"
-msgstr "等待进程终止时失败： %s\n"
-
-#, c-format
-msgid "error getting exit code of process %d: %s\n"
-msgstr "获取进程 %d 的退出代码时出现错误： %s\n"
 
 #, c-format
 msgid "can't connect to '%s': %s\n"
@@ -1103,6 +1082,10 @@ msgstr "Dirmngr 可用"
 #, c-format
 msgid "No help available for '%s'."
 msgstr "没有关于 ‘%s’ 的可用帮助。"
+
+#, c-format
+msgid "file '%s', line %d: %s\n"
+msgstr "文件‘%s’ 的第 %d 行：%s\n"
 
 msgid "ignoring garbage line"
 msgstr "忽略无用行"
@@ -1385,6 +1368,16 @@ msgstr "强制"
 msgid "Please try command \"%s\" if the listing does not look correct\n"
 msgstr ""
 
+#, c-format
+msgid ""
+"Please note that the factory settings of the PINs are\n"
+"   PIN = '%s'     Admin PIN = '%s'\n"
+"You should change them using the command --change-pin\n"
+msgstr ""
+"请注意，出厂设置的 PIN 为：\n"
+"  PIN = ‘%s’    管理员 PIN = ‘%s’\n"
+"您应当使用 --change-pin 命令来更改它们\n"
+
 msgid "Error: Only plain ASCII is currently allowed.\n"
 msgstr "错误：目前只允许使用纯 ASCII 字符。\n"
 
@@ -1538,16 +1531,6 @@ msgstr "注意： 已有私钥被存储于卡片上！\n"
 msgid "Replace existing keys? (y/N) "
 msgstr "替换现存的密钥？(y/N) "
 
-#, c-format
-msgid ""
-"Please note that the factory settings of the PINs are\n"
-"   PIN = '%s'     Admin PIN = '%s'\n"
-"You should change them using the command --change-pin\n"
-msgstr ""
-"请注意，出厂设置的 PIN 为：\n"
-"  PIN = ‘%s’    管理员 PIN = ‘%s’\n"
-"您应当使用 --change-pin 命令来更改它们\n"
-
 msgid "Please select the type of key to generate:\n"
 msgstr "请选择您要生成的密钥类型：\n"
 
@@ -1664,6 +1647,16 @@ msgstr "管理员命令不可用\n"
 msgid "Invalid command  (try \"help\")\n"
 msgstr "无效的命令  （尝试“help”）\n"
 
+#, fuzzy, c-format
+#| msgid "key operation not possible: %s\n"
+msgid "modifying the recipients is not possible: %s\n"
+msgstr "密钥操作无法实现：%s\n"
+
+#, fuzzy
+#| msgid "decryption failed: %s\n"
+msgid "decryption failed"
+msgstr "解密失败：%s\n"
+
 #, c-format
 msgid "--output doesn't work for this command\n"
 msgstr "--output 在这个命令中不起作用\n"
@@ -1741,6 +1734,10 @@ msgid "use option \"--delete-secret-keys\" to delete it first.\n"
 msgstr "请先使用“--delete-secret-keys”选项来删除它。\n"
 
 #, c-format
+msgid "%s/%s.%s encrypted for: \"%s\"\n"
+msgstr "%s/%s.%s 已经加密给：“%s”\n"
+
+#, c-format
 msgid ""
 "WARNING: forcing symmetric cipher %s (%d) violates recipient preferences\n"
 msgstr "警告： 强制对称密文 %s (%d) 与接收者的偏好设置冲突\n"
@@ -1790,19 +1787,30 @@ msgstr "摘要算法‘%s’不能在 %s 模式下使用\n"
 msgid "reading from '%s'\n"
 msgstr "正在从‘%s’读取\n"
 
+#, fuzzy, c-format
+#| msgid "problem handling encrypted packet\n"
+msgid "Note: Using the %s encryption packet\n"
+msgstr "处理加密封包时出现问题\n"
+
 #, c-format
 msgid ""
 "WARNING: forcing compression algorithm %s (%d) violates recipient "
 "preferences\n"
 msgstr "警告： 强制压缩算法 %s (%d) 与接收者的偏好设置冲突\n"
 
-#, c-format
-msgid "%s/%s.%s encrypted for: \"%s\"\n"
-msgstr "%s/%s.%s 已经加密给：“%s”\n"
+#, fuzzy, c-format
+#| msgid "Number of recipients"
+msgid "number of removed recipients: %u\n"
+msgstr "接收者数目"
 
 #, c-format
 msgid "option '%s' may not be used in %s mode\n"
 msgstr "选项 ‘%s’ 可能不能用于 %s 模式\n"
+
+#, fuzzy, c-format
+#| msgid "can't encrypt to '%s'\n"
+msgid "already encrypted to %08lX\n"
+msgstr "无法加密给‘%s’\n"
 
 #, c-format
 msgid "%s encrypted data\n"
@@ -1990,6 +1998,11 @@ msgstr "快速签名一个密钥"
 
 msgid "quickly sign a key locally"
 msgstr "快速本地签名一个密钥"
+
+#, fuzzy
+#| msgid "sign selected user IDs with a trust signature"
+msgid "quickly sign a key with a trust signature"
+msgstr "为所选用户标识添加信任签名"
 
 msgid "quickly revoke a key signature"
 msgstr "快速吊销一个密钥签名"
@@ -2284,6 +2297,11 @@ msgstr "列出偏好设置（专家模式）"
 #| msgid "change the ownertrust"
 msgid "show ownertrust"
 msgstr "变更信任度"
+
+#, fuzzy
+#| msgid "Unknown critical signature notation: "
+msgid "show trust signature information"
+msgstr "未知的紧急签名注记： "
 
 #, c-format
 msgid "unknown TOFU policy '%s'\n"
@@ -2613,6 +2631,9 @@ msgstr "|FD|把状态信息写入文件描述符 FD"
 msgid "|ALGO|reject signatures made with ALGO"
 msgstr "|ALGO|拒绝由 ALGO 生成的签名"
 
+msgid "|NAME|print the notation NAME to stdout"
+msgstr ""
+
 msgid "Usage: gpgv [options] [files] (-h for help)"
 msgstr "用法：gpgv [选项] [文件] (-h 获取帮助)"
 
@@ -2671,6 +2692,14 @@ msgstr "假定为 GnuPG 密钥备份格式"
 
 msgid "repair keys on import"
 msgstr "在导入期间修复密钥"
+
+msgid "update even unchanged keys"
+msgstr ""
+
+#, fuzzy
+#| msgid "list secret keys"
+msgid "do not import secret keys"
+msgstr "列出私钥"
 
 #, c-format
 msgid "skipping block of type %d\n"
@@ -2934,9 +2963,15 @@ msgstr "用户标识不再有效"
 msgid "reason for revocation: "
 msgstr "吊销原因： "
 
-#, c-format
-msgid "revocation comment: "
-msgstr "吊销注释： "
+#, fuzzy, c-format
+#| msgid "key %s: can't locate original keyblock: %s\n"
+msgid "key %s: can't locate keyblock: %s\n"
+msgstr "密钥 %s：无法定位原始的密钥区块：%s\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: can't read original keyblock: %s\n"
+msgid "key %s: can't read keyblock: %s\n"
+msgstr "密钥 %s：无法读取原始的密钥区块：%s\n"
 
 #, c-format
 msgid "key %s: no public key - can't apply revocation certificate\n"
@@ -3494,6 +3529,18 @@ msgstr "真的要移除所有选定的用户标识吗？(y/N) "
 msgid "Really remove this user ID? (y/N) "
 msgstr "真的要移除此用户标识吗？(y/N) "
 
+msgid "Command expects a filename argument\n"
+msgstr "命令需要一个文件名作为参数\n"
+
+#, c-format
+msgid "Can't open '%s': %s\n"
+msgstr "无法打开‘%s’：%s\n"
+
+#, fuzzy, c-format
+#| msgid "Error reading backup key from '%s': %s\n"
+msgid "Error reading key from '%s': %s\n"
+msgstr "从‘%s’读取备份密钥时出现错误：%s\n"
+
 #. TRANSLATORS: Please take care: This is about
 #. moving the key and not about removing it.
 msgid "Really move the primary key? (y/N) "
@@ -3501,13 +3548,6 @@ msgstr "真的要移动主密钥吗？(y/N) "
 
 msgid "You must select exactly one key.\n"
 msgstr "您必须选择一个密钥。\n"
-
-msgid "Command expects a filename argument\n"
-msgstr "命令需要一个文件名作为参数\n"
-
-#, c-format
-msgid "Can't open '%s': %s\n"
-msgstr "无法打开‘%s’：%s\n"
 
 #, c-format
 msgid "Error reading backup key from '%s': %s\n"
@@ -3598,6 +3638,11 @@ msgstr "没有匹配的用户标识。"
 
 msgid "Nothing to sign.\n"
 msgstr "没有可被签名的东西。\n"
+
+#, fuzzy, c-format
+#| msgid "revoking the key signature failed: %s\n"
+msgid "creating key signature failed: %s\n"
+msgstr "吊销密钥签名失败：%s\n"
 
 #, c-format
 msgid "Not signed by you.\n"
@@ -4105,15 +4150,25 @@ msgstr "  (%d) 现有密钥 %s\n"
 msgid "  (%d) Existing key from card%s\n"
 msgstr " （%d）卡中现有密钥 %s\n"
 
+#, fuzzy, c-format
+#| msgid "   (%d) ECC and ECC\n"
+msgid "  (%d) ECC and Kyber%s\n"
+msgstr "   (%d) ECC 和 ECC\n"
+
+#, fuzzy, c-format
+#| msgid "  (%d) ECC (encrypt only)%s\n"
+msgid "  (%d) Kyber (encrypt only)%s\n"
+msgstr "  (%d) ECC（仅用于加密）%s\n"
+
 msgid "Enter the keygrip: "
 msgstr "输入 keygrip： "
+
+msgid "No key with this keygrip\n"
+msgstr "没有此 keygrip 关联的密钥\n"
 
 #, c-format
 msgid "Not a valid keygrip (expecting 40 hex digits)\n"
 msgstr "不是一个有效的 keygrip （需要 40 位十六进制数）\n"
-
-msgid "No key with this keygrip\n"
-msgstr "没有此 keygrip 关联的密钥\n"
 
 #, c-format
 msgid "error reading the card: %s\n"
@@ -4144,6 +4199,11 @@ msgstr "请求的密钥长度是 %u 位\n"
 
 msgid "Please select which elliptic curve you want:\n"
 msgstr "请选择您想要使用的椭圆曲线：\n"
+
+#, fuzzy, c-format
+#| msgid "Please select what kind of key you want:\n"
+msgid "Please select the %s variant you want:\n"
+msgstr "请选择您要使用的密钥类型：\n"
 
 msgid ""
 "Please specify how long the key should be valid.\n"
@@ -4471,8 +4531,16 @@ msgstr[0] "警告：%lu 把密钥因尺寸大而被跳过\n"
 msgid "Keyring"
 msgstr "钥匙环"
 
+#, c-format
+msgid "revocation comment: "
+msgstr "吊销注释： "
+
 msgid "Revocable by: "
 msgstr ""
+
+#, c-format
+msgid "error writing to stdout: %s\n"
+msgstr "写入到标准输出（stdout）时出现错误：%s\n"
 
 msgid "Primary key fingerprint:"
 msgstr "主密钥指纹："
@@ -4535,6 +4603,9 @@ msgstr "验证签名时自动拉取密钥"
 msgid "honor the preferred keyserver URL set on the key"
 msgstr "使用密钥中指定的首选公钥服务器 URL"
 
+msgid "update a key before sending it"
+msgstr ""
+
 msgid "disabled"
 msgstr "已禁用"
 
@@ -4548,6 +4619,11 @@ msgstr "无效的公钥服务器协议（us %d!=handler %d）\n"
 #, c-format
 msgid "\"%s\" not a key ID: skipping\n"
 msgstr "“%s” 不是一个用户标识：跳过\n"
+
+#, fuzzy, c-format
+#| msgid "\"%s\" is not a fingerprint\n"
+msgid "\"%s\" not a fingerprint: skipping\n"
+msgstr "\"%s\" 不是一个指纹\n"
 
 #, c-format
 msgid "refreshing %d key from %s\n"
@@ -4573,6 +4649,10 @@ msgstr "正在请求密钥 %s 从 %s\n"
 #, c-format
 msgid "no keyserver known\n"
 msgstr "无已知的公钥服务器\n"
+
+#, c-format
+msgid "upload skipped due to non-LDAP keyserver\n"
+msgstr ""
 
 #, c-format
 msgid "skipped \"%s\": %s\n"
@@ -4625,6 +4705,10 @@ msgstr "      “%s”\n"
 #, c-format
 msgid "encrypted with %s key, ID %s\n"
 msgstr "由 %s 密钥加密、密钥号为 %s\n"
+
+#, c-format
+msgid "WARNING: key is not quantum-resistant\n"
+msgstr ""
 
 #, c-format
 msgid "WARNING: multiple plaintexts seen\n"
@@ -4713,11 +4797,11 @@ msgstr "已损坏的签名，来自于 “%s”"
 
 #, c-format
 msgid "Expired signature from \"%s\""
-msgstr "过期的签名，来自于 “%s”"
+msgstr "过期的签名，来自于   “%s”"
 
 #, c-format
 msgid "Good signature from \"%s\""
-msgstr "完好的签名，来自于 “%s”"
+msgstr "完好的签名，来自于   “%s”"
 
 #, c-format
 msgid "signature verification suppressed\n"
@@ -4891,6 +4975,11 @@ msgstr "未压缩|无"
 msgid "this message may not be usable by %s\n"
 msgstr "此消息可能不能被 %s 使用\n"
 
+#, fuzzy
+#| msgid "enable key"
+msgid "enabled"
+msgstr "启用密钥"
+
 #, c-format
 msgid "ambiguous option '%s'\n"
 msgstr "有歧义的选项‘%s’\n"
@@ -4906,6 +4995,11 @@ msgstr "ECDSA 公钥需要以 8 位的倍数的 SEC 进行编码\n"
 #, c-format
 msgid "unknown weak digest '%s'\n"
 msgstr "未知的弱摘要‘%s’\n"
+
+#, fuzzy, c-format
+#| msgid "Note: old default options file '%s' ignored\n"
+msgid "Note: partial file '%s' removed\n"
+msgstr "注意：旧的默认配置文件‘%s’已被忽略\n"
 
 #, c-format
 msgid "File '%s' exists. "
@@ -5359,6 +5453,11 @@ msgstr "使用的密钥未被标记为加密用途。\n"
 msgid "okay, we are the anonymous recipient.\n"
 msgstr "很好，我们就是匿名接收者。\n"
 
+#, fuzzy, c-format
+#| msgid "WARNING: signing subkey %s is not cross-certified\n"
+msgid "WARNING: session key is not quantum-resistant\n"
+msgstr "警告：签名的子密钥 %s 未经交叉验证\n"
+
 #, c-format
 msgid "old encoding of the DEK is not supported\n"
 msgstr "不支持旧式的 DEK 编码\n"
@@ -5593,6 +5692,11 @@ msgstr "损坏的数据签名来自密钥 %s: %s (0x%02x, 0x%x)\n"
 #, c-format
 msgid "assuming bad signature from key %s due to an unknown critical bit\n"
 msgstr "假定密钥 %s 的签名由于某个未知的关键位出错而损坏\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: no public key - can't apply revocation certificate\n"
+msgid "key %s: no public key - can't check revocation signature.\n"
+msgstr "密钥 %s：没有公钥 - 无法应用吊销证书\n"
 
 #, c-format
 msgid "key %s: no subkey for subkey revocation signature\n"
@@ -6364,8 +6468,8 @@ msgstr "响应不包含公钥数据\n"
 msgid "||Please enter the PIN for the key to create qualified signatures."
 msgstr "||请为这个密钥输入 PIN 以创建合格的签名。"
 
-#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-#. the start of the string.  Use %0A (single percent) for a linefeed.
+#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+#. start of the string.
 msgid "|A|Please enter the Admin PIN"
 msgstr "|A|请输入管理员 PIN"
 
@@ -6437,25 +6541,6 @@ msgid "%sNumber: %s%%0AHolder: %s%%0ACounter: %lu%s"
 msgstr "%s数字: %s%%0A持有者: %s%%0A计数: %lu%s"
 
 #, c-format
-msgid "using default PIN as %s\n"
-msgstr "使用默认 PIN 作为 %s\n"
-
-#, c-format
-msgid "failed to use default PIN as %s: %s - disabling further default use\n"
-msgstr "使用默认 PIN 作为 %s 失败：%s - 禁用进一步的默认使用\n"
-
-msgid "||Please unlock the card"
-msgstr "||请解锁卡片"
-
-#, c-format
-msgid "PIN for CHV%d is too short; minimum length is %d\n"
-msgstr "CHV%d 的 PIN 太短；最小长度为 %d\n"
-
-#, c-format
-msgid "verify CHV%d failed: %s\n"
-msgstr "验证 CHV%d 失败：%s\n"
-
-#, c-format
 msgid "card is permanently locked!\n"
 msgstr "卡片被永久锁定！\n"
 
@@ -6464,6 +6549,25 @@ msgid "%d Admin PIN attempt remaining before card is permanently locked\n"
 msgid_plural ""
 "%d Admin PIN attempts remaining before card is permanently locked\n"
 msgstr[0] "在卡片被永久锁定之前剩余 %d 次管理员 PIN 尝试\n"
+
+msgid "||Please unlock the card"
+msgstr "||请解锁卡片"
+
+#, c-format
+msgid "using default PIN as %s\n"
+msgstr "使用默认 PIN 作为 %s\n"
+
+#, c-format
+msgid "failed to use default PIN as %s: %s - disabling further default use\n"
+msgstr "使用默认 PIN 作为 %s 失败：%s - 禁用进一步的默认使用\n"
+
+#, c-format
+msgid "PIN for CHV%d is too short; minimum length is %d\n"
+msgstr "CHV%d 的 PIN 太短；最小长度为 %d\n"
+
+#, c-format
+msgid "verify CHV%d failed: %s\n"
+msgstr "验证 CHV%d 失败：%s\n"
 
 #, c-format
 msgid "access to admin commands is not configured\n"
@@ -7034,6 +7138,11 @@ msgstr " （可选；以空白行结束）：\n"
 msgid "Enter URIs"
 msgstr "输入 URI"
 
+#, fuzzy
+#| msgid "Enter the notation: "
+msgid "Enter extensions"
+msgstr "输入注记： "
+
 msgid "Create self-signed certificate? (y/N) "
 msgstr "创建自签名证书？ (y/N) "
 
@@ -7203,6 +7312,11 @@ msgstr "注意：将不加密给‘%s’：%s\n"
 msgid "unknown validation model '%s'\n"
 msgstr "未知的验证模型‘%s’\n"
 
+#, fuzzy, c-format
+#| msgid "cipher algorithm %d%s is unknown or disabled\n"
+msgid "given cipher algorithm '%s' is unknown - using '%s'\n"
+msgstr "密文算法 %d%s 未知或已停用\n"
+
 #, c-format
 msgid "importing common certificates '%s'\n"
 msgstr "正在导入通用证书‘%s’\n"
@@ -7210,6 +7324,11 @@ msgstr "正在导入通用证书‘%s’\n"
 #, c-format
 msgid "can't sign using '%s': %s\n"
 msgstr "无法使用‘%s’签名：%s\n"
+
+#, fuzzy, c-format
+#| msgid "can't open fd %d: %s\n"
+msgid "can't open outputfile: %s\n"
+msgstr "无法打开 fd %d：%s\n"
 
 #, c-format
 msgid "invalid command (there is no implicit command)\n"
@@ -7260,19 +7379,20 @@ msgid "error storing certificate: %s\n"
 msgstr "存储证书时出现错误：%s\n"
 
 #, c-format
-msgid "problem re-searching certificate: %s\n"
-msgstr "重新搜索证书时出现问题：%s\n"
-
-#, c-format
 msgid "error storing flags: %s\n"
 msgstr "存储选项时出现错误：%s\n"
+
+#, c-format
+msgid "problem re-searching certificate: %s\n"
+msgstr "重新搜索证书时出现问题：%s\n"
 
 msgid "Error - "
 msgstr "错误 - "
 
-#, c-format
-msgid "GPG_TTY has not been set - using maybe bogus default\n"
-msgstr "GPG_TTY 未被设置 - 使用可能是不正确的默认值\n"
+#, fuzzy, c-format
+#| msgid "error writing to stdout: %s\n"
+msgid "error writing to output: %s\n"
+msgstr "写入到标准输出（stdout）时出现错误：%s\n"
 
 #, c-format
 msgid "invalid formatted fingerprint in '%s', line %d\n"
@@ -8096,6 +8216,10 @@ msgid "colons are not allowed in the socket name\n"
 msgstr "套接字名称中不允许使用冒号\n"
 
 #, c-format
+msgid "error forking process: %s\n"
+msgstr "在 fork 进程时出现错误： %s\n"
+
+#, c-format
 msgid "fetching CRL from '%s' failed: %s\n"
 msgstr "从‘%s’处获取 CRL 时失败：%s\n"
 
@@ -8715,8 +8839,37 @@ msgid "manage the command history"
 msgstr "管理命令历史记录"
 
 #, c-format
+#~ msgid "GPG_TTY has not been set - using maybe bogus default\n"
+#~ msgstr "GPG_TTY 未被设置 - 使用可能是不正确的默认值\n"
+
+#, c-format
 #~ msgid "public key of ultimately trusted key %s not found\n"
 #~ msgstr "绝对信任密钥 %s 的公钥未找到\n"
+
+#, c-format
+#~ msgid "waiting for process %d to terminate failed: %s\n"
+#~ msgstr "等待进程 %d 终止时失败： %s\n"
+
+#, fuzzy, c-format
+#~| msgid "waiting for processes to terminate failed: %s\n"
+#~ msgid "waiting for process to terminate failed: ec=%d\n"
+#~ msgstr "等待进程终止时失败： %s\n"
+
+#, c-format
+#~ msgid "error running '%s': probably not installed\n"
+#~ msgstr "运行‘%s’时出现错误：可能未安装\n"
+
+#, c-format
+#~ msgid "error running '%s': exit status %d\n"
+#~ msgstr "运行‘%s’时出现错误：退出代码 %d\n"
+
+#, c-format
+#~ msgid "error running '%s': terminated\n"
+#~ msgstr "运行‘%s’时出现错误：被终止\n"
+
+#, c-format
+#~ msgid "error getting exit code of process %d: %s\n"
+#~ msgstr "获取进程 %d 的退出代码时出现错误： %s\n"
 
 #~ msgid "use canonical text mode"
 #~ msgstr "使用规范的文本模式"
@@ -8816,9 +8969,6 @@ msgstr "管理命令历史记录"
 
 #~ msgid "scanning result for attribute '%s'\n"
 #~ msgstr "为属性‘%s’搜索结果\n"
-
-#~ msgid "error writing to stdout: %s\n"
-#~ msgstr "写入到标准输出（stdout）时出现错误：%s\n"
 
 #~ msgid "          available attribute '%s'\n"
 #~ msgstr "          可用属性‘%s’\n"
@@ -8982,9 +9132,6 @@ msgstr "管理命令历史记录"
 #~ msgid "elevate the trust of signatures with valid PKA data"
 #~ msgstr "提升带有有效 PKA 数据的签名的信任度"
 
-#~ msgid "   (%d) ECC and ECC\n"
-#~ msgstr "   (%d) ECC 和 ECC\n"
-
 #~ msgid "honor the PKA record set on a key when retrieving keys"
 #~ msgstr "获取密钥时使用密钥上的 PKA 记录"
 
@@ -9017,9 +9164,6 @@ msgstr "管理命令历史记录"
 
 #~ msgid "LDAP server list"
 #~ msgstr "LDAP 服务器列表"
-
-#~ msgid "Note: old default options file '%s' ignored\n"
-#~ msgstr "注意：旧的默认配置文件‘%s’已被忽略\n"
 
 #~ msgid ""
 #~ "@\n"

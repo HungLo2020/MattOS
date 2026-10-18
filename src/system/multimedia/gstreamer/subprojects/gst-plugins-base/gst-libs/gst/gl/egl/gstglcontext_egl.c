@@ -28,7 +28,7 @@
  * may need to box it.
  */
 
-#include "gstglcontext_egl.h"
+#include "gstglcontext_egl_private.h"
 
 #include <gst/gl/gl.h>
 #include <gst/gl/gstglcontext_private.h>
@@ -654,7 +654,7 @@ gst_gl_context_egl_choose_config (GstGLContextEGL * egl, GstGLAPI gl_api,
 {
   gboolean create_context;
   EGLint numConfigs;
-  gint i, n;
+  gint i, n GST_UNUSED_ASSERT;
   EGLint config_attrib[20];
   EGLint egl_api = 0;
   EGLBoolean ret = EGL_FALSE;
@@ -1089,41 +1089,36 @@ gst_gl_context_egl_create_context (GstGLContext * context,
     gst_gl_window_x11_create_window ((GstGLWindowX11 *) context->window);
   }
 #endif
-
-  if (other_context == NULL) {
-    /* FIXME: fails to show two outputs at all.  We need a property/option for
-     * glimagesink to say its a visible context */
 #if GST_GL_HAVE_WINDOW_WAYLAND
-    if (GST_IS_GL_WINDOW_WAYLAND_EGL (context->window)) {
-      gst_gl_window_wayland_egl_create_window ((GstGLWindowWaylandEGL *)
-          context->window);
-    }
+  if (GST_IS_GL_WINDOW_WAYLAND_EGL (context->window)) {
+    gst_gl_window_wayland_egl_create_window ((GstGLWindowWaylandEGL *)
+        context->window);
+  }
 #endif
 #if GST_GL_HAVE_WINDOW_WIN32
-    if (GST_IS_GL_WINDOW_WIN32 (context->window)) {
-      gst_gl_window_win32_create_window ((GstGLWindowWin32 *) context->window,
-          NULL);
-    }
+  if (GST_IS_GL_WINDOW_WIN32 (context->window)) {
+    gst_gl_window_win32_create_window ((GstGLWindowWin32 *) context->window,
+        NULL);
+  }
 #endif
 #if GST_GL_HAVE_WINDOW_DISPMANX
-    if (GST_IS_GL_WINDOW_DISPMANX_EGL (context->window)) {
-      gst_gl_window_dispmanx_egl_create_window ((GstGLWindowDispmanxEGL *)
-          context->window);
-    }
+  if (GST_IS_GL_WINDOW_DISPMANX_EGL (context->window)) {
+    gst_gl_window_dispmanx_egl_create_window ((GstGLWindowDispmanxEGL *)
+        context->window);
+  }
 #endif
 #if GST_GL_HAVE_WINDOW_GBM
-    if (GST_IS_GL_WINDOW_GBM_EGL (context->window)) {
-      gst_gl_window_gbm_egl_create_window ((GstGLWindowGBMEGL *)
-          context->window);
-    }
+  if (GST_IS_GL_WINDOW_GBM_EGL (context->window)) {
+    gst_gl_window_gbm_egl_create_window ((GstGLWindowGBMEGL *)
+        context->window);
+  }
 #endif
 #if GST_GL_HAVE_WINDOW_VIV_FB
-    if (GST_IS_GL_WINDOW_VIV_FB_EGL (context->window)) {
-      gst_gl_window_viv_fb_egl_create_window ((GstGLWindowVivFBEGL *)
-          context->window);
-    }
-#endif
+  if (GST_IS_GL_WINDOW_VIV_FB_EGL (context->window)) {
+    gst_gl_window_viv_fb_egl_create_window ((GstGLWindowVivFBEGL *)
+        context->window);
   }
+#endif
 
   if (window)
     window_handle = gst_gl_window_get_window_handle (window);
@@ -1348,8 +1343,9 @@ load_egl_module (gpointer user_data)
 #else
   /* On Linux the .so is only in -dev packages, try with a real soname
    * Proper compilers will optimize away the strcmp */
-  if (g_strcmp0 (G_MODULE_SUFFIX, "so") == 0)
-    module_egl = g_module_open ("libEGL.so.1", G_MODULE_BIND_LAZY);
+#ifdef __linux__
+  module_egl = g_module_open ("libEGL.so.1", G_MODULE_BIND_LAZY);
+#endif
 
   /* This automatically handles the suffix and even .la files */
   if (!module_egl)
@@ -1562,25 +1558,33 @@ _print_all_dma_formats (GstGLContext * context, GArray * dma_formats)
     GstGLDmaFormat *dma_fmt = &g_array_index (dma_formats, GstGLDmaFormat, i);
 
     const gchar *gst_fmt_str = gst_video_format_to_string
-        (gst_video_dma_drm_fourcc_to_format (dma_fmt->fourcc));
+        (gst_video_dma_drm_format_to_gst_format (dma_fmt->fourcc, 0));
 
-    g_string_append_printf (str, "\n| %-12s |", gst_fmt_str);
+    g_string_append_printf (str, "\n");
 
     if (!dma_fmt->modifiers) {
       gchar *fmt_str = gst_video_dma_drm_fourcc_to_string (dma_fmt->fourcc, 0);
+      g_string_append_printf (str, "| %-12s |", gst_fmt_str);
       g_string_append_printf (str, " %-23s |", fmt_str);
       g_string_append_printf (str, " %-13s |\n", "external only");
       g_free (fmt_str);
     } else {
       for (j = 0; j < dma_fmt->modifiers->len; j++) {
+        GstVideoFormat gst_fmt;
         GstGLDmaModifier *dma_modifier =
             &g_array_index (dma_fmt->modifiers, GstGLDmaModifier, j);
 
+        gst_fmt = gst_video_dma_drm_format_to_gst_format (dma_fmt->fourcc,
+            dma_modifier->modifier);
+        gst_fmt_str = gst_video_format_to_string (gst_fmt);
+
+        if (gst_fmt == GST_VIDEO_FORMAT_UNKNOWN)
+          g_string_append_printf (str, "|              |");
+        else
+          g_string_append_printf (str, "| %-12s |", gst_fmt_str);
+
         gchar *fmt_str = gst_video_dma_drm_fourcc_to_string (dma_fmt->fourcc,
             dma_modifier->modifier);
-
-        if (j > 0)
-          g_string_append_printf (str, "|              |");
 
         g_string_append_printf (str, " %-23s |", fmt_str);
         g_string_append_printf (str, " %-13s |\n", dma_modifier->external_only ?
@@ -1834,8 +1838,6 @@ gst_gl_context_egl_get_format_modifiers (GstGLContext * context, gint fourcc,
     goto beach;
 
   format = &g_array_index (egl->dma_formats, GstGLDmaFormat, index);
-  if (!format)
-    goto beach;
 
   *modifiers = format->modifiers;
   ret = TRUE;
@@ -1887,6 +1889,69 @@ gst_gl_context_egl_format_supports_modifier (GstGLContext * context,
   }
 #endif
   return FALSE;
+}
+
+/**
+ * gst_gl_context_egl_append_all_drm_formats:
+ * @context: an EGL #GstGLContext
+ * @drm_fromats: a #GPtrArray holding strings
+ * @external_only: set to %TRUE to include external only formats
+ *
+ * Append all fourcc/modifier pair supported for this EGL context. This is
+ * useful when implementating direct dmabuf upload as all the formats can be
+ * processed as RGBA in this case.
+ *
+ * Since 1.28
+ */
+void
+gst_gl_context_egl_append_all_drm_formats (GstGLContext * context,
+    GPtrArray * drm_formats, gboolean include_external)
+{
+#if GST_GL_HAVE_DMABUF
+  GstGLContextEGL *egl;
+
+  g_return_if_fail (GST_IS_GL_CONTEXT_EGL (context));
+
+  if (!gst_gl_context_egl_fetch_dma_formats (context))
+    return;
+
+  egl = GST_GL_CONTEXT_EGL (context);
+
+  GST_OBJECT_LOCK (context);
+  if (!egl->dma_formats)
+    goto beach;
+
+  for (guint i = 0; i < egl->dma_formats->len; i++) {
+    GstGLDmaFormat *format;
+    GstGLDmaModifier *mods, linear_modifier = { 0, FALSE };
+    guint len;
+
+    format = &g_array_index (egl->dma_formats, GstGLDmaFormat, i);
+
+    if (format->modifiers) {
+      mods = (GstGLDmaModifier *) format->modifiers->data;
+      len = format->modifiers->len;
+    } else {
+      mods = &linear_modifier;
+      len = 1;
+    }
+
+    for (guint j = 0; j < len; j++) {
+      GstGLDmaModifier *modifier;
+      modifier = &mods[j];
+
+      if (modifier->external_only && !include_external)
+        continue;
+
+      gchar *drm_fmt_str = gst_video_dma_drm_fourcc_to_string (format->fourcc,
+          modifier->modifier);
+      g_ptr_array_add (drm_formats, drm_fmt_str);
+    }
+  }
+
+beach:
+  GST_OBJECT_UNLOCK (context);
+#endif
 }
 
 /**

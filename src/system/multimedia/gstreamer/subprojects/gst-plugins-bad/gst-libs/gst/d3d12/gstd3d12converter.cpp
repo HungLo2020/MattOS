@@ -167,8 +167,10 @@ struct PSConstBuffer
 struct PSConstBufferDyn
 {
   float alphaFactor;
-  float padding[3];
+  UINT samplerRemap;
+  float padding[2];
   float hsvcFactor[4];
+  float bgColor[4];
 };
 
 struct VertexData
@@ -284,6 +286,7 @@ struct ConvertCtxCommon
   ConvertCtxCommon()
   {
     const_data_dyn.alphaFactor = 1.0;
+    const_data_dyn.samplerRemap = 0;
     const_data_dyn.hsvcFactor[0] = DEFAULT_HUE;
     const_data_dyn.hsvcFactor[1] = DEFAULT_SATURATION;
     const_data_dyn.hsvcFactor[2] = DEFAULT_BRIGHTNESS;
@@ -317,11 +320,11 @@ struct ConvertCtxCommon
   ComPtr<ID3D12Resource> gamma_enc_lut;
   ComPtr<ID3D12DescriptorHeap> gamma_lut_heap;
   ComPtr<ID3D12DescriptorHeap> sampler_heap;
+  ComPtr<ID3D12Resource> sampler_remap;
   D3D12_VIEWPORT viewport[GST_VIDEO_MAX_PLANES];
   D3D12_RECT scissor_rect[GST_VIDEO_MAX_PLANES];
   ComPtr<ID3D12Fence> setup_fence;
   guint64 setup_fence_val = 0;
-  gboolean have_lut = FALSE;
   gboolean need_color_balance = FALSE;
   PSConstBufferDyn const_data_dyn;
 };
@@ -427,6 +430,7 @@ struct _GstD3D12ConverterPrivate
   gboolean clear_background = FALSE;
   FLOAT clear_color[4][4];
   GstD3D12ColorMatrix clear_color_matrix;
+  GstD3D12ColorMatrix in_clear_color_matrix;
 
   GstVideoOrientationMethod video_direction = GST_VIDEO_ORIENTATION_IDENTITY;
   gboolean color_balance_enabled = FALSE;
@@ -467,6 +471,12 @@ static void gst_d3d12_converter_get_property (GObject * object, guint prop_id,
 static void gst_d3d12_converter_finalize (GObject * object);
 static void
 gst_d3d12_converter_calculate_border_color (GstD3D12Converter * self);
+static gboolean
+gst_d3d12_converter_set_remap_unlocked (GstD3D12Converter * self,
+    ID3D12Resource * remap_vector);
+static gboolean
+gst_d3d12_converter_update_viewport_unlocked (GstD3D12Converter * self,
+    gint x, gint y, gint width, gint height);
 
 #define gst_d3d12_converter_parent_class parent_class
 G_DEFINE_TYPE (GstD3D12Converter, gst_d3d12_converter, GST_TYPE_OBJECT);
@@ -863,7 +873,7 @@ gst_d3d12_converter_setup_resource (GstD3D12Converter * self,
     const GstVideoInfo * in_info, const GstVideoInfo * out_info,
     D3D12_FILTER sampler_filter, const DXGI_SAMPLE_DESC * sample_desc,
     const D3D12_BLEND_DESC * blend_desc,
-    CONVERT_TYPE * convert_type, gboolean have_lut,
+    CONVERT_TYPE * convert_type,
     gboolean color_balance_enabled, GstD3D12ConverterAlphaMode src_alpha,
     GstD3D12ConverterAlphaMode dst_alpha, PSConstBuffer * const_data,
     ConvertCtxCommonPtr ref)
@@ -873,6 +883,7 @@ gst_d3d12_converter_setup_resource (GstD3D12Converter * self,
   VertexData vertex_data[4];
   ComPtr < ID3D12Resource > upload_buf;
   GstD3D12Format in_format, out_format;
+  gboolean have_lut = FALSE;
 
   if (!gst_d3d12_device_get_format (self->device,
           GST_VIDEO_INFO_FORMAT (in_info), &in_format)) {
@@ -932,6 +943,8 @@ gst_d3d12_converter_setup_resource (GstD3D12Converter * self,
     }
 
     ctx->pipeline_data[i].quad_data.resize (psblob_size);
+    if (ctx->pipeline_data[i].crs->HaveLut ())
+      have_lut = TRUE;
   }
 
   D3D12_SHADER_BYTECODE vs_blob;
@@ -998,6 +1011,9 @@ gst_d3d12_converter_setup_resource (GstD3D12Converter * self,
   if (have_lut)
     num_srv += 2;
 
+  /* for sampler remap SRV */
+  num_srv++;
+
   if (priv->max_srv_desc < num_srv)
     priv->max_srv_desc = num_srv;
 
@@ -1006,7 +1022,6 @@ gst_d3d12_converter_setup_resource (GstD3D12Converter * self,
 
   ctx->comm = std::make_shared < ConvertCtxCommon > ();
   auto comm = ctx->comm;
-  comm->have_lut = have_lut;
 
   if (!gst_d3d12_converter_create_sampler (self, sampler_filter,
           &comm->sampler_heap)) {
@@ -1723,11 +1738,13 @@ gst_d3d12_converter_calculate_border_color (GstD3D12Converter * self)
 {
   auto priv = self->priv;
   GstD3D12ColorMatrix *m = &priv->clear_color_matrix;
+  GstD3D12ColorMatrix *in_m = &priv->in_clear_color_matrix;
   const GstVideoInfo *out_info = &priv->out_info;
   gdouble a;
   gdouble rgb[3];
   gdouble converted[3];
   GstVideoFormat format = GST_VIDEO_INFO_FORMAT (out_info);
+  auto comm = priv->main_ctx->comm;
 
   a = ((priv->border_color & 0xffff000000000000) >> 48) / (gdouble) G_MAXUINT16;
   rgb[0] =
@@ -1738,12 +1755,19 @@ gst_d3d12_converter_calculate_border_color (GstD3D12Converter * self)
 
   for (guint i = 0; i < 3; i++) {
     converted[i] = 0;
+    comm->const_data_dyn.bgColor[i] = 0;
     for (guint j = 0; j < 3; j++) {
       converted[i] += m->matrix[i][j] * rgb[j];
+      comm->const_data_dyn.bgColor[i] += in_m->matrix[i][j] * rgb[j];
     }
     converted[i] += m->offset[i];
+    comm->const_data_dyn.bgColor[i] += in_m->offset[i];
+
     converted[i] = CLAMP (converted[i], m->min[i], m->max[i]);
+    comm->const_data_dyn.bgColor[i] = CLAMP (comm->const_data_dyn.bgColor[i],
+        in_m->min[i], in_m->max[i]);
   }
+  comm->const_data_dyn.bgColor[3] = a;
 
   GST_DEBUG_OBJECT (self, "Calculated background color ARGB: %f, %f, %f, %f",
       a, converted[0], converted[1], converted[2]);
@@ -1932,17 +1956,45 @@ gst_d3d12_converter_calculate_border_color (GstD3D12Converter * self)
   }
 }
 
+static void
+gst_d3d12_converter_calculate_remap_border_color (GstD3D12Converter * self,
+    guint64 color)
+{
+  auto priv = self->priv;
+  GstD3D12ColorMatrix *in_m = &priv->in_clear_color_matrix;
+  gdouble a;
+  gdouble rgb[3];
+  auto comm = priv->main_ctx->comm;
+
+  a = ((color & 0xffff000000000000) >> 48) / (gdouble) G_MAXUINT16;
+  rgb[0] = ((color & 0x0000ffff00000000) >> 32) / (gdouble) G_MAXUINT16;
+  rgb[1] = ((color & 0x00000000ffff0000) >> 16) / (gdouble) G_MAXUINT16;
+  rgb[2] = (color & 0x000000000000ffff) / (gdouble) G_MAXUINT16;
+
+  for (guint i = 0; i < 3; i++) {
+    comm->const_data_dyn.bgColor[i] = 0;
+
+    for (guint j = 0; j < 3; j++)
+      comm->const_data_dyn.bgColor[i] += in_m->matrix[i][j] * rgb[j];
+
+    comm->const_data_dyn.bgColor[i] += in_m->offset[i];
+
+    comm->const_data_dyn.bgColor[i] = CLAMP (comm->const_data_dyn.bgColor[i],
+        in_m->min[i], in_m->max[i]);
+  }
+
+  comm->const_data_dyn.bgColor[3] = a;
+}
+
 static gboolean
 gst_d3d12_converter_setup_colorspace (GstD3D12Converter * self,
     const GstVideoInfo * in_info, const GstVideoInfo * out_info,
     gboolean allow_gamma, gboolean allow_primaries,
-    gboolean color_balance_enabled, gboolean * have_lut,
-    CONVERT_TYPE * convert_type, PSConstBuffer * const_data)
+    gboolean color_balance_enabled, CONVERT_TYPE * convert_type,
+    PSConstBuffer * const_data)
 {
   GstVideoInfo matrix_in_info;
   GstVideoInfo matrix_out_info;
-
-  *have_lut = FALSE;
 
   convert_type[0] = CONVERT_TYPE::IDENTITY;
   convert_type[1] = CONVERT_TYPE::COLOR_BALANCE;
@@ -2008,11 +2060,6 @@ gst_d3d12_converter_setup_colorspace (GstD3D12Converter * self,
       !gst_d3d12_converter_calculate_matrix (self,
           &matrix_in_info, &matrix_out_info, convert_type[1], &const_data[1])) {
     return FALSE;
-  }
-
-  if (convert_type[0] == CONVERT_TYPE::GAMMA ||
-      convert_type[0] == CONVERT_TYPE::PRIMARY || color_balance_enabled) {
-    *have_lut = TRUE;
   }
 
   return TRUE;
@@ -2184,11 +2231,31 @@ gst_d3d12_converter_new (GstD3D12Device * device, GstD3D12CmdQueue * queue,
         &yuv_info, &priv->clear_color_matrix);
   }
 
-  gst_d3d12_converter_calculate_border_color (self);
+  if (GST_VIDEO_INFO_IS_RGB (&priv->in_info)) {
+    GstVideoInfo rgb_info = priv->in_info;
+    rgb_info.colorimetry.range = GST_VIDEO_COLOR_RANGE_0_255;
+    gst_d3d12_color_range_adjust_matrix_unorm (&rgb_info, &priv->in_info,
+        &priv->in_clear_color_matrix);
+  } else {
+    GstVideoInfo rgb_info;
+    GstVideoInfo yuv_info;
+
+    gst_video_info_set_format (&rgb_info, GST_VIDEO_FORMAT_RGBA64_LE,
+        priv->in_info.width, priv->in_info.height);
+    convert_info_gray_to_yuv (&priv->in_info, &yuv_info);
+
+    if (yuv_info.colorimetry.matrix == GST_VIDEO_COLOR_MATRIX_UNKNOWN ||
+        yuv_info.colorimetry.matrix == GST_VIDEO_COLOR_MATRIX_RGB) {
+      GST_WARNING_OBJECT (self, "Invalid matrix is detected");
+      yuv_info.colorimetry.matrix = GST_VIDEO_COLOR_MATRIX_BT709;
+    }
+
+    gst_d3d12_rgb_to_yuv_matrix_unorm (&rgb_info,
+        &yuv_info, &priv->in_clear_color_matrix);
+  }
 
   PSConstBuffer const_data[2];
   CONVERT_TYPE convert_type[2];
-  gboolean have_lut = FALSE;
 
   if (priv->mipgen_enabled) {
     GstVideoFormat mipgen_format = GST_VIDEO_FORMAT_RGBA;
@@ -2228,7 +2295,7 @@ gst_d3d12_converter_new (GstD3D12Device * device, GstD3D12CmdQueue * queue,
      * a supported mip format */
     if (mipgen_format != GST_VIDEO_INFO_FORMAT (&priv->in_info)) {
       if (!gst_d3d12_converter_setup_colorspace (self, &priv->in_info,
-              &priv->mipgen_info, FALSE, FALSE, FALSE, &have_lut, convert_type,
+              &priv->mipgen_info, FALSE, FALSE, FALSE, convert_type,
               const_data)) {
         gst_object_unref (self);
         return nullptr;
@@ -2242,7 +2309,7 @@ gst_d3d12_converter_new (GstD3D12Device * device, GstD3D12CmdQueue * queue,
       priv->mipgen_ctx =
           gst_d3d12_converter_setup_resource (self, &priv->in_info,
           &priv->mipgen_info, DEFAULT_SAMPLER_FILTER, &sample_desc_default,
-          &blend_desc_default, convert_type, have_lut, FALSE,
+          &blend_desc_default, convert_type, FALSE,
           GST_D3D12_CONVERTER_ALPHA_MODE_STRAIGHT,
           GST_D3D12_CONVERTER_ALPHA_MODE_STRAIGHT, const_data, nullptr);
       if (!priv->mipgen_ctx) {
@@ -2292,14 +2359,14 @@ gst_d3d12_converter_new (GstD3D12Device * device, GstD3D12CmdQueue * queue,
 
   if (!gst_d3d12_converter_setup_colorspace (self, &priv->in_info,
           &priv->out_info, allow_gamma, allow_primaries,
-          priv->color_balance_enabled, &have_lut, convert_type, const_data)) {
+          priv->color_balance_enabled, convert_type, const_data)) {
     gst_object_unref (self);
     return nullptr;
   }
 
   priv->main_ctx = gst_d3d12_converter_setup_resource (self, &priv->in_info,
       &priv->out_info, sampler_filter, &priv->sample_desc, &priv->blend_desc,
-      convert_type, have_lut, priv->color_balance_enabled,
+      convert_type, priv->color_balance_enabled,
       priv->src_alpha_mode, priv->dst_alpha_mode, const_data, nullptr);
   if (!priv->main_ctx) {
     gst_object_unref (self);
@@ -2309,14 +2376,14 @@ gst_d3d12_converter_new (GstD3D12Device * device, GstD3D12CmdQueue * queue,
   if (priv->mipgen_ctx) {
     if (!gst_d3d12_converter_setup_colorspace (self, &priv->mipgen_info,
             &priv->out_info, allow_gamma, allow_primaries,
-            priv->color_balance_enabled, &have_lut, convert_type, const_data)) {
+            priv->color_balance_enabled, convert_type, const_data)) {
       gst_object_unref (self);
       return nullptr;
     }
 
     priv->post_mipgen_ctx = gst_d3d12_converter_setup_resource (self,
         &priv->mipgen_info, &priv->out_info, sampler_filter, &priv->sample_desc,
-        &priv->blend_desc, convert_type, have_lut, priv->color_balance_enabled,
+        &priv->blend_desc, convert_type, priv->color_balance_enabled,
         priv->src_alpha_mode, priv->dst_alpha_mode, const_data,
         priv->main_ctx->comm);
     if (!priv->post_mipgen_ctx) {
@@ -2324,6 +2391,8 @@ gst_d3d12_converter_new (GstD3D12Device * device, GstD3D12CmdQueue * queue,
       return nullptr;
     }
   }
+
+  gst_d3d12_converter_calculate_border_color (self);
 
   D3D12_DESCRIPTOR_HEAP_DESC srv_heap_desc = { };
   srv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -2484,6 +2553,12 @@ gst_d3d12_converter_execute (GstD3D12Converter * self, GstD3D12Frame * in_frame,
     GST_DEBUG_OBJECT (self, "Vertex updated");
   }
 
+  guint pipeline_index = 0;
+  if (!is_internal && comm->need_color_balance)
+    pipeline_index = 1;
+
+  auto & pipeline_data = ctx->pipeline_data[pipeline_index];
+
   auto device = gst_d3d12_device_get_device_handle (self->device);
 
   GstD3D12DescHeap *descriptor;
@@ -2505,10 +2580,22 @@ gst_d3d12_converter_execute (GstD3D12Converter * self, GstD3D12Frame * in_frame,
     cpu_handle.Offset (priv->srv_inc_size);
   }
 
-  if (comm->have_lut) {
+  if (pipeline_data.crs->HaveLut ()) {
     device->CopyDescriptorsSimple (2, cpu_handle,
         GetCPUDescriptorHandleForHeapStart (comm->gamma_lut_heap),
         D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    cpu_handle.Offset (2, priv->srv_inc_size);
+  }
+
+  auto prev_sampler_remap = comm->const_data_dyn.samplerRemap;
+
+  /* Do not enable UV remap for intermediate conversion */
+  if (is_internal)
+    comm->const_data_dyn.samplerRemap = 0;
+
+  if (comm->const_data_dyn.samplerRemap) {
+    device->CreateShaderResourceView (comm->sampler_remap.Get (),
+        nullptr, cpu_handle);
   }
 
   if (priv->clear_background) {
@@ -2521,9 +2608,6 @@ gst_d3d12_converter_execute (GstD3D12Converter * self, GstD3D12Frame * in_frame,
   D3D12_CPU_DESCRIPTOR_HANDLE reordered_rtv_handle[GST_VIDEO_MAX_PLANES];
   reorder_rtv_handles (GST_VIDEO_INFO_FORMAT (&out_frame->info),
       out_frame->rtv_desc_handle, reordered_rtv_handle);
-
-  guint pipeline_index = comm->need_color_balance ? 1 : 0;
-  auto & pipeline_data = ctx->pipeline_data[pipeline_index];
 
   auto pso = pipeline_data.quad_data[0].pso.Get ();
   cl->SetGraphicsRootSignature (pipeline_data.rs.Get ());
@@ -2578,6 +2662,15 @@ gst_d3d12_converter_execute (GstD3D12Converter * self, GstD3D12Frame * in_frame,
         FENCE_NOTIFY_COM (ctx->vertex_upload.Detach ()));
   }
 
+  if (ctx->comm->sampler_remap && comm->const_data_dyn.samplerRemap) {
+    ComPtr < ID3D12Resource > remap_clone = ctx->comm->sampler_remap;
+    gst_d3d12_fence_data_push (fence_data,
+        FENCE_NOTIFY_COM (remap_clone.Detach ()));
+  }
+
+  /* Restore remap flag  */
+  comm->const_data_dyn.samplerRemap = prev_sampler_remap;
+
   auto sampler = comm->sampler_heap.Get ();
   sampler->AddRef ();
   gst_d3d12_fence_data_push (fence_data, FENCE_NOTIFY_COM (sampler));
@@ -2619,43 +2712,17 @@ calculate_auto_mipgen_level (GstD3D12Converter * self)
   priv->auto_mipgen_level = priv->mipgen_desc.MipLevels;
 }
 
-/**
- * gst_d3d12_converter_convert_buffer:
- * @converter: a #GstD3D12Converter
- * @in_buf: a #GstBuffer
- * @out_buf: a #GstBuffer
- * @fence_data: a #GstD3D12FenceData
- * @command_list: a ID3D12GraphicsCommandList
- * @execute_gpu_wait: Executes wait operation against @queue
- *
- * Records command list for conversion operation. converter will attach
- * conversion command associated resources such as command allocator
- * to @fence_data.
- *
- * If @execute_wait is %TRUE and buffers are associated with external fences,
- * this method will schedule GPU wait operation against @queue.
- *
- * Returns: %TRUE if successful
- *
- * Since: 1.26
- */
-gboolean
-gst_d3d12_converter_convert_buffer (GstD3D12Converter * converter,
+static gboolean
+gst_d3d12_converter_convert_buffer_internal (GstD3D12Converter * converter,
     GstBuffer * in_buf, GstBuffer * out_buf, GstD3D12FenceData * fence_data,
-    ID3D12GraphicsCommandList * command_list, gboolean execute_gpu_wait)
+    ID3D12GraphicsCommandList * command_list, gboolean execute_gpu_wait,
+    guint num_remap, ID3D12Resource ** lut, GstVideoRectangle * viewport,
+    guint64 * border_color)
 {
-  g_return_val_if_fail (GST_IS_D3D12_CONVERTER (converter), FALSE);
-  g_return_val_if_fail (GST_IS_BUFFER (in_buf), FALSE);
-  g_return_val_if_fail (GST_IS_BUFFER (out_buf), FALSE);
-  g_return_val_if_fail (fence_data, FALSE);
-  g_return_val_if_fail (command_list, FALSE);
-
   GstD3D12Frame in_frame;
   GstD3D12Frame out_frame;
 
   auto priv = converter->priv;
-  std::lock_guard < std::mutex > lk (priv->prop_lock);
-
   auto render_target = gst_d3d12_pack_acquire_render_target (priv->pack,
       out_buf);
   if (!render_target) {
@@ -2881,20 +2948,91 @@ gst_d3d12_converter_convert_buffer (GstD3D12Converter * converter,
       mipgen_frame.srv_desc_handle[0] = cpu_handle;
     }
 
-    if (priv->post_mipgen_ctx) {
-      ret = gst_d3d12_converter_execute (converter,
-          &mipgen_frame, &out_frame, priv->post_mipgen_ctx,
-          FALSE, fence_data, command_list);
+    if (num_remap == 0) {
+      if (priv->post_mipgen_ctx) {
+        ret = gst_d3d12_converter_execute (converter,
+            &mipgen_frame, &out_frame, priv->post_mipgen_ctx,
+            FALSE, fence_data, command_list);
+      } else {
+        ret = gst_d3d12_converter_execute (converter,
+            &mipgen_frame, &out_frame, priv->main_ctx,
+            FALSE, fence_data, command_list);
+      }
     } else {
-      ret = gst_d3d12_converter_execute (converter,
-          &mipgen_frame, &out_frame, priv->main_ctx,
-          FALSE, fence_data, command_list);
+      auto prev_remap = priv->main_ctx->comm->sampler_remap;
+      auto prev_x = priv->dest_x;
+      auto prev_y = priv->dest_y;
+      auto prev_w = priv->dest_width;
+      auto prev_h = priv->dest_height;
+      FLOAT prev_color[4];
+      for (guint i = 0; i < 4; i++)
+        prev_color[i] = priv->main_ctx->comm->const_data_dyn.bgColor[i];
+
+      for (guint i = 0; i < num_remap; i++) {
+        gst_d3d12_converter_set_remap_unlocked (converter, lut[i]);
+        gst_d3d12_converter_update_viewport_unlocked (converter,
+            viewport[i].x, viewport[i].y, viewport[i].w, viewport[i].h);
+        gst_d3d12_converter_calculate_remap_border_color (converter,
+            border_color[i]);
+
+        if (priv->post_mipgen_ctx) {
+          ret = gst_d3d12_converter_execute (converter,
+              &mipgen_frame, &out_frame, priv->post_mipgen_ctx,
+              FALSE, fence_data, command_list);
+        } else {
+          ret = gst_d3d12_converter_execute (converter,
+              &mipgen_frame, &out_frame, priv->main_ctx,
+              FALSE, fence_data, command_list);
+        }
+
+        if (!ret)
+          break;
+      }
+
+      /* Restore previous state */
+      gst_d3d12_converter_set_remap_unlocked (converter, prev_remap.Get ());
+      gst_d3d12_converter_update_viewport_unlocked (converter,
+          prev_x, prev_y, prev_w, prev_h);
+      for (guint i = 0; i < 4; i++)
+        priv->main_ctx->comm->const_data_dyn.bgColor[i] = prev_color[i];
     }
 
     gst_d3d12_frame_unmap (&mipgen_frame);
   } else {
-    ret = gst_d3d12_converter_execute (converter,
-        &in_frame, &out_frame, priv->main_ctx, FALSE, fence_data, command_list);
+    if (num_remap == 0) {
+      ret = gst_d3d12_converter_execute (converter, &in_frame, &out_frame,
+          priv->main_ctx, FALSE, fence_data, command_list);
+    } else {
+      auto prev_remap = priv->main_ctx->comm->sampler_remap;
+      auto prev_x = priv->dest_x;
+      auto prev_y = priv->dest_y;
+      auto prev_w = priv->dest_width;
+      auto prev_h = priv->dest_height;
+      FLOAT prev_color[4];
+      for (guint i = 0; i < 4; i++)
+        prev_color[i] = priv->main_ctx->comm->const_data_dyn.bgColor[i];
+
+      for (guint i = 0; i < num_remap; i++) {
+        gst_d3d12_converter_set_remap_unlocked (converter, lut[i]);
+        gst_d3d12_converter_update_viewport_unlocked (converter,
+            viewport[i].x, viewport[i].y, viewport[i].w, viewport[i].h);
+        gst_d3d12_converter_calculate_remap_border_color (converter,
+            border_color[i]);
+
+        ret = gst_d3d12_converter_execute (converter, &in_frame, &out_frame,
+            priv->main_ctx, FALSE, fence_data, command_list);
+
+        if (!ret)
+          break;
+      }
+
+      /* Restore previous state */
+      gst_d3d12_converter_set_remap_unlocked (converter, prev_remap.Get ());
+      gst_d3d12_converter_update_viewport_unlocked (converter,
+          prev_x, prev_y, prev_w, prev_h);
+      for (guint i = 0; i < 4; i++)
+        priv->main_ctx->comm->const_data_dyn.bgColor[i] = prev_color[i];
+    }
   }
 
   if (ret) {
@@ -2916,6 +3054,66 @@ gst_d3d12_converter_convert_buffer (GstD3D12Converter * converter,
   gst_buffer_unref (render_target);
 
   return ret;
+}
+
+/**
+ * gst_d3d12_converter_convert_buffer:
+ * @converter: a #GstD3D12Converter
+ * @in_buf: a #GstBuffer
+ * @out_buf: a #GstBuffer
+ * @fence_data: a #GstD3D12FenceData
+ * @command_list: a ID3D12GraphicsCommandList
+ * @execute_gpu_wait: Executes wait operation against @queue
+ *
+ * Records command list for conversion operation. converter will attach
+ * conversion command associated resources such as command allocator
+ * to @fence_data.
+ *
+ * If @execute_wait is %TRUE and buffers are associated with external fences,
+ * this method will schedule GPU wait operation against @queue.
+ *
+ * Returns: %TRUE if successful
+ *
+ * Since: 1.26
+ */
+gboolean
+gst_d3d12_converter_convert_buffer (GstD3D12Converter * converter,
+    GstBuffer * in_buf, GstBuffer * out_buf, GstD3D12FenceData * fence_data,
+    ID3D12GraphicsCommandList * command_list, gboolean execute_gpu_wait)
+{
+  g_return_val_if_fail (GST_IS_D3D12_CONVERTER (converter), FALSE);
+  g_return_val_if_fail (GST_IS_BUFFER (in_buf), FALSE);
+  g_return_val_if_fail (GST_IS_BUFFER (out_buf), FALSE);
+  g_return_val_if_fail (fence_data, FALSE);
+  g_return_val_if_fail (command_list, FALSE);
+
+  auto priv = converter->priv;
+  std::lock_guard < std::mutex > lk (priv->prop_lock);
+
+  return gst_d3d12_converter_convert_buffer_internal (converter,
+      in_buf, out_buf, fence_data, command_list, execute_gpu_wait,
+      0, nullptr, nullptr, nullptr);
+}
+
+gboolean
+gst_d3d12_converter_convert_buffer_for_uv_remap (GstD3D12Converter * converter,
+    GstBuffer * in_buf, GstBuffer * out_buf, GstD3D12FenceData * fence_data,
+    ID3D12GraphicsCommandList * command_list, gboolean execute_gpu_wait,
+    guint num_remap, ID3D12Resource ** lut, GstVideoRectangle * viewport,
+    guint64 * border_color)
+{
+  g_return_val_if_fail (GST_IS_D3D12_CONVERTER (converter), FALSE);
+  g_return_val_if_fail (GST_IS_BUFFER (in_buf), FALSE);
+  g_return_val_if_fail (GST_IS_BUFFER (out_buf), FALSE);
+  g_return_val_if_fail (fence_data, FALSE);
+  g_return_val_if_fail (command_list, FALSE);
+
+  auto priv = converter->priv;
+  std::lock_guard < std::mutex > lk (priv->prop_lock);
+
+  return gst_d3d12_converter_convert_buffer_internal (converter,
+      in_buf, out_buf, fence_data, command_list, execute_gpu_wait,
+      num_remap, lut, viewport, border_color);
 }
 
 /**
@@ -3052,4 +3250,62 @@ gst_d3d12_converter_is_color_balance_needed (gfloat hue, gfloat saturation,
   }
 
   return FALSE;
+}
+
+static gboolean
+gst_d3d12_converter_set_remap_unlocked (GstD3D12Converter * self,
+    ID3D12Resource * remap_vector)
+{
+  auto priv = self->priv;
+  auto comm = priv->main_ctx->comm;
+
+  comm->sampler_remap = remap_vector;
+  if (remap_vector)
+    comm->const_data_dyn.samplerRemap = 1;
+  else
+    comm->const_data_dyn.samplerRemap = 0;
+
+  return TRUE;
+}
+
+gboolean
+gst_d3d12_converter_set_remap (GstD3D12Converter * converter,
+    ID3D12Resource * remap_vector)
+{
+  g_return_val_if_fail (GST_IS_D3D12_CONVERTER (converter), FALSE);
+
+  auto priv = converter->priv;
+  std::lock_guard < std::mutex > lk (priv->prop_lock);
+  return gst_d3d12_converter_set_remap_unlocked (converter, remap_vector);
+}
+
+static gboolean
+gst_d3d12_converter_update_viewport_unlocked (GstD3D12Converter * self,
+    gint x, gint y, gint width, gint height)
+{
+  auto priv = self->priv;
+
+  if (priv->dest_x != x || priv->dest_y != y || priv->dest_width != width ||
+      priv->dest_height != height) {
+    priv->dest_x = x;
+    priv->dest_y = y;
+    priv->dest_width = width;
+    priv->dest_height = height;
+    priv->update_dest_rect = TRUE;
+  }
+
+  return TRUE;
+}
+
+gboolean
+gst_d3d12_converter_update_viewport (GstD3D12Converter * converter, gint x,
+    gint y, gint width, gint height)
+{
+  g_return_val_if_fail (GST_IS_D3D12_CONVERTER (converter), FALSE);
+
+  auto priv = converter->priv;
+  std::lock_guard < std::mutex > lk (priv->prop_lock);
+
+  return gst_d3d12_converter_update_viewport_unlocked (converter, x, y, width,
+      height);
 }

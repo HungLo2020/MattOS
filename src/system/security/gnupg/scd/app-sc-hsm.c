@@ -256,7 +256,7 @@ select_and_read_binary (int slot, unsigned short efid, const char *efid_desc,
   err = iso7816_map_sw (sw);
   if (err)
     {
-      log_error ("error reading %s (0x%04X): %s\n",
+      log_error ("sc-hsm: error reading %s (0x%04X): %s\n",
                  efid_desc, efid, gpg_strerror (err));
       return err;
     }
@@ -496,7 +496,8 @@ read_ef_prkd (app_t app, unsigned short fid, prkdf_object_t *prkdresult,
     err = gpg_error (GPG_ERR_INV_OBJ);
   if (err)
     {
-      log_error ("error parsing PrKDF record: %s\n", gpg_strerror (err));
+      log_error ("sc-hsm: error parsing PrKDF record: %s\n",
+                 gpg_strerror (err));
       goto leave;
     }
 
@@ -771,7 +772,7 @@ read_ef_prkd (app_t app, unsigned short fid, prkdf_object_t *prkdresult,
   prkdf->usageflags = usageflags;
   prkdf->key_reference = fid & 0xFF;
 
-  log_debug ("PrKDF %04hX: id=", fid);
+  log_debug ("sc-hsm: PrKDF %04hX: id=", fid);
   for (i=0; i < prkdf->objidlen; i++)
     log_printf ("%02X", prkdf->objid[i]);
   log_printf (" keyref=0x%02X", prkdf->key_reference);
@@ -866,7 +867,7 @@ read_ef_prkd (app_t app, unsigned short fid, prkdf_object_t *prkdresult,
   goto leave; /* Ready. */
 
  parse_error:
-  log_error ("error parsing PrKDF record (%d): %s - skipped\n",
+  log_error ("sc-hsm: error parsing PrKDF record (%d): %s - skipped\n",
              where, errstr? errstr : gpg_strerror (err));
   err = 0;
 
@@ -967,7 +968,7 @@ read_ef_cd (app_t app, unsigned short fid, cdf_object_t *result)
     err = gpg_error (GPG_ERR_INV_OBJ);
   if (err)
     {
-      log_error ("error parsing CDF record: %s\n", gpg_strerror (err));
+      log_error ("sc-hsm: error parsing CDF record: %s\n", gpg_strerror (err));
       goto leave;
     }
   pp = p;
@@ -1095,7 +1096,7 @@ read_ef_cd (app_t app, unsigned short fid, cdf_object_t *result)
   goto leave;
 
  parse_error:
-  log_error ("error parsing CDF record (%d): %s - skipped\n",
+  log_error ("sc-hsm: error parsing CDF record (%d): %s - skipped\n",
              where, errstr? errstr : gpg_strerror (err));
   err = 0;
 
@@ -1217,7 +1218,7 @@ read_serialno(app_t app)
     err = gpg_error (GPG_ERR_INV_OBJ);
   if (err)
     {
-      log_error ("error parsing C_DevAut: %s\n", gpg_strerror (err));
+      log_error ("sc-hsm: error parsing C_DevAut: %s\n", gpg_strerror (err));
       goto leave;
     }
 
@@ -1225,7 +1226,7 @@ read_serialno(app_t app)
   if (!chr || chrlen <= 5)
     {
       err = gpg_error (GPG_ERR_INV_OBJ);
-      log_error ("CHR not found in CVC\n");
+      log_error ("sc-hsm: CHR not found in CVC\n");
       goto leave;
     }
   chrlen -= 5;
@@ -1384,7 +1385,8 @@ send_keypairinfo (app_t app, ctrl_t ctrl, prkdf_object_t keyinfo)
       err = keygripstr_from_prkdf (app, keyinfo, gripstr);
       if (err)
         {
-          log_error ("can't get keygrip from %04X\n", keyinfo->key_reference);
+          log_error ("sc-hsm: can't get keygrip from %04X\n",
+                     keyinfo->key_reference);
         }
       else
         {
@@ -1459,7 +1461,7 @@ readcert_by_cdf (app_t app, cdf_object_t cdf,
                                 &buffer, &buflen, 4096);
   if (err)
     {
-      log_error ("error reading certificate with Id ");
+      log_error ("sc-hsm: error reading certificate with Id ");
       for (i=0; i < cdf->objidlen; i++)
         log_printf ("%02X", cdf->objid[i]);
       log_printf (": %s\n", gpg_strerror (err));
@@ -1703,13 +1705,14 @@ verify_pin (app_t app, gpg_error_t (*pincb)(void*, const char *, char **),
 
   if (sw == SW_REF_DATA_INV)
     {
-      log_error ("SmartCard-HSM not initialized. Run sc-hsm-tool first\n");
+      log_error ("sc=hsm: SmartCard-HSM not initialized."
+                 "  Run sc-hsm-tool first\n");
       return gpg_error (GPG_ERR_NO_PIN);
     }
 
   if (sw == SW_CHV_BLOCKED)
     {
-      log_error ("PIN Blocked\n");
+      log_error ("sc-hsm: PIN blocked\n");
       return gpg_error (GPG_ERR_PIN_BLOCKED);
     }
 
@@ -1824,7 +1827,7 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
   if (!(prkdf->usageflags.sign || prkdf->usageflags.sign_recover
         ||prkdf->usageflags.non_repudiation))
     {
-      log_error ("key %s may not be used for signing\n", keyidstr);
+      log_error ("sc-hsm: key %s may not be used for signing\n", keyidstr);
       return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
     }
 
@@ -1834,7 +1837,9 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
 
       cdsblklen = prkdf->keysize >> 3;
       if (!cdsblklen)
-        cdsblklen = 256;
+        cdsblklen = sizeof cdsblk;
+      else if (cdsblklen > sizeof cdsblk)
+        return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
 
       if (hashalgo == GCRY_MD_SHA1 && indatalen == 20)
         apply_PKCS_padding (indata, indatalen,
@@ -1873,10 +1878,13 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
           err = hash_from_digestinfo (indata, indatalen, cdsblk, &cdsblklen);
           if (err)
             {
-              log_error ("DigestInfo invalid: %s\n", gpg_strerror (err));
+              log_error ("sc-hsm: DigestInfo invalid: %s\n",
+                         gpg_strerror (err));
               return err;
             }
         }
+      else if (indatalen > sizeof cdsblk)
+        return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
       else
         {
           memcpy (cdsblk, indata, indatalen);
@@ -1921,7 +1929,8 @@ do_auth (app_t app, ctrl_t ctrl, const char *keyidstr,
     return err;
   if (!prkdf->usageflags.sign)
     {
-      log_error ("key %s may not be used for authentication\n", keyidstr);
+      log_error ("sc-hsm: key %s may not be used for authentication\n",
+                 keyidstr);
       return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
     }
 
@@ -1973,7 +1982,8 @@ strip_PKCS15_padding(unsigned char *src, int srclen, unsigned char **dst,
 
 
 /* Decrypt a PKCS#1 V1.5 formatted cryptogram using the referenced
-   key.  */
+ * key.  Note that a static buffer is used; at its current size this
+ * limits the key size at rsa2048. */
 static gpg_error_t
 do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
              gpg_error_t (*pincb)(void*, const char *, char **),
@@ -2000,7 +2010,7 @@ do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
     return err;
   if (!(prkdf->usageflags.decrypt || prkdf->usageflags.unwrap))
     {
-      log_error ("key %s may not be used for deciphering\n", keyidstr);
+      log_error ("sc-hsm: key %s may not be used for deciphering\n", keyidstr);
       return gpg_error (GPG_ERR_WRONG_KEY_USAGE);
     }
 
@@ -2009,7 +2019,9 @@ do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
 
   p1blklen = prkdf->keysize >> 3;
   if (!p1blklen)
-    p1blklen = 256;
+    p1blklen = sizeof p1blk;
+  else if (p1blklen > sizeof p1blk)
+    return gpg_error (GPG_ERR_BUFFER_TOO_SHORT);
 
   /* The input may be shorter (due to MPIs not storing leading zeroes)
      or longer than the block size.  We put INDATA right aligned into
@@ -2032,7 +2044,7 @@ do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
   err = iso7816_map_sw (sw);
   if (err)
     {
-      log_error ("Decrypt failed: %s\n", gpg_strerror (err));
+      log_error ("sc-hsm: decrypt failed: %s\n", gpg_strerror (err));
       return err;
     }
 

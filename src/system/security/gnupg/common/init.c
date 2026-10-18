@@ -37,6 +37,7 @@
 #  include <winsock2.h>
 # endif
 # include <windows.h>
+# include <wctype.h>
 #endif
 
 #include <gcrypt.h>
@@ -72,6 +73,9 @@ gpg_err_source_t default_errsource = 0;
 
 #if HAVE_W32_SYSTEM
 static void prepare_w32_commandline (int *argcp, char ***argvp);
+
+/* Whether or not if this program is running under Wine. */
+int windows_semihosted_by_wine;
 #endif /*HAVE_W32_SYSTEM*/
 
 
@@ -165,6 +169,12 @@ _init_common_subsystems (gpg_err_source_t errsource, int *argcp, char ***argvp)
     WSADATA wsadat;
 
     WSAStartup (0x202, &wsadat);
+  }
+  {
+    HMODULE hntdll = GetModuleHandle ("ntdll.dll");
+    if (hntdll
+        && GetProcAddress (hntdll, "wine_get_version"))
+      windows_semihosted_by_wine = 1;
   }
 #endif
 

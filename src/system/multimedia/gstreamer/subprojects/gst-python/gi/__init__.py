@@ -1,4 +1,3 @@
-import gi
 import os
 import sys
 import typing
@@ -19,6 +18,7 @@ if typing.TYPE_CHECKING:
 
 
 class GstOverrideImport:
+
     def find_spec(self, fullname, path, target=None):
         if not fullname.startswith("gi.overrides"):
             return None

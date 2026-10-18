@@ -1,6 +1,23 @@
 import "/dist/bundle.js";
 
 let ws = null;
+let pendingObservers = [];
+let observerDebounceTimer = null;
+const OBSERVER_DEBOUNCE_MS = 300;
+
+function activatePendingObservers() {
+    for (const {observer, img} of pendingObservers) {
+        observer.observe(img);
+    }
+    pendingObservers = [];
+}
+
+function scheduleObserverActivation() {
+    if (observerDebounceTimer) {
+        clearTimeout(observerDebounceTimer);
+    }
+    observerDebounceTimer = setTimeout(activatePendingObservers, OBSERVER_DEBOUNCE_MS);
+}
 
 async function createOverlayElement(img, fname) {
     let overlay = document.getElementById("overlay");
@@ -34,6 +51,9 @@ async function createOverlayElement(img, fname) {
     iframe.loading = 'lazy';
     iframe.src = '/overlay.html?svg=' + img.src + '&title=' + fname;
     iframe.className = 'internalframe';
+    iframe.onload = () => {
+        iframe.contentWindow.focus();
+    };
     contentDiv.appendChild(iframe);
 
     overlayDiv.appendChild(contentDiv);
@@ -118,7 +138,8 @@ async function createNewDotDiv(pipelines_div, dot_info) {
     }, {
         rootMargin: '100px'
     });
-    observer.observe(img);
+    pendingObservers.push({observer, img});
+    scheduleObserverActivation();
 
     div.appendChild(title);
     div.appendChild(img);
@@ -305,7 +326,7 @@ function updateSearch() {
     const fuse = new window.Fuse(list, options);
     const results = fuse.search(input.value);
 
-    for (div of allDivs) {
+    for (let div of allDivs) {
         div.style.display = 'none';
     }
 
@@ -324,7 +345,7 @@ function updateSearch() {
         return scoreA - scoreB; // For ascending order. Use (scoreB - scoreA) for descending.
     });
 
-    for (div of divs) {
+    for (let div of divs) {
         div.parentNode.appendChild(div);
     }
 }

@@ -2,6 +2,8 @@
 //       Do not edit manually!
 #pragma once
 
+#include "config.h"
+
 #include <stdint.h>
 
 /*
@@ -34,6 +36,19 @@
 #define PREPEND_MESSAGE_ID(id, fmt) JOIN(FORMAT_MESSAGE_, CHECK_ID(id))(id, fmt)
 
 /**
+ * Set of verbosity levels
+ */
+enum xkb_log_verbosity {
+    XKB_LOG_VERBOSITY_SILENT = -1,
+    XKB_LOG_VERBOSITY_MINIMAL = 0,
+    XKB_LOG_VERBOSITY_BRIEF = 1,
+    XKB_LOG_VERBOSITY_DETAILED = 5,
+    XKB_LOG_VERBOSITY_VERBOSE = 10,
+    XKB_LOG_VERBOSITY_COMPREHENSIVE = 11,
+    XKB_LOG_VERBOSITY_DEFAULT = XKB_LOG_VERBOSITY_MINIMAL,
+};
+
+/**
  * Special case when no message identifier is defined.
  */
 #define XKB_LOG_MESSAGE_NO_ID 0
@@ -47,6 +62,8 @@ enum xkb_message_code {
     XKB_ERROR_MALFORMED_NUMBER_LITERAL = 34,
     /** Conflicting “preserve” entries in a key type */
     XKB_WARNING_CONFLICTING_KEY_TYPE_PRESERVE_ENTRIES = 43,
+    /** The result of the operation is not mathematically correct */
+    XKB_ERROR_INTEGER_OVERFLOW = 52,
     /** Warn on unsupported modifier mask */
     XKB_ERROR_UNSUPPORTED_MODIFIER_MASK = 60,
     /** Expected an array entry, but the index is missing */
@@ -99,6 +116,8 @@ enum xkb_message_code {
     XKB_ERROR_INCLUDED_FILE_NOT_FOUND = 338,
     /** Use of an operator that is unknown and thus unsupported */
     XKB_ERROR_UNKNOWN_OPERATOR = 345,
+    /** Use of a legacy X11 action that is not supported */
+    XKB_WARNING_UNSUPPORTED_LEGACY_ACTION = 362,
     /** An entry is duplicated and will be ignored */
     XKB_WARNING_DUPLICATE_ENTRY = 378,
     /** Included files form cycle */
@@ -123,6 +142,8 @@ enum xkb_message_code {
     XKB_ERROR_INVALID_FILE_ENCODING = 542,
     /** Cannot allocate memory */
     XKB_ERROR_ALLOCATION_ERROR = 550,
+    /** Unknown or unsupported action field */
+    XKB_ERROR_INVALID_ACTION_FIELD = 563,
     /** Warn when a field has not the expected type */
     XKB_ERROR_WRONG_FIELD_TYPE = 578,
     /** Cannot resolve a given (Rules, Model, Layout, Variant, Options) configuration */
@@ -131,10 +152,16 @@ enum xkb_message_code {
     XKB_WARNING_INVALID_UNICODE_ESCAPE_SEQUENCE = 607,
     /** Invalid _real_ modifier */
     XKB_ERROR_INVALID_REAL_MODIFIER = 623,
+    /** Unable to add any default include path */
+    XKB_ERROR_NO_VALID_DEFAULT_INCLUDE_PATH = 632,
+    /** Cannot set default value to a an unknown field */
+    XKB_ERROR_UNKNOWN_DEFAULT_FIELD = 639,
     /** Warn on unknown escape sequence in string literal */
     XKB_WARNING_UNKNOWN_CHAR_ESCAPE_SEQUENCE = 645,
     /** The target file of an include statement could not be processed */
     XKB_ERROR_INVALID_INCLUDED_FILE = 661,
+    /** Invalid locale for Compose */
+    XKB_ERROR_INVALID_COMPOSE_LOCALE = 679,
     /** The Compose file syntax is invalid and the entry cannot be parsed */
     XKB_ERROR_INVALID_COMPOSE_SYNTAX = 685,
     /** A level has a different number of keysyms and actions */
@@ -143,6 +170,10 @@ enum xkb_message_code {
     XKB_WARNING_MULTIPLE_GROUPS_AT_ONCE = 700,
     /** A legacy X11 symbol field is not supported */
     XKB_WARNING_UNSUPPORTED_SYMBOLS_FIELD = 711,
+    /** The keymap has features unsupported in the target format */
+    XKB_ERROR_INCOMPATIBLE_KEYMAP_TEXT_FORMAT = 742,
+    /** Cannot expand `%%i`: missing layout or variant in MLVO rule fields */
+    XKB_ERROR_RULES_INVALID_LAYOUT_INDEX_PERCENT_EXPANSION = 762,
     /** The XKB syntax is invalid and the file cannot be parsed */
     XKB_ERROR_INVALID_XKB_SYNTAX = 769,
     /** Reference to an undefined keycode */
@@ -157,6 +188,8 @@ enum xkb_message_code {
     XKB_ERROR_UNKNOWN_FIELD = 812,
     /** Keymap compilation failed */
     XKB_ERROR_KEYMAP_COMPILATION_FAILED = 822,
+    /** Unknown action type */
+    XKB_ERROR_UNKNOWN_ACTION_TYPE = 844,
     /** Warn if there are conflicting actions while merging keys */
     XKB_WARNING_CONFLICTING_KEY_ACTION = 883,
     /** Warn if there are conflicting key types while merging groups */

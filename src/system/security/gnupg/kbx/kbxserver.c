@@ -93,7 +93,7 @@ struct server_local_s
    * multi_search_desc_len.  If a search description has ever been
    * allocated the allocated size is stored at multi_search_desc_size.
    * multi_search_store is allocated at the same size as
-   * multi_search_desc and used to provde backing store for the SN and
+   * multi_search_desc and used to provide backing store for the SN and
    * NAME elements of KEYBOX_SEARCH_DESC.  */
   KEYBOX_SEARCH_DESC search_desc;
   KEYBOX_SEARCH_DESC *multi_search_desc;
@@ -131,21 +131,25 @@ get_assuan_ctx_from_ctrl (ctrl_t ctrl)
 static gpg_error_t
 prepare_outstream (ctrl_t ctrl)
 {
-  int fd;
+  gnupg_fd_t fd;
+  estream_t out_fp = NULL;
 
   log_assert (ctrl && ctrl->server_local);
 
   if (ctrl->server_local->outstream)
     return 0;  /* Already enabled.  */
 
-  fd = translate_sys2libc_fd
-    (assuan_get_output_fd (get_assuan_ctx_from_ctrl (ctrl)), 1);
-  if (fd == -1)
+  fd = assuan_get_output_fd (get_assuan_ctx_from_ctrl (ctrl));
+  if (fd == GNUPG_INVALID_FD)
     return 0;  /* No Output command active.  */
+  else
+    {
+      out_fp = open_stream_nc (fd, "w");
+      if (!out_fp)
+        return gpg_err_code_from_syserror ();
+    }
 
-  ctrl->server_local->outstream = es_fdopen_nc (fd, "w");
-  if (!ctrl->server_local->outstream)
-    return gpg_err_code_from_syserror ();
+  ctrl->server_local->outstream = out_fp;
   return 0;
 }
 
@@ -661,6 +665,78 @@ cmd_delete (assuan_context_t ctx, char *line)
 }
 
 
+static const char hlp_setephemeral[] =
+  "SETEPHEMERAL [--clear|--set]\n"
+  "\n"
+  "Set ephemeral mode or clear the mode. --set is the default.\n";
+static gpg_error_t
+cmd_setephemeral (assuan_context_t ctx, char *line)
+{
+  ctrl_t ctrl = assuan_get_pointer (ctx);
+  gpg_error_t err = 0;
+  int opt_clear = has_option (line, "--clear");
+
+  if (opt_clear)
+    ctrl->ephemeral = 0;
+  else
+    ctrl->ephemeral = 1;
+
+  return leave_cmd (ctx, err);
+}
+
+
+static const char hlp_putkeyflag[] =
+  "PUTKEYFLAG [--ephemeral|--revoked] [--clear] <ubid>\n"
+  "\n"
+  "Put ephemeral/revoked flag on a key identified by UBID.\n";
+static gpg_error_t
+cmd_putkeyflag (assuan_context_t ctx, char *line)
+{
+  ctrl_t ctrl = assuan_get_pointer (ctx);
+  gpg_error_t err = 0;
+  int opt_clear;
+  int opt_ephemeral;
+  int opt_revoked;
+  int flags = 0;
+  int n;
+  unsigned char ubid[UBID_LEN];
+
+  opt_clear = has_option (line, "--clear");
+  opt_ephemeral = has_option (line, "--ephemeral");
+  opt_revoked = has_option (line, "--revoked");
+
+  if (opt_ephemeral)
+    flags = (1 << 0);
+
+  if (opt_revoked)
+    flags = (1 << 1);
+
+  line = skip_options (line);
+  if (!*line)
+    {
+      err = set_error (GPG_ERR_INV_ARG, "UBID missing");
+      goto leave;
+    }
+
+  /* Skip an optional UBID identifier character.  */
+  if (*line == '^' && line[1])
+    line++;
+  if ((n=hex2bin (line, ubid, UBID_LEN)) < 0)
+    {
+      err = set_error (GPG_ERR_INV_USER_ID, "invalid UBID");
+      goto leave;
+    }
+  if (line[n])
+    {
+      err = set_error (GPG_ERR_INV_ARG, "garbage after UBID");
+      goto leave;
+    }
+
+  err = kbxd_putkeyflag (ctrl, ubid, flags, opt_clear);
+
+ leave:
+  return leave_cmd (ctx, err);
+}
 
 static const char hlp_transaction[] =
   "TRANSACTION [begin|commit|rollback]\n"
@@ -741,6 +817,7 @@ static const char hlp_getinfo[] =
   "pid         - Return the process id of the server.\n"
   "socket_name - Return the name of the socket.\n"
   "session_id  - Return the current session_id.\n"
+  "connections - Return number of active connections.\n"
   "getenv NAME - Return value of envvar NAME\n";
 static gpg_error_t
 cmd_getinfo (assuan_context_t ctx, char *line)
@@ -787,6 +864,12 @@ cmd_getinfo (assuan_context_t ctx, char *line)
           else
             err = assuan_send_data (ctx, s, strlen (s));
         }
+    }
+  else if (!strcmp (line, "connections"))
+    {
+      snprintf (numbuf, sizeof numbuf, "%d",
+                get_kbxd_active_connection_count ());
+      err = assuan_send_data (ctx, numbuf, strlen (numbuf));
     }
   else
     err = set_error (GPG_ERR_ASS_PARAMETER, "unknown value for WHAT");
@@ -847,15 +930,17 @@ register_commands (assuan_context_t ctx)
     assuan_handler_t handler;
     const char * const help;
   } table[] = {
-    { "SEARCH",     cmd_search,     hlp_search },
-    { "NEXT",       cmd_next,       hlp_next   },
-    { "STORE",      cmd_store,      hlp_store  },
-    { "DELETE",     cmd_delete,     hlp_delete  },
-    { "TRANSACTION",cmd_transaction,hlp_transaction },
-    { "GETINFO",    cmd_getinfo,    hlp_getinfo },
-    { "OUTPUT",     NULL,           hlp_output },
-    { "KILLKEYBOXD",cmd_killkeyboxd,hlp_killkeyboxd },
-    { "RELOADKEYBOXD",cmd_reloadkeyboxd,hlp_reloadkeyboxd },
+    { "SEARCH",        cmd_search,        hlp_search },
+    { "NEXT",          cmd_next,          hlp_next   },
+    { "STORE",         cmd_store,         hlp_store  },
+    { "DELETE",        cmd_delete,        hlp_delete  },
+    { "PUTKEYFLAG",    cmd_putkeyflag,    hlp_putkeyflag  },
+    { "TRANSACTION",   cmd_transaction,   hlp_transaction },
+    { "SETEPHEMERAL",  cmd_setephemeral,  hlp_setephemeral },
+    { "GETINFO",       cmd_getinfo,       hlp_getinfo },
+    { "OUTPUT",        NULL,              hlp_output },
+    { "KILLKEYBOXD",   cmd_killkeyboxd,   hlp_killkeyboxd },
+    { "RELOADKEYBOXD", cmd_reloadkeyboxd, hlp_reloadkeyboxd },
     { NULL, NULL }
   };
   int i, j, rc;
@@ -946,15 +1031,9 @@ kbxd_start_command_handler (ctrl_t ctrl, gnupg_fd_t fd, unsigned int session_id)
     }
   else
     {
-      /* The fd-passing does not work reliable on Windows, and even it
-       * it is not used by gpg and gpgsm the current libassuan slows
-       * down things if it is allowed for the server.*/
       rc = assuan_init_socket_server (ctx, fd,
                                       (ASSUAN_SOCKET_SERVER_ACCEPTED
-#ifndef HAVE_W32_SYSTEM
-                                       |ASSUAN_SOCKET_SERVER_FDPASSING
-#endif
-                                       ));
+                                       |ASSUAN_SOCKET_SERVER_FDPASSING));
     }
 
   if (rc)

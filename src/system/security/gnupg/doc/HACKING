@@ -152,7 +152,7 @@ Note that such a comment will be removed if the git commit option
       if ( 42 == foo )
 #+end_src
     this is harder to read and modern compilers are pretty good in
-    detecing accidental assignments.  It is also suggested not to
+    detecting accidental assignments.  It is also suggested not to
     compare to 0 or NULL but to test the value direct or with a '!';
     this makes it easier to see that a boolean test is done.
   - We use our own printf style functions like =es_printf=, and
@@ -233,6 +233,10 @@ Note that such a comment will be removed if the git commit option
   - Signed-off-by :: Name or mail address of the developer.
   - Backported-from-master :: Value is the commit id of the original patch.
   - Ported-from-stable :: Value is the commit id of the original patch.
+  - Cherry-picked-from :: Value is the commit id optionally followed
+                          by a comment indicating the branch.  This is
+                          similar to the "git cherry-pick -x" way.
+
 
 ** Sending patches
 Submitting patches, and subsequent discussions around them,
@@ -244,7 +248,7 @@ subject line; the list is used for several different projects.
 
 In general you should send patches only for the master branch; we may
 later decide to backport to another branch.  Please ask first before
-sending pacthes for another branch.
+sending patches for another branch.
 
 If you're working from the Git repo, here's a suggested workflow:
 
@@ -443,3 +447,23 @@ plaintext packets and so on.  The file g10/encode.c might be a good
 starting point to see how it is used - actually this is the other way:
 constructing messages using pushed filters but it may be easier to
 understand.
+
+** Notes on how to create test data
+
+On 2016-02-28 we created a lot of AEAD test data using a command
+similar to this:
+
+--8<---------------cut here---------------start------------->8---
+for algo in eax ocb; do
+ for csize in 6 7 12 13 14 30; do
+  for len in 0 $(seq 0 200) $(seq 8100 8200) $(seq 16350 16400) \
+               $(seq 20000 20100); do
+   awk </dev/null -v i=$len 'BEGIN{while(i){i--;printf"~"}}' \
+     | gpg --no-options -v --rfc4880bis --batch --passphrase "abc" \
+           --s2k-count 1025 --s2k-digest-algo sha256 -z0 \
+           --force-aead --aead-algo $algo --cipher aes -a \
+           --chunk-size $csize -c >symenc-aead-eax-c$csize-$len.asc
+  done
+ done
+done
+--8<---------------cut here---------------end--------------->8---

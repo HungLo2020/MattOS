@@ -193,17 +193,20 @@ keyserver_any_configured (ctrl_t ctrl)
 }
 
 int
-keyserver_import_keyid (u32 *keyid, void *dummy, unsigned int flags)
+keyserver_import_keyid (ctrl_t ctrl,
+                        u32 *keyid,struct keyserver_spec *keyserver,
+                        unsigned int flags)
 {
+  (void)ctrl;
   (void)keyid;
-  (void)dummy;
+  (void)keyserver;
   (void)flags;
   return -1;
 }
 
 int
-keyserver_import_fprint (ctrl_t ctrl, const byte *fprint,size_t fprint_len,
-			 struct keyserver_spec *keyserver, unsigned int flags)
+keyserver_import_fpr (ctrl_t ctrl, const byte *fprint,size_t fprint_len,
+		      struct keyserver_spec *keyserver, unsigned int flags)
 {
   (void)ctrl;
   (void)fprint;
@@ -214,8 +217,8 @@ keyserver_import_fprint (ctrl_t ctrl, const byte *fprint,size_t fprint_len,
 }
 
 int
-keyserver_import_fprint_ntds (ctrl_t ctrl,
-                              const byte *fprint, size_t fprint_len)
+keyserver_import_fpr_ntds (ctrl_t ctrl,
+                           const byte *fprint, size_t fprint_len)
 {
   (void)ctrl;
   (void)fprint;
@@ -224,9 +227,14 @@ keyserver_import_fprint_ntds (ctrl_t ctrl,
 }
 
 int
-keyserver_import_cert (const char *name)
+keyserver_import_cert (ctrl_t ctrl, const char *name, int dane_mode,
+                       unsigned char **fpr,size_t *fpr_len)
 {
+  (void)ctrl;
   (void)name;
+  (void)dane_mode;
+  (void)fpr;
+  (void)fpr_len;
   return -1;
 }
 
@@ -242,15 +250,17 @@ keyserver_import_wkd (ctrl_t ctrl, const char *name, unsigned int flags,
   return GPG_ERR_BUG;
 }
 
-int
-keyserver_import_mbox (ctrl_t ctrl, const char *mbox, unsigned char **fpr,
-                       size_t *fprlen, struct keyserver_spec *keyserver)
+gpg_error_t
+keyserver_import_mbox (ctrl_t ctrl, const char *mbox,
+                       unsigned char **fpr, size_t *fprlen,
+                       struct keyserver_spec *keyserver, unsigned int flags)
 {
   (void)ctrl;
   (void)mbox;
   (void)fpr;
   (void)fprlen;
   (void)keyserver;
+  (void)flags;
   return -1;
 }
 
@@ -298,11 +308,13 @@ import_included_key_block (ctrl_t ctrl, kbnode_t keyblock)
  * No encryption here but mainproc links to these functions.
  */
 gpg_error_t
-get_session_key (ctrl_t ctrl, struct pubkey_enc_list *k, DEK *dek)
+get_session_key (ctrl_t ctrl, struct seskey_enc_list *k, DEK *dek,
+                 int seipdv2_cipher_algo)
 {
   (void)ctrl;
   (void)k;
   (void)dek;
+  (void)seipdv2_cipher_algo;
   return GPG_ERR_GENERAL;
 }
 
@@ -381,14 +393,11 @@ parse_preferred_keyserver(PKT_signature *sig)
   return NULL;
 }
 
-struct keyserver_spec *
-parse_keyserver_uri (const char *uri, int require_scheme,
-                     const char *configname, unsigned int configlineno)
+keyserver_spec_t
+parse_keyserver_uri (const char *string, int require_scheme)
 {
-  (void)uri;
+  (void)string;
   (void)require_scheme;
-  (void)configname;
-  (void)configlineno;
   return NULL;
 }
 
@@ -400,11 +409,14 @@ free_keyserver_spec (struct keyserver_spec *keyserver)
 
 /* Stubs to avoid linking to photoid.c */
 void
-show_photos (const struct user_attribute *attrs, int count, PKT_public_key *pk)
+show_photos (ctrl_t ctrl, const struct user_attribute *attrs, int count,
+             PKT_public_key *pk, PKT_user_id *uid)
 {
+  (void)ctrl;
   (void)attrs;
   (void)count;
   (void)pk;
+  (void)uid;
 }
 
 int
@@ -569,6 +581,15 @@ tofu_notice_key_changed (ctrl_t ctrl, kbnode_t kb)
   (void) kb;
 
   return 0;
+}
+
+
+const char *
+revocation_reason_code_to_str (int code, char **freeme)
+{
+  (void)code;
+  *freeme = NULL;
+  return "";
 }
 
 int

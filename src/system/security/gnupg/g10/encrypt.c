@@ -43,17 +43,44 @@
 
 
 static int encrypt_simple( const char *filename, int mode, int use_seskey );
-static int write_pubkey_enc_from_list (ctrl_t ctrl,
-                                       PK_LIST pk_list, DEK *dek, iobuf_t out);
+static int write_pubkey_enc_from_list (ctrl_t ctrl, pk_list_t pk_list,
+                                       DEK *dek, iobuf_t out,
+                                       struct pubkey_enc_info_item *restrct);
 
-/****************
+
+
+/* Helper for show the "encrypted for USER" during encryption.
+ * PUBKEY_USAGE is used to figure out whether this is an ADSK key.  */
+static void
+show_encrypted_for_user_info (ctrl_t ctrl, unsigned int pubkey_usage,
+                              PKT_pubkey_enc *enc, DEK *dek)
+{
+  char *ustr = get_user_id_string_native (ctrl, enc->keyid);
+  if ((pubkey_usage & PUBKEY_USAGE_RENC))
+    {
+      char *tmpustr = xstrconcat (ustr, " [ADSK]", NULL);
+      xfree (ustr);
+      ustr = tmpustr;
+    }
+  log_info (_("%s/%s.%s encrypted for: \"%s\"\n"),
+            openpgp_pk_algo_name (enc->pubkey_algo),
+            openpgp_cipher_algo_name (dek->algo),
+            dek->use_aead? openpgp_aead_algo_name (dek->use_aead)
+            /**/         : "CFB",
+            ustr );
+  xfree (ustr);
+}
+
+
+/*
  * Encrypt FILENAME with only the symmetric cipher.  Take input from
- * stdin if FILENAME is NULL.  If --force-aead is used we use an SKESK.
+ * stdin if FILENAME is NULL.  If --force-ocb or --use-ocb-sym is used
+ * we use an SKESK.
  */
 int
 encrypt_symmetric (const char *filename)
 {
-  return encrypt_simple( filename, 1, opt.force_aead);
+  return encrypt_simple (filename, 1, opt.force_ocb || opt.use_ocb_sym);
 }
 
 
@@ -68,7 +95,7 @@ encrypt_store (const char *filename)
 }
 
 
-/* Create and setup a DEK structure and print approriate warnings.
+/* Create and setup a DEK structure and print appropriate warnings.
  * PK_LIST gives the list of public keys.  Always returns a DEK.  The
  * actual session needs to be added later.  */
 static DEK *
@@ -94,7 +121,7 @@ create_dek_with_warnings (pk_list_t pk_list)
 
       /* In case 3DES has been selected, print a warning if any key
        * does not have a preference for AES.  This should help to
-       * indentify why encrypting to several recipients falls back to
+       * identify why encrypting to several recipients falls back to
        * 3DES. */
       if (opt.verbose && dek->algo == CIPHER_ALGO_3DES)
         warn_missing_aes_from_pklist (pk_list);
@@ -113,6 +140,27 @@ create_dek_with_warnings (pk_list_t pk_list)
         }
 
       dek->algo = opt.def_cipher_algo;
+    }
+
+  if (dek->algo != CIPHER_ALGO_AES256)
+    {
+      /* If quantum resistance was explicitly required, we force the
+       * use of AES256 no matter what. Otherwise, we force AES256 if we
+       * encrypt to Kyber keys only and the user did not explicity
+       * request another another algo. */
+      if (opt.flags.require_pqc_encryption)
+        dek->algo = CIPHER_ALGO_AES256;
+      else if (!opt.def_cipher_algo)
+        {
+          int non_kyber_pk = 0;
+          for ( ; pk_list; pk_list = pk_list->next)
+            if (!(pk_list->pk->pubkey_algo == PUBKEY_ALGO_KYBER
+                  || (RFC9980
+                      && IS_PUBKEY_ALGO_MLK (pk_list->pk->pubkey_algo))))
+              non_kyber_pk += 1;
+          if (!non_kyber_pk)
+            dek->algo = CIPHER_ALGO_AES256;
+        }
     }
 
   return dek;
@@ -166,6 +214,7 @@ check_encryption_compliance (DEK *dek, pk_list_t pk_list)
   /* From here on we only test for CO_DE_VS - if we ever want to
    * return other compliance mode values we need to change this to
    * loop over all those values.  */
+  /* FIXME:CO_FIPS */
   compliant = gnupg_gcrypt_is_compliant (CO_DE_VS);
 
   if (!gnupg_cipher_is_compliant (CO_DE_VS, dek->algo, GCRY_CIPHER_MODE_CFB))
@@ -347,8 +396,10 @@ use_aead (pk_list_t pk_list, int algo)
 
   can_use = openpgp_cipher_get_algo_blklen (algo) == 16;
 
-  /* With --force-aead we want AEAD.  */
-  if (opt.force_aead)
+  /* With --force-aead we want OCB. We also use OCB in symmetric mode
+   * with --use-ocb-sym which is detected by an empty PK_LIST.  In
+   * FIPS mode we silently replace OCB by GCM.  */
+  if (opt.force_ocb || (!pk_list && opt.use_ocb_sym))
     {
       if (!can_use)
         {
@@ -356,7 +407,7 @@ use_aead (pk_list_t pk_list, int algo)
                     openpgp_cipher_algo_name (algo));
           return 0;
         }
-      return AEAD_ALGO_OCB;
+      return opt.compliance == CO_FIPS? AEAD_ALGO_GCM : AEAD_ALGO_OCB;
     }
 
   /* AEAD does only work with 128 bit cipher blocklength.  */
@@ -389,10 +440,31 @@ use_mdc (pk_list_t pk_list,int algo)
 }
 
 
-/* We don't want to use use_seskey yet because older gnupg versions
-   can't handle it, and there isn't really any point unless we're
-   making a message that can be decrypted by a public key or
-   passphrase. */
+/* We use the SEIPDv2 packet only if all keys are from RFC9980.  */
+int
+use_rfc9980_seipdv2 (pk_list_t pk_list)
+{
+  PKT_public_key *pk;
+
+  if (!RFC9980 || !pk_list)
+    return 0;  /* No.  */
+
+  for ( ; pk_list; pk_list = pk_list->next )
+    {
+      pk = pk_list->pk;
+      if (!(pk->pubkey_algo == PUBKEY_ALGO_X25519
+            || IS_PUBKEY_ALGO_MLK (pk->pubkey_algo)))
+        return 0;  /* No.  */
+    }
+  return 1; /* Yes.  */
+}
+
+
+/* This function handles the --symmetric only (MODE true) and --store
+ * (MODE false) cases.  We don't want to use USE_SESKEY by default
+ * very old gnupg versions can't handle it, and there isn't really any
+ * point unless we're making a message that can be decrypted by a
+ * public key or passphrase.  */
 static int
 encrypt_simple (const char *filename, int mode, int use_seskey)
 {
@@ -507,7 +579,8 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
                  /**/             : "CFB");
     }
 
-  if ( rc || (rc = open_outfile (-1, filename, opt.armor? 1:0, 0, &out )))
+  if (rc || (rc = open_outfile (GNUPG_INVALID_FD, filename, opt.armor? 1:0,
+                                0, &out )))
     {
       iobuf_cancel (inp);
       xfree (cfx.dek);
@@ -525,7 +598,7 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
   if ( s2k )
     {
       /* Fixme: This is quite similar to write_symkey_enc.  */
-      PKT_symkey_enc *enc = xmalloc_clear (sizeof *enc + enckeylen);
+      PKT_symkey_enc *enc = xmalloc_clear (sizeof *enc);
       enc->version = cfx.dek->use_aead ? 5 : 4;
       enc->cipher_algo = cfx.dek->algo;
       enc->aead_algo = cfx.dek->use_aead;
@@ -533,13 +606,14 @@ encrypt_simple (const char *filename, int mode, int use_seskey)
       if (enckeylen)
         {
           enc->seskeylen = enckeylen;
+          enc->seskey = xmalloc (enckeylen);
           memcpy (enc->seskey, enckey, enckeylen);
         }
       pkt.pkttype = PKT_SYMKEY_ENC;
       pkt.pkt.symkey_enc = enc;
       if ((rc = build_packet( out, &pkt )))
         log_error("build symkey packet failed: %s\n", gpg_strerror (rc) );
-      xfree (enc);
+      free_symkey_enc (enc);
       xfree (enckey);
       enckey = NULL;
     }
@@ -730,7 +804,7 @@ write_symkey_enc (STRING2KEY *symkey_s2k, aead_algo_t aead_algo,
   rc = encrypt_seskey (symkey_dek, aead_algo, &dek, &enckey, &enckeylen);
   if (rc)
     return rc;
-  enc = xtrycalloc (1, sizeof (PKT_symkey_enc) + enckeylen);
+  enc = xtrycalloc (1, sizeof (PKT_symkey_enc));
   if (!enc)
     {
       rc = gpg_error_from_syserror ();
@@ -743,6 +817,14 @@ write_symkey_enc (STRING2KEY *symkey_s2k, aead_algo_t aead_algo,
   enc->aead_algo = aead_algo;
   enc->s2k = *symkey_s2k;
   enc->seskeylen = enckeylen;
+  enc->seskey = xtrymalloc (enckeylen);
+  if (!enc->seskey)
+    {
+      rc = gpg_error_from_syserror ();
+      xfree (enc);
+      xfree (enckey);
+      return rc;
+    }
   memcpy (enc->seskey, enckey, enckeylen);
   xfree (enckey);
 
@@ -752,7 +834,7 @@ write_symkey_enc (STRING2KEY *symkey_s2k, aead_algo_t aead_algo,
   if ((rc=build_packet(out,&pkt)))
     log_error("build symkey_enc packet failed: %s\n",gpg_strerror (rc));
 
-  xfree (enc);
+  free_symkey_enc (enc);
   return rc;
 }
 
@@ -761,15 +843,15 @@ write_symkey_enc (STRING2KEY *symkey_s2k, aead_algo_t aead_algo,
  * Encrypt the file with the given userids (or ask if none is
  * supplied).  Either FILENAME or FILEFD must be given, but not both.
  * The caller may provide a checked list of public keys in
- * PROVIDED_PKS; if not the function builds a list of keys on its own.
+ * PROVIDED_KEYS; if not the function builds a list of keys on its own.
  *
  * Note that FILEFD and OUTPUTFD are currently only used by
  * cmd_encrypt in the not yet finished server.c.
  */
 int
-encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
+encrypt_crypt (ctrl_t ctrl, gnupg_fd_t filefd, const char *filename,
                strlist_t remusr, int use_symkey, pk_list_t provided_keys,
-               int outputfd)
+               gnupg_fd_t outputfd)
 {
   iobuf_t inp = NULL;
   iobuf_t out = NULL;
@@ -787,7 +869,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
   PK_LIST pk_list;
   int do_compress;
 
-  if (filefd != -1 && filename)
+  if (filefd != GNUPG_INVALID_FD && filename)
     return gpg_error (GPG_ERR_INV_ARG);  /* Both given.  */
 
   do_compress = !!opt.compress_algo;
@@ -818,7 +900,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
 
   /* Prepare iobufs. */
 #ifdef HAVE_W32_SYSTEM
-  if (filefd == -1)
+  if (filefd == GNUPG_INVALID_FD)
     inp = iobuf_open (filename);
   else
     {
@@ -826,7 +908,7 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
       gpg_err_set_errno (ENOSYS);
     }
 #else
-  if (filefd == -1)
+  if (filefd == GNUPG_INVALID_FD)
     inp = iobuf_open (filename);
   else
     inp = iobuf_fdopen_nc (filefd, "rb");
@@ -844,8 +926,8 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
       char xname[64];
 
       rc = gpg_error_from_syserror ();
-      if (filefd != -1)
-        snprintf (xname, sizeof xname, "[fd %d]", filefd);
+      if (filefd != GNUPG_INVALID_FD)
+        snprintf (xname, sizeof xname, "[fd %d]", FD_DBG (filefd));
       else if (!filename)
         strcpy (xname, "[stdin]");
       else
@@ -883,12 +965,14 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
   cfx.dek->use_aead = use_aead (pk_list, cfx.dek->algo);
   if (!cfx.dek->use_aead)
     cfx.dek->use_mdc = !!use_mdc (pk_list, cfx.dek->algo);
+  else if (use_rfc9980_seipdv2 (pk_list))
+    cfx.seipdv2 = 1; /* Use SEIPDV2 and not the OCB.*/
 
   make_session_key (cfx.dek);
   if (DBG_CRYPTO)
     log_printhex (cfx.dek->key, cfx.dek->keylen, "DEK is: ");
 
-  rc = write_pubkey_enc_from_list (ctrl, pk_list, cfx.dek, out);
+  rc = write_pubkey_enc_from_list (ctrl, pk_list, cfx.dek, out, NULL);
   if (rc)
     goto leave;
 
@@ -923,6 +1007,9 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
     }
   else
     filesize = opt.set_filesize ? opt.set_filesize : 0; /* stdin */
+
+  if (cfx.seipdv2)
+    log_info (_("Note: Using the %s encryption packet\n"), "RFC-9580");
 
   /* Register the cipher filter. */
   iobuf_push_filter (out,
@@ -1033,6 +1120,120 @@ encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
 }
 
 
+/* Re-encrypt files with a set of new recipients.  Note that this
+ * function is called by decrypt_message.  INFP is the iobuf from the
+ * input file which is positioned right after the pubkey_enc and
+ * symkey_enc packets.  */
+gpg_error_t
+reencrypt_to_new_recipients (ctrl_t ctrl, int armor, const char *filename,
+                             iobuf_t infp, strlist_t recipients,
+                             DEK *dek, struct seskey_enc_list *sesenc_list)
+{
+  gpg_error_t err;
+  int save_no_encrypt_to;
+  pk_list_t newpk_list = NULL;
+  struct pubkey_enc_info_item *restrict_pk_list = NULL;
+  struct pubkey_enc_info_item *pkei;  /* Iterator */
+  iobuf_t outfp = NULL;
+  armor_filter_context_t *outafx = NULL;
+  PACKET pkt;
+  struct seskey_enc_list *el;
+  unsigned int count;
+
+  /* Unless we want to clear the recipients, record the pubkey encrypt
+   * infos so hat we can avoid to double encrypt to the same
+   * recipient.  We can't do that for wildcards, though.  */
+  if (!ctrl->clear_recipients)
+    {
+      for (el = sesenc_list; el; el = el->next)
+        {
+          if (el->u_sym)
+            continue;
+          if (!el->u.pub.keyid[0] && !el->u.pub.keyid[1])
+            continue;  /* Wildcard encrypt - no useful info.  */
+          pkei = xcalloc (1, sizeof *pkei);
+          pkei->keyid[0] = el->u.pub.keyid[0];
+          pkei->keyid[1] = el->u.pub.keyid[1];
+          pkei->version  = el->u.pub.version;
+          pkei->pubkey_algo  = el->u.pub.pubkey_algo;
+          pkei->next = restrict_pk_list;
+          restrict_pk_list = pkei;
+        }
+    }
+
+  /* Get the keys for all additional recipients but do not encrypt to
+   * the encrypt-to keys. */
+  save_no_encrypt_to = opt.no_encrypt_to;
+  opt.no_encrypt_to = 1;
+  err = build_pk_list (ctrl, recipients, &newpk_list);
+  opt.no_encrypt_to = save_no_encrypt_to;
+  if (err)
+    goto leave;
+
+  /* Note that we use by default the suffixes .gpg or .asc */
+  err = open_outfile (GNUPG_INVALID_FD, filename, armor? 1:0, 0, &outfp);
+  if (err)
+    goto leave;
+
+  if (armor)
+    {
+      outafx = new_armor_context ();
+      push_armor_filter (outafx, outfp);
+    }
+
+  /* Write the new recipients first.  */
+  err = write_pubkey_enc_from_list (ctrl, newpk_list, dek, outfp,
+                                    restrict_pk_list);
+  if (err)
+    goto leave;
+
+  /* Write the old recipients in --add-recipients mode.  */
+  for (count=0, el = sesenc_list; el; el = el->next, count++)
+    if (!ctrl->clear_recipients && !el->u_sym)
+      {
+        if (opt.verbose)
+          show_encrypted_for_user_info (ctrl, 0, &el->u.pub, dek);
+        init_packet (&pkt);
+        pkt.pkttype = PKT_PUBKEY_ENC;
+        pkt.pkt.pubkey_enc = &el->u.pub;
+        err = build_packet (outfp, &pkt);
+        if (err)
+          log_error ("build_packet(pubkey_enc) failed: %s\n",
+                     gpg_strerror (err));
+      }
+  if (ctrl->clear_recipients && opt.verbose)
+    log_info (_("number of removed recipients: %u\n"), count);
+
+  iobuf_put (outfp, ctrl->last_read_ctb);
+
+  /* Finally copy the bulk of the message.  */
+  iobuf_copy (outfp, infp);
+  if ((err = iobuf_error (infp)))
+    log_error (_("error reading '%s': %s\n"),
+               iobuf_get_fname_nonnull (infp), gpg_strerror (err));
+  else if ((err = iobuf_error (outfp)))
+    log_error (_("error writing '%s': %s\n"),
+               iobuf_get_fname_nonnull (outfp), gpg_strerror (err));
+
+
+ leave:
+  if (err)
+    iobuf_cancel (outfp);
+  else
+    iobuf_close (outfp);
+  release_armor_context (outafx);
+  release_pk_list (newpk_list);
+  while (restrict_pk_list)
+    {
+      pkei = restrict_pk_list->next;
+      xfree (restrict_pk_list);
+      restrict_pk_list = pkei;
+    }
+  return err;
+}
+
+
+
 /*
  * Filter to do a complete public key encryption.
  */
@@ -1054,6 +1255,8 @@ encrypt_filter (void *opaque, int control,
         {
           efx->header_okay = 1;
 
+          /* Fixme: The core functionality is duplicated from
+           * encrypt_crypt.  We should use common functions.  */
           efx->cfx.dek = create_dek_with_warnings (efx->pk_list);
 
           rc = check_encryption_compliance (efx->cfx.dek, efx->pk_list);
@@ -1063,13 +1266,15 @@ encrypt_filter (void *opaque, int control,
           efx->cfx.dek->use_aead = use_aead (efx->pk_list, efx->cfx.dek->algo);
           if (!efx->cfx.dek->use_aead)
             efx->cfx.dek->use_mdc = !!use_mdc (efx->pk_list,efx->cfx.dek->algo);
+          else if (use_rfc9980_seipdv2 (efx->pk_list))
+            efx->cfx.seipdv2 = 1; /* Use SEIPDV2 and not the OCB.*/
 
           make_session_key ( efx->cfx.dek );
           if (DBG_CRYPTO)
             log_printhex (efx->cfx.dek->key, efx->cfx.dek->keylen, "DEK is: ");
 
           rc = write_pubkey_enc_from_list (efx->ctrl,
-                                           efx->pk_list, efx->cfx.dek, a);
+                                           efx->pk_list, efx->cfx.dek, a, NULL);
           if (rc)
             return rc;
 
@@ -1080,6 +1285,9 @@ encrypt_filter (void *opaque, int control,
               if (rc)
                 return rc;
             }
+
+          if (efx->cfx.seipdv2)
+            log_info (_("Note: Using the %s encryption packet\n"), "RFC-9580");
 
           iobuf_push_filter (a,
                              efx->cfx.dek->use_aead? cipher_filter_aead
@@ -1114,18 +1322,34 @@ write_pubkey_enc (ctrl_t ctrl,
   PKT_pubkey_enc *enc;
   int rc;
   gcry_mpi_t frame;
+  int is_rfc9980;
+  size_t fprlen;
+
+  if (pk->pubkey_algo == PUBKEY_ALGO_X25519
+      || IS_PUBKEY_ALGO_MLK (pk->pubkey_algo))
+    is_rfc9980 = 1;
+  else
+    is_rfc9980 = 0;
 
   print_pubkey_algo_note ( pk->pubkey_algo );
   enc = xmalloc_clear ( sizeof *enc );
   enc->pubkey_algo = pk->pubkey_algo;
-  keyid_from_pk( pk, enc->keyid );
+  keyid_from_pk (pk, enc->keyid);
   enc->throw_keyid = throw_keyid;
+  enc->seskey_algo = dek->algo;  /* (Used only by PUBKEY_ALGO_KYBER.) */
+  if (is_rfc9980)
+    {
+      enc->version = 6;
+      fingerprint_from_pk (pk, enc->fpr, &fprlen);
+      log_assert (fprlen == 20 || fprlen == 32);
+      enc->fprlen = fprlen;
+    }
 
   /* Okay, what's going on: We have the session key somewhere in
    * the structure DEK and want to encode this session key in an
    * integer value of n bits. pubkey_nbits gives us the number of
    * bits we have to use.  We then encode the session key in some
-   * way and we get it back in the big intger value FRAME.  Then
+   * way and we get it back in the big integer value FRAME.  Then
    * we use FRAME, the public key PK->PKEY and the algorithm
    * number PK->PUBKEY_ALGO and pass it to pubkey_encrypt which
    * returns the encrypted value in the array ENC->DATA.  This
@@ -1135,29 +1359,14 @@ write_pubkey_enc (ctrl_t ctrl,
    * build_packet().  */
   frame = encode_session_key (pk->pubkey_algo, dek,
                               pubkey_nbits (pk->pubkey_algo, pk->pkey));
-  rc = pk_encrypt (pk->pubkey_algo, enc->data, frame, pk, pk->pkey);
+  rc = pk_encrypt (pk, frame, dek->algo, enc->data);
   gcry_mpi_release (frame);
   if (rc)
     log_error ("pubkey_encrypt failed: %s\n", gpg_strerror (rc) );
   else
     {
       if ( opt.verbose )
-        {
-          char *ustr = get_user_id_string_native (ctrl, enc->keyid);
-          if ((pk->pubkey_usage & PUBKEY_USAGE_RENC))
-            {
-              char *tmpustr = xstrconcat (ustr, " [ADSK]", NULL);
-              xfree (ustr);
-              ustr = tmpustr;
-            }
-          log_info (_("%s/%s.%s encrypted for: \"%s\"\n"),
-                    openpgp_pk_algo_name (enc->pubkey_algo),
-                    openpgp_cipher_algo_name (dek->algo),
-                    dek->use_aead? openpgp_aead_algo_name (dek->use_aead)
-                    /**/         : "CFB",
-                    ustr );
-          xfree (ustr);
-        }
+        show_encrypted_for_user_info (ctrl, pk->pubkey_usage, enc, dek);
       /* And write it. */
       init_packet (&pkt);
       pkt.pkttype = PKT_PUBKEY_ENC;
@@ -1173,11 +1382,19 @@ write_pubkey_enc (ctrl_t ctrl,
 
 
 /*
- * Write pubkey-enc packets from the list of PKs to OUT.
+ * Write pubkey-enc packets from the list of PKs PKLIST to OUT.  DEK
+ * has the session key.  If a packet with the same key is also found
+ * in RESTRICT_PK_LIST, it is not written.
  */
 static int
-write_pubkey_enc_from_list (ctrl_t ctrl, PK_LIST pk_list, DEK *dek, iobuf_t out)
+write_pubkey_enc_from_list (ctrl_t ctrl, pk_list_t pk_list, DEK *dek,
+                            iobuf_t out,
+                            struct pubkey_enc_info_item *restrict_pk_list)
 {
+  PKT_public_key *pk;
+  struct pubkey_enc_info_item *pkei;
+  int throw_keyid, rc;
+
   if (opt.throw_keyids && (PGP7 || PGP8))
     {
       log_info(_("option '%s' may not be used in %s mode\n"),
@@ -1188,9 +1405,23 @@ write_pubkey_enc_from_list (ctrl_t ctrl, PK_LIST pk_list, DEK *dek, iobuf_t out)
 
   for ( ; pk_list; pk_list = pk_list->next )
     {
-      PKT_public_key *pk = pk_list->pk;
-      int throw_keyid = (opt.throw_keyids || (pk_list->flags&1));
-      int rc = write_pubkey_enc (ctrl, pk, throw_keyid, dek, out);
+      pk = pk_list->pk;
+      for (pkei = restrict_pk_list; pkei; pkei = pkei->next)
+        if (pk->keyid[0] == pkei->keyid[0]
+            && pk->keyid[1] == pkei->keyid[1]
+            && pk->version == pkei->version
+            && pk->pubkey_algo == pkei->pubkey_algo)
+          break;
+      if (pkei)
+        {
+          if (opt.verbose)
+            log_info (_("already encrypted to %08lX\n"),
+                      (ulong) keyid_from_pk (pk, NULL));
+          continue;
+        }
+
+      throw_keyid = (opt.throw_keyids || (pk_list->flags&1));
+      rc = write_pubkey_enc (ctrl, pk, throw_keyid, dek, out);
       if (rc)
         return rc;
     }
@@ -1223,7 +1454,8 @@ encrypt_crypt_files (ctrl_t ctrl, int nfiles, char **files, strlist_t remusr)
             }
           line[strlen(line)-1] = '\0';
           print_file_status(STATUS_FILE_START, line, 2);
-          rc = encrypt_crypt (ctrl, -1, line, remusr, 0, NULL, -1);
+          rc = encrypt_crypt (ctrl, GNUPG_INVALID_FD, line, remusr,
+                              0, NULL, GNUPG_INVALID_FD);
           if (rc)
             log_error ("encryption of '%s' failed: %s\n",
                        print_fname_stdin(line), gpg_strerror (rc) );
@@ -1235,7 +1467,8 @@ encrypt_crypt_files (ctrl_t ctrl, int nfiles, char **files, strlist_t remusr)
       while (nfiles--)
         {
           print_file_status(STATUS_FILE_START, *files, 2);
-          if ( (rc = encrypt_crypt (ctrl, -1, *files, remusr, 0, NULL, -1)) )
+          if ((rc = encrypt_crypt (ctrl, GNUPG_INVALID_FD, *files, remusr,
+                                   0, NULL, GNUPG_INVALID_FD)))
             log_error("encryption of '%s' failed: %s\n",
                       print_fname_stdin(*files), gpg_strerror (rc) );
           write_status( STATUS_FILE_DONE );

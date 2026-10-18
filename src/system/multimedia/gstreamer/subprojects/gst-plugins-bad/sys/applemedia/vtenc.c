@@ -96,7 +96,7 @@
  *
  * Apple VideoToolbox H265 encoder with alpha channel support.
  * This encoder can either use HW or a SW implementation depending on the device.
- * 
+ *
  * ## Example pipeline (assuming a PNG with an alpha channel as input)
  * |[
  * gst-launch-1.0 -v filesrc location=test.png ! pngdec ! imagefreeze num-buffers=1000 ! videoconvert ! vtenc_h265a ! qtmux ! filesink location=out.mov
@@ -111,7 +111,7 @@
  *
  * Apple VideoToolbox H265 HW-only encoder with alpha channel support.
  * Currently only available on macOS.
- * 
+ *
  * ## Example pipeline (assuming a PNG with an alpha channel as input)
  * |[
  * gst-launch-1.0 -v filesrc location=test.png ! pngdec ! imagefreeze num-buffers=1000 ! videoconvert ! vtenc_h265a ! qtmux ! filesink location=out.mov
@@ -127,9 +127,11 @@
 #include "vtenc.h"
 
 #include "coremediabuffer.h"
-#ifdef HAVE_IOS
+
+#if !TARGET_OS_OSX
 #include "corevideobuffer.h"
 #endif
+
 #include "vtutil.h"
 #include "helpers.h"
 #include <gst/pbutils/codec-utils.h>
@@ -153,35 +155,16 @@ GST_DEBUG_CATEGORY (gst_vtenc_debug);
 
 #define CMTIME_TO_GST_CLOCK_TIME(time) time.value / (time.timescale / GST_SECOND)
 
-/* define EnableHardwareAcceleratedVideoEncoder in < 10.9 */
-#if defined(MAC_OS_X_VERSION_MAX_ALLOWED) && MAC_OS_X_VERSION_MAX_ALLOWED < 1090
-const CFStringRef
-    kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder =
-CFSTR ("EnableHardwareAcceleratedVideoEncoder");
-const CFStringRef
-    kVTVideoEncoderSpecification_RequireHardwareAcceleratedVideoEncoder =
-CFSTR ("RequireHardwareAcceleratedVideoEncoder");
-const CFStringRef kVTCompressionPropertyKey_ProfileLevel =
-CFSTR ("ProfileLevel");
-const CFStringRef kVTProfileLevel_H264_Baseline_AutoLevel =
-CFSTR ("H264_Baseline_AutoLevel");
-#endif
-
-#if defined(MAC_OS_X_VERSION_MAX_ALLOWED) && MAC_OS_X_VERSION_MAX_ALLOWED < 1080
-const CFStringRef kVTCompressionPropertyKey_Quality = CFSTR ("Quality");
-#endif
-
-#ifdef HAVE_VIDEOTOOLBOX_10_9_6
-extern OSStatus
-VTCompressionSessionPrepareToEncodeFrames (VTCompressionSessionRef session)
-    __attribute__((weak_import));
-#endif
-
 /* This property key is currently completely undocumented. The only way you can
  * know about its existence is if Apple tells you. It allows you to tell the
  * encoder to not preserve alpha even when outputting alpha formats. */
 const CFStringRef gstVTCodecPropertyKey_PreserveAlphaChannel =
 CFSTR ("kVTCodecPropertyKey_PreserveAlphaChannel");
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 130000
+const CFStringRef kVTCompressionPropertyKey_ConstantBitRate =
+CFSTR ("ConstantBitrate");
+#endif
 
 enum
 {
@@ -254,14 +237,14 @@ static void gst_vtenc_session_configure_realtime (GstVTEnc * self,
 
 static GstFlowReturn gst_vtenc_encode_frame (GstVTEnc * self,
     GstVideoCodecFrame * frame);
-static void gst_vtenc_enqueue_buffer (void *outputCallbackRefCon,
+static void gst_vtenc_session_output_callback (void *outputCallbackRefCon,
     void *sourceFrameRefCon, OSStatus status, VTEncodeInfoFlags infoFlags,
     CMSampleBufferRef sampleBuffer);
 static gboolean gst_vtenc_buffer_is_keyframe (GstVTEnc * self,
     CMSampleBufferRef sbuf);
 
 
-#ifndef HAVE_IOS
+#if TARGET_OS_OSX
 static GstVTEncFrame *gst_vtenc_frame_new (GstBuffer * buf,
     GstVideoInfo * videoinfo);
 static void gst_vtenc_frame_free (GstVTEncFrame * frame);
@@ -290,7 +273,8 @@ gst_vtenc_rate_control_get_type (void)
 }
 
 static GstStaticCaps sink_caps =
-GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE ("{ AYUV64, UYVY, NV12, I420 }"));
+GST_STATIC_CAPS (GST_VIDEO_CAPS_MAKE
+    ("{ AYUV64, UYVY, NV12, I420, P010_10LE }"));
 
 static void
 gst_vtenc_base_init (GstVTEncClass * klass)
@@ -316,7 +300,7 @@ gst_vtenc_base_init (GstVTEncClass * klass)
 
   {
     GstCaps *caps = gst_static_caps_get (&sink_caps);
-#ifndef HAVE_IOS
+#if TARGET_OS_OSX
     gboolean enable_argb = TRUE;
     int retval;
     char cpu_name[30];
@@ -341,10 +325,10 @@ gst_vtenc_base_init (GstVTEncClass * klass)
     }
 
     if (enable_argb) {
-      caps = gst_vtutil_caps_append_video_format (caps, "ARGB64_BE");
+      caps = gst_vtutil_caps_append_video_format (caps, "ARGB64_BE", NULL);
       /* RGBA64_LE is kCVPixelFormatType_64RGBALE, only available on macOS 11.3+ */
       if (GST_APPLEMEDIA_HAVE_64RGBALE)
-        caps = gst_vtutil_caps_append_video_format (caps, "RGBA64_LE");
+        caps = gst_vtutil_caps_append_video_format (caps, "RGBA64_LE", NULL);
     }
 #endif
     gst_element_class_add_pad_template (element_class,
@@ -773,38 +757,40 @@ gst_vtenc_pause_output_loop (GstVTEnc * self)
   g_mutex_unlock (&self->queue_mutex);
 }
 
-static void
-gst_vtenc_set_flushing_flag (GstVTEnc * self)
-{
-  g_mutex_lock (&self->queue_mutex);
-  self->is_flushing = TRUE;
-  g_cond_signal (&self->queue_cond);
-  g_mutex_unlock (&self->queue_mutex);
-}
-
 static GstFlowReturn
-gst_vtenc_finish_encoding (GstVTEnc * self, gboolean is_flushing)
+gst_vtenc_drain_encoder (GstVTEnc * self, gboolean flush)
 {
-  GST_DEBUG_OBJECT (self,
-      "complete encoding and clean buffer queue, is flushing %d", is_flushing);
+  GST_DEBUG_OBJECT (self, "drain_encoder, flushing: %d", flush);
   OSStatus vt_status;
 
   /* In case of EOS before the first buffer/caps */
   if (self->session == NULL)
     return GST_FLOW_OK;
 
-  /* If output loop failed to push things downstream */
-  if (self->downstream_ret != GST_FLOW_OK
-      && self->downstream_ret != GST_FLOW_FLUSHING) {
-    /* Tells enqueue_buffer() to instantly discard any new encoded frames */
-    gst_vtenc_set_flushing_flag (self);
+  /* Only early-return here if we're draining (as that needs to output frames).
+   * Flushing doesn't care about errors from downstream. */
+  if (!flush && self->downstream_ret != GST_FLOW_OK) {
+    /* Makes sure the output callback won't get stuck waiting for space in the queue */
+    g_mutex_lock (&self->queue_mutex);
+    self->is_flushing = TRUE;
+    g_cond_signal (&self->queue_cond);
+    g_mutex_unlock (&self->queue_mutex);
+
     GST_WARNING_OBJECT (self, "Output loop stopped with error (%s), leaving",
         gst_flow_get_name (self->downstream_ret));
     return self->downstream_ret;
   }
 
-  if (is_flushing)
-    gst_vtenc_set_flushing_flag (self);
+  g_mutex_lock (&self->queue_mutex);
+  if (flush) {
+    GST_DEBUG_OBJECT (self, "setting flushing flag");
+    self->is_flushing = TRUE;
+  } else {
+    GST_DEBUG_OBJECT (self, "setting draining flag");
+    self->is_draining = TRUE;
+  }
+  g_cond_signal (&self->queue_cond);
+  g_mutex_unlock (&self->queue_mutex);
 
   if (!gst_vtenc_ensure_output_loop (self)) {
     GST_ERROR_OBJECT (self, "Output loop failed to resume");
@@ -826,8 +812,30 @@ gst_vtenc_finish_encoding (GstVTEnc * self, gboolean is_flushing)
         (int) vt_status);
   }
 
+  /* If self->first_frame is still true, that means we never got more than 1 frame
+   * and that's all for now, so let's push it manually now */
+  if (self->first_frame) {
+    GST_DEBUG_OBJECT (self,
+        "first frame never pushed downstream, sending to output loop");
+
+    g_mutex_lock (&self->queue_mutex);
+    gst_vec_deque_push_tail (self->output_queue, self->first_frame);
+    self->first_frame = NULL;
+    g_cond_signal (&self->queue_cond);
+    g_mutex_unlock (&self->queue_mutex);
+  }
+
+  /* This will only pause after all frames are out because is_flushing/is_draining=TRUE */
   gst_vtenc_pause_output_loop (self);
   GST_VIDEO_ENCODER_STREAM_LOCK (self);
+
+  if (flush) {
+    GST_DEBUG_OBJECT (self, "clearing flushing flag");
+    self->is_flushing = FALSE;
+  } else {
+    GST_DEBUG_OBJECT (self, "clearing draining flag");
+    self->is_draining = FALSE;
+  }
 
   if (self->downstream_ret == GST_FLOW_OK)
     GST_DEBUG_OBJECT (self, "buffer queue cleaned");
@@ -846,8 +854,10 @@ gst_vtenc_start (GstVideoEncoder * enc)
 
   /* DTS can be negative if b-frames are enabled */
   gst_video_encoder_set_min_pts (enc, GST_SECOND * 60 * 60 * 1000);
+  self->dts_offset = GST_CLOCK_TIME_NONE;
 
   self->is_flushing = FALSE;
+  self->is_draining = FALSE;
   self->downstream_ret = GST_FLOW_OK;
   g_atomic_int_set (&self->require_restart, FALSE);
   g_atomic_int_set (&self->require_reconfigure, FALSE);
@@ -889,6 +899,7 @@ gst_vtenc_stop (GstVideoEncoder * enc)
 
   self->negotiate_downstream = TRUE;
   self->is_flushing = TRUE;
+  self->is_draining = FALSE;
 
   if (self->profile_level)
     CFRelease (self->profile_level);
@@ -897,6 +908,10 @@ gst_vtenc_stop (GstVideoEncoder * enc)
   if (self->input_state)
     gst_video_codec_state_unref (self->input_state);
   self->input_state = NULL;
+
+  if (self->first_frame)
+    gst_video_codec_frame_unref (self->first_frame);
+  self->first_frame = NULL;
 
   self->video_info.width = self->video_info.height = 0;
   self->video_info.fps_n = self->video_info.fps_d = 0;
@@ -918,7 +933,7 @@ gst_vtenc_h264_parse_profile_level_key (GstVTEnc * self, const gchar * profile,
     profile = "main";
   if (level_arg == NULL)
     level_arg = "AutoLevel";
-  strncpy (level, level_arg, sizeof (level));
+  strlcpy (level, level_arg, sizeof (level));
 
   if (!strcmp (profile, "constrained-baseline") ||
       !strcmp (profile, "baseline")) {
@@ -938,6 +953,7 @@ gst_vtenc_h264_parse_profile_level_key (GstVTEnc * self, const gchar * profile,
   if (strlen (level) == 1) {
     level[1] = '_';
     level[2] = '0';
+    level[3] = 0;
   } else if (strlen (level) == 3) {
     level[1] = '_';
   }
@@ -1083,7 +1099,7 @@ gst_vtenc_set_format (GstVideoEncoder * enc, GstVideoCodecState * state)
   VTCompressionSessionRef session;
 
   if (self->input_state) {
-    gst_vtenc_finish_encoding (self, FALSE);
+    gst_vtenc_drain_encoder (self, FALSE);
     gst_video_codec_state_unref (self->input_state);
   }
 
@@ -1313,18 +1329,22 @@ static GstFlowReturn
 gst_vtenc_finish (GstVideoEncoder * enc)
 {
   GstVTEnc *self = GST_VTENC_CAST (enc);
-  return gst_vtenc_finish_encoding (self, FALSE);
+
+  GST_DEBUG_OBJECT (self, "finish");
+  return gst_vtenc_drain_encoder (self, FALSE);
 }
 
 static gboolean
 gst_vtenc_flush (GstVideoEncoder * enc)
 {
   GstVTEnc *self = GST_VTENC_CAST (enc);
-  GstFlowReturn ret;
 
-  ret = gst_vtenc_finish_encoding (self, TRUE);
+  GST_DEBUG_OBJECT (self, "flush");
+  gst_vtenc_drain_encoder (self, TRUE);
 
-  return (ret == GST_FLOW_OK);
+  self->downstream_ret = GST_FLOW_OK;
+
+  return TRUE;
 }
 
 static void
@@ -1444,42 +1464,6 @@ gst_vtenc_set_colorimetry (GstVTEnc * self, VTCompressionSessionRef session)
   }
 }
 
-static gboolean
-gst_vtenc_compute_dts_offset (GstVTEnc * self, gint fps_n, gint fps_d)
-{
-  gint num_offset_frames;
-
-  // kVTCompressionPropertyKey_AllowFrameReordering enables B-Frames
-  if (!self->allow_frame_reordering ||
-      (self->specific_format_id == kCMVideoCodecType_H264
-          && self->h264_profile == GST_H264_PROFILE_BASELINE)) {
-    num_offset_frames = 0;
-  } else {
-    if (self->specific_format_id == kCMVideoCodecType_H264) {
-      // H264 encoder always sets 2 max_num_ref_frames
-      num_offset_frames = 1;
-    } else {
-      // HEVC encoder uses B-pyramid
-      num_offset_frames = 2;
-    }
-  }
-
-  if (fps_d == 0 && num_offset_frames != 0) {
-    GST_ERROR_OBJECT (self,
-        "Variable framerate is not supported with B-Frames");
-    return FALSE;
-  }
-
-  self->dts_offset =
-      gst_util_uint64_scale (num_offset_frames * GST_SECOND,
-      self->video_info.fps_d, self->video_info.fps_n);
-
-  GST_DEBUG_OBJECT (self, "DTS Offset:%" GST_TIME_FORMAT,
-      GST_TIME_ARGS (self->dts_offset));
-
-  return TRUE;
-}
-
 static VTCompressionSessionRef
 gst_vtenc_create_session (GstVTEnc * self)
 {
@@ -1489,7 +1473,7 @@ gst_vtenc_create_session (GstVTEnc * self)
   const GstVTEncoderDetails *codec_details =
       GST_VTENC_CLASS_GET_CODEC_DETAILS (G_OBJECT_GET_CLASS (self));
 
-#ifndef HAVE_IOS
+#if TARGET_OS_OSX
   /* Apple's M1 hardware encoding fails when provided with an interlaced ProRes source.
    * It's most likely a bug in VideoToolbox, as no such limitation has been officially mentioned anywhere.
    * For now let's disable HW encoding entirely when such case occurs. */
@@ -1512,7 +1496,21 @@ gst_vtenc_create_session (GstVTEnc * self)
         TRUE);
 #endif
 
+  /* This was set in gst_vtenc_negotiate_specific_format_details() */
+  g_assert_cmpint (self->specific_format_id, !=, 0);
+
   if (self->profile_level) {
+    /* If there's no B-frames, the DTS offset doesn't need to be calculated
+     * (kVTCompressionPropertyKey_AllowFrameReordering enables B-Frames) */
+    if (!self->allow_frame_reordering
+        || CFStringHasPrefix (self->profile_level, CFSTR ("H264_Baseline"))) {
+      self->dts_offset = 0;
+    } else if (self->video_info.fps_n == 0) {
+      GST_ERROR_OBJECT (self,
+          "Variable framerate is not supported with B-Frames");
+      goto beach;
+    }
+
     pb_attrs = CFDictionaryCreateMutable (NULL, 0,
         &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     gst_vtutil_dict_set_i32 (pb_attrs, kCVPixelBufferWidthKey,
@@ -1521,20 +1519,10 @@ gst_vtenc_create_session (GstVTEnc * self)
         self->video_info.height);
   }
 
-  /* This was set in gst_vtenc_negotiate_specific_format_details() */
-  g_assert_cmpint (self->specific_format_id, !=, 0);
-
-  if (self->profile_level) {
-    if (!gst_vtenc_compute_dts_offset (self, self->video_info.fps_d,
-            self->video_info.fps_n)) {
-      goto beach;
-    }
-  }
-
   status = VTCompressionSessionCreate (NULL,
       self->video_info.width, self->video_info.height,
       self->specific_format_id, encoder_spec, pb_attrs, NULL,
-      gst_vtenc_enqueue_buffer, self, &session);
+      gst_vtenc_session_output_callback, self, &session);
   GST_INFO_OBJECT (self, "VTCompressionSessionCreate for %d x %d => %d",
       self->video_info.width, self->video_info.height, (int) status);
   if (status != noErr) {
@@ -1631,8 +1619,12 @@ gst_vtenc_create_session (GstVTEnc * self)
     gst_vtenc_session_dump_properties (self, session);
     self->dump_properties = FALSE;
   }
-#ifdef HAVE_VIDEOTOOLBOX_10_9_6
-  if (VTCompressionSessionPrepareToEncodeFrames) {
+#if !TARGET_OS_WATCH
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 140000
+  if (__builtin_available (iOS 8.0, macOS 10.9, tvOS 10.2, *)) {
+#else
+  if (__builtin_available (iOS 8.0, macOS 10.9, tvOS 10.2, visionOS 1.0, *)) {
+#endif
     status = VTCompressionSessionPrepareToEncodeFrames (session);
     if (status != noErr) {
       GST_ERROR_OBJECT (self,
@@ -1773,7 +1765,11 @@ gst_vtenc_session_configure_bitrate (GstVTEnc * self,
     /*
      * In addition to the OS requirements, CBR also requires Apple Silicon
      */
-    if (__builtin_available (macOS 13.0, iOS 16.0, *)) {
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 140000
+    if (__builtin_available (macOS 13.0, iOS 16.0, tvOS 16.0, *)) {
+#else
+    if (__builtin_available (macOS 13.0, iOS 16.0, tvOS 16.0, visionOS 1.0, *)) {
+#endif
       key = kVTCompressionPropertyKey_ConstantBitRate;
     } else
 #endif
@@ -1926,14 +1922,14 @@ gst_vtenc_update_latency (GstVTEnc * self)
 }
 
 static void
-gst_vtenc_update_timestamps (GstVTEnc * self, GstVideoCodecFrame * frame,
+gst_vtenc_set_timestamps_from_sample_buf (GstVideoCodecFrame * frame,
     CMSampleBufferRef sample_buf)
 {
   CMTime pts = CMSampleBufferGetOutputPresentationTimeStamp (sample_buf);
   frame->pts = CMTIME_TO_GST_CLOCK_TIME (pts);
   CMTime dts = CMSampleBufferGetOutputDecodeTimeStamp (sample_buf);
   if (CMTIME_IS_VALID (dts)) {
-    frame->dts = CMTIME_TO_GST_CLOCK_TIME (dts) - self->dts_offset;
+    frame->dts = CMTIME_TO_GST_CLOCK_TIME (dts);
   }
 }
 
@@ -1948,22 +1944,20 @@ static gboolean
 gst_vtenc_push_all_pending_frames (GstVTEnc * self)
 {
   OSStatus status;
-  gboolean ret = TRUE;
 
   GST_VIDEO_ENCODER_STREAM_UNLOCK (self);
   GST_DEBUG_OBJECT (self, "starting VTCompressionSessionCompleteFrames");
   status = VTCompressionSessionCompleteFrames (self->session,
       kCMTimePositiveInfinity);
   GST_DEBUG_OBJECT (self, "VTCompressionSessionCompleteFrames ended");
+  GST_VIDEO_ENCODER_STREAM_LOCK (self);
 
   if (status != noErr) {
     GST_WARNING_OBJECT (self,
         "VTCompressionSessionCompleteFrames returned %d", (int) status);
-    ret = FALSE;
   }
 
-  GST_VIDEO_ENCODER_STREAM_LOCK (self);
-  return ret;
+  return status == noErr;
 }
 
 static void
@@ -1974,12 +1968,12 @@ gst_vtenc_restart_session (GstVTEnc * self)
   /* We need to push out all frames still inside the encoder,
    * otherwise destroy_session() will wait for all callbacks to fire
    * and very likely deadlock due to the object lock being taken */
-  if (!gst_vtenc_push_all_pending_frames (self)) {
-    GST_DEBUG_OBJECT (self, "Will retry session restart on next frame encode");
-    return;
+  if (gst_vtenc_push_all_pending_frames (self)) {
+    GST_DEBUG_OBJECT (self, "All frames out, restarting encoder session");
+  } else {
+    GST_DEBUG_OBJECT (self, "Failed to push all pending frames, restarting "
+        "encoder session anyway");
   }
-
-  GST_DEBUG_OBJECT (self, "All frames out, restarting encoder session");
 
   GST_OBJECT_LOCK (self);
   gst_vtenc_destroy_session (self, &self->session);
@@ -2124,7 +2118,7 @@ gst_vtenc_encode_frame (GstVTEnc * self, GstVideoCodecFrame * frame)
   if (meta != NULL) {
     pbuf = gst_core_media_buffer_get_pixel_buffer (frame->input_buffer);
   }
-#ifdef HAVE_IOS
+#if !TARGET_OS_OSX
   if (pbuf == NULL) {
     GstVideoFrame inframe, outframe;
     GstBuffer *outbuf;
@@ -2242,7 +2236,7 @@ gst_vtenc_encode_frame (GstVTEnc * self, GstVideoCodecFrame * frame)
    * When paired with a fast enough source like videotestsrc, this can result in
    * a ton of memory being taken up by frames inside the encoder, eventually killing
    * the process because of OOM.
-   * 
+   *
    * The workaround here tries to block until the number of pending frames falls
    * below a certain threshold. Best we can do until Apple fixes this. */
   if (self->specific_format_id == kCMVideoCodecType_HEVCWithAlpha) {
@@ -2300,13 +2294,14 @@ release:
 }
 
 static void
-gst_vtenc_enqueue_buffer (void *outputCallbackRefCon,
+gst_vtenc_session_output_callback (void *outputCallbackRefCon,
     void *sourceFrameRefCon,
     OSStatus status,
     VTEncodeInfoFlags infoFlags, CMSampleBufferRef sampleBuffer)
 {
   GstVTEnc *self = outputCallbackRefCon;
   GstVideoCodecFrame *frame;
+  gboolean push_anyway;
 
   frame =
       gst_video_encoder_get_frame (GST_VIDEO_ENCODER_CAST (self),
@@ -2347,17 +2342,6 @@ gst_vtenc_enqueue_buffer (void *outputCallbackRefCon,
     return;
   }
 
-  g_mutex_lock (&self->queue_mutex);
-  if (self->is_flushing) {
-    GST_DEBUG_OBJECT (self, "Ignoring frame %d because we're flushing",
-        frame->system_frame_number);
-
-    gst_video_encoder_release_frame (GST_VIDEO_ENCODER_CAST (self), frame);
-    g_mutex_unlock (&self->queue_mutex);
-    return;
-  }
-  g_mutex_unlock (&self->queue_mutex);
-
   /* This may happen if we don't have enough bitrate */
   if (sampleBuffer == NULL)
     goto drop;
@@ -2369,14 +2353,56 @@ gst_vtenc_enqueue_buffer (void *outputCallbackRefCon,
    * to enable the use of the video meta API on the core media buffer */
   frame->output_buffer = gst_core_media_buffer_new (sampleBuffer, FALSE, NULL);
 
-  gst_vtenc_update_timestamps (self, frame, sampleBuffer);
+  gst_vtenc_set_timestamps_from_sample_buf (frame, sampleBuffer);
 
-  /* Limit the amount of frames in our output queue
-   * to avoid processing too many frames ahead */
   g_mutex_lock (&self->queue_mutex);
-  while (gst_vec_deque_get_length (self->output_queue) >
+
+  /* VT can give us frames with DTS>PTS. We need to offset DTS by the max possible difference
+   * between PTS and DTS, which can be calculated from the PTS diff between the 1st and 2nd frame */
+  if (self->first_frame) {
+    if (GST_CLOCK_TIME_IS_VALID (self->first_frame->pts)
+        && GST_CLOCK_TIME_IS_VALID (frame->pts)) {
+      self->dts_offset = frame->pts - self->first_frame->pts;
+      GST_INFO_OBJECT (self, "DTS offset: %" GST_TIME_FORMAT,
+          GST_TIME_ARGS (self->dts_offset));
+    } else {
+      GST_INFO_OBJECT (self,
+          "DTS offset set to 0 because of invalid PTS: frame 1 PTS %"
+          GST_TIME_FORMAT ", frame 2 PTS %" GST_TIME_FORMAT,
+          GST_TIME_ARGS (self->first_frame->pts), GST_TIME_ARGS (frame->pts));
+      self->dts_offset = 0;
+    }
+
+    if (GST_CLOCK_TIME_IS_VALID (self->first_frame->dts))
+      self->first_frame->dts -= self->dts_offset;
+
+    gst_vec_deque_push_tail (self->output_queue, self->first_frame);
+    self->first_frame = NULL;
+  } else if (!GST_CLOCK_TIME_IS_VALID (self->dts_offset)) {
+    self->first_frame = frame;
+    g_mutex_unlock (&self->queue_mutex);
+    return;
+  }
+
+  if (GST_CLOCK_TIME_IS_VALID (self->dts_offset)
+      && GST_CLOCK_TIME_IS_VALID (frame->dts)) {
+    frame->dts -= self->dts_offset;
+  }
+
+  GST_TRACE_OBJECT (self,
+      "encoded frame %d PTS %" GST_TIME_FORMAT " DTS %" GST_TIME_FORMAT,
+      frame->system_frame_number, GST_TIME_ARGS (frame->pts),
+      GST_TIME_ARGS (frame->dts));
+
+  /* Limit the amount of frames in our output queue to avoid processing
+   * too many frames ahead, and also make sure we don't block here 
+   * if the output loop paused due to a downstream error. */
+  push_anyway = self->is_flushing || self->is_draining;
+  while (!push_anyway
+      && gst_vec_deque_get_length (self->output_queue) >
       VTENC_OUTPUT_QUEUE_SIZE) {
     g_cond_wait (&self->queue_cond, &self->queue_mutex);
+    push_anyway = self->is_flushing || self->is_draining;
   }
 
   gst_vec_deque_push_tail (self->output_queue, frame);
@@ -2394,15 +2420,18 @@ gst_vtenc_output_loop (GstVTEnc * self)
   GstVideoCodecFrame *outframe;
   GstCoreMediaMeta *meta;
   GstFlowReturn ret = GST_FLOW_OK;
-  gboolean should_pause;
 
   g_mutex_lock (&self->queue_mutex);
   while (gst_vec_deque_is_empty (self->output_queue) && !self->pause_task
-      && !self->is_flushing) {
+      && !self->is_flushing && !self->is_draining) {
     g_cond_wait (&self->queue_cond, &self->queue_mutex);
   }
 
-  if (self->pause_task) {
+  /* If we're currently draining/flushing, make sure to not pause before we
+   * output all the frames */
+  if (self->pause_task && ((!self->is_flushing && !self->is_draining)
+          || gst_vec_deque_is_empty (self->output_queue))) {
+    GST_DEBUG_OBJECT (self, "pausing output loop as requested");
     g_mutex_unlock (&self->queue_mutex);
     gst_pad_pause_task (GST_VIDEO_ENCODER_CAST (self)->srcpad);
     return;
@@ -2440,7 +2469,10 @@ gst_vtenc_output_loop (GstVTEnc * self)
 
     gst_vtenc_update_latency (self);
 
-    GST_LOG_OBJECT (self, "finishing frame %d", outframe->system_frame_number);
+    GST_LOG_OBJECT (self,
+        "finishing frame %d dts %" GST_TIME_FORMAT " pts %" GST_TIME_FORMAT,
+        outframe->system_frame_number,
+        GST_TIME_ARGS (outframe->dts), GST_TIME_ARGS (outframe->pts));
     GST_VIDEO_ENCODER_STREAM_UNLOCK (self);
     /* releases frame, even if it has no output buffer (i.e. failed to encode) */
     ret =
@@ -2454,9 +2486,8 @@ gst_vtenc_output_loop (GstVTEnc * self)
 
   g_mutex_unlock (&self->queue_mutex);
   GST_VIDEO_ENCODER_STREAM_LOCK (self);
-  self->downstream_ret = ret;
 
-  /* We need to empty the queue immediately so that enqueue_buffer() 
+  /* We need to empty the queue immediately so that enqueue_buffer()
    * can push out the current buffer, otherwise it can block other
    * encoder callbacks completely */
   if (ret != GST_FLOW_OK) {
@@ -2467,22 +2498,21 @@ gst_vtenc_output_loop (GstVTEnc * self)
       gst_video_encoder_release_frame (GST_VIDEO_ENCODER_CAST (self), outframe);
     }
 
+    /* Don't consider the FLUSHING ret an error if something flagged is_flushing in the meantime */
+    if (self->is_flushing && ret == GST_FLOW_FLUSHING) {
+      ret = GST_FLOW_OK;
+    }
     g_cond_signal (&self->queue_cond);
     g_mutex_unlock (&self->queue_mutex);
   }
 
+  self->downstream_ret = ret;
   GST_VIDEO_ENCODER_STREAM_UNLOCK (self);
 
-  /* Check is_flushing here in case we had an empty queue.
-   * In that scenario we also want to pause, as the encoder callback
-   * will discard any frames that are output while flushing */
-  g_mutex_lock (&self->queue_mutex);
-  should_pause = ret != GST_FLOW_OK || self->is_flushing;
-  g_mutex_unlock (&self->queue_mutex);
-  if (should_pause) {
-    GST_DEBUG_OBJECT (self, "pausing output task: %s",
-        ret != GST_FLOW_OK ? gst_flow_get_name (ret) : "flushing");
-    gst_pad_pause_task (GST_VIDEO_ENCODER_CAST (self)->srcpad);
+  if (ret != GST_FLOW_OK) {
+    GST_DEBUG_OBJECT (self, "pausing output task because of downstream: %s",
+        gst_flow_get_name (ret));
+    gst_pad_pause_task (GST_VIDEO_ENCODER_SRC_PAD (self));
   }
 }
 
@@ -2506,7 +2536,7 @@ gst_vtenc_buffer_is_keyframe (GstVTEnc * self, CMSampleBufferRef sbuf)
   return result;
 }
 
-#ifndef HAVE_IOS
+#if TARGET_OS_OSX
 static GstVTEncFrame *
 gst_vtenc_frame_new (GstBuffer * buf, GstVideoInfo * video_info)
 {
@@ -2540,7 +2570,7 @@ gst_pixel_buffer_release_cb (void *releaseRefCon, const void *dataPtr,
 }
 #endif
 
-static void
+static gboolean
 gst_vtenc_register (GstPlugin * plugin,
     const GstVTEncoderDetails * codec_details)
 {
@@ -2572,44 +2602,150 @@ gst_vtenc_register (GstPlugin * plugin,
   }
 
   g_free (type_name);
+
+  return result;
 }
 
-static const GstVTEncoderDetails gst_vtenc_codecs[] = {
-  {"H.264", "h264", "video/x-h264",
-        "Ole André Vadla Ravnås <oleavr@soundrop.com>, "
-        "Dominik Röttsches <dominik.rottsches@intel.com>",
-      kCMVideoCodecType_H264, FALSE},
-  {"H.265/HEVC", "h265", "video/x-h265",
-        "Piotr Brzeziński <piotr@centricular.com>",
-      kCMVideoCodecType_HEVC, FALSE},
-  {"H.265/HEVC with alpha", "h265a", "video/x-h265",
-        "Piotr Brzeziński <piotr@centricular.com>",
-      kCMVideoCodecType_HEVCWithAlpha, FALSE},
-#ifndef HAVE_IOS
-  {"H.264 (HW only)", "h264_hw", "video/x-h264",
-        "Ole André Vadla Ravnås <oleavr@soundrop.com>, "
-        "Dominik Röttsches <dominik.rottsches@intel.com>",
-      kCMVideoCodecType_H264, TRUE},
-  {"H.265/HEVC (HW only)", "h265_hw", "video/x-h265",
-        "Piotr Brzeziński <piotr@centricular.com>",
-      kCMVideoCodecType_HEVC, TRUE},
-  {"H.265/HEVC with alpha (HW only)", "h265a_hw", "video/x-h265",
-        "Piotr Brzeziński <piotr@centricular.com>",
-      kCMVideoCodecType_HEVCWithAlpha, TRUE},
-#endif
-  {"Apple ProRes", "prores", "video/x-prores",
-        "Nirbheek Chauhan <nirbheek@centricular.com>",
-      GST_kCMVideoCodecType_Some_AppleProRes, FALSE},
-};
+static void
+gst_vtenc_init_once (void)
+{
+  static gsize init_once = 0;
 
-void
+  if (g_once_init_enter (&init_once)) {
+    gst_applemedia_init_once ();
+    GST_DEBUG_CATEGORY_INIT (gst_vtenc_debug, "vtenc", 0,
+        "Apple VideoToolbox Encoder Wrapper");
+    g_once_init_leave (&init_once, 1);
+  }
+}
+
+static gboolean
+gst_vtenc_register_h264 (GstPlugin * plugin)
+{
+  gst_vtenc_init_once ();
+
+  static const GstVTEncoderDetails codec = {
+    "H.264", "h264", "video/x-h264",
+    "Ole André Vadla Ravnås <oleavr@soundrop.com>, "
+        "Dominik Röttsches <dominik.rottsches@intel.com>",
+    kCMVideoCodecType_H264, FALSE
+  };
+
+  return gst_vtenc_register (plugin, &codec);
+}
+
+static gboolean
+gst_vtenc_register_h265 (GstPlugin * plugin)
+{
+  gst_vtenc_init_once ();
+
+  static const GstVTEncoderDetails codec = {
+    "H.265/HEVC", "h265", "video/x-h265",
+    "Piotr Brzeziński <piotr@centricular.com>",
+    kCMVideoCodecType_HEVC, FALSE
+  };
+
+  return gst_vtenc_register (plugin, &codec);
+}
+
+static gboolean
+gst_vtenc_register_h265a (GstPlugin * plugin)
+{
+  gst_vtenc_init_once ();
+
+  static const GstVTEncoderDetails codec = {
+    "H.265/HEVC with alpha", "h265a", "video/x-h265",
+    "Piotr Brzeziński <piotr@centricular.com>",
+    kCMVideoCodecType_HEVCWithAlpha, FALSE
+  };
+
+  return gst_vtenc_register (plugin, &codec);
+}
+
+#if TARGET_OS_OSX
+static gboolean
+gst_vtenc_register_h264_hw (GstPlugin * plugin)
+{
+  gst_vtenc_init_once ();
+
+  static const GstVTEncoderDetails codec = {
+    "H.264 (HW only)", "h264_hw", "video/x-h264",
+    "Ole André Vadla Ravnås <oleavr@soundrop.com>, "
+        "Dominik Röttsches <dominik.rottsches@intel.com>",
+    kCMVideoCodecType_H264, TRUE
+  };
+
+  return gst_vtenc_register (plugin, &codec);
+}
+
+static gboolean
+gst_vtenc_register_h265_hw (GstPlugin * plugin)
+{
+  gst_vtenc_init_once ();
+
+  static const GstVTEncoderDetails codec = {
+    "H.265/HEVC (HW only)", "h265_hw", "video/x-h265",
+    "Piotr Brzeziński <piotr@centricular.com>",
+    kCMVideoCodecType_HEVC, TRUE
+  };
+
+  return gst_vtenc_register (plugin, &codec);
+}
+
+static gboolean
+gst_vtenc_register_h265a_hw (GstPlugin * plugin)
+{
+  gst_vtenc_init_once ();
+
+  static const GstVTEncoderDetails codec = {
+    "H.265/HEVC with alpha (HW only)", "h265a_hw", "video/x-h265",
+    "Piotr Brzeziński <piotr@centricular.com>",
+    kCMVideoCodecType_HEVCWithAlpha, TRUE
+  };
+
+  return gst_vtenc_register (plugin, &codec);
+}
+#endif
+
+static gboolean
+gst_vtenc_register_prores (GstPlugin * plugin)
+{
+  gst_vtenc_init_once ();
+
+  static const GstVTEncoderDetails codec = {
+    "Apple ProRes", "prores", "video/x-prores",
+    "Nirbheek Chauhan <nirbheek@centricular.com>",
+    GST_kCMVideoCodecType_Some_AppleProRes, FALSE
+  };
+
+  return gst_vtenc_register (plugin, &codec);
+}
+
+GST_ELEMENT_REGISTER_DEFINE_CUSTOM (vtenc_h264, gst_vtenc_register_h264);
+GST_ELEMENT_REGISTER_DEFINE_CUSTOM (vtenc_h265, gst_vtenc_register_h265);
+GST_ELEMENT_REGISTER_DEFINE_CUSTOM (vtenc_h265a, gst_vtenc_register_h265a);
+#if TARGET_OS_OSX
+GST_ELEMENT_REGISTER_DEFINE_CUSTOM (vtenc_h264_hw, gst_vtenc_register_h264_hw);
+GST_ELEMENT_REGISTER_DEFINE_CUSTOM (vtenc_h265_hw, gst_vtenc_register_h265_hw);
+GST_ELEMENT_REGISTER_DEFINE_CUSTOM (vtenc_h265a_hw,
+    gst_vtenc_register_h265a_hw);
+#endif
+GST_ELEMENT_REGISTER_DEFINE_CUSTOM (vtenc_prores, gst_vtenc_register_prores);
+
+gboolean
 gst_vtenc_register_elements (GstPlugin * plugin)
 {
-  guint i;
+  gboolean ret = FALSE;
 
-  GST_DEBUG_CATEGORY_INIT (gst_vtenc_debug, "vtenc",
-      0, "Apple VideoToolbox Encoder Wrapper");
+  ret |= GST_ELEMENT_REGISTER (vtenc_h264, plugin);
+  ret |= GST_ELEMENT_REGISTER (vtenc_h265, plugin);
+  ret |= GST_ELEMENT_REGISTER (vtenc_h265a, plugin);
+#if TARGET_OS_OSX
+  ret |= GST_ELEMENT_REGISTER (vtenc_h264_hw, plugin);
+  ret |= GST_ELEMENT_REGISTER (vtenc_h265_hw, plugin);
+  ret |= GST_ELEMENT_REGISTER (vtenc_h265a_hw, plugin);
+#endif
+  ret |= GST_ELEMENT_REGISTER (vtenc_prores, plugin);
 
-  for (i = 0; i != G_N_ELEMENTS (gst_vtenc_codecs); i++)
-    gst_vtenc_register (plugin, &gst_vtenc_codecs[i]);
+  return ret;
 }

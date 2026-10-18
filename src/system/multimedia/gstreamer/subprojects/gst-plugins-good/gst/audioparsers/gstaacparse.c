@@ -963,11 +963,13 @@ gst_aac_parse_check_loas_frame (GstAacParse * aacparse,
   return FALSE;
 }
 
-/* caller ensure sufficient data */
-static inline void
+static inline gboolean
 gst_aac_parse_parse_adts_header (GstAacParse * aacparse, const guint8 * data,
-    gint * rate, gint * channels, gint * object, gint * version)
+    const guint avail, gint * rate, gint * channels, gint * object,
+    gint * version)
 {
+  if (avail < 4)
+    return FALSE;
 
   if (rate) {
     gint sr_idx = (data[2] & 0x3c) >> 2;
@@ -984,6 +986,8 @@ gst_aac_parse_parse_adts_header (GstAacParse * aacparse, const guint8 * data,
     *version = (data[1] & 0x08) ? 2 : 4;
   if (object)
     *object = ((data[2] & 0xc0) >> 6) + 1;
+
+  return TRUE;
 }
 
 /**
@@ -1054,8 +1058,12 @@ gst_aac_parse_detect_stream (GstAacParse * aacparse,
 
     GST_INFO ("ADTS ID: %d, framesize: %d", (data[1] & 0x08) >> 3, *framesize);
 
-    gst_aac_parse_parse_adts_header (aacparse, data, &rate, &channels,
-        &aacparse->object_type, &aacparse->mpegversion);
+    if (!gst_aac_parse_parse_adts_header (aacparse, data, avail, &rate,
+            &channels, &aacparse->object_type, &aacparse->mpegversion)) {
+      GST_DEBUG_OBJECT (aacparse,
+          "impossible ADTS configuration or not enough data");
+      return FALSE;
+    }
 
     if (!channels || !framesize) {
       GST_DEBUG_OBJECT (aacparse, "impossible ADTS configuration");
@@ -1478,12 +1486,23 @@ gst_aac_parse_handle_frame (GstBaseParse * parse,
   if (G_UNLIKELY (!ret))
     goto exit;
 
+  ret = framesize <= map.size;
+
   if (aacparse->header_type == DSPAAC_HEADER_ADTS) {
     /* see above */
     frame->overhead = 7;
 
-    gst_aac_parse_parse_adts_header (aacparse, map.data,
-        &rate, &channels, NULL, NULL);
+    if (!gst_aac_parse_parse_adts_header (aacparse, map.data, map.size,
+            &rate, &channels, NULL, NULL)) {
+      /* This is pretty normal when skipping data at the start of
+       * random stream (MPEG-TS capture for example) */
+      GST_DEBUG_OBJECT (aacparse, "Error reading ADTS header. Skipping.");
+      /* Since we don't fully parsed the ADTS header, we don't know for sure
+       * how much to skip. Just skip 1 to end up to the next marker and
+       * resume parsing from there */
+      *skipsize = 1;
+      goto exit;
+    }
 
     GST_LOG_OBJECT (aacparse, "rate: %d, chans: %d", rate, channels);
 
@@ -1492,10 +1511,7 @@ gst_aac_parse_handle_frame (GstBaseParse * parse,
       aacparse->sample_rate = rate;
       aacparse->channels = channels;
 
-      if (!gst_aac_parse_set_src_caps (aacparse, NULL)) {
-        /* If linking fails, we need to return appropriate error */
-        ret = GST_FLOW_NOT_LINKED;
-      }
+      gst_aac_parse_set_src_caps (aacparse, NULL);
 
       gst_base_parse_set_frame_rate (GST_BASE_PARSE (aacparse),
           aacparse->sample_rate, aacparse->frame_samples, 2, 2);
@@ -1532,10 +1548,7 @@ gst_aac_parse_handle_frame (GstBaseParse * parse,
        before knowing about rate/channels. */
     if (setcaps
         || !gst_pad_has_current_caps (GST_BASE_PARSE_SRC_PAD (aacparse))) {
-      if (!gst_aac_parse_set_src_caps (aacparse, NULL)) {
-        /* If linking fails, we need to return appropriate error */
-        ret = GST_FLOW_NOT_LINKED;
-      }
+      gst_aac_parse_set_src_caps (aacparse, NULL);
 
       gst_base_parse_set_frame_rate (GST_BASE_PARSE (aacparse),
           aacparse->sample_rate, aacparse->frame_samples, 2, 2);
@@ -1546,7 +1559,8 @@ gst_aac_parse_handle_frame (GstBaseParse * parse,
       && aacparse->output_header_type == DSPAAC_HEADER_ADTS) {
     if (!gst_aac_parse_prepend_adts_headers (aacparse, frame)) {
       GST_ERROR_OBJECT (aacparse, "Failed to prepend ADTS headers to frame");
-      ret = GST_FLOW_ERROR;
+      gst_buffer_unmap (buffer, &map);
+      return GST_FLOW_ERROR;
     }
   }
 
@@ -1563,7 +1577,7 @@ exit:
       *skipsize = 1;
   }
 
-  if (ret && framesize <= map.size) {
+  if (ret) {
     return gst_base_parse_finish_frame (parse, frame, framesize);
   }
 

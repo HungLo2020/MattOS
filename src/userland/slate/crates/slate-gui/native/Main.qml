@@ -15,6 +15,9 @@ ApplicationWindow {
     title: frame.title || "Slate"
     color: Theme.backgroundColor
     property var frame: slate.frame
+    // Settings, recent lists, profiles and colours: notified only when one
+    // of them changes, so typing does not re-evaluate what depends on them.
+    property var stable: slate.stable
     property int priorFocus: -1
     property string priorPaneKey: ""
     // Pane delegates are recreated when compact layouts change their visible
@@ -22,7 +25,12 @@ ApplicationWindow {
     property string gitCommitDraft: ""
     property string gitSubmittedMessage: ""
     property bool gitCommitting: false
-    readonly property var settings: frame.settings || ({})
+    // The Git pane's commit graph: shown, and its share of the pane.
+    property bool gitGraphOpen: true
+    property real gitGraphShare: 0.4
+    // Collapsed change groups, kept while panes switch between views.
+    property var gitCollapsedGroups: ({})
+    readonly property var settings: stable.settings || ({})
     readonly property bool statusIsError: {
         var s = frame.status || "";
         return s.indexOf("Error") === 0 || s.indexOf("failed") !== -1 || s.indexOf("Failed") === 0;
@@ -35,19 +43,72 @@ ApplicationWindow {
     function updateGitFrame() {
         // Row actions also depend on which panes show Git, so pane kinds count.
         var kinds = (frame.panes || []).map(function (p) { return p.id + ":" + p.kind; }).join(",");
-        var key = [frame.git_revision, frame.git_busy, frame.git_error, frame.git_branch, frame.git_repository, frame.git_restricted, frame.focus, frame.editor_only, kinds].join("|");
+        var key = [frame.git_revision, frame.git_busy, frame.git_error, frame.git_branch, frame.git_repository, frame.git_restricted, frame.git_root, frame.git_upstream, frame.git_ahead, frame.git_behind, (stable.git_branches || []).join("\u0000"), frame.history_revision, frame.history_more, frame.history_error, frame.focus, frame.editor_only, kinds].join("|");
         if (key === gitKey)
             return;
         gitKey = key;
+        var marks = gitMarksFrom(slate.gitEntries, frame.git_root || "");
+        if (JSON.stringify(marks) !== JSON.stringify(gitMarks))
+            gitMarks = marks;
         gitFrame = {
             "git_repository": frame.git_repository,
             "git_restricted": frame.git_restricted,
             "git_branch": frame.git_branch,
             "git_busy": frame.git_busy,
             "git_error": frame.git_error,
-            "git": frame.git || [],
+            "git_root": frame.git_root,
+            "git_upstream": frame.git_upstream,
+            "git_ahead": frame.git_ahead || 0,
+            "git_behind": frame.git_behind || 0,
+            "git_branches": stable.git_branches || [],
+            "history_more": !!frame.history_more,
+            "history_error": frame.history_error || "",
+            "git": slate.gitEntries,
             "focus": frame.focus
         };
+    }
+    // The tool panes' colours (Settings: File browser / Git pane theme).
+    PaneTheme {
+        id: filesTheme
+        colors: root.stable.files_colors || null
+    }
+    PaneTheme {
+        id: gitTheme
+        colors: root.stable.git_colors || null
+    }
+    // File browser decorations by absolute path: {kind, rank, folder}.
+    // Folders carry their most severe descendant change.
+    property var gitMarks: ({})
+    function gitMarksFrom(entries, top) {
+        var marks = {};
+        if (!top.length)
+            return marks;
+        var stop = top.replace(/\/+$/, "");
+        for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+            var kind = entry.group === "Conflicts" ? "conflict" : entry.untracked ? "untracked" : entry.status.indexOf("A") !== -1 ? "added" : entry.status.indexOf("D") !== -1 ? "deleted" : "modified";
+            var rank = ({"conflict": 3, "modified": 2, "deleted": 2, "added": 1, "untracked": 1})[kind];
+            var path = stop + "/" + entry.path.replace(/\/+$/, "");
+            var own = marks[path];
+            if (!own || own.folder || own.rank < rank)
+                marks[path] = {"kind": kind, "rank": rank, "folder": false};
+            for (var cut = path.lastIndexOf("/"); cut > stop.length; cut = path.lastIndexOf("/", cut - 1)) {
+                var folder = path.substring(0, cut);
+                var found = marks[folder];
+                // Every folder above an equal or worse mark already has one.
+                if (found && found.folder && found.rank >= rank)
+                    break;
+                if (!found || found.folder)
+                    marks[folder] = {"kind": kind, "rank": rank, "folder": true};
+            }
+        }
+        return marks;
+    }
+    function gitMarkColor(mark) {
+        return filesTheme.statusColor(mark ? mark.kind : "");
+    }
+    function gitMarkLetter(mark) {
+        return mark ? ({"conflict": "!", "modified": "M", "deleted": "D", "added": "A", "untracked": "U"})[mark.kind] : "";
     }
     Component.onCompleted: updateGitFrame()
     // One measured header size is shared with Rust's editor/PTY viewport calculation.
@@ -57,7 +118,13 @@ ApplicationWindow {
     }
     readonly property int paneHeaderHeight: Math.ceil(Math.max(40, uiMetrics.height + 20))
     readonly property int uiTabMinimum: Math.ceil(Math.max(122, uiMetrics.averageCharacterWidth * 10 + 52))
-    readonly property int fileRowHeight: Math.ceil(Math.max(28, uiMetrics.height + 12))
+    // Tool tabs (Files, Git) have no close button and short titles.
+    readonly property int toolTabMinimum: Math.ceil(Math.max(64, uiMetrics.averageCharacterWidth * 6 + 28))
+    // File tree rows are denser than Git rows, which carry two lines and buttons.
+    readonly property int fileRowHeight: Math.ceil(Math.max(24, uiMetrics.height + 8))
+    readonly property int fileIndent: Math.ceil(Math.max(12, uiMetrics.height * 0.8))
+    readonly property int fileIconSize: Math.max(14, Math.min(fileRowHeight - 6, Math.ceil(uiMetrics.height)))
+    readonly property int fileHeaderHeight: Math.ceil(Math.max(30, uiMetrics.height + 14))
     readonly property int minimapWidth: 72
     function syncViewport() {
         slate.paneHeader(paneHeaderHeight + 3);
@@ -176,12 +243,14 @@ ApplicationWindow {
             spacing: 24
             Text {
                 text: (commandItem.checkable ? (commandItem.checked ? "✓  " : "    ") : "") + commandItem.text
+                textFormat: Text.PlainText
                 font: commandItem.font
                 color: commandItem.highlighted ? Theme.highlightedTextColor : commandItem.enabled ? Theme.textColor : Theme.disabledTextColor
                 Layout.fillWidth: true
             }
             Text {
                 text: commandItem.commandInfo.shortcut || ""
+                textFormat: Text.PlainText
                 font: commandItem.font
                 color: commandItem.highlighted ? Theme.highlightedTextColor : Theme.disabledTextColor
             }
@@ -190,6 +259,22 @@ ApplicationWindow {
             color: commandItem.highlighted ? Theme.highlightColor : "transparent"
         }
         onTriggered: root.invokeAction(actionId, argument, commandPane)
+    }
+    // Menu entries naming files, folders and tabs. A control's default label
+    // renders text that looks like markup as rich text, so `caption` is shown
+    // as plain text; `text` keeps the mnemonic (escape `&` in names as `&&`).
+    component PlainMenuItem: Basic.MenuItem {
+        id: plainItem
+        required property string caption
+        contentItem: Text {
+            leftPadding: plainItem.checkable && plainItem.indicator ? plainItem.indicator.width + plainItem.spacing : 0
+            text: plainItem.caption
+            textFormat: Text.PlainText
+            font: plainItem.font
+            elide: Text.ElideMiddle
+            verticalAlignment: Text.AlignVCenter
+            color: plainItem.palette.windowText
+        }
     }
     // A label with the characters at `positions` bold and underlined.
     function marked(label, positions) {
@@ -331,7 +416,7 @@ ApplicationWindow {
         onActivated: root.invokeAction("zoom-reset")
     }
     Instantiator {
-        model: root.frame.global_shortcuts || []
+        model: root.stable.global_shortcuts || []
         delegate: Shortcut {
             required property string modelData
             sequence: modelData
@@ -343,11 +428,20 @@ ApplicationWindow {
         id: mainMenuBar
         objectName: "mainMenuBar"
         font: root.font
+        // The Basic style's menu items are at least 40 px tall; these fit
+        // their text instead.
         delegate: Basic.MenuBarItem {
+            id: menuBarItem
             objectName: "menu_" + text.replace("&", "")
             font: root.font
             leftPadding: 8
             rightPadding: 8
+            topPadding: 3
+            bottomPadding: 3
+            background: Rectangle {
+                implicitHeight: 0
+                color: menuBarItem.highlighted ? Theme.highlightColor : "transparent"
+            }
         }
         background: Rectangle {
             color: Theme.backgroundColor
@@ -362,12 +456,13 @@ ApplicationWindow {
             Menu {
                 id: recentProjectsMenu
                 title: "Recent Projects"
-                enabled: (root.frame.recent_projects || []).length > 0
+                enabled: (root.stable.recent_projects || []).length > 0
                 Instantiator {
-                    model: root.frame.recent_projects || []
-                    delegate: Basic.MenuItem {
+                    model: root.stable.recent_projects || []
+                    delegate: PlainMenuItem {
                         required property string modelData
-                        text: modelData
+                        text: modelData.replace(/&/g, "&&")
+                        caption: modelData
                         onTriggered: root.invokeAction("open-recent-project", modelData)
                     }
                     onObjectAdded: function(index, object) { recentProjectsMenu.insertItem(index, object); }
@@ -378,14 +473,16 @@ ApplicationWindow {
                 id: recentMenu
                 objectName: "recentMenu"
                 title: "Open Recent"
-                enabled: (root.frame.recent || []).length > 0
+                enabled: (root.stable.recent || []).length > 0
                 Instantiator {
-                    model: root.frame.recent || []
-                    delegate: Basic.MenuItem {
+                    model: root.stable.recent || []
+                    delegate: PlainMenuItem {
                         required property string modelData
                         required property int index
+                        readonly property string entry: modelData.substring(modelData.lastIndexOf("/") + 1) + "   —   " + modelData
                         objectName: "recent_" + index
-                        text: (index < 9 ? "&" + (index + 1) + "  " : "") + modelData.substring(modelData.lastIndexOf("/") + 1) + "   —   " + modelData
+                        text: (index < 9 ? "&" + (index + 1) + "  " : "") + entry.replace(/&/g, "&&")
+                        caption: (index < 9 ? (index + 1) + "  " : "") + entry
                         onTriggered: root.invokeAction("open-recent", modelData)
                     }
                     onObjectAdded: function (index, object) {
@@ -643,6 +740,8 @@ ApplicationWindow {
                 property var tabItems: []
                 property string tabKey: ""
                 readonly property bool isEditor: paneData.kind === "editor"
+                // File and Git panes have their own themes; others the desktop's.
+                readonly property var paneTheme: paneData.kind === "files" ? filesTheme : paneData.kind === "git" ? gitTheme : Theme
                 readonly property bool showMinimap: isEditor && !!root.settings.minimap && width > 360
                 function updateTabs() {
                     var next = paneData && paneData.tabs ? paneData.tabs : [];
@@ -662,16 +761,22 @@ ApplicationWindow {
                 width: paneData.rect.width
                 height: paneData.rect.height
                 color: Theme.backgroundColor
-                border.color: root.frame.focus === paneId ? Theme.highlightColor : Theme.disabledTextColor
+                // A hairline at rest; focus is the accent.
+                border.color: root.frame.focus === paneId ? Theme.highlightColor : Qt.alpha(Theme.textColor, 0.16)
                 border.width: root.frame.focus === paneId ? 2 : 1
                 clip: true
+                // The file or folder path at a browser row; empty for "..".
+                function entryPathAt(row) {
+                    var entry = row >= 0 ? slate.fileEntry(row) : null;
+                    return entry && entry.path && !(row === 0 && entry.name === "..") ? entry.path : "";
+                }
                 function focusContent() {
                     if (paneData.kind === "editor" || paneData.kind === "terminal")
                         grid.forceActiveFocus();
                     else if (paneData.kind === "git")
-                        gitView.focusContent();
+                        gitLoader.item && gitLoader.item.focusContent();
                     else
-                        browser.forceActiveFocus();
+                        filesLoader.item && filesLoader.item.focusBrowser();
                 }
                 RowLayout {
                     id: paneHeader
@@ -688,7 +793,13 @@ ApplicationWindow {
                         Layout.minimumWidth: 0
                         Layout.fillHeight: true
                         readonly property var entries: panel.tabItems
-                        readonly property bool crowded: entries.length * root.uiTabMinimum > width
+                        readonly property real minimumWidth: {
+                            var total = Math.max(0, entries.length - 1) * 4;
+                            for (var i = 0; i < entries.length; i++)
+                                total += entries[i].close_id === null || entries[i].close_id === undefined ? root.toolTabMinimum : root.uiTabMinimum;
+                            return total;
+                        }
+                        readonly property bool crowded: minimumWidth > width
                         RowLayout {
                             anchors.fill: parent
                             spacing: 4
@@ -712,8 +823,29 @@ ApplicationWindow {
                                         rightPadding: tabClose.visible ? tabClose.width + 8 : leftPadding
                                         text: fileTab.modelData.title
                                         tip: fileTab.modelData.title
-                                        highlighted: fileTab.modelData.active
+                                        // The active tab is tinted and underlined in the
+                                        // accent, rather than filled with it.
+                                        flat: true
                                         font.bold: fileTab.modelData.active
+                                        foregroundColor: fileTab.modelData.active ? Theme.textColor : Qt.alpha(Theme.textColor, 0.75)
+                                        Accessible.name: fileTab.modelData.title + (fileTab.modelData.active ? ", active tab" : "")
+                                        background: Rectangle {
+                                            radius: 4
+                                            color: fileTab.modelData.active ? Qt.alpha(Theme.highlightColor, 0.16) : tabSelect.hovered ? Qt.alpha(Theme.textColor, 0.07) : "transparent"
+                                            border.width: tabSelect.visualFocus ? 2 : 0
+                                            border.color: Theme.highlightColor
+                                            Rectangle {
+                                                visible: fileTab.modelData.active
+                                                anchors.left: parent.left
+                                                anchors.right: parent.right
+                                                anchors.bottom: parent.bottom
+                                                anchors.leftMargin: 6
+                                                anchors.rightMargin: 6
+                                                height: 2
+                                                radius: 1
+                                                color: Theme.highlightColor
+                                            }
+                                        }
                                         onClicked: root.send({
                                             "action": "switch_tab",
                                             "pane": panel.paneId,
@@ -733,7 +865,7 @@ ApplicationWindow {
                                         width: Math.max(implicitWidth, implicitHeight)
                                         height: implicitHeight
                                         flat: true
-                                        foregroundColor: fileTab.modelData.active ? Theme.highlightedTextColor : Theme.textColor
+                                        foregroundColor: Theme.textColor
                                         background: Rectangle {
                                             radius: 4
                                             color: tabClose.down ? Qt.alpha(tabClose.foregroundColor, 0.24) : tabClose.hovered ? Qt.alpha(tabClose.foregroundColor, 0.12) : "transparent"
@@ -769,10 +901,11 @@ ApplicationWindow {
                                     id: tabMenu
                                     Instantiator {
                                         model: tabs.entries
-                                        delegate: MenuItem {
+                                        delegate: PlainMenuItem {
                                             required property var modelData
                                             required property int index
-                                            text: modelData.title
+                                            text: modelData.title.replace(/&/g, "&&")
+                                            caption: modelData.title
                                             checkable: true
                                             checked: modelData.active
                                             onTriggered: root.send({
@@ -803,9 +936,21 @@ ApplicationWindow {
                                 "action": "focus",
                                 "pane": panel.paneId
                             });
+                            paneMenu.entryPath = panel.paneData.kind === "files" ? panel.entryPathAt(filesLoader.item ? filesLoader.item.selectedRow : 0) : "";
                             paneMenu.popup();
                         }
                     }
+                }
+                // File and Git content sit on their pane theme; the tabs above
+                // keep the desktop palette like every other pane's.
+                Rectangle {
+                    objectName: "paneContent_" + panel.paneId
+                    visible: panel.paneData.kind === "files" || panel.paneData.kind === "git"
+                    x: panel.border.width
+                    y: root.paneHeaderHeight + 2
+                    width: Math.max(0, panel.width - 2 * panel.border.width)
+                    height: Math.max(0, panel.height - y - panel.border.width)
+                    color: panel.paneTheme.backgroundColor
                 }
                 CellView {
                     id: grid
@@ -989,161 +1134,499 @@ ApplicationWindow {
                         }
                     }
                 }
-                GitPane {
-                    id: gitView
-                    objectName: "gitView_" + panel.paneId
+                // Only a pane showing Git builds the Git view (its lists, menus
+                // and catalog queries); state that must outlive it lives on root.
+                Loader {
+                    id: gitLoader
+                    active: panel.paneData.kind === "git"
                     x: 2
                     y: root.paneHeaderHeight + 3
                     width: Math.max(0, panel.width - 4)
                     height: Math.max(0, panel.height - y - 2)
-                    visible: panel.paneData.kind === "git"
-                    bridge: slate
-                    commandInfoFor: function (id, row) { return root.gitCommandInfo(id, panel.paneId, row); }
-                    frame: root.gitFrame
-                    paneData: ({
-                            "selected": panel.paneData.selected || 0
-                        })
-                    paneId: panel.paneId
-                    draft: root.gitCommitDraft
-                    committing: root.gitCommitting
-                    onDraftEdited: function (text) {
-                        root.gitCommitDraft = text;
-                    }
-                    onCommitRequested: function (message) {
-                        root.gitSubmittedMessage = message;
-                        root.gitCommitting = true;
-                        root.invokeAction("commit", message, panel.paneId);
-                    }
-                    onActionRequested: function (action) {
-                        root.send(action);
-                    }
-                }
-                ListView {
-                    id: browser
-                    objectName: (visible ? "browser_" : "hiddenBrowser_") + panel.paneId
-                    x: 1
-                    y: root.paneHeaderHeight + 2
-                    width: Math.max(0, parent.width - 6 - Math.max(12, fileScroll.implicitWidth))
-                    height: Math.max(0, parent.height - y - 1)
-                    visible: panel.paneData.kind === "files"
-                    clip: true
-                    model: slate.files
-                    currentIndex: panel.paneData.selected || 0
-                    boundsBehavior: Flickable.StopAtBounds
-                    ScrollBar.vertical: Basic.ScrollBar {
-                        id: fileScroll
-                        objectName: "fileScroll_" + panel.paneId
-                        parent: panel
-                        x: browser.width + 4
-                        y: browser.y
-                        width: Math.max(12, implicitWidth)
-                        height: browser.height
-                        visible: browser.visible && size < 1
-                    }
-                    Keys.onPressed: function (event) {
-                        slate.key(event.key, event.text, event.modifiers);
-                        event.accepted = true;
-                    }
-                    Label {
-                        textFormat: Text.PlainText
-                        anchors.centerIn: parent
-                        width: Math.max(0, parent.width - 20)
-                        visible: browser.count === 0
-                        text: "No files to show"
-                        wrapMode: Text.Wrap
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                    // One shared hint for the whole list instead of one per row.
-                    Hint {
-                        id: rowHint
-                        property Item target: browser
-                        anchorItem: target
-                        visible: false
-                    }
-                    delegate: Basic.ItemDelegate {
-                        id: fileDelegate
-                        objectName: "entry_" + panel.paneId + "_" + index
-                        required property var modelData
-                        required property int index
-                        height: root.fileRowHeight
-                        width: browser.width
-                        padding: 4
-                        leftPadding: 4 + (modelData.depth || 0) * 16
-                        contentItem: Label {
-                            textFormat: Text.PlainText
-                            text: fileDelegate.text
-                            font: fileDelegate.font
-                            elide: Text.ElideMiddle
-                            verticalAlignment: Text.AlignVCenter
-                            color: fileDelegate.highlighted ? Theme.highlightedTextColor : Theme.textColor
-                        }
-                        background: Rectangle {
-                            color: fileDelegate.highlighted ? Theme.highlightColor : fileDelegate.hovered ? Theme.alternateBackgroundColor : "transparent"
-                        }
-                        onHoveredChanged: {
-                            if (hovered) {
-                                rowHint.target = fileDelegate;
-                                rowHint.text = fileDelegate.modelData.path;
-                                rowHint.visible = true;
-                            } else if (rowHint.target === fileDelegate) {
-                                rowHint.visible = false;
+                    sourceComponent: Component {
+                        GitPane {
+                            id: gitView
+                            objectName: "gitView_" + panel.paneId
+                            bridge: slate
+                            commandInfoFor: function (id, row) { return root.gitCommandInfo(id, panel.paneId, row); }
+                            frame: root.gitFrame
+                            paneData: ({
+                                    "selected": panel.paneData.selected || 0
+                                })
+                            paneId: panel.paneId
+                            draft: root.gitCommitDraft
+                            committing: root.gitCommitting
+                            theme: gitTheme
+                            collapsedGroups: root.gitCollapsedGroups
+                            onCollapsedGroupsEdited: function (groups) {
+                                root.gitCollapsedGroups = groups;
+                            }
+                            graphOpen: root.gitGraphOpen
+                            graphShare: root.gitGraphShare
+                            onGraphOpenEdited: function (open) {
+                                root.gitGraphOpen = open;
+                            }
+                            onGraphShareEdited: function (share) {
+                                root.gitGraphShare = share;
+                            }
+                            onDraftEdited: function (text) {
+                                root.gitCommitDraft = text;
+                            }
+                            onCommitRequested: function (message) {
+                                root.gitSubmittedMessage = message;
+                                root.gitCommitting = true;
+                                root.invokeAction("commit", message, panel.paneId);
+                            }
+                            onActionRequested: function (action) {
+                                root.send(action);
                             }
                         }
-                        text: (modelData.directory ? (modelData.expanded ? "▾  " : "▸  ") : "   ") + modelData.name
-                        highlighted: index === browser.currentIndex
-                        onClicked: {
-                            root.send({
-                                "action": "click",
-                                "pane": panel.paneId,
-                                "row": index,
-                                "col": 0
-                            });
-                            if (modelData.directory && modelData.name !== "..")
-                                root.invokeAction("toggle-folder", modelData.path, panel.paneId);
-                            browser.forceActiveFocus();
-                        }
-                        onDoubleClicked: {
-                            if (modelData.directory && modelData.name !== "..") return;
-                            root.send({
-                                "action": "focus",
-                                "pane": panel.paneId
-                            });
-                            root.send({
-                                "action": "open",
-                                "path": modelData.path
-                            });
-                        }
                     }
                 }
-                MouseArea {
-                    anchors.fill: browser
-                    acceptedButtons: Qt.RightButton
-                    enabled: panel.paneData.kind === "files"
-                    onClicked: function (mouse) {
-                        var index = browser.indexAt(mouse.x, mouse.y + browser.contentY);
-                        if (index >= 0)
-                            root.send({
-                                "action": "click",
-                                "pane": panel.paneId,
-                                "row": index,
-                                "col": 0
-                            });
-                        root.send({
-                            "action": "focus",
-                            "pane": panel.paneId
-                        });
-                        paneMenu.popup();
+                // Only a pane showing files builds the file browser.
+                Loader {
+                    id: filesLoader
+                    active: panel.paneData.kind === "files"
+                    width: panel.width
+                    height: panel.height
+                    sourceComponent: Component {
+                        Item {
+                            id: filesContent
+                            readonly property int selectedRow: browser.selectedRow
+                            function focusBrowser() {
+                                browser.forceActiveFocus();
+                            }
+                            // The browsed folder, with its navigation and file actions.
+                            Item {
+                                id: filesHeader
+                                objectName: "filesHeader_" + panel.paneId
+                                readonly property string folderPath: root.frame.browser || ""
+                                readonly property string folderName: {
+                                    var trimmed = folderPath.replace(/\/+$/, "");
+                                    return trimmed.substring(trimmed.lastIndexOf("/") + 1) || trimmed || "Files";
+                                }
+                                readonly property bool roomy: width > 240
+                                x: 1
+                                y: root.paneHeaderHeight + 2
+                                width: Math.max(0, panel.width - 2)
+                                height: visible ? root.fileHeaderHeight : 0
+                                visible: panel.paneData.kind === "files"
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: slate.browserNested ? 4 : 10
+                                    anchors.rightMargin: 4
+                                    spacing: 2
+                                    ActionButton {
+                                        theme: panel.paneTheme
+                                        objectName: "filesUp_" + panel.paneId
+                                        visible: slate.browserNested
+                                        iconName: "go-up"
+                                        tip: "Up to the parent folder"
+                                        compact: true
+                                        flat: true
+                                        onClicked: root.send({
+                                            "action": "browse",
+                                            "path": ".."
+                                        })
+                                    }
+                                    Label {
+                                        id: folderLabel
+                                        objectName: "filesRoot_" + panel.paneId
+                                        Layout.fillWidth: true
+                                        Layout.minimumWidth: 0
+                                        text: filesHeader.folderName
+                                        textFormat: Text.PlainText
+                                        elide: Text.ElideRight
+                                        font.bold: true
+                                        font.capitalization: Font.AllUppercase
+                                        font.letterSpacing: 0.5
+                                        color: Qt.alpha(panel.paneTheme.textColor, 0.8)
+                                        Accessible.name: "Folder " + filesHeader.folderPath
+                                        HoverHandler {
+                                            id: folderHover
+                                        }
+                                        Hint {
+                                            anchorItem: folderLabel
+                                            visible: folderHover.hovered
+                                            text: filesHeader.folderPath
+                                        }
+                                    }
+                                    ActionButton {
+                                        theme: panel.paneTheme
+                                        objectName: "filesNewFile_" + panel.paneId
+                                        visible: filesHeader.roomy
+                                        iconName: "document-new"
+                                        tip: "New file…"
+                                        compact: true
+                                        flat: true
+                                        onClicked: root.invokeAction("new-file", "", panel.paneId)
+                                    }
+                                    ActionButton {
+                                        theme: panel.paneTheme
+                                        objectName: "filesNewFolder_" + panel.paneId
+                                        visible: filesHeader.roomy
+                                        iconName: "folder-new"
+                                        tip: "New folder…"
+                                        compact: true
+                                        flat: true
+                                        onClicked: root.invokeAction("new-folder", "", panel.paneId)
+                                    }
+                                    ActionButton {
+                                        theme: panel.paneTheme
+                                        objectName: "filesCollapse_" + panel.paneId
+                                        iconName: "collapse-all"
+                                        tip: "Collapse all folders"
+                                        compact: true
+                                        flat: true
+                                        onClicked: root.invokeAction("collapse-all-folders", "", panel.paneId)
+                                    }
+                                    ActionButton {
+                                        theme: panel.paneTheme
+                                        objectName: "filesRefresh_" + panel.paneId
+                                        iconName: "view-refresh"
+                                        tip: "Refresh files and Git"
+                                        compact: true
+                                        flat: true
+                                        onClicked: root.invokeAction("refresh", "", panel.paneId)
+                                    }
+                                }
+                                Rectangle {
+                                    anchors.bottom: parent.bottom
+                                    anchors.left: parent.left
+                                    anchors.right: parent.right
+                                    height: 1
+                                    color: Qt.alpha(panel.paneTheme.textColor, 0.1)
+                                }
+                            }
+                            ListView {
+                                id: browser
+                                objectName: (visible ? "browser_" : "hiddenBrowser_") + panel.paneId
+                                // Selection comes from the shared core. The view's own
+                                // currentIndex can shift as rows are inserted above it.
+                                readonly property int selectedRow: panel.paneData.selected || 0
+                                readonly property bool paneFocused: root.frame.focus === panel.paneId
+                                readonly property string folderPrefix: (root.frame.browser || "").replace(/\/+$/, "") + "/"
+                                x: 1
+                                y: filesHeader.y + filesHeader.height + 2
+                                width: Math.max(0, parent.width - 6 - Math.max(12, fileScroll.implicitWidth))
+                                height: Math.max(0, parent.height - y - 1)
+                                visible: panel.paneData.kind === "files"
+                                clip: true
+                                model: slate.files
+                                currentIndex: selectedRow
+                                onSelectedRowChanged: if (selectedRow >= 0 && selectedRow < count) positionViewAtIndex(selectedRow, ListView.Contain)
+                        Component.onCompleted: if (selectedRow > 0 && selectedRow < count) positionViewAtIndex(selectedRow, ListView.Contain)
+                                boundsBehavior: Flickable.StopAtBounds
+                                ScrollBar.vertical: Basic.ScrollBar {
+                                    id: fileScroll
+                                    objectName: "fileScroll_" + panel.paneId
+                                    parent: filesContent
+                                    x: browser.width + 4
+                                    y: browser.y
+                                    width: Math.max(12, implicitWidth)
+                                    height: browser.height
+                                    visible: browser.visible && size < 1
+                                }
+                                Keys.onPressed: function (event) {
+                                    slate.key(event.key, event.text, event.modifiers);
+                                    event.accepted = true;
+                                }
+                                ColumnLayout {
+                                    objectName: "filesEmpty_" + panel.paneId
+                                    // On the view, not its (empty, zero-height) content.
+                                    parent: browser
+                                    anchors.centerIn: parent
+                                    width: Math.max(0, parent.width - 24)
+                                    visible: browser.count === 0
+                                    spacing: panel.paneTheme.largeSpacing
+                                    Label {
+                                        Layout.fillWidth: true
+                                        textFormat: Text.PlainText
+                                        text: "This folder is empty"
+                                        wrapMode: Text.Wrap
+                                        horizontalAlignment: Text.AlignHCenter
+                                        color: panel.paneTheme.disabledTextColor
+                                    }
+                                    ActionButton {
+                                        theme: panel.paneTheme
+                                        Layout.alignment: Qt.AlignHCenter
+                                        text: "New file…"
+                                        onClicked: root.invokeAction("new-file", "", panel.paneId)
+                                    }
+                                    ActionButton {
+                                        theme: panel.paneTheme
+                                        Layout.alignment: Qt.AlignHCenter
+                                        text: "Open folder…"
+                                        onClicked: root.invokeAction("open-folder", "", panel.paneId)
+                                    }
+                                }
+                                // One shared hint for the whole list instead of one per row.
+                                Hint {
+                                    id: rowHint
+                                    property Item target: browser
+                                    anchorItem: target
+                                    visible: false
+                                }
+                                delegate: Basic.ItemDelegate {
+                                    id: fileDelegate
+                                    objectName: "entry_" + panel.paneId + "_" + index
+                                    required property var modelData
+                                    required property int index
+                                    readonly property bool parentLink: modelData.name === ".." && index === 0
+                                    readonly property bool folder: modelData.directory && !parentLink
+                                    readonly property int depth: modelData.depth || 0
+                                    readonly property var mark: root.gitMarks[modelData.path]
+                                    readonly property bool strong: highlighted && browser.paneFocused
+                                    readonly property color foreground: strong ? panel.paneTheme.highlightedTextColor : mark ? root.gitMarkColor(mark) : panel.paneTheme.textColor
+                                    function select() {
+                                        root.send({
+                                            "action": "click",
+                                            "pane": panel.paneId,
+                                            "row": index,
+                                            "col": 0
+                                        });
+                                    }
+                                    function toggle() {
+                                        select();
+                                        if (folder)
+                                            root.invokeAction("toggle-folder", modelData.path, panel.paneId);
+                                        browser.forceActiveFocus();
+                                    }
+                                    height: root.fileRowHeight
+                                    width: browser.width
+                                    topPadding: 2
+                                    bottomPadding: 2
+                                    leftPadding: 6 + depth * root.fileIndent
+                                    rightPadding: 8
+                                    hoverEnabled: true
+                                    text: parentLink ? "Up to " + modelData.path.replace(/\/+$/, "").split("/").pop() : modelData.name
+                                    Accessible.name: parentLink ? text : (folder ? "Folder " : "File ") + modelData.name + (mark ? ", " + mark.kind : "") + (modelData.ignored ? ", ignored" : "")
+                                    highlighted: index === browser.selectedRow
+                                    contentItem: RowLayout {
+                                        spacing: 4
+                                        opacity: fileDelegate.modelData.ignored ? 0.5 : 1
+                                        // Disclosure chevron: its own target, so it can be
+                                        // aimed at precisely while rows still toggle on click.
+                                        Item {
+                                            Layout.preferredWidth: root.fileIndent
+                                            Layout.fillHeight: true
+                                            Rectangle {
+                                                anchors.centerIn: parent
+                                                width: root.fileIndent + 4
+                                                height: width
+                                                radius: width / 2
+                                                visible: fileDelegate.folder && disclosure.containsMouse
+                                                color: Qt.alpha(fileDelegate.foreground, 0.14)
+                                            }
+                                            // Two strokes meeting at the tip: "›", turned down when open.
+                                            Item {
+                                                id: chevron
+                                                anchors.centerIn: parent
+                                                width: 7
+                                                height: 8
+                                                visible: fileDelegate.folder
+                                                rotation: fileDelegate.modelData.expanded ? 90 : 0
+                                                Behavior on rotation {
+                                                    NumberAnimation {
+                                                        duration: 90
+                                                    }
+                                                }
+                                                Rectangle {
+                                                    x: 0
+                                                    y: 3.25
+                                                    width: 5.5
+                                                    height: 1.5
+                                                    radius: 0.75
+                                                    rotation: 45
+                                                    transformOrigin: Item.Right
+                                                    antialiasing: true
+                                                    color: Qt.alpha(fileDelegate.foreground, 0.75)
+                                                }
+                                                Rectangle {
+                                                    x: 0
+                                                    y: 3.25
+                                                    width: 5.5
+                                                    height: 1.5
+                                                    radius: 0.75
+                                                    rotation: -45
+                                                    transformOrigin: Item.Right
+                                                    antialiasing: true
+                                                    color: Qt.alpha(fileDelegate.foreground, 0.75)
+                                                }
+                                            }
+                                            MouseArea {
+                                                id: disclosure
+                                                anchors.fill: parent
+                                                enabled: fileDelegate.folder
+                                                hoverEnabled: true
+                                                onClicked: fileDelegate.toggle()
+                                            }
+                                        }
+                                        FileIcon {
+                                            Layout.alignment: Qt.AlignVCenter
+                                            extent: root.fileIconSize
+                                            name: fileDelegate.modelData.name
+                                            directory: fileDelegate.modelData.directory
+                                            expanded: fileDelegate.modelData.expanded
+                                            parentLink: fileDelegate.parentLink
+                                            tint: fileDelegate.strong ? panel.paneTheme.highlightedTextColor : panel.paneTheme.textColor
+                                        }
+                                        Label {
+                                            id: nameLabel
+                                            Layout.fillWidth: true
+                                            Layout.minimumWidth: 0
+                                            leftPadding: 2
+                                            textFormat: Text.PlainText
+                                            text: fileDelegate.text
+                                            font: fileDelegate.font
+                                            // The extension identifies the file; the hint has the full path.
+                                            elide: Text.ElideRight
+                                            verticalAlignment: Text.AlignVCenter
+                                            color: fileDelegate.foreground
+                                        }
+                                        // Git state: a letter for files, a dot for folders with changes.
+                                        Label {
+                                            visible: !!fileDelegate.mark && !fileDelegate.mark.folder && !fileDelegate.parentLink
+                                            text: root.gitMarkLetter(fileDelegate.mark)
+                                            textFormat: Text.PlainText
+                                            font.bold: true
+                                            color: fileDelegate.foreground
+                                        }
+                                        Rectangle {
+                                            visible: !!fileDelegate.mark && fileDelegate.mark.folder && !fileDelegate.parentLink
+                                            Layout.alignment: Qt.AlignVCenter
+                                            Layout.rightMargin: 2
+                                            implicitWidth: 6
+                                            implicitHeight: 6
+                                            radius: 3
+                                            color: fileDelegate.foreground
+                                        }
+                                    }
+                                    background: Item {
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 4
+                                            anchors.rightMargin: 2
+                                            anchors.topMargin: 1
+                                            anchors.bottomMargin: 1
+                                            radius: 4
+                                            // Full accent only while the tree has focus.
+                                            color: fileDelegate.highlighted ? (browser.paneFocused ? panel.paneTheme.highlightColor : panel.paneTheme.softHighlightColor) : fileDelegate.hovered ? Qt.alpha(panel.paneTheme.textColor, 0.07) : "transparent"
+                                        }
+                                        // Indent guides through each ancestor's chevron.
+                                        Repeater {
+                                            model: fileDelegate.depth
+                                            delegate: Rectangle {
+                                                required property int index
+                                                x: 6 + index * root.fileIndent + Math.floor(root.fileIndent / 2)
+                                                width: 1
+                                                height: fileDelegate.height
+                                                color: Qt.alpha(panel.paneTheme.textColor, fileDelegate.strong ? 0 : 0.12)
+                                            }
+                                        }
+                                    }
+                                    onHoveredChanged: {
+                                        // Only names that do not fit need a hint.
+                                        if (hovered && nameLabel.truncated) {
+                                            var path = fileDelegate.modelData.path;
+                                            rowHint.target = fileDelegate;
+                                            rowHint.text = path.indexOf(browser.folderPrefix) === 0 ? path.substring(browser.folderPrefix.length) : path;
+                                            rowHint.visible = true;
+                                        } else if (rowHint.target === fileDelegate) {
+                                            rowHint.visible = false;
+                                        }
+                                    }
+                                    onClicked: toggle()
+                                    onDoubleClicked: {
+                                        if (folder)
+                                            return;
+                                        root.send({
+                                            "action": "focus",
+                                            "pane": panel.paneId
+                                        });
+                                        root.send({
+                                            "action": "open",
+                                            "path": modelData.path
+                                        });
+                                    }
+                                }
+                            }
+                            MouseArea {
+                                anchors.fill: browser
+                                acceptedButtons: Qt.RightButton
+                                enabled: panel.paneData.kind === "files"
+                                onClicked: function (mouse) {
+                                    var index = browser.indexAt(mouse.x, mouse.y + browser.contentY);
+                                    if (index >= 0)
+                                        root.send({
+                                            "action": "click",
+                                            "pane": panel.paneId,
+                                            "row": index,
+                                            "col": 0
+                                        });
+                                    root.send({
+                                        "action": "focus",
+                                        "pane": panel.paneId
+                                    });
+                                    paneMenu.entryPath = panel.entryPathAt(index);
+                                    paneMenu.popup();
+                                }
+                            }
+                        }
                     }
                 }
                 CommandMenu {
                     id: paneMenu
-                    CommandMenuItem { actionId: "new-file"; commandPane: panel.paneId; visible: panel.paneData.kind === "files" }
-                    CommandMenuItem { actionId: "new-folder"; commandPane: panel.paneId; visible: panel.paneData.kind === "files" }
-                    CommandMenuItem { actionId: "rename-file"; commandPane: panel.paneId; visible: panel.paneData.kind === "files" }
-                    CommandMenuItem { actionId: "trash-file"; commandPane: panel.paneId; visible: panel.paneData.kind === "files" }
                     objectName: "paneMenu_" + panel.paneId
+                    // The browser entry the menu acts on, set as it opens.
+                    property string entryPath: ""
+                    readonly property bool files: panel.paneData.kind === "files"
                     x: Math.max(0, panel.width - width - 2)
                     y: root.paneHeaderHeight + 2
+                    CommandMenuItem { actionId: "new-file"; commandPane: panel.paneId; visible: paneMenu.files }
+                    CommandMenuItem { actionId: "new-folder"; commandPane: panel.paneId; visible: paneMenu.files }
+                    MenuSeparator { visible: paneMenu.files; height: visible ? implicitHeight : 0 }
+                    CommandMenuItem { actionId: "rename-file"; commandPane: panel.paneId; visible: paneMenu.files }
+                    CommandMenuItem { actionId: "trash-file"; commandPane: panel.paneId; visible: paneMenu.files }
+                    MenuSeparator { visible: paneMenu.files; height: visible ? implicitHeight : 0 }
+                    ActionMenuItem {
+                        objectName: "menuAction_copy-path"
+                        caption: "Copy path"
+                        visible: paneMenu.files
+                        enabled: paneMenu.entryPath.length > 0
+                        onTriggered: slate.copyText(paneMenu.entryPath)
+                    }
+                    ActionMenuItem {
+                        objectName: "menuAction_copy-relative-path"
+                        caption: "Copy relative path"
+                        visible: paneMenu.files
+                        enabled: paneMenu.entryPath.length > 0
+                        onTriggered: {
+                            var top = (root.frame.git_root || "").replace(/\/+$/, "") + "/";
+                            var browsed = (root.frame.browser || "").replace(/\/+$/, "") + "/";
+                            var path = paneMenu.entryPath;
+                            // Relative to the repository when there is one, else the browsed folder.
+                            slate.copyText(top.length > 1 && path.indexOf(top) === 0 ? path.substring(top.length) : path.indexOf(browsed) === 0 ? path.substring(browsed.length) : path);
+                        }
+                    }
+                    ActionMenuItem {
+                        objectName: "menuAction_reveal"
+                        caption: "Open containing folder"
+                        visible: paneMenu.files
+                        enabled: paneMenu.entryPath.length > 0
+                        onTriggered: {
+                            var path = paneMenu.entryPath.replace(/\/+$/, "");
+                            Qt.openUrlExternally(slate.fileUrl(path.substring(0, path.lastIndexOf("/")) || "/"));
+                        }
+                    }
+                    CommandMenuItem {
+                        actionId: "terminal-here"
+                        commandPane: panel.paneId
+                        visible: paneMenu.files
+                        argument: paneMenu.entryPath
+                    }
+                    CommandMenuItem { actionId: "collapse-all-folders"; commandPane: panel.paneId; visible: paneMenu.files }
+                    MenuSeparator { visible: paneMenu.files; height: visible ? implicitHeight : 0 }
                     CommandMenuItem {
                         actionId: "save"
                         commandPane: panel.paneId
@@ -1306,14 +1789,20 @@ ApplicationWindow {
         CommandMenuItem { actionId: "split-down"; commandPane: editorMenu.commandPane }
     }
     footer: Basic.ToolBar {
+        id: statusBar
         background: Rectangle {
             color: Theme.backgroundColor
         }
-        implicitHeight: statusRow.implicitHeight + 2 * Theme.smallSpacing
+        // One line of text: the bar's buttons are only as tall as that line.
+        readonly property int buttonHeight: Math.ceil(uiMetrics.height + 6)
+        implicitHeight: statusRow.implicitHeight + 4
         RowLayout {
             id: statusRow
             anchors.fill: parent
-            anchors.margins: Theme.smallSpacing
+            anchors.leftMargin: Theme.smallSpacing
+            anchors.rightMargin: 2
+            anchors.topMargin: 2
+            anchors.bottomMargin: 2
             Label {
                 id: statusLabel
                 objectName: "statusLabel"
@@ -1349,6 +1838,10 @@ ApplicationWindow {
                         {"id": "debug-stop", "text": "■", "tip": "Stop debugging"}
                     ]
                     delegate: ActionButton {
+                        compact: true
+                        implicitHeight: statusBar.buttonHeight
+                        topPadding: 0
+                        bottomPadding: 0
                         required property var modelData
                         objectName: "debug_" + modelData.id
                         text: modelData.text
@@ -1379,6 +1872,10 @@ ApplicationWindow {
                 elide: Text.ElideRight
             }
             ActionButton {
+                compact: true
+                implicitHeight: statusBar.buttonHeight
+                topPadding: 0
+                bottomPadding: 0
                 objectName: "problemCount"
                 readonly property var counts: root.frame.problems || [0, 0]
                 visible: counts[0] + counts[1] > 0
@@ -1388,6 +1885,10 @@ ApplicationWindow {
                 onClicked: root.invokeAction("problems")
             }
             ActionButton {
+                compact: true
+                implicitHeight: statusBar.buttonHeight
+                topPadding: 0
+                bottomPadding: 0
                 objectName: "restrictedMode"
                 visible: root.frame.trusted === false
                 text: "Restricted"
@@ -1411,6 +1912,10 @@ ApplicationWindow {
                 elide: Text.ElideMiddle
             }
             ActionButton {
+                compact: true
+                implicitHeight: statusBar.buttonHeight
+                topPadding: 0
+                bottomPadding: 0
                 text: "?"
                 onClicked: root.paletteWith("")
                 tip: root.frame.hints || "Keyboard shortcuts"
@@ -1455,7 +1960,9 @@ ApplicationWindow {
                 "new-folder": "Create folder",
                 "rename-file": "Rename file or folder",
                 "profile-save": "Save profile",
-                "profile-load": "Load profile"
+                "profile-load": "Load profile",
+                "git-switch": "Switch branch",
+                "git-branch": "Create branch"
             })[prompt.kind] || "Input"
         // Find and replace sit at the bottom without dimming the text, so
         // the matches stay visible; other prompts are centred.
@@ -1516,7 +2023,9 @@ ApplicationWindow {
                             "rename-symbol": "New name",
                             "project-replace": "Replacement text",
                             "debug-evaluate": "Expression, e.g. count * 2",
-                            "debug-program": "Path of the program to debug"
+                            "debug-program": "Path of the program to debug",
+                            "git-switch": "Branch name, e.g. main",
+                            "git-branch": "New branch name"
                         })[editPrompt.prompt.kind] || "Find text"
                     onTextEdited: editPrompt.update()
                     onAccepted: root.send({
@@ -1615,11 +2124,14 @@ ApplicationWindow {
         objectName: "choiceDialog"
         enter: Transition {}
         exit: Transition {}
-        readonly property var kinds: ["save-read-only", "save-elevated", "reload-changed", "file-changed", "quit", "trust", "confirm-replace", "trash-file"]
+        readonly property var kinds: ["save-read-only", "save-elevated", "reload-changed", "file-changed", "quit", "trust", "confirm-replace", "trash-file", "discard-changes", "open-folder-where", "switch-workspace"]
         readonly property var prompt: root.frame.prompt || ({ "kind": "", "input": "" })
         readonly property var copy: ({
                 "save-read-only": ["Read-only file", "%1 is read-only. Overwrite it anyway?", "Overwrite", ""],
                 "trash-file": ["Move to Trash", "Move %1 to desktop Trash?", "Move to Trash", ""],
+                "open-folder-where": ["Open folder", "Open %1 in this window or in a new window? Opening it here replaces this window's documents and terminals.", "This Window", "New Window"],
+                "switch-workspace": ["Unsaved changes", "Save your changes before opening %1 in this window?", "Save All and Open", "Discard and Open"],
+                "discard-changes": prompt.replacement === "untracked" ? ["Discard changes", "Move the untracked file %1 to desktop Trash?", "Discard", ""] : ["Discard changes", "Discard the working changes to %1? This cannot be undone.", "Discard Changes", ""],
                 "save-elevated": ["Permission denied", "You do not have permission to write %1. Save it with administrator rights?", "Save as Administrator", ""],
                 "reload-changed": ["Reload from disk", "Reload %1 from disk and discard your unsaved changes?", "Reload", ""],
                 "file-changed": ["File changed on disk", "%1 changed on disk while you have unsaved changes.", "Reload from Disk", "Keep My Version"],
@@ -1634,6 +2146,7 @@ ApplicationWindow {
         closePolicy: Popup.CloseOnEscape
         onRejected: root.send({"action": "dismiss_prompt"})
         onClosed: Qt.callLater(root.focusPane)
+        onOpened: rememberPlace.checked = false
         contentItem: ColumnLayout {
             spacing: Theme.largeSpacing
             Label {
@@ -1642,6 +2155,14 @@ ApplicationWindow {
                 textFormat: Text.PlainText
                 wrapMode: Text.Wrap
                 text: choiceDialog.copy[1].replace("%1", choiceDialog.prompt.input)
+            }
+            // Where folders open can be remembered (Settings: Open folders in).
+            CheckBox {
+                id: rememberPlace
+                objectName: "choiceRemember"
+                visible: choiceDialog.prompt.kind === "open-folder-where"
+                text: "Don't ask again"
+                checked: false
             }
             Flow {
                 Layout.fillWidth: true
@@ -1652,6 +2173,8 @@ ApplicationWindow {
                     text: choiceDialog.copy[2]
                     highlighted: true
                     onClicked: {
+                        if (rememberPlace.visible && rememberPlace.checked)
+                            root.send({"action": "configure", "name": "open-folder-in", "value": "current"});
                         choiceDialog.close();
                         root.send({"action": "submit_prompt"});
                     }
@@ -1661,6 +2184,8 @@ ApplicationWindow {
                     visible: choiceDialog.copy[3].length > 0
                     text: choiceDialog.copy[3]
                     onClicked: {
+                        if (rememberPlace.visible && rememberPlace.checked)
+                            root.send({"action": "configure", "name": "open-folder-in", "value": "new"});
                         choiceDialog.close();
                         root.send({"action": "submit_prompt", "all": true});
                     }
@@ -1756,14 +2281,14 @@ ApplicationWindow {
             ColumnLayout {
                 visible: pickerDialog.info.kind === "search"
                 Layout.fillWidth: true
-                TextField { id: projectInclude; objectName: "projectInclude"; Layout.fillWidth: true; text: (root.frame.project_search_policy || {}).include || ""; placeholderText: "Include globs: *.rs;src/** (empty: all files)"; onEditingFinished: pickerDialog.configurePolicy() }
-                TextField { id: projectExclude; objectName: "projectExclude"; Layout.fillWidth: true; text: (root.frame.project_search_policy || {}).exclude || ""; placeholderText: "Exclude globs: target/**;vendor/**"; onEditingFinished: pickerDialog.configurePolicy() }
+                TextField { id: projectInclude; objectName: "projectInclude"; Layout.fillWidth: true; text: (root.stable.project_search_policy || {}).include || ""; placeholderText: "Include globs: *.rs;src/** (empty: all files)"; onEditingFinished: pickerDialog.configurePolicy() }
+                TextField { id: projectExclude; objectName: "projectExclude"; Layout.fillWidth: true; text: (root.stable.project_search_policy || {}).exclude || ""; placeholderText: "Exclude globs: target/**;vendor/**"; onEditingFinished: pickerDialog.configurePolicy() }
                 Flow {
                     Layout.fillWidth: true; spacing: 6
-                    CheckBox { id: projectHidden; objectName: "projectHidden"; text: "Hidden files"; checked: !!(root.frame.project_search_policy || {}).hidden; onClicked: pickerDialog.configurePolicy() }
-                    CheckBox { id: projectIgnored; text: "Ignored files"; checked: !!(root.frame.project_search_policy || {}).ignored; onClicked: pickerDialog.configurePolicy() }
+                    CheckBox { id: projectHidden; objectName: "projectHidden"; text: "Hidden files"; checked: !!(root.stable.project_search_policy || {}).hidden; onClicked: pickerDialog.configurePolicy() }
+                    CheckBox { id: projectIgnored; text: "Ignored files"; checked: !!(root.stable.project_search_policy || {}).ignored; onClicked: pickerDialog.configurePolicy() }
                     Label { text: "Maximum MiB per file" }
-                    SpinBox { id: projectMax; from: 1; to: 1024; value: ((root.frame.project_search_policy || {}).max_bytes || 16777216)/1048576; onValueModified: pickerDialog.configurePolicy() }
+                    SpinBox { id: projectMax; from: 1; to: 1024; value: ((root.stable.project_search_policy || {}).max_bytes || 16777216)/1048576; onValueModified: pickerDialog.configurePolicy() }
                 }
             }
             ListView {
@@ -1982,7 +2507,7 @@ ApplicationWindow {
                     Label { text: "Active profile"; Layout.fillWidth: true }
                     ComboBox {
                         objectName: "settingsProfile"
-                        model: root.frame.profiles || ["default", "minimal", "workspace"]
+                        model: root.stable.profiles || ["default", "minimal", "workspace"]
                         currentIndex: Math.max(0, model.indexOf(root.settings.profile || "default"))
                         onActivated: settingsDialog.configure("profile", currentText)
                     }
@@ -1997,12 +2522,13 @@ ApplicationWindow {
                     text: "Editor values below include workspace and language overrides. Changes here edit the active profile."
                 }
                 Repeater {
-                    model: Object.keys(root.frame.setting_sources || {})
+                    model: Object.keys(root.stable.setting_sources || {})
                     delegate: Label {
                         required property string modelData
                         Layout.fillWidth: true
                         wrapMode: Text.Wrap
-                        text: modelData.replace(/_/g, " ") + ": " + root.frame.setting_sources[modelData]
+                        textFormat: Text.PlainText
+                        text: modelData.replace(/_/g, " ") + ": " + root.stable.setting_sources[modelData]
                     }
                 }
                 Label { text: "Keyboard shortcuts"; font.bold: true }
@@ -2019,9 +2545,19 @@ ApplicationWindow {
                 Repeater {
                     model: Object.keys(root.settings[shortcutScope.currentText + "_keys"] || {}).sort()
                     delegate: Button {
+                        id: shortcutEntry
                         required property string modelData
                         Layout.fillWidth: true
                         text: modelData + " → " + root.settings[shortcutScope.currentText + "_keys"][modelData]
+                        // Configured chords and commands are shown verbatim.
+                        contentItem: Label {
+                            text: shortcutEntry.text
+                            textFormat: Text.PlainText
+                            font: shortcutEntry.font
+                            elide: Text.ElideRight
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
                         onClicked: { shortcutChord.text = modelData; shortcutCommand.text = root.settings[shortcutScope.currentText + "_keys"][modelData]; }
                     }
                 }
@@ -2056,6 +2592,36 @@ ApplicationWindow {
                     wrapMode: Text.Wrap
                 }
                 Label {
+                    objectName: "settingsStartupProfile"
+                    Layout.fillWidth: true
+                    visible: root.settings.profile === "minimal" || root.settings.profile === "workspace"
+                    text: "The " + root.settings.profile + " profile chooses both startup modes. Changing one switches to the default profile."
+                    textFormat: Text.PlainText
+                    wrapMode: Text.Wrap
+                    color: Theme.disabledTextColor
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    Label {
+                        text: "Open folders in"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        wrapMode: Text.Wrap
+                    }
+                    ComboBox {
+                        objectName: "settingsOpenFolderIn"
+                        textRole: "label"
+                        valueRole: "value"
+                        model: [
+                            { "value": "ask", "label": "Ask each time" },
+                            { "value": "current", "label": "This window" },
+                            { "value": "new", "label": "A new window" }
+                        ]
+                        currentIndex: Math.max(0, indexOfValue(root.settings.open_folder_in || "ask"))
+                        onActivated: settingsDialog.configure("open-folder-in", currentValue)
+                    }
+                }
+                Label {
                     text: "Editor"
                     font.bold: true
                 }
@@ -2069,10 +2635,12 @@ ApplicationWindow {
                         id: fontFamily
                         objectName: "settingsFontFamily"
                         Layout.preferredWidth: 220
-                        model: slate.fontFamilies
-                        currentIndex: Math.max(0, model.indexOf(root.settings.font_family || ""))
-                        displayText: currentIndex === 0 ? "System fixed-width font" : currentText
-                        onActivated: settingsDialog.configure("font-family", currentIndex === 0 ? "" : currentText)
+                        // The first family is "" (the desktop's fixed-width font);
+                        // the list names it, in the popup as well as when closed.
+                        readonly property var families: slate.fontFamilies
+                        model: ["System fixed-width font"].concat(families.slice(1))
+                        currentIndex: Math.max(0, families.indexOf(root.settings.font_family || ""))
+                        onActivated: settingsDialog.configure("font-family", currentIndex === 0 ? "" : families[currentIndex])
                     }
                     SpinBox {
                         objectName: "settingsFontSize"
@@ -2170,6 +2738,35 @@ ApplicationWindow {
                         model: ["auto", "dark", "light", "editor"]
                         currentIndex: model.indexOf(root.settings.terminal_theme || "dark")
                         onActivated: settingsDialog.configure("terminal-theme", currentText)
+                    }
+                }
+                // The file browser and Git pane follow the editor unless chosen
+                // otherwise; "Desktop" uses the Qt colours of menus and dialogs.
+                Repeater {
+                    model: [
+                        { "label": "File browser theme", "setting": "files-theme", "field": "files_theme", "name": "filesThemeSetting" },
+                        { "label": "Git pane theme", "setting": "git-theme", "field": "git_theme", "name": "gitThemeSetting" }
+                    ]
+                    delegate: RowLayout {
+                        required property var modelData
+                        Label {
+                            textFormat: Text.PlainText
+                            text: modelData.label
+                            Layout.fillWidth: true
+                        }
+                        ComboBox {
+                            objectName: modelData.name
+                            textRole: "label"
+                            valueRole: "value"
+                            model: [
+                                { "value": "editor", "label": "Editor colours" },
+                                { "value": "auto", "label": "Desktop (Qt)" },
+                                { "value": "dark", "label": "Dark" },
+                                { "value": "light", "label": "Light" }
+                            ]
+                            currentIndex: Math.max(0, indexOfValue(root.settings[modelData.field] || "editor"))
+                            onActivated: settingsDialog.configure(modelData.setting, currentValue)
+                        }
                     }
                 }
                 RowLayout {

@@ -124,3 +124,26 @@ V_1.9.0 {
 global:
     xkb_components_names_from_rules;
 } V_1.6.0;
+
+V_1.10.0 {
+global:
+    xkb_keymap_mod_get_mask;
+    xkb_state_update_latched_locked;
+} V_1.9.0;
+
+V_1.11.0 {
+global:
+    xkb_rmlvo_builder_new;
+    xkb_rmlvo_builder_append_layout;
+    xkb_rmlvo_builder_append_option;
+    xkb_rmlvo_builder_ref;
+    xkb_rmlvo_builder_unref;
+    xkb_keymap_mod_get_mask2;
+    xkb_keymap_new_from_rmlvo;
+    xkb_keymap_new_from_names2;
+} V_1.10.0;
+
+V_1.12.0 {
+global:
+    xkb_keymap_get_as_string2;
+} V_1.11.0;

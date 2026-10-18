@@ -1,6 +1,7 @@
 /* keydb.c - key database dispatcher
  * Copyright (C) 2001-2013 Free Software Foundation, Inc.
  * Copyright (C) 2001-2015 Werner Koch
+ * Copyright (C) 2019,2024 g10 Code GmbH
  *
  * This file is part of GnuPG.
  *
@@ -16,6 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include <config.h>
@@ -753,23 +755,9 @@ keydb_add_resource (const char *url, unsigned int flags)
                 all_resources[used_resources].token = token;
 
                 if (!(flags & KEYDB_RESOURCE_FLAG_READONLY))
-                  {
-                    KEYBOX_HANDLE kbxhd;
-
-                    /* Do a compress run if needed and no other user is
-                     * currently using the keybox. */
-                    kbxhd = keybox_new_openpgp (token, 0);
-                    if (kbxhd)
-                      {
-                        if (!keybox_lock (kbxhd, 1, 0))
-                          {
-                            keybox_compress (kbxhd);
-                            keybox_lock (kbxhd, 0, 0);
-                          }
-
-                        keybox_release (kbxhd);
-                      }
-                  }
+                  /* Do a compress run if needed and no other user is
+                   * currently using the keybox. */
+                  keybox_compress_when_no_other_users (token, 1);
                 used_resources++;
               }
           }
@@ -927,7 +915,7 @@ internal_keydb_deinit (KEYDB_HANDLE hd)
 
 /* Take a lock on the files immediately and not only during insert or
  * update.  This lock is released with keydb_release.  */
-gpg_error_t
+static gpg_error_t
 internal_keydb_lock (KEYDB_HANDLE hd)
 {
   gpg_error_t err;
@@ -939,6 +927,20 @@ internal_keydb_lock (KEYDB_HANDLE hd)
     hd->keep_lock = 1;
 
   return err;
+}
+
+
+/* Take a lock if we are not using the keyboxd.  */
+gpg_error_t
+keydb_lock (KEYDB_HANDLE hd)
+{
+  if (!hd)
+    return gpg_error (GPG_ERR_INV_ARG);
+
+  if (!hd->use_keyboxd)
+    return internal_keydb_lock (hd);
+
+  return 0;
 }
 
 
@@ -1010,6 +1012,9 @@ lock_all (KEYDB_HANDLE hd)
 
      To fix this we need to use a lock file to protect lock_all.  */
 
+  if (hd->keep_lock)
+    return 0;
+
   for (i=0; !rc && i < hd->used; i++)
     {
       switch (hd->active[i].type)
@@ -1054,11 +1059,34 @@ lock_all (KEYDB_HANDLE hd)
 
 
 static void
+do_fp_close (KEYDB_HANDLE hd)
+{
+  int i;
+
+  for (i=0; i < hd->used; i++)
+    {
+      switch (hd->active[i].type)
+        {
+        case KEYDB_RESOURCE_TYPE_NONE:
+          break;
+        case KEYDB_RESOURCE_TYPE_KEYRING:
+          keyring_fp_close (hd->active[i].u.kr);
+          break;
+        case KEYDB_RESOURCE_TYPE_KEYBOX:
+          keybox_fp_close (hd->active[i].u.kb);
+          break;
+        }
+    }
+}
+
+static void
 unlock_all (KEYDB_HANDLE hd)
 {
   int i;
 
-  if (!hd->locked || hd->keep_lock)
+  do_fp_close (hd);
+
+  if (!hd->locked)
     return;
 
   for (i=hd->used-1; i >= 0; i--)
@@ -1157,7 +1185,11 @@ keydb_pop_found_state (KEYDB_HANDLE hd)
 
 
 
-/* Parse the keyblock in IOBUF and return at R_KEYBLOCK.  */
+/* Parse the keyblock in IOBUF and return at R_KEYBLOCK.  PK_NO gives
+ * the index of the public (sub)key which matched the search criteria;
+ * the primary key is 1, the first subkey 2, 0 means unknown.  UID_NO
+ * is the same for user-ids as search criteria; 1 is the first
+ * user-id, 0 means unknown.  */
 gpg_error_t
 keydb_parse_keyblock (iobuf_t iobuf, int pk_no, int uid_no,
                       kbnode_t *r_keyblock)
@@ -1406,6 +1438,10 @@ internal_keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
   size_t len;
 
   log_assert (!hd->use_keyboxd);
+
+  if (!hd->locked)
+    return gpg_error (GPG_ERR_NOT_LOCKED);
+
   pk = kb->pkt->pkt.public_key;
 
   kid_not_found_flush ();
@@ -1414,12 +1450,10 @@ internal_keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
   if (opt.dry_run)
     return 0;
 
-  err = lock_all (hd);
-  if (err)
-    return err;
-
 #ifdef USE_TOFU
   tofu_notice_key_changed (ctrl, kb);
+#else
+  (void)ctrl;
 #endif
 
   memset (&desc, 0, sizeof (desc));
@@ -1463,7 +1497,6 @@ internal_keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
       break;
     }
 
-  unlock_all (hd);
   if (!err)
     keydb_stats.update_keyblocks++;
   return err;
@@ -1484,10 +1517,13 @@ internal_keydb_update_keyblock (ctrl_t ctrl, KEYDB_HANDLE hd, kbnode_t kb)
 gpg_error_t
 internal_keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
 {
-  gpg_error_t err;
+  gpg_error_t err = 0;
   int idx;
 
   log_assert (!hd->use_keyboxd);
+
+  if (!hd->locked)
+    return gpg_error (GPG_ERR_NOT_LOCKED);
 
   kid_not_found_flush ();
   keyblock_cache_clear (hd);
@@ -1501,10 +1537,6 @@ internal_keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
     idx = hd->current;
   else
     return gpg_error (GPG_ERR_GENERAL);
-
-  err = lock_all (hd);
-  if (err)
-    return err;
 
   switch (hd->active[idx].type)
     {
@@ -1534,7 +1566,6 @@ internal_keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
       break;
     }
 
-  unlock_all (hd);
   if (!err)
     keydb_stats.insert_keyblocks++;
   return err;
@@ -1549,9 +1580,12 @@ internal_keydb_insert_keyblock (KEYDB_HANDLE hd, kbnode_t kb)
 gpg_error_t
 internal_keydb_delete_keyblock (KEYDB_HANDLE hd)
 {
-  gpg_error_t rc;
+  gpg_error_t err = 0;
 
   log_assert (!hd->use_keyboxd);
+
+  if (!hd->locked)
+    return gpg_error (GPG_ERR_NOT_LOCKED);
 
   kid_not_found_flush ();
   keyblock_cache_clear (hd);
@@ -1562,27 +1596,22 @@ internal_keydb_delete_keyblock (KEYDB_HANDLE hd)
   if (opt.dry_run)
     return 0;
 
-  rc = lock_all (hd);
-  if (rc)
-    return rc;
-
   switch (hd->active[hd->found].type)
     {
     case KEYDB_RESOURCE_TYPE_NONE:
-      rc = gpg_error (GPG_ERR_GENERAL);
+      err = gpg_error (GPG_ERR_GENERAL);
       break;
     case KEYDB_RESOURCE_TYPE_KEYRING:
-      rc = keyring_delete_keyblock (hd->active[hd->found].u.kr);
+      err = keyring_delete_keyblock (hd->active[hd->found].u.kr);
       break;
     case KEYDB_RESOURCE_TYPE_KEYBOX:
-      rc = keybox_delete (hd->active[hd->found].u.kb);
+      err = keybox_delete (hd->active[hd->found].u.kb);
       break;
     }
 
-  unlock_all (hd);
-  if (!rc)
+  if (!err)
     keydb_stats.delete_keyblocks++;
-  return rc;
+  return err;
 }
 
 
@@ -1818,7 +1847,7 @@ internal_keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
   while ((rc == -1 || gpg_err_code (rc) == GPG_ERR_EOF)
          && hd->current >= 0 && hd->current < hd->used)
     {
-      if (DBG_LOOKUP)
+      if (DBG_KEYDB)
         log_debug ("%s: searching %s (resource %d of %d)\n",
                    __func__,
                    hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYRING
@@ -1845,7 +1874,7 @@ internal_keydb_search (KEYDB_HANDLE hd, KEYDB_SEARCH_DESC *desc,
           break;
         }
 
-      if (DBG_LOOKUP)
+      if (DBG_KEYDB)
         log_debug ("%s: searched %s (resource %d of %d) => %s\n",
                    __func__,
                    hd->active[hd->current].type == KEYDB_RESOURCE_TYPE_KEYRING

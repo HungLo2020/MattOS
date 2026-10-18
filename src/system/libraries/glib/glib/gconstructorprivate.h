@@ -56,11 +56,16 @@ __pragma (comment (linker, "/INCLUDE:" G_MSVC_SYMBOL_PREFIX "_ptr_" #func))
 
 #define G_HAS_TLS_CALLBACKS 1
 
+extern const IMAGE_TLS_DIRECTORY _tls_used;
+
+__attribute__ ((used, selectany))
+const IMAGE_TLS_DIRECTORY * const g_priv_tls_used_ = &_tls_used;
+
 #define G_DEFINE_TLS_CALLBACK(func) \
 static void NTAPI func (PVOID, DWORD, PVOID);          \
                                                        \
 G_BEGIN_DECLS                                          \
-__attribute__ ((section (".CRT$XLCE")))                \
+__attribute__ ((section (".CRT$XLCE"), used))          \
 G_EXTERN_CONST PIMAGE_TLS_CALLBACK _ptr_##func = func; \
 G_END_DECLS
 

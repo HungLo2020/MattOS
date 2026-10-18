@@ -1,6 +1,8 @@
 project('gst-examples', 'c',
-  version : '1.26.11',
-  meson_version : '>=1.0')
+  version : '1.28.8',
+  meson_version : '>=1.4',
+  default_options : [ 'buildtype=debugoptimized',
+                      'c_std=gnu11,c11' ])
 
 static_build = get_option('default_library') == 'static'
 cc = meson.get_compiler('c')

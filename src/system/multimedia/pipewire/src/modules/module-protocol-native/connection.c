@@ -144,6 +144,8 @@ static void *connection_ensure_size(struct pw_protocol_native_connection *conn, 
 		if (np == NULL) {
 			res = -errno;
 			free(buf->buffer_data);
+			buf->buffer_data = NULL;
+			buf->buffer_size = 0;
 			buf->buffer_maxsize = 0;
 			spa_hook_list_call(&conn->listener_list,
 					struct pw_protocol_native_connection_events,
@@ -536,7 +538,8 @@ static int prepare_packet(struct pw_protocol_native_connection *conn, struct buf
 	size -= impl->hdr_size;
 	buf->msg.fds = &buf->fds[buf->fds_offset];
 
-	if (buf->msg.n_fds + buf->fds_offset > MAX_FDS)
+	if (buf->msg.n_fds > MAX_FDS ||
+	    buf->msg.n_fds + buf->fds_offset > buf->n_fds)
 		return -EPROTO;
 
 	if (size < len)
@@ -702,11 +705,14 @@ pw_protocol_native_connection_end(struct pw_protocol_native_connection *conn,
 	struct buffer *buf = &impl->out;
 	int res;
 
+	if (size > 0xffffff)
+		return -ENOSPC;
+
 	if ((p = connection_ensure_size(conn, buf, impl->hdr_size + size)) == NULL)
 		return -errno;
 
 	p[0] = buf->msg.id;
-	p[1] = (buf->msg.opcode << 24) | (size & 0xffffff);
+	p[1] = (buf->msg.opcode << 24) | size;
 	if (impl->version >= 3) {
 		p[2] = buf->msg.seq;
 		p[3] = buf->msg.n_fds;

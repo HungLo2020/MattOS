@@ -1,7 +1,7 @@
 /* homedir.c - Setup the home directory.
  * Copyright (C) 2004, 2006, 2007, 2010 Free Software Foundation, Inc.
  * Copyright (C) 2013, 2016 Werner Koch
- * Copyright (C) 2021 g10 Code GmbH
+ * Copyright (C) 2021, 2024 g10 Code GmbH
  *
  * This file is part of GnuPG.
  *
@@ -59,6 +59,10 @@
 #include <sys/stat.h> /* for stat() */
 #endif
 
+#ifdef __APPLE__
+#include <libproc.h>
+#endif /*__APPLE__*/
+
 #include "util.h"
 #include "sysutils.h"
 #include "i18n.h"
@@ -93,6 +97,22 @@ static char *the_gnupg_homedir;
 static byte non_default_homedir;
 
 
+/* An object to store information taken from a gpgconf.ctl file.  This
+ * is parsed early at startup time and never changed later.  */
+static struct
+{
+  unsigned int checked:1; /* True if we have checked for a gpgconf.ctl.  */
+  unsigned int found:1;   /* True if a gpgconf.ctl was found.            */
+  unsigned int empty:1;   /* The file is empty except for comments.      */
+  unsigned int valid:1;   /* The entries in gpgconf.ctl are valid.       */
+  unsigned int portable:1;/* Windows portable installation.              */
+  char *gnupg;            /* The "gnupg" directory part.  */
+  char *rootdir;          /* rootdir or NULL        */
+  char *sysconfdir;       /* sysconfdir or NULL     */
+  char *socketdir;        /* socketdir or NULL      */
+} gpgconf_ctl;
+
+
 #ifdef HAVE_W32_SYSTEM
 /* A flag used to indicate that a control file for gpgconf has been
  * detected.  Under Windows the presence of this file indicates a
@@ -119,6 +139,87 @@ static byte w32_bin_is_bin;
 static const char *w32_rootdir (void);
 #endif
 
+/* Return the name of the gnupg dir.  This is usually "gnupg".  */
+static const char *
+my_gnupg_dirname (void)
+{
+  if (gpgconf_ctl.valid && gpgconf_ctl.gnupg)
+    return gpgconf_ctl.gnupg;
+  return "gnupg";
+}
+
+/* Return the hardwired home directory which is not anymore so
+ * hardwired because it may now be modified using the gpgconf.ctl
+ * "gnupg" keyword.  */
+static const char *
+my_fixed_default_homedir (void)
+{
+  if (gpgconf_ctl.valid && gpgconf_ctl.gnupg)
+    {
+      static char *name;
+      char *p;
+
+      if (!name)
+        {
+          name = xmalloc (strlen (GNUPG_DEFAULT_HOMEDIR)
+                          + strlen (gpgconf_ctl.gnupg) + 1);
+          strcpy (name, GNUPG_DEFAULT_HOMEDIR);
+          p = strrchr (name, '/');
+          if (p)
+            p++;
+          else
+            p = name;
+          if (*p == '.')
+            p++; /* Keep a leading dot.  */
+          strcpy (p, gpgconf_ctl.gnupg);
+          gpgrt_annotate_leaked_object (name);
+        }
+      return name;
+    }
+  return GNUPG_DEFAULT_HOMEDIR;
+}
+
+
+
+/* Under Windows we need to modify the standard registry key with the
+ * "gnupg" keyword from a gpgconf.ctl.  */
+#ifdef HAVE_W32_SYSTEM
+const char *
+gnupg_registry_dir (void)
+{
+  if (gpgconf_ctl.valid && gpgconf_ctl.gnupg)
+    {
+      static char *name;
+      char *p;
+
+      if (!name)
+        {
+          name = xmalloc (strlen (GNUPG_REGISTRY_DIR)
+                          + strlen (gpgconf_ctl.gnupg) + 1);
+          strcpy (name, GNUPG_REGISTRY_DIR);
+          p = strrchr (name, '\\');
+          if (p)
+            p++;
+          else
+            p = name;
+          strcpy (p, gpgconf_ctl.gnupg);
+          if (!strncmp (p, "gnupg", 5))
+            {
+              /* Registry keys are case-insensitive and we use a
+               * capitalized version of gnupg by default.  So, if the
+               * new value starts with "gnupg" we apply the usual
+               * capitalization for this first part.  */
+              p[0] = 'G';
+              p[3] = 'P';
+              p[4] = 'G';
+            }
+          gpgrt_annotate_leaked_object (name);
+        }
+      return name;
+    }
+  return GNUPG_REGISTRY_DIR;
+}
+#endif /*HAVE_W32_SYSTEM*/
 
 
 /* This is a helper function to load and call a Windows function from
@@ -195,7 +296,9 @@ create_common_conf (const char *dname)
                     gpg_strerror (gpg_error_from_syserror ()));
         }
     }
-#endif /* BUILD_WITH_KEYBOXD */
+#else /* BUILD_WITH_KEYBOXD */
+  (void)dname;
+#endif /* !BUILD_WITH_KEYBOXD */
 }
 
 
@@ -324,7 +427,7 @@ standard_homedir (void)
                                       NULL, 0);
           if (path)
             {
-              dir = xstrconcat (path, "\\gnupg", NULL);
+              dir = xstrconcat (path, "\\", my_gnupg_dirname (), NULL);
               xfree (path);
               gpgrt_annotate_leaked_object (dir);
 
@@ -335,12 +438,12 @@ standard_homedir (void)
 
             }
           else
-            dir = GNUPG_DEFAULT_HOMEDIR;
+            dir = my_fixed_default_homedir ();
         }
     }
   return dir;
 #else/*!HAVE_W32_SYSTEM*/
-  return GNUPG_DEFAULT_HOMEDIR;
+  return my_fixed_default_homedir ();
 #endif /*!HAVE_W32_SYSTEM*/
 }
 
@@ -374,7 +477,7 @@ default_homedir (void)
                * warning if the homedir has been taken from the
                * registry.  */
               tmp = read_w32_registry_string (NULL,
-                                              GNUPG_REGISTRY_DIR,
+                                              gnupg_registry_dir (),
                                               "HomeDir");
               if (tmp && !*tmp)
                 {
@@ -399,7 +502,7 @@ default_homedir (void)
 #endif /*HAVE_W32_SYSTEM*/
 
   if (!dir || !*dir)
-    dir = GNUPG_DEFAULT_HOMEDIR;
+    dir = my_fixed_default_homedir ();
   else
     {
       char *p;
@@ -427,6 +530,234 @@ default_homedir (void)
 }
 
 
+/* Return true if S can be inteprtated as true.  This is uised for
+ * keywords in gpgconf.ctl.  Spaces must have been trimmed.  */
+static int
+string_is_true (const char *s)
+{
+  return (atoi (s)
+          || !ascii_strcasecmp (s, "yes")
+          || !ascii_strcasecmp (s, "true")
+          || !ascii_strcasecmp (s, "fact"));
+}
+
+/* This function is used to parse the gpgconf.ctl file and set the
+ * information ito the gpgconf_ctl structure.  This is called once
+ * with the full filename of gpgconf.ctl.  There are two callers: One
+ * used on Windows and one on Unix.  No error return but diagnostics
+ * are printed.  */
+static void
+parse_gpgconf_ctl (const char *fname)
+{
+  gpg_error_t err;
+  char *p;
+  char *line;
+  size_t linelen;
+  ssize_t length;
+  estream_t fp;
+  const char *name;
+  int anyitem = 0;
+  int ignoreall = 0;
+  char *gnupgval = NULL;
+  char *rootdir = NULL;
+  char *sysconfdir = NULL;
+  char *socketdir = NULL;
+
+  if (gpgconf_ctl.checked)
+    return;  /* Just in case this is called a second time.  */
+  gpgconf_ctl.checked = 1;
+  gpgconf_ctl.found = 0;
+  gpgconf_ctl.valid = 0;
+  gpgconf_ctl.empty = 0;
+
+  if (gnupg_access (fname, F_OK))
+    return; /* No gpgconf.ctl file.  */
+
+  /* log_info ("detected '%s'\n", buffer); */
+  fp = es_fopen (fname, "r");
+  if (!fp)
+    {
+      err = gpg_error_from_syserror ();
+      log_info ("error opening '%s': %s\n", fname, gpg_strerror (err));
+      return;
+    }
+  gpgconf_ctl.found = 1;
+
+  line = NULL;
+  linelen = 0;
+  while ((length = es_read_line (fp, &line, &linelen, NULL)) > 0)
+    {
+      static const char *names[] =
+        {
+          "gnupg",
+          "rootdir",
+          "sysconfdir",
+          "socketdir",
+          "portable",
+          ".enable"
+        };
+      int i;
+      size_t n;
+
+      /* Strip NL and CR, if present.  */
+      while (length > 0
+             && (line[length - 1] == '\n' || line[length - 1] == '\r'))
+        line[--length] = 0;
+      trim_spaces (line);
+      if (*line == '#' || !*line)
+        continue;
+      anyitem = 1;
+
+      /* Find the keyword.  */
+      name = NULL;
+      p = NULL;
+      for (i=0; i < DIM (names); i++)
+        {
+          n = strlen (names[i]);
+          if (!strncmp (line, names[i], n))
+            {
+              while (line[n] == ' ' || line[n] == '\t')
+                n++;
+              if (line[n] == '=')
+                {
+                  name = names[i];
+                  p = line + n + 1;
+                  break;
+                }
+            }
+        }
+      if (!name)
+        continue;  /* Keyword not known.  */
+
+      trim_spaces (p);
+      p = substitute_envvars (p);
+      if (!p)
+        {
+          err = gpg_error_from_syserror ();
+          log_info ("error getting %s from gpgconf.ctl: %s\n",
+                    name, gpg_strerror (err));
+        }
+      else if (!strcmp (name, ".enable"))
+        {
+          if (string_is_true (p))
+            ;              /* Yes, this file shall be used.    */
+          else
+            ignoreall = 1; /* No, this file shall be ignored.  */
+          xfree (p);
+        }
+      else if (!strcmp (name, "gnupg"))
+        {
+          xfree (gnupgval);
+          gnupgval = p;
+        }
+      else if (!strcmp (name, "sysconfdir"))
+        {
+          xfree (sysconfdir);
+          sysconfdir = p;
+        }
+      else if (!strcmp (name, "socketdir"))
+        {
+          xfree (socketdir);
+          socketdir = p;
+        }
+      else if (!strcmp (name, "rootdir"))
+        {
+          xfree (rootdir);
+          rootdir = p;
+        }
+      else if (!strcmp (name, "portable"))
+        {
+          gpgconf_ctl.portable = string_is_true (p);
+          xfree (p);
+        }
+      else /* Unknown keyword.  */
+        xfree (p);
+    }
+  if (es_ferror (fp))
+    {
+      err = gpg_error_from_syserror ();
+      log_info ("error reading '%s': %s\n", fname, gpg_strerror (err));
+      ignoreall = 1;  /* Force all entries to invalid.  */
+    }
+  es_fclose (fp);
+  xfree (line);
+
+  if (ignoreall)
+    ; /* Forced error.  Note that .found is still set.  */
+  else if (gnupgval && (!*gnupgval || strpbrk (gnupgval, "/\\")))
+    {
+      /* We don't allow a slash or backslash in the value because our
+       * code assumes this is a single directory name.  */
+      log_info ("invalid %s '%s' specified in gpgconf.ctl\n",
+                "gnupg", gnupgval);
+    }
+  else if (rootdir && (!*rootdir || *rootdir != '/'))
+    {
+      log_info ("invalid %s '%s' specified in gpgconf.ctl\n",
+                "rootdir", rootdir);
+    }
+  else if (sysconfdir && (!*sysconfdir || *sysconfdir != '/'))
+    {
+      log_info ("invalid %s '%s' specified in gpgconf.ctl\n",
+                "sysconfdir", sysconfdir);
+    }
+  else if (socketdir && (!*socketdir || *socketdir != '/'))
+    {
+      log_info ("invalid %s '%s' specified in gpgconf.ctl\n",
+                "socketdir", socketdir);
+    }
+  else
+    {
+      if (gnupgval)
+        {
+          gpgconf_ctl.gnupg = gnupgval;
+          gpgrt_annotate_leaked_object (gpgconf_ctl.gnupg);
+          /* log_info ("want gnupg '%s'\n", dir); */
+        }
+      if (rootdir)
+        {
+          while (*rootdir && rootdir[strlen (rootdir)-1] == '/')
+            rootdir[strlen (rootdir)-1] = 0;
+          gpgconf_ctl.rootdir = rootdir;
+          gpgrt_annotate_leaked_object (gpgconf_ctl.rootdir);
+          /* log_info ("want rootdir '%s'\n", dir); */
+        }
+      if (sysconfdir)
+        {
+          while (*sysconfdir && sysconfdir[strlen (sysconfdir)-1] == '/')
+            sysconfdir[strlen (sysconfdir)-1] = 0;
+          gpgconf_ctl.sysconfdir = sysconfdir;
+          gpgrt_annotate_leaked_object (gpgconf_ctl.sysconfdir);
+          /* log_info ("want sysconfdir '%s'\n", sdir); */
+        }
+      if (socketdir)
+        {
+          while (*socketdir && socketdir[strlen (socketdir)-1] == '/')
+            socketdir[strlen (socketdir)-1] = 0;
+          gpgconf_ctl.socketdir = socketdir;
+          gpgrt_annotate_leaked_object (gpgconf_ctl.socketdir);
+          /* log_info ("want socketdir '%s'\n", s2dir); */
+        }
+      gpgconf_ctl.valid = 1;
+    }
+
+  gpgconf_ctl.empty = !anyitem;
+  if (!gpgconf_ctl.valid)
+    {
+      /* Error reading some entries - clear them all.  */
+      xfree (gnupgval);
+      xfree (rootdir);
+      xfree (sysconfdir);
+      xfree (socketdir);
+      gpgconf_ctl.gnupg = NULL;
+      gpgconf_ctl.rootdir = NULL;
+      gpgconf_ctl.sysconfdir = NULL;
+      gpgconf_ctl.socketdir = NULL;
+    }
+}
+
+
+
 #ifdef HAVE_W32_SYSTEM
 /* Check whether gpgconf is installed and if so read the gpgconf.ctl
    file. */
@@ -439,17 +770,20 @@ check_portable_app (const char *dir)
   if (!gnupg_access (fname, F_OK))
     {
       strcpy (fname + strlen (fname) - 3, "ctl");
-      if (!gnupg_access (fname, F_OK))
+      parse_gpgconf_ctl (fname);
+      if ((gpgconf_ctl.found && gpgconf_ctl.empty)
+          || (gpgconf_ctl.valid && gpgconf_ctl.portable))
         {
-          /* gpgconf.ctl file found.  Record this fact.  */
+          unsigned int flags;
+
+          /* Classic gpgconf.ctl file found.  This is a portable
+           * application.  Note that if there are any items in that
+           * file we don't consider this a portable application unless
+           * the (later added) ".portable" keyword has also been
+           * seen.  */
           w32_portable_app = 1;
-          {
-            unsigned int flags;
-            log_get_prefix (&flags);
-            log_set_prefix (NULL, (flags | GPGRT_LOG_NO_REGISTRY));
-          }
-          /* FIXME: We should read the file to detect special flags
-             and print a warning if we don't understand them  */
+          log_get_prefix (&flags);
+          log_set_prefix (NULL, (flags | GPGRT_LOG_NO_REGISTRY));
         }
     }
   xfree (fname);
@@ -458,28 +792,43 @@ check_portable_app (const char *dir)
 
 
 #ifdef HAVE_W32_SYSTEM
+/* Return the filename of this process.  Caller must release the
+ * returned buffer.  On error an empty string is returned.  */
+static char *
+w32_myproc_self (void)
+{
+  char *p;
+  int rc;
+  wchar_t wdir [MAX_PATH+5];
+  char *dir;
+
+  dir = xmalloc (MAX_PATH+5);
+  rc = GetModuleFileNameW (NULL, wdir, MAX_PATH);
+  if (rc && WideCharToMultiByte (CP_UTF8, 0, wdir, -1, dir, MAX_PATH-4,
+                                 NULL, NULL) < 0)
+    rc = 0;
+  if (!rc)
+    {
+      log_debug ("GetModuleFileName failed: %s\n", w32_strerror (-1));
+      *dir = 0;
+    }
+  return dir;
+}
+
+
 /* Determine the root directory of the gnupg installation on Windows.  */
 static const char *
 w32_rootdir (void)
 {
   static int got_dir;
-  static char dir[MAX_PATH+5];
+  static char *dir;
 
   if (!got_dir)
     {
       char *p;
-      int rc;
-      wchar_t wdir [MAX_PATH+5];
 
-      rc = GetModuleFileNameW (NULL, wdir, MAX_PATH);
-      if (rc && WideCharToMultiByte (CP_UTF8, 0, wdir, -1, dir, MAX_PATH-4,
-                                     NULL, NULL) < 0)
-        rc = 0;
-      if (!rc)
-        {
-          log_debug ("GetModuleFileName failed: %s\n", w32_strerror (-1));
-          *dir = 0;
-        }
+      dir = w32_myproc_self ();
+      gpgrt_annotate_leaked_object (dir);
       got_dir = 1;
       p = strrchr (dir, DIRSEP_C);
       if (p)
@@ -513,6 +862,98 @@ w32_rootdir (void)
 
 
 #ifndef HAVE_W32_SYSTEM /* Unix */
+/* Return the filename of this process.  If WITH_FALLBACK is set the
+ * GNUPG_BUILD_ROOT envvar is considered in the error case.  Caller
+ * must release the returned buffer.  On error an empty string is
+ * returned.  */
+static char *
+unix_myproc_self (int with_fallback)
+{
+  char *buffer;
+  size_t bufsize = 256-1;
+  int nread;
+  gpg_error_t err;
+  const char *name;
+
+  for (;;)
+    {
+      buffer = xmalloc (bufsize+1);
+      nread = readlink (MYPROC_SELF_EXE, buffer, bufsize);
+      if (nread < 0)
+        {
+          err = gpg_error_from_syserror ();
+          buffer[0] = 0;
+          if (with_fallback
+              && (name = getenv ("GNUPG_BUILD_ROOT")) && *name == '/')
+            {
+              /* Try a fallback for systems w/o a supported /proc
+               * file system if we are running a regression test.  */
+              log_info ("error reading symlink '%s': %s\n",
+                        MYPROC_SELF_EXE, gpg_strerror (err));
+              xfree  (buffer);
+              buffer = xstrconcat (name, "/bin/gpgconf", NULL);
+              log_info ("trying fallback '%s'\n", buffer);
+            }
+          break;
+        }
+      else if (nread < bufsize)
+        {
+          buffer[nread] = 0;
+          break;  /* Got it.  */
+        }
+      else if (bufsize >= 4095)
+        {
+          buffer[0] = 0;
+          log_info ("error reading symlink '%s': %s\n",
+                    MYPROC_SELF_EXE, "value too large");
+          break;
+        }
+      xfree (buffer);
+      bufsize += 256;
+    }
+  return buffer;
+}
+
+#ifdef __APPLE__
+/* macOS has no /proc file system but an undocumented system call but
+ * with availabale source code.  */
+static char *
+macos_myproc_self (int with_fallback)
+{
+  char *buffer;
+  size_t bufsize = PROC_PIDPATHINFO_SIZE;
+  int nread;
+  gpg_error_t err;
+  const char *name;
+
+  for (;;)
+    {
+      buffer = xmalloc (bufsize+1);
+      nread = proc_pidpath (getpid (), buffer, bufsize);
+      if (nread > 0)
+        break;  /* success */
+      err = gpg_error_from_syserror ();
+      buffer[0] = 0;  /* An empty return string indicates an error.  */
+      if (errno == EOVERFLOW || bufsize >= 4095)
+        {
+          if (with_fallback
+              && (name = getenv ("GNUPG_BUILD_ROOT")) && *name == '/')
+            {
+              log_info ("error from proc_pidpath: %s"
+                        " - trying Unix method\n", gpg_strerror (err));
+              xfree  (buffer);
+              return unix_myproc_self (with_fallback);
+            }
+          break;
+        }
+      xfree (buffer);
+      bufsize += 256;
+    }
+  return buffer;
+}
+#endif /*__APPLE__*/
+
+
 /* Determine the root directory of the gnupg installation on Unix.
  * The standard case is that this function returns NULL so that the
  * root directory as configured at build time is used.  However, it
@@ -528,68 +969,20 @@ w32_rootdir (void)
 static const char *
 unix_rootdir (enum wantdir_values wantdir)
 {
-  static int checked;
-  static char *dir;   /* for the rootdir  */
-  static char *sdir;  /* for the sysconfdir */
-  static char *s2dir; /* for the socketdir */
-
-  if (!checked)
+  if (!gpgconf_ctl.checked)
     {
       char *p;
       char *buffer;
-      size_t bufsize = 256-1;
-      int nread;
-      gpg_error_t err;
-      char *line;
-      size_t linelen;
-      ssize_t length;
-      estream_t fp;
-      char *rootdir;
-      char *sysconfdir;
-      char *socketdir;
-      const char *name;
-      int ignoreall = 0;
-      int okay;
 
-      for (;;)
-        {
-          buffer = xmalloc (bufsize+1);
-          nread = readlink (MYPROC_SELF_EXE, buffer, bufsize);
-          if (nread < 0)
-            {
-              err = gpg_error_from_syserror ();
-              buffer[0] = 0;
-              if ((name = getenv ("GNUPG_BUILD_ROOT")) && *name == '/')
-                {
-                  /* Try a fallback for systems w/o a supported /proc
-                   * file system if we are running a regression test.  */
-                  log_info ("error reading symlink '%s': %s\n",
-                            MYPROC_SELF_EXE, gpg_strerror (err));
-                  xfree  (buffer);
-                  buffer = xstrconcat (name, "/bin/gpgconf", NULL);
-                  log_info ("trying fallback '%s'\n", buffer);
-                }
-              break;
-            }
-          else if (nread < bufsize)
-            {
-              buffer[nread] = 0;
-              break;  /* Got it.  */
-            }
-          else if (bufsize >= 4095)
-            {
-              buffer[0] = 0;
-              log_info ("error reading symlink '%s': %s\n",
-                        MYPROC_SELF_EXE, "value too large");
-              break;
-            }
-          xfree (buffer);
-          bufsize += 256;
-        }
+#ifdef __APPLE__
+      buffer = macos_myproc_self (1/* with_fallback */);
+#else
+      buffer = unix_myproc_self (1/* with_fallback */);
+#endif
       if (!*buffer)
         {
           xfree (buffer);
-          checked = 1;
+          gpgconf_ctl.checked = 1;
           return NULL;  /* Error - assume no gpgconf.ctl.  */
         }
 
@@ -597,197 +990,36 @@ unix_rootdir (enum wantdir_values wantdir)
       if (!p)
         {
           xfree (buffer);
-          checked = 1;
+          gpgconf_ctl.checked = 1;
           return NULL;  /* Erroneous /proc - assume no gpgconf.ctl.  */
         }
       *p = 0;  /* BUFFER has the directory.  */
-      if ((p = strrchr (buffer, '/')))
-        {
-          /* Strip one part and expect the file below a bin dir.  */
-          *p = 0;
-          p = xstrconcat (buffer, "/bin/gpgconf.ctl", NULL);
-          xfree (buffer);
-          buffer = p;
-        }
-      else /* !p */
+      if (!(p = strrchr (buffer, '/')))
         {
           /* Installed in the root which is not a good idea.  Assume
            * no gpgconf.ctl.  */
           xfree (buffer);
-          checked = 1;
+          gpgconf_ctl.checked = 1;
           return NULL;
         }
 
-      if (gnupg_access (buffer, F_OK))
-        {
-          /* No gpgconf.ctl file.  */
-          xfree (buffer);
-          checked = 1;
-          return NULL;
-        }
-      /* log_info ("detected '%s'\n", buffer); */
-      fp = es_fopen (buffer, "r");
-      if (!fp)
-        {
-          err = gpg_error_from_syserror ();
-          log_info ("error opening '%s': %s\n", buffer, gpg_strerror (err));
-          xfree (buffer);
-          checked = 1;
-          return NULL;
-        }
-
-      line = NULL;
-      linelen = 0;
-      rootdir = NULL;
-      sysconfdir = NULL;
-      socketdir = NULL;
-      while ((length = es_read_line (fp, &line, &linelen, NULL)) > 0)
-        {
-          static const char *names[] =
-            {
-              "rootdir",
-              "sysconfdir",
-              "socketdir",
-              ".enable"
-            };
-          int i;
-          size_t n;
-
-          /* Strip NL and CR, if present.  */
-          while (length > 0
-                 && (line[length - 1] == '\n' || line[length - 1] == '\r'))
-            line[--length] = 0;
-          trim_spaces (line);
-          /* Find the stamement.  */
-          name = NULL;
-          for (i=0; i < DIM (names); i++)
-            {
-              n = strlen (names[i]);
-              if (!strncmp (line, names[i], n))
-                {
-                  while (line[n] == ' ' || line[n] == '\t')
-                    n++;
-                  if (line[n] == '=')
-                    {
-                      name = names[i];
-                      p = line + n + 1;
-                      break;
-                    }
-                }
-            }
-          if (!name)
-            continue;  /* Statement not known.  */
-
-          trim_spaces (p);
-          p = substitute_envvars (p);
-          if (!p)
-            {
-              err = gpg_error_from_syserror ();
-              log_info ("error getting %s from gpgconf.ctl: %s\n",
-                        name, gpg_strerror (err));
-            }
-          else if (!strcmp (name, ".enable"))
-            {
-              if (atoi (p)
-                  || !ascii_strcasecmp (p, "yes")
-                  || !ascii_strcasecmp (p, "true")
-                  || !ascii_strcasecmp (p, "fact"))
-                ;  /* Yes, this file shall be used.    */
-              else
-                ignoreall = 1; /* No, this file shall be ignored.  */
-              xfree (p);
-            }
-          else if (!strcmp (name, "sysconfdir"))
-            {
-              xfree (sysconfdir);
-              sysconfdir = p;
-            }
-          else if (!strcmp (name, "socketdir"))
-            {
-              xfree (socketdir);
-              socketdir = p;
-            }
-          else
-            {
-              xfree (rootdir);
-              rootdir = p;
-            }
-        }
-      if (es_ferror (fp))
-        {
-          err = gpg_error_from_syserror ();
-          log_info ("error reading '%s': %s\n", buffer, gpg_strerror (err));
-          es_fclose (fp);
-          xfree (buffer);
-          xfree (line);
-          xfree (rootdir);
-          xfree (sysconfdir);
-          xfree (socketdir);
-          checked = 1;
-          return NULL;
-        }
-      es_fclose (fp);
+      /* Strip one part and expect the file below a bin dir.  */
+      *p = 0;
+      p = xstrconcat (buffer, "/bin/gpgconf.ctl", NULL);
       xfree (buffer);
-      xfree (line);
-
-      okay = 0;
-      if (ignoreall)
-        ;
-      else if (!rootdir || !*rootdir || *rootdir != '/')
-        {
-          log_info ("invalid rootdir '%s' specified in gpgconf.ctl\n", rootdir);
-        }
-      else if (sysconfdir && (!*sysconfdir || *sysconfdir != '/'))
-        {
-          log_info ("invalid sysconfdir '%s' specified in gpgconf.ctl\n",
-                    sysconfdir);
-        }
-      else if (socketdir && (!*socketdir || *socketdir != '/'))
-        {
-          log_info ("invalid socketdir '%s' specified in gpgconf.ctl\n",
-                    socketdir);
-        }
-      else
-        {
-          okay = 1;
-          while (*rootdir && rootdir[strlen (rootdir)-1] == '/')
-            rootdir[strlen (rootdir)-1] = 0;
-          dir = rootdir;
-          gpgrt_annotate_leaked_object (dir);
-          /* log_info ("want rootdir '%s'\n", dir); */
-          if (sysconfdir)
-            {
-              while (*sysconfdir && sysconfdir[strlen (sysconfdir)-1] == '/')
-                sysconfdir[strlen (sysconfdir)-1] = 0;
-              sdir = sysconfdir;
-              gpgrt_annotate_leaked_object (sdir);
-              /* log_info ("want sysconfdir '%s'\n", sdir); */
-            }
-          if (socketdir)
-            {
-              while (*socketdir && socketdir[strlen (socketdir)-1] == '/')
-                socketdir[strlen (socketdir)-1] = 0;
-              s2dir = socketdir;
-              gpgrt_annotate_leaked_object (s2dir);
-              /* log_info ("want socketdir '%s'\n", s2dir); */
-            }
-        }
-
-      if (!okay)
-        {
-          xfree (rootdir);
-          xfree (sysconfdir);
-          xfree (socketdir);
-          dir = sdir = s2dir = NULL;
-        }
-      checked = 1;
+      buffer = p;
+      parse_gpgconf_ctl (buffer);
+      xfree (buffer);
     }
+
+  if (!gpgconf_ctl.valid)
+    return NULL; /* No valid entries in gpgconf.ctl  */
 
   switch (wantdir)
     {
-    case WANTDIR_ROOT:    return dir;
-    case WANTDIR_SYSCONF: return sdir;
-    case WANTDIR_SOCKET:  return s2dir;
+    case WANTDIR_ROOT:    return gpgconf_ctl.rootdir;
+    case WANTDIR_SYSCONF: return gpgconf_ctl.sysconfdir;
+    case WANTDIR_SOCKET:  return gpgconf_ctl.socketdir;
     }
 
   return NULL; /* Not reached.  */
@@ -831,6 +1063,30 @@ w32_commondir (void)
     }
 
   return dir;
+}
+
+
+/*
+ * On Windows, isatty returns TRUE when it's NUL device.
+ * We need additional check.
+ */
+int
+gnupg_isatty (int fd)
+{
+  HANDLE h;
+  DWORD mode;
+
+  if (!isatty (fd))
+    return 0;
+
+  h = (HANDLE)_get_osfhandle (fd);
+  if (h == INVALID_HANDLE_VALUE)
+    return 0;
+
+  if (!GetConsoleMode (h, &mode))
+    return 0;
+
+  return 1;
 }
 #endif /*HAVE_W32_SYSTEM*/
 
@@ -900,6 +1156,29 @@ gnupg_maybe_make_homedir (const char *fname, int quiet)
 }
 
 
+/* Return the file name of this process.  On error NULL is returns.
+ * The caller must free the return value.  */
+char *
+gnupg_myproc_self (void)
+{
+  char *result;
+#ifdef HAVE_W32_SYSTEM
+  result = w32_myproc_self ();
+#elif defined(__APPLE__)
+  result = macos_myproc_self (0);
+#else
+  result = unix_myproc_self (0);
+#endif
+  if (!*result)
+    {
+      xfree (result);
+      result= NULL;
+    }
+ return result;
+}
+
+
+
 /* Return the homedir.  The returned string is valid until another
  * gnupg-set-homedir call.  This is always an absolute directory name.
  * The function replaces the former global var opt.homedir.  */
@@ -936,7 +1215,7 @@ gnupg_daemon_rootdir (void)
 
       n = GetSystemDirectoryA (path, sizeof path);
       if (!n || n >= sizeof path)
-        name = xstrdup ("/"); /* Error - use the curret top dir instead.  */
+        name = xstrdup ("/"); /* Error - use the current top dir instead.  */
       else
         name = xstrdup (path);
       gpgrt_annotate_leaked_object (name);
@@ -983,7 +1262,7 @@ _gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
 
   if (w32_portable_app)
     {
-      name = xstrconcat (w32_rootdir (), DIRSEP_S, "gnupg", NULL);
+      name = xstrconcat (w32_rootdir (), DIRSEP_S, my_gnupg_dirname (), NULL);
     }
   else
     {
@@ -994,7 +1273,7 @@ _gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
                                   NULL, 0);
       if (path)
         {
-          name = xstrconcat (path, "\\gnupg", NULL);
+          name = xstrconcat (path, "\\", my_gnupg_dirname (), NULL);
           xfree (path);
           if (gnupg_access (name, F_OK))
             gnupg_mkdir (name, "-rwx");
@@ -1103,10 +1382,11 @@ _gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
   };
   int i;
   struct stat sb;
-  char prefixbuffer[19 + 1 + 20 + 6 + 1];
+  char prefixbuffer[256];
   const char *prefix;
   const char *s;
   char *name = NULL;
+  const char *gnupgname = my_gnupg_dirname ();
   gpg_err_code_t ec;
 
   *r_info = 0;
@@ -1146,15 +1426,16 @@ _gnupg_socketdir_internal (int skip_checks, unsigned *r_info)
             goto leave;
         }
 
-      if (strlen (prefix) + 7 >= sizeof prefixbuffer)
+      if (strlen (prefix) + strlen (gnupgname) + 2 >= sizeof prefixbuffer)
         {
           *r_info |= 1; /* Ooops: Buffer too short to append "/gnupg".  */
           goto leave;
         }
-      strcat (prefixbuffer, "/gnupg");
+      strcat (prefixbuffer, "/");
+      strcat (prefixbuffer, gnupgname);
     }
 
-  /* Check whether the gnupg sub directory (or the specified diretory)
+  /* Check whether the gnupg sub directory (or the specified directory)
    * has proper permissions.  */
   if (stat (prefix, &sb))
     {
@@ -1313,11 +1594,8 @@ gnupg_sysconfdir (void)
 
   if (!name)
     {
-      const char *s1, *s2;
-      s1 = w32_commondir ();
-      s2 = DIRSEP_S "etc" DIRSEP_S "gnupg";
-      name = xmalloc (strlen (s1) + strlen (s2) + 1);
-      strcpy (stpcpy (name, s1), s2);
+      name = xstrconcat (w32_commondir (), DIRSEP_S, "etc", DIRSEP_S,
+                         my_gnupg_dirname (), NULL);
       gpgrt_annotate_leaked_object (name);
     }
   return name;
@@ -1722,20 +2000,10 @@ gnupg_module_name (int which)
       X(bindir, "sm", "gpgsm");
 
     case GNUPG_MODULE_NAME_GPG:
-#if USE_GPG2_HACK
-      if (! gnupg_build_directory)
-        X(bindir, "g10", GPG_NAME "2");
-      else
-#endif
-        X(bindir, "g10", GPG_NAME);
+      X(bindir, "g10", GPG_NAME);
 
     case GNUPG_MODULE_NAME_GPGV:
-#if USE_GPG2_HACK
-      if (! gnupg_build_directory)
-        X(bindir, "g10", GPG_NAME "v2");
-      else
-#endif
-        X(bindir, "g10", GPG_NAME "v");
+      X(bindir, "g10", GPG_NAME "v");
 
     case GNUPG_MODULE_NAME_CONNECT_AGENT:
       X(bindir, "tools", "gpg-connect-agent");

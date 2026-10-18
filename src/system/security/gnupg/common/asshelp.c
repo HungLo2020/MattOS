@@ -39,7 +39,6 @@
 
 #include "i18n.h"
 #include "util.h"
-#include "exechelp.h"
 #include "sysutils.h"
 #include "status.h"
 #include "membuf.h"
@@ -126,6 +125,21 @@ set_libassuan_log_cats (unsigned int newcats)
     log_cats = newcats;
   else /* Default to log the control channel.  */
     log_cats = (1 << (ASSUAN_LOG_CONTROL - 1));
+}
+
+
+/* Get the last Windows error from an Assuan socket function and print
+ * the raw error code using log_info.  */
+void
+log_libassuan_system_error (assuan_fd_t fd)
+{
+  int w32err = 0;
+
+  if (assuan_sock_get_flag (fd, "w32_error", &w32err))
+    w32err = -1;  /* Old Libassuan or not Windows.  */
+
+  if (w32err != -1)
+    log_info ("system error code: %d (0x%x)\n", w32err, w32err);
 }
 
 
@@ -386,7 +400,8 @@ start_new_service (assuan_context_t *r_ctx,
                    const char *opt_lc_ctype,
                    const char *opt_lc_messages,
                    session_env_t session_env,
-                   int autostart, int verbose, int debug,
+                   unsigned int flags,
+                   int verbose, int debug,
                    gpg_error_t (*status_cb)(ctrl_t, int, ...),
                    ctrl_t status_cb_arg)
 {
@@ -445,7 +460,7 @@ start_new_service (assuan_context_t *r_ctx,
     }
 
   err = assuan_socket_connect (ctx, sockname, 0, connect_flags);
-  if (err && autostart)
+  if (err && (flags & ASSHELP_FLAG_AUTOSTART))
     {
       char *abs_homedir;
       lock_spawn_t lock;
@@ -512,8 +527,6 @@ start_new_service (assuan_context_t *r_ctx,
       i = 0;
       argv[i++] = "--homedir";
       argv[i++] = abs_homedir;
-      if (module_name_id == GNUPG_MODULE_NAME_AGENT)
-        argv[i++] = "--use-standard-socket";
       if (program_arg)
         argv[i++] = program_arg;
       argv[i++] = "--daemon";
@@ -523,16 +536,52 @@ start_new_service (assuan_context_t *r_ctx,
           && assuan_socket_connect (ctx, sockname, 0, connect_flags))
         {
 #ifdef HAVE_W32_SYSTEM
-          err = gnupg_spawn_process_detached (program? program : program_name,
-                                              argv, NULL);
-#else /*!W32*/
-          pid_t pid;
+          gpgrt_process_t proc;
 
-          err = gnupg_spawn_process_fd (program? program : program_name,
-                                        argv, -1, -1, -1, &pid);
+          /* On Windows we remove the socketname before creating it.
+           * This is so that we can wait for a client which is
+           * currently trying to connect.  The 10000 will make the
+           * remove function wait up to 10 seconds for sharing
+           * violation to go away.  */
+          gnupg_remove_ext (sockname, 10000);
+          err = gpgrt_process_spawn (program? program : program_name, argv,
+                                     (GPGRT_PROCESS_DETACHED
+                                      |GPGRT_PROCESS_STDIO_NUL
+                                      |GPGRT_PROCESS_STDOUT_PIPE
+                                      |GPGRT_PROCESS_STDERR_KEEP),
+                                     NULL, &proc);
           if (!err)
-            err = gnupg_wait_process (program? program : program_name,
-                                      pid, 1, NULL);
+            {
+              int pipe_in;
+              err = gpgrt_process_get_fds (proc, 0, NULL, &pipe_in, NULL);
+              if (!err)
+                {
+                  char buf[256];
+                  int r;
+
+                  /* We wait until the child process says it's ready
+                     to serve, by reading from the pipe.  */
+                  r = read (pipe_in, buf, sizeof buf);
+                  close (pipe_in);
+                  if (r < 0)
+                    {
+                      if (verbose)
+                        log_info ("read from child process failed: %s\n",
+                                  strerror (errno));
+                      /*
+                       * Go ahead, ignoring the read error, so that
+                       * we can still support older Windows (< Vista).
+                       *
+                       * In future, we should return error with
+                       * GPG_ERR_SERVER_FAILED here.
+                       */
+                    }
+                }
+              gpgrt_process_release (proc);
+            }
+#else /*!W32*/
+          err = gpgrt_process_spawn (program? program : program_name, argv,
+                                     0, NULL, NULL);
 #endif /*!W32*/
           if (err)
             log_error ("failed to start %s '%s': %s\n",
@@ -551,7 +600,8 @@ start_new_service (assuan_context_t *r_ctx,
   xfree (sockname);
   if (err)
     {
-      if (autostart || gpg_err_code (err) != GPG_ERR_ASS_CONNECT_FAILED)
+      if ((flags & ASSHELP_FLAG_AUTOSTART)
+          || gpg_err_code (err) != GPG_ERR_ASS_CONNECT_FAILED)
         log_error ("can't connect to the %s: %s\n",
                    printed_name, gpg_strerror (err));
       assuan_release (ctx);
@@ -603,55 +653,58 @@ start_new_gpg_agent (assuan_context_t *r_ctx,
                      const char *opt_lc_ctype,
                      const char *opt_lc_messages,
                      session_env_t session_env,
-                     int autostart, int verbose, int debug,
+                     unsigned int flags,
+                     int verbose, int debug,
                      gpg_error_t (*status_cb)(ctrl_t, int, ...),
                      ctrl_t status_cb_arg)
 {
   return start_new_service (r_ctx, GNUPG_MODULE_NAME_AGENT,
                             errsource, agent_program,
                             opt_lc_ctype, opt_lc_messages, session_env,
-                            autostart, verbose, debug,
+                            flags, verbose, debug,
                             status_cb, status_cb_arg);
 }
 
 
 /* Try to connect to the dirmngr via a socket.  On platforms
-   supporting it, start it up if needed and if AUTOSTART is true.
+   supporting it, start it up if needed and if ASSHELP_FLAG_AUTOSTART is set.
    Returns a new assuan context at R_CTX or an error code. */
 gpg_error_t
 start_new_keyboxd (assuan_context_t *r_ctx,
                    gpg_err_source_t errsource,
                    const char *keyboxd_program,
-                   int autostart, int verbose, int debug,
+                   unsigned int flags,
+                   int verbose, int debug,
                    gpg_error_t (*status_cb)(ctrl_t, int, ...),
                    ctrl_t status_cb_arg)
 {
   return start_new_service (r_ctx, GNUPG_MODULE_NAME_KEYBOXD,
                             errsource, keyboxd_program,
                             NULL, NULL, NULL,
-                            autostart, verbose, debug,
+                            flags, verbose, debug,
                             status_cb, status_cb_arg);
 }
 
 
 /* Try to connect to the dirmngr via a socket.  On platforms
-   supporting it, start it up if needed and if AUTOSTART is true.
+   supporting it, start it up if needed and if ASSHELP_FLAG_AUTOSTART is set.
    Returns a new assuan context at R_CTX or an error code. */
 gpg_error_t
 start_new_dirmngr (assuan_context_t *r_ctx,
                    gpg_err_source_t errsource,
                    const char *dirmngr_program,
-                   int autostart, int verbose, int debug,
+                   unsigned int flags,
+                   int verbose, int debug,
                    gpg_error_t (*status_cb)(ctrl_t, int, ...),
                    ctrl_t status_cb_arg)
 {
 #ifndef USE_DIRMNGR_AUTO_START
-  autostart = 0;
+  flags &= ~ASSHELP_FLAG_AUTOSTART;  /* Clear flag.  */
 #endif
   return start_new_service (r_ctx, GNUPG_MODULE_NAME_DIRMNGR,
                             errsource, dirmngr_program,
                             NULL, NULL, NULL,
-                            autostart, verbose, debug,
+                            flags, verbose, debug,
                             status_cb, status_cb_arg);
 }
 
@@ -695,7 +748,7 @@ get_assuan_server_version (assuan_context_t ctx, int mode, char **r_version)
 
 /* Print a warning if the server's version number is less than our
  * version number.  Returns an error code on a connection problem.
- * CTX is the Assuan context, SERVERNAME is the name of teh server,
+ * CTX is the Assuan context, SERVERNAME is the name of the server,
  * STATUS_FUNC and STATUS_FUNC_DATA is a callback to emit status
  * messages.  If PRINT_HINTS is set additional hints are printed.  For
  * MODE see get_assuan_server_version.  */
@@ -745,3 +798,38 @@ warn_server_version_mismatch (assuan_context_t ctx,
   xfree (serverversion);
   return err;
 }
+
+
+#ifdef HAVE_W32_SYSTEM
+#include <fcntl.h>
+
+/*
+ * At the start of service (gpg-agent/dirmngr/keyboxd), after the
+ * preparation of socket, send "OK" (or "ERR 1") to the frontend
+ * (gpg/gpgsm).
+ */
+void
+w32_ack_to_frontend (void)
+{
+  int null_fd = open ("NUL", O_RDWR);
+
+  /* For the case of older Windows (< Vista), stdin/stdout/stder is
+   * invalid handle and write to stdout may fail.  We ignore this
+   * error.  */
+  if (null_fd < 0)
+    {
+      perror ("open failed");
+      /* Reply "General Error".  */
+      write (1, "ERR 1\n", 6);
+    }
+  else
+    {
+      /* Reply, it's OK (because it's ready to serve).  */
+      write (1, "OK\n", 3);
+      if (dup2 (null_fd, 1) < 0)
+        perror ("dup2 failed");
+      dup2 (null_fd, 2);
+      close (null_fd);
+    }
+}
+#endif

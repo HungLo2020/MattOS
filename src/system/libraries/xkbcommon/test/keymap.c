@@ -11,13 +11,85 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "xkbcommon/xkbcommon.h"
+#include "xkbcommon/xkbcommon-keysyms.h"
 #include "evdev-scancodes.h"
 #include "test.h"
-#include "xkbcommon/xkbcommon-keysyms.h"
+#include "context.h"
 #include "keymap.h"
+#include "keymap-formats.h"
+#include "utils.h"
 
 #define KEY_LVL3 84
 #define KEY_LVL5 195
+
+static void
+test_supported_formats(void)
+{
+    assert(xkb_keymap_parse_format(NULL) == 0);
+    assert(xkb_keymap_parse_format("") == 0);
+    assert(xkb_keymap_parse_format("x") == 0);
+    assert(xkb_keymap_parse_format("v") == 0);
+    assert(xkb_keymap_parse_format("vx") == 0);
+    assert(xkb_keymap_parse_format("0x1") == 0); /* only base 10 */
+    assert(xkb_keymap_parse_format("+1") == XKB_KEYMAP_FORMAT_TEXT_V1);
+    assert(xkb_keymap_parse_format(" 1") == XKB_KEYMAP_FORMAT_TEXT_V1);
+
+    const struct {
+        int value;
+        enum xkb_keymap_format expected;
+        const char* const* labels;
+    } entries[] = {
+        { .value = -1                            , .labels = NULL, .expected = 0 },
+        { .value = 0                             , .labels = NULL, .expected = 0 },
+        { .value = 100000000                     , .labels = NULL, .expected = 0 },
+        { .value = XKB_KEYMAP_USE_ORIGINAL_FORMAT, .labels = NULL, .expected = 0 },
+        {
+          .value = XKB_KEYMAP_FORMAT_TEXT_V1,
+          .labels = (const char* const[]) { "v1", NULL },
+          .expected = XKB_KEYMAP_FORMAT_TEXT_V1
+        },
+        {
+          .value = XKB_KEYMAP_FORMAT_TEXT_V2,
+          .labels = (const char* const[]) { "v2", NULL },
+          .expected = XKB_KEYMAP_FORMAT_TEXT_V2
+        },
+    };
+    char buf[15] = { 0 };
+    for (size_t k = 0; k < ARRAY_SIZE(entries); k++) {
+        assert(xkb_keymap_is_supported_format(entries[k].value) ==
+               !!entries[k].expected);
+        /* Parse labels */
+        for (size_t l = 0; entries[k].labels && entries[k].labels[l]; l++) {
+            assert_printf(xkb_keymap_parse_format(entries[k].labels[l]) ==
+                          entries[k].expected,
+                          "%s: expected %d, got: %d\n",
+                          entries[k].labels[l], entries[k].value,
+                          xkb_keymap_parse_format(entries[k].labels[l]));
+        }
+        /* Parse serialized numeric value */
+        const int ret = snprintf(buf, sizeof(buf), "%d", entries[k].value);
+        assert(ret > 0 && ret < (int) sizeof(buf));
+        assert(xkb_keymap_parse_format(buf) == entries[k].expected);
+    }
+
+    const enum xkb_keymap_format *formats;
+    const size_t count = xkb_keymap_supported_formats(&formats);
+    assert(count == 2);
+    enum xkb_keymap_format previous = 0; /* Lower bound */
+    for (size_t k = 0; k < count; k++) {
+        /* Ascending order */
+        assert(previous < formats[k]);
+        /* Valid numeric format */
+        assert(xkb_keymap_is_supported_format(formats[k]));
+        /* Valid label */
+        const int ret = snprintf(buf, sizeof(buf), "%d", formats[k]);
+        assert(ret > 0 && ret < (int) sizeof(buf));
+        assert(xkb_keymap_parse_format(buf) == formats[k]);
+
+        previous = formats[k];
+    }
+}
 
 static void
 test_garbage_key(void)
@@ -32,7 +104,8 @@ test_garbage_key(void)
 
     assert(context);
 
-    keymap = test_compile_rules(context, NULL, NULL, "garbage", NULL, NULL);
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1, NULL,
+                                NULL, "garbage", NULL, NULL);
     assert(keymap);
 
     /* TLDE uses the 'us' sym on the first level and is thus [grave, exclam] */
@@ -77,7 +150,8 @@ test_keymap(void)
 
     assert(context);
 
-    keymap = test_compile_rules(context, "evdev", "pc104", "us,ru", NULL, "grp:menu_toggle");
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1, "evdev",
+                                "pc104", "us,ru", NULL, "grp:menu_toggle");
     assert(keymap);
 
     kc = xkb_keymap_key_by_name(keymap, "AE09");
@@ -147,8 +221,8 @@ test_no_extra_groups(void)
     assert(context);
 
     /* RMLVO: Legacy rules may add more layouts than the input RMLVO */
-    keymap = test_compile_rules(context, "multiple-groups",
-                                "old", "de", NULL, NULL);
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                "multiple-groups", "old", "de", NULL, NULL);
     assert(keymap);
     kc = xkb_keymap_key_by_name(keymap, "AD01");
     assert(kc != XKB_KEYCODE_INVALID);
@@ -161,8 +235,9 @@ test_no_extra_groups(void)
     const char *layouts[] = {"us", "us,us", "us,us,us", "us,us,us,us"};
     for (xkb_layout_index_t k = 0; k < ARRAY_SIZE(layouts); k++) {
         /* `multiple-groups` option defines 4 groups for a key */
-        keymap = test_compile_rules(context, "multiple-groups", NULL,
-                                    layouts[k], NULL, "multiple-groups");
+        keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                    "multiple-groups", NULL, layouts[k], NULL,
+                                    "multiple-groups");
         assert(keymap);
         kc = xkb_keymap_key_by_name(keymap, "RALT");
         assert(kc != XKB_KEYCODE_INVALID);
@@ -180,8 +255,8 @@ test_no_extra_groups(void)
 
     /* RMLVO: Ensure the rule “one group per key” in symbols sections works
      * for the 2nd layout */
-    keymap = test_compile_rules(context, NULL, NULL,
-                                "multiple-groups,multiple-groups", "1,2", NULL);
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1, NULL,
+                                NULL, "multiple-groups,multiple-groups", "1,2", NULL);
     assert(keymap);
     kc = xkb_keymap_key_by_name(keymap, "RALT");
     assert(kc != XKB_KEYCODE_INVALID);
@@ -206,7 +281,7 @@ test_no_extra_groups(void)
         "  xkb_symbols { include \"pc+multiple-groups(1)+multiple-groups(2):2"
                                   "+inet(evdev)\" };"
         "};";
-    keymap = test_compile_string(context, keymap_str);
+    keymap = test_compile_string(context, XKB_KEYMAP_FORMAT_TEXT_V1, keymap_str);
     kc = xkb_keymap_key_by_name(keymap, "RALT");
     assert(kc != XKB_KEYCODE_INVALID);
     assert(xkb_keymap_num_layouts_for_key(keymap, kc) == 4);
@@ -239,7 +314,8 @@ test_numeric_keysyms(void)
 
     assert(context);
 
-    keymap = test_compile_rules(context, "evdev", "pc104", "numeric_keysyms", NULL, NULL);
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1, "evdev",
+                                "pc104", "numeric_keysyms", NULL, NULL);
     assert(keymap);
 
     kc = xkb_keymap_key_by_name(keymap, "AD01");
@@ -282,7 +358,8 @@ test_multiple_keysyms_per_level(void)
 
     assert(context);
 
-    keymap = test_compile_rules(context, "evdev", "pc104", "awesome", NULL, NULL);
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1, "evdev",
+                                "pc104", "awesome", NULL, NULL);
     assert(keymap);
 
     kc = xkb_keymap_key_by_name(keymap, "AD01");
@@ -316,7 +393,7 @@ test_multiple_keysyms_per_level(void)
 static void
 test_multiple_actions_per_level(void)
 {
-    struct xkb_context *context = test_get_context(0);
+    struct xkb_context *context = test_get_context(CONTEXT_NO_FLAG);
     struct xkb_keymap *keymap;
     struct xkb_state *state;
     xkb_keycode_t kc;
@@ -330,8 +407,8 @@ test_multiple_actions_per_level(void)
     assert(context);
 
     /* Test various ways to set multiple actions */
-    keymap = test_compile_rules(context, "evdev", "pc104",
-                                "multiple_actions,cz", NULL, NULL);
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1, "evdev",
+                                "pc104", "multiple_actions,cz", NULL, NULL);
     assert(keymap);
 
     kc = xkb_keymap_key_by_name(keymap, "LCTL");
@@ -468,8 +545,8 @@ test_multiple_actions_per_level(void)
      *       layout. However, this requires to be able to configure group redirect
      *       at the *keymap* level, then use ISO_First_Group and SetGroup(group=-4).
      *       Change the symbols and this test once this is merged. */
-    keymap = test_compile_rules(context, "evdev", "pc104",
-                                "awesome,cz", NULL, "grp:menu_toggle");
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1, "evdev",
+                                "pc104", "awesome,cz", NULL, "grp:menu_toggle");
     assert(keymap);
 
     ctrl = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_CTRL);
@@ -526,17 +603,143 @@ test_multiple_actions_per_level(void)
     xkb_context_unref(context);
 }
 
+static void
+count_keys(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
+{
+    if (!xkb_keymap_key_get_name(keymap, key))
+        return;
+    darray_size_t * const count = data;
+    (*count)++;
+}
+
+static void
+test_keynames_atoms(void)
+{
+    static struct {
+        const char *rules;
+        xkb_keycode_t max_keycode;
+        darray_size_t num_aliases;
+        darray_size_t num_atoms;
+        darray_size_t num_key_names;
+    } tests[] = {
+        {
+            .rules = "base",
+            .max_keycode = 255,
+            .num_aliases = 63,
+            .num_atoms = 484,
+            .num_key_names = 325,
+        },
+        {
+            .rules = "evdev",
+            .max_keycode = 569,
+            .num_aliases = 33,
+            .num_atoms = 501,
+            .num_key_names = 305,
+        },
+    };
+
+    for (size_t t = 0; t < ARRAY_SIZE(tests); t++) {
+        fprintf(stderr, "------\n*** %s: #%zu ***\n", __func__, t);
+
+        struct xkb_context *context = test_get_context(CONTEXT_NO_FLAG);
+        struct xkb_keymap *keymap = test_compile_rules(
+            context, XKB_KEYMAP_FORMAT_TEXT_V1, tests[t].rules,
+            "pc104", "us", NULL, NULL
+        );
+        assert(keymap);
+
+        darray_size_t expected, got;
+
+        expected = (darray_size_t) tests[t].max_keycode;
+        got = xkb_keymap_max_keycode(keymap);
+        assert_eq("keynames max keycode", expected, got, "%u");
+
+        expected = tests[t].num_aliases;
+        got = keymap->num_key_aliases;
+        assert_eq("keynames num aliases", expected, got, "%u");
+
+        expected = tests[t].num_atoms;
+        got = xkb_atom_table_size(context);
+        assert_eq("atoms", expected, got, "%u");
+
+        /*
+         * Find size of the temporary key name LUT used during compilation.
+         * It corresponds to: max(key name/alias atom) + 1.
+         */
+        darray_size_t num_key_names = 0;
+        for (xkb_atom_t a = 0; a < xkb_atom_table_size(context); a++) {
+            const char *name = xkb_atom_text(context, a);
+            if (name == NULL)
+                continue;
+            if (xkb_keymap_key_by_name(keymap, name) != XKB_KEYCODE_INVALID) {
+                num_key_names = a + 1;
+            }
+        }
+
+        expected = tests[t].num_key_names;
+        got = num_key_names;
+        assert_eq("keynames atoms", expected, got, "%u");
+
+        /* Count valid key names */
+        got = keymap->num_key_aliases;
+        xkb_keymap_key_for_each(keymap, count_keys, &got);
+
+        /*
+         * Check that we do not waste too much memory with non-key name/alias
+         * entries in the LUT.
+         */
+        const double valid_entries = (double) got / num_key_names;
+        const double valid_entries_min = 0.92;
+        const double valid_entries_max = 1.0;
+        assert_printf(valid_entries >= valid_entries_min &&
+                      valid_entries < valid_entries_max,
+                      "No enough valid entries; expected: %f <= %f < %f\n",
+                      valid_entries_min, valid_entries, valid_entries_max);
+
+        xkb_keymap_unref(keymap);
+        xkb_context_unref(context);
+    }
+}
+
+/*
+ * Github issue 934: commit b09aa7c6d8440e1690619239fe57e5f12374af0d introduced
+ * a segfault while trying to optimize key aliases allocation.
+ */
+static void
+test_issue_934(void)
+{
+    struct xkb_keymap *keymap;
+    struct xkb_context *context = test_get_context(CONTEXT_NO_FLAG);
+    assert(context);
+
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                "base", "pc104", "us", NULL, NULL);
+    assert(keymap);
+    xkb_keymap_unref(keymap);
+
+    /* Would segfaulted before */
+    keymap = test_compile_rules(context, XKB_KEYMAP_FORMAT_TEXT_V1,
+                                "evdev", "pc104", "us", NULL, NULL);
+    assert(keymap);
+    xkb_keymap_unref(keymap);
+
+    xkb_context_unref(context);
+}
+
 int
 main(void)
 {
     test_init();
 
+    test_supported_formats();
     test_garbage_key();
     test_keymap();
     test_no_extra_groups();
     test_numeric_keysyms();
     test_multiple_keysyms_per_level();
     test_multiple_actions_per_level();
+    test_keynames_atoms();
+    test_issue_934();
 
     return EXIT_SUCCESS;
 }

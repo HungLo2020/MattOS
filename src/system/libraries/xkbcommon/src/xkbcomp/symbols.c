@@ -14,20 +14,22 @@
 
 #include "config.h"
 
+#include <limits.h>
+
 #include "xkbcommon/xkbcommon.h"
 #include "xkbcommon/xkbcommon-keysyms.h"
 
-#include "darray.h"
-#include "keymap.h"
-#include "xkbcomp-priv.h"
-#include "darray.h"
-#include "text.h"
-#include "expr.h"
 #include "action.h"
-#include "vmod.h"
+#include "expr.h"
+#include "darray.h"
 #include "include.h"
+#include "keymap.h"
 #include "keysym.h"
+#include "messages-codes.h"
+#include "text.h"
 #include "util-mem.h"
+#include "vmod.h"
+#include "xkbcomp-priv.h"
 #include "xkbcomp/ast.h"
 
 
@@ -175,6 +177,7 @@ typedef struct {
     darray(ModMapEntry) modmaps;
     struct xkb_mod_set mods;
 
+    xkb_layout_index_t max_groups;
     struct xkb_context *ctx;
     /* Needed for AddKeySymbols. */
     const struct xkb_keymap *keymap;
@@ -188,6 +191,7 @@ InitSymbolsInfo(SymbolsInfo *info, const struct xkb_keymap *keymap,
     info->ctx = keymap->ctx;
     info->include_depth = include_depth;
     info->keymap = keymap;
+    info->max_groups = format_max_groups(keymap->format);
     InitKeyInfo(keymap->ctx, &info->default_key);
     InitActionsInfo(&info->default_actions);
     InitVMods(&info->mods, mods, include_depth > 0);
@@ -217,9 +221,6 @@ static bool
 MergeGroups(SymbolsInfo *info, GroupInfo *into, GroupInfo *from, bool clobber,
             bool report, xkb_layout_index_t group, xkb_atom_t key_name)
 {
-    xkb_level_index_t i, levels_in_both;
-    struct xkb_level *level;
-
     /* First find the type of the merged group. */
     if (into->type != from->type) {
         if (from->type == XKB_ATOM_NONE) {
@@ -234,7 +235,7 @@ MergeGroups(SymbolsInfo *info, GroupInfo *into, GroupInfo *from, bool clobber,
 
             if (report) {
                 log_warn(info->ctx, XKB_WARNING_CONFLICTING_KEY_TYPE_MERGING_GROUPS,
-                         "Multiple definitions for group %d type of key %s; "
+                         "Multiple definitions for group %"PRIu32" type of key %s; "
                          "Using %s, ignoring %s\n",
                          group + 1, KeyNameText(info->ctx, key_name),
                          xkb_atom_text(info->ctx, use),
@@ -261,12 +262,13 @@ MergeGroups(SymbolsInfo *info, GroupInfo *into, GroupInfo *from, bool clobber,
     }
 
     /* Merge the actions and syms. */
-    levels_in_both = MIN(darray_size(into->levels), darray_size(from->levels));
-    unsigned int fromKeysymsCount = 0;
-    unsigned int fromActionsCount = 0;
-    for (i = 0; i < levels_in_both; i++) {
-        struct xkb_level *intoLevel = &darray_item(into->levels, i);
-        struct xkb_level *fromLevel = &darray_item(from->levels, i);
+    const darray_size_t levels_in_both =
+        MIN(darray_size(into->levels), darray_size(from->levels));
+    darray_size_t fromKeysymsCount = 0;
+    darray_size_t fromActionsCount = 0;
+    for (darray_size_t i = 0; i < levels_in_both; i++) {
+        struct xkb_level* const intoLevel = &darray_item(into->levels, i);
+        struct xkb_level* const fromLevel = &darray_item(from->levels, i);
 
         const bool fromHasNoKeysym = fromLevel->num_syms == 0;
         const bool fromHasNoAction = fromLevel->num_actions == 0;
@@ -294,8 +296,8 @@ MergeGroups(SymbolsInfo *info, GroupInfo *into, GroupInfo *from, bool clobber,
             /* Incompatible keysyms */
             if (report && !(intoHasNoKeysym || fromHasNoKeysym)) {
                 log_warn(info->ctx, XKB_WARNING_CONFLICTING_KEY_SYMBOL,
-                            "Multiple symbols for level %d/group %u on key %s; "
-                            "Using %s, ignoring %s\n",
+                            "Multiple symbols for level %u/group "
+                            "%"PRIu32" on key %s; Using %s, ignoring %s\n",
                             i + 1, group + 1, KeyNameText(info->ctx, key_name),
                             (clobber ? "from" : "to"),
                             (clobber ? "to" : "from"));
@@ -349,8 +351,8 @@ MergeGroups(SymbolsInfo *info, GroupInfo *into, GroupInfo *from, bool clobber,
                 if (unlikely(intoLevel->num_actions > 1)) {
                     log_warn(
                         info->ctx, XKB_WARNING_CONFLICTING_KEY_ACTION,
-                        "Multiple actions for level %d/group %u on key %s; "
-                        "%s\n",
+                        "Multiple actions for level %u/group %"PRIu32" "
+                        "on key %s; %s\n",
                         i + 1, group + 1, KeyNameText(info->ctx, key_name),
                         clobber ? "Using from, ignoring to"
                                 : "Using to, ignoring from");
@@ -364,8 +366,8 @@ MergeGroups(SymbolsInfo *info, GroupInfo *into, GroupInfo *from, bool clobber,
                         : &fromLevel->a.action;
 
                     log_warn(info->ctx, XKB_WARNING_CONFLICTING_KEY_ACTION,
-                                "Multiple actions for level %d/group %u "
-                                "on key %s; Using %s, ignoring %s\n",
+                                "Multiple actions for level %u/group "
+                                "%"PRIu32" on key %s; Using %s, ignoring %s\n",
                                 i + 1, group + 1,
                                 KeyNameText(info->ctx, key_name),
                                 ActionTypeText(use->type),
@@ -415,6 +417,7 @@ MergeGroups(SymbolsInfo *info, GroupInfo *into, GroupInfo *from, bool clobber,
         }
     }
     /* If @from has extra levels, get them as well. */
+    struct xkb_level *level;
     darray_foreach_from(level, from->levels, levels_in_both) {
         darray_append(into->levels, *level);
         /* We may have stolen keysyms or actions arrays:
@@ -521,23 +524,50 @@ MergeKeys(SymbolsInfo *info, KeyInfo *into, KeyInfo *from, bool same_file)
     return true;
 }
 
+static struct xkb_key *
+XkbKeyByName(struct xkb_keymap *keymap, xkb_atom_t name, bool use_aliases)
+{
+    if (name < keymap->num_key_names) {
+        const KeycodeMatch match = keymap->key_names[name];
+        if (match.found) {
+            if (!match.is_alias) {
+                assert(name == keymap->keys[match.key.index].name);
+                return &keymap->keys[match.key.index];
+            } else if (use_aliases) {
+                assert(match.alias.real ==
+                       keymap->keys[keymap->key_names[match.alias.real].key.index].name);
+                return &keymap->keys[keymap->key_names[match.alias.real].key.index];
+            }
+        }
+    }
+    return NULL;
+}
+
+static xkb_atom_t
+XkbResolveKeyAlias(const struct xkb_keymap *keymap, xkb_atom_t name)
+{
+    if (name < keymap->num_key_names) {
+        const KeycodeMatch match = keymap->key_names[name];
+        if (match.found && match.is_alias) {
+            return match.alias.real;
+        }
+    }
+    return name;
+}
+
 /* TODO: Make it so this function doesn't need the entire keymap. */
 static bool
 AddKeySymbols(SymbolsInfo *info, KeyInfo *keyi, bool same_file)
 {
-    xkb_atom_t real_name;
-    KeyInfo *iter;
-
     /*
      * Don't keep aliases in the keys array; this guarantees that
      * searching for keys to merge with by straight comparison (see the
      * following loop) is enough, and we won't get multiple KeyInfo's
      * for the same key because of aliases.
      */
-    real_name = XkbResolveKeyAlias(info->keymap, keyi->name);
-    if (real_name != XKB_ATOM_NONE)
-        keyi->name = real_name;
+    keyi->name = XkbResolveKeyAlias(info->keymap, keyi->name);
 
+    KeyInfo *iter;
     darray_foreach(iter, info->keys)
         if (iter->name == keyi->name)
             return MergeKeys(info, iter, keyi, same_file);
@@ -673,7 +703,9 @@ HandleIncludeSymbols(SymbolsInfo *info, IncludeStmt *include)
         SymbolsInfo next_incl;
         XkbFile *file;
 
-        file = ProcessIncludeFile(info->ctx, stmt, FILE_TYPE_SYMBOLS);
+        char path[PATH_MAX];
+        file = ProcessIncludeFile(info->ctx, stmt, FILE_TYPE_SYMBOLS,
+                                  path, sizeof(path));
         if (!file) {
             info->errorCount += 10;
             ClearSymbolsInfo(&included);
@@ -684,11 +716,11 @@ HandleIncludeSymbols(SymbolsInfo *info, IncludeStmt *include)
                         &included.mods);
         if (stmt->modifier) {
             next_incl.explicit_group = atoi(stmt->modifier) - 1;
-            if (next_incl.explicit_group >= XKB_MAX_GROUPS) {
+            if (next_incl.explicit_group >= info->max_groups) {
                 log_err(info->ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
-                        "Cannot set explicit group to %d - must be between 1..%d; "
-                        "Ignoring group number\n",
-                        next_incl.explicit_group + 1, XKB_MAX_GROUPS);
+                        "Cannot set explicit group to %"PRIu32" - "
+                        "must be between 1..%u; Ignoring group number\n",
+                        next_incl.explicit_group + 1, info->max_groups);
                 next_incl.explicit_group = info->explicit_group;
             }
         }
@@ -738,11 +770,11 @@ GetGroupIndex(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
             }
         }
 
-        if (i >= XKB_MAX_GROUPS) {
+        if (i >= info->max_groups) {
             log_err(info->ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
                     "Too many groups of %s for key %s (max %u); "
                     "Ignoring %s defined for extra groups\n",
-                    name, KeyInfoText(info, keyi), XKB_MAX_GROUPS, name);
+                    name, KeyInfoText(info, keyi), info->max_groups, name);
             return false;
         }
 
@@ -751,7 +783,7 @@ GetGroupIndex(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
         return true;
     }
 
-    if (!ExprResolveGroup(info->ctx, arrayNdx, ndx_rtrn)) {
+    if (!ExprResolveGroup(info->ctx, info->max_groups, arrayNdx, ndx_rtrn)) {
         log_err(info->ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
                 "Illegal group index for %s of key %s\n"
                 "Definition with non-integer array index ignored\n",
@@ -785,7 +817,7 @@ AddSymbolsToKey(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
     if (value->common.type != STMT_EXPR_KEYSYM_LIST) {
         log_err(info->ctx, XKB_ERROR_WRONG_FIELD_TYPE,
                 "Expected a list of symbols, found %s; "
-                "Ignoring symbols for group %u of %s\n",
+                "Ignoring symbols for group %"PRIu32" of %s\n",
                 stmt_type_to_string(value->common.type), ndx + 1,
                 KeyInfoText(info, keyi));
         return false;
@@ -793,7 +825,7 @@ AddSymbolsToKey(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
 
     if (groupi->defined & GROUP_FIELD_SYMS) {
         log_err(info->ctx, XKB_ERROR_CONFLICTING_KEY_SYMBOLS_ENTRY,
-                "Symbols for key %s, group %u already defined; "
+                "Symbols for key %s, group %"PRIu32" already defined; "
                 "Ignoring duplicate definition\n",
                 KeyInfoText(info, keyi), ndx + 1);
         return false;
@@ -827,8 +859,8 @@ AddSymbolsToKey(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
 
         if (unlikely(darray_size(keysymList->syms) > MAX_KEYSYMS_PER_LEVEL)) {
             log_err(info->ctx, XKB_LOG_MESSAGE_NO_ID,
-                    "Key %s has too many keysyms for group %u, level %u; "
-                    "expected max %u, got: %u\n",
+                    "Key %s has too many keysyms for group %"PRIu32", "
+                    "level %"PRIu32"; expected max %u, got: %u\n",
                     KeyInfoText(info, keyi), ndx + 1, level + 1,
                     MAX_KEYSYMS_PER_LEVEL, darray_size(keysymList->syms));
             return false;
@@ -876,14 +908,14 @@ AddActionsToKey(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
     if (value->common.type != STMT_EXPR_ACTION_LIST) {
         log_wsgo(info->ctx, XKB_ERROR_INVALID_EXPRESSION_TYPE,
                  "Bad expression type (%d) for action list value; "
-                 "Ignoring actions for group %u of %s\n",
+                 "Ignoring actions for group %"PRIu32" of %s\n",
                  value->common.type, ndx, KeyInfoText(info, keyi));
         return false;
     }
 
     if (groupi->defined & GROUP_FIELD_ACTS) {
         log_wsgo(info->ctx, XKB_WARNING_CONFLICTING_KEY_ACTION,
-                 "Actions for key %s, group %u already defined\n",
+                 "Actions for key %s, group %"PRIu32" already defined\n",
                  KeyInfoText(info, keyi), ndx);
         return false;
     }
@@ -914,8 +946,8 @@ AddActionsToKey(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
 
         if (unlikely(num_actions > MAX_ACTIONS_PER_LEVEL)) {
             log_err(info->ctx, XKB_LOG_MESSAGE_NO_ID,
-                    "Key %s has too many actions for group %u, level %u; "
-                    "expected max %u, got: %u\n",
+                    "Key %s has too many actions for group %"PRIu32", "
+                    "level %"PRIu32"; expected max %u, got: %u\n",
                     KeyInfoText(info, keyi), ndx + 1, level + 1,
                     MAX_ACTIONS_PER_LEVEL, num_actions);
             return false;
@@ -923,16 +955,19 @@ AddActionsToKey(SymbolsInfo *info, KeyInfo *keyi, ExprDef *arrayNdx,
 
         /* Parse actions and add only defined actions */
         darray(union xkb_action) actions = darray_new();
-        unsigned int act_index = 0;
         for (ExprDef *act = actionList->actions;
-             act; act = (ExprDef *) act->common.next, act_index++) {
+             act; act = (ExprDef *) act->common.next) {
             union xkb_action toAct = { 0 };
-            if (!HandleActionDef(info->ctx, &info->default_actions, &info->mods,
-                                 act, &toAct))
+            if (!HandleActionDef(info->ctx, info->keymap->format,
+                                 &info->default_actions, &info->mods,
+                                 act, &toAct)) {
                 log_err(info->ctx, XKB_ERROR_INVALID_VALUE,
                         "Illegal action definition for %s; "
-                        "Action for group %u/level %u ignored\n",
+                        "Action for group %"PRIu32"/level %"PRIu32" ignored\n",
                         KeyInfoText(info, keyi), ndx + 1, level + 1);
+                /* Ensure action type is reset */
+                toAct.type = ACTION_TYPE_NONE;
+            }
             if (toAct.type == ACTION_TYPE_NONE) {
                 /* Drop action */
             } else if (likely(num_actions == 1)) {
@@ -1015,7 +1050,7 @@ SetSymbolsField(SymbolsInfo *info, KeyInfo *keyi, const char *field,
             keyi->default_type = val;
             keyi->defined |= KEY_FIELD_DEFAULT_TYPE;
         }
-        else if (!ExprResolveGroup(info->ctx, arrayNdx, &ndx)) {
+        else if (!ExprResolveGroup(info->ctx, info->max_groups, arrayNdx, &ndx)) {
             log_err(info->ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
                     "Illegal group index for type of key %s; "
                     "Definition with non-integer array index ignored\n",
@@ -1060,7 +1095,8 @@ SetSymbolsField(SymbolsInfo *info, KeyInfo *keyi, const char *field,
     else if (istreq(field, "locking") ||
              istreq(field, "lock") ||
              istreq(field, "locks")) {
-        log_vrb(info->ctx, 1, XKB_WARNING_UNSUPPORTED_SYMBOLS_FIELD,
+        log_vrb(info->ctx, XKB_LOG_VERBOSITY_BRIEF,
+                XKB_WARNING_UNSUPPORTED_SYMBOLS_FIELD,
                 "Key behaviors not supported; "
                 "Ignoring locking specification for key %s\n",
                 KeyInfoText(info, keyi));
@@ -1068,14 +1104,16 @@ SetSymbolsField(SymbolsInfo *info, KeyInfo *keyi, const char *field,
     else if (istreq(field, "radiogroup") ||
              istreq(field, "permanentradiogroup") ||
              istreq(field, "allownone")) {
-        log_vrb(info->ctx, 1, XKB_WARNING_UNSUPPORTED_SYMBOLS_FIELD,
+        log_vrb(info->ctx, XKB_LOG_VERBOSITY_BRIEF,
+                XKB_WARNING_UNSUPPORTED_SYMBOLS_FIELD,
                 "Radio groups not supported; "
                 "Ignoring radio group specification for key %s\n",
                 KeyInfoText(info, keyi));
     }
     else if (istreq_prefix("overlay", field) ||
              istreq_prefix("permanentoverlay", field)) {
-        log_vrb(info->ctx, 1, XKB_WARNING_UNSUPPORTED_SYMBOLS_FIELD,
+        log_vrb(info->ctx, XKB_LOG_VERBOSITY_BRIEF,
+                XKB_WARNING_UNSUPPORTED_SYMBOLS_FIELD,
                 "Overlays not supported; "
                 "Ignoring overlay specification for key %s\n",
                 KeyInfoText(info, keyi));
@@ -1130,7 +1168,7 @@ SetSymbolsField(SymbolsInfo *info, KeyInfo *keyi, const char *field,
              istreq(field, "redirectgroups")) {
         xkb_layout_index_t grp = 0;
 
-        if (!ExprResolveGroup(info->ctx, value, &grp)) {
+        if (!ExprResolveGroup(info->ctx, info->max_groups, value, &grp)) {
             log_err(info->ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
                     "Illegal group index for redirect of key %s; "
                     "Definition with non-integer group ignored\n",
@@ -1158,14 +1196,15 @@ SetGroupName(SymbolsInfo *info, ExprDef *arrayNdx, ExprDef *value,
              enum merge_mode merge)
 {
     if (!arrayNdx) {
-        log_vrb(info->ctx, 1, XKB_WARNING_MISSING_SYMBOLS_GROUP_NAME_INDEX,
+        log_vrb(info->ctx, XKB_LOG_VERBOSITY_BRIEF,
+                XKB_WARNING_MISSING_SYMBOLS_GROUP_NAME_INDEX,
                 "You must specify an index when specifying a group name; "
                 "Group name definition without array subscript ignored\n");
         return false;
     }
 
     xkb_layout_index_t group = 0;
-    if (!ExprResolveGroup(info->ctx, arrayNdx, &group)) {
+    if (!ExprResolveGroup(info->ctx, info->max_groups, arrayNdx, &group)) {
         log_err(info->ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
                 "Illegal index in group name definition; "
                 "Definition with non-integer array index ignored\n");
@@ -1176,7 +1215,7 @@ SetGroupName(SymbolsInfo *info, ExprDef *arrayNdx, ExprDef *value,
     if (!ExprResolveString(info->ctx, value, &name)) {
         log_err(info->ctx, XKB_ERROR_WRONG_FIELD_TYPE,
                 "Group name must be a string; "
-                "Illegal name for group %d ignored\n", group);
+                "Illegal name for group %"PRIu32" ignored\n", group);
         return false;
     }
 
@@ -1190,8 +1229,8 @@ SetGroupName(SymbolsInfo *info, ExprDef *arrayNdx, ExprDef *value,
     else {
         log_warn(info->ctx, XKB_WARNING_NON_BASE_GROUP_NAME,
                  "An explicit group was specified for the '%s' map, "
-                 "but it provides a name for a group other than Group1 (%d); "
-                 "Ignoring group name '%s'\n",
+                 "but it provides a name for a group other than Group1 "
+                 "(%"PRIu32"); Ignoring group name '%s'\n",
                  info->name, group,
                  xkb_atom_text(info->ctx, name));
         return false;
@@ -1269,10 +1308,15 @@ HandleGlobalVar(SymbolsInfo *info, VarDef *stmt)
                 "Ignoring \"allownone\" specification\n");
         ret = true;
     }
-    else {
-        ret = SetDefaultActionField(info->ctx, &info->default_actions,
+    else if (elem) {
+        ret = SetDefaultActionField(info->ctx, info->keymap->format,
+                                    &info->default_actions,
                                     &info->mods, elem, field, arrayNdx,
                                     stmt->value, stmt->merge);
+    } else {
+        log_err(info->ctx, XKB_ERROR_UNKNOWN_DEFAULT_FIELD,
+                "Default defined for unknown field \"%s\"; Ignored\n", field);
+        return false;
     }
 
     return ret;
@@ -1346,7 +1390,7 @@ SetExplicitGroup(SymbolsInfo *info, KeyInfo *keyi)
 
     if (warn) {
         log_warn(info->ctx, XKB_WARNING_MULTIPLE_GROUPS_AT_ONCE,
-                 "For the map %s the explicit group %u is specified, "
+                 "For the map %s the explicit group %"PRIu32" is specified, "
                  "but key %s has more than one group defined; "
                  "All groups except first one will be ignored\n",
                  info->name, info->explicit_group + 1, KeyInfoText(info, keyi));
@@ -1500,23 +1544,23 @@ HandleSymbolsFile(SymbolsInfo *info, XkbFile *file)
 static struct xkb_key *
 FindKeyForSymbol(struct xkb_keymap *keymap, xkb_keysym_t sym)
 {
-    struct xkb_key *key;
-    xkb_layout_index_t group;
-    bool got_one_group, got_one_level;
-
-    group = 0;
+    bool got_one_group;
+    xkb_layout_index_t group = 0;
     do {
         xkb_level_index_t level = 0;
         got_one_group = false;
+        bool got_one_level;
         do {
             got_one_level = false;
+            struct xkb_key *key;
             xkb_keys_foreach(key, keymap) {
                 if (group < key->num_groups &&
                     level < XkbKeyNumLevels(key, group)) {
                     got_one_group = got_one_level = true;
-                    unsigned int num_syms = key->groups[group].levels[level].num_syms;
+                    const xkb_keysym_count_t num_syms =
+                        key->groups[group].levels[level].num_syms;
                     if (num_syms > 1) {
-                        for (unsigned int k = 0; k < num_syms; k++) {
+                        for (xkb_keysym_count_t k = 0; k < num_syms; k++) {
                             if (key->groups[group].levels[level].s.syms[k] == sym)
                                 return key;
                         }
@@ -1603,7 +1647,6 @@ static const struct xkb_key_type *
 FindTypeForGroup(struct xkb_keymap *keymap, KeyInfo *keyi,
                  xkb_layout_index_t group, bool *explicit_type)
 {
-    unsigned int i;
     GroupInfo *groupi = &darray_item(keyi->groups, group);
     xkb_atom_t type_name = groupi->type;
 
@@ -1623,25 +1666,27 @@ FindTypeForGroup(struct xkb_keymap *keymap, KeyInfo *keyi,
     if (type_name == XKB_ATOM_NONE) {
         log_warn(keymap->ctx, XKB_WARNING_CANNOT_INFER_KEY_TYPE,
                  "Couldn't find an automatic type for key '%s' "
-                 "group %d with %lu levels; Using the default type\n",
+                 "group %"PRIu32" with %u levels; Using the default type\n",
                  KeyNameText(keymap->ctx, keyi->name), group + 1,
-                 (unsigned long) darray_size(groupi->levels));
+                 darray_size(groupi->levels));
         goto use_default;
     }
 
+    darray_size_t i;
     for (i = 0; i < keymap->num_types; i++)
         if (keymap->types[i].name == type_name)
             break;
 
     if (i >= keymap->num_types) {
         log_warn(keymap->ctx, XKB_WARNING_UNDEFINED_KEY_TYPE,
-                 "The type \"%s\" for key '%s' group %d "
+                 "The type \"%s\" for key '%s' group %"PRIu32" "
                  "was not previously defined; Using the default type\n",
                  xkb_atom_text(keymap->ctx, type_name),
                  KeyNameText(keymap->ctx, keyi->name), group + 1);
         goto use_default;
     }
 
+    keymap->types[i].required = true;
     return &keymap->types[i];
 
 use_default:
@@ -1649,6 +1694,7 @@ use_default:
      * Index 0 is guaranteed to contain something, usually
      * ONE_LEVEL or at least some default one-level type.
      */
+    keymap->types[0].required = true;
     return &keymap->types[0];
 }
 
@@ -1667,7 +1713,8 @@ CopySymbolsDefToKeymap(struct xkb_keymap *keymap, SymbolsInfo *info,
      */
     key = XkbKeyByName(keymap, keyi->name, false);
     if (!key) {
-        log_vrb(info->ctx, 5, XKB_WARNING_UNDEFINED_KEYCODE,
+        log_vrb(info->ctx, XKB_LOG_VERBOSITY_DETAILED,
+                XKB_WARNING_UNDEFINED_KEYCODE,
                 "Key %s not found in keycodes; Symbols ignored\n",
                 KeyInfoText(info, keyi));
         return false;
@@ -1713,17 +1760,17 @@ CopySymbolsDefToKeymap(struct xkb_keymap *keymap, SymbolsInfo *info,
 
     /* Find and assign the groups' types in the keymap. */
     darray_enumerate(i, groupi, keyi->groups) {
-        const struct xkb_key_type *type;
-        bool explicit_type;
-
-        type = FindTypeForGroup(keymap, keyi, i, &explicit_type);
+        bool explicit_type = false;
+        const struct xkb_key_type * const type =
+            FindTypeForGroup(keymap, keyi, i, &explicit_type);
 
         /* Always have as many levels as the type specifies. */
         if (type->num_levels < darray_size(groupi->levels)) {
             struct xkb_level *leveli;
 
-            log_vrb(info->ctx, 1, XKB_WARNING_EXTRA_SYMBOLS_IGNORED,
-                    "Type \"%s\" has %d levels, but %s has %u levels; "
+            log_vrb(info->ctx, XKB_LOG_VERBOSITY_BRIEF,
+                    XKB_WARNING_EXTRA_SYMBOLS_IGNORED,
+                    "Type \"%s\" has %"PRIu32" levels, but %s has %u levels; "
                     "Ignoring extra symbols\n",
                     xkb_atom_text(keymap->ctx, type->name), type->num_levels,
                     KeyInfoText(info, keyi),
@@ -1824,7 +1871,8 @@ CopyModMapDefToKeymap(struct xkb_keymap *keymap, SymbolsInfo *info,
     if (!entry->haveSymbol) {
         key = XkbKeyByName(keymap, entry->u.keyName, true);
         if (!key) {
-            log_vrb(info->ctx, 5, XKB_WARNING_UNDEFINED_KEYCODE,
+            log_vrb(info->ctx, XKB_LOG_VERBOSITY_DETAILED,
+                    XKB_WARNING_UNDEFINED_KEYCODE,
                     "Key %s not found in keycodes; "
                     "Modifier map entry for %s not updated\n",
                     KeyNameText(info->ctx, entry->u.keyName),
@@ -1835,7 +1883,8 @@ CopyModMapDefToKeymap(struct xkb_keymap *keymap, SymbolsInfo *info,
     else {
         key = FindKeyForSymbol(keymap, entry->u.keySym);
         if (!key) {
-            log_vrb(info->ctx, 5, XKB_WARNING_UNRESOLVED_KEYMAP_SYMBOL,
+            log_vrb(info->ctx, XKB_LOG_VERBOSITY_DETAILED,
+                    XKB_WARNING_UNRESOLVED_KEYMAP_SYMBOL,
                     "Key \"%s\" not found in symbol map; "
                     "Modifier map entry for %s not updated\n",
                     KeysymText(info->ctx, entry->u.keySym),
@@ -1864,8 +1913,8 @@ CopySymbolsToKeymap(struct xkb_keymap *keymap, SymbolsInfo *info)
 
     keymap->mods = info->mods;
 
-    darray_steal(info->group_names,
-                 &keymap->group_names, &keymap->num_group_names);
+    keymap->num_group_names = (xkb_layout_index_t)darray_size(info->group_names);
+    darray_steal(info->group_names, &keymap->group_names, NULL);
 
     darray_foreach(keyi, info->keys)
         if (!CopySymbolsDefToKeymap(keymap, info, keyi))

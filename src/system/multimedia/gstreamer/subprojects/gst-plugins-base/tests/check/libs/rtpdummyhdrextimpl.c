@@ -17,9 +17,6 @@
  * Free Software Foundation, Inc., 51 Franklin St, Fifth Floor,
  * Boston, MA 02110-1301, USA.
  */
-#include "gst/gstcaps.h"
-#include "gst/gstvalue.h"
-#include "gst/rtp/gstrtphdrext.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -177,7 +174,7 @@ gst_rtp_dummy_hdr_ext_write (GstRTPHeaderExtension * ext,
 {
   GstRTPDummyHdrExt *dummy = GST_RTP_DUMMY_HDR_EXT (ext);
 
-  g_assert (size >= gst_rtp_dummy_hdr_ext_get_max_size (ext, NULL));
+  g_assert_cmpuint (size, >=, gst_rtp_dummy_hdr_ext_get_max_size (ext, NULL));
 
   data[0] = TEST_DATA_BYTE;
 

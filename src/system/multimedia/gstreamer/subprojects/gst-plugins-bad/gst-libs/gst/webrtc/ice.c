@@ -314,6 +314,8 @@ gst_webrtc_ice_get_remote_candidates (GstWebRTCICE * ice,
  * Returns: FALSE on failure, otherwise @local_stats @remote_stats will be set
  *
  * Since: 1.22
+ *
+ * Deprecated: 1.28: Use gst_webrtc_ice_transport_get_selected_candidate_pair().
  */
 gboolean
 gst_webrtc_ice_get_selected_pair (GstWebRTCICE * ice,
@@ -341,6 +343,9 @@ gst_webrtc_ice_candidate_stats_free (GstWebRTCICECandidateStats * stats)
   if (stats) {
     g_free (stats->ipaddr);
     g_free (stats->url);
+    g_free (stats->ABI.abi.foundation);
+    g_free (stats->ABI.abi.related_address);
+    g_free (stats->ABI.abi.username_fragment);
   }
 
   g_free (stats);
@@ -364,6 +369,9 @@ gst_webrtc_ice_candidate_stats_copy (GstWebRTCICECandidateStats * stats)
 
   copy->ipaddr = g_strdup (stats->ipaddr);
   copy->url = g_strdup (stats->url);
+  copy->ABI.abi.foundation = g_strdup (stats->ABI.abi.foundation);
+  copy->ABI.abi.related_address = g_strdup (stats->ABI.abi.related_address);
+  copy->ABI.abi.username_fragment = g_strdup (stats->ABI.abi.username_fragment);
 
   return copy;
 }
@@ -497,6 +505,115 @@ gst_webrtc_ice_get_http_proxy (GstWebRTCICE * ice)
   return GST_WEBRTC_ICE_GET_CLASS (ice)->get_http_proxy (ice);
 }
 
+/**
+ * gst_webrtc_ice_close:
+ * @ice: The #GstWebRTCICE
+ * @promise: (transfer none) (nullable): a #GstPromise to be notified when the task is
+ * complete.
+ *
+ * Invoke the close procedure as specified in
+ * https://www.w3.org/TR/webrtc/#dom-rtcpeerconnection-close.
+ *
+ * Since: 1.28
+ */
+void
+gst_webrtc_ice_close (GstWebRTCICE * ice, GstPromise * promise)
+{
+  g_return_if_fail (GST_IS_WEBRTC_ICE (ice));
+  g_assert (GST_WEBRTC_ICE_GET_CLASS (ice)->close);
+
+  GST_WEBRTC_ICE_GET_CLASS (ice)->close (ice, promise);
+}
+
+/**
+ * gst_webrtc_ice_candidate_free:
+ * @candidate: The #GstWebRTCICECandidate to be free'd
+ *
+ * Helper function to free #GstWebRTCICECandidate
+ *
+ * Since: 1.28
+ */
+void
+gst_webrtc_ice_candidate_free (GstWebRTCICECandidate * candidate)
+{
+  if (candidate) {
+    g_free (candidate->candidate);
+    gst_webrtc_ice_candidate_stats_free (candidate->stats);
+    g_free (candidate->sdp_mid);
+  }
+
+  g_free (candidate);
+}
+
+/**
+ * gst_webrtc_ice_candidate_copy:
+ * @candidate: The #GstWebRTCICECandidate to be copied
+ *
+ * Returns: (transfer full): A copy of @candidate
+ *
+ * Since: 1.28
+ */
+GstWebRTCICECandidate *
+gst_webrtc_ice_candidate_copy (GstWebRTCICECandidate * candidate)
+{
+  GstWebRTCICECandidate *copy = g_malloc (sizeof (GstWebRTCICECandidate));
+
+  *copy = *candidate;
+
+  copy->candidate = g_strdup (candidate->candidate);
+  copy->stats = gst_webrtc_ice_candidate_stats_copy (candidate->stats);
+  copy->sdp_mid = g_strdup (candidate->sdp_mid);
+
+  return copy;
+}
+
+G_DEFINE_BOXED_TYPE (GstWebRTCICECandidate, gst_webrtc_ice_candidate,
+    (GBoxedCopyFunc) gst_webrtc_ice_candidate_copy,
+    (GBoxedFreeFunc) gst_webrtc_ice_candidate_free);
+
+
+/**
+ * gst_webrtc_ice_candidate_pair_free:
+ * @pair: The #GstWebRTCICECandidatePair to be free'd
+ *
+ * Helper function to free #GstWebRTCICECandidatePair
+ *
+ * Since: 1.28
+ */
+void
+gst_webrtc_ice_candidate_pair_free (GstWebRTCICECandidatePair * pair)
+{
+  if (pair) {
+    gst_webrtc_ice_candidate_free (pair->local);
+    gst_webrtc_ice_candidate_free (pair->remote);
+  }
+
+  g_free (pair);
+}
+
+/**
+ * gst_webrtc_ice_candidate_pair_copy:
+ * @pair: The #GstWebRTCICE
+ *
+ * Returns: (transfer full): A copy of @pair
+ *
+ * Since: 1.28
+ */
+GstWebRTCICECandidatePair *
+gst_webrtc_ice_candidate_pair_copy (GstWebRTCICECandidatePair * pair)
+{
+  GstWebRTCICECandidatePair *copy =
+      g_malloc (sizeof (GstWebRTCICECandidatePair));
+
+  copy->local = gst_webrtc_ice_candidate_copy (pair->local);
+  copy->remote = gst_webrtc_ice_candidate_copy (pair->remote);
+
+  return copy;
+}
+
+G_DEFINE_BOXED_TYPE (GstWebRTCICECandidatePair, gst_webrtc_ice_candidate_pair,
+    (GBoxedCopyFunc) gst_webrtc_ice_candidate_pair_copy,
+    (GBoxedFreeFunc) gst_webrtc_ice_candidate_pair_free);
 
 static void
 gst_webrtc_ice_set_property (GObject * object, guint prop_id,
@@ -568,6 +685,7 @@ gst_webrtc_ice_class_init (GstWebRTCICEClass * klass)
   klass->get_local_candidates = NULL;
   klass->get_remote_candidates = NULL;
   klass->get_selected_pair = NULL;
+  klass->close = NULL;
 
   gobject_class->get_property = gst_webrtc_ice_get_property;
   gobject_class->set_property = gst_webrtc_ice_set_property;

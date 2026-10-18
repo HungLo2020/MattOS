@@ -55,7 +55,9 @@ and/or use gtk-doc annotations.  -->
       </field>
       <field name="data" writable="1">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-anc.h">The User data</doc>
-        <type name="guint16" c:type="guint16*"/>
+        <array length="7" zero-terminated="0" c:type="guint16*">
+          <type name="guint16" c:type="guint16"/>
+        </array>
       </field>
       <field name="checksum" writable="1">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-anc.h">The checksum of the ADF</doc>
@@ -1269,7 +1271,7 @@ modifiers state, otherwise FALSE.</doc>
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/navigation.c">The #GstEvent to modify.</doc>
             <type name="Gst.Event" c:type="GstEvent*"/>
           </parameter>
-          <parameter name="state" transfer-ownership="none">
+          <parameter name="state" direction="out" caller-allocates="0" transfer-ownership="full">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/navigation.c">a bit-mask representing the state of the modifier keys (e.g. Control,
 Shift and Alt).</doc>
             <type name="NavigationModifierType" c:type="GstNavigationModifierType*"/>
@@ -3068,7 +3070,7 @@ Formats are sorted by decreasing "quality", using these criteria by priority:
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h"/>
       <type name="utf8" c:type="gchar*"/>
     </constant>
-    <constant name="VIDEO_FORMATS_ALL_STR" value="A444_16BE, A444_16LE, AYUV64, ARGB64, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, Y416_LE, RGBA64_LE, ARGB64_LE, BGRA64_LE, ABGR64_LE, A422_16BE, A422_16LE, A420_16BE, A420_16LE, A444_12BE, GBRA_12BE, A444_12LE, GBRA_12LE, Y412_BE, Y412_LE, A422_12BE, A422_12LE, A420_12BE, A420_12LE, A444_10BE, GBRA_10BE, A444_10LE, GBRA_10LE, A422_10BE, A422_10LE, A420_10BE, A420_10LE, Y410, BGR10A2_LE, RGB10A2_LE, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16BE, GBR_16BE, Y444_16LE, GBR_16LE, Y216_BE, v216, Y216_LE, P016_BE, P016_LE, Y444_12BE, GBR_12BE, Y444_12LE, GBR_12LE, I422_12BE, I422_12LE, Y212_BE, Y212_LE, I420_12BE, I420_12LE, P012_BE, P012_LE, Y444_10BE, GBR_10BE, Y444_10LE, GBR_10LE, r210, I422_10BE, I422_10LE, NV16_10LE32, Y210, UYVP, v210, I420_10BE, I420_10LE, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, P010_10LE, NV12_10LE40, NV12_10LE32, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_BE, GRAY16_LE, GRAY10_LE16, GRAY10_LE32, GRAY8" c:type="GST_VIDEO_FORMATS_ALL_STR" version="1.24">
+    <constant name="VIDEO_FORMATS_ALL_STR" value="A444_16BE, A444_16LE, AYUV64, ARGB64, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, Y416_LE, RGBA64_LE, ARGB64_LE, BGRA64_LE, ABGR64_LE, A422_16BE, A422_16LE, A420_16BE, A420_16LE, A444_12BE, GBRA_12BE, A444_12LE, GBRA_12LE, Y412_BE, Y412_LE, A422_12BE, A422_12LE, A420_12BE, A420_12LE, A444_10BE, GBRA_10BE, A444_10LE, GBRA_10LE, A422_10BE, A422_10LE, A420_10BE, A420_10LE, Y410, BGR10A2_LE, RGB10A2_LE, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16BE, GBR_16BE, Y444_16LE, GBR_16LE, Y216_BE, v216, Y216_LE, P016_BE, P016_LE, Y444_12BE, GBR_12BE, Y444_12LE, GBR_12LE, I422_12BE, I422_12LE, Y212_BE, Y212_LE, I420_12BE, I420_12LE, P012_BE, P012_LE, Y444_10BE, GBR_10BE, Y444_10LE, GBR_10LE, r210, BGR10x2_LE, RGB10x2_LE, I422_10BE, I422_10LE, NV16_10LE40, NV16_10LE32, Y210, UYVP, v210, I420_10BE, I420_10LE, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, P010_10LE, NV12_10LE40, NV12_10LE32, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_BE, GRAY16_LE, GRAY10_LE16, GRAY10_LE32, GRAY8" c:type="GST_VIDEO_FORMATS_ALL_STR" version="1.24">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h">Declare all video formats as a string.
 
 Formats are sorted by decreasing "quality", using these criteria by priority:
@@ -3444,7 +3446,7 @@ Return the width of one tile in pixels, zero if its not an integer.</doc>
         </parameter>
       </parameters>
     </function-macro>
-    <constant name="VIDEO_FORMAT_LAST" value="139" c:type="GST_VIDEO_FORMAT_LAST" version="1.26">
+    <constant name="VIDEO_FORMAT_LAST" value="142" c:type="GST_VIDEO_FORMAT_LAST" version="1.26">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h">Number of video formats in #GstVideoFormat.</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h"/>
       <type name="gint" c:type="gint"/>
@@ -4000,6 +4002,14 @@ It is not valid to use this macro with a TILED format.</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h"/>
       <type name="gint" c:type="gint"/>
     </constant>
+    <function-macro name="VIDEO_META_TRANSFORM_IS_MATRIX" c:identifier="GST_VIDEO_META_TRANSFORM_IS_MATRIX" version="1.28" introspectable="0">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">Checks if a #GType of a meta transformation is a matrix transformation</doc>
+      <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+      <parameters>
+        <parameter name="type">
+        </parameter>
+      </parameters>
+    </function-macro>
     <function-macro name="VIDEO_META_TRANSFORM_IS_SCALE" c:identifier="GST_VIDEO_META_TRANSFORM_IS_SCALE" introspectable="0">
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
       <parameters>
@@ -5226,7 +5236,7 @@ the parity check bits).</doc>
       <field name="data" writable="1">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-anc.h">The user data content of the Ancillary packet.
    Does not contain the ADF, DID, SDID nor CS.</doc>
-        <array length="2" zero-terminated="0">
+        <array zero-terminated="0" fixed-size="256">
           <type name="guint8" c:type="guint8"/>
         </array>
       </field>
@@ -6668,6 +6678,28 @@ option and values.</doc>
           </parameter>
         </parameters>
       </method>
+      <method name="transform_metas" c:identifier="gst_video_converter_transform_metas" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.c">Transform the GstMeta of @src into @dest using @convert.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.c">TRUE if any meta was copied</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="convert" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.c">a #GstVideoConverter</doc>
+            <type name="VideoConverter" c:type="GstVideoConverter*"/>
+          </instance-parameter>
+          <parameter name="src" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.c">a #GstBuffer</doc>
+            <type name="Gst.Buffer" c:type="GstBuffer*"/>
+          </parameter>
+          <parameter name="dest" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.c">a writable #GstBuffer</doc>
+            <type name="Gst.Buffer" c:type="GstBuffer*"/>
+          </parameter>
+        </parameters>
+      </method>
       <function name="new" c:identifier="gst_video_converter_new" version="1.6" introspectable="0">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.c">Create a new converter object to convert between @in_info and @out_info
 with @config.
@@ -6698,6 +6730,9 @@ with @config.
 
 The optional @pool can be used to spawn threads, this is useful when
 creating new converters rapidly, for example when updating cropping.
+
+If @config is not provided, and a @pool is provided, the number of threads for
+the converter will be set to the maximum number of threads in the pool.
 
 Returns (nullable): a #GstVideoConverter or %NULL if conversion is not possible.</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.h"/>
@@ -8728,7 +8763,9 @@ performance is achieved when @quantizer is a power of 2.
           </parameter>
           <parameter name="quantizer" transfer-ownership="none">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-dither.c">quantizer</doc>
-            <type name="guint" c:type="guint*"/>
+            <array zero-terminated="0" c:type="guint*" fixed-size="4">
+              <type name="guint" c:type="guint"/>
+            </array>
           </parameter>
           <parameter name="width" transfer-ownership="none">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-dither.c">the width of the lines</doc>
@@ -8767,6 +8804,26 @@ performance is achieved when @quantizer is a power of 2.
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-dither.h">ordered dither using a bayer pattern</doc>
       </member>
     </enumeration>
+    <class name="VideoDmabufPool" c:symbol-prefix="video_dmabuf_pool" c:type="GstVideoDmabufPool" version="1.28" parent="VideoBufferPool" glib:type-name="GstVideoDmabufPool" glib:get-type="gst_video_dmabuf_pool_get_type" glib:type-struct="VideoDmabufPoolClass">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideodmabufpool.c">Using #GstUdmabufAllocator, setting defaults and implementing implicit sync.</doc>
+      <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideodmabufpool.h"/>
+      <constructor name="new" c:identifier="gst_video_dmabuf_pool_new" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideodmabufpool.c">Create a new #GstVideoDmabufPool instance.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideodmabufpool.h"/>
+        <return-value transfer-ownership="full" nullable="1">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideodmabufpool.c">a #GstVideoDmabufPool or %NULL
+    if dmabufs are not supported.</doc>
+          <type name="Gst.BufferPool" c:type="GstBufferPool*"/>
+        </return-value>
+      </constructor>
+    </class>
+    <record name="VideoDmabufPoolClass" c:type="GstVideoDmabufPoolClass" glib:is-gtype-struct-for="VideoDmabufPool">
+      <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideodmabufpool.h"/>
+      <field name="parent_class" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideodmabufpool.h">Parent Class.</doc>
+        <type name="VideoBufferPoolClass" c:type="GstVideoBufferPoolClass"/>
+      </field>
+    </record>
     <class name="VideoEncoder" c:symbol-prefix="video_encoder" c:type="GstVideoEncoder" parent="Gst.Element" abstract="1" glib:type-name="GstVideoEncoder" glib:get-type="gst_video_encoder_get_type" glib:type-struct="VideoEncoderClass">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideoencoder.c">This base class is for video encoders turning raw video into
 encoded video data.
@@ -10742,6 +10799,15 @@ bits.</doc>
       <member name="gray10_le16" value="138" c:identifier="GST_VIDEO_FORMAT_GRAY10_LE16" version="1.26" glib:nick="gray10-le16" glib:name="GST_VIDEO_FORMAT_GRAY10_LE16">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h">10-bit grayscale, packed into 16bit words (6 bits left padding)</doc>
       </member>
+      <member name="nv16_10le40" value="139" c:identifier="GST_VIDEO_FORMAT_NV16_10LE40" version="1.28" glib:nick="nv16-10le40" glib:name="GST_VIDEO_FORMAT_NV16_10LE40">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h">Fully packed variant of NV16_10LE32</doc>
+      </member>
+      <member name="bgr10x2_le" value="140" c:identifier="GST_VIDEO_FORMAT_BGR10x2_LE" version="1.28" glib:nick="bgr10x2-le" glib:name="GST_VIDEO_FORMAT_BGR10x2_LE">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h">packed 4:4:4 RGB (B-G-R-x), 10 bits for R/G/B channel and MSB 2 bits for padding.</doc>
+      </member>
+      <member name="rgb10x2_le" value="141" c:identifier="GST_VIDEO_FORMAT_RGB10x2_LE" version="1.28" glib:nick="rgb10x2-le" glib:name="GST_VIDEO_FORMAT_RGB10x2_LE">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h">packed 4:4:4 RGB (R-G-B-x), 10 bits for R/G/B channel and MSB 2 bits for padding.</doc>
+      </member>
       <function name="from_fourcc" c:identifier="gst_video_format_from_fourcc">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.c">Converts a FOURCC value into the corresponding #GstVideoFormat.
 If the FOURCC cannot be represented by #GstVideoFormat,
@@ -11045,7 +11111,7 @@ use tile_info[] array instead.</doc>
         </array>
       </field>
       <method name="component" c:identifier="gst_video_format_info_component" version="1.18">
-        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.c">Fill @components with the number of all the components packed in plane @p
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.c">Fill @components with the number of all the components packed in @plane
 for the format @info. A value of -1 in @components indicates that no more
 components are packed in the plane.</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.h"/>
@@ -11061,9 +11127,11 @@ components are packed in the plane.</doc>
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.c">a plane number</doc>
             <type name="guint" c:type="guint"/>
           </parameter>
-          <parameter name="components" direction="out" caller-allocates="0" transfer-ownership="full">
+          <parameter name="components" direction="out" caller-allocates="1" transfer-ownership="none">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-format.c">array used to store component numbers</doc>
-            <type name="gint" c:type="gint*"/>
+            <array zero-terminated="0" c:type="gint*" fixed-size="4">
+              <type name="gint" c:type="gint"/>
+            </array>
           </parameter>
         </parameters>
       </method>
@@ -12538,7 +12606,28 @@ first byte of the plane and the stride of the plane.</doc>
           </parameter>
         </parameters>
       </method>
-      <method name="set_alignment" c:identifier="gst_video_meta_set_alignment" version="1.18">
+      <method name="set_alignment" c:identifier="gst_video_meta_set_alignment" version="1.18" deprecated="1" deprecated-version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Set the alignment of @meta to @alignment. This function checks that
+the paddings defined in @alignment are compatible with the strides
+defined in @meta and will fail to update if they are not.</doc>
+        <doc-deprecated xml:space="preserve">Use gst_video_meta_set_alignment_full() instead</doc-deprecated>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">%TRUE if @alignment's meta has been updated, %FALSE if not</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="meta" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GstVideoMeta</doc>
+            <type name="VideoMeta" c:type="GstVideoMeta*"/>
+          </instance-parameter>
+          <parameter name="alignment" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GstVideoAlignment</doc>
+            <type name="VideoAlignment" c:type="GstVideoAlignment"/>
+          </parameter>
+        </parameters>
+      </method>
+      <method name="set_alignment_full" c:identifier="gst_video_meta_set_alignment_full" version="1.28">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Set the alignment of @meta to @alignment. This function checks that
 the paddings defined in @alignment are compatible with the strides
 defined in @meta and will fail to update if they are not.</doc>
@@ -12554,7 +12643,7 @@ defined in @meta and will fail to update if they are not.</doc>
           </instance-parameter>
           <parameter name="alignment" transfer-ownership="none">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GstVideoAlignment</doc>
-            <type name="VideoAlignment" c:type="GstVideoAlignment"/>
+            <type name="VideoAlignment" c:type="const GstVideoAlignment*"/>
           </parameter>
         </parameters>
       </method>
@@ -12589,7 +12678,10 @@ defined in @meta and will fail to update if they are not.</doc>
     </record>
     <record name="VideoMetaTransform" c:type="GstVideoMetaTransform">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">Extra data passed to a video transform #GstMetaTransformFunction such as:
-"gst-video-scale".</doc>
+"gst-video-scale".
+
+This transformation can not express letterbox, cropping, or rotations,
+use #GstVideoMetaTransformMatrix instead</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
       <field name="in_info" writable="1">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">the input #GstVideoInfo</doc>
@@ -12601,6 +12693,189 @@ defined in @meta and will fail to update if they are not.</doc>
       </field>
       <function name="scale_get_quark" c:identifier="gst_video_meta_transform_scale_get_quark">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Get the #GQuark for the "gst-video-scale" metadata transform operation.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GQuark</doc>
+          <type name="GLib.Quark" c:type="GQuark"/>
+        </return-value>
+      </function>
+    </record>
+    <record name="VideoMetaTransformMatrix" c:type="GstVideoMetaTransformMatrix" version="1.28">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">Extra data passed to a video transform #GstMetaTransformFunction such as:
+"gst-video-matrix".
+
+The matrix represents a transformation that is applied to the content of
+@in_rectangle, and its output is put inside @out_rectangle. The coordinate
+system has it's (0, 0) in the top-left corner of the rectangles and
+goes down and right from there..
+
+It's a programming error to have a singular matrix.</doc>
+      <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+      <field name="in_info" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">the input #GstVideoInfo</doc>
+        <type name="VideoInfo" c:type="const GstVideoInfo*"/>
+      </field>
+      <field name="in_rectangle" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">the input #GstVideoRectangle</doc>
+        <type name="VideoRectangle" c:type="GstVideoRectangle"/>
+      </field>
+      <field name="out_info" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">the output #GstVideoInfo</doc>
+        <type name="VideoInfo" c:type="const GstVideoInfo*"/>
+      </field>
+      <field name="out_rectangle" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">the output #GstVideoRectangle</doc>
+        <type name="VideoRectangle" c:type="GstVideoRectangle"/>
+      </field>
+      <field name="matrix" writable="1">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h">a 3x3 matrix representing an homographic transformation</doc>
+        <array zero-terminated="0" fixed-size="9">
+          <type name="gfloat" c:type="gfloat"/>
+        </array>
+      </field>
+      <method name="init" c:identifier="gst_video_meta_transform_matrix_init" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Based on the rectangles, initializes the matrix to do a translation and
+scaling from @in_rectangle to @out_rectangle</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="trans" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GstVideoMetaTransformMatrix with in_rectangle and out_rectangle
+ filled</doc>
+            <type name="VideoMetaTransformMatrix" c:type="GstVideoMetaTransformMatrix*"/>
+          </instance-parameter>
+          <parameter name="in_info" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">The #GstVideoInfo of the input image</doc>
+            <type name="VideoInfo" c:type="const GstVideoInfo*"/>
+          </parameter>
+          <parameter name="in_rectangle" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">the input #GstVideoRectangle</doc>
+            <type name="VideoRectangle" c:type="const GstVideoRectangle*"/>
+          </parameter>
+          <parameter name="out_info" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">the output #GstVideoInfo</doc>
+            <type name="VideoInfo" c:type="const GstVideoInfo*"/>
+          </parameter>
+          <parameter name="out_rectangle" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">the output #GstVideoRectangle</doc>
+            <type name="VideoRectangle" c:type="const GstVideoRectangle*"/>
+          </parameter>
+        </parameters>
+      </method>
+      <method name="point" c:identifier="gst_video_meta_transform_matrix_point" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Transforms the (@x, @y) point from the input coordinates to the
+output ones.  The point's coordinates are transformed by first
+applying the @transform.matrix to it using the top left (x, y) of
+@transform.in_rectangle as the origin, then translate it to use
+the top-left of @transform.out_rectangle as new origin.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">%FALSE if the point is outside of @transform.out_rectangle
+after the transformation has been applied</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="transform" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GstVideoMetaTransformMatrix</doc>
+            <type name="VideoMetaTransformMatrix" c:type="const GstVideoMetaTransformMatrix*"/>
+          </instance-parameter>
+          <parameter name="x" direction="inout" caller-allocates="0" transfer-ownership="full">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a non-NULL pointer to the X value of the coordinate</doc>
+            <type name="gint" c:type="gint*"/>
+          </parameter>
+          <parameter name="y" direction="inout" caller-allocates="0" transfer-ownership="full">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a non-NULL pointer to the Y value of the coordinate</doc>
+            <type name="gint" c:type="gint*"/>
+          </parameter>
+        </parameters>
+      </method>
+      <method name="point_clipped" c:identifier="gst_video_meta_transform_matrix_point_clipped" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Transforms the (@x, @y) point from the input coordinates to the
+output ones.  The point's coordinates are transformed by first
+applying the @transform.matrix to it using the top left (x, y) of
+@transform.in_rectangle as the origin, then translate it to use
+the top-left of @transform.out_rectangle as new origin.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">%FALSE if the point is outside of @transform.out_rectangle
+after the transformation has been applied</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="transform" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GstVideoMetaTransformMatrix</doc>
+            <type name="VideoMetaTransformMatrix" c:type="const GstVideoMetaTransformMatrix*"/>
+          </instance-parameter>
+          <parameter name="x" direction="inout" caller-allocates="0" transfer-ownership="full">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a non-NULL pointer to the X value of the coordinate</doc>
+            <type name="gint" c:type="gint*"/>
+          </parameter>
+          <parameter name="y" direction="inout" caller-allocates="0" transfer-ownership="full">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a non-NULL pointer to the Y value of the coordinate</doc>
+            <type name="gint" c:type="gint*"/>
+          </parameter>
+        </parameters>
+      </method>
+      <method name="rectangle" c:identifier="gst_video_meta_transform_matrix_rectangle" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Transforms @rect from the input coordinates to the
+output ones.  The point's coordinates are transformed by first
+applying the @transform.matrix to it using the top left (x, y) of
+@transform.in_rectangle as the origin, then translate it to use
+the top-left of @transform.out_rectangle as new origin.
+
+@rect is always axis aligned at input and this function only returns
+axis aligned rectangles as output, otherwise it returns FALSE.
+
+Output rectangle could be in partially or totally outside of
+@transform.out_rectangle.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">%FALSE is the output rectangle is not axis aligned</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="transform" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">A #GstVideoMetaTransformMatrix</doc>
+            <type name="VideoMetaTransformMatrix" c:type="const GstVideoMetaTransformMatrix*"/>
+          </instance-parameter>
+          <parameter name="rect" direction="inout" caller-allocates="0" transfer-ownership="full">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a rectangle in the coordinate of the original image</doc>
+            <type name="VideoRectangle" c:type="GstVideoRectangle*"/>
+          </parameter>
+        </parameters>
+      </method>
+      <method name="rectangle_clipped" c:identifier="gst_video_meta_transform_matrix_rectangle_clipped" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Transforms @rect from the input coordinates to the
+output ones.  The point's coordinates are transformed by first
+applying the @transform.matrix to it using the top left (x, y) of
+@transform.in_rectangle as the origin, then translate it to use
+the top-left of @transform.out_rectangle as new origin.
+
+@rect is always axis aligned at input and this function only returns
+axis aligned rectangles as output, otherwise it returns FALSE.
+
+Output rectangle will be clipped to fit inside @transform.out_rectangle.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">%FALSE if the output rectangle is not axis aligned or if
+ the rectangle is entirely outside of the out_rectangle.</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="transform" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">A #GstVideoMetaTransformMatrix</doc>
+            <type name="VideoMetaTransformMatrix" c:type="const GstVideoMetaTransformMatrix*"/>
+          </instance-parameter>
+          <parameter name="rect" direction="inout" caller-allocates="0" transfer-ownership="full">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a rectangle in the coordinate of the original image</doc>
+            <type name="VideoRectangle" c:type="GstVideoRectangle*"/>
+          </parameter>
+        </parameters>
+      </method>
+      <function name="get_quark" c:identifier="gst_video_meta_transform_matrix_get_quark" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Get the #GQuark for the "gst-video-matrix" metadata transform operation.</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
         <return-value transfer-ownership="none">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GQuark</doc>
@@ -13926,7 +14201,12 @@ mapped with flag GST_MAP_READWRITE.</doc>
 to modify the composition and contained rectangles (e.g. add additional
 rectangles or change the render co-ordinates or render dimension). The
 actual overlay pixel data buffers contained in the rectangles are not
-copied.</doc>
+copied.
+
+This should be avoided unless rectangles need to be modified because it
+invalidates caching in sinks and compositor elements. To add extra rectangles
+it is rather recommended to add an extra composition meta using
+gst_buffer_add_video_overlay_composition_meta().</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-overlay-composition.h"/>
         <return-value transfer-ownership="full">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-overlay-composition.c">a new #GstVideoOverlayComposition equivalent
@@ -13983,7 +14263,12 @@ a composition).</doc>
 (i.e. can be modified). Will either return @comp right away, or create a
 new writable copy of @comp and unref @comp itself. All the contained
 rectangles will also be copied, but the actual overlay pixel data buffers
-contained in the rectangles are not copied.</doc>
+contained in the rectangles are not copied.
+
+This should be avoided unless rectangles need to be modified because it
+invalidates caching in sinks and compositor elements. To add extra rectangles
+it is rather recommended to add an extra composition meta using
+gst_buffer_add_video_overlay_composition_meta().</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-overlay-composition.h"/>
         <return-value transfer-ownership="full">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-overlay-composition.c">a writable #GstVideoOverlayComposition
@@ -14539,22 +14824,22 @@ gst_video_overlay_composition_copy().</doc>
       </member>
     </enumeration>
     <record name="VideoRectangle" c:type="GstVideoRectangle">
-      <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideosink.h">Helper structure representing a rectangular area.</doc>
-      <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideosink.h"/>
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video.h">Helper structure representing a rectangular area.</doc>
+      <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video.h"/>
       <field name="x" writable="1">
-        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideosink.h">X coordinate of rectangle's top-left point</doc>
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video.h">X coordinate of rectangle's top-left point</doc>
         <type name="gint" c:type="gint"/>
       </field>
       <field name="y" writable="1">
-        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideosink.h">Y coordinate of rectangle's top-left point</doc>
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video.h">Y coordinate of rectangle's top-left point</doc>
         <type name="gint" c:type="gint"/>
       </field>
       <field name="w" writable="1">
-        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideosink.h">width of the rectangle</doc>
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video.h">width of the rectangle</doc>
         <type name="gint" c:type="gint"/>
       </field>
       <field name="h" writable="1">
-        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideosink.h">height of the rectangle</doc>
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video.h">height of the rectangle</doc>
         <type name="gint" c:type="gint"/>
       </field>
     </record>
@@ -14914,8 +15199,10 @@ Note that for interlaced content, @in_offset needs to be incremented with
 2 to get the next input line.</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-scaler.h"/>
         <return-value transfer-ownership="none">
-          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-scaler.c">an array of @n_tap gdouble values with filter coefficients.</doc>
-          <type name="gdouble" c:type="const gdouble*"/>
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-scaler.c">an array of @n_taps gdouble values with filter coefficients.</doc>
+          <array length="2" zero-terminated="0" c:type="const gdouble*">
+            <type name="gdouble" c:type="gdouble"/>
+          </array>
         </return-value>
         <parameters>
           <instance-parameter name="scale" transfer-ownership="none">
@@ -15309,8 +15596,7 @@ These values are *NOT* automatically normalized.</doc>
         <type name="guint" c:type="guint"/>
       </field>
       <constructor name="new" c:identifier="gst_video_time_code_new" version="1.10">
-        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideotimecode.c">@field_count is 0 for progressive, 1 or 2 for interlaced.
-@latest_daiy_jam reference is stolen from caller.</doc>
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideotimecode.c">@field_count is 0 for progressive, 1 or 2 for interlaced.</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideotimecode.h"/>
         <return-value transfer-ownership="full">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideotimecode.c">a new #GstVideoTimeCode with the given values.
@@ -15327,7 +15613,7 @@ timecode actually has valid content, use gst_video_time_code_is_valid().</doc>
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideotimecode.c">Denominator of the frame rate</doc>
             <type name="guint" c:type="guint"/>
           </parameter>
-          <parameter name="latest_daily_jam" transfer-ownership="none">
+          <parameter name="latest_daily_jam" transfer-ownership="none" nullable="1" allow-none="1">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideotimecode.c">The latest daily jam of the #GstVideoTimeCode</doc>
             <type name="GLib.DateTime" c:type="GDateTime*"/>
           </parameter>
@@ -15580,7 +15866,6 @@ taken into account. Otherwise, it is assumed that the daily jam of both
       </method>
       <method name="init" c:identifier="gst_video_time_code_init" version="1.10">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideotimecode.c">@field_count is 0 for progressive, 1 or 2 for interlaced.
-@latest_daiy_jam reference is stolen from caller.
 
 Initializes @tc with the given values.
 The values are not checked for being in a valid range. To see if your
@@ -16237,16 +16522,22 @@ the parity check bits).</doc>
         </parameters>
       </method>
       <method name="write_line" c:identifier="gst_video_vbi_encoder_write_line">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-anc.c">@data needs to have the correct size and alignment for the configured video
+format of @encoder.</doc>
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-anc.h"/>
         <return-value transfer-ownership="none">
           <type name="none" c:type="void"/>
         </return-value>
         <parameters>
           <instance-parameter name="encoder" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-anc.c">a #GstVideoVBIEncoder</doc>
             <type name="VideoVBIEncoder" c:type="GstVideoVBIEncoder*"/>
           </instance-parameter>
           <parameter name="data" transfer-ownership="none">
-            <type name="guint8" c:type="guint8*"/>
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-anc.c">The line to write to</doc>
+            <array zero-terminated="0" c:type="guint8*">
+              <type name="guint8" c:type="guint8"/>
+            </array>
           </parameter>
         </parameters>
       </method>
@@ -16744,11 +17035,15 @@ parameters.</doc>
         </parameter>
         <parameter name="uuid" transfer-ownership="none">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-sei.c">User Data Unregistered UUID</doc>
-          <type name="guint8" c:type="guint8*"/>
+          <array zero-terminated="0" c:type="guint8*" fixed-size="16">
+            <type name="guint8" c:type="guint8"/>
+          </array>
         </parameter>
         <parameter name="data" transfer-ownership="none" nullable="1" allow-none="1">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-sei.c">SEI User Data Unregistered buffer</doc>
-          <type name="guint8" c:type="guint8*"/>
+          <array length="3" zero-terminated="0" c:type="guint8*">
+            <type name="guint8" c:type="guint8"/>
+          </array>
         </parameter>
         <parameter name="size" transfer-ownership="none">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-sei.c">size of the data buffer</doc>
@@ -16798,7 +17093,7 @@ parameters.</doc>
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">framerate denominator</doc>
           <type name="guint" c:type="guint"/>
         </parameter>
-        <parameter name="latest_daily_jam" transfer-ownership="none">
+        <parameter name="latest_daily_jam" transfer-ownership="none" nullable="1" allow-none="1">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GDateTime for the latest daily jam</doc>
           <type name="GLib.DateTime" c:type="GDateTime*"/>
         </parameter>
@@ -16946,10 +17241,14 @@ on @buffer.</doc>
         </parameter>
       </parameters>
     </function-macro>
-    <function-macro name="buffer_get_video_overlay_composition_meta" c:identifier="gst_buffer_get_video_overlay_composition_meta" introspectable="0">
+    <function-macro name="buffer_get_video_overlay_composition_meta" c:identifier="gst_buffer_get_video_overlay_composition_meta" introspectable="0" deprecated="1">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-overlay-composition.h">Gets the first video composition meta.</doc>
+      <doc-deprecated xml:space="preserve">It is common to have multiple video composition metas, it is thus
+ recommended to use use gst_buffer_iterate_meta() instead.</doc-deprecated>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-overlay-composition.h"/>
       <parameters>
         <parameter name="b">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-overlay-composition.h">a #GstBuffer</doc>
         </parameter>
       </parameters>
     </function-macro>
@@ -17511,7 +17810,7 @@ modifiers state, otherwise FALSE.</doc>
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/navigation.c">The #GstEvent to modify.</doc>
           <type name="Gst.Event" c:type="GstEvent*"/>
         </parameter>
-        <parameter name="state" transfer-ownership="none">
+        <parameter name="state" direction="out" caller-allocates="0" transfer-ownership="full">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/navigation.c">a bit-mask representing the state of the modifier keys (e.g. Control,
 Shift and Alt).</doc>
           <type name="NavigationModifierType" c:type="GstNavigationModifierType*"/>
@@ -18682,6 +18981,9 @@ with @config.
 The optional @pool can be used to spawn threads, this is useful when
 creating new converters rapidly, for example when updating cropping.
 
+If @config is not provided, and a @pool is provided, the number of threads for
+the converter will be set to the maximum number of threads in the pool.
+
 Returns (nullable): a #GstVideoConverter or %NULL if conversion is not possible.</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-converter.h"/>
       <return-value>
@@ -18746,7 +19048,9 @@ performance is achieved when @quantizer is a power of 2.
         </parameter>
         <parameter name="quantizer" transfer-ownership="none">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-dither.c">quantizer</doc>
-          <type name="guint" c:type="guint*"/>
+          <array zero-terminated="0" c:type="guint*" fixed-size="4">
+            <type name="guint" c:type="guint"/>
+          </array>
         </parameter>
         <parameter name="width" transfer-ownership="none">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-dither.c">the width of the lines</doc>
@@ -18768,7 +19072,7 @@ and @modifier will be set to DRM_FORMAT_MOD_INVALID.</doc>
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-info-dma.c">a #GstVideoFormat</doc>
           <type name="VideoFormat" c:type="GstVideoFormat"/>
         </parameter>
-        <parameter name="modifier" transfer-ownership="none" nullable="1" allow-none="1">
+        <parameter name="modifier" direction="out" caller-allocates="0" transfer-ownership="full" optional="1" allow-none="1">
           <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/video-info-dma.c">return location for the modifier</doc>
           <type name="guint64" c:type="guint64*"/>
         </parameter>
@@ -19651,6 +19955,14 @@ see gst_video_formats_raw().</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
       <return-value transfer-ownership="none">
         <type name="Gst.MetaInfo" c:type="const GstMetaInfo*"/>
+      </return-value>
+    </function>
+    <function name="video_meta_transform_matrix_get_quark" c:identifier="gst_video_meta_transform_matrix_get_quark" moved-to="VideoMetaTransformMatrix.get_quark" version="1.28">
+      <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">Get the #GQuark for the "gst-video-matrix" metadata transform operation.</doc>
+      <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.h"/>
+      <return-value transfer-ownership="none">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/video/gstvideometa.c">a #GQuark</doc>
+        <type name="GLib.Quark" c:type="GQuark"/>
       </return-value>
     </function>
     <function name="video_meta_transform_scale_get_quark" c:identifier="gst_video_meta_transform_scale_get_quark" moved-to="VideoMetaTransform.scale_get_quark">

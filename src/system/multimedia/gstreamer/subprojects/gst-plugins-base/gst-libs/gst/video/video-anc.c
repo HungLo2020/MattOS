@@ -893,6 +893,14 @@ convert_line_to_uyvy (GstVideoVBIEncoder * encoder, guint8 * data)
   }
 }
 
+/**
+ * gst_video_vbi_encoder_write_line:
+ * @encoder: a #GstVideoVBIEncoder
+ * @data: (array): The line to write to
+ *
+ * @data needs to have the correct size and alignment for the configured video
+ * format of @encoder.
+ */
 void
 gst_video_vbi_encoder_write_line (GstVideoVBIEncoder * encoder, guint8 * data)
 {
@@ -1350,7 +1358,7 @@ gst_buffer_add_video_afd_meta (GstBuffer * buffer, guint8 field,
     GstVideoAFDSpec spec, GstVideoAFDValue afd)
 {
   GstVideoAFDMeta *meta;
-  gint8 afd_data = (gint8) afd;
+  gint8 afd_data GST_UNUSED_CHECKS = (gint8) afd;
   g_return_val_if_fail (GST_IS_BUFFER (buffer), NULL);
   g_return_val_if_fail (field <= 1, NULL);
   g_return_val_if_fail ((guint8) spec <= 2, NULL);

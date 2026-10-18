@@ -130,6 +130,8 @@ ks_http_fetch (ctrl_t ctrl, const char *url, unsigned int flags,
       if ((flags & KS_HTTP_FETCH_NOCACHE))
         es_fputs ("Pragma: no-cache\r\n"
                   "Cache-Control: no-cache\r\n", fp);
+      if (*opt.user_agent)
+        es_fprintf (fp, "User-Agent: %s\r\n", opt.user_agent);
       http_start_data (http);
       if (es_ferror (fp))
         err = gpg_error_from_syserror ();
@@ -154,6 +156,20 @@ ks_http_fetch (ctrl_t ctrl, const char *url, unsigned int flags,
                                  " bad cert for '%s': %s",
                                  err, errhostname,
                                  "Hostname does not match the certificate");
+        }
+      else if (gpg_err_code (err) == GPG_ERR_UNKNOWN_HOST)
+        {
+          const char *errhostname;
+          http_release_parsed_uri (helpuri);
+          if (http_parse_uri (&helpuri, url, 0))
+            errhostname = url; /* On parse error we use the full URL. */
+          else
+            errhostname = helpuri->host? helpuri->host : "?";
+
+          dirmngr_status_printf (ctrl, "WARNING",
+                                 "http_open_error %u"
+                                 " cannot connect to %s",
+                                 err, errhostname);
         }
       goto leave;
     }

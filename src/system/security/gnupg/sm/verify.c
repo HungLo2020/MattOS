@@ -58,20 +58,11 @@ strtimestamp_r (ksba_isotime_t atime)
 
 /* Hash the data for a detached signature.  Returns 0 on success.  */
 static gpg_error_t
-hash_data (int fd, gcry_md_hd_t md)
+hash_data (estream_t fp, gcry_md_hd_t md)
 {
   gpg_error_t err = 0;
-  estream_t fp;
   char buffer[4096];
   int nread;
-
-  fp = es_fdopen_nc (fd, "rb");
-  if (!fp)
-    {
-      err = gpg_error_from_syserror ();
-      log_error ("fdopen(%d) failed: %s\n", fd, gpg_strerror (err));
-      return err;
-    }
 
   do
     {
@@ -82,20 +73,20 @@ hash_data (int fd, gcry_md_hd_t md)
   if (es_ferror (fp))
     {
       err = gpg_error_from_syserror ();
-      log_error ("read error on fd %d: %s\n", fd, gpg_strerror (err));
+      log_error ("read error on fp %p: %s\n", fp, gpg_strerror (err));
     }
-  es_fclose (fp);
   return err;
 }
 
 
 
 
-/* Perform a verify operation.  To verify detached signatures, DATA_FD
-   must be different than -1.  With OUT_FP given and a non-detached
+/* Perform a verify operation.  To verify detached signatures, DATA_FP
+   must be different than NULL.  With OUT_FP given and a non-detached
    signature, the signed material is written to that stream.  */
 int
-gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
+gpgsm_verify (ctrl_t ctrl, estream_t in_fp, estream_t data_fp,
+              estream_t out_fp)
 {
   int i, rc;
   gnupg_ksba_io_t b64reader = NULL;
@@ -111,7 +102,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   const char *algoid;
   int algo;
   int is_detached, maybe_detached;
-  estream_t in_fp = NULL;
   char *p;
 
   audit_set_type (ctrl->audit, AUDIT_TYPE_VERIFY);
@@ -119,7 +109,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   /* Although we detect detached signatures during the parsing phase,
    * we need to know it earlier and thus accept the caller idea of
    * what to verify.  */
-  maybe_detached = (data_fd != -1);
+  maybe_detached = (data_fp != NULL);
 
   kh = keydb_new (ctrl);
   if (!kh)
@@ -129,14 +119,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       goto leave;
     }
 
-
-  in_fp = es_fdopen_nc (in_fd, "rb");
-  if (!in_fp)
-    {
-      rc = gpg_error_from_syserror ();
-      log_error ("fdopen() failed: %s\n", strerror (errno));
-      goto leave;
-    }
 
   rc = gnupg_ksba_create_reader
     (&b64reader, ((ctrl->is_pem? GNUPG_KSBA_IO_PEM : 0)
@@ -247,7 +229,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
             }
           if (is_detached)
             {
-              if (data_fd == -1)
+              if (!data_fp)
                 {
                   log_info ("detached signature w/o data "
                             "- assuming certs-only\n");
@@ -255,7 +237,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                 }
               else
                 audit_log_ok (ctrl->audit, AUDIT_DATA_HASHING,
-                              hash_data (data_fd, data_md));
+                              hash_data (data_fp, data_md));
             }
           else
             {
@@ -280,7 +262,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         }
     }
 
-  if (data_fd != -1 && !is_detached)
+  if (data_fp && !is_detached)
     {
       log_error ("data given for a non-detached signature\n");
       rc = gpg_error (GPG_ERR_CONFLICT);
@@ -305,7 +287,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       char *issuer = NULL;
       gcry_sexp_t sigval = NULL;
       ksba_isotime_t sigtime, keyexptime;
-      ksba_sexp_t serial;
+      ksba_sexp_t serial = NULL;
       char *msgdigest = NULL;
       size_t msgdigestlen;
       char *ctattr;
@@ -317,14 +299,17 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
       char *pkcurve = NULL;
       char *pkfpr = NULL;
       unsigned int pkalgoflags, verifyflags;
+      char chain_is_de_vs = 0;
 
       rc = ksba_cms_get_issuer_serial (cms, signer, &issuer, &serial);
-      if (!signer && gpg_err_code (rc) == GPG_ERR_NO_DATA
-          && data_fd == -1 && is_detached)
+      if (!signer && gpg_err_code (rc) == GPG_ERR_NO_DATA)
         {
           log_info ("certs-only message accepted\n");
-          rc = 0;
-          break;
+          if (!data_fp && is_detached)
+            {
+              rc = 0;
+              break;
+            }
         }
       if (rc)
         {
@@ -454,10 +439,16 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                        gpg_strerror(rc));
           {
             char numbuf[50];
-            sprintf (numbuf, "%d", rc);
+            char *tmpstr, *tmpstr2;
 
+            sprintf (numbuf, "%d", rc);
+            tmpstr = gpgsm_format_sn_issuer (serial, issuer);
+            tmpstr2 = percent_plus_escape (tmpstr);
+            gpgsm_status (ctrl, STATUS_NO_PUBKEY, tmpstr2);
             gpgsm_status2 (ctrl, STATUS_ERROR, "verify.findkey",
                            numbuf, NULL);
+            xfree (tmpstr);
+            xfree (tmpstr2);
           }
           audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "no-cert");
           goto next_signer;
@@ -540,21 +531,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                       gnupg_compliance_option_string (opt.compliance));
           }
 
-      /* Check compliance with CO_DE_VS.  */
-      if (gnupg_pk_is_compliant (CO_DE_VS, pkalgo, pkalgoflags,
-                                 NULL, nbits, pkcurve)
-          && gnupg_gcrypt_is_compliant (CO_DE_VS)
-          && gnupg_digest_is_compliant (CO_DE_VS, sigval_hash_algo))
-        gpgsm_status (ctrl, STATUS_VERIFICATION_COMPLIANCE_MODE,
-                      gnupg_status_compliance_flag (CO_DE_VS));
-      else if (opt.require_compliance
-               && opt.compliance == CO_DE_VS)
-        {
-          log_error (_("operation forced to fail due to"
-                       " unfulfilled compliance rules\n"));
-          gpgsm_errors_seen = 1;
-        }
-
       /* Now we can check the signature.  */
       if (msgdigest)
         { /* Signed attributes are available. */
@@ -582,6 +558,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                 }
               fpr = gpgsm_fpr_and_name_for_status (cert);
               gpgsm_status (ctrl, STATUS_BADSIG, fpr);
+              gpgsm_status (ctrl, STATUS_SIGINFO, *sigtime? sigtime : "-");
               xfree (fpr);
               audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
               goto next_signer;
@@ -625,6 +602,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           log_error ("invalid signature: %s\n", gpg_strerror (rc));
           fpr = gpgsm_fpr_and_name_for_status (cert);
           gpgsm_status (ctrl, STATUS_BADSIG, fpr);
+          gpgsm_status (ctrl, STATUS_SIGINFO, *sigtime? sigtime : "-");
           xfree (fpr);
           audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
           goto next_signer;
@@ -644,6 +622,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
                                  *sigtime? sigtime : "19700101T000000",
                                  keyexptime, 0,
                                  NULL, 0, &verifyflags);
+
       {
         char *fpr, *buf, *tstr;
 
@@ -673,6 +652,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
         /* Handle the --assert-signer option.  */
         check_assert_signer_list (ctrl, fpr);
         xfree (fpr);
+        /* Print the status line.  */
         gpgsm_status (ctrl, STATUS_VALIDSIG, buf);
         xfree (buf);
       }
@@ -691,6 +671,45 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
             gpgsm_status_with_err_code (ctrl, STATUS_TRUST_UNDEFINED, NULL,
                                         gpg_err_code (rc));
           audit_log_s (ctrl->audit, AUDIT_SIG_STATUS, "bad");
+          goto next_signer;
+        }
+
+      /* Check compliance with CO_DE_VS. */
+      {
+        size_t buflen;
+        char buf[1];
+
+        if (!ksba_cert_get_user_data (cert, "is_de_vs",
+                                      &buf, sizeof (buf),
+                                      &buflen) && buflen)
+          {
+            if (buf[0])
+              chain_is_de_vs = 1;
+            else
+              chain_is_de_vs = 0;
+          }
+        else if (opt.require_compliance
+                 && opt.compliance == CO_DE_VS)
+          {
+            log_error ("get_user_data(is_de_vs) failed.\n");
+            gpgsm_errors_seen = 1;
+            goto next_signer;
+          }
+      }
+
+      if (chain_is_de_vs
+          && gnupg_pk_is_compliant (CO_DE_VS, pkalgo, pkalgoflags,
+                                 NULL, nbits, pkcurve)
+          && gnupg_gcrypt_is_compliant (CO_DE_VS)
+          && gnupg_digest_is_compliant (CO_DE_VS, sigval_hash_algo))
+        gpgsm_status (ctrl, STATUS_VERIFICATION_COMPLIANCE_MODE,
+                      gnupg_status_compliance_flag (CO_DE_VS));
+      else if (opt.require_compliance
+               && opt.compliance == CO_DE_VS)
+        {
+          log_error (_("operation forced to fail due to"
+                       " unfulfilled compliance rules\n"));
+          gpgsm_errors_seen = 1;
           goto next_signer;
         }
 
@@ -719,7 +738,7 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
             if (*qualbuffer)
               {
                 log_info (_("This is a qualified signature\n"));
-                if (!opt.qualsig_approval)
+                if (!opt.qualsig_approval && !opt.no_qes_note)
                   log_info
                     (_("Note, that this software is not officially approved "
                        "to create or verify such signatures.\n"));
@@ -729,6 +748,10 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
           log_error ("get_user_data(is_qualified) failed: %s\n",
                      gpg_strerror (rc));
       }
+
+      /* Handle the --assert-validsig option.  */
+      if (opt.assert_validsig)
+        assert_validsig_true = 1;
 
       gpgsm_status (ctrl, STATUS_TRUST_FULLY,
                     (verifyflags & VALIDATE_FLAG_STEED)?
@@ -756,7 +779,6 @@ gpgsm_verify (ctrl_t ctrl, int in_fd, int data_fd, estream_t out_fp)
   gnupg_ksba_destroy_writer (b64writer);
   keydb_release (kh);
   gcry_md_close (data_md);
-  es_fclose (in_fp);
 
   if (rc)
     {

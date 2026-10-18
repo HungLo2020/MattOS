@@ -49,8 +49,8 @@ static GstStaticPadTemplate sink_factory = GST_STATIC_PAD_TEMPLATE ("sink",
     );
 
 static GstOsxAudioDevice *gst_osx_audio_device_new (AudioDeviceID device_id,
-    const gchar * device_name, GstOsxAudioDeviceType type,
-    GstCoreAudio * core_audio);
+    const gchar * device_name, UInt32 transport_type,
+    GstOsxAudioDeviceType type, GstCoreAudio * core_audio);
 
 G_DEFINE_TYPE (GstOsxAudioDeviceProvider, gst_osx_audio_device_provider,
     GST_TYPE_DEVICE_PROVIDER);
@@ -93,7 +93,7 @@ gst_osx_audio_device_provider_init (GstOsxAudioDeviceProvider * provider)
 static GstOsxAudioDevice *
 gst_osx_audio_device_provider_probe_device (GstOsxAudioDeviceProvider *
     provider, AudioDeviceID device_id, const gchar * device_name,
-    GstOsxAudioDeviceType type)
+    UInt32 transport_type, GstOsxAudioDeviceType type)
 {
   GstOsxAudioDevice *device = NULL;
   GstCoreAudio *core_audio;
@@ -112,7 +112,9 @@ gst_osx_audio_device_provider_probe_device (GstOsxAudioDeviceProvider *
     goto done;
   }
 
-  device = gst_osx_audio_device_new (device_id, device_name, type, core_audio);
+  device =
+      gst_osx_audio_device_new (device_id, device_name, transport_type, type,
+      core_audio);
 
   gst_core_audio_close (core_audio);
 
@@ -276,21 +278,28 @@ gst_osx_audio_device_provider_probe_internal (GstOsxAudioDeviceProvider * self,
     AudioDeviceID * osx_devices, gint ndevices, GList ** devices)
 {
   for (int i = 0; i < ndevices; i++) {
+    UInt32 transport_type;
     char *device_name;
     GstOsxAudioDevice *device;
 
-    device_name = gst_core_audio_device_get_prop (osx_devices[i],
+    device_name = gst_core_audio_device_get_prop_str (osx_devices[i],
         kAudioObjectPropertyName);
     if (!device_name)
       continue;
 
+    transport_type = gst_core_audio_device_get_prop_uint32 (osx_devices[i],
+        kAudioDevicePropertyTransportType);
+    if (transport_type == UINT_MAX)
+      transport_type = kAudioDeviceTransportTypeUnknown;
+
     if (_audio_device_has_input (osx_devices[i])) {
       device =
           gst_osx_audio_device_provider_probe_device (self, osx_devices[i],
-          device_name, GST_OSX_AUDIO_DEVICE_TYPE_SOURCE);
+          device_name, transport_type, GST_OSX_AUDIO_DEVICE_TYPE_SOURCE);
       if (device) {
-        GST_DEBUG ("Input Device ID: %u Name: %s", (unsigned) osx_devices[i],
-            device_name);
+        GST_DEBUG ("Input Device ID: %u, Name: %s, Transport Type: %"
+            GST_FOURCC_FORMAT, (unsigned) osx_devices[i], device_name,
+            GST_FOURCC_ARGS (GUINT32_FROM_BE (transport_type)));
         *devices = g_list_prepend (*devices, device);
       }
     }
@@ -298,10 +307,11 @@ gst_osx_audio_device_provider_probe_internal (GstOsxAudioDeviceProvider * self,
     if (_audio_device_has_output (osx_devices[i])) {
       device =
           gst_osx_audio_device_provider_probe_device (self, osx_devices[i],
-          device_name, GST_OSX_AUDIO_DEVICE_TYPE_SINK);
+          device_name, transport_type, GST_OSX_AUDIO_DEVICE_TYPE_SINK);
       if (device) {
-        GST_DEBUG ("Output Device ID: %u Name: %s", (unsigned) osx_devices[i],
-            device_name);
+        GST_DEBUG ("Output Device ID: %u, Name: %s, Transport Type: %"
+            GST_FOURCC_FORMAT, (unsigned) osx_devices[i], device_name,
+            GST_FOURCC_ARGS (GUINT32_FROM_BE (transport_type)));
         *devices = g_list_prepend (*devices, device);
       }
     }
@@ -456,14 +466,17 @@ done:
 enum
 {
   PROP_DEVICE_ID = 1,
+  PROP_UNIQUE_ID = 2,
 };
 
+#define gst_osx_audio_device_parent_class parent_class
 G_DEFINE_TYPE (GstOsxAudioDevice, gst_osx_audio_device, GST_TYPE_DEVICE);
 
 static void gst_osx_audio_device_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 static void gst_osx_audio_device_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec);
+static void gst_osx_audio_device_finalize (GObject * object);
 static GstElement *gst_osx_audio_device_create_element (GstDevice * device,
     const gchar * name);
 
@@ -477,15 +490,29 @@ gst_osx_audio_device_class_init (GstOsxAudioDeviceClass * klass)
 
   object_class->get_property = gst_osx_audio_device_get_property;
   object_class->set_property = gst_osx_audio_device_set_property;
+  object_class->finalize = gst_osx_audio_device_finalize;
 
   g_object_class_install_property (object_class, PROP_DEVICE_ID,
-      g_param_spec_int ("device-id", "Device ID", "Device ID of input device",
+      g_param_spec_int ("device-id", "Device ID", "Device ID of audio device",
           0, G_MAXINT, 0, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  g_object_class_install_property (object_class, PROP_UNIQUE_ID,
+      g_param_spec_string ("unique-id", "Unique ID",
+          "Unique ID of audio device", NULL,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
 gst_osx_audio_device_init (GstOsxAudioDevice * device)
 {
+}
+
+static void
+gst_osx_audio_device_finalize (GObject * object)
+{
+  GstOsxAudioDevice *osxdev = GST_OSX_AUDIO_DEVICE (object);
+  g_clear_pointer (&osxdev->unique_id, g_free);
+  G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
 static GstElement *
@@ -495,26 +522,32 @@ gst_osx_audio_device_create_element (GstDevice * device, const gchar * name)
   GstElement *elem;
 
   elem = gst_element_factory_make (osxdev->element, name);
-  g_object_set (elem, "device", osxdev->device_id, NULL);
+  g_object_set (elem, "unique-id", osxdev->unique_id, NULL);
 
   return elem;
 }
 
 static GstOsxAudioDevice *
 gst_osx_audio_device_new (AudioDeviceID device_id, const gchar * device_name,
-    GstOsxAudioDeviceType type, GstCoreAudio * core_audio)
+    UInt32 transport_type, GstOsxAudioDeviceType type,
+    GstCoreAudio * core_audio)
 {
   GstOsxAudioDevice *gstdev;
   const gchar *element_name = NULL;
   const gchar *klass = NULL;
   GstCaps *template_caps, *caps;
   GstStructure *props = gst_structure_new_empty ("properties");
+  char *transport_name = g_strdup_printf ("%" GST_FOURCC_FORMAT,
+      GST_FOURCC_ARGS (GUINT32_FROM_BE (transport_type)));
 
   g_return_val_if_fail (device_id > 0, NULL);
   g_return_val_if_fail (device_name, NULL);
 
-  gst_structure_set (props, "is-default", G_TYPE_BOOLEAN,
-      core_audio->is_default, NULL);
+  gst_structure_set (props,
+      "is-default", G_TYPE_BOOLEAN, core_audio->is_default,
+      "transport", G_TYPE_STRING, transport_name, NULL);
+
+  g_free (transport_name);
 
   if (core_audio->unique_id != NULL) {
     gst_structure_set (props, "unique-id", G_TYPE_STRING,
@@ -545,9 +578,9 @@ gst_osx_audio_device_new (AudioDeviceID device_id, const gchar * device_name,
       break;
   }
 
-  gstdev = g_object_new (GST_TYPE_OSX_AUDIO_DEVICE, "device-id",
-      device_id, "display-name", device_name, "caps", caps,
-      "properties", props, "device-class", klass, NULL);
+  gstdev = g_object_new (GST_TYPE_OSX_AUDIO_DEVICE, "device-id", device_id,
+      "unique-id", core_audio->unique_id, "display-name", device_name, "caps",
+      caps, "properties", props, "device-class", klass, NULL);
   gst_structure_free (props);
   gst_caps_unref (caps);
 
@@ -569,6 +602,9 @@ gst_osx_audio_device_get_property (GObject * object, guint prop_id,
     case PROP_DEVICE_ID:
       g_value_set_int (value, device->device_id);
       break;
+    case PROP_UNIQUE_ID:
+      g_value_set_string (value, device->unique_id);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -587,6 +623,9 @@ gst_osx_audio_device_set_property (GObject * object, guint prop_id,
   switch (prop_id) {
     case PROP_DEVICE_ID:
       device->device_id = g_value_get_int (value);
+      break;
+    case PROP_UNIQUE_ID:
+      device->unique_id = g_value_dup_string (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);

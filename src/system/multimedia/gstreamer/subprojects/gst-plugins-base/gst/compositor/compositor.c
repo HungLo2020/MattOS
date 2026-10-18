@@ -1633,6 +1633,45 @@ blend_pads (struct CompositeTask *comp)
   }
 }
 
+static void
+copy_metas (GstCompositor * compositor, GstCompositorPad * cpad,
+    GstVideoFrame * in_frame, GstBuffer * out_buffer)
+{
+  GstVideoAggregator *vagg = GST_VIDEO_AGGREGATOR_CAST (compositor);
+  GstMeta *meta;
+  gpointer state = NULL;
+  const gchar *valid_tags[] = {
+    GST_META_TAG_VIDEO_STR,
+    GST_META_TAG_VIDEO_ORIENTATION_STR,
+    GST_META_TAG_VIDEO_SIZE_STR,
+    GST_META_TAG_VIDEO_COLORSPACE_STR,
+    NULL
+  };
+  GstVideoMetaTransformMatrix trans_matrix;
+  const GstVideoRectangle in_rectangle = { 0, 0,
+    GST_VIDEO_INFO_WIDTH (&in_frame->info),
+    GST_VIDEO_INFO_HEIGHT (&in_frame->info)
+  };
+  const GstVideoRectangle out_rectangle = { cpad->xpos + cpad->x_offset,
+    cpad->ypos + cpad->y_offset, GST_VIDEO_INFO_WIDTH (&in_frame->info),
+    GST_VIDEO_INFO_HEIGHT (&in_frame->info)
+  };
+
+  gst_video_meta_transform_matrix_init (&trans_matrix, &in_frame->info,
+      &in_rectangle, &vagg->info, &out_rectangle);
+
+  while ((meta = gst_buffer_iterate_meta (in_frame->buffer, &state))) {
+    if (meta->info->transform_func == NULL)
+      continue;
+
+    if (!gst_meta_api_type_tags_contain_only (meta->info->api, valid_tags))
+      continue;
+
+    meta->info->transform_func (out_buffer, meta, in_frame->buffer,
+        gst_video_meta_transform_matrix_get_quark (), &trans_matrix);
+  }
+}
+
 static GstFlowReturn
 gst_compositor_aggregate_frames (GstVideoAggregator * vagg, GstBuffer * outbuf)
 {
@@ -1644,7 +1683,8 @@ gst_compositor_aggregate_frames (GstVideoAggregator * vagg, GstBuffer * outbuf)
   struct CompositePadInfo *pads_info;
   guint i, n_pads = 0;
 
-  if (!gst_video_frame_map (&out_frame, &vagg->info, outbuf, GST_MAP_WRITE)) {
+  if (!gst_video_frame_map (&out_frame, &vagg->info, outbuf,
+          GST_MAP_WRITE | GST_VIDEO_FRAME_MAP_FLAG_NO_REF)) {
     GST_WARNING_OBJECT (vagg, "Could not map output buffer");
     return GST_FLOW_ERROR;
   }
@@ -1654,7 +1694,7 @@ gst_compositor_aggregate_frames (GstVideoAggregator * vagg, GstBuffer * outbuf)
   if (compositor->intermediate_frame) {
     if (!gst_video_frame_map (&intermediate_frame,
             &compositor->intermediate_info, compositor->intermediate_frame,
-            GST_MAP_READWRITE)) {
+            GST_MAP_READWRITE | GST_VIDEO_FRAME_MAP_FLAG_NO_REF)) {
       GST_WARNING_OBJECT (vagg, "Could not map intermediate buffer");
       gst_video_frame_unmap (&out_frame);
       return GST_FLOW_ERROR;
@@ -1717,6 +1757,7 @@ gst_compositor_aggregate_frames (GstVideoAggregator * vagg, GstBuffer * outbuf)
       if (!drawn_a_pad && !draw_background &&
           frames_can_copy (prepared_frame, outframe)) {
         gst_video_frame_copy (outframe, prepared_frame);
+        copy_metas (compositor, compo_pad, prepared_frame, outbuf);
       } else {
         pads_info[n_pads].pad = compo_pad;
         pads_info[n_pads].prepared_frame = prepared_frame;
@@ -1772,6 +1813,13 @@ gst_compositor_aggregate_frames (GstVideoAggregator * vagg, GstBuffer * outbuf)
 
   gst_video_frame_unmap (&out_frame);
 
+  GST_OBJECT_LOCK (vagg);
+  for (i = 0; i < n_pads; i++) {
+    copy_metas (compositor, pads_info[i].pad, pads_info[i].prepared_frame,
+        outbuf);
+  }
+  GST_OBJECT_UNLOCK (vagg);
+
   return GST_FLOW_OK;
 }
 
@@ -1815,14 +1863,20 @@ gst_compositor_release_pad (GstElement * element, GstPad * pad)
   GST_ELEMENT_CLASS (parent_class)->release_pad (element, pad);
 }
 
+typedef struct
+{
+  GstEvent *event;
+  gboolean res;
+} SrcPadMouseEventData;
+
 static gboolean
 src_pad_mouse_event (GstElement * element, GstPad * pad, gpointer user_data)
 {
   GstVideoAggregator *vagg = GST_VIDEO_AGGREGATOR_CAST (element);
   GstCompositor *comp = GST_COMPOSITOR (element);
   GstCompositorPad *cpad = GST_COMPOSITOR_PAD (pad);
-  GstStructure *st =
-      gst_structure_copy (gst_event_get_structure (GST_EVENT_CAST (user_data)));
+  SrcPadMouseEventData *data = user_data;
+  GstStructure *st = gst_structure_copy (gst_event_get_structure (data->event));
   gdouble event_x, event_y;
   gint offset_x, offset_y;
   GstVideoRectangle rect;
@@ -1850,7 +1904,7 @@ src_pad_mouse_event (GstElement * element, GstPad * pad, gpointer user_data)
 
     gst_structure_set_static_str (st, "pointer_x", G_TYPE_DOUBLE, x,
         "pointer_y", G_TYPE_DOUBLE, y, NULL);
-    gst_pad_push_event (pad, gst_event_new_navigation (st));
+    data->res |= gst_pad_push_event (pad, gst_event_new_navigation (st));
   } else {
     gst_structure_free (st);
   }
@@ -1872,10 +1926,18 @@ _src_event (GstAggregator * agg, GstEvent * event)
         case GST_NAVIGATION_EVENT_MOUSE_BUTTON_RELEASE:
         case GST_NAVIGATION_EVENT_MOUSE_MOVE:
         case GST_NAVIGATION_EVENT_MOUSE_SCROLL:
+        {
+          SrcPadMouseEventData d = {
+            .event = event,
+            .res = FALSE
+          };
+
           gst_element_foreach_sink_pad (GST_ELEMENT_CAST (agg),
-              src_pad_mouse_event, event);
+              src_pad_mouse_event, &d);
           gst_event_unref (event);
-          return TRUE;
+
+          return d.res;
+        }
 
         default:
           break;
@@ -1910,6 +1972,11 @@ _sink_query (GstAggregator * agg, GstAggregatorPad * bpad, GstQuery * query)
       size = GST_VIDEO_INFO_SIZE (&info);
 
       pool = gst_video_buffer_pool_new ();
+      {
+        gchar *name = g_strdup_printf ("%s-pool", GST_OBJECT_NAME (agg));
+        g_object_set (pool, "name", name, NULL);
+        g_free (name);
+      }
 
       structure = gst_buffer_pool_get_config (pool);
       gst_buffer_pool_config_set_params (structure, caps, size, 0, 0);
@@ -1966,6 +2033,8 @@ gst_compositor_class_init (GstCompositorClass * klass)
   agg_class->negotiated_src_caps = _negotiated_caps;
   agg_class->stop = GST_DEBUG_FUNCPTR (gst_composior_stop);
   videoaggregator_class->aggregate_frames = gst_compositor_aggregate_frames;
+
+  gst_compositor_init_blend ();
 
   g_object_class_install_property (gobject_class, PROP_BACKGROUND,
       g_param_spec_enum ("background", "Background", "Background type",
@@ -2035,6 +2104,8 @@ gst_compositor_class_init (GstCompositorClass * klass)
   gst_type_mark_as_plugin_api (GST_TYPE_COMPOSITOR_PAD, 0);
   gst_type_mark_as_plugin_api (GST_TYPE_COMPOSITOR_OPERATOR, 0);
   gst_type_mark_as_plugin_api (GST_TYPE_COMPOSITOR_BACKGROUND, 0);
+
+  GST_DEBUG_CATEGORY_INIT (gst_compositor_debug, "compositor", 0, "compositor");
 }
 
 static void
@@ -2090,10 +2161,6 @@ gst_compositor_child_proxy_init (gpointer g_iface, gpointer iface_data)
 static gboolean
 plugin_init (GstPlugin * plugin)
 {
-  GST_DEBUG_CATEGORY_INIT (gst_compositor_debug, "compositor", 0, "compositor");
-
-  gst_compositor_init_blend ();
-
   return GST_ELEMENT_REGISTER (compositor, plugin);
 }
 

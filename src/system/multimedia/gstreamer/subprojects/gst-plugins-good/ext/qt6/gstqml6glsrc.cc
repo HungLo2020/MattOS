@@ -105,7 +105,7 @@ gst_qml6_gl_src_class_init (GstQml6GLSrcClass * klass)
   gobject_class->get_property = gst_qml6_gl_src_get_property;
   gobject_class->finalize = gst_qml6_gl_src_finalize;
 
-  gst_element_class_set_metadata (gstelement_class, "Qt Video Source",
+  gst_element_class_set_static_metadata (gstelement_class, "Qt Video Source",
       "Source/Video", "A video src that captures a window from a QML view",
       "Multimedia Team <shmmmw@freescale.com>");
 
@@ -526,8 +526,8 @@ gst_qml6_gl_src_change_state (GstElement * element, GstStateChange transition)
   QGuiApplication *app;
 
   GST_DEBUG ("changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:

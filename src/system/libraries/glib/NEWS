@@ -1,46 +1,1322 @@
-Overview of changes in GLib 2.84.4, 2025-08-08
+Overview of changes in GLib 2.90.1, 2026-10-06
 ==============================================
 
 * Bugs fixed:
+  - #3356 Add address and thread sanitizer scheduled CI job (Marco Trevisan
+    (Treviño))
+  - #4055 inotify: cancelling monitor through symlink alias removes watch used
+    by still-active monitors (Kashyap Ekbote)
+  - #4060 g_file_trash() returns FALSE without setting the GError when trashing
+    a non-empty directory for `DT_UNKNOWN` nodes (Philip Withnall)
+  - !5306 tools: Add another variant of an existing suppression to glib.supp
+  - !5348 giochannel: Fix strncmp() off the end of the buffer
+  - !5349 gvariant: Handle get_data_as_bytes() for corrupted variants
+  - !5351 utils: Add missing ENUMERATOR_AVAILABLE_IN
+  - !5352 po: Add Santali translation
+  - !5353 rcbox: Turn assertion into error
+  - !5355 gdbusauthmechanismsha1: Don't split into too many tokens
+  - !5356 logging: Don't stack overflow with too many fields
+  - !5357 regex: Handle empty matches at end
+  - !5358 ci: Replace FreeBSD 13 with FreeBSD 14
+  - !5359 unicode: Fix error handling in normalization
+  - !5360 unicode: Don't read past limits
+  - !5361 unicode: Prevent overflow in normalization
+  - !5362 gmarkup: Be careful in error paths
+  - !5363 gresource: Avoid underflow
+  - !5364 Update Norwegian Nynorsk translation
+  - !5368 Update Norwegian Nynorsk translation
+  - !5370 gcharsetconverter: Avoid closing invalid iconv descriptors
+  - !5373 gregex: Fix some trivial typos in the docs
+  - !5374 gfileenumerator: Reformat docs to fully use gi-docgen and match style
+    guide
+  - !5375 fileutils: Check the mode before creating the file
+  - !5376 Clarify various inconsistencies with
+    g_socket_address_new_from_native()
+  - !5380 Update German translation
+  - !5382 Update Norwegian Nynorsk translation
+  - !5387 Update Norwegian Bokmål translation
+  - !5388 tests: Avoid a ubsan warning about passing NULL to strncmp()
+  - !5389 glib.supp: Mark a TLS variable as not really a leak
+
+* Translation updates:
+  - German (Christian Kirbach)
+  - Norwegian Bokmål (Kjartan Maraas)
+  - Norwegian Nynorsk (Roy-Magne Mo)
+  - Santali (Prasanta-Hembram)
+
+
+Overview of changes in GLib 2.90.0, 2026-09-09
+==============================================
+
+* Bugs fixed:
+  - #4038 G_DEFINE_TYPE parent_class variable trips clang 23's -Wunused-but-set-
+    global (Sunil Dora)
+  - #4040 `-Wtypedef-redefinition` warnings from `GDBusActionGroup` when
+    building 2.89.4 with clang (Hyunsik Parker)
+  - !5311 fix: handle long filenames in trash by truncating from front
+  - !5319 Update Norwegian Bokmål translation
+  - !5325 Update Polish translation
+  - !5326 Update Czech translation
+  - !5327 Update Hebrew translation
+  - !5328 tests: allocate an adequate alternate signal stack
+  - !5329 Update Turkish translation
+  - !5331 Update French translation
+  - !5333 Update Uighur translation
+  - !5334 Update Korean translation
+  - !5339 Update Russian translation
+  - !5342 Update Serbian translation
+  - !5343 Update Hungarian translation
+  - !5344 Update Danish translation
+  - !5346 gtestutils: Mark a TLS variable as not really a leak
+  - !5347 goutputstream: Fix an unused-variable warning with G_DISABLE_ASSERT
+
+* Translation updates:
+  - Czech (Daniel Rusek)
+  - Danish (Ask Hjorth Larsen)
+  - French (Guillaume Bernard)
+  - Hebrew (Yaron Shahrabani)
+  - Hungarian (Balázs Úr)
+  - Korean (Changwoo Ryu)
+  - Norwegian Bokmål (Kjartan Maraas)
+  - Polish (Victoria Niedzielska)
+  - Russian (Artur S0)
+  - Serbian (Марко Костић)
+  - Turkish (Emin Tufan Çetin)
+  - Uighur (Abduqadir Abliz)
+
+
+Overview of changes in GLib 2.89.4, 2026-08-23
+==============================================
+
+ - Improve support for nanosecond source timeouts (#4012, #4018, #4025,
+   GNOME/mutter#4994, work by Benjamin Otte)
+
+ - Fix installed service file containing build path (#4011, work by
+   Jaipaul Cheernam)
+
+ - Support clicking notification icons on Windows (!5019, work by otaxhu)
+
+ - Improve stream splice performance by increasing buffer size (!5316, work by
+   Christian Hergert)
+
+* Bugs fixed:
+  - #1936 Potentially enable gbitlock USE_ASM_GOTO with clang9+ ? (Luca Bacci)
+  - #3359 1bit-emufutex test fails under ASAN / TSAN (Luca Bacci)
+  - #3695 TSan data race in gobject / binding test (Luca Bacci)
+  - #3836 filenamecompleter test fails on Hurd (Philip Withnall)
+  - #3992 (CVE-2026-16118) (#YWH-PGM9867-233) Heap Overflow on GLib through
+    _xdg_mime_magic_parse_magic_line() in gio/xdgmime/xdgmimemagic.c via
+    Incorrect Byte-Swap Pointer Arithmetic on MIME magic content in user-
+    writable XDG data location
+  - #4003 GDesktopAppInfo should validate desktop file path snippets (Philip
+    Withnall)
+  - #4011 gio/tests/services: Installed service file contains build path after
+    !5259 (Jaipaul Cheernam)
+  - #4012 glib:monotonic-time-ns/similar random failures on riscv64 (Benjamin
+    Otte)
+  - #4018 mainloop test fails with test_timeouts_ns() assertion failure
+    (Benjamin Otte)
+  - #4019 documentportal test fails on Hurd as g_unix_fd_query_path() is not
+    supported (Kashyap Ekbote)
+  - #4020 ‘TLS callback not invoked’ error on msys2-clang64 CI job (Luca Bacci)
+  - #4023 pollable test fails on FreeBSD (Ting-Wei Lan)
+  - #4025 tests/monotonic-time: test_similar is racy under scheduling jitter
+    (Benjamin Otte)
+  - GNOME/mutter#4994 Test timeout: core+mutter/backends/native - mutter:thread
+    (Benjamin Otte)
+  - !5019 gnotification-win32: Handling notification icon click
+  - !5022 gnotification-backend: Setting application as a GObject property
+  - !5260 docs: Update path to information about installing GLib
+  - !5263 Minor test and GKeyFile fixes
+  - !5266 docs: Fix gio gi-docgen docs_url
+  - !5267 build: fix grab-gio-dll-paths.py invocation in case glib is a
+    subproject
+  - !5268 Update Czech translation
+  - !5269 Update Georgian translation
+  - !5270 glocalfile: Honour x-gvfs-trash/x-gvfs-notrash from fstab mount points
+  - !5271 Update Ukrainian translation
+  - !5272 Update Chinese (China) translation
+  - !5274 Update Slovenian translation
+  - !5275 Update Georgian translation
+  - !5276 Update Ukrainian translation
+  - !5277 ci: Add a ubsan job
+  - !5280 Update Chinese (China) translation
+  - !5281 Update Romanian translation
+  - !5282 Update Persian translation
+  - !5284 Update Occitan translation
+  - !5288 Update Basque translation
+  - !5290 Update Brazilian Portuguese translation
+  - !5291 Update Catalan translation
+  - !5293 Update Galician translation
+  - !5294 Update Lithuanian translation
+  - !5295 Update Hebrew translation
+  - !5296 fix a potentially quadratic-time regex to be linear.
+  - !5297 Fix utils-isolated test failure when running as root
+  - !5299 Update Belarusian translation
+  - !5301 localfileinfo: Fix swapped selinux context symlink logic
+  - !5305 Update Bulgarian translation
+  - !5308 build: Some test dependencies fixes
+  - !5309 Handle some thread sanitizer races
+  - !5310 gbsearcharray: Fix a -Wsign-conversion warning in
+    G_BSEARCH_UPPER_POWER2
+  - !5312 mkenums: remove use of deprecated os.path.commonprefix()
+  - !5313 docs: Remove Jonathan Matthew as a co-maintainer
+  - !5315 Update Kazakh translation
+  - !5316 gio/outputstream: increase splice buffer size
+  - !5317 Update Occitan translation
+  - !5318 Update Swedish translation
+
+* Translation updates:
+  - Basque (Asier Saratsua Garmendia)
+  - Belarusian (Vasil Pupkin)
+  - Bulgarian (Alexander Alexandrov Shopov)
+  - Catalan (Xavi Ivars)
+  - Chinese (China) (luming zh)
+  - Czech (Daniel Rusek)
+  - Galician (Francisco Diéguez Souto)
+  - Georgian (Ekaterine Papava)
+  - Hebrew (Yaron Shahrabani)
+  - Kazakh (Baurzhan Muftakhidinov)
+  - Lithuanian (Aurimas Černius)
+  - Occitan (post 1500) (Quentin PAGÈS)
+  - Persian (Danial Behzadi)
+  - Portuguese (Brazil) (Luiggi Cardoso)
+  - Romanian (Antonio Marin)
+  - Slovenian (Martin)
+  - Swedish (Anders Jonsson)
+  - Ukrainian (Yuri Chornoivan)
+
+
+Overview of changes in GLib 2.89.3, 2026-07-29
+==============================================
+
+* Support systemd-style UAPI file masking and drop-ins for `GKeyFile` (#3622,
+  work by Stefan Schubert)
+
+* Add some string and date convenience API, `g_string_free_deep()` and
+  `g_set_date_time()` (!4919, !5193, work by Peter Eisenmann)
+
+* Add some convenience API to `GUnixFDList` (!5233, work by Sebastian Wick)
+
+* Bugs fixed:
+  - #3622 Support UAPI file masking and drop-ins in GKeyFile
+  - #3994 gio/tests: iptosmessage does not compile on Solaris
+  - #3999 fd leak in `g_file_set_contents_full()` on error? (Kondor Dániel)
+  - #4007 gio-tool: crash (assertion failed) when running 'gio help help' (Jose
+    Carlos Leiva)
+  - !4919 Add g_string_free_deep
+  - !5193 datetime: Add g_set_date_time
+  - !5230 giostream: Clarify is_closed() method docs for streams
+  - !5233 gunixfdlist: Add g_unix_fd_list_append_take, g_unix_fd_list_peek,
+    g_unix_fd_list_lookup, g_unix_fd_list_lookup_peek
+  - !5246 gtestutils: Fix a minor typo in a documentation comment
+  - !5248 tests: Minor compiler warning fixes for GCC16
+  - !5249 build: Fix a deprecation warning from Meson 1.12
+  - !5251 docs: Use dedicated docblocks for new enum members
+  - !5252 docs: Annotate callbacks rather than user_data
+  - !5254 Add finer accuracy g_timeout APIs
+  - !5255 gdbusnameowning: Don't print any logs when connection is closed
+  - !5257 Avoid reserved identifiers in public macros
+
+
+Overview of changes in GLib 2.89.2, 2026-07-14
+==============================================
+
+* Fix potential miscompilation with GCC 17 with `G_GNUC_CONST` on `get_type()`
+  functions (#3984, work by Sam James)
+
+* Update toolchain requirement to C11; previously this was just strongly
+  recommended (!3574, work by Emmanuele Bassi)
+
+* Bugs fixed:
+  - #2931 GMemoryMonitor should have a backend for systemd MEMORY_PRESSURE_WATCH
+    API (Kate Hsuan)
+  - #3719 gspawn-win32-helper-console.exe fails on Windows with UNC path (Andrew
+    Ziem)
+  - #3984 G_GNUC_CONST vs get_type comes home to roost (Sam James)
+  - #3985 Security report: GDBusServer pre-authentication DoS via unbounded SASL
+    line buffering (Philip Withnall)
+  - #3986 GDBusActionGroupClass failure (Philip Withnall)
+  - !3574 Update toolchain requirement to C11
+  - !5222 GNetworkMonitor: Stop pulling route table on sd-networkd hosts
+  - !5224 gquark: Fix an incorrect G_GNUC_CONST annotation on
+    g_quark_to_string()
+  - !5226 fuzzing: Skip build if oss-fuzz and tests are both omitted
+  - !5232 gnetworkmonitornetlink: Performance improvements by following iproute2
+    behavior
+  - !5234 gmain: fix poll.h include order on AIX
+  - !5235 tests: Fix gi-inspect-typelib.py on Visual Studio
+  - !5236 gio/tests: skip unsupported IP TOS tests on AIX
+  - !5237 gdbus-serialization.c: Avoid g_autofree
+  - !5238 gpoll: Correctly zero-out heap-allocated fd_sets on macOS
+  - !5244 Update Romanian translation
+  - !5245 Update Slovenian translation
+  - !5247 gdbusnameowning: Downgrade ReleaseName warning on closed connection to
+    debug
+
+* Translation updates:
+  - Romanian (Antonio Marin)
+  - Slovenian (Martin)
+
+
+Overview of changes in GLib 2.89.1, 2026-06-25
+==============================================
+
+* Bugs fixed:
+  - #3972 g_thread_yield() may not yield control to another thread as expected
+    on Linux.
+  - !5086 gio: gmemorymonitordbus: Fix fallback backends can't be properly
+    loaded when...
+  - !5184 gregex: Remove "array length" annotations
+  - !5190 win32-build.md: Update Visual Studio build info
+  - !5191 Don't use slow content type for icons when only fast content is
+    queried
+  - !5192 Update Romanian translation
+  - !5195 Update Slovenian translation
+  - !5196 Performance improvements to GVariant/GDBusMessage
+  - !5197 docs: fix wrong reference to gint16 for gint32 types in glib/types.md
+  - !5198 Add missing finish-func annotations
+  - !5199 gregex: g_match_info_fetch_pos() and g_match_info_fetch_all() will now
+    work after partial matches as well
+  - !5200 gdatetime: Clarify docs around comparisons across time zones
+  - !5201 docs: GI annotation fixes for GCancellable
+  - !5202 Update Slovenian translation
+  - !5205 tests: Fix various leaks spotted by ASAN
+  - !5206 docs + tests: fix docs and add unit test about g_try_new with zero
+    n_structs
+  - !5207 Update Romanian translation
+  - !5209 CI: Set msys2-clang64 as default job for merges
+  - !5210 docs: add missing reference to g_rc_box_new0 and g_atomic_rc_box_new0
+    and others in Reference Counting page
+  - !5211 gutf8: Eliminate redundant double-traversal in g_utf8_substring
+  - !5213 gsocket: Improve docs for g_socket_get_fd()
+  - !5214 gerror: Add missing introspection annotations
+  - !5216 Use dlopen to access environ on FreeBSD
+  - !5218 gvariant: Check for overflow in g_variant_new_fixed_array()
+  - !5221 meson: Override girepository-2.0 when glib is used as subproject
+
+* Translation updates:
+  - Romanian (Antonio Marin)
+  - Slovenian (Martin)
+
+
+Overview of changes in GLib 2.89.0, 2026-05-20
+==============================================
+
+* Fix miscompilation with GCC 16 due to GLib’s use of the wrong function
+  attribute (!5145, work by Sam James)
+
+* Integrate better with the System Trash on macOS (#1161, work by Byoungchan Lee)
+
+* Add `g_set_strv()`, `g_set_strv_take()` and `g_set_str_take()` convenience
+  functions (#3907, !5118, work by Christian Hergert and Philip Withnall)
+
+* Fix flag confusion security issue when using `GRegex` with `G_REGEX_RAW` which
+  can result in unbounded out-of-bounds heap reads off the start of a regex
+  input string (#3919, work by linhlhq)
+
+* Fix various minor (low severity) security issues, typically one-to-five-byte
+  out-of-bounds reads (#3915, #3916, #3917, #3918, #3930) or ones relying on
+  very specific (and unlikely) API calls (#3925) or ones relying on
+  discouraged P2P D-Bus configurations (#3931, #3933) (work by linhlhq)
+
+* Add support for `GTypeInstance`-derived types in generic marshaller (#3954,
+  work by Christian Hergert)
+
+* Change `g_get_num_processors()` to report number of performance cores, rather
+  than number of performance+low-power cores on macOS (!5153, work by John Cupitt)
+
+* Add support for `XDG_PROJECTS_DIR` special directory (!5141, work by
+  Emmanuele Bassi and Jakub Steiner)
+
+* Bugs fixed:
+  - #1161 g_file_trash() Files not moved to System Trash on Mac OSX
+  - #1853 DBus activated GApplications and G_APPLICATION_HANDLES_OPEN (Guido
+    Günther)
+  - #2173 g_ascii_strtod() spec doesn't match C99/C11 standard for underflow
+    behavior (depuc8)
+  - #3069 gio/trash test fails on macOS
+  - #3791 g_error causes -Wanalyzer-infinite-loop warnings in downstream code
+    (correctmost)
+  - #3854 GRegex uses int for string length (Philip Withnall)
+  - #3907 Add g_set_strv() helper similar to g_set_str() (Christian Hergert)
+  - #3911 GMarkup chokes on BOM
+  - #3915 (#YWH-PGM9867-190) Buffer Over-read on GLib through glib/gvariant-
+    serialiser.c:1253 via gvs_tuple_is_normal() (Philip Withnall)
+  - #3916 (#YWH-PGM9867-187) OOB Read on GLib through
+    glib/gmarkup.c:g_markup_escape_text() via
+    glib/gmarkup.c:append_escaped_text() (Philip Withnall)
+  - #3917 (#YWH-PGM9867-191) OOB Read on GLib through
+    glib/gdatetime.c:g_date_time_get_ymd via invalid `GDateTime` (Philip
+    Withnall)
+  - #3918 (#YWH-PGM9867-193) Buffer Over-read on GLib's g_regex_replace()
+    through glib/gregex.c:string_append() via g_utf8_next_char() (Philip
+    Withnall)
+  - #3919 (#YWH-PGM9867-194) Buffer Over-read on GLib through
+    glib/gregex.c:g_regex_split_full() via glib/gutf8.c:g_utf8_prev_char()
+    (Philip Withnall)
+  - #3925 (#YWH-PGM9867-199) Buffer Over-read on GLib through glib/giochannel.c
+    via "g_io_channel_read_line_backend" (Philip Withnall)
+  - #3930 (#YWH-PGM9867-200) Off-by-one Error on GLib through glib/gkeyfile.c
+    via "g_key_file_get_locale_string_list" (Philip Withnall)
+  - #3931 (#YWH-PGM9867-203)  Path Traversal on GLib DBus through
+    glib/gio/gdbusauthmechanismsha1.c via keyring_lookup_entry,
+    mechanism_client_data_receive (COOKIE_SHA1 Client Authentication) leads to
+    Arbitrary File Read (Philip Withnall)
+  - #3932 (#YWH-PGM9867-204) Integer Underflow (CWE-191) on GLib through
+    gio/gdbusintrospection.c via "g_dbus_node_info_new_for_xml" (Philip
+    Withnall)
+  - #3933 Integer overflow in g_dbus_message_bytes_needed() bypasses 128 MiB
+    size check (pre-auth DoS on P2P connections) (Philip Withnall)
+  - #3954 Generic marshaller lacks support for GTypeInstance derived types
+    (Christian Hergert)
+  - #3958 FTBFS for vs2019-arm64 in libcharset due to undefined _CountOneBits64
+  - !4990 gdbusauthmechanismsha1: Ignore G_DBUS_COOKIE_SHA1_KEYRING_DIR when
+    suid
+  - !5094 gtestdbus: Keep config file around until bus daemon exits
+  - !5099 liststore: Micro-optimize no-op bulk operations
+  - !5101 Update Serbian translation
+  - !5102 g_base64_decode_step: fix documented type of in
+  - !5103 gdbusmessage: Documentation improvements
+  - !5105 docs: Expand docs for GLIB_VERSION_MAX_ALLOWED
+  - !5106 gmarkup: Add api to get attribute locations
+  - !5107 gmessages: Remove incorrect callback annotations
+  - !5110 gmarkup: fix type of length parameter of text_validate()
+  - !5111 Update Russian translation
+  - !5112 docs: Clarify default/user signal handlers
+  - !5113 Update Polish translation
+  - !5114 docs: Remove myself from CODEOWNERS
+  - !5115 build: Post-release version bump
+  - !5116 Update Slovenian translation
+  - !5117 fuzzing: Add a fuzz test for g_markup_escape_text()
+  - !5118 gstrfuncs: Add g_set_str_take() helper function
+  - !5119 tests: Check that g_markup_escape_text() returns something parseable
+  - !5120 Update Chinese (China) translation
+  - !5121 gio: Apply property accessor annotations to GDBus types
+  - !5123 Update Romanian translation
+  - !5124 gvariant: Tweak GVariantIter heap allocation casting
+  - !5125 gregex: Fix some missing Markdown formatting in docs
+  - !5126 Add missing annotations
+  - !5127 libffi: don't build testsuite when building as subproject
+  - !5128 gmarkup: Swap the argument order for g_realloc_n()
+  - !5136 docs: Clarify UTF-8 validity for functions which accept a length
+  - !5138 Update Slovenian translation
+  - !5140 Update Romanian translation
+  - !5141 Support XDG_PROJECTS_DIR
+  - !5142 gsocketconnection: Fix annotations for get_socket()
+  - !5145 gvarianttype: use pure attribute, not inappropriate const
+  - !5146 gmessages: Add missing stdlib.h include for abort()
+  - !5148 registrysettingsbackend: Chain up vfuncs
+  - !5149 gtype: Improve G_DEFINE and G_DECLARE docs
+  - !5153 g_get_num_processors(): on macOS, report n_pcore
+  - !5155 Update German translation
+  - !5157 Update Dutch translation
+  - !5158 gsocket: Fix g_socket_new_from_fd() on unbound sockets on windows
+  - !5159 gvariant: Tweak GVariantIter heap allocation size
+  - !5161 [docs] Gio.MenuModel: Fix bulleted list
+  - !5162 gvariant: Match allocation size of g_slice_new to g_slice_free
+  - !5163 gvariant test: Fix a leak
+  - !5164 tests: Avoid undefined signed left-shift in bitlock test
+  - !5167 docs: Add docs for G_GNUC_FLAG_ENUM
+  - !5176 gnulib: Fix unused flags variable warning
+  - !5177 gio/tests/pollable.c: Fix test on FreeBSD
+  - !5180 meson: Add valgrind suppression file to VALGRIND_OPTS in devenv
+  - !5182 Meson: Don't hardcode FFI_STATIC_BUILD / G_INTL_STATIC_COMPILATION
+  - !5183 gio/tests/pollable.c: Conditionalize on FreeBSD version in the
+    /dev/null test case
+  - !5185 gio/gdesktopappinfo: Add precondition assertions
+  - !5187 Add safety documentation regarding use of g_shell_quote()
+  - !5188 Improve performance of g_array_maybe_expand()
+
+* Translation updates:
+  - Chinese (China) (luming zh)
+  - Dutch (Nathan Follens)
+  - German (Christian Kirbach)
+  - Polish (Victoria Niedzielska)
+  - Romanian (Antonio Marin)
+  - Russian (Artur S0)
+  - Serbian (Марко Костић)
+  - Slovenian (Martin)
+
+
+Overview of changes in GLib 2.88.0, 2026-03-16
+==============================================
+
+* Bugs fixed:
+  - !5097 gslice: Factor out a size helper macro and stop using MAX in a public
+    header
+
+
+Overview of changes in GLib 2.87.5, 2026-03-12
+==============================================
+
+* Brown paper bag release to attempt to fix the dist-job in CI; this caused it
+  to be impossible to build a release archive for 2.87.4
+
+* Bugs fixed:
+  - !5096 ci: Force a git clone and update the index when running dist-job
+
+
+Overview of changes in GLib 2.87.4, 2026-03-12
+==============================================
+
+* Avoid installing broken symlinks as part of the test data for the gdatetime
+  tests (!5054, work by Alessandro Astone)
+
+* Fix `g_file_set_contents()` with non-ASCII filenames on Windows (#3873, work
+  by Lukas K.)
+
+* Bugs fixed:
+  - #3688 Documentation issue with g_slice_new and g_slice_new0 (Philip
+    Withnall)
+  - #3730 Unclear assertion failure message when `G_PARAM_CONSTRUCT` and
+    `G_PARAM_CONSTRUCT_ONLY` are both specified (depuc8)
+  - #3814 vs2019-arm64 CI fails with ninja error (Philip Withnall)
+  - #3873 g_file_set_contents broken on windows for non-ASCII filenames
+  - #3885 Documentation of g_file_info_get_is_backup() doesn’t define what a
+    backup file is (depuc8)
+  - #3897 GLocalFileInfo's set_symlink() is backwards (Philip Withnall)
+  - #3905 Memory leak in g_desktop_app_info_launch_uris_with_spawn (correctmost)
+  - !5030 gsocketconnection: Set an error when closed if no address is cached
+  - !5037 minor doc fixes
+  - !5047 i18n: Update and correction for Occitan
+  - !5048 ci: Install gi-docgen in the Fedora CI image
+  - !5049 Update Serbian translation
+  - !5050 Update Swedish translation
+  - !5051 Update French translation
+  - !5052 Update Bulgarian translation
+  - !5053 Update Romanian translation
+  - !5054 tests: Create unix_localtime root directory structure at runtime
+  - !5055 Update Chinese (China) translation
+  - !5056 Update Japanese translation
+  - !5057 Update Korean translation
+  - !5058 Update Georgian translation
+  - !5059 Update Ukrainian translation
+  - !5060 Update Lithuanian translation
+  - !5061 Update French translation
+  - !5062 Update Hungarian translation
+  - !5064 Update Portuguese translation
+  - !5065 Update Nepali translation
+  - !5066 i18n: Update for Occitan
+  - !5068 Update Turkish translation
+  - !5069 Update Brazilian Portuguese translation
+  - !5070 Update Galician translation
+  - !5071 Update Kazakh translation
+  - !5075 Update Polish translation
+  - !5076 Update Catalan translation
+  - !5077 Update Slovenian translation
+  - !5078 gio-tool-launch: Fix a filename leak
+  - !5080 Update Catalan translation
+  - !5081 Update Danish translation
+  - !5082 Update Polish translation
+  - !5084 Update British English translation
+  - !5085 Update Georgian translation
+  - !5087 Update Nepali translation
+  - !5088 tests: Fix a minor memory leak in the socket test
+  - !5089 ci: Drop workaround for GitLab submodule checkout bug
+  - !5090 Prevent iptosmessage test failures on FreeBSD and Hurd
+  - !5091 gobject: Disable new construct property check with G_DISABLE_CHECKS
+
+* Translation updates:
+  - Bulgarian (Alexander Alexandrov Shopov)
+  - Catalan (Victor Dargallo, Jordi Mas)
+  - Chinese (China) (luming zh)
+  - Danish (Ask Hjorth Larsen)
+  - English (United Kingdom) (Bruce Cowan)
+  - French (Guillaume Bernard)
+  - Galician (Francisco Diéguez Souto)
+  - Georgian (Ekaterine Papava)
+  - Hungarian (Balázs Úr)
+  - Japanese (Makoto Sakaguchi)
+  - Kazakh (Baurzhan Muftakhidinov)
+  - Korean (Changwoo Ryu)
+  - Lithuanian (Aurimas Aurimas Černius)
+  - Nepali (Pawan Chitrakar)
+  - Occitan (post 1500) (Mejans)
+  - Polish (Victoria)
+  - Portuguese (Hugo Carvalho)
+  - Portuguese (Brazil) (Rafael Fontenelle)
+  - Romanian (Antonio Marin)
+  - Serbian (Miloš Popović)
+  - Slovenian (Martin)
+  - Swedish (Anders Jonsson)
+  - Turkish (Emin Tufan Çetin)
+  - Ukrainian (Yuri Chornoivan)
+
+
+Overview of changes in GLib 2.87.3, 2026-02-25
+==============================================
+
+* Improved support for `GNotification` on Windows (#3867, #3869, work by
+  Oscar Pernia Moreno)
+
+* Fix module lookups via `GModule` on Cygwin (#3741, work by Ailin Nemui)
+
+* Fix local timezone lookup with nested symlinks in `/etc/localtime` (#3816,
+  work by Alessandro Astone)
+
+* Fix ordering and sequential consistency of gatomic memory barriers on MSVC
+  and fallback GCC code paths (#3829, #3852, work by Luca Bacci)
+
+* Fix various integer overflow bugs (#3870, #3871, #3872, CVE-2026-1484,
+  CVE-2026-1485, CVE-2026-1489, work by Marco Trevisan)
+
+* Add `GSocketControlMessage` subclasses for receiving `IP_TOS` and
+  `IPV6_TCLASS` (!4846, work by Jakub Adam)
+
+* Support polling more than 1024 FDs on macOS (!4953, work by Ihar Hrachyshka)
+
+* Remove platform-specific backward compatibility from GLib-2.0 as it’s
+  impossible to support (#3839, !4881, work by Marco Trevisan)
+
+* Improve introspection annotations for delimiters on `g_strsplit_set()` (this
+  may require changes in introspection bindings)
+
+* Basic support for building and running some functionality on tvOS and watchOS
+  (!4992, work by Nirbheek Chauhan)
+
+* Add `g_get_monotonic_time()` variant with nanosecond precision (!5004, work
+  by Benjamin Otte)
+
+* Bugs fixed:
+  - #3628 Add test suite for gdbus tool (Philip Withnall)
+  - #3741 GModule incorrectly searches for cyg....so instead of cyg....dll on
+    Cygwin (Ailin Nemui)
+  - #3816 Local timezone wrongly considered to be UTC if timezone file in
+    /usr/share/zoneinfo is a symlink (Alessandro Astone)
+  - #3829 [RFC] gatomic: Memory barriers should be reversed (Luca Bacci)
+  - #3839 Broken Unix/Win32 specific GIRs
+  - #3852 MSVC and GCC-fallback atomics are not sequentially consistent (Luca
+    Bacci)
+  - #3863 Iterating over a short (preallocated) GVariant bytestring invalidly
+    refs a NULL GBytes (Christian Hergert)
+  - #3865 callable-info/native-address test fails on big endian (Alessandro
+    Astone)
+  - #3867 win32: Notifications without body won't show up
+  - #3869 gnotification-win32: Re-initialize tray icon if `explorer.exe` got
+    restarted
+  - #3870 (CVE-2026-1484) (YWH-PGM9867-168) Integer Overflow -> Buffer Underflow
+    on Glib through glib/gbase64.c via g_base64_encode_close() leads to OOB
+    Write (Marco Trevisan (Treviño))
+  - #3871 (CVE-2026-1485) (#YWH-PGM9867-169) Buffer underflow on Glib through
+    gio/gcontenttype-fdo.c via parse_header() lead to OOB Read/Write (Marco
+    Trevisan (Treviño))
+  - #3872 (CVE-2026-1489) (#YWH-PGM9867-171) Integer Overflow on Glib through
+    glib/guniprop.c via output_marks() lead to OOB Write in
+    glib/gutf8.c:g_unichar_to_utf8() (Marco Trevisan (Treviño))
+  - #3877 hash test failing randomly on MSYS2 (Luca Bacci)
+  - #3880 Integer overflow in gio-launch-desktop from over-long environment
+    variables (Philip Withnall)
+  - #3881 Integer overflow in g_resource_find_overlay() from over-long
+    environment variables (Philip Withnall)
+  - #3883 Integer overflow in `g_path_get_basename()` when passed an extremely
+    long path (length ≈SSIZE_MAX) (Philip Withnall)
+  - #3886 Crash in gdbus-tool on invalid --method argument format (Philip
+    Withnall)
+  - #3895 date_time_lookup_era unsafely caches `setlocale` pointer (Philip
+    Withnall)
+  - !4846 gio: Add GSocketControlMessage subclasses for receiving IP_TOS and
+    IPV6_TCLASS
+  - !4953 darwin: Support g_poll:maxfd >= FD_SETSIZE
+  - !4957 gstrfuncs: Annotate g_strsplit_set() as taking a byte array of
+    delimiters
+  - !4966 gio-tool-{copy,move}: Fix incorrect transfer rate calculation and
+    improve visualization
+  - !4968 markup: Better error reporting
+  - !4970 gutf8: Clarify docs about negative return values
+  - !4971 gutf8: Use size_t internally for some length calculations
+  - !4976 docs: Fix a typo and specify a codeblock is C
+  - !4977 gobject: Add nullable annotation to g_weak_ref_get return value
+  - !4982 markup: Initialize tag positions
+  - !4985 ci/fedora, glib/casemap: Add tests for the Azerbaijani cases
+  - !4987 giomodule: Simplify macro usage for getting the giomodule dir, don't
+    use it on iOS
+  - !4991 gio/gdatainputstream: Mark bytes as potentially unused
+  - !4992 Disable or stub out fork/execv* usage when targeting tvOS and watchOS
+  - !4993 Windows: Add test-profile
+  - !4996 Fix some small regressions in the iOS build
+  - !4997 meson: Add guesses for compute_int to speed up cross-compile setup
+  - !5002 Update Lithuanian translation
+  - !5004 Add g_get_monotonic_time() variant with nanosecond precision
+  - !5006 gfileutils: Fix a regression in `g_path_get_basename()` for plain
+    files
+  - !5008 Update Swedish translation
+  - !5009 Update Kazakh translation
+  - !5011 Update Romanian translation
+  - !5012 Compilation fixes for CLangCL and older MSVC
+  - !5013 Update Czech translation
+  - !5014 Update Russian translation
+  - !5015 GApplication: make send_notification / withdraw_notification thread-
+    safe
+  - !5018 Update Ukrainian translation
+  - !5020 Update Romanian translation
+  - !5021 Update Lithuanian translation
+  - !5023 Update Greek translation
+  - !5024 Update Chinese (China) translation
+  - !5025 Update Slovenian translation
+  - !5026 Update Brazilian Portuguese translation
+  - !5027 Update Basque translation
+  - !5028 gvalue: Update default terminology to initial
+  - !5029 Update Bulgarian translation
+  - !5031 Update Galician translation
+  - !5032 Update Hungarian translation
+  - !5034 Fix const qualifiers where discarded
+  - !5036 Address more size types issues
+  - !5038 Update Kazakh translation
+  - !5039 Update Catalan translation
+  - !5040 gsettings-tool: Fix leaks when running set commands
+  - !5041 gsettings-tool: Fix leaks when specifying invalid schemas
+  - !5042 Update Spanish translation
+
+* Translation updates:
+  - Basque (Asier Saratsua Garmendia)
+  - Bulgarian (Alexander Alexandrov Shopov)
+  - Catalan (Victor Dargallo)
+  - Chinese (China) (luming zh)
+  - Czech (Daniel Rusek)
+  - Galician (Fran Diéguez)
+  - Greek, Modern (1453-) (Efstathios Iosifidis)
+  - Hungarian (Balázs Úr)
+  - Kazakh (Baurzhan Muftakhidinov)
+  - Lithuanian (Aurimas Aurimas Černius)
+  - Portuguese (Brazil) (Juliano de Souza Camargo)
+  - Romanian (Antonio Marin)
+  - Russian (Artur S0)
+  - Slovenian (Martin)
+  - Spanish (Daniel Mustieles)
+  - Swedish (Anders Jonsson)
+  - Ukrainian (Yuri Chornoivan)
+
+
+Overview of changes in GLib 2.87.2, 2026-01-19
+==============================================
+
+* Add initial support for `GNotification` on Windows (#3857, work by
+  Oscar Pernia Moreno)
+
+* Bugs fixed:
+  - #3850 g_strsplit_set docs are misleading (Matthias Clasen)
+  - #3857 win32: Add support for notifications using Shell_NotifyIcon API
+  - #3858 glib-compile-resources: Incorrect compiler detection on Windows when
+    building GTK causes a DoS (L. E. Segovia)
+  - #3863 Iterating over a short (preallocated) GVariant bytestring invalidly
+    refs a NULL GBytes (Christian Hergert)
+  - #3864 gir-tracker-bot posting diffs against too-recent-`main` (Marco
+    Trevisan (Treviño))
+  - #3867 win32: Notifications without body won't show up
+  - !4918 gio/unixmounts: use bsearch() to check for set inclusion
+  - !4949 gdesktopappinfo: Fix -Wsign-conversion warnings
+  - !4950 gobject: Fix -Wshorten-64-to-32 warnings and enable warning flag
+  - !4958 gtestutils: Avoid pointless logging string handling in gtestutils
+  - !4959 glib-unix: Implement g_unix_fd_query_path for Cygwin
+  - !4964 gio: Fix some -Wsign-conversion warnings
+  - !4965 gmodule: Enable -Wshorten-64-to-32 warnings for gmodule
+  - !4967 Fixup unicode 17
+
+
+Overview of changes in GLib 2.87.1, 2025-12-30
+==============================================
+
+* Several low-risk CVE fixes (#3827, #3834, #3845)
+
+* Fix return type of `gi_callable_info_get_closure_native_address()` (#3859,
+  work by Philip Chimento)
+
+* Tweak thread pool handling for `GTask` threads to prevent stalls (#3840, work
+  by Ignazio Pillai)
+
+* Respect `NO_COLOR` environment variable in log output (!4898, work by
+  Aaron Andersen)
+
+* Update file system type lists to mark more file system types as system ones
+  and to recognise `ntfs3` file systems (!4916 and #3828, work by
+  Christian Hergert and Alexander Schwinn)
+
+* Add `G_GNUC_FLAG_ENUM` attribute to mark enums as flags (!4900, work by
+  Philip Chimento)
+
+* Add a static CRT constructor and fusion manifest XML for GLib utilities on
+  Windows so that `stderr` can be unbuffered and streams are flushed on exit
+  (#3733, work by Luca Bacci)
+
+* Fix `G_FILE_MONITOR_WATCH_HARD_LINKS` on Windows (#3819, work by Jehan)
+
+* Bugs fixed:
+  - #74 ignore case and '-' vs '_' differences when maching on enum/flag
+    nick/name (Emmanuel Fleury)
+  - #1181 Test failure: check_expected_events
+  - #3360 msys2-mingw32 CI failure: mingw-w64-i686-gcc and mingw-w64-i686-gcc-
+    objc are in conflict
+  - #3733 gi-compile-repository.py test intermittently fails on Windows with
+    empty stderr (Luca Bacci)
+  - #3818 g_main_context_check with a NULL context crashes (Michiel Jan Laurens
+    de Hoon)
+  - #3819 G_FILE_MONITOR_WATCH_HARD_LINKS flag does not monitor files on Windows
+  - #3827 (CVE-2025-13601) (#YWH-PGM9867-134) Incorrect calculation of buffer
+    size in g_escape_uri_string() (Philip Withnall)
+  - #3828 NTFS not detected by g_file_info_get_attribute_string
+  - #3834 (CVE-2025-14087) (#YWH-PGM9867-145) Buffer underflow on Glib through
+    glib/gvariant via bytestring_parse() or string_parse() leads to OOB Write
+    (Philip Withnall)
+  - #3840 GTask: g_task_run_in_thread never starts pending tasks (Ignazio
+    Pillai)
+  - #3843 glib: Integer overflow in `g_bytes_new_from_bytes()` leads to
+    corrupted `GBytes` object (Philip Withnall)
+  - #3845 (CVE-2025-14512) GIO: Integer overflow in file attribute escaping
+    (Philip Withnall)
+  - #3851 Integer overflow in `g_buffered_input_stream_peek()` leads to
+    segmentation fault (Philip Withnall)
+  - #3859 Return type of gi_callable_info_get_closure_native_address() should be
+    void* (Philip Chimento)
+  - !4883 ci: Do not use anymore only/except deprecated syntax
+  - !4885 ci: Track changes to gir files using artifacts and MRs comments
+  - !4898 glog: respect NO_COLOR environment variable
+  - !4899 genvironment: consider macOS behavior when testing g_getenv
+  - !4900 Add G_GNUC_FLAG_ENUM
+  - !4904 glog: guard NO_COLOR environment variable check with a GOnce for
+    performance reasons
+  - !4907 completion: fix error on nounset mode unknown completions
+  - !4908 glocalfile: Complain if `faccessat` sets an unusual error and use
+    AT_FDCWD
+  - !4909 glocalfile: Fix trash user cancellation not reported on Windows
+  - !4910 ci: Use issue bot native support for $ISSUE_BOT_API_TOKEN_FILE
+  - !4913 gdbusprivate: check length of path to GDBus binary
+  - !4916 gio/gunixmounts: mark some file-system types as system
+  - !4920 tests: Fix static-link test when running installed
+  - !4921 gutf8: Add tests and clarify documentation for g_unichar_to_utf8()
+  - !4922 ci: Enable the gobject-introspection build for the debian-stable-i386
+    job
+  - !4923 Added AIX implementation of g_unix_fd_query_path
+  - !4926 Fix g_strcompress docs (mod 256)
+  - !4928 Update of the Occitan translation
+  - !4930 gio/gunixmounts: Mark more file systems as system internal
+  - !4931 gio/gunixmounts: Replace /bin/efi with /boot/efi
+  - !4937 docs(GResource): Tweak overlays description
+  - !4939 gsocks4aproxy: Fix a buffer leak when finishing connecting
+  - !4941 gsignal: Cleanup handler disconnection avoiding unneeded operations
+  - !4942 gio: Fix a few -Wsign-conversion warnings
+  - !4943 ci: Some fixups on the gir checker
+
+* Translation updates:
+  - Occitan (post 1500) (Mejans)
+
+
+Overview of changes in GLib 2.87.0, 2025-11-03
+==============================================
+
+* Update to Unicode 17.0.0 (!4793, work by Peng Wu)
+
+* Support runtime extensions to `gdbus-codegen` tool to allow modifying its
+  output in project-specific ways (!4812, work by Sebastian Wick)
+
+* Use document portal to open all the URIs for snaps (!4822, work by
+  Marco Trevisan)
+
+* Add g_markup_parse_context_get_offset() API for getting error locations in XML
+  files (!4879, work by Matthias Clasen)
+
+* Bugs fixed:
+  - GNOME/ptyxis#490 new tab does not open in current directory when hostname
+    contains a period (Christian Hergert)
+  - #672 hash resize broken for large sizes (Tobias Stoeckmann)
+  - #2608 Support nanosecond time resolution with stat() on macOS (André Barnabá
+    Silva)
+  - #2949 gdbus-server-auth test intermittently fails on macOS
+  - #3070 gio/g-file-info test fails on macOS (André Barnabá Silva)
+  - #3523 g_filename_from_uri rejects valid host names according to RFC 1123
+    (Christian Hergert)
+  - #3745 GIRepository: union fields offsets for compiled typelibs all have
+    offset 0xffff (unknown) (Philip Chimento)
+  - #3771 Should opening a .desktop file fail if Exec key contains invalid
+    escapes? (Philip Withnall)
+  - #3780 `gio/tests/socket-listener` requires dlsym
+  - #3781 GLib.OptionContext's get_help() includes width of invisible options
+    (FeRD (Frank Dana))
+  - #3783 [CI] Pipeline on 'main' failed for commit c31c4a52 (Tobias Stoeckmann)
+  - #3784 Memory leak related to g_get_home_dir (Tobias Stoeckmann)
+  - #3785 "gio trash --empty" returns 0 even when it fails to remove files
+  - #3790 _g_log_abort() should check TracerPid from /proc before raising
+    SIGTRAP
+  - #3798 Gio.AppInfo.launch_default_for_uri_async crashes with non-existent
+    paths (Philip Withnall)
+  - #3803 GNetworkMonitor's netlink backend doesn't notify connectivity change
+    (Philip Withnall)
+  - #3805 [CI] Pipeline on 'main' failed for commit e6c52881
+  - #3806 fake-document-portal needs to use _g_fd_query_path() rather than
+    accessing /proc/self/fd directly (Marco Trevisan (Treviño))
+  - #3808 Uyghur language translation updated.
+  - #3809 GRegex tests fail with pcre2 10.47: different error for ^(a)\g{3
+    (Marco Trevisan (Treviño))
+  - #3811 g_get_user_special_dir doesn't strip trailing slash from $HOME/
+    (Tobias Stoeckmann)
+  - https://gitlab.gnome.org/Infrastructure/Infrastructure/-/issues/
+  - !4753 GIO/Win32: Remove custom definitions of system interfaces
+  - !4755 ghash: Fix entry_is_big for CHERI architecture
+  - !4756 ghash: Handle all table sizes in iterator
+  - !4759 GWin32AppInfo: Allow focus-stealing when requested via
+    GAppLaunchContext
+  - !4760 gbookmarkfile: Escape icon href and mime-type
+  - !4764 subprojects: Update libffi, pcre2, proxy-libintl
+  - !4773 docs: Add Luca Bacci as a co-maintainer of the Windows code
+  - !4775 Update Ukrainian translation
+  - !4776 Update Catalan translation
+  - !4777 Update Lithuanian translation
+  - !4778 tests: Fix clang compilation warnings
+  - !4779 gmem: Replace SIZE_OVERFLOWS with g_size_checked_mul
+  - !4780 Update Brazilian Portuguese translation
+  - !4781 Update eu translation
+  - !4782 Update Korean translation
+  - !4785 Update Japanese translation
+  - !4786 Update Galician translations
+  - !4787 Update Hungarian translation
+  - !4789 gio: add some nullable / zero-terminated annotations
+  - !4790 gstring: Support large strings in g_string_replace
+  - !4791 gstrfuncs: Check string length in g_strescape
+  - !4792 gtype: Define copy and free functions for GTypeClass and
+    GTypeInterface
+  - !4793 gunicode: Update the code for Unicode 17.0.0
+  - !4794 CI/MSYS2: Use builtin b_coverage option
+  - !4795 Meson: Add arguments and defines to all C-like languages
+  - !4798 GDBus: Add `(out)` annotation to quark in
+    g_dbus_error_register_error_domain()
+  - !4800 gutils: Improve load_user_special_dirs' user-dirs.dirs parser
+  - !4802 Update Turkish translation
+  - !4803 Add missing `(array length=n_values)` annotation to `GEnumClass` /
+    `GFlagsClass`
+  - !4806 build: Post-release version bump
+  - !4807 Add missing "nullable" to parameter docs of GList/GSList
+  - !4810 gutils: Mark load_user_special_dirs unlocked
+  - !4811 Update Esperanto translation
+  - !4812 gdbus-codegen: Support extensions and changing the
+    GDBusInterfaceSkeleton type to inherit from
+  - !4813 Update Serbian translation
+  - !4815 gfile: Expand documentation around file equality
+  - !4816 strfuncs: Check for overflows when joining strings
+  - !4817 Mark a couple of functions as constructors and not methods
+  - !4819 utils: Fix a leak when user-dirs.dirs declares a variable twice
+  - !4820 gio/tests: Fix a race condition in /gdbus/connection/flush
+  - !4822 GDesktopAppInfo: Use document portal to open all the URIs for snaps
+  - !4823 gio/gdocumentportal: Use the target name when opening a symlink
+  - !4825 gdbus-codegen: Supress coverity warning in skeleton finalization
+  - !4827 ghostutils: Treat 0x80 (and above) as non-ASCII
+  - !4829 docs: Fix typos in win32-build.md
+  - !4830 giowin32: Fix uninitialised variable error on msys2-clang64
+  - !4831 macros: Add C23/C++23 standards
+  - !4832 gtypes: Support more overflow check implementations
+  - !4835 Update Portuguese translation
+  - !4837 tests: Fix another clang compiler warning
+  - !4838 GLocalFile: keep suffix name when trashing
+  - !4840 gpattern: Support patterns/strings longer than G_MAXUINT
+  - !4843 tests: Use integer widths rather than maximum values for strfuncs
+    check
+  - !4844 Forward-port !4839 “Update Romanian translation” to main
+  - !4847 GFile entity tags: Update HTTP reference link to point to RFC9110
+    ETags description
+  - !4849 Update British English translation (main)
+  - !4851 Docs: New file-name-encodings image: light/dark, color
+  - !4855 glib-compile-resources: print error message when the temp file cannot
+    be created
+  - !4856 Mark return value of g_dbus_interface_get_info() as `nullable`
+  - !4857 Docs: Migrate gvariant-*.svg licenses to comments
+  - !4858 gsocketcontrolmessage: Fix a minor typo in a doc comment
+  - !4860 Fix `g_memory_monitor_base_query_mem_ratio` on Solaris
+  - !4861 gio/tests/gapplication: Check the values received on action activation
+  - !4862 ci: Temporarily disable macos-arm64 CI as it has issues creating temp
+    files
+  - !4863 ci: Temporarily disable msys2-mingw32 CI
+  - !4864 ci: Update Fedora CI image to Fedora 41
+  - !4866 Fix various scan-build errors
+  - !4870 Reenable MSYS2 CI
+  - !4874 ci: use APFS for macOS TMPDIR
+  - !4877 gresolver: Fix loopback detection of IPv6 addresses
+  - !4879 Add g_markup_parse_context_get_offset
+  - !4887 glib-unix: Add Solaris implementation of g_unix_fd_query_path
+  - !4893 ci: Use CI/CD file variable tokens for secrets
+  - !4894 gthread-win32: Ignore error when setting thread priority
+  - !4895 gunixmounts: fix out of bounds write in AIX mount table parser
+  - !4896 ci: Actually use token file for the issue bot
+  - !4897 Re-enable PCRE2 tests for 32-bit Visual Studio builds
+
+* Translation updates:
+  - Basque (Asier Saratsua Garmendia)
+  - Catalan (Jordi Mas)
+  - English (United Kingdom) (Bruce Cowan)
+  - Esperanto (Kristjan ESPERANTO)
+  - Galician (Fran Dieguez)
+  - Hungarian (Balázs Úr)
+  - Japanese (Makoto Sakaguchi)
+  - Korean (Changwoo Ryu)
+  - Lithuanian (Aurimas Černius)
+  - Portuguese (Hugo Carvalho)
+  - Portuguese (Brazil) (Rafael Fontenelle)
+  - Romanian (Antonio Marin)
+  - Serbian (Милош Поповић)
+  - Turkish (Sabri Ünal)
+  - Uighur (Abduqadir Abliz)
+  - Ukrainian (Yuri Chornoivan)
+
+
+Overview of changes in GLib 2.86.0, 2025-09-05
+==============================================
+
+* Rework how platform-specific introspected GIO APIs have to be imported to fix
+  problems with backwards-compatibility provision for it, by removing duplicate
+  platform-specific symbols from `Gio-2.0`. Users of platform-specific GIO APIs
+  should be unaffected, as `GIRepository` will now automatically import
+  `GioWin32-2.0` or `GioUnix-2.0` when asked to import `Gio-2.0`. However,
+  projects generating introspection data which depends on types from either of
+  those platform-specific GIRs must make sure they depend on those GIRs
+  explicitly, rather than just transitively depending on them through `Gio-2.0`
+  (#3744, work by Emmanuele Bassi, Marco Trevisan, Florian Müllner, and others)
+
+* Fix file existence queries on Solaris, broken due to unexpected flags handling
+  within `faccessat()` (#3770, work by Niveditha Rau)
+
+* Bugs fixed:
+  - #3744 GDesktopAppInfo API disappeared after girepository-2.0 port (Emmanuele
+    Bassi)
+  - #3768 g_test_trap_subprocess does not check G_TEST_SUBPROCESS_INHERIT_STDIN
+    (Philip Withnall)
+  - !4751 gtestutils: Fix a slightly broken example in a doc comment
+  - !4754 Update Polish translation 250825
+  - !4758 Update Swedish translation
+  - !4762 gio: gmemorymonitorpsi: Replace GRegex with g_str_has_prefix()
+  - !4765 girepository: Add an assertion to help scan-build
+  - !4767 glocalfile: Disable faccessat()-based query_exists on Solaris
+  - !4768 gmessages: Fix win32_keep_fatal_message regression
+  - !4769 docs: Fix typos
+  - !4770 Update Chinese translation
+  - !4771 Update Georgian translation
+  - !4772 po: Update Persian translation.
+
+* Translation updates:
+  - Chinese (China) (lumingzh)
+  - Georgian (NorwayFun)
+  - Persian (Danial Behzadi)
+  - Polish (Piotr Drąg)
+  - Swedish (Anders Jonsson)
+
+
+Overview of changes in GLib 2.85.4, 2025-08-22
+==============================================
+
+* Follow symlink (instead of overwriting it) when updating `mimeapps.list`
+  (#3579, work by Rafael Girão)
+
+* Bugs fixed:
+  - #3579 mimeapps.list is overwritten if it is a symlink (Rafael Girão)
+  - #3724 Crash in g_hash_table_add after 252645135 elements (Tobias Stoeckmann)
+  - #3743 g_utf8_validate out parameter has wrong type (two)
+  - #3751 meta: clang-format refers to a broken link (Rafael Girão)
+  - #3758 Out-of-bounds read in GMemoryMonitorPoll (Philip Withnall)
+  - #3760 Stack overflow when recursing within g_log_structured() with
+    `G_LOG_FLAG_RECURSION` (Tobias Stoeckmann)
+  - #3761 Regression in g_printf() - can no longer output formatted values
+    containing NUL bytes (Luca Bacci)
+  - #3766 Update sl.po (Slovenian) (Martin)
+  - !4714 gmain: Reformat docs to fully use gi-docgen and match style guide
+  - !4720 Disable GMemoryMonitorPsi on Solaris
+  - !4727 garray: Improve and migrate documentation to gi-docgen
+  - !4735 build: Fix stp files for development versions
+  - !4736 systemtap: Use correct formatters/types
+  - !4738 docs: Add Thomas Haller as a co-maintainer of GObject
+  - !4739 Annotate ref/unref functions as transfer full
+  - !4740 gstrfuncs: Check parameter validity
+  - !4742 garray: Fix g_array_binary_search description
+  - !4743 Update Russian translation
+  - !4744 tests/gio: skip Unix socket-mock tests on Windows
+  - !4747 tests/printf: Use proper compare helper for unsigned types
+  - !4748 gconstructor: Add attribute used for TLS callback pointer
+
+* Translation updates:
+  - Russian (jtux270)
+  - Slovenian (Martin)
+
+
+Overview of changes in GLib 2.85.3, 2025-08-08
+==============================================
+
+* Fix encoding of output from `g_print()` and `g_printerr()` when locale is set
+  to `.utf8` on Windows (#3341, work by Luca Bacci)
+
+* Bugs fixed:
+  - #3341 `g_print` and `g_printerr` will cause encoding errors on Windows when
+    locale is set to `.utf8` (Luca Bacci)
+  - #3739 Crash in accept_ready() of GThreadedSocketService Under High Load
+    (Philip Withnall)
+  - #3740 Documentation of g_win32_error_message  does not contain information
+    about the behaviour when FormatMessageW failed (Philip Withnall)
+  - #3755 AIX: Unwanted symbol needs to be removed for AIX platform: getpwnam_r,
+    getpwuid_r (Parth Patel)
+  - !4706 gthreadpool: Clean up when g_thread_pool_new fails
+  - !4707 tests: Skip slow mainloop test on valgrind
+  - !4708 gfilenamecompleter: Fix g_object_unref() of undefined value
+  - !4709 tests: Connect to GMemoryMonitor signals earlier
+  - !4712 tests/thread-pool: Add a thread-pool fail test
+  - !4713 Fix test error for GMemoryMonitor
+  - !4715 gdbuserror: Reformat docs to fully use gi-docgen and match style guide
+  - !4722 tests: Add missing unistd.h header to thread-pool test
+  - !4723 tests: Add a missing poll condition to socket-listener test
+  - !4724 garray: Pass errors through GByteArray functions
+  - !4725 garray: Add checks to g_ptr_array_extend_and_steal
+  - !4726 Add a basic GFilenameCompleter test
+  - !4728 gbitlock: Fix documentation issues
+  - !4729 [RFC] Tests: do not set a timeout in Python tests
+  - !4730 gstrfuncs: Always treat G_MININT64 in g_ascii_strtoll
+  - !4731 glocalfile: Disable faccessat()-based query_exists on OpenBSD
+  - !4733 gvalue: Reformat docs to fully use gi-docgen and match style guide
+  - !4734 gspawn: Improve docstring for g_spawn_async()
+
+
+Overview of changes in GLib 2.85.2, 2025-07-21
+==============================================
+
+* New Linux PSI based backend for `GMemoryMonitor` as an option to use instead
+  of the existing Low Memory Monitor daemon backend (!4481, work by Kate Hsuan)
+
+* Bugs fixed:
+  - #1443 Deadlock between g_module_open() and dlopen() when called from a
+    constructor
+  - #2848 Doc: clarification request regarding g_match_info_fetch_pos return
+    value (Mark Lautman)
+  - #3712 Crash in g_thread_pool_new_full
+  - #3713 call g_file_enumerator_close in g_file_enumerator_finalize is not safe
+    (fbrouille)
   - #3716 (CVE-2025-7039) (#YWH-PGM9867-104) Buffer Under-read on GLib through
     glib/gfileutils.c via get_tmp_file() (Michael Catanzaro)
   - #3721 GFile leak in g_local_file_set_display_name during error handling
     (Philip Withnall, Michael Catanzaro)
-  - !4668 Backport !4667 “Incorrect output parameter handling in closure helper
-    of g_settings_bind_with_mapping_closures” to glib-2-84
-  - !4675 Backport !4674 “gfileutils: fix computation of temporary file name” to
-    glib-2-84
-  - !4679 Backport !4677 and !4678 “Fix GFile leak in
-    g_local_file_set_display_name()” to glib-2-84
-  - !4697 Backport !4696 “gthreadpool: Catch pool_spawner creation failure” to
-    glib-2-84
-  - !4705 Backport !4702 “gio/filenamecompleter: Fix leaks” to glib-2-84
-  - !4711 Backport !4708 “gfilenamecompleter: Fix g_object_unref() of undefined
-    value” to glib-2-84
+  - #3725 Deadlock on source_destroy_lock inside g_main_context_unref() and
+    g_source_destroy() (with child sources) (Matthew Waters)
+  - #3726 GApplication sometimes fails to call before_emit (Matthias Clasen)
+  - !4481 gio: gmemorymonitorpsi: Replace GMemoryMonitor backend with kernel PSI
+    event
+  - !4665 gio: enums: Fix GBusNameOwnerFlags's annotation
+  - !4667 Incorrect output parameter handling in closure helper of
+    g_settings_bind_with_mapping_closures
+  - !4669 Add missing `(array zero-terminated=1)` annotations
+  - !4676 Fix IPv6 scope-id from DNS responses being lost
+  - !4680 gbacktrace: Correctly wait for children on Unix
+  - !4681 (CVE-2025-6052) gstring: Improve
+    g_string_expand/g_string_append_len_inline checks
+  - !4682 gio-tool-launch: fix %k field code expansion
+  - !4683 gio-tool-launch: Fix mismatched curly quotes in translatable strings
+  - !4684 garray: Support unallocated zero terminated arrays
+  - !4685 garray: Use g_array_elt_len/pos where appropriate
+  - !4687 gstring: Fix g_string_append_vprintf overflow
+  - !4690 garray: Fix out of boundary write in g_ptr_array_copy
+  - !4692 tests: Fix a minor leak in array-test
+  - !4693 tests: Loosen string comparison assertion in gio-tool.py
+  - !4694 tests: Do not always skip array overflow checks
+  - !4695 garray: Add more element_size > 0 checks
+  - !4698 garray: Avoid exponential growth in g_array_copy
+  - !4699 garray: Set capacity in terminated take functions
+  - !4700 gfileutils: Fix OOB read in g_build_path(name)_va
+  - !4701 gbacktrace: Fix OOB write in stack_trace
+  - !4702 gio/filenamecompleter: Fix leaks
+  - !4703 application: NULL check for options
+  - !4704 tests: Add a regression test for GApplication command line handling
 
 
-Overview of changes in GLib 2.84.3, 2025-06-13
+Overview of changes in GLib 2.85.1, 2025-06-13
 ==============================================
 
+* Re-add the option of a singleton to `GIRepository` (#3664, work by
+  Christian Hergert)
+
+* Add support for the `e` flag (O_CLOEXEC) to `g_fopen()` (!4564, work by
+  Luca Bacci and Philip Withnall)
+
+* Make the `sysprof` Meson option yield when using GLib as a subproject (!4659,
+  work by Matthias Clasen)
+
+* Use the Meson built-in `localedir` option (!4661, work by
+  Kleis Auke Wolthuizen)
+
 * Bugs fixed:
-  - !4656 Backport !4655 “gstring: Fix overflow check when expanding the string”
-    to glib-2-84
+  - #1665 g_file_trash() should return PERMISSION_DENIED if files can't be
+    deleted (Ignacy Kuchciński)
+  - #3664 Lack of g_irepository_get_default() equivalent makes cross-library
+    integration extremely difficult (Christian Hergert)
+  - #3698 Misleading autogenerated hints in the documentation of
+    g_async_queue_pop() (Alicia Boya García)
+  - !4560 glib/gnulib/printf.c: Sync with gnulib
+  - !4564 gstdio: Add support for the `e` flag (O_CLOEXEC) to g_fopen()
+  - !4637 Rework Windows implementation of g_getenv()
+  - !4641 [th/gobj-drop-bit-lock] gobject: drop object_bit_lock() functions
+  - !4642 [th/gobj-empty-notify-queue] gobject: optimize notify-queue handling
+    for a single freeze
+  - !4643 GRegex: apply monospace typeface in description
+  - !4644 gio: add annotations on parameters of 'g_file_monitor_emit_event' and
+    of 'g_vfs_get_file_for_path'
+  - !4645 gregex: Clarify docs for end_pos
+  - !4646 GRegex: update class description
+  - !4649 GAsyncQueue: assert non-null data in push_sorted()
+  - !4650 tests: Add atomics to asyncqueue test global variables
+  - !4651 Meson: Add libglib_static dependency for use in tests
+  - !4652 gobject: clarify in documentation that g_value_set_boxed copies
+  - !4654 Fix buffer overflow in string-test
+  - !4655 gstring: Fix overflow check when expanding the string
+  - !4657 docs: Stop hiding the Unix-like APIs which are in Gio-2.0.gir
+  - !4658 gmarkup: make documentation more discoverable
+  - !4659 Make the sysprof feature yield
+  - !4661 meson: Use the appropriate localedir option
 
 
-Overview of changes in GLib 2.84.2, 2025-05-20
+Overview of changes in GLib 2.85.0, 2025-05-20
 ==============================================
 
+ * Preserve mode for existing file when creating a temporary file for atomic
+   updates with g_file_set_contents() (dconf#76, work by Wesley Hershberger)
+
+ * Fix race conditions between g_main_context_unref() and g_source_*() methods
+   (#803, work by Matthew Waters)
+
+ * Allow file handles inside nested containers when using the `gdbus call`
+   command (#3624, work by Julian Sparber)
+
+ * Fix DNS resolution of local addresses in offline mode (#3641, work by
+   Patrick Griffis)
+
+ * Various performance improvements to GObject locking (various MRs by
+   Thomas Haller)
+
+ * Prefer matches occurring earlier in the string when searching
+   `GDesktopAppInfo`s, improving search for apps in gnome-shell (!4369, work by
+   Fina Wilke)
+
+ * Fix thread safety of `GClosure` flags (!4575, !4577, work by Sam James and
+   Philip Withnall)
+
 * Bugs fixed:
-  - !4576 Backport !4575 “gclosure: fix ATOMIC_CHANGE_FIELD to read vint
-    atomically” to glib-2-84
-  - !4595 Backport !4582 “Windows: fix wrong typelib path” to glib-2-84
-  - !4614 Backport "gstring: carefully handle gssize parameters"
-  - !4616 Backport !4613 “Update macOS job for new CI runner” to glib-2-84
-  - !4623 Backport !4617 “gdate: Call tzset before localtime_r” to glib-2-84
-  - !4639 Backport -Wsign-conversion fixes for g_get_locale_variants() from
-    !4590 to glib-2-84
-  - !4640 Backport !4620 “glocalfile: Disable faccessat()-based query_exists on
-    Android” to glib-2-84
+  - GNOME/dconf#76 dconf update can set incorrect permissions to dconf system db
+    (Wesley Hershberger)
+  - #490 Not clearly documented behavior of g_key_file_set_comment function.
+    (marklkram)
+  - #803 g_main_context_unref() versus g_source_*() race (Matthew Waters)
+  - #1002 GObject doesn't support removing a weak reference in a GWeakNotify for
+    the same object
+  - #1250 gsocketlistener: Fix IPv4 listen() error-handling resulting in use-
+    after-free
+  - #2377 Document that `g_socket_address_get_native_size()` can return `-1` on
+    errors
+  - #2544 Consider `g_log_always_fatal` for aborting in
+    `g_log_structured_array()` (sid)
+  - #3405 Enable -Wconversion warnings by default (progress towards this, but it
+    is not complete)
+  - #3616 docs: Broken link in GioActionEntry (Philip Withnall)
+  - #3617 Add generalised version of g_date_get_monday_week_of_year() (Philip
+    Withnall)
+  - #3624 `gdbus call` should look for file handles inside nested containers
+    (Julian Sparber)
+  - #3630 2.84.0 build failure on Linux: ../gio/gnetworkmonitornetlink.c:47:10:
+    fatal error: netlink/netlink_route.h: No such file or directory (Philip
+    Withnall)
+  - #3634 test failure with gobject-introspection 1.83.4: warning: element
+    doc:format from state 3 is unknown, ignoring (Philip Withnall)
+  - #3636 gio/trash does not handle special characters well
+  - #3641 GResolver: Local DNS resolution failure in offline mode (Patrick
+    Griffis)
+  - #3642 `g_cancellable_connect()` documentation incorrect (Marco Trevisan
+    (Treviño))
+  - #3643 g_cancellable_connect(): is it safe to unref cancellable from
+    callback? (Marco Trevisan (Treviño))
+  - #3649 Crash with some registry key values in GWin32AppInfo (Philip Withnall)
+  - #3656 Set SYSLOG_IDENTIFIER when logging to journald (Axel Karjalainen)
+  - #3657 girepository: Wrong typelib path on Windows
+  - #3663 Cannot use GZlibCompressor in GTK testsuite (Benjamin Otte)
+  - #3684 UAF in GSignalGroup weak notify callbacks (Thomas Haller)
+  - #3686 docs.gtk.org doesn't mention that GSourceFuncs.finalize may be NULL
+    (BZZZZ)
+  - #3693 Random failures in debian-i386-stable
+  - !4185 [th/gobject-no-object-locks-pt1-notify] use
+    `g_datalist_id_update_atomic()` instead of OPTIONAL_BIT_LOCK_NOTIFY
+  - !4247 mappedfile: Avoid some allocations
+  - !4369 gdesktopappinfo: Prefer matches that occur earlier in the match string
+  - !4387 Fix various -Wshorten-64-to-32 warnings
+  - !4484 Memory sanitizer fixes
+  - !4489 gobject: Be consistent in using atomic logic to handle the
+    GParamSpecPool
+  - !4520 [th/gdataset-cleanup] minor cleanups of gdataset
+  - !4536 [th/gobj-closure-array-atomic] use g_datalist_id_update_atomic() for
+    array of closure watches
+  - !4541 gsettings: Port docs to gi-docgen format, add missing annotations and
+    make various improvements
+  - !4544 tests: Don't install runner scripts without installed_tests
+  - !4545 Update French translation
+  - !4547 Update Catalan translation
+  - !4548 Update Turkish translation
+  - !4551 Updated Danish translation
+  - !4552 Update Persian translation
+  - !4553 docs: Document GSignalFlags members added after 2.0
+  - !4554 Update Indonesian translation
+  - !4555 tests: Add a test for g_object_freeze_notify() being called too often
+  - !4557 gfileinfo: Slightly expand docs for
+    g_file_info_get_attribute_as_string()
+  - !4558 gi: Dynamically set doc-format
+  - !4561 tests: Various fixes to create temporary files in /tmp rather than the
+    build directory
+  - !4562 gdbusnameowning: Convert docs to gi-docgen linking syntax
+  - !4563 giounix-private: Fix macro for checking for epoll_create1()
+  - !4565 Fix LGPL in header
+  - !4567 gutils: make documentation of g_set_prgname() clearer
+  - !4568 docs: Add some detail
+  - !4569 Update Romanian translation
+  - !4570 gspawn-win32: Fix potential integer overflows in argv handling
+  - !4571 gvarianttype: Improve docs on type validation
+  - !4575 gclosure: fix ATOMIC_CHANGE_FIELD to read vint atomically
+  - !4577 gclosure: Allow full set of closure flags to be queried atomically
+  - !4578 [th/bit-lock-and-set] bitlock: add g_bit_lock_and_get() and
+    g_bit_unlock_and_set() API
+  - !4579 tests: Add missing unistd.h include to scannerapi.c
+  - !4581 [th/gobj-no-weak-ref-lock] drop OPTIONAL_BIT_LOCK_WEAK_REFS object
+    lock for `g_object_weak_{ref,unref}()`
+  - !4583 thread: fix Linux detection
+  - !4585 gfile: Expand documentation around file info for inaccessible files
+  - !4586 [th/gobj-doc-weakref] clear #GWeakRef earlier in
+    g_object_run_dispose() and reword docs about #GWeakRef
+  - !4588 gstring: carefully handle gssize parameters
+  - !4590 Various -Wsign-conversion warning fixes
+  - !4591 gthreadedresolver: fix crash in loopback interface check
+  - !4592 gstring: Make len_unsigned unsigned
+  - !4594 Enable -Wsign-conversion for girepository, gthread, gmodule
+  - !4596 docs: Mention how to run the test suite in CONTRIBUTING.md
+  - !4598 gtlsconnection: Fix annotation
+  - !4599 Mark pointer as (type gpointer)
+  - !4601 garray: Fix annotations
+  - !4602 docs: fix typo glong: ULONG_MAX -> LONG_MAX
+  - !4603 Fix GNetworkMonitorNetlink operation under a FreeBSD jail with shared
+    network stack
+  - !4604 cocoa: add support for GBytesIcon in notification backend
+  - !4605 gparamspecs: Use standard min/max constants rather than literals
+  - !4606 gobject, girepository: Fix several -Wsign-conversion warnings on macOS
+  - !4609 Update Portuguese translation
+  - !4610 Update Ukrainian translation
+  - !4613 Update macOS job for new CI runner
+  - !4615 shell: Handle empty comment gracefully
+  - !4619 gslist: Improve documentation for append / prepend / insert methods
+  - !4620 glocalfile: Disable faccessat()-based query_exists on Android
+  - !4621 gallocator: mark as deprecated
+  - !4627 [th/gsignalgroup-dispose] gsignalgroup: make GSignalGroup.dispose() a
+    bit more reentrant
+  - !4628 [th/gdataset-fix-zero-key] fix and cleanup related to using a zero
+    GQuark for keys in GData
+  - !4631 Update German translation
+  - !4632 win32: Only print one OS version
+  - !4633 gzlibcompressor: Convert docs to gi-docgen linking syntax
+  - !4638 docs: Fix formatting of definition lists
+
+* Translation updates:
+  - Catalan (Jordi Mas)
+  - Danish (Ask Hjorth Larsen)
+  - French (Vincent Chatelain)
+  - German (Philipp Kiemle)
+  - Indonesian (Andika Triwidada)
+  - Persian (Danial Behzadi)
+  - Portuguese (Hugo Carvalho)
+  - Romanian (Antonio Marin)
+  - Turkish (Sabri Ünal)
+  - Ukrainian (Yuri Chornoivan)
 
 
 Overview of changes in GLib 2.84.1, 2025-04-03

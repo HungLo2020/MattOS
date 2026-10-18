@@ -101,7 +101,6 @@ guint64       gst_wasapi2_util_waveformatex_to_channel_mask (WAVEFORMATEX * form
 const gchar * gst_wasapi2_util_waveformatex_to_audio_format (WAVEFORMATEX * format);
 
 gboolean      gst_wasapi2_util_parse_waveformatex (WAVEFORMATEX * format,
-                                                   GstCaps * template_caps,
                                                    GstCaps ** out_caps,
                                                    GstAudioChannelPosition ** out_positions);
 
@@ -116,6 +115,30 @@ WAVEFORMATEX * gst_wasapi2_get_default_mix_format (void);
 const wchar_t * gst_wasapi2_get_default_device_id_wide (EDataFlow flow);
 
 const char * gst_wasapi2_get_default_device_id (EDataFlow flow);
+
+const gchar * gst_wasapi2_data_flow_to_string (EDataFlow flow);
+
+const gchar * gst_wasapi2_role_to_string (ERole role);
+
+void gst_wasapi2_free_wfx (WAVEFORMATEX * wfx);
+
+void gst_wasapi2_clear_wfx (WAVEFORMATEX ** wfx);
+
+WAVEFORMATEX * gst_wasapi2_copy_wfx (WAVEFORMATEX * format);
+
+gboolean gst_wasapi2_get_exclusive_mode_formats (IAudioClient * client,
+                                                 IPropertyStore * props,
+                                                 GPtrArray * list);
+
+gboolean gst_wasapi2_get_shared_mode_formats (IAudioClient * client,
+                                              GPtrArray * list);
+
+GstCaps * gst_wasapi2_wfx_list_to_caps (GPtrArray * list);
+
+void      gst_wasapi2_sort_wfx (GPtrArray * list,
+                                WAVEFORMATEX * wfx);
+
+WAVEFORMATEX * gst_wasapi2_audio_info_to_wfx (const GstAudioInfo * info);
 
 G_END_DECLS
 

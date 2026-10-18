@@ -93,6 +93,7 @@ typedef struct {
 	gsize			 icc_profile_size_allocated;
 } JpegExifContext;
 
+#ifndef NO_MODULE_ENTRIES
 static GdkPixbuf *gdk_pixbuf__jpeg_image_load (FILE *f, GError **error);
 static gpointer gdk_pixbuf__jpeg_image_begin_load (GdkPixbufModuleSizeFunc           func0,
                                                    GdkPixbufModulePreparedFunc func1, 
@@ -105,6 +106,7 @@ static gboolean gdk_pixbuf__jpeg_image_load_increment(gpointer context,
                                                       GError **error);
 static gboolean gdk_pixbuf__jpeg_image_load_lines (JpegProgContext  *context,
                                                    GError          **error);
+#endif
 
 static void
 fatal_error_handler (j_common_ptr cinfo)
@@ -143,6 +145,7 @@ output_message_handler (j_common_ptr cinfo)
   /* do nothing */
 }
 
+#ifndef NO_MODULE_ENTRIES
 /* explode gray image data from jpeg library into rgb components in pixbuf */
 static void
 explode_gray_into_buf (struct jpeg_decompress_struct *cinfo,
@@ -356,6 +359,7 @@ jpeg_parse_exif_app2_segment (JpegExifContext *context, jpeg_saved_marker_ptr ma
 		context->icc_profile = g_new (gchar, chunk_size);
 		/* copy the segment data to the profile space */
 		memcpy (context->icc_profile, marker->data + 14, chunk_size);
+                ret = TRUE;
 		goto out;
 	}
 
@@ -377,12 +381,15 @@ jpeg_parse_exif_app2_segment (JpegExifContext *context, jpeg_saved_marker_ptr ma
 	/* copy the segment data to the profile space */
 	memcpy (context->icc_profile + offset, marker->data + 14, chunk_size);
 
-	/* it's now this big plus the new data we've just copied */
-	context->icc_profile_size += chunk_size;
+        context->icc_profile_size = MAX (context->icc_profile_size, offset + chunk_size);
 
 	/* success */
 	ret = TRUE;
 out:
+        if (!ret) {
+                g_free (context->icc_profile);
+                context->icc_profile = NULL;
+        }
 	return ret;
 }
 
@@ -549,7 +556,9 @@ jpeg_destroy_exif_context (JpegExifContext *context)
 {
 	g_free (context->icc_profile);
 }
+#endif /* !NO_MODULE_ENTRIES */
 
+#ifndef NO_MODULE_ENTRIES
 /* Shared library entry point */
 static GdkPixbuf *
 gdk_pixbuf__real_jpeg_image_load (FILE *f, struct jpeg_decompress_struct *cinfo, GError **error)
@@ -620,6 +629,18 @@ gdk_pixbuf__real_jpeg_image_load (FILE *f, struct jpeg_decompress_struct *cinfo,
 	jpeg_start_decompress (cinfo);
 	cinfo->do_fancy_upsampling = FALSE;
 	cinfo->do_block_smoothing = FALSE;
+
+        /* Reject unsupported component counts */
+        if (cinfo->output_components != 3 && cinfo->output_components != 4 &&
+            !(cinfo->output_components == 1 &&
+              cinfo->out_color_space == JCS_GRAYSCALE)) {
+                g_set_error (error,
+                             GDK_PIXBUF_ERROR,
+                             GDK_PIXBUF_ERROR_CORRUPT_IMAGE,
+                             _("Unsupported number of color components (%d)"),
+                             cinfo->output_components);
+                goto out;
+        }
 
 	pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, 
 				 cinfo->out_color_components == 4 ? TRUE : FALSE, 
@@ -721,7 +742,9 @@ out:
 
 	return pixbuf;
 }
+#endif /* !NO_MODULE_ENTRIES */
 
+#ifndef NO_MODULE_ENTRIES
 static GdkPixbuf *
 gdk_pixbuf__jpeg_image_load (FILE *f, GError **error)
 {
@@ -729,10 +752,11 @@ gdk_pixbuf__jpeg_image_load (FILE *f, GError **error)
 
         return gdk_pixbuf__real_jpeg_image_load (f, &cinfo, error);
 }
-
+#endif /* !NO_MODULE_ENTRIES */
 
 /**** Progressive image loading handling *****/
 
+#ifndef NO_MODULE_ENTRIES
 /* these routines required because we are acting as a source manager for */
 /* libjpeg. */
 static void
@@ -759,7 +783,6 @@ fill_input_buffer (j_decompress_ptr cinfo)
 	return FALSE;
 }
 
-
 static void
 skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 {
@@ -776,14 +799,14 @@ skip_input_data (j_decompress_ptr cinfo, long num_bytes)
 		src->skip_next = num_bytes - num_can_do;
 	}
 }
+#endif /* !NO_MODULE_ENTRIES */
 
- 
+#ifndef NO_MODULE_ENTRIES
 /* 
  * func - called when we have pixmap created (but no image data)
  * user_data - passed as arg 1 to func
  * return context (opaque to user)
  */
-
 static gpointer
 gdk_pixbuf__jpeg_image_begin_load (GdkPixbufModuleSizeFunc size_func,
 				   GdkPixbufModulePreparedFunc prepared_func, 
@@ -849,7 +872,9 @@ gdk_pixbuf__jpeg_image_begin_load (GdkPixbufModuleSizeFunc size_func,
         
 	return (gpointer) context;
 }
+#endif /* NO_MODULE_ENTRIES */
 
+#ifndef NO_MODULE_ENTRIES
 /*
  * context - returned from image_begin_load
  *
@@ -913,8 +938,9 @@ gdk_pixbuf__jpeg_image_stop_load (gpointer data, GError **error)
 
         return retval;
 }
+#endif /* !NO_MODULE_ENTRIES */
 
-
+#ifndef NO_MODULE_ENTRIES
 static gboolean
 gdk_pixbuf__jpeg_image_load_lines (JpegProgContext  *context,
                                    GError          **error)
@@ -972,8 +998,9 @@ gdk_pixbuf__jpeg_image_load_lines (JpegProgContext  *context,
 
         return TRUE;
 }
+#endif /* NO_MODULE_ENTRIES */
 
-
+#ifndef NO_MODULE_ENTRIES
 /*
  * context - from image_begin_load
  * buf - new image data
@@ -1273,6 +1300,7 @@ out:
 	jpeg_destroy_exif_context (&exif_context);
 	return retval;
 }
+#endif /* !NO_MODULE_ENTRIES */
 
 /* Save */
 
@@ -1361,7 +1389,6 @@ real_save_jpeg (GdkPixbuf          *pixbuf,
        guchar *ptr;
        guchar *pixels = NULL;
        JSAMPROW *jbuf;
-       int y = 0;
        volatile int quality = 75; /* default; must be between 0 and 100 */
        int i, j;
        int w, h = 0;
@@ -1608,7 +1635,6 @@ real_save_jpeg (GdkPixbuf          *pixbuf,
                }
 
                i++;
-               y++;
 
        }
 
@@ -1655,6 +1681,8 @@ gdk_pixbuf__jpeg_is_save_option_supported (const gchar *option_key)
         return FALSE;
 }
 
+#ifndef NO_MODULE_ENTRIES
+
 #ifndef INCLUDE_jpeg
 #define MODULE_ENTRY(function) G_MODULE_EXPORT void function
 #else
@@ -1697,3 +1725,5 @@ MODULE_ENTRY (fill_info) (GdkPixbufFormat *info)
 	info->flags = GDK_PIXBUF_FORMAT_WRITABLE | GDK_PIXBUF_FORMAT_THREADSAFE;
 	info->license = "LGPL";
 }
+
+#endif

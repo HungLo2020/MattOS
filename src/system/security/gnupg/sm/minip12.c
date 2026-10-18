@@ -825,6 +825,14 @@ parse_bag_encrypted_data (struct p12_parse_ctx_s *ctx, tlv_parser_t tlv)
         }
       iter = intval;
 
+      /* Get the optional keyLength (we don't use it) */
+      if (tlv_next (tlv))
+        goto bailout;
+      if (!tlv_expect_integer (tlv, &intval))
+        parmlen -= tlv_parser_tag_length (tlv, 1);
+      else
+        tlv_parser_set_pending (tlv); /* Not an int - skip the next tlv_next */
+
       if (parmlen > 2)  /* There is the optional prf.  */
         {
           if (tlv_next (tlv))
@@ -951,7 +959,7 @@ parse_bag_encrypted_data (struct p12_parse_ctx_s *ctx, tlv_parser_t tlv)
   if (!datalen)
     {
       err = gpg_error (GPG_ERR_DECRYPT_FAILED);
-      ctx->badpass = 1;  /* This is the most likley reason.  */
+      ctx->badpass = 1;  /* This is the most likely reason.  */
       goto bailout;
     }
 
@@ -1352,6 +1360,14 @@ parse_shrouded_key_bag (struct p12_parse_ctx_s *ctx, tlv_parser_t tlv)
           goto bailout;
         }
       iter = intval;
+
+      /* Get the optional keyLength (we don't use it) */
+      if (tlv_next (tlv))
+        goto bailout;
+      if (!tlv_expect_integer (tlv, &intval))
+        parmlen -= tlv_parser_tag_length (tlv, 1);
+      else
+        tlv_parser_set_pending (tlv); /* Not an int - skip the next tlv_next */
 
       if (parmlen > 2)  /* There is the optional prf.  */
         {
@@ -2027,7 +2043,7 @@ p12_parse (const unsigned char *buffer, size_t length, const char *pw,
   if ((err = tlv_expect_octet_string (tlv, &data, &datalen)))
     goto bailout;
 
-  tmptlv = tlv_parser_new (data, datalen, opt_verbose, NULL);
+  tmptlv = tlv_parser_new (data, datalen, opt_verbose, tlv);
   if (!tmptlv)
     {
       err = gpg_error_from_syserror ();
@@ -2596,7 +2612,7 @@ build_ecc_key_sequence (gcry_mpi_t *kparms, int mode, size_t *r_length)
   /* We need to use our OpenPGP mapping to turn a curve name into its
    * canonical numerical OID.  We should have a Libgcrypt function to
    * do this; see bug report #4926.  */
-  curve = openpgp_curve_to_oid (p, &curvebits, NULL);
+  curve = openpgp_curve_to_oid (p, &curvebits, NULL, 1);
   xfree (p);
   if (!curve)
     {
@@ -2607,7 +2623,7 @@ build_ecc_key_sequence (gcry_mpi_t *kparms, int mode, size_t *r_length)
     }
 
   /* Unfortunately the private key D may come with a single leading
-   * zero byte.  This is becuase at some point it was treated as
+   * zero byte.  This is because at some point it was treated as
    * signed MPI and the code made sure that it is always interpreted
    * as unsigned.  Fortunately we got the size of the curve and can
    * detect such a case reliable.  */

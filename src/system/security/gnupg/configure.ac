@@ -1,7 +1,7 @@
 # configure.ac - for GnuPG 2.1
 # Copyright (C) 1998-2019 Werner Koch
 # Copyright (C) 1998-2021 Free Software Foundation, Inc.
-# Copyright (C) 2003-2025 g10 Code GmbH
+# Copyright (C) 2003-2026 g10 Code GmbH
 #
 # This file is part of GnuPG.
 #
@@ -28,8 +28,8 @@ min_automake_version="1.16.3"
 # another commit and push so that the git magic is able to work.
 m4_define([mym4_package],[gnupg])
 m4_define([mym4_major], [2])
-m4_define([mym4_minor], [4])
-m4_define([mym4_micro], [9])
+m4_define([mym4_minor], [5])
+m4_define([mym4_micro], [24])
 
 # To start a new development series, i.e a new major or minor number
 # you need to mark an arbitrary commit before the first beta release
@@ -47,21 +47,23 @@ m4_define([mym4_isbeta],       m4_argn(2, mym4_verslist))
 m4_define([mym4_version],      m4_argn(4, mym4_verslist))
 m4_define([mym4_revision],     m4_argn(7, mym4_verslist))
 m4_define([mym4_revision_dec], m4_argn(8, mym4_verslist))
+m4_define([mym4_commitid],     m4_argn(9, mym4_verslist))
 m4_esyscmd([echo ]mym4_version[>VERSION])
+m4_esyscmd([echo ]mym4_commitid[>>VERSION])
 AC_INIT([mym4_package],[mym4_version],[https://bugs.gnupg.org])
 
 # When changing the SWDB tag please also adjust the hard coded tags in
 # build-aux/speedo.mk, build-aux/getswdb.sh, and Makefile.am
 # As well as the source info for the man pages.
-AC_DEFINE_UNQUOTED(GNUPG_SWDB_TAG, "gnupg24", [swdb tag for this branch])
+AC_DEFINE_UNQUOTED(GNUPG_SWDB_TAG, "gnupg26", [swdb tag for this branch])
 
-NEED_GPGRT_VERSION=1.46
+NEED_GPGRT_VERSION=1.56
 
 NEED_LIBGCRYPT_API=1
-NEED_LIBGCRYPT_VERSION=1.9.1
+NEED_LIBGCRYPT_VERSION=1.12.0
 
-NEED_LIBASSUAN_API=2
-NEED_LIBASSUAN_VERSION=2.5.0
+NEED_LIBASSUAN_API=3
+NEED_LIBASSUAN_VERSION=3.0.0
 
 NEED_KSBA_API=1
 NEED_KSBA_VERSION=1.6.3
@@ -230,18 +232,6 @@ show_gnupg_dirmngr_ldap_pgm="(default)"
 test -n "$GNUPG_DIRMNGR_LDAP_PGM" \
       && show_gnupg_dirmngr_ldap_pgm="$GNUPG_DIRMNGR_LDAP_PGM"
 
-
-#
-# For a long time gpg 2.x was installed as gpg2.  This changed with
-# 2.2.  This option can be used to install gpg under the name gpg2.
-#
-AC_ARG_ENABLE(gpg-is-gpg2,
-    AS_HELP_STRING([--enable-gpg-is-gpg2],[Set installed name of gpg to gpg2]),
-    gpg_is_gpg2=$enableval)
-if test "$gpg_is_gpg2" = "yes"; then
-   AC_DEFINE(USE_GPG2_HACK, 1, [Define to install gpg as gpg2])
-fi
-AM_CONDITIONAL(USE_GPG2_HACK, test "$gpg_is_gpg2" = "yes")
 
 
 # SELinux support includes tracking of sensitive files to avoid
@@ -525,7 +515,7 @@ AH_BOTTOM([
 #define GNUPG_OPENPGP_REVOC_DIR "openpgp-revocs.d"
 #define GNUPG_CACHE_DIR         "cache.d"
 
-#define GNUPG_DEF_COPYRIGHT_LINE "Copyright (C) 2025 g10 Code GmbH"
+#define GNUPG_DEF_COPYRIGHT_LINE "Copyright (C) 2026 g10 Code GmbH"
 
 /* For some systems (DOS currently), we hardcode the path here.  For
    POSIX systems the values are constructed by the Makefiles, so that
@@ -554,17 +544,17 @@ AH_BOTTOM([
 #endif
 
 
-/* We didn't define endianness above, so get it from OS macros.  This
-   is intended for making fat binary builds on OS X. */
-#if !defined(BIG_ENDIAN_HOST) && !defined(LITTLE_ENDIAN_HOST)
-#if defined(__BIG_ENDIAN__)
-#define BIG_ENDIAN_HOST 1
-#elif defined(__LITTLE_ENDIAN__)
-#define LITTLE_ENDIAN_HOST 1
-#else
-#error "No endianness found"
-#endif
-#endif
+/* If the configure check for endianness has been disabled, get it from
+   OS macros.  This is intended for making fat binary builds on OS X.  */
+#ifdef DISABLED_ENDIAN_CHECK
+# if defined(__BIG_ENDIAN__)
+#  define WORDS_BIGENDIAN 1
+# elif defined(__LITTLE_ENDIAN__)
+#  undef WORDS_BIGENDIAN
+# else
+#  error "No endianness found"
+# endif
+#endif /*DISABLED_ENDIAN_CHECK*/
 
 
 /* Hack used for W32: ldap.m4 also tests for the ASCII version of
@@ -603,9 +593,6 @@ AH_BOTTOM([
 /* Under Windows we use the gettext code from libgpg-error.  */
 #define GPG_ERR_ENABLE_GETTEXT_MACROS
 
-/* Under WindowsCE we use the strerror replacement from libgpg-error.  */
-#define GPG_ERR_ENABLE_ERRNO_MACROS
-
 #endif /*GNUPG_CONFIG_H_INCLUDED*/
 ])
 
@@ -637,9 +624,7 @@ AC_PROG_RANLIB
 AC_CHECK_TOOL(AR, ar, :)
 AC_PATH_PROG(PERL,"perl")
 AC_CHECK_TOOL(WINDRES, windres, :)
-AC_PATH_PROG(YAT2M, "yat2m", "./yat2m" )
-AC_ARG_VAR(YAT2M, [tool to convert texi to man pages])
-AM_CONDITIONAL(HAVE_YAT2M, test -n "$ac_cv_path_YAT2M")
+AC_PATH_PROG(YAT2M, [yat2m], [:])
 AC_SEARCH_LIBS([strerror],[cposix])
 AC_SYS_LARGEFILE
 
@@ -1344,10 +1329,19 @@ AC_MSG_NOTICE([checking for system characteristics])
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
+AC_ARG_ENABLE(endian-check,
+              AS_HELP_STRING([--disable-endian-check],
+              [disable the endian check and trust the OS provided macros]),
+	      endiancheck=$enableval,endiancheck=yes)
+if test x"$endiancheck" = xyes ; then
+  AC_C_BIGENDIAN
+else
+  AC_DEFINE(DISABLED_ENDIAN_CHECK,1,[configure did not test for endianness])
+fi
 AC_TYPE_SIZE_T
 AC_TYPE_MODE_T
 AC_CHECK_FUNCS([sigdescr_np])
-AC_CHECK_DECLS([sys_siglist],[],[],[#include <signal.h>
+AC_CHECK_DECLS([sys_siglist, _sys_siglist],[],[],[#include <signal.h>
 /* NetBSD declares sys_siglist in unistd.h.  */
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
@@ -1358,15 +1352,6 @@ AC_CHECK_DECLS([sys_siglist],[],[],[#include <signal.h>
 gl_TYPE_SOCKLEN_T
 
 AC_SEARCH_LIBS([inet_addr], [nsl])
-
-AC_ARG_ENABLE(endian-check,
-              AS_HELP_STRING([--disable-endian-check],
-              [disable the endian check and trust the OS provided macros]),
-	      endiancheck=$enableval,endiancheck=yes)
-
-if test x"$endiancheck" = xyes ; then
-  GNUPG_CHECK_ENDIAN
-fi
 
 # fixme: we should get rid of the byte type
 AC_CHECK_TYPES([byte, ushort, ulong, u16, u32])
@@ -1385,6 +1370,8 @@ AC_CHECK_SIZEOF(time_t,,[[
 ]])
 GNUPG_TIME_T_UNSIGNED
 
+# Check SOCKET type for Windows.
+AC_CHECK_TYPES([SOCKET], [], [], [[#include "winsock2.h"]])
 
 if test "$ac_cv_sizeof_unsigned_short" = "0" \
    || test "$ac_cv_sizeof_unsigned_int" = "0" \
@@ -1440,7 +1427,7 @@ fi
 AC_CHECK_TYPES([struct sigaction, sigset_t],,,[#include <signal.h>])
 
 # Dirmngr requires mmap on Unix systems.
-if test $ac_cv_func_mmap != yes -a $mmap_needed = yes; then
+if test $ac_cv_func_mmap != yes && test $mmap_needed = yes; then
   AC_MSG_ERROR([[Sorry, the current implementation requires mmap.]])
 fi
 
@@ -1599,7 +1586,7 @@ if test "$build_tpm2d" = "yes"; then
     # until version 2.4.0.
     #
     # Note: the missing API is fairly serious and is also easily backportable
-    # so keep the check below as is intead of going by library version number.
+    # so keep the check below as is instead of going by library version number.
     ##
     AC_CHECK_LIB(tss2-esys, Esys_TR_GetTpmHandle, [], [
 	AC_MSG_WARN([Need Esys_TR_GetTpmHandle API (usually requires Intel TSS 2.4.0 or later, disabling TPM support)])
@@ -1624,7 +1611,8 @@ fi
 AC_SUBST(LIBTSS_LIBS)
 AC_SUBST(LIBTSS_CFLAGS)
 AM_CONDITIONAL(HAVE_LIBTSS, test "$have_libtss" != no)
-AM_CONDITIONAL(TEST_LIBTSS, test -n "$SWTPM" -o -n "$TPMSERVER" -a -n "$TSSSTARTUP")
+AM_CONDITIONAL(TEST_LIBTSS, [test -n "$SWTPM" \
+               || { test -n "$TPMSERVER" && test -n "$TSSSTARTUP"; }])
 AC_SUBST(HAVE_LIBTSS)
 
 #
@@ -1636,7 +1624,7 @@ if test "$GCC" = yes; then
     mycflags=
     mycflags_save=$CFLAGS
 
-    # Check whether gcc does not emit a diagnositc for unknown -Wno-*
+    # Check whether gcc does not emit a diagnostic for unknown -Wno-*
     # options.  This is the case for gcc >= 4.6
     AC_MSG_CHECKING([if gcc ignores unknown -Wno-* options])
     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -1662,6 +1650,7 @@ if test "$GCC" = yes; then
         fi
         if test x"$_gcc_wopt" = xyes ; then
           mycflags="$mycflags -W -Wno-sign-compare -Wno-format-zero-length"
+          mycflags="$mycflags -Wformat-nonliteral"
           mycflags="$mycflags -Wno-missing-field-initializers"
         fi
 
@@ -1940,7 +1929,7 @@ AC_DEFINE_UNQUOTED(TPM2DAEMON_SOCK_NAME, "S.tpm2daemon",
 AC_DEFINE_UNQUOTED(DIRMNGR_SOCK_NAME, "S.dirmngr",
                    [The name of the dirmngr socket])
 AC_DEFINE_UNQUOTED(DIRMNGR_DEFAULT_KEYSERVER,
-                   "hkps://keyserver.ubuntu.com",
+                   "hkps://none",
       [The default keyserver for dirmngr to use, if none is explicitly given])
 
 AC_DEFINE_UNQUOTED(GPGEXT_GPG, "gpg", [The standard binary file suffix])
@@ -1955,9 +1944,10 @@ fi
 # Provide information about the build.
 #
 BUILD_REVISION="mym4_revision"
+BUILD_COMMITID="mym4_commitid"
 AC_SUBST(BUILD_REVISION)
-AC_DEFINE_UNQUOTED(BUILD_REVISION, "$BUILD_REVISION",
-                   [GIT commit id revision used to build this package])
+AC_DEFINE_UNQUOTED(BUILD_COMMITID, "$BUILD_COMMITID",
+                   [Git commit id used to build this package])
 
 changequote(,)dnl
 BUILD_VERSION=`echo "$VERSION" | sed 's/\([0-9.]*\).*/\1./'`
@@ -2158,7 +2148,7 @@ echo "
         TOFU support:        $use_tofu
         Tor support:         $show_tor_support
 "
-if test "$have_libtss" != no -a -z "$TPMSERVER" -a -z "$SWTPM"; then
+if test "$have_libtss" != no && test -z "$TPMSERVER" && test -z "$SWTPM"; then
 cat <<G10EOF
         Warning: TPM support is compiled in but no software TPM
                  for testing was discovered. TPM tests are disabled

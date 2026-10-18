@@ -8,6 +8,10 @@ hlsl_sources = [
   ['PSMain_sample', 'ps'],
   ['PSMain_sample_scrgb_tonemap', 'ps'],
   ['PSMain_sample_scrgb', 'ps'],
+  ['PSMain_sample_bgra_to_vuya_full_premul', 'ps'],
+  ['PSMain_sample_bgra_to_vuya_full', 'ps'],
+  ['PSMain_sample_bgra_to_vuya_limited_premul', 'ps'],
+  ['PSMain_sample_bgra_to_vuya_limited', 'ps'],
   ['PSMain_snow', 'ps'],
   ['VSMain_color', 'vs'],
   ['VSMain_coord', 'vs'],
@@ -21,6 +25,12 @@ hlsl_sources = [
   ['CSMain_yadif_1', 'cs'],
   ['CSMain_yadif_2', 'cs'],
   ['CSMain_yadif_4', 'cs'],
+  ['CSMain_fisheye_equirect', 'cs'],
+  ['CSMain_fisheye_panorama', 'cs'],
+  ['CSMain_fisheye_perspective', 'cs'],
+  ['CSMain_weave_interlace_1', 'cs'],
+  ['CSMain_weave_interlace_2', 'cs'],
+  ['CSMain_weave_interlace_4', 'cs'],
 ]
 
 shader_model = '5_0'

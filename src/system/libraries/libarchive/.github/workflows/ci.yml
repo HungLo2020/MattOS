@@ -6,13 +6,83 @@ permissions:
   contents: read
 
 jobs:
+  debian-i386:
+    name: Debian (cmake, i386)
+    runs-on: ubuntu-latest
+    container:
+      image: i386/debian:bookworm
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends \
+          build-essential ca-certificates cmake git pkg-config \
+          libacl1-dev libbz2-dev liblz4-dev liblzma-dev \
+          libssl-dev libzstd-dev zlib1g-dev
+    # Plain git instead of the checkout action: the runner executes
+    # actions with its own 64-bit node, which cannot run inside a
+    # 32-bit container.
+    - name: Check out
+      run: |
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        git init -q
+        git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+        git fetch -q --depth 1 origin "$GITHUB_SHA"
+        git checkout -q FETCH_HEAD
+    - name: Configure
+      run: ./build/ci/build.sh -a configure
+      env:
+        BS: cmake
+    - name: Build
+      run: ./build/ci/build.sh -a build
+      env:
+        BS: cmake
+        MAKE_ARGS: -j4
+    - name: Test
+      run: ./build/ci/build.sh -a test
+      env:
+        BS: cmake
+        CTEST_OUTPUT_ON_FAILURE: ON
+    - name: Install
+      run: ./build/ci/build.sh -a install
+      env:
+        BS: cmake
+    # The artifact is built like in the other jobs, but not uploaded:
+    # the upload-artifact action cannot run in this container either,
+    # for the same reason as the checkout action above.
+    - name: Artifact
+      run: ./build/ci/build.sh -a artifact
+      env:
+        BS: cmake
+
+  FreeBSD:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bs: [autotools, cmake]
+    steps:
+    - name: Build and test on a FreeBSD 15.1 firecracker VM
+      uses: acj/freebsd-firecracker-action@ba4f70408ef1d979acdd7bd36fc4b27e06fe5abe # v0.12.0
+      with:
+        run-in-vm: |
+          chflags -R noschg / && \
+          fetch -o - https://download.freebsd.org/releases/amd64/15.1-RELEASE/base.txz | bsdtar -x -C / -f - && \
+          pkg bootstrap -y && \
+          cd firecracker-freebsd && \
+          env BS=${{ matrix.bs }} ./build/ci/github_actions/freebsd.sh prepare && \
+          env BS=${{ matrix.bs }} CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib ./build/ci/build.sh -a autogen && \
+          env BS=${{ matrix.bs }} MAKE=gmake CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib ./build/ci/build.sh -a configure && \
+          env BS=${{ matrix.bs }} MAKE=gmake MAKE_ARGS="-j 2" ./build/ci/build.sh -a build && \
+          env BS=${{ matrix.bs }} MAKE=gmake SKIP_TEST_RESTORE_ATIME=1 MAKE_ARGS="-j 2" ./build/ci/build.sh -a test && \
+          env BS=${{ matrix.bs }} ./build/ci/github_actions/freebsd.sh test && \
+          env BS=${{ matrix.bs }} MAKE=gmake MAKE_ARGS="-j 2" ./build/ci/build.sh -a install
   MacOS:
     runs-on: macos-15
     strategy:
       matrix:
         bs: [autotools, cmake]
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Install dependencies
       run: ./build/ci/github_actions/install-macos-dependencies.sh
     - name: Autogen
@@ -47,7 +117,7 @@ jobs:
       run: ./build/ci/build.sh -a artifact
       env:
         BS: ${{ matrix.bs }}
-    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: libarchive-macos-${{ matrix.bs }}-${{ github.sha }}
         path: libarchive.tar.xz
@@ -59,7 +129,7 @@ jobs:
         bs: [autotools, cmake]
         crypto: [mbedtls, nettle, openssl]
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Update apt cache
       run: sudo apt-get update
     - name: Install dependencies
@@ -93,14 +163,14 @@ jobs:
       run: ./build/ci/build.sh -a artifact
       env:
         BS: ${{ matrix.bs }}
-    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: libarchive-ubuntu-${{ matrix.bs }}-${{ matrix.crypto }}-${{ github.sha }}
         path: libarchive.tar.xz
   Ubuntu-distcheck:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Update package definitions
       run: sudo apt-get update
     - name: Install dependencies
@@ -112,10 +182,11 @@ jobs:
     - name: Distcheck
       run: ./build/ci/build.sh -a distcheck
       env:
+        CTEST_OUTPUT_ON_FAILURE: ON
         SKIP_OPEN_FD_ERR_TEST: 1
     - name: Dist-Artifact
       run: ./build/ci/build.sh -a dist-artifact
-    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: libarchive-${{ github.sha }}
         path: libarchive-dist.tar
@@ -125,18 +196,44 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        be: [mingw-gcc, msvc]
+        be: [cygwin-gcc, msvc]
+        include:
+          - { be: mingw, msystem: mingw64 }
+          - { be: mingw, msystem: ucrt64 }
+          - { be: mingw, msystem: clang64 }
+    env:
+      MSYSTEM: ${{ matrix.msystem }}
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-    - name: Install mingw
-      if:  ${{ matrix.be=='mingw-gcc' }}
-      run: choco install mingw
-      shell: cmd
-    - name: Install library dependencies
-      run: ./build/ci/github_actions/ci.cmd deplibs
-      shell: cmd
-      env:
-        BE: ${{ matrix.be }}
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Install Cygwin
+      uses: cygwin/cygwin-install-action@3f0a3f9f988f7e96b8c18098ae05eaec175f5b52 # v6
+      if:  ${{ matrix.be=='cygwin-gcc' }}
+      with:
+        install-dir: "D:\\cygwin"
+        packages: |-
+          make autoconf automake cmake
+          gcc-core binutils libtool pkg-config
+          bison zlib-devel libbz2-devel liblzma-devel
+          liblz4-devel libiconv-devel libxml2-devel
+          libzstd-devel libssl-devel
+    - name: Install MinGW (msys2)
+      uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+      if:  ${{ matrix.be=='mingw' }}
+      with:
+        location: "D:\\"
+        suppress-deprecation-warnings: msystem-mingw64
+        msystem: ${{ matrix.msystem }}
+        pacboy: |-
+          gcc:p
+          autotools:p
+          binutils:p
+          pkgconf:p
+          cmake:p
+          make:p
+          zlib:p
+          bzip2:p
+          xz:p
+          zstd:p
     - name: Configure
       run: ./build/ci/github_actions/ci.cmd configure
       shell: cmd
@@ -163,7 +260,9 @@ jobs:
       shell: cmd
       env:
         BE: ${{ matrix.be }}
-    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
-        name: libarchive-windows-${{ matrix.be }}-${{ github.sha }}
-        path: libarchive.zip
+        # for msvc and cygwin, libarchive-windows-backend-arch
+        # for mingw, libarchive-windows-mingw-msystem-arch
+        name: libarchive-windows-${{ matrix.be }}${{ matrix.be=='mingw' && format('-{0}', matrix.msystem) || '' }}-${{ github.sha }}
+        path: ${{ matrix.be=='cygwin-gcc' && 'libarchive.tar.xz' || 'libarchive.zip' }}

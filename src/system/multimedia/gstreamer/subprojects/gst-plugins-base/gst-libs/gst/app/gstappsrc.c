@@ -138,6 +138,26 @@ callbacks_unref (Callbacks * callbacks)
   g_free (callbacks);
 }
 
+G_DEFINE_BOXED_TYPE (GstAppSrcSimpleCallbacks, gst_app_src_simple_callbacks,
+    gst_app_src_simple_callbacks_ref, gst_app_src_simple_callbacks_unref);
+
+struct _GstAppSrcSimpleCallbacks
+{
+  int ref_count;
+  gboolean attached;
+
+  GstAppSrcNeedDataCallback need_data_cb;
+  gpointer need_data_user_data;
+  GDestroyNotify need_data_destroy_notify;
+
+  GstAppSrcEnoughDataCallback enough_data_cb;
+  gpointer enough_data_user_data;
+  GDestroyNotify enough_data_destroy_notify;
+
+  GstAppSrcSeekDataCallback seek_data_cb;
+  gpointer seek_data_user_data;
+  GDestroyNotify seek_data_destroy_notify;
+};
 
 struct _GstAppSrcPrivate
 {
@@ -195,6 +215,10 @@ struct _GstAppSrcPrivate
   GstAppLeakyType leaky_type;
 
   Callbacks *callbacks;
+  GstAppSrcSimpleCallbacks *simple_callbacks;
+
+  guint64 in, out, dropped;
+  gboolean silent;
 };
 
 GST_DEBUG_CATEGORY_STATIC (app_src_debug);
@@ -234,6 +258,7 @@ enum
 #define DEFAULT_PROP_DURATION      GST_CLOCK_TIME_NONE
 #define DEFAULT_PROP_HANDLE_SEGMENT_CHANGE FALSE
 #define DEFAULT_PROP_LEAKY_TYPE    GST_APP_LEAKY_TYPE_NONE
+#define DEFAULT_SILENT             TRUE
 
 enum
 {
@@ -257,6 +282,10 @@ enum
   PROP_DURATION,
   PROP_HANDLE_SEGMENT_CHANGE,
   PROP_LEAKY_TYPE,
+  PROP_IN,
+  PROP_OUT,
+  PROP_DROPPED,
+  PROP_SILENT,
   PROP_LAST
 };
 
@@ -572,8 +601,52 @@ gst_app_src_class_init (GstAppSrcClass * klass)
           "Whether to drop buffers once the internal queue is full",
           GST_TYPE_APP_LEAKY_TYPE,
           DEFAULT_PROP_LEAKY_TYPE,
-          G_PARAM_READWRITE | GST_PARAM_MUTABLE_READY |
+          G_PARAM_READWRITE | GST_PARAM_MUTABLE_PLAYING |
           G_PARAM_STATIC_STRINGS));
+
+  /**
+   * GstAppSrc:in:
+   *
+   * Number of input buffers that were queued.
+   *
+   * Since: 1.28
+   */
+  g_object_class_install_property (gobject_class, PROP_IN,
+      g_param_spec_uint64 ("in", "In",
+          "Number of input buffers", 0, G_MAXUINT64, 0,
+          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+  /**
+   * GstAppSrc:out:
+   *
+   * Number of output buffers that were dequeued.
+   *
+   * Since: 1.28
+   */
+  g_object_class_install_property (gobject_class, PROP_OUT,
+      g_param_spec_uint64 ("out", "Out", "Number of output buffers", 0,
+          G_MAXUINT64, 0, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+  /**
+   * GstAppSrc:dropped:
+   *
+   * Number of buffers that were dropped.
+   *
+   * Since: 1.28
+   */
+  g_object_class_install_property (gobject_class, PROP_DROPPED,
+      g_param_spec_uint64 ("dropped", "Dropped", "Number of dropped buffers", 0,
+          G_MAXUINT64, 0, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS));
+
+  /**
+   * GstAppSrc:silent:
+   *
+   * Don't emit notify for input, output and dropped buffers.
+   *
+   * Since: 1.28
+   */
+  g_object_class_install_property (gobject_class, PROP_SILENT,
+      g_param_spec_boolean ("silent", "silent",
+          "Don't emit notify for dropped buffers",
+          DEFAULT_SILENT, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   /**
    * GstAppSrc::need-data:
@@ -763,6 +836,7 @@ gst_app_src_init (GstAppSrc * appsrc)
   priv->min_percent = DEFAULT_PROP_MIN_PERCENT;
   priv->handle_segment_change = DEFAULT_PROP_HANDLE_SEGMENT_CHANGE;
   priv->leaky_type = DEFAULT_PROP_LEAKY_TYPE;
+  priv->silent = DEFAULT_SILENT;
 
   gst_base_src_set_live (GST_BASE_SRC (appsrc), DEFAULT_PROP_IS_LIVE);
 }
@@ -795,6 +869,7 @@ gst_app_src_flush_queued (GstAppSrc * src, gboolean retain_last_caps)
   gst_queue_status_info_reset (&priv->queue_status_info);
   priv->need_discont_upstream = FALSE;
   priv->need_discont_downstream = FALSE;
+  priv->in = priv->out = priv->dropped = 0;
 }
 
 static void
@@ -803,6 +878,7 @@ gst_app_src_dispose (GObject * obj)
   GstAppSrc *appsrc = GST_APP_SRC_CAST (obj);
   GstAppSrcPrivate *priv = appsrc->priv;
   Callbacks *callbacks = NULL;
+  GstAppSrcSimpleCallbacks *simple_callbacks = NULL;
 
   GST_OBJECT_LOCK (appsrc);
   if (priv->current_caps) {
@@ -818,10 +894,13 @@ gst_app_src_dispose (GObject * obj)
   g_mutex_lock (&priv->mutex);
   if (priv->callbacks)
     callbacks = g_steal_pointer (&priv->callbacks);
+  if (priv->simple_callbacks)
+    simple_callbacks = g_steal_pointer (&priv->simple_callbacks);
   gst_app_src_flush_queued (appsrc, FALSE);
   g_mutex_unlock (&priv->mutex);
 
   g_clear_pointer (&callbacks, callbacks_unref);
+  g_clear_pointer (&simple_callbacks, gst_app_src_simple_callbacks_unref);
 
   G_OBJECT_CLASS (parent_class)->dispose (obj);
 }
@@ -925,7 +1004,10 @@ gst_app_src_set_property (GObject * object, guint prop_id,
       priv->handle_segment_change = g_value_get_boolean (value);
       break;
     case PROP_LEAKY_TYPE:
-      priv->leaky_type = g_value_get_enum (value);
+      gst_app_src_set_leaky_type (appsrc, g_value_get_enum (value));
+      break;
+    case PROP_SILENT:
+      priv->silent = g_value_get_boolean (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1007,7 +1089,25 @@ gst_app_src_get_property (GObject * object, guint prop_id, GValue * value,
       g_value_set_boolean (value, priv->handle_segment_change);
       break;
     case PROP_LEAKY_TYPE:
-      g_value_set_enum (value, priv->leaky_type);
+      g_value_set_enum (value, gst_app_src_get_leaky_type (appsrc));
+      break;
+    case PROP_IN:
+      g_mutex_lock (&appsrc->priv->mutex);
+      g_value_set_uint64 (value, appsrc->priv->in);
+      g_mutex_unlock (&appsrc->priv->mutex);
+      break;
+    case PROP_OUT:
+      g_mutex_lock (&appsrc->priv->mutex);
+      g_value_set_uint64 (value, appsrc->priv->out);
+      g_mutex_unlock (&appsrc->priv->mutex);
+      break;
+    case PROP_DROPPED:
+      g_mutex_lock (&appsrc->priv->mutex);
+      g_value_set_uint64 (value, appsrc->priv->dropped);
+      g_mutex_unlock (&appsrc->priv->mutex);
+      break;
+    case PROP_SILENT:
+      g_value_set_boolean (value, appsrc->priv->silent);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1027,7 +1127,16 @@ gst_app_src_send_event (GstElement * element, GstEvent * event)
       gst_app_src_flush_queued (appsrc, TRUE);
       priv->is_eos = FALSE;
       g_mutex_unlock (&priv->mutex);
+
+      if (!priv->silent) {
+        g_object_notify (G_OBJECT (appsrc), "dropped");
+      }
       break;
+    case GST_EVENT_EOS:
+      gst_app_src_end_of_stream (appsrc);
+      /* Don't pass the event through */
+      gst_event_unref (event);
+      return TRUE;
     default:
       if (GST_EVENT_IS_SERIALIZED (event)) {
         GST_DEBUG_OBJECT (appsrc, "queue event: %" GST_PTR_FORMAT, event);
@@ -1091,6 +1200,7 @@ gst_app_src_start (GstBaseSrc * bsrc)
    * in random-access mode. */
   priv->offset = -1;
   priv->flushing = FALSE;
+  priv->in = priv->out = priv->dropped = 0;
   g_mutex_unlock (&priv->mutex);
 
   gst_base_src_set_format (bsrc, priv->format);
@@ -1115,7 +1225,12 @@ gst_app_src_stop (GstBaseSrc * bsrc)
   priv->posted_latency_msg = FALSE;
   gst_app_src_flush_queued (appsrc, TRUE);
   g_cond_broadcast (&priv->cond);
+  priv->in = priv->out = priv->dropped = 0;
   g_mutex_unlock (&priv->mutex);
+
+  if (!priv->silent) {
+    g_object_notify (G_OBJECT (appsrc), "dropped");
+  }
 
   return TRUE;
 }
@@ -1228,6 +1343,7 @@ gst_app_src_do_seek (GstBaseSrc * src, GstSegment * segment)
   gboolean res = FALSE;
   gboolean emit;
   Callbacks *callbacks = NULL;
+  GstAppSrcSimpleCallbacks *simple_callbacks = NULL;
 
   desired_position = segment->position;
 
@@ -1242,18 +1358,26 @@ gst_app_src_do_seek (GstBaseSrc * src, GstSegment * segment)
   emit = priv->emit_signals;
   if (priv->callbacks)
     callbacks = callbacks_ref (priv->callbacks);
+  else if (priv->simple_callbacks)
+    simple_callbacks =
+        gst_app_src_simple_callbacks_ref (priv->simple_callbacks);
   g_mutex_unlock (&priv->mutex);
 
   if (callbacks && callbacks->callbacks.seek_data) {
     res =
         callbacks->callbacks.seek_data (appsrc, desired_position,
         callbacks->user_data);
+  } else if (simple_callbacks && simple_callbacks->seek_data_cb) {
+    res =
+        simple_callbacks->seek_data_cb (appsrc, desired_position,
+        simple_callbacks->seek_data_user_data);
   } else if (emit) {
     g_signal_emit (appsrc, gst_app_src_signals[SIGNAL_SEEK_DATA], 0,
         desired_position, &res);
   }
 
   g_clear_pointer (&callbacks, callbacks_unref);
+  g_clear_pointer (&simple_callbacks, gst_app_src_simple_callbacks_unref);
 
   if (res) {
     GST_DEBUG_OBJECT (appsrc, "flushing queue");
@@ -1262,8 +1386,12 @@ gst_app_src_do_seek (GstBaseSrc * src, GstSegment * segment)
     gst_segment_copy_into (segment, &priv->last_segment);
     gst_segment_copy_into (segment, &priv->current_segment);
     priv->pending_custom_segment = FALSE;
-    g_mutex_unlock (&priv->mutex);
     priv->is_eos = FALSE;
+    g_mutex_unlock (&priv->mutex);
+
+    if (!priv->silent) {
+      g_object_notify (G_OBJECT (appsrc), "dropped");
+    }
   } else {
     GST_WARNING_OBJECT (appsrc, "seek failed");
   }
@@ -1279,10 +1407,14 @@ gst_app_src_emit_seek (GstAppSrc * appsrc, guint64 offset)
   gboolean emit;
   GstAppSrcPrivate *priv = appsrc->priv;
   Callbacks *callbacks = NULL;
+  GstAppSrcSimpleCallbacks *simple_callbacks = NULL;
 
   emit = priv->emit_signals;
   if (priv->callbacks)
     callbacks = callbacks_ref (priv->callbacks);
+  else if (priv->simple_callbacks)
+    simple_callbacks =
+        gst_app_src_simple_callbacks_ref (priv->simple_callbacks);
   g_mutex_unlock (&priv->mutex);
 
   GST_DEBUG_OBJECT (appsrc,
@@ -1291,11 +1423,16 @@ gst_app_src_emit_seek (GstAppSrc * appsrc, guint64 offset)
 
   if (callbacks && callbacks->callbacks.seek_data)
     res = callbacks->callbacks.seek_data (appsrc, offset, callbacks->user_data);
+  else if (simple_callbacks && simple_callbacks->seek_data_cb)
+    res =
+        simple_callbacks->seek_data_cb (appsrc,
+        offset, simple_callbacks->seek_data_user_data);
   else if (emit)
     g_signal_emit (appsrc, gst_app_src_signals[SIGNAL_SEEK_DATA], 0,
         offset, &res);
 
   g_clear_pointer (&callbacks, callbacks_unref);
+  g_clear_pointer (&simple_callbacks, gst_app_src_simple_callbacks_unref);
 
   g_mutex_lock (&priv->mutex);
 
@@ -1310,20 +1447,28 @@ gst_app_src_emit_need_data (GstAppSrc * appsrc, guint size)
   gboolean emit;
   GstAppSrcPrivate *priv = appsrc->priv;
   Callbacks *callbacks = NULL;
+  GstAppSrcSimpleCallbacks *simple_callbacks = NULL;
 
   emit = priv->emit_signals;
   if (priv->callbacks)
     callbacks = callbacks_ref (priv->callbacks);
+  else if (priv->simple_callbacks)
+    simple_callbacks =
+        gst_app_src_simple_callbacks_ref (priv->simple_callbacks);
   g_mutex_unlock (&priv->mutex);
 
   /* we have no data, we need some. We fire the signal with the size hint. */
   if (callbacks && callbacks->callbacks.need_data)
     callbacks->callbacks.need_data (appsrc, size, callbacks->user_data);
+  else if (simple_callbacks && simple_callbacks->need_data_cb)
+    simple_callbacks->need_data_cb (appsrc,
+        size, simple_callbacks->need_data_user_data);
   else if (emit)
     g_signal_emit (appsrc, gst_app_src_signals[SIGNAL_NEED_DATA], 0, size,
         NULL);
 
   g_clear_pointer (&callbacks, callbacks_unref);
+  g_clear_pointer (&simple_callbacks, gst_app_src_simple_callbacks_unref);
 
   g_mutex_lock (&priv->mutex);
   /* we can be flushing now because we released the lock */
@@ -1582,6 +1727,7 @@ gst_app_src_create (GstBaseSrc * bsrc, guint64 offset, guint size,
         }
 
         priv->pushed_buffer = TRUE;
+        priv->out += 1;
         *buf = buffer;
       } else if (GST_IS_BUFFER_LIST (obj)) {
         GstBufferList *buffer_list;
@@ -1609,6 +1755,7 @@ gst_app_src_create (GstBaseSrc * bsrc, guint64 offset, guint size,
           push_delayed_events (appsrc);
         }
 
+        priv->out += gst_buffer_list_length (buffer_list);
         gst_base_src_submit_buffer_list (bsrc, buffer_list);
         priv->pushed_buffer = TRUE;
         *buf = NULL;
@@ -1711,6 +1858,7 @@ gst_app_src_create (GstBaseSrc * bsrc, guint64 offset, guint size,
     priv->wait_status &= ~STREAM_WAITING;
   }
   g_mutex_unlock (&priv->mutex);
+
   return ret;
 
   /* ERRORS */
@@ -2218,9 +2366,19 @@ gst_app_src_set_latencies (GstAppSrc * appsrc, gboolean do_min, guint64 min,
 void
 gst_app_src_set_leaky_type (GstAppSrc * appsrc, GstAppLeakyType leaky)
 {
+  GstAppSrcPrivate *priv;
+
   g_return_if_fail (GST_IS_APP_SRC (appsrc));
 
-  appsrc->priv->leaky_type = leaky;
+  priv = appsrc->priv;
+
+  g_mutex_lock (&priv->mutex);
+  if (priv->leaky_type != leaky) {
+    priv->leaky_type = leaky;
+    /* signal the change */
+    g_cond_signal (&priv->cond);
+  }
+  g_mutex_unlock (&priv->mutex);
 }
 
 /**
@@ -2237,9 +2395,18 @@ gst_app_src_set_leaky_type (GstAppSrc * appsrc, GstAppLeakyType leaky)
 GstAppLeakyType
 gst_app_src_get_leaky_type (GstAppSrc * appsrc)
 {
+  GstAppSrcPrivate *priv;
+  GstAppLeakyType leaky_type;
+
   g_return_val_if_fail (GST_IS_APP_SRC (appsrc), GST_APP_LEAKY_TYPE_NONE);
 
-  return appsrc->priv->leaky_type;
+  priv = appsrc->priv;
+
+  g_mutex_lock (&priv->mutex);
+  leaky_type = priv->leaky_type;
+  g_mutex_unlock (&priv->mutex);
+
+  return leaky_type;
 }
 
 /**
@@ -2423,21 +2590,29 @@ gst_app_src_push_internal (GstAppSrc * appsrc, GstBuffer * buffer,
 
       if (first) {
         Callbacks *callbacks = NULL;
+        GstAppSrcSimpleCallbacks *simple_callbacks = NULL;
         gboolean emit;
 
         emit = priv->emit_signals;
         if (priv->callbacks)
           callbacks = callbacks_ref (priv->callbacks);
+        else if (priv->simple_callbacks)
+          simple_callbacks =
+              gst_app_src_simple_callbacks_ref (priv->simple_callbacks);
         /* only signal on the first push */
         g_mutex_unlock (&priv->mutex);
 
         if (callbacks && callbacks->callbacks.enough_data)
           callbacks->callbacks.enough_data (appsrc, callbacks->user_data);
+        else if (simple_callbacks && simple_callbacks->enough_data_cb)
+          simple_callbacks->enough_data_cb (appsrc,
+              simple_callbacks->enough_data_user_data);
         else if (emit)
           g_signal_emit (appsrc, gst_app_src_signals[SIGNAL_ENOUGH_DATA], 0,
               NULL);
 
         g_clear_pointer (&callbacks, callbacks_unref);
+        g_clear_pointer (&simple_callbacks, gst_app_src_simple_callbacks_unref);
 
         g_mutex_lock (&priv->mutex);
       }
@@ -2473,7 +2648,18 @@ gst_app_src_push_internal (GstAppSrc * appsrc, GstBuffer * buffer,
         GST_DEBUG_OBJECT (appsrc, "Dropping old item %" GST_PTR_FORMAT, item);
 
         gst_app_src_update_queued_pop (appsrc, item, FALSE);
+
+        if (GST_IS_BUFFER_LIST (item))
+          priv->dropped += gst_buffer_list_length ((GstBufferList *) item);
+        else
+          priv->dropped += 1;
         gst_mini_object_unref (item);
+
+        if (!priv->silent) {
+          g_mutex_unlock (&priv->mutex);
+          g_object_notify (G_OBJECT (appsrc), "dropped");
+          g_mutex_lock (&priv->mutex);
+        }
 
         priv->need_discont_downstream = TRUE;
         continue;
@@ -2530,6 +2716,7 @@ gst_app_src_push_internal (GstAppSrc * appsrc, GstBuffer * buffer,
     if (!steal_ref)
       gst_buffer_list_ref (buflist);
     gst_vec_deque_push_tail (priv->queue, buflist);
+    priv->in += gst_buffer_list_length (buflist);
   } else {
     /* Mark the buffer as DISCONT if we previously dropped a buffer instead of
      * queueing it */
@@ -2548,6 +2735,7 @@ gst_app_src_push_internal (GstAppSrc * appsrc, GstBuffer * buffer,
     if (!steal_ref)
       gst_buffer_ref (buffer);
     gst_vec_deque_push_tail (priv->queue, buffer);
+    priv->in += 1;
   }
 
   gst_app_src_update_queued_push (appsrc,
@@ -2588,6 +2776,12 @@ eos:
 dropped:
   {
     GST_DEBUG_OBJECT (appsrc, "dropped new buffer %p, we are full", buffer);
+
+    if (buflist)
+      priv->dropped += gst_buffer_list_length (buflist);
+    else
+      priv->dropped += 1;
+
     if (steal_ref) {
       if (buflist)
         gst_buffer_list_unref (buflist);
@@ -2595,6 +2789,11 @@ dropped:
         gst_buffer_unref (buffer);
     }
     g_mutex_unlock (&priv->mutex);
+
+    if (!priv->silent) {
+      g_object_notify (G_OBJECT (appsrc), "dropped");
+    }
+
     return GST_FLOW_OK;
   }
 }
@@ -2807,7 +3006,7 @@ flushing:
 /**
  * gst_app_src_set_callbacks: (skip)
  * @appsrc: a #GstAppSrc
- * @callbacks: the callbacks
+ * @callbacks: (nullable): the callbacks
  * @user_data: a user_data argument for the callbacks
  * @notify: a destroy notify function
  *
@@ -2821,16 +3020,22 @@ flushing:
  *
  * Before 1.16.3 it was not possible to change the callbacks in a thread-safe
  * way.
+ *
+ * Since 1.28.3 it is allowed to set the @callbacks to %NULL to unset them.
+ *
+ * Note that gst_app_src_set_callbacks() and
+ * gst_app_src_set_simple_callbacks() are mutually exclusive and setting one
+ * will unset the other.
  */
 void
 gst_app_src_set_callbacks (GstAppSrc * appsrc,
     GstAppSrcCallbacks * callbacks, gpointer user_data, GDestroyNotify notify)
 {
   Callbacks *old_callbacks, *new_callbacks = NULL;
+  GstAppSrcSimpleCallbacks *simple_callbacks = NULL;
   GstAppSrcPrivate *priv;
 
   g_return_if_fail (GST_IS_APP_SRC (appsrc));
-  g_return_if_fail (callbacks != NULL);
 
   priv = appsrc->priv;
 
@@ -2844,10 +3049,12 @@ gst_app_src_set_callbacks (GstAppSrc * appsrc,
 
   g_mutex_lock (&priv->mutex);
   old_callbacks = g_steal_pointer (&priv->callbacks);
+  simple_callbacks = g_steal_pointer (&priv->simple_callbacks);
   priv->callbacks = g_steal_pointer (&new_callbacks);
   g_mutex_unlock (&priv->mutex);
 
   g_clear_pointer (&old_callbacks, callbacks_unref);
+  g_clear_pointer (&simple_callbacks, gst_app_src_simple_callbacks_unref);
 }
 
 /*** GSTURIHANDLER INTERFACE *************************************************/
@@ -2914,4 +3121,208 @@ gst_app_src_event (GstBaseSrc * src, GstEvent * event)
   }
 
   return GST_BASE_SRC_CLASS (parent_class)->event (src, event);
+}
+
+/**
+ * gst_app_src_set_simple_callbacks:
+ * @appsrc: a #GstAppSrc
+ * @cb: (transfer full) (nullable): the callbacks
+ *
+ * Set callbacks which will be executed when data is needed, enough data has
+ * been collected or when a seek should be performed.
+ * This is an alternative to using the signals, it has lower overhead and is thus
+ * less expensive, but also less flexible.
+ *
+ * If callbacks are installed, no signals will be emitted for performance
+ * reasons.
+ *
+ * Once @cb is set on an #GstAppSrc it is not possible anymore to change any of
+ * the callbacks inside it.
+ *
+ * Note that gst_app_src_set_callbacks() and
+ * gst_app_src_set_simple_callbacks() are mutually exclusive and setting one
+ * will unset the other.
+ *
+ * Since: 1.28
+ */
+void
+gst_app_src_set_simple_callbacks (GstAppSrc * appsrc,
+    GstAppSrcSimpleCallbacks * cb)
+{
+  Callbacks *callbacks = NULL;
+  GstAppSrcSimpleCallbacks *old_callbacks = NULL;
+  GstAppSrcPrivate *priv;
+
+  g_return_if_fail (GST_IS_APP_SRC (appsrc));
+
+  if (cb)
+    g_atomic_int_set (&cb->attached, TRUE);
+
+  priv = appsrc->priv;
+
+  g_mutex_lock (&priv->mutex);
+  old_callbacks = g_steal_pointer (&priv->simple_callbacks);
+  callbacks = g_steal_pointer (&priv->callbacks);
+  priv->simple_callbacks = g_steal_pointer (&cb);
+  g_mutex_unlock (&priv->mutex);
+
+  g_clear_pointer (&callbacks, callbacks_unref);
+  g_clear_pointer (&old_callbacks, gst_app_src_simple_callbacks_unref);
+}
+
+/**
+ * gst_app_src_simple_callbacks_new:
+ *
+ * Creates a new instance of callbacks.
+ *
+ * Returns: (transfer full): New empty GstAppSrcSimpleCallbacks
+ *
+ * Since: 1.28
+ */
+GstAppSrcSimpleCallbacks *
+gst_app_src_simple_callbacks_new (void)
+{
+  GstAppSrcSimpleCallbacks *cb = g_new0 (GstAppSrcSimpleCallbacks, 1);
+
+  cb->ref_count = 1;
+  cb->attached = FALSE;
+
+  return cb;
+}
+
+/**
+ * gst_app_src_simple_callbacks_ref:
+ * @cb: the callbacks
+ *
+ * Increases the reference count of @cb.
+ *
+ * Returns: (transfer full): the callbacks
+ *
+ * Since: 1.28
+ */
+GstAppSrcSimpleCallbacks *
+gst_app_src_simple_callbacks_ref (GstAppSrcSimpleCallbacks * cb)
+{
+  g_return_val_if_fail (cb != NULL, NULL);
+
+  g_atomic_int_inc (&cb->ref_count);
+
+  return cb;
+}
+
+/**
+ * gst_app_src_simple_callbacks_unref:
+ * @cb: the callbacks
+ *
+ * Decreases the reference count of @cb and frees it after the
+ * last reference is dropped.
+ *
+ * Since: 1.28
+ */
+void
+gst_app_src_simple_callbacks_unref (GstAppSrcSimpleCallbacks * cb)
+{
+  g_return_if_fail (cb != NULL);
+
+  if (!g_atomic_int_dec_and_test (&cb->ref_count))
+    return;
+
+  if (cb->need_data_destroy_notify)
+    cb->need_data_destroy_notify (cb->need_data_user_data);
+  if (cb->enough_data_destroy_notify)
+    cb->enough_data_destroy_notify (cb->enough_data_user_data);
+  if (cb->seek_data_destroy_notify)
+    cb->seek_data_destroy_notify (cb->seek_data_user_data);
+
+  g_free (cb);
+}
+
+/**
+ * gst_app_src_simple_callbacks_set_need_data:
+ * @cb: the callbacks
+ * @need_data_cb: (scope notified) (closure user_data): EOS callback
+ * @user_data: the user data
+ * @destroy_notify: #GDestroyNotify to free the user data
+ *
+ * Sets the need data callback on @cb.
+ *
+ * Once @cb is set on an #GstAppSrc it is not possible anymore to change any of
+ * the callbacks inside it.
+ *
+ * Since: 1.28
+ */
+void
+gst_app_src_simple_callbacks_set_need_data (GstAppSrcSimpleCallbacks * cb,
+    GstAppSrcNeedDataCallback need_data_cb, gpointer user_data,
+    GDestroyNotify destroy_notify)
+{
+  g_return_if_fail (cb != NULL);
+  g_return_if_fail (!g_atomic_int_get (&cb->attached));
+
+  if (cb->need_data_destroy_notify)
+    cb->need_data_destroy_notify (cb->need_data_user_data);
+
+  cb->need_data_cb = need_data_cb;
+  cb->need_data_user_data = user_data;
+  cb->need_data_destroy_notify = destroy_notify;
+}
+
+/**
+ * gst_app_src_simple_callbacks_set_enough_data:
+ * @cb: the callbacks
+ * @enough_data_cb: (scope notified) (closure user_data): EOS callback
+ * @user_data: the user data
+ * @destroy_notify: #GDestroyNotify to free the user data
+ *
+ * Sets the enough data callback on @cb.
+ *
+ * Once @cb is set on an #GstAppSrc it is not possible anymore to change any of
+ * the callbacks inside it.
+ *
+ * Since: 1.28
+ */
+void
+gst_app_src_simple_callbacks_set_enough_data (GstAppSrcSimpleCallbacks * cb,
+    GstAppSrcEnoughDataCallback enough_data_cb, gpointer user_data,
+    GDestroyNotify destroy_notify)
+{
+  g_return_if_fail (cb != NULL);
+  g_return_if_fail (!g_atomic_int_get (&cb->attached));
+
+  if (cb->enough_data_destroy_notify)
+    cb->enough_data_destroy_notify (cb->enough_data_user_data);
+
+  cb->enough_data_cb = enough_data_cb;
+  cb->enough_data_user_data = user_data;
+  cb->enough_data_destroy_notify = destroy_notify;
+}
+
+/**
+ * gst_app_src_simple_callbacks_set_seek_data:
+ * @cb: the callbacks
+ * @seek_data_cb: (scope notified) (closure user_data): EOS callback
+ * @user_data: the user data
+ * @destroy_notify: #GDestroyNotify to free the user data
+ *
+ * Sets the seek data callback on @cb.
+ *
+ * Once @cb is set on an #GstAppSrc it is not possible anymore to change any of
+ * the callbacks inside it.
+ *
+ * Since: 1.28
+ */
+void
+gst_app_src_simple_callbacks_set_seek_data (GstAppSrcSimpleCallbacks * cb,
+    GstAppSrcSeekDataCallback seek_data_cb, gpointer user_data,
+    GDestroyNotify destroy_notify)
+{
+  g_return_if_fail (cb != NULL);
+  g_return_if_fail (!g_atomic_int_get (&cb->attached));
+
+  if (cb->seek_data_destroy_notify)
+    cb->seek_data_destroy_notify (cb->seek_data_user_data);
+
+  cb->seek_data_cb = seek_data_cb;
+  cb->seek_data_user_data = user_data;
+  cb->seek_data_destroy_notify = destroy_notify;
 }

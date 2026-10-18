@@ -12,7 +12,7 @@ KNOWN_ISSUES = {
         ],
         "max_retries": 2,
     },
-    "https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/issues/486": {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/4669": {
         "tests": [
             "validate.dash.playback.fast_forward.dash_exMPD_BIP_TC1",
             "validate.dash.playback.reverse_playback.dash_exMPD_BIP_TC1",
@@ -49,7 +49,7 @@ KNOWN_ISSUES = {
             },
         ]
     },
-    "https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/563": {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/4660": {
         "tests": [
             "validate.rtsp.playback.seek_backward.bowlerhatdancer_sleepytom_SGP_mjpeg_avi",
         ],
@@ -61,7 +61,7 @@ KNOWN_ISSUES = {
             }
         ]
     },
-    "https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/377": {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/4658": {
         "tests": [
             "validate.rtsp.*",
         ],
@@ -84,7 +84,7 @@ KNOWN_ISSUES = {
             },
         ],
     },
-    "https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/582": {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/4661": {
         "tests": [
             "validate.http.playback.reverse_playback.*",
             "validate.http.playback.*seek.*",
@@ -124,7 +124,7 @@ KNOWN_ISSUES = {
             },
         ],
     },
-    "https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/issues/578": {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/4672": {
         "tests": [
             "validate.http.playback.change_state_intensive.*ogv",
             "validate.http.playback.change_state_intensive.*ogg",
@@ -136,7 +136,7 @@ KNOWN_ISSUES = {
             },
         ],
     },
-    "https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/issues/585": {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/4662": {
         "tests": [
             "validate.rtsp.*playback.*seek.*.",
         ],
@@ -154,7 +154,7 @@ KNOWN_ISSUES = {
             },
         ],
     },
-    "https://gitlab.freedesktop.org/gstreamer/gst-plugins-base/issues/578": {
+    "https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/4672": {
         "tests": [
             "validate.http.playback.change_state_intensive.*ogv",
             "validate.http.playback.change_state_intensive.*ogg",

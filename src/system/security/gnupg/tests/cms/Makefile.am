@@ -113,7 +113,10 @@ EXTRA_DIST = $(XTESTS) $(KEYS) $(CERTS) $(TEST_FILES) \
              runtest inittests $(testscripts) \
 	     gpgsm-defs.scm run-tests.scm setup.scm all-tests.scm
 
-CLEANFILES = inittests.stamp *.lock *.log report.xml .\#lk*
+CLEANFILES = inittests.stamp *.lock *.log report.xml
+
+# Path with # (octal 043) needs special care in portable Makefile.
+CLEANFILES += `printf  '.\043lk*'`
 
 DISTCLEANFILES = pubring.kbx~ random_seed
 

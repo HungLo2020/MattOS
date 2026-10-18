@@ -69,6 +69,21 @@
 /* The usage bits which define encryption.  */
 #define PUBKEY_USAGE_XENC_MASK  (PUBKEY_USAGE_ENC | PUBKEY_USAGE_RENC)
 
+/* The signature classes.  */
+#define SIGCLASS_DATA    0x00   /* Signature on a binary document.       */
+#define SIGCLASS_TEXT    0x01   /* Signature on a text document.         */
+#define SIGCLASS_SALONE  0x02   /* Standalone signature.                 */
+#define SIGCLASS_CERT    0x10   /* User ID certification signature.      */
+#define SIGCLASS_CERT11  0x11   /* User ID certification signature.      */
+#define SIGCLASS_CERT12  0x12   /* User ID certification signature.      */
+#define SIGCLASS_CERT13  0x13   /* User ID certification signature.      */
+#define SIGCLASS_SUBKEY  0x18   /* Key binding signature.                */
+#define SIGCLASS_BACKSIG 0x19   /* Primary key binding signature.        */
+#define SIGCLASS_KEY     0x1f   /* Direct key signature (on primary key) */
+#define SIGCLASS_KEYREV  0x20   /* Key revoction signature.              */
+#define SIGCLASS_SUBREV  0x28   /* Subkey revocation signature.          */
+#define SIGCLASS_CERTREV 0x30   /* Certification revocation signature.   */
+
 /* Bitflags to convey hints on what kind of signature is created.  */
 #define SIGNHINT_KEYSIG  1
 #define SIGNHINT_SELFSIG 2
@@ -132,9 +147,9 @@ typedef struct {
      S2K function on the password is the session key. See RFC 4880,
      Section 5.3.)  */
   byte seskeylen;
-  /* The session key as encrypted by the S2K specifier.  For AEAD this
-   * includes the nonce and the authentication tag.  */
-  byte seskey[1];
+  /* The malloced session key as encrypted by the S2K specifier.  For
+   * AEAD this includes the nonce and the authentication tag.  */
+  byte *seskey;
 } PKT_symkey_enc;
 
 /* A public-key encrypted session key packet as defined in RFC 4880,
@@ -142,46 +157,69 @@ typedef struct {
 typedef struct {
   /* The 64-bit keyid.  */
   u32     keyid[2];
-  /* The packet's version.  Currently, only version 3 is defined.  */
+  /* The packet's version.  This may be 3 or 6.  */
   byte    version;
   /* The algorithm used for the public key encryption scheme.  */
   byte    pubkey_algo;
+  /* The session key algorithm used by some pubkey algos.  */
+  byte    seskey_algo;
   /* Whether to hide the key id.  This value is not directly
      serialized.  */
   byte    throw_keyid;
-  /* The session key.  */
+  /* Fingerprint of the key and the used length (i.e. the extended
+   * keyid).  Note that this is only used for version 6 packets.  */
+  byte fprlen;
+  byte fpr[MAX_FINGERPRINT_LEN];
+  /* The encrypted session key.  */
   gcry_mpi_t     data[PUBKEY_MAX_NENC];
 } PKT_pubkey_enc;
 
 
-/* An object to build a list of public-key encrypted session key.  */
-struct pubkey_enc_list
+/* An object to build a list of public-key and symkey encrypted
+ * session key.  Note that we use a dedicated union here instead of
+ * the usual PACKET type to avoid the need for extra allocations. */
+struct seskey_enc_list
 {
-  struct pubkey_enc_list *next;
-  u32 keyid[2];
-  int pubkey_algo;
-  int result;
-  gcry_mpi_t data[PUBKEY_MAX_NENC];
+  struct seskey_enc_list *next;
+  int result; /* The error code decrypting the session key.  */
+  int u_sym;  /* Use the sym member.  */
+  union {
+    PKT_pubkey_enc pub;
+    PKT_symkey_enc sym;
+  } u;
+};
+
+
+/* An object to record some properties of a PKT_pubkey_enc packet.  */
+struct pubkey_enc_info_item
+{
+  struct pubkey_enc_info_item *next;
+  /* 3 fields copied from a PKT_pubkey_enc:  */
+  u32     keyid[2];
+  byte    version;
+  byte    pubkey_algo;
 };
 
 
 /* A one-pass signature packet as defined in RFC 4880, Section
    5.4.  All fields are serialized.  */
 typedef struct {
-    u32     keyid[2];	    /* The 64-bit keyid */
-    /* The signature's classification (RFC 4880, Section 5.2.1).  */
-    byte    sig_class;
-    byte    digest_algo;    /* algorithm used for digest */
-    byte    pubkey_algo;    /* algorithm used for public key scheme */
-    /* A message can be signed by multiple keys.  In this case, there
-       are n one-pass signature packets before the message to sign and
-       n signatures packets after the message.  It is conceivable that
-       someone wants to not only sign the message, but all of the
-       signatures.  Now we need to distinguish between signing the
-       message and signing the message plus the surrounding
-       signatures.  This is the point of this flag.  If set, it means:
-       I sign all of the data starting at the next packet.  */
-    byte    last;
+  u32     keyid[2];	    /* The 64-bit keyid */
+  /* The signature's classification (RFC 4880, Section 5.2.1).  */
+  byte    sig_class;
+  byte    digest_algo;    /* algorithm used for digest */
+  byte    pubkey_algo;    /* algorithm used for public key scheme */
+  /* A message can be signed by multiple keys.  In this case, there
+   * are n one-pass signature packets before the message to sign and n
+   * signatures packets after the message.  It is conceivable that
+   * someone wants to not only sign the message, but all of the
+   * signatures.  Now we need to distinguish between signing the
+   * message and signing the message plus the surrounding signatures.
+   * This is the point of this flag.  If set, it means: I sign all of
+   * the data starting at the next packet.  */
+  byte    last;
+  byte    version;            /* The version of the packet.  */
+  gcry_mpi_t salt;            /* The v6 sigature salt.    */
 } PKT_onepass_sig;
 
 
@@ -210,6 +248,14 @@ struct revocation_key {
   byte fpr[MAX_FINGERPRINT_LEN];
 };
 
+/* Information about the to be revoked key of a revocation signature. */
+struct rev_subject_info_s {
+  /* The length of the fingerprint. */
+  byte fprlen;
+  /* Fingerprint of the to be revoked key. */
+  byte fpr[MAX_FINGERPRINT_LEN];
+
+};
 
 /* A signature packet (RFC 4880, Section 5.2).  Only a subset of these
    fields are directly serialized (these are marked as such); the rest
@@ -257,12 +303,13 @@ typedef struct
   const byte *trust_regexp;
   struct revocation_key *revkey;
   int numrevkeys;
-  int help_counter;          /* Used internally bu some functions.  */
+  int help_counter;          /* Used internally by some functions.  */
   char *signers_uid;         /* Malloced value of the SIGNERS_UID
                               * subpacket or NULL.  This string has
                               * already been sanitized.  */
-  subpktarea_t *hashed;      /* All subpackets with hashed data (v4 only). */
+  subpktarea_t *hashed;      /* All subpackets with hashed data (v4, v5 only). */
   subpktarea_t *unhashed;    /* Ditto for unhashed data. */
+  gcry_mpi_t salt;            /* The v6 sigature salt.    */
   /* First 2 bytes of the digest.  (Serialized.  Note: this is not
      automatically filled in when serializing a signature!)  */
   byte digest_start[2];
@@ -273,6 +320,8 @@ typedef struct
      the digest's value has not been saved here.  */
   byte digest[512 / 8];
   int digest_len;
+  /* Info about the to-be-revoked key in a revocation signature.*/
+  struct rev_subject_info_s *rev_subject_info;
 } PKT_signature;
 
 #define ATTRIB_IMAGE 1
@@ -339,23 +388,31 @@ typedef struct
 
 struct revoke_info
 {
-  /* revoked at this date */
+  /* Revoked at this date */
   u32 date;
-  /* the keyid of the revoking key (selfsig or designated revoker) */
+  /* The keyid of the revoking key (selfsig or designated revoker) */
   u32 keyid[2];
-  /* the algo of the revoking key */
+  /* A malloced string of len reason_comment_len with the raw reason
+   * string or NULL if not given.  */
+  char *reason_comment;
+  size_t reason_comment_len;
+  /* The algo of the revoking key */
   byte algo;
+  /* The reason code. */
+  byte reason_code;
+  /* Whether the above reason fields are valid. */
+  byte got_reason;
 };
 
 
 /* Information pertaining to secret keys. */
 struct seckey_info
 {
-  int is_protected:1;	/* The secret info is protected and must */
+  unsigned int is_protected:1; /* The secret info is protected and must */
 			/* be decrypted before use, the protected */
 			/* MPIs are simply (void*) pointers to memory */
 			/* and should never be passed to a mpi_xxx() */
-  int sha1chk:1;        /* SHA1 is used instead of a 16 bit checksum */
+  unsigned int sha1chk:1; /* SHA1 is used instead of a 16 bit checksum */
   u16 csum;		/* Checksum for old protection modes.  */
   byte algo;            /* Cipher used to protect the secret information. */
   STRING2KEY s2k;       /* S2K parameter.  */
@@ -415,6 +472,7 @@ typedef struct
   /* Fingerprint of the key.  Only valid if FPRLEN is not 0.  */
   byte    fpr[MAX_FINGERPRINT_LEN];
   prefitem_t *prefs;      /* list of preferences (may be NULL) */
+  prefitem_t *dks_prefs;  /* direct key signature prefs (may be NULL) */
   struct
   {
     unsigned int mdc:1;           /* MDC feature set.  */
@@ -504,6 +562,12 @@ typedef struct {
      was encoded using partial body length headers (new format).
      Note: this is ignored when encrypting.  */
   byte is_partial;
+  /* This flag is only set if this is a SEIPD packet (tag 18).  It is
+   * neither set for a SED packet (tag 9) or a OCB Encrypted Data
+   * packet (tag 20).  */
+  byte seipd;
+  /* The version of the packet.  */
+  byte version;
   /* If 0, MDC is disabled.  Otherwise, the MDC method that was used
      (only DIGEST_ALGO_SHA1 has ever been defined).  */
   byte mdc_method;
@@ -585,7 +649,7 @@ struct packet_struct {
 	PKT_comment	*comment;	/* PKT_COMMENT */
 	PKT_user_id	*user_id;	/* PKT_USER_ID */
 	PKT_compressed	*compressed;	/* PKT_COMPRESSED */
-	PKT_encrypted	*encrypted;	/* PKT_ENCRYPTED[_MDC] */
+	PKT_encrypted	*encrypted;	/* PKT_ENCRYPTED[_MDC|_AEAD] */
 	PKT_mdc 	*mdc;		/* PKT_MDC */
 	PKT_plaintext	*plaintext;	/* PKT_PLAINTEXT */
         PKT_gpg_control *gpg_control;   /* PKT_GPG_CONTROL */
@@ -610,8 +674,8 @@ struct notation
   /* Sometimes we want to %-expand the value.  In these cases, we save
      that transformed value here.  */
   char *altvalue;
-  /* If the notation is not human readable, then the value is stored
-     here.  */
+  /* If the notation is not human readable or the function does not
+     want to distinguish that, then the value is stored here.  */
   unsigned char *bdat;
   /* The amount of data stored in BDAT.
 
@@ -642,9 +706,12 @@ void reset_literals_seen(void);
 int proc_packets (ctrl_t ctrl, void *ctx, iobuf_t a );
 int proc_signature_packets (ctrl_t ctrl, void *ctx, iobuf_t a,
 			    strlist_t signedfiles, const char *sigfile );
-int proc_signature_packets_by_fd (ctrl_t ctrl,
-                                  void *anchor, IOBUF a, int signed_data_fd );
-int proc_encryption_packets (ctrl_t ctrl, void *ctx, iobuf_t a);
+int proc_signature_packets_by_fd (ctrl_t ctrl, void *anchor, IOBUF a,
+                                  gnupg_fd_t signed_data_fd);
+gpg_error_t proc_encryption_packets (ctrl_t ctrl, void *ctx, iobuf_t a,
+                                     DEK **r_dek,
+                                     struct seskey_enc_list **r_list);
+
 int list_packets( iobuf_t a );
 
 const byte *issuer_fpr_raw (PKT_signature *sig, size_t *r_len);
@@ -673,7 +740,9 @@ struct parse_packet_ctx_s
   struct packet_struct last_pkt; /* The last parsed packet.  */
   int free_last_pkt; /* Indicates that LAST_PKT must be freed.  */
   int skip_meta;     /* Skip ring trust packets.  */
+  int only_fookey_enc;  /* Stop if the packet is not {sym,pub}key_enc. */
   unsigned int n_parsed_packets;	/* Number of parsed packets.  */
+  int last_ctb;      /* The last CTB read.  */
 };
 typedef struct parse_packet_ctx_s *parse_packet_ctx_t;
 
@@ -683,7 +752,9 @@ typedef struct parse_packet_ctx_s *parse_packet_ctx_t;
     (a)->last_pkt.pkt.generic= NULL;\
     (a)->free_last_pkt = 0;         \
     (a)->skip_meta = 0;             \
+    (a)->only_fookey_enc = 0;       \
     (a)->n_parsed_packets = 0;      \
+    (a)->last_ctb = 1;              \
   } while (0)
 
 #define deinit_parse_packet(a) do { \
@@ -871,7 +942,9 @@ gpg_error_t build_keyblock_image (kbnode_t keyblock, iobuf_t *r_iobuf);
 int build_packet (iobuf_t out, PACKET *pkt);
 gpg_error_t build_packet_and_meta (iobuf_t out, PACKET *pkt);
 gpg_error_t gpg_mpi_write (iobuf_t out, gcry_mpi_t a, unsigned int *t_nwritten);
-gpg_error_t gpg_mpi_write_nohdr (iobuf_t out, gcry_mpi_t a);
+gpg_error_t gpg_mpi_write_opaque_nohdr (iobuf_t out, gcry_mpi_t a);
+gpg_error_t gpg_mpi_write_opaque_32 (iobuf_t out, gcry_mpi_t a,
+                                     unsigned int *r_nwritten);
 u32 calc_packet_length( PACKET *pkt );
 void build_sig_subpkt( PKT_signature *sig, sigsubpkttype_t type,
 			const byte *buffer, size_t buflen );
@@ -882,26 +955,39 @@ void build_attribute_subpkt(PKT_user_id *uid,byte type,
 			    const void *buf,u32 buflen,
 			    const void *header,u32 headerlen);
 struct notation *string_to_notation(const char *string,int is_utf8);
+struct notation *name_value_to_notation (const char *name, const char *value);
 struct notation *blob_to_notation(const char *name,
                                   const char *data, size_t len);
 struct notation *sig_to_notation(PKT_signature *sig);
-void free_notation(struct notation *notation);
+struct notation *search_sig_notations (PKT_signature *sig, const char *name);
+void free_notation (struct notation *notation);
 
 /*-- free-packet.c --*/
 void free_symkey_enc( PKT_symkey_enc *enc );
+
+void release_pubkey_enc_parts (PKT_pubkey_enc *enc);
 void free_pubkey_enc( PKT_pubkey_enc *enc );
+void copy_pubkey_enc_parts (PKT_pubkey_enc *dst, PKT_pubkey_enc *src);
+
 void free_seckey_enc( PKT_signature *enc );
+
 void release_public_key_parts( PKT_public_key *pk );
 void free_public_key( PKT_public_key *key );
+
 void free_attributes(PKT_user_id *uid);
 void free_user_id( PKT_user_id *uid );
 void free_comment( PKT_comment *rem );
 void free_packet (PACKET *pkt, parse_packet_ctx_t parsectx);
 prefitem_t *copy_prefs (const prefitem_t *prefs);
+
 PKT_public_key *copy_public_key_basics (PKT_public_key *d, PKT_public_key *s);
 PKT_public_key *copy_public_key( PKT_public_key *d, PKT_public_key *s );
+
 PKT_signature *copy_signature( PKT_signature *d, PKT_signature *s );
 PKT_user_id *scopy_user_id (PKT_user_id *sd );
+
+void free_seskey_enc_list (struct seskey_enc_list *sesenc_list);
+
 int cmp_public_keys( PKT_public_key *a, PKT_public_key *b );
 int cmp_signatures( PKT_signature *a, PKT_signature *b );
 int cmp_user_ids( PKT_user_id *a, PKT_user_id *b );
@@ -922,7 +1008,8 @@ gpg_error_t check_signature (ctrl_t ctrl,
 
 
 /*-- pubkey-enc.c --*/
-gpg_error_t get_session_key (ctrl_t ctrl, struct pubkey_enc_list *k, DEK *dek);
+gpg_error_t get_session_key (ctrl_t ctrl, struct seskey_enc_list *k, DEK *dek,
+                             int seipdv2_cipher_algo);
 gpg_error_t get_override_session_key (DEK *dek, const char *string);
 
 /*-- compress.c --*/
@@ -934,8 +1021,15 @@ int decrypt_data (ctrl_t ctrl, void *ctx, PKT_encrypted *ed, DEK *dek,
                   int *compliance_error);
 
 /*-- plaintext.c --*/
-gpg_error_t get_output_file (const byte *embedded_name, int embedded_namelen,
-                             iobuf_t data, char **fnamep, estream_t *fpp);
+struct pfg { /* structure for PatialFileGuard */
+  unsigned int using_file : 1;  /* FP is for a file, not from FD.  */
+  char *fname_part;
+  char *fname;
+  estream_t fp;
+};
+gpg_error_t pfg_open_file (const byte *embedded_name, int embedded_namelen,
+                           iobuf_t data, struct pfg *pfg);
+void pfg_close_file (struct pfg *pfg, gpg_error_t err);
 int handle_plaintext( PKT_plaintext *pt, md_filter_context_t *mfx,
 					int nooutput, int clearsig );
 int ask_for_detached_datafile( gcry_md_hd_t md, gcry_md_hd_t md2,

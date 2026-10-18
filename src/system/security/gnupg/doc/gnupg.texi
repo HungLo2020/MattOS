@@ -19,7 +19,7 @@
 
 @c Create a separate index for command line options.
 @defcodeindex op
-@c Create an index vor environment variables and files.
+@c Create an index for environment variables and files.
 @defcodeindex ef
 
 @c Merge the function index into the concept index.
@@ -43,9 +43,9 @@ Published by The GnuPG Project@*
 (or @url{http://ic6au7wa3f6naxjq.onion})
 @end iftex
 
-@copyright{} 2002, 2004, 2005, 2006, 2007, 2010 Free Software Foundation, Inc.@*
-@copyright{} 2013, 2014, 2015 Werner Koch.@*
-@copyright{} 2015, 2016, 2017 g10 Code GmbH.
+@copyright{} 2002, 2004--2007, 2010 Free Software Foundation, Inc.@*
+@copyright{} 2013--2015 Werner Koch.@*
+@copyright{} 2015--2026 g10 Code GmbH.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

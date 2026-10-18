@@ -91,11 +91,14 @@ size_for_elements (GstTensorDataType data_type, gsize elements)
  * @data: (transfer full): #GstBuffer holding tensor data
  * @dims_order: Indicate tensor dimension indexing order
  * @num_dims: number of tensor dimensions
- * @dims: (array length=num_dims): tensor dimensions. Value of 0 mean the
- * dimension is dynamic.
+ * @dims: (array length=num_dims): size of tensor in each dimension.
+ *     A value of 0 means the dimension is dynamic.
  *
  * Allocates a new #GstTensor of @dims_order ROW_MAJOR or COLUMN_MAJOR and
- * with an interleaved layout
+ * with an interleaved layout.
+ *
+ * For example, a two-dimensional tensor with 32 rows and 4 columns, @dims would
+ * be the two element array `[32, 4]`.
  *
  * Returns: A newly allocated #GstTensor
  *
@@ -106,17 +109,56 @@ gst_tensor_new_simple (GQuark id, GstTensorDataType data_type, GstBuffer * data,
     GstTensorDimOrder dims_order, gsize num_dims, gsize * dims)
 {
   GstTensor *tensor;
+
+  tensor = gst_tensor_alloc (num_dims);
+  if (!gst_tensor_set_simple (tensor, id,
+          data_type, data, dims_order, num_dims, dims)) {
+    g_free (tensor);
+    return NULL;
+  }
+
+  return tensor;
+}
+
+
+/**
+ * gst_tensor_set_simple:
+ * @tensor: a #GstTensor
+ * @id: semantically identify the contents of the tensor
+ * @data_type: #GstTensorDataType of tensor data
+ * @data: (transfer full): #GstBuffer holding tensor data
+ * @dims_order: Indicate tensor dimension indexing order
+ * @num_dims: number of tensor dimensions
+ * @dims: (array length=num_dims): size of tensor in each dimension.
+ *     A value of 0 means the dimension is dynamic.
+ *
+ * Sets the content of a #GstTensor of @dims_order ROW_MAJOR or COLUMN_MAJOR and
+ * with an interleaved layout. The #GstTensor must have exactly num_dims.
+ *
+ * For example, a two-dimensional tensor with 32 rows and 4 columns, @dims would
+ * be the two element array `[32, 4]`.
+ *
+ * Returns: TRUE if it coudl be set correctly
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_tensor_set_simple (GstTensor * tensor, GQuark id,
+    GstTensorDataType data_type, GstBuffer * data,
+    GstTensorDimOrder dims_order, gsize num_dims, gsize * dims)
+{
   gsize num_elements = 1;
   gsize i;
   gboolean dynamic_tensor_size = FALSE;
 
   /* Update this if adding more to GstTensorDataType */
-  g_return_val_if_fail (data_type <= GST_TENSOR_DATA_TYPE_BFLOAT16, NULL);
+  g_return_val_if_fail (data_type <= GST_TENSOR_DATA_TYPE_BFLOAT16, FALSE);
 
-  g_return_val_if_fail (GST_IS_BUFFER (data), NULL);
+  g_return_val_if_fail (GST_IS_BUFFER (data), FALSE);
   g_return_val_if_fail (dims_order == GST_TENSOR_DIM_ORDER_ROW_MAJOR ||
-      dims_order == GST_TENSOR_DIM_ORDER_COL_MAJOR, NULL);
-  g_return_val_if_fail (num_dims > 0, NULL);
+      dims_order == GST_TENSOR_DIM_ORDER_COL_MAJOR, FALSE);
+  g_return_val_if_fail (num_dims > 0, FALSE);
+  g_return_val_if_fail (tensor->num_dims == num_dims, FALSE);
 
   for (i = 0; i < num_dims; i++) {
     dynamic_tensor_size = dims[i] == 0;
@@ -135,10 +177,11 @@ gst_tensor_new_simple (GQuark id, GstTensorDataType data_type, GstBuffer * data,
         " but buffer has size %zu",
         size_for_elements (data_type, num_elements), num_elements,
         gst_buffer_get_size (data));
-    return NULL;
+    return FALSE;
   }
 
-  tensor = gst_tensor_alloc (num_dims);
+  memset (tensor, 0, sizeof (GstTensor));
+
   tensor->id = id;
   tensor->layout = GST_TENSOR_LAYOUT_CONTIGUOUS;
   tensor->data_type = data_type;
@@ -147,7 +190,7 @@ gst_tensor_new_simple (GQuark id, GstTensorDataType data_type, GstBuffer * data,
   tensor->num_dims = num_dims;
   memcpy (tensor->dims, dims, sizeof (gsize) * num_dims);
 
-  return tensor;
+  return TRUE;
 }
 
 /**
@@ -208,4 +251,118 @@ gst_tensor_get_dims (GstTensor * tensor, gsize * num_dims)
   if (num_dims)
     *num_dims = tensor->num_dims;
   return tensor->dims;
+}
+
+/**
+ * gst_tensor_data_type_get_name:
+ * @data_type: a #GstTensorDataType
+ *
+ * Get a string version of the data type
+ *
+ * Returns: a constant string with the name of the data type
+ *
+ * Since: 1.28
+ */
+const gchar *
+gst_tensor_data_type_get_name (GstTensorDataType data_type)
+{
+  switch (data_type) {
+    case GST_TENSOR_DATA_TYPE_INT4:
+      return "int4";
+    case GST_TENSOR_DATA_TYPE_INT8:
+      return "int8";
+    case GST_TENSOR_DATA_TYPE_INT16:
+      return "int16";
+    case GST_TENSOR_DATA_TYPE_INT32:
+      return "int32";
+    case GST_TENSOR_DATA_TYPE_INT64:
+      return "int64";
+    case GST_TENSOR_DATA_TYPE_UINT4:
+      return "uint4";
+    case GST_TENSOR_DATA_TYPE_UINT8:
+      return "uint8";
+    case GST_TENSOR_DATA_TYPE_UINT16:
+      return "uint16";
+    case GST_TENSOR_DATA_TYPE_UINT32:
+      return "uint32";
+    case GST_TENSOR_DATA_TYPE_UINT64:
+      return "uint64";
+    case GST_TENSOR_DATA_TYPE_FLOAT16:
+      return "float16";
+    case GST_TENSOR_DATA_TYPE_FLOAT32:
+      return "float32";
+    case GST_TENSOR_DATA_TYPE_FLOAT64:
+      return "float64";
+    case GST_TENSOR_DATA_TYPE_BFLOAT16:
+      return "bfloat16";
+    default:
+      return NULL;
+  }
+}
+
+/**
+ * gst_tensor_check_type:
+ * @tensor: A #GstTensor
+ * @data_type: The data type of the tensor
+ * @order: The order of the tensor to read from the memory
+ * @num_dims: The number of dimensions that the tensor can have
+ * @dims: (array length=num_dims)(nullable): An optional array of dimensions, where G_MAXSIZE means ANY.
+ *
+ * Validate the tensor whether it mathces the reading order, dimensions and the data type.
+ * Validate whether the #GstBuffer has enough size to hold the tensor data.
+ *
+ * Returns: TRUE if the #GstTensor has the reading order from the memory matching @order,
+ * dimensions matching @num_dims, data type matching @data_type
+ * Otherwise FALSE will be returned.
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_tensor_check_type (const GstTensor * tensor, GstTensorDataType data_type,
+    GstTensorDimOrder order, gsize num_dims, const gsize * dims)
+{
+  gsize num_elements = 1, tensor_size, i;
+
+  if (tensor->dims_order != order) {
+    GST_DEBUG ("Tensor \"%s\" has order %d, expected %d",
+        g_quark_to_string (tensor->id), tensor->dims_order, order);
+    return FALSE;
+  }
+
+  if (tensor->num_dims != num_dims) {
+    GST_DEBUG ("Tensor \"%s\" has %zu dimensions, expected %zu",
+        g_quark_to_string (tensor->id), tensor->num_dims, num_dims);
+    return FALSE;
+  }
+
+  if (tensor->data_type != data_type) {
+    GST_DEBUG ("Tensor \"%s\" has data type \"%s\", expected \"%s\".",
+        g_quark_to_string (tensor->id),
+        gst_tensor_data_type_get_name (tensor->data_type),
+        gst_tensor_data_type_get_name (data_type));
+    return FALSE;
+  }
+
+  for (i = 0; i < tensor->num_dims; i++) {
+    num_elements *= tensor->dims[i];
+
+    if (dims) {
+      if (dims[i] != G_MAXSIZE && dims[i] != tensor->dims[i]) {
+        GST_DEBUG ("Tensor \"%s\" has dim[%zu]=%zu but expect dim[%zu]=%zu",
+            g_quark_to_string (tensor->id), i, tensor->dims[i], i, dims[i]);
+        return FALSE;
+      }
+    }
+  }
+
+  tensor_size = size_for_elements (tensor->data_type, num_elements);
+
+  if (gst_buffer_get_size (tensor->data) < tensor_size) {
+    GST_ERROR ("Expected tensor \"%s\" buffer of size %zu (%zu elements),"
+        " but buffer has size %zu", g_quark_to_string (tensor->id),
+        tensor_size, num_elements, gst_buffer_get_size (tensor->data));
+    return FALSE;
+  }
+
+  return TRUE;
 }

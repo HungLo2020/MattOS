@@ -35,17 +35,26 @@ impl App {
                         if self.layout.view(pane).is_some() {
                             self.focus = pane;
                         }
-                        if let Err(e) = self.browse(path) {
-                            self.status = format!("Browse failed: {e:#}");
+                        // A folder inside the workspace is shown in the file
+                        // browser; any other folder opens as a workspace.
+                        let inside = path.canonicalize().is_ok_and(|p| p.starts_with(&self.root));
+                        let result = if inside {
+                            self.browse(path)
+                        } else {
+                            self.open_workspace(path)
+                        };
+                        if let Err(e) = result {
+                            self.status = format!("Open failed: {e:#}");
                         }
                     }
                 }
                 Reply::Opened(token, result) => {
                     if let Some(pane) = self.pending_open.remove(&token) {
-                        match result {
-                            Ok(d) => {
-                                let doc = self.finish_open(pane, d);
-                                self.editor_wait_opened(token, Ok(doc));
+                        match result.map(|d| self.finish_open(pane, d)) {
+                            Ok(Ok(doc)) => self.editor_wait_opened(token, Ok(doc)),
+                            Ok(Err(e)) => {
+                                self.status = format!("{e}");
+                                self.editor_wait_opened(token, Err(e));
                             }
                             Err(e) => {
                                 self.status = format!("Open failed: {e}");
@@ -76,13 +85,23 @@ impl App {
                     self.file_operation_done(operation, result)
                 }
                 Reply::Files(path, Ok(entries)) if path == self.browser => {
-                    if self.files != entries {
+                    self.listing_answered();
+                    if *self.files != entries {
                         self.files_revision += 1;
+                        self.files = std::sync::Arc::new(entries);
                     }
-                    self.files = entries;
                     self.selected = self.selected.min(self.files.len().saturating_sub(1));
+                    self.finish_reveal();
+                    self.send_listing();
                 }
-                Reply::Files(_, Err(e)) => self.status = e,
+                Reply::Files(_, result) => {
+                    self.listing_answered();
+                    if let Err(e) = result {
+                        self.status = e;
+                    }
+                    self.finish_reveal();
+                    self.send_listing();
+                }
                 Reply::Git(state) => self.git_status(state),
                 Reply::GitOperation(result) => self.git_operation_done(result),
                 Reply::Index(root, files) => self.index_ready(root, files),
@@ -91,6 +110,7 @@ impl App {
                 Reply::SearchDone(generation, result) => self.search_done(generation, result),
                 Reply::Outline(doc, symbols) => self.symbols_ready(doc, symbols),
                 Reply::Replaced(report) => self.replaced(report),
+                Reply::ReplaceUndone(report) => self.replace_undone(report),
                 Reply::Ide(event) => self.ide_event(event),
                 Reply::Previews(generation, previews) => self.previews_ready(generation, previews),
                 Reply::ToolDone(name, output, target, result) => {
@@ -101,7 +121,8 @@ impl App {
                 Reply::Disk(changes) => self.disk_changes(changes),
                 Reply::GitPreview(Ok(preview)) => self.show_comparison(preview),
                 Reply::GitPreview(Err(error)) => self.git_operation_done(Err(error)),
-                _ => {}
+                Reply::GitHistory(result) => self.history_done(result),
+                Reply::GitShow(hash, result) => self.commit_shown(hash, result),
             }
         }
         self.offer_save_question();

@@ -78,6 +78,10 @@ static const ShaderItem g_ps_map[] = {
   {GST_D3D_PLUGIN_PS_SAMPLE_SCRGB_TONEMAP, BUILD_SOURCE (PSMain_sample_scrgb_tonemap)},
   {GST_D3D_PLUGIN_PS_SAMPLE_SCRGB, BUILD_SOURCE (PSMain_sample_scrgb)},
   {GST_D3D_PLUGIN_PS_SNOW, BUILD_SOURCE (PSMain_snow)},
+  {GST_D3D_PLUGIN_PS_SAMPLE_BGRA_TO_VUYA_FULL_PREMUL, BUILD_SOURCE (PSMain_sample_bgra_to_vuya_full_premul)},
+  {GST_D3D_PLUGIN_PS_SAMPLE_BGRA_TO_VUYA_FULL, BUILD_SOURCE (PSMain_sample_bgra_to_vuya_full)},
+  {GST_D3D_PLUGIN_PS_SAMPLE_BGRA_TO_VUYA_LIMITED_PREMUL, BUILD_SOURCE (PSMain_sample_bgra_to_vuya_limited_premul)},
+  {GST_D3D_PLUGIN_PS_SAMPLE_BGRA_TO_VUYA_LIMITED, BUILD_SOURCE (PSMain_sample_bgra_to_vuya_limited)},
 };
 
 static const ShaderItem g_vs_map[] = {
@@ -96,6 +100,12 @@ static const ShaderItem g_cs_map[] = {
   {GST_D3D_PLUGIN_CS_YADIF_1_12, BUILD_SOURCE (CSMain_yadif_1_12)},
   {GST_D3D_PLUGIN_CS_YADIF_2, BUILD_SOURCE (CSMain_yadif_2)},
   {GST_D3D_PLUGIN_CS_YADIF_4, BUILD_SOURCE (CSMain_yadif_4)},
+  {GST_D3D_PLUGIN_CS_FISHEYE_EQUIRECT, BUILD_SOURCE (CSMain_fisheye_equirect)},
+  {GST_D3D_PLUGIN_CS_FISHEYE_PANORAMA, BUILD_SOURCE (CSMain_fisheye_panorama)},
+  {GST_D3D_PLUGIN_CS_FISHEYE_PERSPECTIVE, BUILD_SOURCE (CSMain_fisheye_perspective)},
+  {GST_D3D_PLUGIN_CS_WEAVE_INTERLACE_1, BUILD_SOURCE (CSMain_weave_interlace_1)},
+  {GST_D3D_PLUGIN_CS_WEAVE_INTERLACE_2, BUILD_SOURCE (CSMain_weave_interlace_2)},
+  {GST_D3D_PLUGIN_CS_WEAVE_INTERLACE_4, BUILD_SOURCE (CSMain_weave_interlace_4)},
 };
 
 #undef BUILD_SOURCE

@@ -661,9 +661,9 @@ gst_structure_new_static_str_valist (const gchar * name,
 }
 
 /**
- * gst_structure_set_parent_refcount:
+ * gst_structure_set_parent_refcount: (skip):
  * @structure: a #GstStructure
- * @refcount: (in): a pointer to the parent's refcount
+ * @refcount: (type gpointer) (nullable): a pointer to the parent's refcount
  *
  * Sets the parent_refcount field of #GstStructure. This field is used to
  * determine whether a structure is mutable or not. This function should only be
@@ -3064,9 +3064,14 @@ priv_gst_structure_append_to_gstring (const GstStructure * structure,
     g_string_append_len (s, ", ", 2);
     /* FIXME: do we need to escape fieldnames? */
     g_string_append (s, gst_id_str_as_str (&field->name));
-    g_string_append_len (s, "=(", 2);
-    g_string_append (s, _priv_gst_value_gtype_to_abbr (type));
-    g_string_append_c (s, ')');
+
+    if (t != NULL && t[0] == '(') {
+      g_string_append_len (s, "=", 1);
+    } else {
+      g_string_append_len (s, "=(", 2);
+      g_string_append (s, _priv_gst_value_gtype_to_abbr (type));
+      g_string_append_c (s, ')');
+    }
     if (nested_structs_brackets
         && G_VALUE_TYPE (&field->value) == GST_TYPE_STRUCTURE) {
       const GstStructure *substruct = gst_value_get_structure (&field->value);
@@ -3289,7 +3294,7 @@ gst_structure_parse_field (gchar * str,
   while (g_ascii_isspace (*s) || (s[0] == '\\' && g_ascii_isspace (s[1])))
     s++;
   name = s;
-  if (G_UNLIKELY (!_priv_gst_value_parse_simple_string (s, &name_end))) {
+  if (G_UNLIKELY (!_priv_gst_value_parse_simple_string (s, &name_end, '\0'))) {
     GST_WARNING ("failed to parse simple string, str=%s", str);
     return FALSE;
   }
@@ -4697,7 +4702,6 @@ gst_structure_get_flags (const GstStructure * structure,
   return TRUE;
 }
 
-
 /**
  * gst_structure_is_writable:
  * @structure: a #GstStructure
@@ -4707,7 +4711,7 @@ gst_structure_get_flags (const GstStructure * structure,
  *
  * Returns: %TRUE if the structure is writable.
  *
- * Since: 1.26.2
+ * Since: 1.28
  */
 gboolean
 gst_structure_is_writable (const GstStructure * structure)
@@ -4715,4 +4719,38 @@ gst_structure_is_writable (const GstStructure * structure)
   g_return_val_if_fail (GST_IS_STRUCTURE (structure), FALSE);
 
   return IS_MUTABLE (structure);
+}
+
+/**
+ * gst_structure_get_caps:
+ * @structure: a #GstStructure
+ * @fieldname: the name of the field
+ * @caps: (out) (transfer none): a pointer to a pointer on caps
+ *
+ * Set pointer pointed by @caps to the address of the value of type caps
+ * correspondind to field with fieldname @fieldname. Caller is responsible
+ * for making sure the field exists and has the correct type.
+ *
+ * Returns: %TRUE if could be set correctly. If there was no field with
+ * @fieldname or the existing field did not contain a caps, this function return
+ * %FALSE.
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_structure_get_caps (const GstStructure * structure,
+    const gchar * fieldname, const GstCaps ** caps)
+{
+  GstStructureField *field;
+  g_return_val_if_fail (structure != NULL, FALSE);
+  g_return_val_if_fail (fieldname != NULL, FALSE);
+  g_return_val_if_fail (caps != NULL, FALSE);
+
+  field = gst_structure_get_field (structure, fieldname);
+
+  if (field == NULL || G_VALUE_TYPE (&field->value) != GST_TYPE_CAPS)
+    return FALSE;
+
+  *caps = gst_value_get_caps (&field->value);
+  return TRUE;
 }

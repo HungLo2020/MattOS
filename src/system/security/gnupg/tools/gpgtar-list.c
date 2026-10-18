@@ -29,7 +29,6 @@
 #include "../common/i18n.h"
 #include <gpg-error.h>
 #include "gpgtar.h"
-#include "../common/exechelp.h"
 #include "../common/sysutils.h"
 #include "../common/ccparray.h"
 
@@ -189,7 +188,7 @@ parse_header (const void *record, const char *filename, tarinfo_t info)
   return header;
 }
 
-/* Parse the extended header.  This funcion may modify BUFFER.  */
+/* Parse the extended header.  This function may modify BUFFER.  */
 static gpg_error_t
 parse_extended_header (const char *fname,
                        char *buffer, size_t buflen, strlist_t *r_exthdr)
@@ -317,14 +316,14 @@ read_header (estream_t stream, tarinfo_t info,
   /* Read the extended header.  */
   if (!hdr->nrecords)
     {
-      /* More than 64k for an extedned header is surely too large.  */
+      /* More than 64k for an extended header is surely too large.  */
       log_info ("%s: warning: empty extended header\n",
                  es_fname_get (stream));
       return 0;
     }
   if (hdr->nrecords > 65536 / RECORDSIZE)
     {
-      /* More than 64k for an extedned header is surely too large.  */
+      /* More than 64k for an extended header is surely too large.  */
       log_error ("%s: extended header too large - skipping\n",
                  es_fname_get (stream));
       return 0;
@@ -365,7 +364,7 @@ read_header (estream_t stream, tarinfo_t info,
     }
 
   xfree (buffer);
-  /* Now tha the extedned header has been read, we read the next
+  /* Now that the extended header has been read, we read the next
    * header without allowing an extended header.  */
   return read_header (stream, info, r_header, NULL);
 }
@@ -460,7 +459,7 @@ gpgtar_list (const char *filename, int decrypt)
   strlist_t extheader = NULL;
   struct tarinfo_s tarinfo_buffer;
   tarinfo_t tarinfo = &tarinfo_buffer;
-  pid_t pid = (pid_t)(-1);
+  gpgrt_process_t proc = NULL;
 
   memset (&tarinfo_buffer, 0, sizeof tarinfo_buffer);
 
@@ -468,21 +467,32 @@ gpgtar_list (const char *filename, int decrypt)
     {
       strlist_t arg;
       ccparray_t ccp;
+#ifdef HAVE_W32_SYSTEM
+      HANDLE except[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+#else
       int except[2] = { -1, -1 };
+#endif
       const char **argv;
+      gpgrt_spawn_actions_t act = NULL;
 
       ccparray_init (&ccp, 0);
       if (opt.batch)
         ccparray_put (&ccp, "--batch");
       if (opt.require_compliance)
         ccparray_put (&ccp, "--require-compliance");
-      if (opt.status_fd != -1)
+      if (opt.status_fd)
         {
           static char tmpbuf[40];
+          es_syshd_t hd;
 
-          snprintf (tmpbuf, sizeof tmpbuf, "--status-fd=%d", opt.status_fd);
+          snprintf (tmpbuf, sizeof tmpbuf, "--status-fd=%s", opt.status_fd);
           ccparray_put (&ccp, tmpbuf);
-          except[0] = opt.status_fd;
+          es_syshd (opt.status_stream, &hd);
+#ifdef HAVE_W32_SYSTEM
+          except[0] = hd.u.handle;
+#else
+          except[0] = hd.u.fd;
+#endif
         }
       ccparray_put (&ccp, "--output");
       ccparray_put (&ccp, "-");
@@ -503,14 +513,27 @@ gpgtar_list (const char *filename, int decrypt)
           goto leave;
         }
 
-      err = gnupg_spawn_process (opt.gpg_program, argv,
-                                 except[0] == -1? NULL : except,
-                                 ((filename? 0 : GNUPG_SPAWN_KEEP_STDIN)
-                                  | GNUPG_SPAWN_KEEP_STDERR),
-                                 NULL, &stream, NULL, &pid);
+      err = gpgrt_spawn_actions_new (&act);
+      if (err)
+        {
+          xfree (argv);
+          goto leave;
+        }
+
+#ifdef HAVE_W32_SYSTEM
+      gpgrt_spawn_actions_set_inherit_handles (act, except);
+#else
+      gpgrt_spawn_actions_set_inherit_fds (act, except);
+#endif
+      err = gpgrt_process_spawn (opt.gpg_program, argv,
+                                 ((filename ? 0 : GPGRT_PROCESS_STDIN_KEEP)
+                                  | GPGRT_PROCESS_STDOUT_PIPE
+                                  | GPGRT_PROCESS_STDERR_KEEP), act, &proc);
+      gpgrt_spawn_actions_release (act);
       xfree (argv);
       if (err)
         goto leave;
+      gpgrt_process_get_streams (proc, 0, NULL, &stream, NULL);
       es_set_binary (stream);
     }
   else if (filename)  /* No decryption requested.  */
@@ -537,6 +560,8 @@ gpgtar_list (const char *filename, int decrypt)
   for (;;)
     {
       err = read_header (stream, tarinfo, &header, &extheader);
+      if (!err && !header)
+        break;  /* End of archive.  */
       if (err || header == NULL)
         goto leave;
 
@@ -550,23 +575,25 @@ gpgtar_list (const char *filename, int decrypt)
       header = NULL;
     }
 
-  if (pid != (pid_t)(-1))
+  if (proc)
     {
-      int exitcode;
-
       err = es_fclose (stream);
       stream = NULL;
       if (err)
         log_error ("error closing pipe: %s\n", gpg_strerror (err));
-      else
+
+      err = gpgrt_process_wait (proc, 1);
+      if (!err)
         {
-          err = gnupg_wait_process (opt.gpg_program, pid, 1, &exitcode);
-          if (err)
+          int exitcode;
+
+          gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &exitcode);
+          if (exitcode)
             log_error ("running %s failed (exitcode=%d): %s",
                        opt.gpg_program, exitcode, gpg_strerror (err));
-          gnupg_release_process (pid);
-          pid = (pid_t)(-1);
         }
+      gpgrt_process_release (proc);
+      proc = NULL;
     }
 
  leave:
@@ -574,6 +601,7 @@ gpgtar_list (const char *filename, int decrypt)
   xfree (header);
   if (stream != es_stdin)
     es_fclose (stream);
+  gpgrt_process_release (proc);
   return err;
 }
 

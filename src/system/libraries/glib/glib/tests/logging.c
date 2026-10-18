@@ -1,5 +1,10 @@
+#include "config.h"
+
 #include <stdlib.h>
 #include <string.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #define G_LOG_USE_STRUCTURED 1
 #include <glib.h>
 
@@ -614,6 +619,53 @@ test_default_handler (void)
 }
 
 static void
+test_journald_handler (void)
+{
+  /* We can’t require that the journal exists on the test system. But if it
+   * does, we can check that the writer doesn’t crash. */
+  const GLogField fields[] = {
+    { "MESSAGE", "This is a test message.", -1 },
+    { "MESSAGE_ID", "7187d27ad7f84351b76b7612eef52cd6", -1 },
+    { "MY_APPLICATION_CUSTOM_FIELD", "some debug string", -1 },
+  };
+
+  g_log_writer_journald (G_LOG_LEVEL_DEBUG, fields, G_N_ELEMENTS (fields), NULL);
+}
+
+static void
+clear_field (gpointer data)
+{
+  GLogField *field = data;
+
+  g_free ((void *) field->key);
+  g_free ((void *) field->value);
+}
+
+static void
+test_journald_handler_lots_of_fields (void)
+{
+  GArray *array;
+  guint i;
+
+  array = g_array_new (FALSE, FALSE, sizeof (GLogField));
+  g_array_set_clear_func (array, clear_field);
+
+  for (i = 0; i < 1024; i++)
+    {
+      GLogField field = {
+        .key = g_strdup_printf ("MY_APPLICATION_CUSTOM_FIELD_%u", i),
+        .value = g_strdup_printf ("field %u", i),
+        .length = -1,
+      };
+      g_array_append_val (array, field);
+    }
+
+  g_log_writer_journald (G_LOG_LEVEL_DEBUG, (GLogField *) array->data, array->len, NULL);
+
+  g_array_unref (array);
+}
+
+static void
 test_fatal_log_mask (void)
 {
   if (g_test_subprocess ())
@@ -627,6 +679,17 @@ test_fatal_log_mask (void)
   g_test_trap_assert_failed ();
   /* G_LOG_LEVEL_INFO isn't printed by default */
   g_test_trap_assert_stdout_unmatched ("*fatal*");
+}
+
+static void
+test_always_fatal (void)
+{
+  GLogLevelFlags log_level;
+
+  log_level = G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_WARNING;
+  g_log_set_always_fatal (log_level);
+
+  g_assert_cmpint (g_log_get_always_fatal (), ==, log_level | G_LOG_LEVEL_ERROR);
 }
 
 static gint my_print_count = 0;
@@ -1121,6 +1184,58 @@ test_structured_logging_set_writer_func_twice (void)
     }
 }
 
+static GLogWriterOutput
+n_fields_log_writer (GLogLevelFlags log_level, const GLogField *fields, gsize n_fields, gpointer user_data)
+{
+  size_t expected_n_fields = *(size_t *) user_data;
+
+  /* Let process exit successfully for g_test_trap_assert_passed(). */
+  if (n_fields == expected_n_fields)
+    _exit (0);
+
+  return G_LOG_WRITER_HANDLED;
+}
+
+static void
+test_structured_logging_recursion_overflow (void)
+{
+  g_test_summary ("Test that g_log_structured always sets n_fields correctly.");
+  g_test_bug ("https://gitlab.gnome.org/GNOME/glib/-/issues/3760");
+
+  if (g_test_subprocess ())
+    {
+      size_t expected_n_fields = 16;
+      const int log_level = G_LOG_LEVEL_MESSAGE | G_LOG_FLAG_RECURSION;
+
+      g_log_set_writer_func (n_fields_log_writer, &expected_n_fields, NULL);
+      g_log_structured (G_LOG_DOMAIN, log_level,
+                        "key01", "value",
+                        "key02", "value",
+                        "key03", "value",
+                        "key04", "value",
+                        "key05", "value",
+                        "key06", "value",
+                        "key07", "value",
+                        "key08", "value",
+                        "key09", "value",
+                        "key10", "value",
+                        "key11", "value",
+                        "key12", "value",
+                        "key13", "value",
+                        "key14", "value",
+                        "key15", "value",
+                        "key16", "value",
+                        "key17", "value",
+                        "key18", "value",
+                        "MESSAGE", "Triggered segmentation fault in the past");
+    }
+  else
+    {
+      g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
+      g_test_trap_assert_passed ();
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -1151,8 +1266,11 @@ main (int argc, char *argv[])
   g_test_add_func ("/logging/default-handler/subprocess/would-drop-env-systemd", test_default_handler_would_drop_env_systemd);
   g_test_add_func ("/logging/default-handler/subprocess/would-drop-robustness", test_default_handler_would_drop_robustness);
   g_test_add_func ("/logging/default-handler/subprocess/structured-logging-non-null-terminated-strings", test_default_handler_structured_logging_non_nul_terminated_strings);
+  g_test_add_func ("/logging/journald-handler", test_journald_handler);
+  g_test_add_func ("/logging/journald-handler-lots-of-fields", test_journald_handler_lots_of_fields);
   g_test_add_func ("/logging/warnings", test_warnings);
   g_test_add_func ("/logging/fatal-log-mask", test_fatal_log_mask);
+  g_test_add_func ("/logging/always-fatal", test_always_fatal);
   g_test_add_func ("/logging/set-handler", test_set_handler);
   g_test_add_func ("/logging/print-handler", test_print_handler);
   g_test_add_func ("/logging/printerr-handler", test_printerr_handler);
@@ -1160,6 +1278,7 @@ main (int argc, char *argv[])
   g_test_add_func ("/logging/gibberish", test_gibberish);
   g_test_add_func ("/structured-logging/no-state", test_structured_logging_no_state);
   g_test_add_func ("/structured-logging/some-state", test_structured_logging_some_state);
+  g_test_add_func ("/structured-logging/recursion-overflow", test_structured_logging_recursion_overflow);
   g_test_add_func ("/structured-logging/robustness", test_structured_logging_robustness);
   g_test_add_func ("/structured-logging/roundtrip1", test_structured_logging_roundtrip1);
   g_test_add_func ("/structured-logging/roundtrip2", test_structured_logging_roundtrip2);

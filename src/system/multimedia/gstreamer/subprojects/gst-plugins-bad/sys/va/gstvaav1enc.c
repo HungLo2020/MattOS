@@ -52,10 +52,9 @@
 
 #include "vacompat.h"
 #include "gstvabaseenc.h"
-#include "gstvaencoder.h"
-#include "gstvacaps.h"
-#include "gstvaprofile.h"
 #include "gstvadisplay_priv.h"
+#include "gstvaencoder.h"
+#include "gstvaprofile.h"
 #include "gstvapluginutils.h"
 
 #include "gst/glib-compat-private.h"
@@ -93,6 +92,8 @@ enum
   PROP_TILE_GROUPS,
   PROP_MBBRC,
   PROP_RATE_CONTROL,
+  PROP_PALETTE_MODE,
+  PROP_ALLOW_INTRABC,
   N_PROPERTIES
 };
 
@@ -227,6 +228,8 @@ struct _GstVaAV1Enc
     guint32 num_tile_rows;
     guint32 tile_groups;
     guint32 mbbrc;
+    gboolean allow_intrabc;
+    gboolean enable_palette_mode;
   } prop;
 
   struct
@@ -990,11 +993,14 @@ _av1_gf_group_push_frame (GstVaAV1GFGroup * gf_group,
     GstVideoCodecFrame * gst_frame)
 {
   GstVaAV1EncFrame *frame = _enc_frame (gst_frame);
+
+#ifndef G_DISABLE_CHECKS
   gint pushed_frame_num = gf_group->last_pushed_num < 0 ? 0 :
       gf_group->last_pushed_num - gf_group->start_frame_offset + 1;
-
   /* No room for a new one. */
   g_return_val_if_fail (pushed_frame_num < gf_group->group_frame_num, FALSE);
+#endif
+
   /* The frame num should just increase. */
   g_return_val_if_fail (frame->frame_num == gf_group->last_pushed_num + 1,
       FALSE);
@@ -1771,6 +1777,9 @@ gst_va_av1_enc_reset_state (GstVaBaseEnc * base)
   self->partition.num_tile_cols = self->prop.num_tile_cols;
   self->partition.num_tile_rows = self->prop.num_tile_rows;
   self->partition.tile_groups = self->prop.tile_groups;
+
+  self->features.allow_intrabc = self->prop.allow_intrabc;
+  self->features.enable_palette_mode = self->prop.enable_palette_mode;
   GST_OBJECT_UNLOCK (self);
 
   self->packed_headers = 0;
@@ -1791,15 +1800,12 @@ gst_va_av1_enc_reset_state (GstVaBaseEnc * base)
   self->features.enable_interintra_compound = FALSE;
   self->features.enable_masked_compound = FALSE;
   self->features.enable_warped_motion = FALSE;
-  self->features.enable_palette_mode = FALSE;
   self->features.enable_dual_filter = FALSE;
   self->features.enable_jnt_comp = FALSE;
   self->features.enable_ref_frame_mvs = FALSE;
   self->features.enable_superres = FALSE;
   self->features.enable_restoration = FALSE;
-  self->features.allow_intrabc = FALSE;
   self->features.enable_segmentation = FALSE;
-  self->features.enable_cdef = FALSE;
   self->features.interpolation_filter_support = 0;
   self->features.interpolation_type = 0;
   self->features.obu_size_bytes = 0;
@@ -1963,6 +1969,7 @@ _av1_decide_profile (GstVaAV1Enc * self, guint rt_format,
      2            12         Yes                 YUV 4:2:0,YUV 4:2:2,YUV 4:4:4
    */
   /* We only support 0 and 1 profile now */
+  /* note that profile 2 doesn't support screen content coding (SCC) */
   if (chrome == 0 || chrome == 1) {
     va_profile = VAProfileAV1Profile0;
   } else if (chrome == 3) {
@@ -1980,7 +1987,7 @@ _av1_decide_profile (GstVaAV1Enc * self, guint rt_format,
     if (!gst_va_encoder_has_profile (base->encoder, p))
       continue;
 
-    if ((rt_format & gst_va_encoder_get_rtformat (base->encoder,
+    if ((rt_format & gst_va_display_get_rtformat (base->display,
                 p, GST_VA_BASE_ENC_ENTRYPOINT (base))) == 0)
       continue;
 
@@ -2009,7 +2016,7 @@ _av1_init_packed_headers (GstVaAV1Enc * self)
 
   self->packed_headers = 0;
 
-  if (!gst_va_encoder_get_packed_headers (base->encoder, base->profile,
+  if (!gst_va_display_get_packed_headers (base->display, base->profile,
           GST_VA_BASE_ENC_ENTRYPOINT (base), &packed_headers))
     return FALSE;
 
@@ -2042,7 +2049,7 @@ _av1_generate_gop_structure (GstVaAV1Enc * self)
   if (self->gop.gf_group_size >= self->gop.keyframe_interval)
     self->gop.gf_group_size = self->gop.keyframe_interval - 1;
 
-  if (!gst_va_encoder_get_max_num_reference (base->encoder, base->profile,
+  if (!gst_va_display_get_max_num_reference (base->display, base->profile,
           GST_VA_BASE_ENC_ENTRYPOINT (base), &list0, &list1)) {
     GST_INFO_OBJECT (self, "Failed to get the max num reference");
     list0 = 1;
@@ -2317,12 +2324,6 @@ _av1_setup_encoding_features (GstVaAV1Enc * self)
 
     features.value = attrib.value;
 
-    if (self->partition.use_128x128_superblock
-        && (features.bits.support_128x128_superblock == 0)) {
-      GST_INFO_OBJECT (self, "128x128 superblock is not supported.");
-      self->partition.use_128x128_superblock = FALSE;
-    }
-
     self->features.enable_filter_intra =
         (features.bits.support_filter_intra != 0);
     self->features.enable_intra_edge_filter =
@@ -2331,29 +2332,42 @@ _av1_setup_encoding_features (GstVaAV1Enc * self)
         (features.bits.support_interintra_compound != 0);
     self->features.enable_masked_compound =
         (features.bits.support_masked_compound != 0);
-    /* not enable it now. */
+    /* TODO: not implemented */
     self->features.enable_warped_motion = FALSE;
-    // (features.bits.support_warped_motion != 0);
-    self->features.enable_palette_mode = FALSE;
-    //  (features.bits.support_palette_mode != 0);
+    /* (features.bits.support_warped_motion != 0); */
     self->features.enable_dual_filter =
         (features.bits.support_dual_filter != 0);
     self->features.enable_jnt_comp = (features.bits.support_jnt_comp != 0);
     self->features.enable_ref_frame_mvs =
         (features.bits.support_ref_frame_mvs != 0);
-    /* not enable it now. */
+    /* TODO: not implemented */
     self->features.enable_superres = FALSE;
+    /* (features.bits.support_superres != 0); */
+    /* TODO: not implemented */
     self->features.enable_restoration = FALSE;
-    // (features.bits.support_restoration != 0);
-    /* not enable it now. */
-    self->features.allow_intrabc = FALSE;
-    self->features.enable_cdef = TRUE;
+    /* (features.bits.support_restoration != 0); */
     self->features.cdef_channel_strength =
         (features.bits.support_cdef_channel_strength != 0);
+
+    /* affected by the properties */
+    self->partition.use_128x128_superblock &=
+        (features.bits.support_128x128_superblock != 0);
+    self->features.enable_palette_mode &=
+        (features.bits.support_palette_mode != 0);
+    self->features.allow_intrabc &= (features.bits.support_allow_intrabc != 0);
+    /* intra-block copy is incompatible with the constrained directional
+     * enhancement filter */
+    self->features.enable_cdef = !self->features.allow_intrabc;
   }
 
   update_property_bool (base, &self->prop.use_128x128_superblock,
       self->partition.use_128x128_superblock, PROP_128X128_SUPERBLOCK);
+
+  update_property_bool (base, &self->prop.allow_intrabc,
+      self->features.allow_intrabc, PROP_ALLOW_INTRABC);
+
+  update_property_bool (base, &self->prop.enable_palette_mode,
+      self->features.enable_palette_mode, PROP_PALETTE_MODE);
 
   attrib.type = VAConfigAttribEncAV1Ext1;
   attrib.value = 0;
@@ -2498,6 +2512,9 @@ _av1_calculate_coded_size (GstVaAV1Enc * self)
      We do not calculate SpeedAdj and do not consider still_picture. */
   base->codedbuf_size = un_compressed_size / self->cr;
 
+  base->codedbuf_size = gst_va_base_enc_adjust_coded_buffer_size (base,
+      base->codedbuf_size, self->rc.rc_ctrl_mode, self->rc.target_bitrate_bits);
+
   GST_INFO_OBJECT (self, "Calculate codedbuf size: %u", base->codedbuf_size);
 }
 
@@ -2596,7 +2613,7 @@ _av1_ensure_rate_control (GstVaAV1Enc * self)
   guint bitrate;
   guint32 rc_ctrl, rc_mode, quality_level;
 
-  quality_level = gst_va_encoder_get_quality_level (base->encoder,
+  quality_level = gst_va_display_get_quality_level (base->display,
       base->profile, GST_VA_BASE_ENC_ENTRYPOINT (base));
   if (self->rc.target_usage > quality_level) {
     GST_INFO_OBJECT (self, "User setting target-usage: %d is not supported, "
@@ -2612,7 +2629,7 @@ _av1_ensure_rate_control (GstVaAV1Enc * self)
   GST_OBJECT_UNLOCK (self);
 
   if (rc_ctrl != VA_RC_NONE) {
-    rc_mode = gst_va_encoder_get_rate_control_mode (base->encoder,
+    rc_mode = gst_va_display_get_rate_control_mode (base->display,
         base->profile, GST_VA_BASE_ENC_ENTRYPOINT (base));
     if (!(rc_mode & rc_ctrl)) {
       guint32 defval =
@@ -2764,31 +2781,19 @@ gst_va_av1_enc_reconfig (GstVaBaseEnc * base)
   GstVaBaseEncClass *klass = GST_VA_BASE_ENC_GET_CLASS (base);
   GstVideoEncoder *venc = GST_VIDEO_ENCODER (base);
   GstVaAV1Enc *self = GST_VA_AV1_ENC (base);
-  GstCaps *out_caps, *reconf_caps = NULL;
+  GstCaps *out_caps;
   GstVideoCodecState *output_state;
-  GstVideoFormat format, reconf_format = GST_VIDEO_FORMAT_UNKNOWN;
+  GstVideoFormat format;
   VAProfile profile;
-  gboolean do_renegotiation = TRUE, do_reopen, need_negotiation, rc_same;
-  guint max_ref_frames, max_surfaces = 0,
-      rt_format, depth = 0, chrome = 0, codedbuf_size, latency_num;
+  gboolean do_renegotiation = TRUE;
+  guint max_ref_frames, rt_format, depth = 0, chrome = 0, latency_num;
   gint width, height;
   GstClockTime latency;
 
   width = GST_VIDEO_INFO_WIDTH (&base->in_info);
   height = GST_VIDEO_INFO_HEIGHT (&base->in_info);
   format = GST_VIDEO_INFO_FORMAT (&base->in_info);
-  codedbuf_size = base->codedbuf_size;
   latency_num = base->preferred_output_delay + self->gop.gf_group_size - 1;
-
-  need_negotiation =
-      !gst_va_encoder_get_reconstruct_pool_config (base->encoder, &reconf_caps,
-      &max_surfaces);
-  if (!need_negotiation && reconf_caps) {
-    GstVideoInfo vi;
-    if (!gst_video_info_from_caps (&vi, reconf_caps))
-      return FALSE;
-    reconf_format = GST_VIDEO_INFO_FORMAT (&vi);
-  }
 
   rt_format = _av1_get_rtformat (self, format, &depth, &chrome);
   if (!rt_format) {
@@ -2799,19 +2804,6 @@ gst_va_av1_enc_reconfig (GstVaBaseEnc * base)
   profile = _av1_decide_profile (self, rt_format, depth, chrome);
   if (profile == VAProfileNone)
     return FALSE;
-
-  GST_OBJECT_LOCK (self);
-  rc_same = (self->prop.rc_ctrl == self->rc.rc_ctrl_mode);
-  GST_OBJECT_UNLOCK (self);
-
-  /* first check */
-  do_reopen = !(base->profile == profile && base->rt_format == rt_format
-      && format == reconf_format && width == base->width
-      && height == base->height && rc_same && depth == self->depth
-      && chrome == self->chrome);
-
-  if (do_reopen && gst_va_encoder_is_open (base->encoder))
-    gst_va_encoder_close (base->encoder);
 
   gst_va_base_enc_reset_state (base);
 
@@ -2867,7 +2859,6 @@ gst_va_av1_enc_reconfig (GstVaBaseEnc * base)
 
   /* Let the downstream know the new latency. */
   if (latency_num != base->preferred_output_delay + self->gop.gf_group_size - 1) {
-    need_negotiation = TRUE;
     latency_num = base->preferred_output_delay + self->gop.gf_group_size - 1;
   }
 
@@ -2882,14 +2873,7 @@ gst_va_av1_enc_reconfig (GstVaBaseEnc * base)
   base->min_buffers = max_ref_frames;
   max_ref_frames += 3 /* scratch frames */ ;
 
-  /* second check after calculations */
-  do_reopen |=
-      !(max_ref_frames == max_surfaces && codedbuf_size == base->codedbuf_size);
-  if (do_reopen && gst_va_encoder_is_open (base->encoder))
-    gst_va_encoder_close (base->encoder);
-
-  if (!gst_va_encoder_is_open (base->encoder)
-      && !gst_va_encoder_open (base->encoder, base->profile,
+  if (!gst_va_encoder_open (base->encoder, base->profile,
           GST_VIDEO_INFO_FORMAT (&base->in_info), base->rt_format,
           base->width, base->height, base->codedbuf_size, max_ref_frames,
           self->rc.rc_ctrl_mode, self->packed_headers)) {
@@ -2912,17 +2896,15 @@ gst_va_av1_enc_reconfig (GstVaBaseEnc * base)
       "height", G_TYPE_INT, base->height, "alignment", G_TYPE_STRING, "tu",
       "stream-format", G_TYPE_STRING, "obu-stream", NULL);
 
-  if (!need_negotiation) {
-    output_state = gst_video_encoder_get_output_state (venc);
-    do_renegotiation = TRUE;
-    if (output_state) {
-      do_renegotiation = !gst_caps_is_subset (output_state->caps, out_caps);
-      gst_video_codec_state_unref (output_state);
-    }
-    if (!do_renegotiation) {
-      gst_caps_unref (out_caps);
-      return TRUE;
-    }
+  output_state = gst_video_encoder_get_output_state (venc);
+  do_renegotiation = TRUE;
+  if (output_state) {
+    do_renegotiation = !gst_caps_is_subset (output_state->caps, out_caps);
+    gst_video_codec_state_unref (output_state);
+  }
+  if (!do_renegotiation) {
+    gst_caps_unref (out_caps);
+    return TRUE;
   }
 
   GST_DEBUG_OBJECT (self, "output caps is %" GST_PTR_FORMAT, out_caps);
@@ -3033,7 +3015,11 @@ _av1_fill_sequence_header (GstVaAV1Enc * self,
     .enable_order_hint = seq_param->seq_fields.bits.enable_order_hint,
     .enable_jnt_comp = seq_param->seq_fields.bits.enable_jnt_comp,
     .enable_ref_frame_mvs = seq_param->seq_fields.bits.enable_ref_frame_mvs,
-    .seq_choose_screen_content_tools = 0,
+    .seq_choose_screen_content_tools =
+        (self->features.allow_intrabc || self->features.enable_palette_mode),
+    .seq_force_screen_content_tools =
+        (self->features.allow_intrabc || self->features.enable_palette_mode) ?
+        GST_AV1_SELECT_SCREEN_CONTENT_TOOLS : 0,
     .order_hint_bits_minus_1 = seq_param->order_hint_bits_minus_1,
     .enable_superres = seq_param->seq_fields.bits.enable_superres,
     .enable_cdef = seq_param->seq_fields.bits.enable_cdef,
@@ -3161,6 +3147,16 @@ _av1_calculate_cdef_param (GstVaAV1Enc * self,
   guint cdef_damping;
   guint i;
 
+  if (!self->features.enable_cdef) {
+    pic_param->cdef_bits = 0;
+    pic_param->cdef_damping_minus_3 = 3;
+    for (i = 0; i < GST_AV1_CDEF_MAX; i++) {
+      pic_param->cdef_y_strengths[i] = 0;
+      pic_param->cdef_uv_strengths[i] = 0;
+    }
+    return;
+  }
+
   /* Adjust the CDEF parameter for CQP mode. In bitrate control mode, the
      driver will update the CDEF value for each frame automatically. */
   if (self->rc.rc_ctrl_mode == VA_RC_CQP) {
@@ -3219,11 +3215,14 @@ _av1_fill_frame_param (GstVaAV1Enc * self, GstVaAV1EncFrame * va_frame,
   g_assert (!(va_frame->type & FRAME_TYPE_REPEAT));
 
   /* *INDENT-OFF* */
-  if (self->rc.rc_ctrl_mode == VA_RC_CQP) {
+  if (self->rc.rc_ctrl_mode == VA_RC_CQP && !self->features.allow_intrabc) {
     loop_filter_level_y =
         _av1_calculate_filter_level (self->rc.base_qindex, FALSE);
     loop_filter_level_uv =
         _av1_calculate_filter_level (self->rc.base_qindex, TRUE);
+  } else if (self->features.allow_intrabc) {
+    loop_filter_level_y = 0;
+    loop_filter_level_uv = 0;
   } else {
     /* In bitrate control mode, the driver will set the loop filter
        level for each frame, we do not care here. */
@@ -3372,6 +3371,10 @@ _av1_fill_frame_param (GstVaAV1Enc * self, GstVaAV1EncFrame * va_frame,
     .skip_frames_reduced_size = 0,
   };
   /* *INDENT-ON* */
+  if (self->features.allow_intrabc) {
+    pic_param->ref_deltas[4] = 0;
+    pic_param->ref_deltas[5] = -1;
+  }
 
   _av1_calculate_cdef_param (self, pic_param);
 
@@ -3555,6 +3558,7 @@ _av1_fill_frame_header (GstVaAV1Enc * self,
     .allow_screen_content_tools = 0,
     .frame_size_override_flag = 0,
     .frame_width = self->sequence_hdr.max_frame_width_minus_1 + 1,
+    .upscaled_width = self->sequence_hdr.max_frame_width_minus_1 + 1,
     .frame_height = self->sequence_hdr.max_frame_height_minus_1 + 1,
     .order_hint = pic_param->order_hint,
     .primary_ref_frame = pic_param->primary_ref_frame,
@@ -3656,15 +3660,22 @@ _av1_fill_frame_header (GstVaAV1Enc * self,
   };
   /* *INDENT-ON* */
 
-  for (i = 0; i < GST_AV1_CDEF_MAX; i++) {
-    frame_hdr->cdef_params.cdef_y_pri_strength[i] =
-        pic_param->cdef_y_strengths[i] / 4;
-    frame_hdr->cdef_params.cdef_y_sec_strength[i] =
-        pic_param->cdef_y_strengths[i] % 4;
-    frame_hdr->cdef_params.cdef_uv_pri_strength[i] =
-        pic_param->cdef_uv_strengths[i] / 4;
-    frame_hdr->cdef_params.cdef_uv_sec_strength[i] =
-        pic_param->cdef_uv_strengths[i] % 4;
+  if (frame_hdr->allow_intrabc == 0) {
+    for (i = 0; i < GST_AV1_CDEF_MAX; i++) {
+      frame_hdr->cdef_params.cdef_y_pri_strength[i] =
+          pic_param->cdef_y_strengths[i] / 4;
+      frame_hdr->cdef_params.cdef_y_sec_strength[i] =
+          pic_param->cdef_y_strengths[i] % 4;
+      frame_hdr->cdef_params.cdef_uv_pri_strength[i] =
+          pic_param->cdef_uv_strengths[i] / 4;
+      frame_hdr->cdef_params.cdef_uv_sec_strength[i] =
+          pic_param->cdef_uv_strengths[i] % 4;
+    }
+  }
+
+  if (frame_hdr->allow_intrabc
+      || pic_param->picture_flags.bits.palette_mode_enable) {
+    frame_hdr->allow_screen_content_tools = 1;
   }
 
   _av1_set_skip_mode_frame (self, va_frame, frame_hdr);
@@ -3959,6 +3970,7 @@ _av1_create_tu_output_buffer (GstVaAV1Enc * self,
   GstVaAV1EncFrame *frame_enc;
   GstBuffer *buf = NULL;
   guint num;
+  gboolean corrupt = FALSE;
 
   g_assert ((_enc_frame (last_frame)->flags & FRAME_TYPE_REPEAT) == 0);
   g_assert ((_enc_frame (last_frame)->flags & FRAME_FLAG_NOT_SHOW) == 0);
@@ -3990,10 +4002,15 @@ _av1_create_tu_output_buffer (GstVaAV1Enc * self,
       goto error;
     }
 
+    if (frame_enc->base.picture->corrupt)
+      corrupt = TRUE;
+
     offset += frame_size;
   }
 
   frame_enc = _enc_frame (last_frame);
+  /* If any frame is corrupt, make the whole TU as corrupt. */
+  frame_enc->base.picture->corrupt |= corrupt;
 
   if (frame_enc->cached_frame_header_size > 0) {
     memcpy (data + offset, frame_enc->cached_frame_header,
@@ -4169,6 +4186,8 @@ gst_va_av1_enc_init (GTypeInstance * instance, gpointer g_class)
   self->prop.num_tile_rows = 1;
   self->prop.tile_groups = 1;
   self->prop.mbbrc = 0;
+  self->prop.enable_palette_mode = FALSE;
+  self->prop.allow_intrabc = FALSE;
 
   if (properties[PROP_RATE_CONTROL]) {
     self->prop.rc_ctrl =
@@ -4274,6 +4293,12 @@ gst_va_av1_enc_set_property (GObject * object, guint prop_id,
       }
       break;
     }
+    case PROP_PALETTE_MODE:
+      self->prop.enable_palette_mode = g_value_get_boolean (value);
+      break;
+    case PROP_ALLOW_INTRABC:
+      self->prop.allow_intrabc = g_value_get_boolean (value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
   }
@@ -4347,6 +4372,12 @@ gst_va_av1_enc_get_property (GObject * object, guint prop_id,
       break;
     case PROP_MBBRC:
       g_value_set_enum (value, self->prop.mbbrc);
+      break;
+    case PROP_PALETTE_MODE:
+      g_value_set_boolean (value, self->prop.enable_palette_mode);
+      break;
+    case PROP_ALLOW_INTRABC:
+      g_value_set_boolean (value, self->prop.allow_intrabc);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -4504,6 +4535,28 @@ gst_va_av1_enc_class_init (gpointer g_klass, gpointer class_data)
       g_param_spec_boolean ("superblock-128x128", "128x128 superblock",
       "Enable the 128x128 superblock mode", FALSE, param_flags);
 
+  /**
+   * GstVaAV1Enc:palette-mode:
+   *
+   * Enable palette mode, an intra-frame optimization for blocks with a limited
+   * number of distinct colors, such a UI elements, for example.
+   */
+  properties[PROP_PALETTE_MODE] =
+      g_param_spec_boolean ("palette-mode", "Enable palette mode",
+      "Enable palette mode, intra-frame optimization with limited colors",
+      FALSE, param_flags);
+
+  /**
+   * GstVaAV1Enc:allow_intrabc:
+   *
+   * Allow intra-block copy, a prediction mode for spatial redundancy within a
+   * frame. If it's enabled, it disables the usage of the constrained
+   * directional enhancement filter.
+   */
+  properties[PROP_ALLOW_INTRABC] =
+      g_param_spec_boolean ("allow-intrabc", "Allow intra-block copy",
+      "Allow intra-block copy, a prediction mode for spatial redundancy within "
+      "a frame", FALSE, param_flags);
   /**
    * GstVaAV1Enc:min-qp:
    *

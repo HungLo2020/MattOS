@@ -39,14 +39,7 @@
  * libgpg-error version.  Define them here.
  * Example: (#if GPG_ERROR_VERSION_NUMBER < 0x011500 // 1.21)
  */
-#if GPG_ERROR_VERSION_NUMBER < 0x012f00 /* 1.47 */
-# define GPG_ERR_BAD_PUK          320
-# define GPG_ERR_NO_RESET_CODE    321
-# define GPG_ERR_BAD_RESET_CODE   322
-#endif
-#if GPGRT_VERSION_NUMBER  < 0x013800 /* 1.56 */
-# define GPG_ERR_UNEXPECTED_PACKET 216
-#endif
+
 
 #ifndef EXTERN_UNLESS_MAIN_MODULE
 # if !defined (INCLUDED_BY_MAIN_MODULE)
@@ -152,36 +145,6 @@ ssize_t read_line (FILE *fp,
                    size_t *max_length);
 
 
-/*-- b64enc.c and b64dec.c --*/
-struct b64state
-{
-  unsigned int flags;
-  int idx;
-  int quad_count;
-  FILE *fp;
-  estream_t stream;
-  char *title;
-  unsigned char radbuf[4];
-  u32 crc;
-  int stop_seen:1;
-  int invalid_encoding:1;
-  gpg_error_t lasterr;
-};
-
-gpg_error_t b64enc_start (struct b64state *state, FILE *fp, const char *title);
-gpg_error_t b64enc_start_es (struct b64state *state, estream_t fp,
-                             const char *title);
-gpg_error_t b64enc_write (struct b64state *state,
-                          const void *buffer, size_t nbytes);
-gpg_error_t b64enc_finish (struct b64state *state);
-
-gpg_error_t b64dec_start (struct b64state *state, const char *title);
-gpg_error_t b64dec_proc (struct b64state *state, void *buffer, size_t length,
-                         size_t *r_nbytes);
-gpg_error_t b64dec_finish (struct b64state *state);
-gpg_error_t b64decode (const char *string, const char *title,
-                       void **r_buffer, size_t *r_buflen);
-
 /*-- sexputil.c */
 char *canon_sexp_to_string (const unsigned char *canon, size_t canonlen);
 void log_printcanon (const char *text,
@@ -229,6 +192,7 @@ char *pubkey_algo_string (gcry_sexp_t s_pkey, enum gcry_pk_algos *r_algoid);
 const char *pubkey_algo_to_string (int algo);
 const char *hash_algo_to_string (int algo);
 const char *cipher_mode_to_string (int mode);
+const char *get_ecc_curve_from_key (gcry_sexp_t key);
 
 /*-- convert.c --*/
 int hex2bin (const char *string, void *buffer, size_t length);
@@ -261,8 +225,9 @@ int openpgp_oid_is_cv25519 (gcry_mpi_t a);
 int openpgp_oid_is_cv448 (gcry_mpi_t a);
 int openpgp_oid_is_ed448 (gcry_mpi_t a);
 const char *openpgp_curve_to_oid (const char *name,
-                                  unsigned int *r_nbits, int *r_algo);
-const char *openpgp_oid_to_curve (const char *oid, int canon);
+                                  unsigned int *r_nbits, int *r_algo,
+                                  int selector);
+const char *openpgp_oid_to_curve (const char *oid, int mode);
 const char *openpgp_oid_or_name_to_curve (const char *oidname, int canon);
 const char *openpgp_enum_curves (int *idxp);
 const char *openpgp_is_curve_supported (const char *name,
@@ -272,11 +237,20 @@ const char *get_keyalgo_string (enum gcry_pk_algos algo,
 
 
 /*-- homedir.c --*/
+#ifdef HAVE_W32_SYSTEM
+int gnupg_isatty (int fd);
+extern int windows_semihosted_by_wine;
+#else
+#define gnupg_isatty(a)  isatty ((a))
+#endif
+
 const char *standard_homedir (void);
 void gnupg_set_homedir (const char *newdir);
 void gnupg_maybe_make_homedir (const char *fname, int quiet);
+char *gnupg_myproc_self (void);
 const char *gnupg_homedir (void);
 int gnupg_default_homedir_p (void);
+const char *gnupg_registry_dir (void);
 const char *gnupg_daemon_rootdir (void);
 const char *gnupg_socketdir (void);
 const char *gnupg_sysconfdir (void);
@@ -326,10 +300,71 @@ void gnupg_set_builddir (const char *newdir);
 void gnupg_rl_initialize (void);
 
 /*-- helpfile.c --*/
+
+/* Bit flags for gnupg_get_template.  */
+#define GET_TEMPLATE_CURRENT_LOCALE 1 /* Use only the current locale.       */
+#define GET_TEMPLATE_SUBST_ENVVARS  2 /* Substitute environment variables.  */
+#define GET_TEMPLATE_CRLF           4 /* Use CR+LF.                         */
+
+char *gnupg_get_template (const char *domain, const char *key,
+                          unsigned int flags, const char *override_locale);
 char *gnupg_get_help_string (const char *key, int only_current_locale);
 
 /*-- localename.c --*/
 const char *gnupg_messages_locale_name (void);
+
+/*-- kem.c --*/
+gpg_error_t
+gpgsm_ecc_kem_kdf (void *kek, size_t kek_len,
+                   int hashalgo, const void *ecdh, size_t ecdh_len,
+                   const unsigned char *wrap, size_t wrap_len,
+                   const unsigned char *ukm, size_t ukm_len);
+
+gpg_error_t gnupg_ecc_kem_kdf (void *kek, size_t kek_len, int kdf_algo,
+                               int hashalgo, const void *ecdh, size_t ecdh_len,
+                               const unsigned char *kdf_params,
+                               size_t kdf_params_len);
+
+gpg_error_t gnupg_ecc_kem_simple_kdf (void *kek, size_t kek_len, int hashalgo,
+                                      const void *ecdh, size_t ecdh_len,
+                                      const void *ecc_ct, size_t ecc_ct_len,
+                                      const void *ecc_pk, size_t ecc_pk_len);
+
+gpg_error_t gnupg_kem_combiner  (void *kek, size_t kek_len,
+                                 const void *ecc_ss, size_t ecc_ss_len,
+                                 const void *ecc_ct, size_t ecc_ct_len,
+                                 const void *mlkem_ss, size_t mlkem_ss_len,
+                                 const void *mlkem_ct, size_t mlkem_ct_len,
+                                 const void *fixedinfo, size_t fixedinfo_len);
+
+gpg_error_t gnupg_kem_combiner_sha3_256 (void *kek, size_t kek_len,
+                             const void *ecc_ss, size_t ecc_ss_len,
+                             const void *ecc_ct, size_t ecc_ct_len,
+                             const void *ecc_pk, size_t ecc_pk_len,
+                             const void *mlkem_ss, size_t mlkem_ss_len,
+                              const void *fixedinfo, size_t fixedinfo_len);
+
+/* ECC parameters for KEM encryption/decryption.  */
+struct gnupg_ecc_params
+{
+  const char *curve;      /* Canonical name of the curve.  */
+  size_t pubkey_len;      /* Pubkey length in the SEXP representation.  */
+  size_t scalar_len;
+  size_t point_len;
+  int hash_algo;          /* Hash algo when it's used for composite KEM.  */
+  int kem_algo;
+  int scalar_reverse;     /* Byte-oder is reverse.  */
+  int may_have_prefix;    /* Point representation may have prefix.  */
+  int is_weierstrauss;    /* True if it is Weierstrass curve.  */
+};
+
+const struct gnupg_ecc_params *gnupg_get_ecc_params (const char *curve);
+
+/* Maximum buffer sizes required for ECC KEM.  */
+#define ECC_SCALAR_LEN_MAX 66
+#define ECC_POINT_LEN_MAX (1+2*ECC_SCALAR_LEN_MAX)
+#define ECC_HASH_LEN_MAX 64
+
 
 /*-- miscellaneous.c --*/
 
@@ -340,7 +375,7 @@ void setup_libgcrypt_logging (void);
 /* Print an out of core message and die.  */
 void xoutofcore (void);
 
-/* Wrapper aroung gpgrt_reallocarray.  Uses the gpgrt alloc function
+/* Wrapper around gpgrt_reallocarray.  Uses the gpgrt alloc function
  * which redirects to the Libgcrypt versions via
  * init_common_subsystems.  Thus this can be used interchangeable with
  * the other alloc functions. */
@@ -353,6 +388,9 @@ char *xtryasprintf (const char *fmt, ...) GPGRT_ATTR_PRINTF(1,2);
 
 /* Replacement for gcry_cipher_algo_name.  */
 const char *gnupg_cipher_algo_name (int algo);
+
+/* Return a string for the cipher MODE.  */
+const char *gnupg_cipher_mode_name (int mode);
 
 void obsolete_option (const char *configname, unsigned int configlineno,
                       const char *name);
@@ -391,6 +429,10 @@ struct compatibility_flags_s
 int parse_compatibility_flags (const char *string, unsigned int *flagvar,
                                const struct compatibility_flags_s *flags);
 
+gpg_error_t b64decode (const char *string, const char *title,
+                       void **r_buffer, size_t *r_buflen);
+
+
 
 /*-- Simple replacement functions. */
 
@@ -408,8 +450,6 @@ _gnupg_ttyname (int fd)
 #else /*HAVE_TTYNAME*/
 # define gnupg_ttyname(n) ttyname ((n))
 #endif /*HAVE_TTYNAME */
-
-#define gnupg_isatty(a)  isatty ((a))
 
 
 /*-- Macros to replace ctype ones to avoid locale problems. --*/

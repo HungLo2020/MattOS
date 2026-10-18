@@ -1,10 +1,11 @@
-FROM fedora:39
+FROM fedora:41
 
 RUN dnf -y update \
  && dnf -y install \
     bindfs \
     clang \
     clang-analyzer \
+    compiler-rt \
     dbus-daemon \
     dbus-devel \
     desktop-file-utils \
@@ -20,6 +21,7 @@ RUN dnf -y update \
     glibc-devel \
     glibc-gconv-extra \
     glibc-headers \
+    glibc-langpack-az \
     glibc-langpack-de \
     glibc-langpack-el \
     glibc-langpack-en \
@@ -40,10 +42,13 @@ RUN dnf -y update \
     gtk-doc \
     itstool \
     lcov \
+    libasan \
     libattr-devel \
     libffi-devel \
     libmount-devel \
     libselinux-devel \
+    libtsan \
+    libubsan \
     libxslt \
     ncurses-compat-libs \
     ninja-build \
@@ -55,6 +60,7 @@ RUN dnf -y update \
     python3-wheel \
     shared-mime-info \
     systemtap-sdt-devel \
+    systemtap-sdt-dtrace \
     unzip \
     valgrind \
     wget \
@@ -80,6 +86,12 @@ RUN dnf -y update \
  && dnf clean all
 
 RUN pip3 install meson==1.4.2
+
+# We need gi-docgen installed as a system dependency, rather than depending on
+# the subproject wrap, as `meson dist` won’t use the subproject from the source
+# dir when testing a dist tarball; it’ll try to re-download it, but then fail
+# due to --wrap-mode=nodownload.
+RUN pkg-config --atleast-version 2026.1 gi-docgen || pip3 install gi-docgen==2026.1
 
 COPY install-gitlab-cobertura-tools.sh .
 RUN ./install-gitlab-cobertura-tools.sh

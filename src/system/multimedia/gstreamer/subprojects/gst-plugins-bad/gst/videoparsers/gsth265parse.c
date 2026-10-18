@@ -174,6 +174,9 @@ gst_h265_parse_init (GstH265Parse * h265parse)
   gst_base_parse_set_infer_ts (GST_BASE_PARSE (h265parse), FALSE);
   GST_PAD_SET_ACCEPT_INTERSECT (GST_BASE_PARSE_SINK_PAD (h265parse));
   GST_PAD_SET_ACCEPT_TEMPLATE (GST_BASE_PARSE_SINK_PAD (h265parse));
+
+  h265parse->aud_needed = TRUE;
+  h265parse->aud_insert = TRUE;
 }
 
 
@@ -208,8 +211,11 @@ gst_h265_parse_reset_frame (GstH265Parse * h265parse)
   h265parse->have_vps_in_frame = FALSE;
   h265parse->have_sps_in_frame = FALSE;
   h265parse->have_pps_in_frame = FALSE;
+  h265parse->have_aud_in_frame = FALSE;
+  h265parse->layer_id = 0;
+  h265parse->temporal_id_plus1 = 0;
   gst_adapter_clear (h265parse->frame_out);
-  gst_video_clear_user_data (&h265parse->user_data, FALSE);
+  gst_video_clear_user_data (&h265parse->user_data);
   gst_video_clear_user_data_unregistered (&h265parse->user_data_unregistered,
       FALSE);
 }
@@ -231,6 +237,7 @@ gst_h265_parse_reset_stream_info (GstH265Parse * h265parse)
   h265parse->parsed_colorimetry.matrix = GST_VIDEO_COLOR_MATRIX_UNKNOWN;
   h265parse->parsed_colorimetry.transfer = GST_VIDEO_TRANSFER_UNKNOWN;
   h265parse->parsed_colorimetry.primaries = GST_VIDEO_COLOR_PRIMARIES_UNKNOWN;
+  h265parse->lcevc = FALSE;
   h265parse->have_pps = FALSE;
   h265parse->have_sps = FALSE;
   h265parse->have_vps = FALSE;
@@ -243,6 +250,8 @@ gst_h265_parse_reset_stream_info (GstH265Parse * h265parse)
   h265parse->packetized = FALSE;
   h265parse->push_codec = FALSE;
   h265parse->first_frame = TRUE;
+  h265parse->layer_id = 0;
+  h265parse->temporal_id_plus1 = 0;
 
   gst_buffer_replace (&h265parse->codec_data, NULL);
   gst_buffer_replace (&h265parse->codec_data_in, NULL);
@@ -288,6 +297,10 @@ gst_h265_parse_start (GstBaseParse * parse)
 
   h265parse->nalparser = gst_h265_parser_new ();
   h265parse->state = 0;
+  h265parse->layer_id = 0;
+  h265parse->temporal_id_plus1 = 0;
+  h265parse->aud_needed = TRUE;
+  h265parse->aud_insert = FALSE;
 
   gst_base_parse_set_min_frame_size (parse, 5);
 
@@ -684,6 +697,8 @@ gst_h265_parse_process_sei (GstH265Parse * h265parse, GstH265NalUnit * nalu)
         break;
       }
       default:
+        GST_DEBUG_OBJECT (h265parse, "Unknown SEI payload type %d",
+            sei.payloadType);
         break;
     }
   }
@@ -698,8 +713,9 @@ gst_h265_parse_process_sei_user_data (GstH265Parse * h265parse,
   GstByteReader br;
   GstVideoParseUtilsField field = GST_VIDEO_PARSE_UTILS_FIELD_1;
 
-  /* only US country code is currently supported */
+  /* only US and UK country codes are currently supported */
   switch (rud->country_code) {
+    case ITU_T_T35_COUNTRY_CODE_UK:
     case ITU_T_T35_COUNTRY_CODE_US:
       break;
     default:
@@ -900,10 +916,6 @@ gst_h265_parse_process_nal (GstH265Parse * h265parse, GstH265NalUnit * nalu)
               GST_H265_PARSE_STATE_VALID_PICTURE_HEADERS))
         return FALSE;
 
-      /* This is similar to the GOT_SLICE state, but is only reset when the
-       * AU is complete. This is used to keep track of AU */
-      h265parse->picture_start = TRUE;
-
       pres = gst_h265_parser_parse_slice_hdr (nalparser, nalu, &slice);
 
       if (pres == GST_H265_PARSER_OK) {
@@ -916,6 +928,15 @@ gst_h265_parse_process_nal (GstH265Parse * h265parse, GstH265NalUnit * nalu)
 
         h265parse->state |= GST_H265_PARSE_STATE_GOT_SLICE;
       }
+
+      /* This is similar to the GOT_SLICE state, but is only reset when the
+       * AU is complete. This is used to keep track of AU */
+      if (!h265parse->picture_start) {
+        h265parse->picture_start = TRUE;
+        h265parse->layer_id = nalu->layer_id;
+        h265parse->temporal_id_plus1 = nalu->temporal_id_plus1;
+      }
+
       if (slice.first_slice_segment_in_pic_flag == 1)
         GST_DEBUG_OBJECT (h265parse,
             "frame start, first_slice_segment_in_pic_flag = 1");
@@ -989,6 +1010,13 @@ gst_h265_parse_process_nal (GstH265Parse * h265parse, GstH265NalUnit * nalu)
         return FALSE;
       break;
     case GST_H265_NAL_AUD:
+      pres = gst_h265_parser_parse_nal (nalparser, nalu);
+      if (pres != GST_H265_PARSER_OK)
+        return FALSE;
+
+      h265parse->aud_needed = FALSE;
+      h265parse->have_aud_in_frame = TRUE;
+      break;
     default:
       /* Just accumulate AU Delimiter, whether it's before SPS or not */
       pres = gst_h265_parser_parse_nal (nalparser, nalu);
@@ -1059,16 +1087,12 @@ gst_h265_parse_handle_frame_packetized (GstBaseParse * parse,
   GstH265NalUnit nalu;
   const guint nl = h265parse->nal_length_size;
   GstMapInfo map;
-  gint left;
+  gsize parsed, left;
 
   if (nl < 1 || nl > 4) {
     GST_DEBUG_OBJECT (h265parse, "insufficient data to split input");
     return GST_FLOW_NOT_NEGOTIATED;
   }
-
-  /* need to save buffer from invalidation upon _finish_frame */
-  if (h265parse->split_packetized)
-    buffer = gst_buffer_copy (frame->buffer);
 
   gst_buffer_map (buffer, &map, GST_MAP_READ);
 
@@ -1079,6 +1103,11 @@ gst_h265_parse_handle_frame_packetized (GstBaseParse * parse,
 
   parse_res = gst_h265_parser_identify_nalu_hevc (h265parse->nalparser,
       map.data, 0, map.size, nl, &nalu);
+
+  /* Always enable AUD insertion per frame here. The pre_push function
+   * will only add it once, and will only add it for byte-stream output
+   * if AUD doesn't exist in the current frame */
+  h265parse->aud_insert = TRUE;
 
   while (parse_res == GST_H265_PARSER_OK) {
     GST_DEBUG_OBJECT (h265parse, "HEVC nal offset %d", nalu.offset + nalu.size);
@@ -1113,27 +1142,64 @@ gst_h265_parse_handle_frame_packetized (GstBaseParse * parse,
        * a replacement output buffer is provided anyway. */
       gst_h265_parse_parse_frame (parse, &tmp_frame);
       ret = gst_base_parse_finish_frame (parse, &tmp_frame, nl + nalu.size);
-      left -= nl + nalu.size;
+      gst_base_parse_frame_free (&tmp_frame);
+
+      /* Bail out if we get a flow error. */
+      if (ret != GST_FLOW_OK) {
+        gst_buffer_unmap (buffer, &map);
+        return ret;
+      }
     }
+    left -= nl + nalu.size;
 
     parse_res = gst_h265_parser_identify_nalu_hevc (h265parse->nalparser,
         map.data, nalu.offset + nalu.size, map.size, nl, &nalu);
   }
 
+  parsed = map.size - left;
   gst_buffer_unmap (buffer, &map);
 
   if (!h265parse->split_packetized) {
-    h265parse->marker = TRUE;
-    gst_h265_parse_parse_frame (parse, frame);
-    ret = gst_base_parse_finish_frame (parse, frame, map.size);
-  } else {
-    gst_buffer_unref (buffer);
-    if (G_UNLIKELY (left)) {
-      /* should not be happening for nice HEVC */
-      GST_WARNING_OBJECT (parse, "skipping leftover HEVC data %d", left);
-      frame->flags |= GST_BASE_PARSE_FRAME_FLAG_DROP;
-      ret = gst_base_parse_finish_frame (parse, frame, map.size);
+    /* Nothing to do if no NAL unit was parsed, the whole AU will be dropped
+     * below. */
+    if (parsed > 0) {
+      if (G_UNLIKELY (left)) {
+        /* Only part of the AU could be parsed, split out that part the rest
+         * will be dropped below. Should not be happening for nice HEVC. */
+        GST_WARNING_OBJECT (parse, "Problem parsing part of AU, keep part that "
+            "has been correctly parsed (%" G_GSIZE_FORMAT " bytes).", parsed);
+        GstBaseParseFrame tmp_frame;
+
+        gst_base_parse_frame_init (&tmp_frame);
+        tmp_frame.flags |= frame->flags;
+        tmp_frame.offset = frame->offset;
+        tmp_frame.overhead = frame->overhead;
+        tmp_frame.buffer = gst_buffer_copy_region (buffer, GST_BUFFER_COPY_ALL,
+            0, parsed);
+
+        h265parse->marker = TRUE;
+        gst_h265_parse_parse_frame (parse, &tmp_frame);
+        ret = gst_base_parse_finish_frame (parse, &tmp_frame, parsed);
+        gst_base_parse_frame_free (&tmp_frame);
+
+        /* Bail out if we get a flow error. */
+        if (ret != GST_FLOW_OK)
+          return ret;
+      } else {
+        /* The whole AU succesfully parsed. */
+        h265parse->marker = TRUE;
+        gst_h265_parse_parse_frame (parse, frame);
+        ret = gst_base_parse_finish_frame (parse, frame, parsed);
+      }
     }
+  }
+
+  if (G_UNLIKELY (left)) {
+    /* should not be happening for nice HEVC */
+    GST_WARNING_OBJECT (parse, "skipping leftover AVC data %" G_GSIZE_FORMAT,
+        left);
+    frame->flags |= GST_BASE_PARSE_FRAME_FLAG_DROP;
+    ret = gst_base_parse_finish_frame (parse, frame, left);
   }
 
   if (parse_res == GST_H265_PARSER_NO_NAL_END ||
@@ -1327,6 +1393,7 @@ gst_h265_parse_handle_frame (GstBaseParse * parse,
         data, nalu.offset, nalu.size);
 
     if (gst_h265_parse_collect_nal (h265parse, data, size, &nalu)) {
+      h265parse->aud_needed = TRUE;
       /* complete current frame, if it exist */
       if (current_off > 0) {
         nalu.size = 0;
@@ -1342,6 +1409,12 @@ gst_h265_parse_handle_frame (GstBaseParse * parse,
           nalu.type, _nal_name (nalu.type), nalu.size);
       *skipsize = nalu.size;
       goto skip;
+    }
+
+    /* Make sure the next buffer will contain an AUD */
+    if (h265parse->aud_needed) {
+      h265parse->aud_insert = TRUE;
+      h265parse->aud_needed = FALSE;
     }
 
     /* Do not push immediatly if we don't have all headers. This ensure that
@@ -2001,8 +2074,9 @@ get_compatible_profile_caps (GstH265SPS * sps, GstH265Profile profile)
     }
 
     gst_caps_set_value (caps, "profile", &compat_profiles);
-    g_value_unset (&compat_profiles);
   }
+
+  g_value_unset (&compat_profiles);
 
   return caps;
 }
@@ -2166,6 +2240,8 @@ gst_h265_parse_update_src_caps (GstH265Parse * h265parse, GstCaps * caps)
     GstH265VPS *vps = sps->vps;
     GstH265VUIParams *vui = &sps->vui_params;
     gchar *colorimetry = NULL;
+    gint upstream_fps_n = 0;
+    gint upstream_fps_d = 1;
 
     GST_DEBUG_OBJECT (h265parse, "vps: %p", vps);
 
@@ -2189,8 +2265,16 @@ gst_h265_parse_update_src_caps (GstH265Parse * h265parse, GstCaps * caps)
       modified = TRUE;
     }
 
+    if (s && gst_structure_get_fraction (s,
+            "framerate", &upstream_fps_n, &upstream_fps_d)) {
+      if (upstream_fps_n <= 0 || upstream_fps_d <= 0) {
+        upstream_fps_n = 0;
+        upstream_fps_d = 1;
+      }
+    }
+
     /* 0/1 is set as the default in the codec parser */
-    if (vui->timing_info_present_flag && !h265parse->framerate_from_caps) {
+    if (vui->timing_info_present_flag && !upstream_fps_n) {
       gint fps_num = 0, fps_den = 1;
 
       if (!(sps->fps_num == 0 && sps->fps_den == 1)) {
@@ -2289,10 +2373,11 @@ gst_h265_parse_update_src_caps (GstH265Parse * h265parse, GstCaps * caps)
       gst_caps_set_simple (caps, "width", G_TYPE_INT, width,
           "height", G_TYPE_INT, height, NULL);
 
-      h265parse->framerate_from_caps = FALSE;
       /* upstream overrides */
-      if (s && gst_structure_has_field (s, "framerate"))
-        gst_structure_get_fraction (s, "framerate", &fps_num, &fps_den);
+      if (upstream_fps_n > 0 && upstream_fps_d > 0) {
+        fps_num = upstream_fps_n;
+        fps_den = upstream_fps_d;
+      }
 
       /* but not necessarily or reliably this */
       if (fps_den > 0) {
@@ -2309,7 +2394,6 @@ gst_h265_parse_update_src_caps (GstH265Parse * h265parse, GstCaps * caps)
             fps_num, fps_den, 0, 0);
         val = gst_h265_parse_is_field_interlaced (h265parse) ? GST_SECOND / 2 :
             GST_SECOND;
-        h265parse->framerate_from_caps = TRUE;
 
         /* If we know the frame duration, and if we are not in one of the zero
          * latency pattern, add one frame of latency */
@@ -2340,6 +2424,8 @@ gst_h265_parse_update_src_caps (GstH265Parse * h265parse, GstCaps * caps)
           chroma_format = "4:4:4";
           break;
         default:
+          GST_DEBUG_OBJECT (h265parse, "Unknown Chroma Format IDC %d",
+              sps->chroma_format_idc);
           break;
       }
 
@@ -2519,6 +2605,11 @@ gst_h265_parse_update_src_caps (GstH265Parse * h265parse, GstCaps * caps)
           "Couldn't set content light level to caps");
     }
 
+    if (h265parse->user_data.lcevc_enhancement_data || h265parse->lcevc)
+      gst_caps_set_simple (caps, "lcevc", G_TYPE_BOOLEAN, TRUE, NULL);
+    else
+      gst_caps_set_simple (caps, "lcevc", G_TYPE_BOOLEAN, FALSE, NULL);
+
     src_caps = gst_pad_get_current_caps (GST_BASE_PARSE_SRC_PAD (h265parse));
 
     if (src_caps) {
@@ -2618,7 +2709,8 @@ gst_h265_parse_parse_frame (GstBaseParse * parse, GstBaseParseFrame * frame)
 
   gst_h265_parse_update_src_caps (h265parse, NULL);
 
-  if (h265parse->fps_num > 0 && h265parse->fps_den > 0) {
+  if (h265parse->fps_num > 0 && h265parse->fps_den > 0 &&
+      !GST_BUFFER_DURATION_IS_VALID (buffer)) {
     GstClockTime val =
         gst_h265_parse_is_field_interlaced (h265parse) ? GST_SECOND /
         2 : GST_SECOND;
@@ -2954,7 +3046,50 @@ gst_h265_parse_pre_push_frame (GstBaseParse * parse, GstBaseParseFrame * frame)
     h265parse->first_frame = FALSE;
   }
 
-  buffer = frame->buffer;
+  if (h265parse->aud_insert && !h265parse->have_aud_in_frame &&
+      h265parse->format == GST_H265_PARSE_FORMAT_BYTE &&
+      h265parse->align == GST_H265_PARSE_ALIGN_AU &&
+      h265parse->temporal_id_plus1 > 0) {
+    static const guint8 aud[7] = {
+      0x00, 0x00, 0x00, 0x01,
+      0x46, 0x01,               /* AUD, layer_id = 0, temporal_id_plus1 = 1 */
+      0x50                      /* primary_pic_type = 2 (I/P/B) */
+    };
+    GstMemory *mem;
+
+    GST_DEBUG_OBJECT (h265parse, "Inserting AUD into the stream");
+
+    if (h265parse->layer_id == 0 && h265parse->temporal_id_plus1 == 1) {
+      /* Common single layer I/P frame case, use static memory without
+       * heap allocation */
+      mem = gst_memory_new_wrapped (GST_MEMORY_FLAG_READONLY, (gpointer) aud,
+          sizeof (aud), 0, sizeof (aud), NULL, NULL);
+    } else {
+      guint16 layer_info = ((GST_H265_NAL_AUD & 0x3f) << 9) |
+          ((h265parse->layer_id & 0x3f) << 3) |
+          (h265parse->temporal_id_plus1 & 0x7);
+      guint8 *aud_data = g_memdup2 (aud, sizeof (aud));
+
+      aud_data[4] = (layer_info >> 8) & 0xff;
+      aud_data[5] = layer_info & 0xff;
+
+      mem = gst_memory_new_wrapped (0, aud_data, sizeof (aud),
+          0, sizeof (aud), aud_data, g_free);
+    }
+
+    frame->out_buffer = gst_buffer_copy (frame->buffer);
+    gst_buffer_prepend_memory (frame->out_buffer, mem);
+    if (h265parse->idr_pos >= 0)
+      h265parse->idr_pos += sizeof (aud);
+    if (h265parse->sei_pos >= 0)
+      h265parse->sei_pos += sizeof (aud);
+
+    buffer = frame->out_buffer;
+  } else {
+    buffer = frame->buffer;
+  }
+
+  h265parse->aud_insert = FALSE;
 
   if ((event = check_pending_key_unit_event (h265parse->force_key_unit_event,
               &parse->segment, GST_BUFFER_TIMESTAMP (buffer),
@@ -3103,6 +3238,10 @@ gst_h265_parse_pre_push_frame (GstBaseParse * parse, GstBaseParseFrame * frame)
         case GST_H265_SEI_PIC_STRUCT_FRAME_TRIPLING:
           field_count = 0;
           break;
+        default:
+          GST_DEBUG_OBJECT (h265parse, "h265 sei_pic_struct %d",
+              h265parse->sei_pic_struct);
+          break;
       }
 
       if (field_count == -1) {
@@ -3246,6 +3385,7 @@ gst_h265_parse_set_caps (GstBaseParse * parse, GstCaps * caps)
       &h265parse->fps_den);
   gst_structure_get_fraction (str, "pixel-aspect-ratio",
       &h265parse->upstream_par_n, &h265parse->upstream_par_d);
+  gst_structure_get_boolean (str, "lcevc", &h265parse->lcevc);
 
   /* get upstream format and align from caps */
   gst_h265_parse_format_from_caps (caps, &format, &align);
@@ -3325,19 +3465,7 @@ gst_h265_parse_set_caps (GstBaseParse * parse, GstCaps * caps)
   }
 
   if (format == h265parse->format && align == h265parse->align) {
-    /* do not set CAPS and passthrough mode if SPS/PPS have not been parsed */
-    if (h265parse->have_sps && h265parse->have_pps) {
-      /* Don't enable passthrough here. This element will parse various
-       * SEI messages which would be very important/useful for downstream
-       * (HDR, timecode for example)
-       */
-#if 0
-      gst_base_parse_set_passthrough (parse, TRUE);
-#endif
-
-      /* we did parse codec-data and might supplement src caps */
-      gst_h265_parse_update_src_caps (h265parse, caps);
-    }
+    h265parse->have_vps = TRUE;
   } else if (format == GST_H265_PARSE_FORMAT_HVC1
       || format == GST_H265_PARSE_FORMAT_HEV1) {
     /* if input != output, and input is hevc, must split before anything else */
@@ -3388,6 +3516,7 @@ remove_fields (GstCaps * caps, gboolean all)
       gst_structure_remove_field (s, "stream-format");
     }
     gst_structure_remove_field (s, "parsed");
+    gst_structure_remove_field (s, "lcevc");
   }
 }
 

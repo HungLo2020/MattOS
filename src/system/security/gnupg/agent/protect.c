@@ -65,6 +65,9 @@ static const struct {
   { "ecdsa","pabgnqd", 6, 6, 1 },
   { "ecdh", "pabgnqd", 6, 6, 1 },
   { "ecc",  "pabgnqd", 6, 6, 1 },
+  { "kyber512", "ps", 1, 1 },
+  { "kyber768", "ps", 1, 1 },
+  { "kyber1024", "ps", 1, 1 },
   { NULL }
 };
 
@@ -509,7 +512,7 @@ do_encryption (const unsigned char *hashbegin, size_t hashlen,
        ((sha1 salt no_of_iterations) 16byte_iv)
        encrypted_octet_string)
 
-     in canoncical format of course.  We use asprintf and %n modifier
+     in canonical format of course.  We use asprintf and %n modifier
      and dummy values as placeholders.  */
   {
     char countbuf[35];

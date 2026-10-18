@@ -1,8 +1,9 @@
 project('gst-libav', 'c',
-  version : '1.26.11',
+  version : '1.28.8',
   meson_version : '>= 1.4',
   default_options : [ 'warning_level=1',
-                      'buildtype=debugoptimized' ])
+                      'buildtype=debugoptimized',
+                      'c_std=gnu11,c11' ])
 
 gst_version = meson.project_version()
 version_arr = gst_version.split('.')
@@ -256,7 +257,12 @@ endif
 
 configure_file(output: 'config.h', configuration: cdata)
 
-meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.24.0', meson.project_version())
+meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.26.0', meson.project_version())
+
+# dist common files from monorepo root
+if not meson.is_subproject()
+  meson.add_dist_script('scripts/dist-common-files.py', meson.project_version())
+endif
 
 gst_plugins = []
 foreach plugin: plugins

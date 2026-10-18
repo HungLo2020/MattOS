@@ -541,6 +541,10 @@ msgid "a gpg-agent is already running - not starting a new one\n"
 msgstr "gpg-agent ne estas disponata en ĉi tiu sesio\n"
 
 #, fuzzy, c-format
+msgid "socket file removed - retrying binding\n"
+msgstr "ŝlosilo %08lX: nevalida subŝlosila bindado\n"
+
+#, fuzzy, c-format
 msgid "error getting nonce for the socket\n"
 msgstr "eraro dum kreado de pasfrazo: %s\n"
 
@@ -679,10 +683,6 @@ msgid "error opening '%s': %s\n"
 msgstr "eraro dum legado de '%s': %s\n"
 
 #, fuzzy, c-format
-msgid "file '%s', line %d: %s\n"
-msgstr "ŝlosilo '%s' ne trovita: %s\n"
-
-#, fuzzy, c-format
 msgid "statement \"%s\" ignored in '%s', line %d\n"
 msgstr "kiraso: %s\n"
 
@@ -732,7 +732,7 @@ msgstr ""
 #. insert a line break.  The double percent sign is actually
 #. needed because it is also a printf format string.  If you
 #. need to insert a plain % sign, you need to encode it as
-#. "%%25".  The second "%s" gets replaced by a hexdecimal
+#. "%%25".  The second "%s" gets replaced by a hexadecimal
 #. fingerprint string whereas the first one receives the name
 #. as stored in the certificate.
 #, c-format
@@ -743,7 +743,8 @@ msgstr ""
 
 #. TRANSLATORS: "Correct" is the label of a button and intended
 #. to be hit if the fingerprint matches the one of the CA.  The
-#. other button is "the default "Cancel" of the Pinentry.
+#. other button is "the default "Cancel" of the Pinentry.  We
+#. fix the English strings with hacks to avoid a string changes.
 msgid "Correct"
 msgstr ""
 
@@ -766,6 +767,10 @@ msgstr "ŝanĝi la pasfrazon"
 
 msgid "I'll change it later"
 msgstr ""
+
+#, fuzzy, c-format
+msgid "Unprotecting key failed: %s\n"
+msgstr "forviŝo de ŝlosilbloko malsukcesis: %s\n"
 
 msgid "Please insert the card with serial number"
 msgstr ""
@@ -831,34 +836,6 @@ msgstr "eraro dum kreado de pasfrazo: %s\n"
 #, fuzzy, c-format
 msgid "error creating a stream for a pipe: %s\n"
 msgstr "eraro dum kreado de pasfrazo: %s\n"
-
-#, fuzzy, c-format
-msgid "error forking process: %s\n"
-msgstr "eraro dum legado de '%s': %s\n"
-
-#, c-format
-msgid "waiting for process %d to terminate failed: %s\n"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "error running '%s': probably not installed\n"
-msgstr "eraro dum legado de '%s': %s\n"
-
-#, fuzzy, c-format
-msgid "error running '%s': exit status %d\n"
-msgstr "eraro dum legado de '%s': %s\n"
-
-#, fuzzy, c-format
-msgid "error running '%s': terminated\n"
-msgstr "eraro dum legado de '%s': %s\n"
-
-#, fuzzy, c-format
-msgid "waiting for processes to terminate failed: %s\n"
-msgstr "aktualigo malsukcesis: %s\n"
-
-#, fuzzy, c-format
-msgid "error getting exit code of process %d: %s\n"
-msgstr "eraro dum skribado de sekreta ŝlosilaro '%s': %s\n"
 
 #, fuzzy, c-format
 #| msgid "can't connect to `%s': %s\n"
@@ -1170,6 +1147,10 @@ msgstr ""
 msgid "No help available for '%s'."
 msgstr "Nenia helpo disponata por '%s'"
 
+#, fuzzy, c-format
+msgid "file '%s', line %d: %s\n"
+msgstr "ŝlosilo '%s' ne trovita: %s\n"
+
 #, fuzzy
 msgid "ignoring garbage line"
 msgstr "eraro en vostolinio\n"
@@ -1464,6 +1445,13 @@ msgstr ""
 msgid "Please try command \"%s\" if the listing does not look correct\n"
 msgstr ""
 
+#, c-format
+msgid ""
+"Please note that the factory settings of the PINs are\n"
+"   PIN = '%s'     Admin PIN = '%s'\n"
+"You should change them using the command --change-pin\n"
+msgstr ""
+
 msgid "Error: Only plain ASCII is currently allowed.\n"
 msgstr ""
 
@@ -1622,13 +1610,6 @@ msgstr "ignorita: sekreta ŝlosilo jam ĉeestas\n"
 msgid "Replace existing keys? (y/N) "
 msgstr ""
 
-#, c-format
-msgid ""
-"Please note that the factory settings of the PINs are\n"
-"   PIN = '%s'     Admin PIN = '%s'\n"
-"You should change them using the command --change-pin\n"
-msgstr ""
-
 #, fuzzy
 msgid "Please select the type of key to generate:\n"
 msgstr "Bonvolu elekti, kian ŝlosilon vi deziras:\n"
@@ -1765,6 +1746,15 @@ msgstr "skribas sekretan ŝlosilon al '%s'\n"
 msgid "Invalid command  (try \"help\")\n"
 msgstr "Nevalida komando (provu per \"helpo\")\n"
 
+#, fuzzy, c-format
+msgid "modifying the recipients is not possible: %s\n"
+msgstr "Kreado de ŝlosiloj malsukcesis: %s\n"
+
+#, fuzzy
+#| msgid "decryption failed: %s\n"
+msgid "decryption failed"
+msgstr "malĉifrado malsukcesis: %s\n"
+
 #, c-format
 msgid "--output doesn't work for this command\n"
 msgstr "--output ne funkcias por ĉi tiu komando\n"
@@ -1846,6 +1836,10 @@ msgid "use option \"--delete-secret-keys\" to delete it first.\n"
 msgstr "uzu la opcion \"--delete-secret-key\" por forviŝi ĝin unue.\n"
 
 #, fuzzy, c-format
+msgid "%s/%s.%s encrypted for: \"%s\"\n"
+msgstr "%s/%s-ĉifrita por: %s\n"
+
+#, fuzzy, c-format
 msgid ""
 "WARNING: forcing symmetric cipher %s (%d) violates recipient preferences\n"
 msgstr "NOTO: ĉifrad-metodo %d ne trovita en preferoj\n"
@@ -1898,18 +1892,28 @@ msgid "reading from '%s'\n"
 msgstr "legas el '%s'\n"
 
 #, fuzzy, c-format
+#| msgid "problem handling encrypted packet\n"
+msgid "Note: Using the %s encryption packet\n"
+msgstr "problemo ĉe traktado de ĉifrita paketo\n"
+
+#, fuzzy, c-format
 msgid ""
 "WARNING: forcing compression algorithm %s (%d) violates recipient "
 "preferences\n"
 msgstr "NOTO: ĉifrad-metodo %d ne trovita en preferoj\n"
 
 #, fuzzy, c-format
-msgid "%s/%s.%s encrypted for: \"%s\"\n"
-msgstr "%s/%s-ĉifrita por: %s\n"
+msgid "number of removed recipients: %u\n"
+msgstr "nevalida respondo de agento\n"
 
 #, fuzzy, c-format
 msgid "option '%s' may not be used in %s mode\n"
 msgstr "Tiu komando ne eblas en la reĝimo %s.\n"
+
+#, fuzzy, c-format
+#| msgid "can't connect to `%s': %s\n"
+msgid "already encrypted to %08lX\n"
+msgstr "ne povas konektiĝi al '%s': %s\n"
 
 #, fuzzy, c-format
 #| msgid "%s encrypted data\n"
@@ -2124,6 +2128,10 @@ msgstr "subskribi ŝlosilon"
 #| msgid "sign a key locally"
 msgid "quickly sign a key locally"
 msgstr "subskribi ŝlosilon loke"
+
+#, fuzzy
+msgid "quickly sign a key with a trust signature"
+msgstr "Sugesto: Elekti la uzantidentigilojn por subskribi\n"
 
 #, fuzzy
 #| msgid "generate a new key pair"
@@ -2454,6 +2462,10 @@ msgstr "agordi liston de preferoj"
 #| msgid "change the ownertrust"
 msgid "show ownertrust"
 msgstr "ŝanĝi la posedantofidon"
+
+#, fuzzy
+msgid "show trust signature information"
+msgstr "Subskribo-notacio: "
 
 #, fuzzy, c-format
 msgid "unknown TOFU policy '%s'\n"
@@ -2792,6 +2804,9 @@ msgstr "|FD|skribi statusinformojn al FD (dosierpriskribilo)"
 msgid "|ALGO|reject signatures made with ALGO"
 msgstr ""
 
+msgid "|NAME|print the notation NAME to stdout"
+msgstr ""
+
 #, fuzzy
 msgid "Usage: gpgv [options] [files] (-h for help)"
 msgstr "Uzado: gpg [opcioj] [dosieroj] (-h por helpo)"
@@ -2858,6 +2873,14 @@ msgstr ""
 #, fuzzy
 msgid "repair keys on import"
 msgstr "montri fingrospuron"
+
+msgid "update even unchanged keys"
+msgstr ""
+
+#, fuzzy
+#| msgid "list secret keys"
+msgid "do not import secret keys"
+msgstr "listigi sekretajn ŝlosilojn"
 
 #, c-format
 msgid "skipping block of type %d\n"
@@ -3123,8 +3146,12 @@ msgid "reason for revocation: "
 msgstr "Kialo por revoko: "
 
 #, fuzzy, c-format
-msgid "revocation comment: "
-msgstr "Komento pri revoko: "
+msgid "key %s: can't locate keyblock: %s\n"
+msgstr "ŝlosilo %08lX: ne povas trovi originalan ŝlosilblokon: %s\n"
+
+#, fuzzy, c-format
+msgid "key %s: can't read keyblock: %s\n"
+msgstr "ŝlosilo %08lX: ne povas legi originalan ŝlosilblokon: %s\n"
 
 #, fuzzy, c-format
 msgid "key %s: no public key - can't apply revocation certificate\n"
@@ -3764,6 +3791,17 @@ msgstr "Ĉu vere forigi ĉiujn elektitajn uzantidentigilojn? "
 msgid "Really remove this user ID? (y/N) "
 msgstr "Ĉu vere forigi ĉi tiun uzantidentigilon? "
 
+msgid "Command expects a filename argument\n"
+msgstr ""
+
+#, fuzzy, c-format
+msgid "Can't open '%s': %s\n"
+msgstr "ne povas malfermi '%s': %s\n"
+
+#, fuzzy, c-format
+msgid "Error reading key from '%s': %s\n"
+msgstr "eraro dum kreado de ŝlosilaro '%s': %s\n"
+
 #. TRANSLATORS: Please take care: This is about
 #. moving the key and not about removing it.
 #, fuzzy
@@ -3773,13 +3811,6 @@ msgstr "Ĉu vere forigi ĉi tiun uzantidentigilon? "
 #, fuzzy
 msgid "You must select exactly one key.\n"
 msgstr "Vi devas elekti almenaŭ unu ŝlosilon.\n"
-
-msgid "Command expects a filename argument\n"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "Can't open '%s': %s\n"
-msgstr "ne povas malfermi '%s': %s\n"
 
 #, fuzzy, c-format
 msgid "Error reading backup key from '%s': %s\n"
@@ -3885,6 +3916,11 @@ msgstr "Uzantidentigilo ne ekzistas.\n"
 #, fuzzy
 msgid "Nothing to sign.\n"
 msgstr "Nenio por subskribi per ŝlosilo %08lX\n"
+
+#, fuzzy, c-format
+#| msgid "checking created signature failed: %s\n"
+msgid "creating key signature failed: %s\n"
+msgstr "kontrolo de kreita subskribo malsukcesis: %s\n"
 
 #, fuzzy, c-format
 msgid "Not signed by you.\n"
@@ -4424,17 +4460,26 @@ msgstr "  (%d) RSA (nur ĉifri)\n"
 msgid "  (%d) Existing key from card%s\n"
 msgstr "  (%d) RSA (nur ĉifri)\n"
 
+#, fuzzy, c-format
+msgid "  (%d) ECC and Kyber%s\n"
+msgstr "   (%d) DSA kaj ElGamal (implicita elekto)\n"
+
+#, fuzzy, c-format
+#| msgid "   (%d) RSA (encrypt only)\n"
+msgid "  (%d) Kyber (encrypt only)%s\n"
+msgstr "  (%d) RSA (nur ĉifri)\n"
+
 #, fuzzy
 msgid "Enter the keygrip: "
 msgstr "Subskribo-notacio: "
 
-#, c-format
-msgid "Not a valid keygrip (expecting 40 hex digits)\n"
-msgstr ""
-
 #, fuzzy
 msgid "No key with this keygrip\n"
 msgstr "Mankas uzantidentigilo kun indekso %d\n"
+
+#, c-format
+msgid "Not a valid keygrip (expecting 40 hex digits)\n"
+msgstr ""
 
 #, fuzzy, c-format
 msgid "error reading the card: %s\n"
@@ -4468,6 +4513,11 @@ msgstr "Petita ŝlosilgrando estas %u bitoj\n"
 #, fuzzy
 #| msgid "Please select what kind of key you want:\n"
 msgid "Please select which elliptic curve you want:\n"
+msgstr "Bonvolu elekti, kian ŝlosilon vi deziras:\n"
+
+#, fuzzy, c-format
+#| msgid "Please select what kind of key you want:\n"
+msgid "Please select the %s variant you want:\n"
 msgstr "Bonvolu elekti, kian ŝlosilon vi deziras:\n"
 
 msgid ""
@@ -4817,8 +4867,16 @@ msgstr[1] ""
 msgid "Keyring"
 msgstr "Ŝlosilaro"
 
+#, fuzzy, c-format
+msgid "revocation comment: "
+msgstr "Komento pri revoko: "
+
 msgid "Revocable by: "
 msgstr ""
+
+#, fuzzy, c-format
+msgid "error writing to stdout: %s\n"
+msgstr "eraro dum skribado de ŝlosilaro '%s': %s\n"
 
 #, fuzzy
 msgid "Primary key fingerprint:"
@@ -4892,6 +4950,9 @@ msgstr ""
 msgid "honor the preferred keyserver URL set on the key"
 msgstr "la donita gvidlinia URL por subskriboj ne validas\n"
 
+msgid "update a key before sending it"
+msgstr ""
+
 #, fuzzy
 msgid "disabled"
 msgstr "el"
@@ -4906,6 +4967,10 @@ msgstr "nevalida ŝlosilaro"
 #, fuzzy, c-format
 msgid "\"%s\" not a key ID: skipping\n"
 msgstr "%s: ne valida ŝlosilidentigilo\n"
+
+#, fuzzy, c-format
+msgid "\"%s\" not a fingerprint: skipping\n"
+msgstr "%s: nevalida dosiero-versio %d\n"
 
 #, fuzzy, c-format
 msgid "refreshing %d key from %s\n"
@@ -4932,6 +4997,10 @@ msgstr "petas la ŝlosilon %08lX de HKP-ŝlosilservilo %s ...\n"
 #, fuzzy, c-format
 msgid "no keyserver known\n"
 msgstr "nevalida ŝlosilaro"
+
+#, c-format
+msgid "upload skipped due to non-LDAP keyserver\n"
+msgstr ""
 
 #, fuzzy, c-format
 msgid "skipped \"%s\": %s\n"
@@ -4988,6 +5057,10 @@ msgstr "            alinome \""
 #, fuzzy, c-format
 msgid "encrypted with %s key, ID %s\n"
 msgstr "ĉifrita per %s-ŝlosilo, %08lX\n"
+
+#, c-format
+msgid "WARNING: key is not quantum-resistant\n"
+msgstr ""
 
 #, c-format
 msgid "WARNING: multiple plaintexts seen\n"
@@ -5260,6 +5333,11 @@ msgstr "ne traktita"
 msgid "this message may not be usable by %s\n"
 msgstr "ĉi tiu mesaĝo povas ne esti uzebla de PGP 2.x\n"
 
+#, fuzzy
+#| msgid "enable"
+msgid "enabled"
+msgstr "en"
+
 #, fuzzy, c-format
 msgid "ambiguous option '%s'\n"
 msgstr "legas opciojn el '%s'\n"
@@ -5275,6 +5353,10 @@ msgstr ""
 #, fuzzy, c-format
 msgid "unknown weak digest '%s'\n"
 msgstr "nekonata klaso de subskribo"
+
+#, fuzzy, c-format
+msgid "Note: partial file '%s' removed\n"
+msgstr "NOTO: mankas implicita opcio-dosiero '%s'\n"
 
 #, fuzzy, c-format
 #| msgid "File `%s' exists. "
@@ -5757,6 +5839,10 @@ msgid "okay, we are the anonymous recipient.\n"
 msgstr "bone; ni estas la nenomita ricevonto.\n"
 
 #, c-format
+msgid "WARNING: session key is not quantum-resistant\n"
+msgstr ""
+
+#, c-format
 msgid "old encoding of the DEK is not supported\n"
 msgstr "malnova kodado de DEK ne estas realigita\n"
 
@@ -5997,6 +6083,11 @@ msgstr "memstara subskribo de klaso 0x%02x\n"
 #, fuzzy, c-format
 msgid "assuming bad signature from key %s due to an unknown critical bit\n"
 msgstr "supozas malbonan subskribon pro nekonata \"critical bit\"\n"
+
+#, fuzzy, c-format
+msgid "key %s: no public key - can't check revocation signature.\n"
+msgstr ""
+"ŝlosilo %08lX: publika ŝlosilo mankas - ne povas apliki revokatestilon\n"
 
 #, fuzzy, c-format
 msgid "key %s: no subkey for subkey revocation signature\n"
@@ -6819,8 +6910,8 @@ msgstr ""
 msgid "||Please enter the PIN for the key to create qualified signatures."
 msgstr ""
 
-#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-#. the start of the string.  Use %0A (single percent) for a linefeed.
+#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+#. start of the string.
 #, fuzzy
 msgid "|A|Please enter the Admin PIN"
 msgstr "ŝanĝi la pasfrazon"
@@ -6899,26 +6990,6 @@ msgid "%sNumber: %s%%0AHolder: %s%%0ACounter: %lu%s"
 msgstr ""
 
 #, c-format
-msgid "using default PIN as %s\n"
-msgstr ""
-
-#, c-format
-msgid "failed to use default PIN as %s: %s - disabling further default use\n"
-msgstr ""
-
-#, fuzzy
-msgid "||Please unlock the card"
-msgstr "ŝanĝi la pasfrazon"
-
-#, c-format
-msgid "PIN for CHV%d is too short; minimum length is %d\n"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "verify CHV%d failed: %s\n"
-msgstr "Kreado de ŝlosiloj malsukcesis: %s\n"
-
-#, c-format
 msgid "card is permanently locked!\n"
 msgstr ""
 
@@ -6928,6 +6999,26 @@ msgid_plural ""
 "%d Admin PIN attempts remaining before card is permanently locked\n"
 msgstr[0] ""
 msgstr[1] ""
+
+#, fuzzy
+msgid "||Please unlock the card"
+msgstr "ŝanĝi la pasfrazon"
+
+#, c-format
+msgid "using default PIN as %s\n"
+msgstr ""
+
+#, c-format
+msgid "failed to use default PIN as %s: %s - disabling further default use\n"
+msgstr ""
+
+#, c-format
+msgid "PIN for CHV%d is too short; minimum length is %d\n"
+msgstr ""
+
+#, fuzzy, c-format
+msgid "verify CHV%d failed: %s\n"
+msgstr "Kreado de ŝlosiloj malsukcesis: %s\n"
 
 #, c-format
 msgid "access to admin commands is not configured\n"
@@ -7535,6 +7626,10 @@ msgid "Enter URIs"
 msgstr "Donu la uzantidentigilon: "
 
 #, fuzzy
+msgid "Enter extensions"
+msgstr "Subskribo-notacio: "
+
+#, fuzzy
 msgid "Create self-signed certificate? (y/N) "
 msgstr "Ĉu krei revokatestilon por ĉi tiu subskribo? (j/N)"
 
@@ -7718,12 +7813,21 @@ msgid "unknown validation model '%s'\n"
 msgstr "nekonata implicita ricevonto '%s'\n"
 
 #, fuzzy, c-format
+#| msgid "cipher algorithm %d%s is unknown or disabled\n"
+msgid "given cipher algorithm '%s' is unknown - using '%s'\n"
+msgstr "ĉifrad-metodo %d%s estas nekonata aŭ malŝaltita\n"
+
+#, fuzzy, c-format
 msgid "importing common certificates '%s'\n"
 msgstr "skribas al '%s'\n"
 
 #, fuzzy, c-format
 msgid "can't sign using '%s': %s\n"
 msgstr "ne povas fermi '%s': %s\n"
+
+#, fuzzy, c-format
+msgid "can't open outputfile: %s\n"
+msgstr "ne povas malfermi %s: %s\n"
 
 #, c-format
 msgid "invalid command (there is no implicit command)\n"
@@ -7774,19 +7878,19 @@ msgid "error storing certificate: %s\n"
 msgstr "eraro dum kreado de pasfrazo: %s\n"
 
 #, fuzzy, c-format
-msgid "problem re-searching certificate: %s\n"
-msgstr "rev? problemo en kontrolo de revoko: %s\n"
-
-#, fuzzy, c-format
 msgid "error storing flags: %s\n"
 msgstr "eraro dum legado de '%s': %s\n"
+
+#, fuzzy, c-format
+msgid "problem re-searching certificate: %s\n"
+msgstr "rev? problemo en kontrolo de revoko: %s\n"
 
 msgid "Error - "
 msgstr ""
 
-#, c-format
-msgid "GPG_TTY has not been set - using maybe bogus default\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "error writing to output: %s\n"
+msgstr "eraro dum skribado de ŝlosilaro '%s': %s\n"
 
 #, fuzzy, c-format
 msgid "invalid formatted fingerprint in '%s', line %d\n"
@@ -8628,6 +8732,10 @@ msgid "colons are not allowed in the socket name\n"
 msgstr "%s ne eblas kun %s!\n"
 
 #, fuzzy, c-format
+msgid "error forking process: %s\n"
+msgstr "eraro dum legado de '%s': %s\n"
+
+#, fuzzy, c-format
 msgid "fetching CRL from '%s' failed: %s\n"
 msgstr "enkirasigo malsukcesis: %s\n"
 
@@ -9276,6 +9384,26 @@ msgstr ""
 #~ msgid "public key of ultimately trusted key %s not found\n"
 #~ msgstr "publika ŝlosilo de absolute fidata ŝlosilo %08lX ne trovita\n"
 
+#, fuzzy, c-format
+#~ msgid "waiting for process to terminate failed: ec=%d\n"
+#~ msgstr "aktualigo malsukcesis: %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': probably not installed\n"
+#~ msgstr "eraro dum legado de '%s': %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': exit status %d\n"
+#~ msgstr "eraro dum legado de '%s': %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': terminated\n"
+#~ msgstr "eraro dum legado de '%s': %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error getting exit code of process %d: %s\n"
+#~ msgstr "eraro dum skribado de sekreta ŝlosilaro '%s': %s\n"
+
 #~ msgid "use canonical text mode"
 #~ msgstr "uzi tekstan reĝimon"
 
@@ -9337,10 +9465,6 @@ msgstr ""
 #, fuzzy
 #~ msgid "invalid port number %d\n"
 #~ msgstr "nevalida kiraso"
-
-#, fuzzy
-#~ msgid "error writing to stdout: %s\n"
-#~ msgstr "eraro dum skribado de ŝlosilaro '%s': %s\n"
 
 #, fuzzy
 #~| msgid "user '%s' not found: %s\n"
@@ -9491,16 +9615,8 @@ msgstr ""
 #~ msgstr "Averto: malsekura posedeco sur %s \"%s\"\n"
 
 #, fuzzy
-#~ msgid "   (%d) ECC and ECC\n"
-#~ msgstr "   (%d) DSA kaj ElGamal (implicita elekto)\n"
-
-#, fuzzy
 #~ msgid "run without asking a user"
 #~ msgstr "Ĉu fini sen skribi ŝanĝojn? "
-
-#, fuzzy
-#~ msgid "Note: old default options file '%s' ignored\n"
-#~ msgstr "NOTO: mankas implicita opcio-dosiero '%s'\n"
 
 #, fuzzy
 #~ msgid ""
@@ -10946,9 +11062,6 @@ msgstr ""
 #~ msgid "disable"
 #~ msgstr "el"
 
-#~ msgid "enable"
-#~ msgstr "en"
-
 #~ msgid "showphoto"
 #~ msgstr "monfoto"
 
@@ -11004,10 +11117,6 @@ msgstr ""
 #, fuzzy
 #~ msgid "sorry, can't do this in batch mode\n"
 #~ msgstr "ne povas fari tion en neinteraga reĝimo\n"
-
-#, fuzzy
-#~ msgid "can't open file `%s': %s\n"
-#~ msgstr "ne povas malfermi %s: %s\n"
 
 #~ msgid "key %08lX: key has been revoked!\n"
 #~ msgstr "ŝlosilo %08lX: ŝlosilo estas revokita!\n"

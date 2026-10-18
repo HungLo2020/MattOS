@@ -441,8 +441,6 @@ gst_vp9_parse_pre_push_frame (GstBaseParse * parse, GstBaseParseFrame * frame)
 {
   GstVp9Parse *self = GST_VP9_PARSE (parse);
 
-  frame->flags |= GST_BASE_PARSE_FRAME_FLAG_CLIP;
-
   if (!frame->buffer)
     return GST_FLOW_OK;
 
@@ -503,7 +501,7 @@ gst_vp9_parse_handle_frame (GstBaseParse * parse, GstBaseParseFrame * frame,
   GstFlowReturn ret = GST_FLOW_OK;
   GstVp9ParserResult parse_res = GST_VP9_PARSER_ERROR;
   GstMapInfo map;
-  gsize offset = 0;
+  gsize offset = 0, size;
   GstVp9SuperframeInfo superframe_info;
   guint i;
   GstVp9FrameHdr frame_hdr;
@@ -512,10 +510,6 @@ gst_vp9_parse_handle_frame (GstBaseParse * parse, GstBaseParseFrame * frame,
     self->discont = TRUE;
   else
     self->discont = FALSE;
-
-  /* need to save buffer from invalidation upon _finish_frame */
-  if (self->align == GST_VP9_PARSE_ALIGN_FRAME)
-    buffer = gst_buffer_copy (frame->buffer);
 
   if (!gst_buffer_map (buffer, &map, GST_MAP_READ)) {
     GST_ELEMENT_ERROR (parse, CORE, NOT_IMPLEMENTED, (NULL),
@@ -579,6 +573,7 @@ gst_vp9_parse_handle_frame (GstBaseParse * parse, GstBaseParseFrame * frame,
         GST_BUFFER_FLAG_SET (subframe.buffer, GST_BUFFER_FLAG_DECODE_ONLY);
 
       ret = gst_base_parse_finish_frame (parse, &subframe, frame_size);
+      gst_base_parse_frame_free (&subframe);
     } else {
       /* FIXME: need to parse all frames belong to this superframe? */
       break;
@@ -590,16 +585,16 @@ gst_vp9_parse_handle_frame (GstBaseParse * parse, GstBaseParseFrame * frame,
   gst_vp9_parse_reset_super_frame (self);
 
 done:
+  size = map.size;
   gst_buffer_unmap (buffer, &map);
 
   if (self->align != GST_VP9_PARSE_ALIGN_FRAME) {
     if (parse_res == GST_VP9_PARSER_OK)
       gst_vp9_parse_parse_frame (self, frame, &frame_hdr);
-    ret = gst_base_parse_finish_frame (parse, frame, map.size);
+    ret = gst_base_parse_finish_frame (parse, frame, size);
   } else {
-    gst_buffer_unref (buffer);
-    if (offset != map.size) {
-      gsize left = map.size - offset;
+    if (offset != size) {
+      gsize left = size - offset;
       if (left != superframe_info.superframe_index_size) {
         GST_WARNING_OBJECT (parse,
             "Skipping leftover frame data %" G_GSIZE_FORMAT, left);

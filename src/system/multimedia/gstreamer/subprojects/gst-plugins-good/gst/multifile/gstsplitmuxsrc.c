@@ -619,9 +619,8 @@ gst_splitmux_part_measured_cb (GstSplitMuxPartReader * part,
       GST_INFO_OBJECT (splitmux,
           "All parts measured. Total duration %" GST_TIME_FORMAT
           " Activating first part", GST_TIME_ARGS (splitmux->total_duration));
-      gst_element_call_async (GST_ELEMENT_CAST (splitmux),
-          (GstElementCallAsyncFunc) gst_splitmux_src_activate_first_part,
-          NULL, NULL);
+      gst_object_call_async (GST_OBJECT_CAST (splitmux),
+          (GstObjectCallAsyncFunc) gst_splitmux_src_activate_first_part, NULL);
     }
     splitmux->did_initial_measuring = TRUE;
   }
@@ -684,9 +683,9 @@ gst_splitmux_part_bus_handler (GstBus * bus, GstMessage * msg,
               "All parts prepared. Total duration %" GST_TIME_FORMAT
               " Activating first part",
               GST_TIME_ARGS (splitmux->total_duration));
-          gst_element_call_async (GST_ELEMENT_CAST (splitmux),
-              (GstElementCallAsyncFunc) gst_splitmux_src_activate_first_part,
-              NULL, NULL);
+          gst_object_call_async (GST_OBJECT_CAST (splitmux),
+              (GstObjectCallAsyncFunc) gst_splitmux_src_activate_first_part,
+              NULL);
         }
         splitmux->did_initial_measuring = TRUE;
         SPLITMUX_SRC_UNLOCK (splitmux);
@@ -1035,7 +1034,8 @@ add_to_active_readers (GstSplitMuxSrc * splitmux,
     if (gst_splitmux_part_reader_is_loaded (reader)) {
       /* Already in the queue, and reffed, move it to the end without
        * adding another ref */
-      gboolean in_queue = g_queue_remove (splitmux->active_parts, reader);
+      gboolean in_queue GST_UNUSED_ASSERT =
+          g_queue_remove (splitmux->active_parts, reader);
       g_assert (in_queue == TRUE);
     } else {
       /* Putting it in the queue. Add a ref */
@@ -1131,8 +1131,7 @@ gst_splitmux_src_measure_next_part (GstSplitMuxSrc * splitmux)
     end_offset = gst_splitmux_part_reader_get_end_offset (reader);
   }
 
-  for (guint idx = splitmux->num_measured_parts; idx < splitmux->num_parts;
-      idx++) {
+  for (; idx < splitmux->num_parts; idx++) {
     /* Walk forward until we find a part that needs measuring */
     GstSplitMuxPartReader *reader = splitmux->parts[idx];
 
@@ -1276,9 +1275,8 @@ gst_splitmux_src_start (GstSplitMuxSrc * splitmux)
     GST_INFO_OBJECT (splitmux,
         "All parts measured. Total duration %" GST_TIME_FORMAT
         " Activating first part", GST_TIME_ARGS (splitmux->total_duration));
-    gst_element_call_async (GST_ELEMENT_CAST (splitmux),
-        (GstElementCallAsyncFunc) gst_splitmux_src_activate_first_part,
-        NULL, NULL);
+    gst_object_call_async (GST_OBJECT_CAST (splitmux),
+        (GstObjectCallAsyncFunc) gst_splitmux_src_activate_first_part, NULL);
     splitmux->did_initial_measuring = TRUE;
   }
   SPLITMUX_SRC_UNLOCK (splitmux);
@@ -2049,6 +2047,6 @@ schedule_lookahead_check (GstSplitMuxSrc * splitmux)
   }
   splitmux->lookahead_check_pending = TRUE;
 
-  gst_element_call_async (GST_ELEMENT_CAST (splitmux),
-      (GstElementCallAsyncFunc) do_lookahead_check, NULL, NULL);
+  gst_object_call_async (GST_OBJECT_CAST (splitmux),
+      (GstObjectCallAsyncFunc) do_lookahead_check, NULL);
 }

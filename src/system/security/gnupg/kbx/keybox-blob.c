@@ -96,7 +96,7 @@
              bit 0 = qualified signature (not yet implemented}
              bit 7 = 32 byte fingerprint in use.
       - u16  RFU
-      - b20  keygrip
+      - b20  keygrip  FIXME: Support a second grip.
       - bN   Optional filler up to the specified length of this
              structure.
    - u16  Size of the serial number (may be zero)
@@ -130,7 +130,7 @@
    - u8	Assigned ownertrust [X509: not used]
    - u8	All_Validity
         OpenPGP: See ../g10/trustdb/TRUST_* [not yet used]
-        X509: Bit 4 set := key has been revoked.
+        X509: Bit 5 set := key has been revoked.
                            Note that this value matches TRUST_FLAG_REVOKED
    - u16  RFU
    - u32  Recheck_after
@@ -763,7 +763,7 @@ _keybox_create_openpgp_blob (KEYBOXBLOB *r_blob,
   /* Check whether we need a blob with 32 bit fingerprints. We could
    * use this always but for backward compatibility we do this only for
    * v5 keys.  */
-  if (info->primary.version == 5)
+  if (info->primary.version >= 5)
     need_fpr32 = 1;
   else
     {

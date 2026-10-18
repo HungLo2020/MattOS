@@ -5,7 +5,7 @@ android {
 
     defaultConfig {
         applicationId "org.freedesktop.gstreamer.tutorials.tutorial_4"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 32
         versionCode 1
         versionName "1.0"
@@ -43,7 +43,6 @@ android {
                     java.srcDirs = ['src']
                     resources.srcDirs = ['src']
                     aidl.srcDirs = ['src']
-                    renderscript.srcDirs = ['src']
                     res.srcDirs = ['res']
                     assets.srcDirs = ['assets']
                 }
@@ -56,7 +55,13 @@ android {
             path 'jni/CMakeLists.txt'
         }
     }
-    ndkVersion '25.2.9519653'
+    ndkVersion '29.0.14206865'
+
+    namespace 'org.freedesktop.gstreamer.tutorials.tutorial_4'
+
+    buildFeatures {
+        aidl true
+    }
 }
 
 afterEvaluate {

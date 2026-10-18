@@ -36,6 +36,7 @@ gpg_error_t kbxd_search (ctrl_t ctrl,
 gpg_error_t kbxd_store (ctrl_t ctrl, const void *blob, size_t bloblen,
                         enum kbxd_store_modes mode);
 gpg_error_t kbxd_delete (ctrl_t ctrl, const unsigned char *ubid);
-
+gpg_error_t kbxd_putkeyflag (ctrl_t ctrl, const unsigned char *ubid,
+                             unsigned int flags, int clear);
 
 #endif /*KBX_FRONTEND_H*/

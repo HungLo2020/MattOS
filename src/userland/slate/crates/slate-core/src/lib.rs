@@ -21,6 +21,7 @@ mod folding;
 pub mod format;
 pub mod fsio;
 pub mod git;
+pub mod git_history;
 mod highlight;
 mod history;
 pub mod ide;
@@ -31,6 +32,7 @@ mod lsp;
 pub mod navigation;
 pub mod outline;
 mod panes;
+pub mod panics;
 pub mod paths;
 pub mod picker;
 pub mod preferences;
@@ -40,6 +42,7 @@ pub mod process;
 mod production_tests;
 pub mod profiles;
 pub mod project;
+mod rebase;
 mod recovery_io;
 mod render;
 pub mod rpc;
@@ -69,7 +72,9 @@ use layout::{Axis, Handle, Node, Rect, View};
 use preferences::{Preferences, StartupMode};
 use search::{Prompt, Search};
 use serde::{Deserialize, Serialize};
-use services::{Entry, GitEntry, Job, Reply, Services};
+/// Rows of the file browser and Git pane, as snapshots carry them.
+pub use services::{Entry, GitEntry};
+use services::{Reply, Services};
 use std::time::{Duration, Instant};
 use std::{
     collections::BTreeMap,
@@ -454,9 +459,28 @@ pub struct PaneSnapshot {
     pub rows: u16,
     pub cols: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub text: Option<text_presentation::EditorText>,
-    pub editor: Option<EditorPresentation>,
+    /// Shared with the core's render cache: unchanged views return the same
+    /// text, so a frontend can compare pointers before content.
+    pub text: Option<std::sync::Arc<text_presentation::EditorText>>,
+    pub editor: Option<EditorMetadata>,
 }
+/// What a frame says about an editor pane: where it is scrolled and which
+/// document state it shows. Text for input methods comes from
+/// `editor_input_context`, only when they ask.
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct EditorMetadata {
+    /// Byte offsets: equal when nothing is selected.
+    pub cursor: usize,
+    pub anchor: usize,
+    pub line_count: usize,
+    pub top: usize,
+    /// Horizontal scroll position in display columns.
+    pub left: usize,
+    pub document: u64,
+    pub generation: u64,
+    pub overview_revision: u64,
+}
+/// An editor's text around the cursor for input methods, in UTF-16 units.
 #[derive(Serialize)]
 pub struct EditorPresentation {
     pub surrounding: String,
@@ -476,14 +500,30 @@ pub struct Snapshot {
     pub panes: Vec<PaneSnapshot>,
     pub handles: Vec<Handle>,
     pub focus: u64,
-    pub files: Vec<Entry>,
-    pub git: Vec<GitEntry>,
+    /// Shared with the app until the listing changes, so frames do not copy
+    /// it. Empty in a graphical snapshot that already has this revision.
+    pub files: std::sync::Arc<Vec<Entry>>,
+    pub git: std::sync::Arc<Vec<GitEntry>>,
+    /// The commit graph, listed after `git` in the Git pane. Like `files`,
+    /// empty in a graphical snapshot that already has this revision.
+    pub history: std::sync::Arc<Vec<git_history::HistoryRow>>,
+    pub history_revision: u64,
+    /// More commits can be read ("git-history-more").
+    pub history_more: bool,
+    pub history_error: String,
+    /// The branch's upstream and how far ahead of and behind it the branch is.
+    pub git_upstream: String,
+    pub git_ahead: usize,
+    pub git_behind: usize,
+    /// Local branches, most recently committed first.
+    pub git_branches: Vec<String>,
     pub browser: String,
+    /// The repository top that `git` entry paths are relative to.
+    pub git_root: String,
     pub search: Search,
     pub status: String,
     pub dirty: bool,
     pub quit: bool,
-    pub clipboard: String,
     pub layouts: Vec<String>,
     pub prompt: Option<Prompt>,
     pub location: String,
@@ -494,9 +534,11 @@ pub struct Snapshot {
     pub terminal_background: String,
     pub terminal_foreground: String,
     pub terminal_selection: String,
+    /// The file browser's and Git pane's colours ("files-theme", "git-theme").
+    pub files_colors: theme::PaneColors,
+    pub git_colors: theme::PaneColors,
     /// Selection background, so monochrome terminals can show reverse video.
     pub selection: String,
-    pub commands: Vec<commands::CommandInfo>,
     pub settings: Preferences,
     pub profiles: Vec<String>,
     pub setting_sources: BTreeMap<String, String>,
@@ -553,9 +595,21 @@ pub struct App {
     pub clipboard: String,
     browser: PathBuf,
     pending_workspace: Option<PathBuf>,
-    files: Vec<Entry>,
+    /// Counts in-place workspace switches, which replace the whole session.
+    session: u64,
+    /// Shared with snapshots, which then copy nothing (lists reach 100,000 rows).
+    files: std::sync::Arc<Vec<Entry>>,
     expanded_folders: std::collections::BTreeSet<PathBuf>,
     pending_file: Option<PathBuf>,
+    /// An entry to select once the browser lists it, and the listing
+    /// request (see `browse_requests`) that should contain it.
+    pending_reveal: Option<(PathBuf, u64)>,
+    /// Directory listings: the newest request, the request the listing in
+    /// flight answers, and the newest request answered. One listing runs at
+    /// a time; requests made meanwhile become a single follow-up.
+    browse_requests: u64,
+    browse_sent: Option<u64>,
+    browse_replies: u64,
     pending_path_dialog: Option<(String, Option<u64>)>,
     /// The Git pane: entries, branch and running jobs.
     git: git::Panel,
@@ -577,12 +631,19 @@ pub struct App {
     recovery: workspace::RecoveryState,
     colors: (String, String, String, String),
     terminal_colors: theme::Palette,
+    /// The file browser's and Git pane's palettes.
+    files_colors: theme::Palette,
+    git_colors: theme::Palette,
     system_colors: Option<(String, String, String, String, String)>,
     selection_foreground: String,
     events: events::Events,
     revision: u64,
     files_revision: u64,
-    render_cache: BTreeMap<u64, (String, u64, std::sync::Arc<Screen>)>,
+    /// The file and Git listings last handed to snapshots, by revision.
+    /// Pane screens by view: (signature, build number, screen).
+    render_cache: BTreeMap<u64, (u64, u64, std::sync::Arc<Screen>)>,
+    /// The graphical editor text per view, keyed like `render_cache`.
+    text_cache: BTreeMap<u64, (u64, std::sync::Arc<text_presentation::EditorText>)>,
     pub screen_builds: u64,
     typing: bool,
     /// Launched with files (or standard input) rather than a directory.
@@ -636,8 +697,10 @@ pub struct App {
     last_search: Option<project::SearchOptions>,
     project_search_policy: project::SearchPolicy,
     last_search_files: Vec<(PathBuf, Option<u64>)>,
-    /// Files the last replace-in-files rewrote: (file, before, after).
-    replace_backups: Vec<(PathBuf, Vec<u8>, Vec<u8>)>,
+    /// Files each replace-in-files run rewrote, latest run last.
+    replace_backups: Vec<Vec<picker::ReplaceBackup>>,
+    /// An undo-replace-in-files is writing files back.
+    replace_undoing: bool,
     /// Language servers, their documents and diagnostics.
     lsp: lsp::Lsp,
     /// Documents being formatted.
@@ -652,14 +715,21 @@ pub struct App {
     trusted: bool,
     /// A command waiting for the user to trust the workspace.
     pending_trust: Option<(PathBuf, Command)>,
-    /// Trust decisions for folders outside the workspace.
+    /// Trust decisions for folders outside the workspace, by the path as
+    /// asked.
     trust_cache: std::sync::Mutex<std::collections::HashMap<PathBuf, bool>>,
+    /// Changes whenever trust may have changed (`trust_changed`), so
+    /// decisions derived from trust know when to look again.
+    trust_generation: u64,
+    /// Folders outside the workspace trusted for this session only.
+    session_trust: Vec<PathBuf>,
     /// Wrapped rows are shared across cursor movement and rendering.
-    #[allow(clippy::type_complexity)]
-    wrap_cache:
-        std::sync::Mutex<BTreeMap<(u64, u64, usize, usize, usize), std::sync::Arc<Vec<wrap::Row>>>>,
+    wrap_cache: std::sync::Mutex<wrap::Cache>,
     fuzzy_worker: Option<picker::FilterWorker>,
     search_worker: Option<services::LatestWorker<picker::SearchRequest>>,
+    /// Grammar outlines: the newest request wins and older ones stop.
+    outline_worker: Option<services::LatestWorker<picker::OutlineRequest>>,
+    outline_ticket: std::sync::Arc<std::sync::atomic::AtomicU64>,
     /// Hidden line ranges per view, keyed by what they were computed from.
     #[allow(clippy::type_complexity)]
     fold_cache: std::sync::Mutex<BTreeMap<u64, ((u64, Vec<usize>, usize), folding::Hidden)>>,
@@ -690,6 +760,11 @@ impl App {
     pub fn events(&self) -> events::Events {
         self.events.clone()
     }
+    /// Changes when the workspace is replaced in place: frontends then drop
+    /// everything they cached from the previous session.
+    pub fn session(&self) -> u64 {
+        self.session
+    }
     pub fn revision(&self) -> u64 {
         self.revision.wrapping_add(self.events.generation())
     }
@@ -708,6 +783,8 @@ impl App {
         self.watch_files();
         self.update_file_locks();
         self.record_diagnostic_status();
+        // A listing the busy file queue refused is sent once it has room.
+        self.send_listing();
         if self.pending_workspace.is_some()
             && !self.dirty()
             && self.saves.pending_save.is_empty()
@@ -721,6 +798,19 @@ impl App {
         self.schedule_highlight();
         if self.recovery.dirty && self.recovery.at.elapsed() >= Duration::from_secs(1) {
             self.checkpoint();
+        }
+        self.settle_quarantine();
+        let lost =
+            "Recovery unavailable: its folder was removed by another program; save your documents";
+        if self
+            .recovery
+            .store
+            .as_ref()
+            .is_some_and(|store| !store.keep_alive())
+            && self.recovery.warning.as_deref() != Some(lost)
+        {
+            self.recovery.warning = Some(lost.into());
+            self.revision += 1;
         }
     }
     fn id(&mut self) -> u64 {
@@ -837,13 +927,9 @@ impl App {
                 .0
                 .push(View::Editor(editor));
         }
-        self.views.remove(&view);
+        self.forget_view(view);
         if !shared {
-            self.views.retain(|_, v| v.document != doc);
-            self.documents.remove(&doc);
-            self.diff_inspections.remove(&doc);
-            self.highlights.remove(&doc);
-            self.highlight_pending.remove(&doc);
+            self.forget_document(doc);
         }
         if self.editor_only && !matches!(self.focused(), Some(View::Editor(_))) {
             self.expand_workspace()?;
@@ -884,10 +970,7 @@ impl App {
                     *active = (*active).min(tabs.len().saturating_sub(1));
                 }
             }
-            self.views.remove(&view);
-            self.documents.remove(&doc);
-            self.diff_inspections.remove(&doc);
-            self.highlights.remove(&doc);
+            self.forget_document(doc);
         }
     }
     /// Activate the tab `step` places after (or before) the current one.
@@ -905,18 +988,19 @@ impl App {
         }
         Ok(())
     }
-    fn add_tab(&mut self, view: View) {
+    /// Returns false when the layout has no room for the view.
+    fn add_tab(&mut self, view: View) -> bool {
         // Files and Git are singleton views within a pane. Reopening them
         // should reveal the existing tab instead of crowding the tab bar.
         if matches!(view, View::Files | View::Git) {
             if let Some((tabs, active)) = self.layout.pane_mut(self.focus) {
                 if let Some(index) = tabs.iter().position(|tab| *tab == view) {
                     *active = index;
-                    return;
+                    return true;
                 }
             }
         }
-        self.show_view(view);
+        self.show_view(view)
     }
     pub fn dispatch(&mut self, cmd: Command) {
         // Passive pointer motion has no editing effect. Only terminals requesting
@@ -981,6 +1065,8 @@ impl App {
             "rename-file",
             "profile-save",
             "profile-load",
+            "git-switch",
+            "git-branch",
         ]
         .contains(&kind.as_str())
         {
@@ -1050,9 +1136,25 @@ impl App {
                 self.prompt = None;
                 self.confirm_trash()?;
             }
+            "discard-changes" => {
+                self.prompt = None;
+                self.confirm_discard()?;
+            }
             "confirm-replace" => {
                 self.prompt = None;
                 self.replace_in_files(&p.replacement)?;
+            }
+            "open-folder-where" => {
+                self.prompt = None;
+                let path = self
+                    .pending_workspace
+                    .take()
+                    .context("No workspace selected")?;
+                if all {
+                    self.open_workspace_window(&path);
+                } else {
+                    self.open_workspace_here(path)?;
+                }
             }
             "switch-workspace" => {
                 self.prompt = None;
@@ -1089,7 +1191,7 @@ impl App {
                 }
             }
             "open" | "open-folder" | "save-as" | "commit" | "layout-save" | "layout-load"
-            | "move-pane" | "settings" => {
+            | "move-pane" | "settings" | "git-switch" | "git-branch" => {
                 if p.input.trim().is_empty() {
                     bail!("Enter {}", p.kind);
                 }
@@ -1257,9 +1359,7 @@ impl App {
                 v.cursor = cursor;
             }
             Some(View::Files) => self.selected = row.min(self.files.len().saturating_sub(1)),
-            Some(View::Git) => {
-                self.git.selected = row.min(self.git.entries.len().saturating_sub(1))
-            }
+            Some(View::Git) => self.git.selected = row.min(self.git_rows().saturating_sub(1)),
             Some(View::Terminal(id)) => {
                 self.terminals.get_mut(&id).unwrap().select(row, col, shift)
             }
@@ -1298,7 +1398,8 @@ impl App {
             Command::OpenWorkspace { path } => self.open_workspace(path)?,
             Command::OpenSettings => {
                 if !Preferences::path().exists() {
-                    self.preferences.save()?;
+                    // Defaults, never this session's launch options.
+                    Preferences::default().save()?;
                 }
                 self.execute(Command::Open {
                     path: Preferences::path(),
@@ -1507,10 +1608,13 @@ impl App {
             Command::DismissPrompt => {
                 let kind = self.prompt.take().map(|p| p.kind).unwrap_or_default();
                 self.pending_close = None;
-                if kind == "switch-workspace" {
+                if matches!(kind.as_str(), "switch-workspace" | "open-folder-where") {
                     self.pending_workspace = None;
                 }
-                if matches!(kind.as_str(), "rename-file" | "trash-file") {
+                if matches!(
+                    kind.as_str(),
+                    "rename-file" | "trash-file" | "discard-changes"
+                ) {
                     self.pending_file = None;
                 }
                 if matches!(
@@ -1659,7 +1763,7 @@ impl App {
                         ..Default::default()
                     },
                 );
-                self.add_tab(View::Editor(view));
+                self.show_new_document(view);
             }
             Command::Save | Command::SaveAs { .. } => {
                 let (destination, overwrite) = if let Command::SaveAs { path, overwrite } = cmd {
@@ -1718,8 +1822,27 @@ impl App {
                     d.redo(view.cursor)
                 };
                 if let Some(cursor) = cursor {
-                    for (start, old, new) in changes {
-                        self.rebase_views(view.document, start, start + old, new);
+                    // A redone group runs from its last replacement to its
+                    // first, an undone one the other way; either moves views
+                    // once unless its replacements touch.
+                    let edits: Vec<_> = changes
+                        .iter()
+                        .map(|(start, old, new)| rebase::Edit {
+                            start: *start,
+                            end: start + old,
+                            len: *new,
+                            pushed: None,
+                        })
+                        .collect();
+                    let batch = rebase::Batch::new(edits.iter().copied())
+                        .or_else(|| rebase::Batch::ascending(&edits));
+                    match batch {
+                        Some(batch) => self.rebase_views_batch(view.document, batch),
+                        None => {
+                            for (start, old, new) in changes {
+                                self.rebase_views(view.document, start, start + old, new);
+                            }
+                        }
                     }
                     let v = self.views.get_mut(&id).unwrap();
                     v.cursor = cursor;
@@ -1891,7 +2014,11 @@ impl App {
                 self.add_tab(v);
                 self.refresh_git();
             }
-            Command::Refresh => self.refresh(),
+            Command::Refresh => {
+                // A refresh also rereads the graph, whose refs may have moved.
+                self.git.history_stale = true;
+                self.refresh();
+            }
             cmd @ (Command::GitStage { .. }
             | Command::GitUnstage { .. }
             | Command::GitStageAll
@@ -1941,28 +2068,23 @@ impl App {
             self.browser.join(path)
         };
         let path = files::workspace_directory(&path, &self.root)?;
-        self.browser = path.clone();
+        self.browser = path;
         self.selected = 0;
-        self.services.tx.send(Job::Browse(
-            path,
-            self.root.clone(),
-            self.expanded_folders.iter().cloned().collect(),
-            !self.terminal_frontend,
-        ))?;
+        self.request_listing();
         Ok(())
     }
     pub fn refresh(&mut self) {
-        let _ = self.services.tx.send(Job::Browse(
-            self.browser.clone(),
-            self.root.clone(),
-            self.expanded_folders.iter().cloned().collect(),
-            !self.terminal_frontend,
-        ));
+        self.request_listing();
         self.refresh_git();
     }
     fn new_terminal(&mut self) -> Result<u64> {
+        self.new_terminal_in(&self.root.clone())
+    }
+    /// A terminal session starting in `folder` (the workspace root when it
+    /// is not a folder).
+    pub(crate) fn new_terminal_in(&mut self, folder: &Path) -> Result<u64> {
         let id = self.id();
-        let terminal = self.spawn_shell(&self.root.clone())?;
+        let terminal = self.spawn_shell(folder)?;
         self.terminals.insert(id, terminal);
         Ok(id)
     }
@@ -2233,91 +2355,81 @@ impl App {
             .get_mut(&doc)
             .context("The document was closed")?
             .replace_many(edits, cursor)?;
-        // From the end, each range is still in the original coordinates.
-        let mut order: Vec<usize> = (0..edits.len()).collect();
-        order.sort_by_key(|i| std::cmp::Reverse((edits[*i].0, edits[*i].1)));
-        for i in order {
-            let (start, end, text) = &edits[i];
-            self.rebase_views_text(doc, *start, *end, text);
-        }
+        self.rebase_views_many(doc, edits);
         self.clamp_views_soft(doc);
         Ok(placed)
     }
     /// Move everything that points into a document across an edit that
     /// replaced `start..end` with `length` bytes (already applied).
     fn rebase_views(&mut self, doc: u64, start: usize, end: usize, length: usize) {
-        self.rebase_views_for(doc, start, end, length, None);
+        let edit = rebase::Edit {
+            start,
+            end,
+            len: length,
+            pushed: None,
+        };
+        if let Some(batch) = rebase::Batch::new([edit]) {
+            self.rebase_views_batch(doc, batch);
+        }
     }
     /// `rebase_views` for an edit whose inserted text is known.
     fn rebase_views_text(&mut self, doc: u64, start: usize, end: usize, text: &str) {
-        self.rebase_views_for(doc, start, end, text.len(), Some(text));
+        if let Some(batch) = rebase::Batch::new([rebase::Edit::text(start, end, text)]) {
+            self.rebase_views_batch(doc, batch);
+        }
     }
-    fn rebase_views_for(
-        &mut self,
-        doc: u64,
-        start: usize,
-        end: usize,
-        length: usize,
-        inserted: Option<&str>,
-    ) {
-        let position = |p: usize| {
-            if p <= start {
-                p
-            } else if p >= end {
-                p - end + start + length
-            } else {
-                start + length
-            }
-        };
+    /// `rebase_views` for replacements applied together, each in the
+    /// coordinates of the text before any of them (as `replace_many` takes
+    /// them). Every position moves once, however many carets edited.
+    pub(crate) fn rebase_views_many(&mut self, doc: u64, edits: &[(usize, usize, String)]) {
+        let edits = edits
+            .iter()
+            .map(|(start, end, text)| rebase::Edit::text(*start, *end, text));
+        if let Some(batch) = rebase::Batch::sorted(edits) {
+            self.rebase_views_batch(doc, batch);
+        }
+    }
+    fn rebase_views_batch(&mut self, doc: u64, mut batch: rebase::Batch) {
+        use rebase::Mode;
         if let Some((scope_doc, a, b)) = &mut self.search.scope {
             if *scope_doc == doc {
-                *a = position(*a);
-                *b = position(*b);
+                *a = batch.position(*a);
+                *b = batch.position(*b);
             }
         }
-        let insertion = start == end;
-        // Text inserted at a line start that contains a line break pushes
-        // that line down: marks on it (folds, breakpoints) follow the line.
-        let pushed_line = inserted.and_then(|text| text.rfind('\n').map(|i| start + i + 1));
-        let line_mark = |p: usize| -> Option<usize> {
-            if insertion && p == start {
-                Some(pushed_line.unwrap_or(p))
-            } else if start <= p && p < end {
-                // The line's start was replaced: the mark goes with it.
-                None
-            } else {
-                Some(position(p))
-            }
-        };
         for other in self.views.values_mut().filter(|o| o.document == doc) {
-            other.cursor = position(other.cursor);
-            other.anchor = other.anchor.map(position);
+            other.cursor = batch.position(other.cursor);
+            other.anchor = other.anchor.map(|p| batch.position(p));
             for s in &mut other.extra {
-                s.cursor = position(s.cursor);
-                s.anchor = s.anchor.map(position);
+                s.cursor = batch.position(s.cursor);
+                s.anchor = s.anchor.map(|p| batch.position(p));
             }
             // The field being typed in grows with text typed at its end;
             // a later field that starts where the text went moves right.
             for (a, b) in other.current_stop.iter_mut() {
-                let grows = *b == start && *a <= start;
-                *a = position(*a);
-                *b = if grows { start + length } else { position(*b) };
+                *a = batch.position(*a);
+                *b = batch.map(Mode::After, *b).unwrap_or(*b);
             }
             for stop in other.stops.iter_mut().chain(other.visited.iter_mut()) {
                 for (a, b) in stop.iter_mut() {
-                    let follows = insertion && *a == start;
-                    *b = if follows { *b + length } else { position(*b) };
-                    *a = if follows { *a + length } else { position(*a) };
+                    (*a, *b) = batch.field(*a, *b);
                 }
             }
-            other.folds = other.folds.iter().filter_map(|f| line_mark(*f)).collect();
+            // Text inserted at a line start that contains a line break pushes
+            // that line down: marks on it (folds, breakpoints) follow the
+            // line. A mark whose line start was replaced goes with it.
+            other.folds = other
+                .folds
+                .iter()
+                .filter_map(|f| batch.map(Mode::Line, *f))
+                .collect();
         }
         for (history_doc, offset) in self.back.iter_mut().chain(self.forward.iter_mut()) {
             if *history_doc == doc {
-                *offset = position(*offset);
+                *offset = batch.position(*offset);
             }
         }
-        self.rebase_breakpoints(doc, |p| line_mark(p).unwrap_or(start));
+        self.rebase_breakpoints(doc, |p| batch.map(Mode::Breakpoint, p).unwrap_or(p));
     }
     /// Apply one smart replacement at the primary caret.
     fn apply_single(&mut self, id: u64, typed: smart::Typed) -> Result<()> {
@@ -2403,8 +2515,9 @@ impl App {
         };
         let cancel = k.key == "Escape" || letter == "c";
         match kind.as_str() {
-            "trash-file" => {
-                if letter == "y" || letter == "d" {
+            // Discarding opens on D in the Git pane: a repeated D must not confirm it.
+            "trash-file" | "discard-changes" => {
+                if letter == "y" || (letter == "d" && kind == "trash-file") {
                     self.execute(Command::SubmitPrompt { all: false })?;
                 } else if cancel || letter == "n" || k.key == "Enter" {
                     self.execute(Command::DismissPrompt)?;
@@ -2589,6 +2702,18 @@ impl App {
                     self.invoke_action("refresh", "")?;
                     return Ok(());
                 }
+                "d" => {
+                    self.invoke_action("discard-changes", "")?;
+                    return Ok(());
+                }
+                "o" => {
+                    self.invoke_action("git-open", "")?;
+                    return Ok(());
+                }
+                "f" => {
+                    self.invoke_action("git-fetch", "")?;
+                    return Ok(());
+                }
                 _ => {}
             }
         }
@@ -2603,7 +2728,7 @@ impl App {
             Some(View::Files) | Some(View::Git) => {
                 let git = matches!(self.focused(), Some(View::Git));
                 let length = if git {
-                    self.git.entries.len()
+                    self.git_rows()
                 } else {
                     self.files.len()
                 };
@@ -2623,6 +2748,9 @@ impl App {
                         if git {
                             if self.git.entries.get(*selected).is_some() {
                                 return self.invoke_action("diff", "");
+                            }
+                            if self.selected_commit().is_some() {
+                                return self.invoke_action("git-show", "");
                             }
                         } else if let Some(e) = self.files.get(*selected) {
                             return self.execute(Command::Open {
@@ -2856,7 +2984,7 @@ impl App {
     pub fn command_line(&mut self, line: &str) {
         self.revision += 1;
         match self.resolve_command_input(line) {
-            Ok(cmd) => self.dispatch(cmd),
+            Ok(cmd) => self.dispatch(cmd.confirming_discard()),
             Err(error) => self.status = format!("Error: {error:#}"),
         }
     }
@@ -3020,6 +3148,18 @@ const ACTION_VERBS: &[&str] = &[
     "toggle-folder",
     "expand-folder",
     "collapse-folder",
+    "collapse-all-folders",
+    "terminal-here",
+    "git-fetch",
+    "git-pull",
+    "git-push",
+    "git-switch",
+    "git-branch",
+    "git-open",
+    "discard-changes",
+    "reveal-in-files",
+    "git-show",
+    "git-history-more",
     "move-left",
     "move-right",
     "move-up",
@@ -3150,16 +3290,19 @@ pub fn key_chord(k: &Key) -> String {
     )
 }
 impl App {
-    fn finish_open(&mut self, pane: u64, mut d: Document) -> u64 {
+    /// Show an opened file. Fails, without disturbing other tabs, when the
+    /// layout has no room for another tab.
+    fn finish_open(&mut self, pane: u64, mut d: Document) -> Result<u64> {
         let path = d.path.clone();
         let notice = d.notice.take();
-        let doc = if let Some((id, _)) = self.documents.iter().find(|(_, old)| old.path == path) {
-            *id
-        } else {
-            let id = self.id();
-            self.documents.insert(id, d);
-            id
-        };
+        let (doc, fresh) =
+            if let Some((id, _)) = self.documents.iter().find(|(_, old)| old.path == path) {
+                (*id, false)
+            } else {
+                let id = self.id();
+                self.documents.insert(id, d);
+                (id, true)
+            };
         if matches!(self.layout.view(pane), Some(View::Editor(_))) {
             self.focus = pane;
         } else {
@@ -3177,7 +3320,16 @@ impl App {
                     ..Default::default()
                 },
             );
-            self.add_tab(View::Editor(id));
+            // A document opened just now closes again when it cannot be shown.
+            let shown = if fresh {
+                self.show_new_document(id)
+            } else {
+                self.add_tab(View::Editor(id))
+            };
+            if !shown {
+                self.pending_positions.remove(path.as_ref().unwrap());
+                bail!("{}", self.status);
+            }
             self.drop_pristine_scratch(self.focus, id);
         }
         let path = path.unwrap();
@@ -3198,7 +3350,7 @@ impl App {
             notice.map(|n| format!(" · {n}")).unwrap_or_default()
         );
         self.recovery.dirty = true;
-        doc
+        Ok(doc)
     }
     fn location(&self) -> String {
         if let Some(id) = self.active_editor() {
@@ -3301,9 +3453,29 @@ impl App {
             hints.push(format!("{key} quit"));
         }
         if kind == "git" {
-            hints.push("Enter diff · S stage · U unstage · C commit · R refresh".into());
+            hints.push(
+                "Enter diff/commit · S stage · U unstage · D discard · O open · C commit · F fetch · R refresh"
+                    .into(),
+            );
         }
         if kind == "terminal" {
+            // Shells keep most chords, so name the global keys that switch tabs.
+            let global = |verb: &str| {
+                self.preferences
+                    .global_keys
+                    .iter()
+                    .find(|(_, v)| v.as_str() == verb)
+                    .map(|(key, _)| key.clone())
+            };
+            if self.layout.tabs(self.focus).is_some_and(|t| t.len() > 1) {
+                if let (Some(next), Some(previous)) = (global("next-tab"), global("previous-tab")) {
+                    hints.push(format!(
+                        "{}/{} tabs",
+                        commands::display_chord(&next),
+                        commands::display_chord(&previous)
+                    ));
+                }
+            }
             hints.push("Shift-drag selects · Shift-wheel scrollback".into());
         }
         hints.join(" · ")

@@ -82,7 +82,7 @@ GST_VALIDATE_API
 GType		gst_validate_runner_get_type		(void);
 
 GST_VALIDATE_API
-GstValidateRunner *   gst_validate_runner_new               (void);
+GstValidateRunner *   gst_validate_runner_new               (void) G_GNUC_WARN_UNUSED_RESULT;
 
 GST_VALIDATE_API
 void            gst_validate_runner_add_report  (GstValidateRunner * runner, GstValidateReport * report);
@@ -90,7 +90,7 @@ void            gst_validate_runner_add_report  (GstValidateRunner * runner, Gst
 GST_VALIDATE_API
 guint           gst_validate_runner_get_reports_count (GstValidateRunner * runner);
 GST_VALIDATE_API
-GList *         gst_validate_runner_get_reports (GstValidateRunner * runner);
+GList *         gst_validate_runner_get_reports (GstValidateRunner * runner) G_GNUC_WARN_UNUSED_RESULT;
 
 GST_VALIDATE_API
 int             gst_validate_runner_printf (GstValidateRunner * runner);

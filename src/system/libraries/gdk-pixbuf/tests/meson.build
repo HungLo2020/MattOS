@@ -4,7 +4,7 @@
 # gdk-pixbuf-pixdata from build directory because it needs all DLL locations in
 # $PATH. Ideally we should use gnome.compile_resources() and let Meson deal with
 # this problem: See https://github.com/mesonbuild/meson/issues/8266.
-if enabled_loaders.contains('png') and host_system != 'windows'
+if (enabled_loaders.contains('png') or enabled_loaders.contains('glycin')) and host_system != 'windows'
   # Resources; we cannot use gnome.compile_resources() here, because we need to
   # override the environment in order to use the utilities we just built instead
   # of the system ones
@@ -63,29 +63,29 @@ installed_tests = {
   'pixbuf-construction': { 'suites': ['conform'], },
   'animation': {
     'suites': ['format'],
-    'skip': not (enabled_loaders.contains('ani') and enabled_loaders.contains('gif')),
   },
   'cve-2015-4491': {
     'suites': ['security'],
     'needs_resources': true,
-    'skip': no_resources or not enabled_loaders.contains('bmp'),
+    'skip': no_resources,
   },
   'pixbuf-fail': { 'suites': ['conform', 'slow'], },
   'pixbuf-icon-serialize': { 'suites': ['conform'], },
-  'pixbuf-randomly-modified': { 'suites': ['slow'], },
+  'pixbuf-randomly-modified': { 'suites': ['slow'], 'skip': enabled_loaders.contains('glycin') },
   'pixbuf-threads': { 'suites': ['io'], },
   'pixbuf-gif': {
     'suites': ['io'],
   },
   'pixbuf-icc': {
     'suites': ['io'],
+    'skip': enabled_loaders.contains('glycin'),
   },
   'pixbuf-jpeg': {
     'suites': ['format'],
-    'skip': not enabled_loaders.contains('jpeg'),
   },
   'pixbuf-dpi': {
     'suites': ['io'],
+    'skip': enabled_loaders.contains('glycin'),
   },
   'pixbuf-pixdata': {
     'suites': ['format'],
@@ -105,21 +105,18 @@ installed_tests = {
   'pixbuf-scale-two-step': { 'suites': ['ops'], },
   'pixbuf-short-gif-write': {
     'suites': ['format'],
-    'skip': not enabled_loaders.contains('gif'),
+    'skip': enabled_loaders.contains('glycin'),
   },
   'pixbuf-gif-circular-table': {
     'suites': ['format'],
-    'skip': not enabled_loaders.contains('gif'),
   },
   'pixbuf-save': { 'suites': ['io'] },
   'pixbuf-readonly-to-mutable': { 'suites': ['conform'], },
   'pixbuf-composite': {
     'suites': ['ops'],
-    'skip': not enabled_loaders.contains('png'),
   },
   'pixbuf-area-updated': {
     'suites': ['slow'],
-    'skip': not (enabled_loaders.contains('ico') and enabled_loaders.contains('gif')),
   },
 }
 
@@ -136,8 +133,6 @@ test_data = [
   'premature-end.png',
   'premature-end.jpg',
   'bug143608-comment.jpg',
-  'bug725582-testrotate.jpg',
-  'bug725582-testrotate.png',
   'bug753605-atsize.jpg',
   'cve-2015-4491.bmp',
   'large.png',

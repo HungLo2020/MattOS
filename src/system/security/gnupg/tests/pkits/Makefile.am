@@ -50,7 +50,10 @@ EXTRA_DIST = inittests runtest common.sh $(testscripts) ChangeLog-2011 \
 
 TESTS =
 
-CLEANFILES = inittests.stamp scratch.*.tmp x y z out err  *.lock .\#lk* *.log
+CLEANFILES = inittests.stamp scratch.*.tmp x y z out err  *.lock *.log
+
+# Path with # (octal 043) needs special care in portable Makefile.
+CLEANFILES += `printf  '.\043lk*'`
 
 DISTCLEANFILES = pubring.kbx~ random_seed
 

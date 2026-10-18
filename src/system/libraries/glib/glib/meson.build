@@ -147,6 +147,7 @@ install_headers(glib_headers, install_dir : glib_includedir)
 
 if host_system != 'windows'
   glib_unix_headers = files('glib-unix.h')
+  glib_unix_sources = files('glib-unix.c')
   install_headers(glib_unix_headers, install_dir : glib_includedir)
 endif
 
@@ -250,6 +251,7 @@ install_headers(glib_sub_headers, install_dir : glib_sub_includedir)
 
 if host_system == 'windows'
   glib_win32_headers = files('gwin32.h')
+  glib_win32_sources = files('gwin32.c')
   install_headers(glib_win32_headers, install_dir : glib_sub_includedir)
 endif
 
@@ -347,6 +349,7 @@ glib_sources += files(
   'gvarianttype.c',
   'gversion.c',
   'gwakeup.c',
+  'gprint.c',
   'gprintf.c',
 )
 
@@ -354,21 +357,35 @@ platform_deps = []
 
 if host_system == 'windows'
   if glib_build_shared
-    glib_win_rc = configure_file(
-      input: 'glib.rc.in',
+    glib_rc_conf = configuration_data({
+      'NAME': 'GLib',
+      'FILENAME': (cc.get_argument_syntax() == 'msvc' ? '' : 'lib') + 'glib-' + glib_api_version + '-' + soversion.to_string() + '.dll',
+      'DESCRIPTION': 'GLib is a general-purpose, portable utility library',
+    })
+    glib_rc_conf.merge_from(rc_conf_base)
+    lib_rc = configure_file(
+      input: lib_rc_in,
       output: 'glib.rc',
-      configuration: glibconfig_conf,
+      configuration: glib_rc_conf,
     )
-    glib_win_res = windows.compile_resources(glib_win_rc)
-    glib_sources += [glib_win_res]
+    glib_sources += [windows.compile_resources(lib_rc,
+      # Workaround for https://github.com/llvm/llvm-project/issues/63426
+      args: ['-c', '65001'],
+    )]
   endif
+
   glib_sources += files('gwin32.c', 'gspawn-win32.c', 'giowin32.c')
   platform_deps = [winsock2, cc.find_library('winmm')]
   if cc.get_id() == 'msvc' or cc.get_id() == 'clang-cl'
     glib_sources += files('dirent/wdirent.c')
   endif
 else
-  glib_sources += files('glib-unix.c', 'gspawn-posix.c', 'giounix.c')
+  glib_sources += files('glib-unix.c', 'giounix.c')
+  if process_spawn_allowed
+    glib_sources += files('gspawn-posix.c')
+  else
+    glib_sources += files('gspawn-unsupported.c')
+  endif
   platform_deps = []
 endif
 
@@ -437,6 +454,26 @@ libglib_dep = declare_dependency(
   # We sadly need to export configinc here because everyone includes <glib/*.h>
   include_directories : [configinc, glibinc])
 
+libglib_static_dep = declare_dependency(
+  compile_args: ['-DGLIB_STATIC_COMPILATION'],
+  objects: libglib.extract_all_objects(recursive: true),
+  dependencies: [
+    atomic_dep,
+    gnulib_libm_dependency,
+    libiconv,
+    libintl_deps,
+    libm,
+    librt,
+    libsysprof_capture_dep,
+    pcre2,
+    platform_deps,
+    thread_dep,
+  ],
+  link_with: [charset_lib, gnulib_lib],
+  sources: glib_built_headers,
+  include_directories: [configinc, glibinc],
+)
+
 pkg.generate(libglib,
   libraries : [libintl_deps],
   libraries_private : [win32_ldflags],
@@ -475,23 +512,23 @@ if host_system == 'windows'
       install : true,
       win_subsystem : 'windows',
       include_directories : configinc,
-      dependencies : [libglib_dep])
+      dependencies : [libglib_dep, app_profile_dep])
     gspawn_helpers += executable('gspawn-win32-helper-console', 'gspawn-win32-helper.c',
       install : true,
       c_args : ['-DHELPER_CONSOLE'],
       include_directories : configinc,
-      dependencies : [libglib_dep])
+      dependencies : [libglib_dep, app_profile_dep])
   else
     gspawn_helpers += executable('gspawn-win64-helper', 'gspawn-win32-helper.c',
       install : true,
       win_subsystem : 'windows',
       include_directories : configinc,
-      dependencies : [libglib_dep])
+      dependencies : [libglib_dep, app_profile_dep])
     gspawn_helpers += executable('gspawn-win64-helper-console', 'gspawn-win32-helper.c',
       install : true,
       c_args : ['-DHELPER_CONSOLE'],
       include_directories : configinc,
-      dependencies : [libglib_dep])
+      dependencies : [libglib_dep, app_profile_dep])
   endif
 else
   gtester = executable('gtester', 'gtester.c',
@@ -499,7 +536,7 @@ else
     install_tag : 'bin-devel',
     c_args : ['-UG_DISABLE_ASSERT'],
     include_directories : configinc,
-    dependencies : [libglib_dep])
+    dependencies : [libglib_dep, app_profile_dep])
 
   # Provide tools for others when we're a subproject and they use the Meson GNOME module
   meson.override_find_program('gtester', gtester)

@@ -72,10 +72,10 @@ GST_CUDA_API
 GType            gst_cuda_context_get_type    (void);
 
 GST_CUDA_API
-GstCudaContext * gst_cuda_context_new         (guint device_id);
+GstCudaContext * gst_cuda_context_new         (guint device_id) G_GNUC_WARN_UNUSED_RESULT;
 
 GST_CUDA_API
-GstCudaContext * gst_cuda_context_new_wrapped (CUcontext handler, CUdevice device);
+GstCudaContext * gst_cuda_context_new_wrapped (CUcontext handler, CUdevice device) G_GNUC_WARN_UNUSED_RESULT;
 
 GST_CUDA_API
 gboolean         gst_cuda_context_push        (GstCudaContext * ctx);
@@ -92,6 +92,9 @@ gint             gst_cuda_context_get_texture_alignment (GstCudaContext * ctx);
 GST_CUDA_API
 gboolean         gst_cuda_context_can_access_peer (GstCudaContext * ctx,
                                                    GstCudaContext * peer);
+
+GST_CUDA_API
+gint64           gst_cuda_context_find_dxgi_adapter_luid (CUdevice cuda_device);
 
 G_END_DECLS
 

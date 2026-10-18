@@ -306,7 +306,6 @@ main (int argc, char **argv)
 
   /* Prepare libassuan.  */
   assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
-  /*assuan_set_system_hooks (ASSUAN_SYSTEM_NPTH);*/
   setup_libassuan_logging (&opt.debug, NULL);
 
   /* Setup a default control structure for command line mode.  */
@@ -315,7 +314,7 @@ main (int argc, char **argv)
   ctrl.no_server = 1;
   ctrl.status_fd = -1; /* No status output. */
 
-  /* The configuraton directories for use by gpgrt_argparser.  */
+  /* The configuration directories for use by gpgrt_argparser.  */
   gpgrt_set_confdir (GPGRT_CONFDIR_SYS, gnupg_sysconfdir ());
   gpgrt_set_confdir (GPGRT_CONFDIR_USER, gnupg_homedir ());
 

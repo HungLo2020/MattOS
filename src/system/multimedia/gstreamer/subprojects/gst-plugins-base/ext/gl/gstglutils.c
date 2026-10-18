@@ -106,27 +106,3 @@ gst_gl_context_gen_shader (GstGLContext * context, const gchar * vert_src,
 
   return *shader != NULL;
 }
-
-/* This is public API in 1.28 */
-gboolean
-gst_gl_gst_meta_api_type_tags_contain_only (GType api,
-    const gchar ** valid_tags)
-{
-  const gchar **tags, **curr;
-
-  g_return_val_if_fail (api != 0, FALSE);
-
-  tags = (const gchar **) gst_meta_api_type_get_tags (api);
-
-  if (!tags)
-    return TRUE;
-
-  for (curr = tags; *curr; ++curr) {
-
-    if (!g_strv_contains (valid_tags, *curr)) {
-      return FALSE;
-    }
-  }
-
-  return TRUE;
-}

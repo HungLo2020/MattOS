@@ -1,8 +1,9 @@
 project('gst-devtools', 'c',
-  version : '1.26.11',
+  version : '1.28.8',
   meson_version : '>= 1.4',
   default_options : [ 'warning_level=1',
-                      'buildtype=debugoptimized' ])
+                      'buildtype=debugoptimized',
+                      'c_std=gnu11,c11' ])
 
 gst_version = meson.project_version()
 version_arr = gst_version.split('.')
@@ -99,13 +100,14 @@ gmodule_dep = dependency('gmodule-no-export-2.0')
 
 gtk_dep = dependency('gtk+-3.0', required: false)
 mathlib = cc.find_library('m', required : false)
-dl = cc.find_library('dl', required : false)
+dl = dependency('dl', required : false)
 json_dep = dependency('json-glib-1.0')
 
 gst_c_args = ['-DHAVE_CONFIG_H', '-DGST_USE_UNSTABLE_API']
 
 gir_init_section = [ '--add-init-section=extern void gst_init(gint*,gchar**);' + \
-    'g_setenv("GST_REGISTRY_1.0", "/no/way/this/exists.reg", TRUE);' + \
+    'g_setenv("GST_REGISTRY_DISABLE", "yes", TRUE);' + \
+    'g_setenv("GST_REGISTRY_1_0", "@0@", TRUE);'.format(meson.current_build_dir() + '/gir_empty_registry.reg') + \
     'g_setenv("GST_PLUGIN_PATH_1_0", "", TRUE);' + \
     'g_setenv("GST_PLUGIN_SYSTEM_PATH_1_0", "", TRUE);' + \
     'g_setenv("GST_TRACERS", "", TRUE);' + \
@@ -193,7 +195,12 @@ if not get_option('debug_viewer').disabled()
 endif
 subdir('docs')
 
-meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.24.0', meson.project_version())
+meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.26.0', meson.project_version())
+
+# dist common files from monorepo root
+if not meson.is_subproject()
+  meson.add_dist_script('scripts/dist-common-files.py', meson.project_version())
+endif
 
 plugin_names = []
 gst_plugins = []

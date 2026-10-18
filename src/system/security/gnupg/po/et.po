@@ -538,6 +538,10 @@ msgid "a gpg-agent is already running - not starting a new one\n"
 msgstr "gpg-agent ei ole sesses sessioonis kasutatav\n"
 
 #, fuzzy, c-format
+msgid "socket file removed - retrying binding\n"
+msgstr "võti %08lX: vigane mitme alamvõtme seos\n"
+
+#, fuzzy, c-format
 msgid "error getting nonce for the socket\n"
 msgstr "viga parooli loomisel: %s\n"
 
@@ -677,10 +681,6 @@ msgid "error opening '%s': %s\n"
 msgstr "viga `%s' lugemisel: %s\n"
 
 #, fuzzy, c-format
-msgid "file '%s', line %d: %s\n"
-msgstr "võtit '%s' ei leitud: %s\n"
-
-#, fuzzy, c-format
 msgid "statement \"%s\" ignored in '%s', line %d\n"
 msgstr "viga lugemisel: %s\n"
 
@@ -730,7 +730,7 @@ msgstr ""
 #. insert a line break.  The double percent sign is actually
 #. needed because it is also a printf format string.  If you
 #. need to insert a plain % sign, you need to encode it as
-#. "%%25".  The second "%s" gets replaced by a hexdecimal
+#. "%%25".  The second "%s" gets replaced by a hexadecimal
 #. fingerprint string whereas the first one receives the name
 #. as stored in the certificate.
 #, c-format
@@ -741,7 +741,8 @@ msgstr ""
 
 #. TRANSLATORS: "Correct" is the label of a button and intended
 #. to be hit if the fingerprint matches the one of the CA.  The
-#. other button is "the default "Cancel" of the Pinentry.
+#. other button is "the default "Cancel" of the Pinentry.  We
+#. fix the English strings with hacks to avoid a string changes.
 msgid "Correct"
 msgstr ""
 
@@ -764,6 +765,10 @@ msgstr "muuda parooli"
 
 msgid "I'll change it later"
 msgstr ""
+
+#, fuzzy, c-format
+msgid "Unprotecting key failed: %s\n"
+msgstr "võtmebloki kustutamine ebaõnnestus: %s\n"
 
 msgid "Please insert the card with serial number"
 msgstr ""
@@ -829,34 +834,6 @@ msgstr "viga parooli loomisel: %s\n"
 #, fuzzy, c-format
 msgid "error creating a stream for a pipe: %s\n"
 msgstr "viga parooli loomisel: %s\n"
-
-#, fuzzy, c-format
-msgid "error forking process: %s\n"
-msgstr "viga `%s' lugemisel: %s\n"
-
-#, c-format
-msgid "waiting for process %d to terminate failed: %s\n"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "error running '%s': probably not installed\n"
-msgstr "viga `%s' lugemisel: %s\n"
-
-#, fuzzy, c-format
-msgid "error running '%s': exit status %d\n"
-msgstr "viga `%s' lugemisel: %s\n"
-
-#, fuzzy, c-format
-msgid "error running '%s': terminated\n"
-msgstr "viga `%s' lugemisel: %s\n"
-
-#, fuzzy, c-format
-msgid "waiting for processes to terminate failed: %s\n"
-msgstr "uuendamine ebaõnnestus: %s\n"
-
-#, fuzzy, c-format
-msgid "error getting exit code of process %d: %s\n"
-msgstr "viga salajase võtme võtmehoidlasse `%s' kirjutamisel: %s\n"
 
 #, fuzzy, c-format
 #| msgid "can't connect to `%s': %s\n"
@@ -1163,6 +1140,10 @@ msgstr ""
 msgid "No help available for '%s'."
 msgstr "`%s' kohta abiinfo puudub"
 
+#, fuzzy, c-format
+msgid "file '%s', line %d: %s\n"
+msgstr "võtit '%s' ei leitud: %s\n"
+
 #, fuzzy
 msgid "ignoring garbage line"
 msgstr "viga lõpetaval real\n"
@@ -1461,6 +1442,13 @@ msgstr ""
 msgid "Please try command \"%s\" if the listing does not look correct\n"
 msgstr ""
 
+#, c-format
+msgid ""
+"Please note that the factory settings of the PINs are\n"
+"   PIN = '%s'     Admin PIN = '%s'\n"
+"You should change them using the command --change-pin\n"
+msgstr ""
+
 msgid "Error: Only plain ASCII is currently allowed.\n"
 msgstr ""
 
@@ -1619,13 +1607,6 @@ msgstr "jätsin vahele: avalik võti on juba olemas\n"
 msgid "Replace existing keys? (y/N) "
 msgstr ""
 
-#, c-format
-msgid ""
-"Please note that the factory settings of the PINs are\n"
-"   PIN = '%s'     Admin PIN = '%s'\n"
-"You should change them using the command --change-pin\n"
-msgstr ""
-
 #, fuzzy
 msgid "Please select the type of key to generate:\n"
 msgstr "Palun valige, millist võtmetüüpi te soovite:\n"
@@ -1762,6 +1743,15 @@ msgstr "kirjutan salajase võtme faili `%s'\n"
 msgid "Invalid command  (try \"help\")\n"
 msgstr "Vigane käsklus (proovige \"help\")\n"
 
+#, fuzzy, c-format
+msgid "modifying the recipients is not possible: %s\n"
+msgstr "Võtme genereerimine ebaõnnestus: %s\n"
+
+#, fuzzy
+#| msgid "decryption failed: %s\n"
+msgid "decryption failed"
+msgstr "lahtikrüpteerimine ebaõnnestus: %s\n"
+
 #, c-format
 msgid "--output doesn't work for this command\n"
 msgstr "võti --output ei tööta selle käsuga\n"
@@ -1844,6 +1834,11 @@ msgid "use option \"--delete-secret-keys\" to delete it first.\n"
 msgstr "selle kustutamiseks kasutage võtit \"--delete-secret-keys\".\n"
 
 #, fuzzy, c-format
+#| msgid "%s/%s encrypted for: \"%s\"\n"
+msgid "%s/%s.%s encrypted for: \"%s\"\n"
+msgstr "%s/%s krüptitud kasutajale: \"%s\"\n"
+
+#, fuzzy, c-format
 msgid ""
 "WARNING: forcing symmetric cipher %s (%d) violates recipient preferences\n"
 msgstr ""
@@ -1899,6 +1894,11 @@ msgid "reading from '%s'\n"
 msgstr "loen failist `%s'\n"
 
 #, fuzzy, c-format
+#| msgid "problem handling encrypted packet\n"
+msgid "Note: Using the %s encryption packet\n"
+msgstr "probleem krüptitud paketi käsitlemisel\n"
+
+#, fuzzy, c-format
 msgid ""
 "WARNING: forcing compression algorithm %s (%d) violates recipient "
 "preferences\n"
@@ -1906,14 +1906,18 @@ msgstr ""
 "pakkimise algoritmi %s (%d) kasutamine on vastuolus saaja eelistustega\n"
 
 #, fuzzy, c-format
-#| msgid "%s/%s encrypted for: \"%s\"\n"
-msgid "%s/%s.%s encrypted for: \"%s\"\n"
-msgstr "%s/%s krüptitud kasutajale: \"%s\"\n"
+msgid "number of removed recipients: %u\n"
+msgstr "(Kirjeldust ei antud)\n"
 
 #, fuzzy, c-format
 #| msgid "you may not use %s while in %s mode\n"
 msgid "option '%s' may not be used in %s mode\n"
 msgstr "%s ei ole moodis %s lubatud.\n"
+
+#, fuzzy, c-format
+#| msgid "can't connect to `%s': %s\n"
+msgid "already encrypted to %08lX\n"
+msgstr "ei õnnestu luua ühendust serveriga `%s': %s\n"
 
 #, fuzzy, c-format
 #| msgid "%s encrypted data\n"
@@ -2132,6 +2136,10 @@ msgstr "allkirjasta võti"
 #| msgid "sign a key locally"
 msgid "quickly sign a key locally"
 msgstr "allkirjasta võti lokaalselt"
+
+#, fuzzy
+msgid "quickly sign a key with a trust signature"
+msgstr "Vihje: Valige allkirjastamiseks kasutaja\n"
 
 #, fuzzy
 #| msgid "generate a new key pair"
@@ -2461,6 +2469,11 @@ msgstr "sea eelistuste nimekiri"
 #| msgid "change the ownertrust"
 msgid "show ownertrust"
 msgstr "muuda omaniku usaldust"
+
+#, fuzzy
+#| msgid "Critical signature notation: "
+msgid "show trust signature information"
+msgstr "Kriitiline allkirja noteerimine: "
 
 #, fuzzy, c-format
 msgid "unknown TOFU policy '%s'\n"
@@ -2800,6 +2813,9 @@ msgstr "|FP|kirjuta olekuinfo sellesse failipidemesse"
 msgid "|ALGO|reject signatures made with ALGO"
 msgstr ""
 
+msgid "|NAME|print the notation NAME to stdout"
+msgstr ""
+
 msgid "Usage: gpgv [options] [files] (-h for help)"
 msgstr "Kasuta: gpgv [võtmed] [failid] (-h näitab abiinfot)"
 
@@ -2868,6 +2884,14 @@ msgstr ""
 #, fuzzy
 msgid "repair keys on import"
 msgstr "näita sõrmejälge"
+
+msgid "update even unchanged keys"
+msgstr ""
+
+#, fuzzy
+#| msgid "list secret keys"
+msgid "do not import secret keys"
+msgstr "näita salajasi võtmeid"
 
 #, c-format
 msgid "skipping block of type %d\n"
@@ -3133,9 +3157,13 @@ msgstr "Kasutaja ID ei ole enam kehtiv"
 msgid "reason for revocation: "
 msgstr "tühistamise põhjus: "
 
-#, c-format
-msgid "revocation comment: "
-msgstr "tühistamise kommentaar: "
+#, fuzzy, c-format
+msgid "key %s: can't locate keyblock: %s\n"
+msgstr "võti %08lX: ei leia algset võtmeblokki: %s\n"
+
+#, fuzzy, c-format
+msgid "key %s: can't read keyblock: %s\n"
+msgstr "võti %08lX: ei õnnestu lugeda algset võtmeblokki: %s\n"
 
 #, fuzzy, c-format
 msgid "key %s: no public key - can't apply revocation certificate\n"
@@ -3759,6 +3787,17 @@ msgstr "Kas kustutan tõesti kõik kasutaja IDd? "
 msgid "Really remove this user ID? (y/N) "
 msgstr "Kas eemaldan tõesti selle kasutaja ID? "
 
+msgid "Command expects a filename argument\n"
+msgstr ""
+
+#, fuzzy, c-format
+msgid "Can't open '%s': %s\n"
+msgstr "`%s' ei õnnestu avada: %s\n"
+
+#, fuzzy, c-format
+msgid "Error reading key from '%s': %s\n"
+msgstr "viga võtmehoidla `%s' loomisel: %s\n"
+
 #. TRANSLATORS: Please take care: This is about
 #. moving the key and not about removing it.
 #, fuzzy
@@ -3768,13 +3807,6 @@ msgstr "Kas eemaldan tõesti selle kasutaja ID? "
 #, fuzzy
 msgid "You must select exactly one key.\n"
 msgstr "Te peata valima vähemalt ühe võtme.\n"
-
-msgid "Command expects a filename argument\n"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "Can't open '%s': %s\n"
-msgstr "`%s' ei õnnestu avada: %s\n"
 
 #, fuzzy, c-format
 msgid "Error reading backup key from '%s': %s\n"
@@ -3880,6 +3912,11 @@ msgstr "Tundmatu kasutaja ID.\n"
 #, fuzzy
 msgid "Nothing to sign.\n"
 msgstr "Võtmega %08lX pole midagi allkirjastada\n"
+
+#, fuzzy, c-format
+#| msgid "checking created signature failed: %s\n"
+msgid "creating key signature failed: %s\n"
+msgstr "Loodud allkirja ei õnnestu kontrollida: %s\n"
 
 #, fuzzy, c-format
 msgid "Not signed by you.\n"
@@ -4420,17 +4457,26 @@ msgstr "  (%d) RSA (ainult krüpteerimiseks)\n"
 msgid "  (%d) Existing key from card%s\n"
 msgstr "  (%d) RSA (ainult krüpteerimiseks)\n"
 
+#, fuzzy, c-format
+msgid "  (%d) ECC and Kyber%s\n"
+msgstr "   (%d) DSA ja ElGamal (vaikimisi)\n"
+
+#, fuzzy, c-format
+#| msgid "   (%d) RSA (encrypt only)\n"
+msgid "  (%d) Kyber (encrypt only)%s\n"
+msgstr "  (%d) RSA (ainult krüpteerimiseks)\n"
+
 #, fuzzy
 msgid "Enter the keygrip: "
 msgstr "Allkirja noteerimine: "
 
-#, c-format
-msgid "Not a valid keygrip (expecting 40 hex digits)\n"
-msgstr ""
-
 #, fuzzy
 msgid "No key with this keygrip\n"
 msgstr "Kasutaja ID numbriga %d puudub\n"
+
+#, c-format
+msgid "Not a valid keygrip (expecting 40 hex digits)\n"
+msgstr ""
 
 #, fuzzy, c-format
 msgid "error reading the card: %s\n"
@@ -4464,6 +4510,11 @@ msgstr "Soovitud võtmepikkus on %u bitti\n"
 #, fuzzy
 #| msgid "Please select what kind of key you want:\n"
 msgid "Please select which elliptic curve you want:\n"
+msgstr "Palun valige, millist võtmetüüpi te soovite:\n"
+
+#, fuzzy, c-format
+#| msgid "Please select what kind of key you want:\n"
+msgid "Please select the %s variant you want:\n"
 msgstr "Palun valige, millist võtmetüüpi te soovite:\n"
 
 msgid ""
@@ -4808,8 +4859,16 @@ msgstr[1] ""
 msgid "Keyring"
 msgstr "Võtmehoidla"
 
+#, c-format
+msgid "revocation comment: "
+msgstr "tühistamise kommentaar: "
+
 msgid "Revocable by: "
 msgstr ""
+
+#, fuzzy, c-format
+msgid "error writing to stdout: %s\n"
+msgstr "viga võtmehoidlasse `%s' kirjutamisel: %s\n"
 
 msgid "Primary key fingerprint:"
 msgstr "Primaarse võtme sõrmejälg:"
@@ -4878,6 +4937,9 @@ msgstr ""
 msgid "honor the preferred keyserver URL set on the key"
 msgstr "antud allkirja poliisi URL on vigane\n"
 
+msgid "update a key before sending it"
+msgstr ""
+
 #, fuzzy
 msgid "disabled"
 msgstr "disable"
@@ -4892,6 +4954,10 @@ msgstr "vigased ekspordi võtmed\n"
 #, c-format
 msgid "\"%s\" not a key ID: skipping\n"
 msgstr ""
+
+#, fuzzy, c-format
+msgid "\"%s\" not a fingerprint: skipping\n"
+msgstr "viga: vigane sõrmejälg\n"
 
 #, fuzzy, c-format
 msgid "refreshing %d key from %s\n"
@@ -4918,6 +4984,10 @@ msgstr "küsin võtit %08lX võtmeserverist %s\n"
 #, fuzzy, c-format
 msgid "no keyserver known\n"
 msgstr "vigased ekspordi võtmed\n"
+
+#, c-format
+msgid "upload skipped due to non-LDAP keyserver\n"
+msgstr ""
 
 #, fuzzy, c-format
 msgid "skipped \"%s\": %s\n"
@@ -4975,6 +5045,10 @@ msgstr "                 ka \""
 #, fuzzy, c-format
 msgid "encrypted with %s key, ID %s\n"
 msgstr "krüpteeritud %s võtmega, ID %08lX\n"
+
+#, c-format
+msgid "WARNING: key is not quantum-resistant\n"
+msgstr ""
 
 #, c-format
 msgid "WARNING: multiple plaintexts seen\n"
@@ -5249,6 +5323,11 @@ msgstr "Pakkimata"
 msgid "this message may not be usable by %s\n"
 msgstr "see teade ei pruugi olla programmiga %s kasutatav\n"
 
+#, fuzzy
+#| msgid "enable"
+msgid "enabled"
+msgstr "enable"
+
 #, fuzzy, c-format
 msgid "ambiguous option '%s'\n"
 msgstr "loen võtmeid failist `%s'\n"
@@ -5264,6 +5343,11 @@ msgstr ""
 #, fuzzy, c-format
 msgid "unknown weak digest '%s'\n"
 msgstr "tundmatu allkirja klass"
+
+#, fuzzy, c-format
+#| msgid "NOTE: old default options file `%s' ignored\n"
+msgid "Note: partial file '%s' removed\n"
+msgstr "MÄRKUS: ignoreerin vana vaikimisi võtmete faili `%s'\n"
 
 #, fuzzy, c-format
 #| msgid "File `%s' exists. "
@@ -5755,6 +5839,10 @@ msgstr "võti %08lX: kasutaja ID puudub\n"
 msgid "okay, we are the anonymous recipient.\n"
 msgstr "ok, me oleme anonüümne teate saaja.\n"
 
+#, fuzzy, c-format
+msgid "WARNING: session key is not quantum-resistant\n"
+msgstr "HOIATUS: allkirjastamise alamvõti %08lX ei ole rist-sertifitseeritud\n"
+
 #, c-format
 msgid "old encoding of the DEK is not supported\n"
 msgstr "vana DEK kodeerimine ei ole toetatud\n"
@@ -6000,6 +6088,11 @@ msgstr "eraldiseisev allkiri klassiga 0x%02x\n"
 #, fuzzy, c-format
 msgid "assuming bad signature from key %s due to an unknown critical bit\n"
 msgstr "eeldan tundmatu kriitilise biti tõttu võtmel %08lX vigast allkirja\n"
+
+#, fuzzy, c-format
+msgid "key %s: no public key - can't check revocation signature.\n"
+msgstr ""
+"võti %08lX: avalik võti puudub - tühistamise sertifikaati ei saa rakendada\n"
 
 #, fuzzy, c-format
 msgid "key %s: no subkey for subkey revocation signature\n"
@@ -6833,8 +6926,8 @@ msgstr ""
 msgid "||Please enter the PIN for the key to create qualified signatures."
 msgstr ""
 
-#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-#. the start of the string.  Use %0A (single percent) for a linefeed.
+#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+#. start of the string.
 #, fuzzy
 msgid "|A|Please enter the Admin PIN"
 msgstr "muuda parooli"
@@ -6913,26 +7006,6 @@ msgid "%sNumber: %s%%0AHolder: %s%%0ACounter: %lu%s"
 msgstr ""
 
 #, c-format
-msgid "using default PIN as %s\n"
-msgstr ""
-
-#, c-format
-msgid "failed to use default PIN as %s: %s - disabling further default use\n"
-msgstr ""
-
-#, fuzzy
-msgid "||Please unlock the card"
-msgstr "muuda parooli"
-
-#, c-format
-msgid "PIN for CHV%d is too short; minimum length is %d\n"
-msgstr ""
-
-#, fuzzy, c-format
-msgid "verify CHV%d failed: %s\n"
-msgstr "võtmeserverile saatmine ebaõnnestus: %s\n"
-
-#, c-format
 msgid "card is permanently locked!\n"
 msgstr ""
 
@@ -6942,6 +7015,26 @@ msgid_plural ""
 "%d Admin PIN attempts remaining before card is permanently locked\n"
 msgstr[0] ""
 msgstr[1] ""
+
+#, fuzzy
+msgid "||Please unlock the card"
+msgstr "muuda parooli"
+
+#, c-format
+msgid "using default PIN as %s\n"
+msgstr ""
+
+#, c-format
+msgid "failed to use default PIN as %s: %s - disabling further default use\n"
+msgstr ""
+
+#, c-format
+msgid "PIN for CHV%d is too short; minimum length is %d\n"
+msgstr ""
+
+#, fuzzy, c-format
+msgid "verify CHV%d failed: %s\n"
+msgstr "võtmeserverile saatmine ebaõnnestus: %s\n"
 
 #, c-format
 msgid "access to admin commands is not configured\n"
@@ -7538,6 +7631,10 @@ msgid "Enter URIs"
 msgstr ""
 
 #, fuzzy
+msgid "Enter extensions"
+msgstr "Allkirja noteerimine: "
+
+#, fuzzy
 msgid "Create self-signed certificate? (y/N) "
 msgstr "Loon sellele võtmele tühistamise sertifikaadi? "
 
@@ -7722,12 +7819,21 @@ msgid "unknown validation model '%s'\n"
 msgstr "tundmatu vaikimisi saaja `%s'\n"
 
 #, fuzzy, c-format
+#| msgid "cipher algorithm %d%s is unknown or disabled\n"
+msgid "given cipher algorithm '%s' is unknown - using '%s'\n"
+msgstr "šifri algoritm %d%s on tundmatu või blokeeritud\n"
+
+#, fuzzy, c-format
 msgid "importing common certificates '%s'\n"
 msgstr "kirjutan faili `%s'\n"
 
 #, fuzzy, c-format
 msgid "can't sign using '%s': %s\n"
 msgstr "`%s' ei õnnestu sulgeda: %s\n"
+
+#, fuzzy, c-format
+msgid "can't open outputfile: %s\n"
+msgstr "faili ei õnnestu avada: %s\n"
 
 #, c-format
 msgid "invalid command (there is no implicit command)\n"
@@ -7778,19 +7884,19 @@ msgid "error storing certificate: %s\n"
 msgstr "viga parooli loomisel: %s\n"
 
 #, fuzzy, c-format
-msgid "problem re-searching certificate: %s\n"
-msgstr "rev? probleem tühistamise kontrollimisel: %s\n"
-
-#, fuzzy, c-format
 msgid "error storing flags: %s\n"
 msgstr "viga `%s' lugemisel: %s\n"
+
+#, fuzzy, c-format
+msgid "problem re-searching certificate: %s\n"
+msgstr "rev? probleem tühistamise kontrollimisel: %s\n"
 
 msgid "Error - "
 msgstr ""
 
-#, c-format
-msgid "GPG_TTY has not been set - using maybe bogus default\n"
-msgstr ""
+#, fuzzy, c-format
+msgid "error writing to output: %s\n"
+msgstr "viga võtmehoidlasse `%s' kirjutamisel: %s\n"
 
 #, fuzzy, c-format
 msgid "invalid formatted fingerprint in '%s', line %d\n"
@@ -8635,6 +8741,10 @@ msgid "colons are not allowed in the socket name\n"
 msgstr "%s ja %s ei ole koos lubatud!\n"
 
 #, fuzzy, c-format
+msgid "error forking process: %s\n"
+msgstr "viga `%s' lugemisel: %s\n"
+
+#, fuzzy, c-format
 msgid "fetching CRL from '%s' failed: %s\n"
 msgstr "pakendamine ebaõnnestus: %s\n"
 
@@ -9283,6 +9393,26 @@ msgstr ""
 #~ msgid "public key of ultimately trusted key %s not found\n"
 #~ msgstr "puudub absoluutselt usaldatava võtme %08lX avalik võti\n"
 
+#, fuzzy, c-format
+#~ msgid "waiting for process to terminate failed: ec=%d\n"
+#~ msgstr "uuendamine ebaõnnestus: %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': probably not installed\n"
+#~ msgstr "viga `%s' lugemisel: %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': exit status %d\n"
+#~ msgstr "viga `%s' lugemisel: %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error running '%s': terminated\n"
+#~ msgstr "viga `%s' lugemisel: %s\n"
+
+#, fuzzy, c-format
+#~ msgid "error getting exit code of process %d: %s\n"
+#~ msgstr "viga salajase võtme võtmehoidlasse `%s' kirjutamisel: %s\n"
+
 #~ msgid "use canonical text mode"
 #~ msgstr "kasuta kanoonilist tekstimoodi"
 
@@ -9354,10 +9484,6 @@ msgstr ""
 #~| msgid "invalid import options\n"
 #~ msgid "invalid port number %d\n"
 #~ msgstr "vigased impordi võtmed\n"
-
-#, fuzzy
-#~ msgid "error writing to stdout: %s\n"
-#~ msgstr "viga võtmehoidlasse `%s' kirjutamisel: %s\n"
 
 #, fuzzy
 #~ msgid "attribute '%s' not found\n"
@@ -9520,17 +9646,8 @@ msgstr ""
 #~ msgstr "ei õnnestu lugeda välise programmi vastust: %s\n"
 
 #, fuzzy
-#~ msgid "   (%d) ECC and ECC\n"
-#~ msgstr "   (%d) DSA ja ElGamal (vaikimisi)\n"
-
-#, fuzzy
 #~ msgid "run without asking a user"
 #~ msgstr "Väljun salvestamata? "
-
-#, fuzzy
-#~| msgid "NOTE: old default options file `%s' ignored\n"
-#~ msgid "Note: old default options file '%s' ignored\n"
-#~ msgstr "MÄRKUS: ignoreerin vana vaikimisi võtmete faili `%s'\n"
 
 #, fuzzy
 #~ msgid ""
@@ -11043,9 +11160,6 @@ msgstr ""
 #~ msgid "disable"
 #~ msgstr "disable"
 
-#~ msgid "enable"
-#~ msgstr "enable"
-
 #~ msgid "showphoto"
 #~ msgstr "showphoto"
 
@@ -11103,10 +11217,6 @@ msgstr ""
 
 #~ msgid "sorry, can't do this in batch mode\n"
 #~ msgstr "vabandust, seda ei saa pakettmoodis teha\n"
-
-#, fuzzy
-#~ msgid "can't open file `%s': %s\n"
-#~ msgstr "faili ei õnnestu avada: %s\n"
 
 #~ msgid "key %08lX: key has been revoked!\n"
 #~ msgstr "võti %08lX: võti on tühistatud!\n"

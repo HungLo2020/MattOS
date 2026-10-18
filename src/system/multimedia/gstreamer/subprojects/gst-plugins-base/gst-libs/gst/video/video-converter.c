@@ -2197,22 +2197,19 @@ setup_borderline (GstVideoConverter * convert)
     guint32 border_val;
     gint i, w_sub;
     const GstVideoFormatInfo *out_finfo;
+    const GstVideoFormatInfo *out_pack_finfo;
     gpointer planes[GST_VIDEO_MAX_PLANES];
     gint strides[GST_VIDEO_MAX_PLANES];
 
     convert->borderline = g_malloc0 (sizeof (guint16) * width * 4);
 
     out_finfo = convert->out_info.finfo;
+    out_pack_finfo = gst_video_format_get_info (convert->pack_format);
 
-    if (GST_VIDEO_INFO_IS_YUV (&convert->out_info)) {
+    if (GST_VIDEO_FORMAT_INFO_IS_YUV (out_pack_finfo)) {
       MatrixData cm;
-      gint a, r, g, b;
-      gint y, u, v;
-
-      /* Get Color matrix. */
-      color_matrix_set_identity (&cm);
-      compute_matrix_to_YUV (convert, &cm, TRUE);
-      color_matrix_convert (&cm);
+      gint64 a, r, g, b;
+      gint64 y, u, v;
 
       border_val = GINT32_FROM_BE (convert->border_argb);
 
@@ -2221,16 +2218,32 @@ setup_borderline (GstVideoConverter * convert)
       r = (0x0000FF00 & border_val) >> 8;
       a = (0x000000FF & border_val);
 
-      y = 16 + ((r * cm.im[0][0] + g * cm.im[0][1] + b * cm.im[0][2]) >> 8);
-      u = 128 + ((r * cm.im[1][0] + g * cm.im[1][1] + b * cm.im[1][2]) >> 8);
-      v = 128 + ((r * cm.im[2][0] + g * cm.im[2][1] + b * cm.im[2][2]) >> 8);
+      /* Get Color matrix. */
+      color_matrix_set_identity (&cm);
+
+      /* border_argb is 8-bit RGB, normalize it to [0, 1] */
+      color_matrix_scale_components (&cm,
+          1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0);
+
+      compute_matrix_to_YUV (convert, &cm, TRUE);
+
+      /* convert to integer scale, same as prepare_matrix() */
+      color_matrix_scale_components (&cm, SCALE_F, SCALE_F, SCALE_F);
+      color_matrix_convert (&cm);
+
+      y = (r * cm.im[0][0] + g * cm.im[0][1] + b * cm.im[0][2] +
+          cm.im[0][3]) >> SCALE;
+      u = (r * cm.im[1][0] + g * cm.im[1][1] + b * cm.im[1][2] +
+          cm.im[1][3]) >> SCALE;
+      v = (r * cm.im[2][0] + g * cm.im[2][1] + b * cm.im[2][2] +
+          cm.im[2][3]) >> SCALE;
 
       a = CLAMP (a, 0, 255);
       y = CLAMP (y, 0, 255);
       u = CLAMP (u, 0, 255);
       v = CLAMP (v, 0, 255);
 
-      border_val = a | (y << 8) | (u << 16) | ((guint32) v << 24);
+      border_val = (guint32) (a | (y << 8) | (u << 16) | v << 24);
     } else {
       border_val = GINT32_FROM_BE (convert->border_argb);
     }
@@ -2397,7 +2410,7 @@ gst_video_converter_init_from_config (GstVideoConverter * convert)
 }
 
 /**
- * gst_video_converter_new_with_pool: (skip)
+ * gst_video_converter_new_with_pool: (constructor) (skip)
  * @in_info: a #GstVideoInfo
  * @out_info: a #GstVideoInfo
  * @config: (transfer full): a #GstStructure with configuration options
@@ -2408,6 +2421,9 @@ gst_video_converter_init_from_config (GstVideoConverter * convert)
  *
  * The optional @pool can be used to spawn threads, this is useful when
  * creating new converters rapidly, for example when updating cropping.
+ *
+ * If @config is not provided, and a @pool is provided, the number of threads for
+ * the converter will be set to the maximum number of threads in the pool.
  *
  * Returns (nullable): a #GstVideoConverter or %NULL if conversion is not possible.
  *
@@ -2442,12 +2458,23 @@ gst_video_converter_new_with_pool (const GstVideoInfo * in_info,
   convert->out_maxheight = GST_VIDEO_INFO_FIELD_HEIGHT (out_info);
 
   convert->config = gst_structure_new_static_str_empty ("GstVideoConverter");
-  if (config)
+  if (config) {
     gst_video_converter_set_config (convert, config);
-  else
+    n_threads = get_opt_uint (convert, GST_VIDEO_CONVERTER_OPT_THREADS, 1);
+  } else {
+    /* No config provided. If a pool is available, use its thread count */
     gst_video_converter_init_from_config (convert);
+    if (pool && GST_IS_SHARED_TASK_POOL (pool)) {
+      n_threads =
+          gst_shared_task_pool_get_max_threads (GST_SHARED_TASK_POOL (pool));
+      GST_LOG ("setting n-threads from max threads %d from provided pool",
+          n_threads);
+      gst_structure_set (convert->config,
+          GST_VIDEO_CONVERTER_OPT_THREADS, G_TYPE_UINT, n_threads, NULL);
+    } else
+      n_threads = get_opt_uint (convert, GST_VIDEO_CONVERTER_OPT_THREADS, 1);
+  }
 
-  n_threads = get_opt_uint (convert, GST_VIDEO_CONVERTER_OPT_THREADS, 1);
   if (n_threads == 0 || n_threads > g_get_num_processors ())
     n_threads = g_get_num_processors ();
   /* Magic number of 200 lines */
@@ -2548,7 +2575,7 @@ no_pack_func:
 }
 
 /**
- * gst_video_converter_new: (skip)
+ * gst_video_converter_new: (constructor) (skip)
  * @in_info: a #GstVideoInfo
  * @out_info: a #GstVideoInfo
  * @config: (transfer full): a #GstStructure with configuration options
@@ -6525,7 +6552,6 @@ convert_Y444_AYUV (GstVideoConverter * convert, const GstVideoFrame * src,
   convert_fill_border (convert, dest);
 }
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
 static void
 convert_AYUV_ARGB_task (FConvertPlaneTask * task)
 {
@@ -6753,7 +6779,6 @@ convert_AYUV_RGBA (GstVideoConverter * convert, const GstVideoFrame * src,
 
   convert_fill_border (convert, dest);
 }
-#endif
 
 static void
 convert_I420_BGRA_task (FConvertTask * task)
@@ -6772,17 +6797,10 @@ convert_I420_BGRA_task (FConvertTask * task)
     sv = FRAME_GET_V_LINE (task->src, (i + task->in_y) >> 1);
     sv += (task->in_x >> 1);
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
     video_orc_convert_I420_BGRA (d, sy, su, sv,
         task->data->im[0][0], task->data->im[0][2],
         task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
         task->width);
-#else
-    video_orc_convert_I420_ARGB (d, sy, su, sv,
-        task->data->im[0][0], task->data->im[0][2],
-        task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
-        task->width);
-#endif
   }
 }
 
@@ -6848,17 +6866,10 @@ convert_I420_ARGB_task (FConvertTask * task)
     sv = FRAME_GET_V_LINE (task->src, (i + task->in_y) >> 1);
     sv += (task->in_x >> 1);
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
     video_orc_convert_I420_ARGB (d, sy, su, sv,
         task->data->im[0][0], task->data->im[0][2],
         task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
         task->width);
-#else
-    video_orc_convert_I420_BGRA (d, sy, su, sv,
-        task->data->im[0][0], task->data->im[0][2],
-        task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
-        task->width);
-#endif
   }
 }
 
@@ -6928,17 +6939,10 @@ convert_I420_pack_ARGB_task (FConvertTask * task)
     sv = FRAME_GET_V_LINE (task->src, (i + task->in_y) >> 1);
     sv += (task->in_x >> 1);
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
     video_orc_convert_I420_ARGB (task->tmpline, sy, su, sv,
         task->data->im[0][0], task->data->im[0][2],
         task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
         task->width);
-#else
-    video_orc_convert_I420_BGRA (task->tmpline, sy, su, sv,
-        task->data->im[0][0], task->data->im[0][2],
-        task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
-        task->width);
-#endif
     task->dest->info.finfo->pack_func (task->dest->info.finfo,
         (GST_VIDEO_FRAME_IS_INTERLACED (task->dest) ?
             GST_VIDEO_PACK_FLAG_INTERLACED :
@@ -7018,17 +7022,10 @@ convert_A420_pack_ARGB_task (FConvertTask * task)
     sa = FRAME_GET_A_LINE (task->src, i + task->in_y);
     sa += task->in_x;
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
     video_orc_convert_A420_ARGB (task->tmpline, sy, su, sv, sa,
         task->data->im[0][0], task->data->im[0][2],
         task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
         task->width);
-#else
-    video_orc_convert_A420_BGRA (task->tmpline, sy, su, sv, sa,
-        task->data->im[0][0], task->data->im[0][2],
-        task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
-        task->width);
-#endif
 
     task->dest->info.finfo->pack_func (task->dest->info.finfo,
         (GST_VIDEO_FRAME_IS_INTERLACED (task->dest) ?
@@ -7105,17 +7102,10 @@ convert_A420_BGRA_task (FConvertTask * task)
     sa = FRAME_GET_A_LINE (task->src, i + task->in_y);
     sa += task->in_x;
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
     video_orc_convert_A420_BGRA (d, sy, su, sv, sa,
         task->data->im[0][0], task->data->im[0][2],
         task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
         task->width);
-#else
-    video_orc_convert_A420_ARGB (d, sy, su, sv, sa,
-        task->data->im[0][0], task->data->im[0][2],
-        task->data->im[2][1], task->data->im[1][1], task->data->im[1][2],
-        task->width);
-#endif
   }
 }
 
@@ -7925,8 +7915,11 @@ get_scale_format (GstVideoFormat format, gint plane)
     case GST_VIDEO_FORMAT_NV12_10LE32:
     case GST_VIDEO_FORMAT_NV16_10LE32:
     case GST_VIDEO_FORMAT_NV12_10LE40:
+    case GST_VIDEO_FORMAT_NV16_10LE40:
     case GST_VIDEO_FORMAT_BGR10A2_LE:
     case GST_VIDEO_FORMAT_RGB10A2_LE:
+    case GST_VIDEO_FORMAT_BGR10x2_LE:
+    case GST_VIDEO_FORMAT_RGB10x2_LE:
     case GST_VIDEO_FORMAT_Y444_16BE:
     case GST_VIDEO_FORMAT_Y444_16LE:
     case GST_VIDEO_FORMAT_P016_BE:
@@ -8606,7 +8599,6 @@ static const VideoTransform transforms[] = {
   {GST_VIDEO_FORMAT_NV24, GST_VIDEO_FORMAT_NV24, TRUE, FALSE, FALSE, TRUE,
       TRUE, FALSE, FALSE, FALSE, 0, 0, convert_scale_planes},
 
-#if G_BYTE_ORDER == G_LITTLE_ENDIAN
   {GST_VIDEO_FORMAT_AYUV, GST_VIDEO_FORMAT_ARGB, TRUE, TRUE, TRUE, TRUE, TRUE,
       TRUE, FALSE, FALSE, 0, 0, convert_AYUV_ARGB},
   {GST_VIDEO_FORMAT_AYUV, GST_VIDEO_FORMAT_BGRA, TRUE, TRUE, TRUE, TRUE, TRUE,
@@ -8623,7 +8615,6 @@ static const VideoTransform transforms[] = {
       FALSE, FALSE, FALSE, 0, 0, convert_AYUV_ABGR},    /* alias */
   {GST_VIDEO_FORMAT_AYUV, GST_VIDEO_FORMAT_RGBx, TRUE, TRUE, TRUE, TRUE, TRUE,
       FALSE, FALSE, FALSE, 0, 0, convert_AYUV_RGBA},    /* alias */
-#endif
 
   {GST_VIDEO_FORMAT_I420, GST_VIDEO_FORMAT_BGRA, FALSE, TRUE, TRUE, TRUE,
       TRUE, FALSE, FALSE, FALSE, 0, 0, convert_I420_BGRA},
@@ -8904,4 +8895,77 @@ const GstVideoInfo *
 gst_video_converter_get_out_info (GstVideoConverter * convert)
 {
   return &convert->out_info;
+}
+
+/**
+ * gst_video_converter_transform_metas:
+ * @convert: a #GstVideoConverter
+ * @dest: a writable #GstBuffer
+ * @src: a #GstBuffer
+ *
+ * Transform the GstMeta of @src into @dest using @convert.
+ *
+ * Returns: TRUE if any meta was copied
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_video_converter_transform_metas (GstVideoConverter * convert,
+    GstBuffer * src, GstBuffer * dest)
+{
+  GstMeta *meta;
+  gpointer state = NULL;
+  const gchar *valid_tags[] = {
+    GST_META_TAG_VIDEO_STR,
+    GST_META_TAG_VIDEO_ORIENTATION_STR,
+    GST_META_TAG_VIDEO_SIZE_STR,
+    GST_META_TAG_VIDEO_COLORSPACE_STR,
+    NULL
+  };
+  gboolean ret = FALSE;
+  gboolean crop = convert->in_x || convert->in_y
+      || convert->in_width != convert->in_maxwidth
+      || convert->in_height != convert->in_maxheight;
+  gboolean border = convert->out_x || convert->out_y
+      || convert->out_width != convert->out_maxwidth
+      || convert->out_height != convert->out_maxheight;
+
+  GstVideoMetaTransformMatrix trans_matrix;
+  const GstVideoRectangle in_rectangle = { convert->in_x, convert->in_y,
+    convert->in_width, convert->in_height
+  };
+  const GstVideoRectangle out_rectangle = { convert->out_x, convert->out_y,
+    convert->out_width, convert->out_height
+  };
+  GstVideoMetaTransform trans = {
+    &convert->in_info,
+    &convert->out_info,
+  };
+
+  g_return_val_if_fail (gst_buffer_is_writable (dest), FALSE);
+
+  if (G_UNLIKELY ((convert->out_width <= 0) || (convert->out_height <= 0)))
+    return FALSE;
+
+  gst_video_meta_transform_matrix_init (&trans_matrix, &convert->in_info,
+      &in_rectangle, &convert->out_info, &out_rectangle);
+
+  while ((meta = gst_buffer_iterate_meta (src, &state))) {
+    if (meta->info->transform_func == NULL)
+      continue;
+
+    if (!gst_meta_api_type_tags_contain_only (meta->info->api, valid_tags))
+      continue;
+
+    if (!meta->info->transform_func (dest, meta, src,
+            gst_video_meta_transform_matrix_get_quark (), &trans_matrix)) {
+      if (!crop && !border)
+        ret |= meta->info->transform_func (dest, meta, src,
+            gst_video_meta_transform_scale_get_quark (), &trans);
+    } else {
+      ret = TRUE;
+    }
+  }
+
+  return ret;
 }

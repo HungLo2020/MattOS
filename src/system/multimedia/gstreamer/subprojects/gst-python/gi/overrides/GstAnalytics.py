@@ -22,16 +22,22 @@
 #
 # SPDX-License-Identifier: LGPL-2.0-or-later
 
-from ..overrides import override
-from ..module import get_introspection_module
 import sys
+import typing
 
-GstAnalytics = get_introspection_module('GstAnalytics')
-__all__ = []
-
-from gi.overrides import _gi_gst_analytics
+from gi.overrides import override
+from gi.overrides import _gi_gst_analytics  # type: ignore[attr-defined]
 _gi_gst_analytics
 
+if typing.TYPE_CHECKING:
+    # Import stubs for type checking this file.
+    from gi.repository import GstAnalytics
+else:
+    from gi.module import get_introspection_module
+    GstAnalytics = get_introspection_module('GstAnalytics')
+
+
+__all__ = []
 __mtd_types__ = {}
 
 
@@ -40,6 +46,19 @@ class Mtd(GstAnalytics.Mtd):
         if not hasattr(other, 'meta') or not hasattr(other, 'id'):
             return False
         return self.meta == other.meta and self.id == other.id
+
+    def iter_direct_related(self, relation, mtd_type=GstAnalytics.Mtd):
+        if mtd_type != GstAnalytics.Mtd:
+            mtd_type = mtd_type.get_mtd_type()
+        else:
+            mtd_type = GstAnalytics.MTD_TYPE_ANY
+
+        return _gi_gst_analytics.AnalyticsMtdDirectRelatedIterator(
+            sys.modules[__name__], self, relation, mtd_type)
+
+    def relation_path(self, mtd, max_span=0, reltype=GstAnalytics.RelTypes.ANY):
+        return _gi_gst_analytics.AnalyticsMtdRelationPath(
+            sys.modules[__name__], self, mtd.get_id(), max_span, reltype)
 
 
 __all__.append('Mtd')
@@ -64,13 +83,24 @@ for c in dir(GstAnalytics):
 def _get_mtd(mtd_type, rmeta, mtd_id):
     res = __mtd_types__[mtd_type](rmeta, mtd_id)
     if not res[0]:
-        raise AddError('Mtd with id={mtd_id} of rmeta={rmeta} is not known.')
+        raise Gst.AddError('Mtd with id={mtd_id} of rmeta={rmeta} is not known.')
     return res[1]
 
 
 class RelationMeta(GstAnalytics.RelationMeta):
     def __iter__(self):
         return _gi_gst_analytics.AnalyticsRelationMetaIterator(sys.modules[__name__], self)
+
+    def iter_on_type(self, filter):
+        if filter == GstAnalytics.Mtd:
+            return self.__iter__()
+
+        mtdtype = filter.get_mtd_type()
+        if mtdtype in __mtd_types__:
+            return _gi_gst_analytics.AnalyticsRelationMetaIteratorWithMtdTypeFilter(
+                sys.modules[__name__], self, mtdtype)
+        else:
+            raise TypeError('Wrong filter type is used for iter_on_type method.')
 
 
 __all__.append('RelationMeta')

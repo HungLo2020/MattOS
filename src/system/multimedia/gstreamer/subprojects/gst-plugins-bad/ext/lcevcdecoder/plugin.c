@@ -25,6 +25,8 @@
 
 #include "gstlcevcdec.h"
 #include "gstlcevch264decodebin.h"
+#include "gstlcevch265decodebin.h"
+#include "gstlcevch266decodebin.h"
 
 static gboolean
 plugin_init (GstPlugin * plugin)
@@ -33,6 +35,8 @@ plugin_init (GstPlugin * plugin)
 
   ret |= GST_ELEMENT_REGISTER (lcevcdec, plugin);
   ret |= GST_ELEMENT_REGISTER (lcevch264decodebin, plugin);
+  ret |= GST_ELEMENT_REGISTER (lcevch265decodebin, plugin);
+  ret |= GST_ELEMENT_REGISTER (lcevch266decodebin, plugin);
 
   return ret;
 }

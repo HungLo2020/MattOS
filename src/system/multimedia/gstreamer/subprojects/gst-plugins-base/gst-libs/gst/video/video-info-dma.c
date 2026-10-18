@@ -27,6 +27,7 @@
  */
 
 
+#include "video-format.h"
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
@@ -140,7 +141,7 @@ gst_video_is_dma_drm_caps (const GstCaps * caps)
 {
   GstStructure *structure;
 
-  g_return_val_if_fail (caps != NULL, FALSE);
+  g_return_val_if_fail (GST_IS_CAPS (caps), FALSE);
 
   if (!gst_caps_is_fixed (caps))
     return FALSE;
@@ -230,7 +231,7 @@ gst_video_info_dma_drm_from_caps (GstVideoInfoDmaDrm * drm_info,
   gboolean ret;
 
   g_return_val_if_fail (drm_info != NULL, FALSE);
-  g_return_val_if_fail (caps != NULL, FALSE);
+  g_return_val_if_fail (GST_IS_CAPS (caps), FALSE);
 
   if (!gst_video_is_dma_drm_caps (caps))
     return FALSE;
@@ -302,7 +303,7 @@ gst_video_info_dma_drm_new_from_caps (const GstCaps * caps)
 {
   GstVideoInfoDmaDrm *ret;
 
-  g_return_val_if_fail (caps != NULL, NULL);
+  g_return_val_if_fail (GST_IS_CAPS (caps), NULL);
 
   if (!gst_video_is_dma_drm_caps (caps))
     return NULL;
@@ -555,6 +556,13 @@ static const struct FormatMap
   {GST_VIDEO_FORMAT_YVU9, DRM_FORMAT_YVU410, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_Y41B, DRM_FORMAT_YUV411, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_I420, DRM_FORMAT_YUV420, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_I420_10LE, DRM_FORMAT_S010, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_I422_10LE, DRM_FORMAT_S210, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_Y444_10LE, DRM_FORMAT_S410, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_I420_12LE, DRM_FORMAT_S012, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_I422_12LE, DRM_FORMAT_S212, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_Y444_12LE, DRM_FORMAT_S412, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_Y444_16LE, DRM_FORMAT_S416, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_YV12, DRM_FORMAT_YVU420, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_Y42B, DRM_FORMAT_YUV422, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_Y444, DRM_FORMAT_YUV444, DRM_FORMAT_MOD_LINEAR},
@@ -580,9 +588,14 @@ static const struct FormatMap
   {GST_VIDEO_FORMAT_P010_10LE, DRM_FORMAT_P010, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_P012_LE, DRM_FORMAT_P012, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_BGR10A2_LE, DRM_FORMAT_ARGB2101010, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_RGB10A2_LE, DRM_FORMAT_ABGR2101010, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_BGR10x2_LE, DRM_FORMAT_XRGB2101010, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_RGB10x2_LE, DRM_FORMAT_XBGR2101010, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_GRAY8, DRM_FORMAT_R8, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_GRAY16_LE, DRM_FORMAT_R16, DRM_FORMAT_MOD_LINEAR},
   {GST_VIDEO_FORMAT_GRAY16_BE, DRM_FORMAT_R16 | DRM_FORMAT_BIG_ENDIAN, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_NV16_10LE40, DRM_FORMAT_NV20, DRM_FORMAT_MOD_LINEAR},
+  {GST_VIDEO_FORMAT_P016_LE, DRM_FORMAT_P016, DRM_FORMAT_MOD_LINEAR},
 };
 /* *INDENT-ON* */
 
@@ -617,7 +630,7 @@ gst_video_dma_drm_fourcc_from_format (GstVideoFormat format)
 /**
  * gst_video_dma_drm_format_from_gst_format:
  * @format: a #GstVideoFormat
- * @modifier: (nullable): return location for the modifier
+ * @modifier: (out) (optional): return location for the modifier
  *
  * Converting the video format into dma drm fourcc/modifier pair.
  * If no matching fourcc found, then DRM_FORMAT_INVALID is returned
@@ -632,6 +645,8 @@ gst_video_dma_drm_format_from_gst_format (GstVideoFormat format,
     guint64 * modifier)
 {
   guint i;
+
+  g_return_val_if_fail (format != GST_VIDEO_FORMAT_UNKNOWN, DRM_FORMAT_INVALID);
 
   for (i = 0; i < G_N_ELEMENTS (format_map); i++) {
     if (format_map[i].format == format) {
@@ -664,6 +679,8 @@ gst_video_dma_drm_fourcc_to_format (guint32 fourcc)
 {
   guint i;
 
+  g_return_val_if_fail (fourcc != DRM_FORMAT_INVALID, GST_VIDEO_FORMAT_UNKNOWN);
+
   for (i = 0; i < G_N_ELEMENTS (format_map); i++) {
     if (format_map[i].fourcc == fourcc)
       return format_map[i].format;
@@ -691,6 +708,10 @@ GstVideoFormat
 gst_video_dma_drm_format_to_gst_format (guint32 fourcc, guint64 modifier)
 {
   guint i;
+
+  g_return_val_if_fail (fourcc != DRM_FORMAT_INVALID, GST_VIDEO_FORMAT_UNKNOWN);
+  g_return_val_if_fail (modifier != DRM_FORMAT_MOD_INVALID,
+      GST_VIDEO_FORMAT_UNKNOWN);
 
   for (i = 0; i < G_N_ELEMENTS (format_map); i++) {
     if (format_map[i].fourcc == fourcc && format_map[i].modifier == modifier)

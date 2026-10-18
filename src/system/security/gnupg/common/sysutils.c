@@ -113,6 +113,8 @@ static int allow_special_filenames;
 #ifdef HAVE_W32_SYSTEM
 /* State of gnupg_inhibit_set_foregound_window.  */
 static int inhibit_set_foregound_window;
+/* Disable the use of _open_osfhandle.  */
+static int no_translate_sys2libc_fd;
 #endif
 
 
@@ -214,6 +216,7 @@ any8bitchar (const char *string)
 
 /* Helper for gnupg_w32_set_errno.  */
 #ifdef HAVE_W32_SYSTEM
+#if GPGRT_VERSION_NUMBER < 0x013e00  /* gpgrt < 1.62 */
 static int
 map_w32_to_errno (DWORD w32_err)
 {
@@ -324,6 +327,7 @@ map_w32_to_errno (DWORD w32_err)
       return EIO;
     }
 }
+#endif
 #endif /*HAVE_W32_SYSTEM*/
 
 
@@ -333,11 +337,14 @@ map_w32_to_errno (DWORD w32_err)
 int
 gnupg_w32_set_errno (int ec)
 {
-  /* FIXME: Replace by gpgrt_w32_set_errno.  */
+#if GPGRT_VERSION_NUMBER >= 0x013e00  /* gpgrt >= 1.62 */
+  return gpgrt_w32_set_errno (ec);
+#else
   if (ec == -1)
     ec = GetLastError ();
   _set_errno (map_w32_to_errno (ec));
   return ec;
+#endif
 }
 #endif /*HAVE_W32_SYSTEM*/
 
@@ -348,6 +355,16 @@ void
 enable_special_filenames (void)
 {
   allow_special_filenames = 1;
+}
+
+
+/* Disable the use use of _open_osfhandle on Windows.  */
+void
+disable_translate_sys2libc_fd (void)
+{
+#ifdef HAVE_W32_SYSTEM
+  no_translate_sys2libc_fd = 1;
+#endif
 }
 
 
@@ -537,10 +554,10 @@ gnupg_usleep (unsigned int usecs)
    different from the libc file descriptors (like open). This function
    translates system file handles to libc file handles.  FOR_WRITE
    gives the direction of the handle.  */
-int
+#if defined(HAVE_W32_SYSTEM)
+static int
 translate_sys2libc_fd (gnupg_fd_t fd, int for_write)
 {
-#if defined(HAVE_W32_SYSTEM)
   int x;
 
   if (fd == GNUPG_INVALID_FD)
@@ -552,27 +569,87 @@ translate_sys2libc_fd (gnupg_fd_t fd, int for_write)
   if (x == -1)
     log_error ("failed to translate osfhandle %p\n", (void *) fd);
   return x;
-#else /*!HAVE_W32_SYSTEM */
+}
+#endif /*!HAVE_W32_SYSTEM */
+
+
+/* This is the same as translate_sys2libc_fd but takes an integer
+   which is assumed to be such an system handle.   */
+int
+translate_sys2libc_fd_int (int fd, int for_write)
+{
+#ifdef HAVE_W32_SYSTEM
+  if (fd <= 2 || no_translate_sys2libc_fd)
+    return fd;	/* Do not do this for stdin, stdout, and stderr.  */
+
+  return translate_sys2libc_fd ((void*)(intptr_t)fd, for_write);
+#else
   (void)for_write;
   return fd;
 #endif
 }
 
-/* This is the same as translate_sys2libc_fd but takes an integer
-   which is assumed to be such an system handle.  On WindowsCE the
-   passed FD is a rendezvous ID and the function finishes the pipe
-   creation. */
-int
-translate_sys2libc_fd_int (int fd, int for_write)
-{
-#ifdef HAVE_W32_SYSTEM
-  if (fd <= 2)
-    return fd;	/* Do not do this for error, stdin, stdout, stderr. */
 
-  return translate_sys2libc_fd ((void*)fd, for_write);
+/*
+ * Parse the string representation of a file reference (file handle on
+ * Windows or file descriptor on POSIX) in FDSTR.  The string
+ * representation may be either of following:
+
+ *  (1) 0, 1, or 2 which means stdin, stdout, and stderr, respectively.
+ *  (2) Integer representation (by %d of printf).
+ *  (3) Hex representation which starts as "0x".
+ *
+ * Then, fill R_SYSHD, according to the value of a file reference.
+ *
+ */
+gpg_error_t
+gnupg_parse_fdstr (const char *fdstr, es_syshd_t *r_syshd)
+{
+  int fd = -1;
+#ifdef HAVE_W32_SYSTEM
+  gnupg_fd_t hd;
+  char *endptr;
+  int base;
+
+  if (!strcmp (fdstr, "0"))
+    fd = 0;
+  else if (!strcmp (fdstr, "1"))
+    fd = 1;
+  else if (!strcmp (fdstr, "2"))
+    fd = 2;
+
+  if (fd >= 0)
+    {
+      r_syshd->type = ES_SYSHD_FD;
+      r_syshd->u.fd = fd;
+      return 0;
+    }
+
+  if (!strncmp (fdstr, "0x", 2))
+    {
+      base = 16;
+      fdstr += 2;
+    }
+  else
+    base = 10;
+
+  gpg_err_set_errno (0);
+#ifdef _WIN64
+  hd = (gnupg_fd_t)strtoll (fdstr, &endptr, base);
 #else
-  (void)for_write;
-  return fd;
+  hd = (gnupg_fd_t)strtol (fdstr, &endptr, base);
+#endif
+  if (errno != 0 || endptr == fdstr || *endptr != '\0')
+    return gpg_error (GPG_ERR_INV_ARG);
+
+  r_syshd->type = ES_SYSHD_HANDLE;
+  r_syshd->u.handle = hd;
+  return 0;
+#else
+  fd = atoi (fdstr);
+  r_syshd->type = ES_SYSHD_FD;
+  r_syshd->u.fd = fd;
+  return 0;
 #endif
 }
 
@@ -594,12 +671,73 @@ check_special_filename (const char *fname, int for_write, int notranslate)
       for (i=0; digitp (fname+i); i++ )
         ;
       if (!fname[i])
-        return notranslate? atoi (fname)
-          /**/            : translate_sys2libc_fd_int (atoi (fname), for_write);
+        {
+          if (notranslate)
+            return atoi (fname);
+          else
+            {
+              es_syshd_t syshd;
+
+              if (gnupg_parse_fdstr (fname,  &syshd))
+                return -1;
+
+#ifdef HAVE_W32_SYSTEM
+              if (syshd.type == ES_SYSHD_FD)
+                return syshd.u.fd;
+              else
+                return translate_sys2libc_fd ((gnupg_fd_t)syshd.u.handle, for_write);
+#else
+              (void)for_write;
+              return syshd.u.fd;
+#endif
+            }
+        }
     }
   return -1;
 }
 
+
+/* Check whether FNAME has the form "-&nnnn", where N is a number
+ * representing a file.  Returns GNUPG_INVALID_FD if it is not the
+ * case.  Returns a file descriptor on POSIX, a system handle on
+ * Windows.  */
+gnupg_fd_t
+gnupg_check_special_filename (const char *fname)
+{
+  if (allow_special_filenames
+      && fname && *fname == '-' && fname[1] == '&')
+    {
+      int i;
+
+      fname += 2;
+      for (i=0; digitp (fname+i); i++ )
+        ;
+      if (!fname[i])
+        {
+          es_syshd_t syshd;
+
+          if (gnupg_parse_fdstr (fname,  &syshd))
+            return GNUPG_INVALID_FD;
+
+#ifdef HAVE_W32_SYSTEM
+          if (syshd.type == ES_SYSHD_FD)
+            {
+              if (syshd.u.fd == 0)
+                return GetStdHandle (STD_INPUT_HANDLE);
+              else if (syshd.u.fd == 1)
+                return GetStdHandle (STD_OUTPUT_HANDLE);
+              else if (syshd.u.fd == 2)
+                return GetStdHandle (STD_ERROR_HANDLE);
+            }
+          else
+            return syshd.u.handle;
+#else
+          return syshd.u.fd;
+#endif
+        }
+    }
+  return GNUPG_INVALID_FD;
+}
 
 /* Replacement for tmpfile().  This is required because the tmpfile
    function of Windows' runtime library is broken, insecure, ignores
@@ -789,27 +927,91 @@ gnupg_allow_set_foregound_window (pid_t pid)
 #endif
 }
 
-int
-gnupg_remove (const char *fname)
-{
+
+/* Helper for gnupg_rename and gnupg_remove.  */
 #ifdef HAVE_W32_SYSTEM
-  int rc;
+static int
+w32_wait_when_sharing_violation (int wtime, const char *fname)
+{                               /* in milliseconds */
+  int ec = GetLastError ();
+
+  if (ec != ERROR_SHARING_VIOLATION)
+    {
+      gnupg_w32_set_errno (ec);
+      return 0;
+    }
+
+  /* Another process has the file open.  We do not use a
+   * lock for read but instead we wait until the other
+   * process has closed the file.  This may take long but
+   * that would also be the case with a dotlock approach for
+   * read and write.  Note that we don't need this on Unix
+   * due to the inode concept.
+   *
+   * So let's wait until the file_op has worked.  The retry
+   * intervals are 50, 100, 200, 400, 800, 50ms, ...  */
+  if (!wtime || wtime >= 800)
+    wtime = 50;
+  else
+    wtime *= 2;
+
+  if (wtime >= 800)
+    log_info (_("waiting for file '%s' to become accessible ...\n"),
+              fname);
+
+  gnupg_usleep ((unsigned int)wtime*1000);
+  return wtime;  /* Note: WTIME is always > 0 */
+}
+#endif /*HAVE_W32_SYSTEM*/
+
+
+/* The Windows version to remove a file.  If WAIT_FOR_ACCESS is
+ * non-zero the functions waits until a sharing violation has been
+ * solved.  A value of -1 waits indefinitely, a positive value gives
+ * the number of milliseconds to wait at max.  */
+#ifdef HAVE_W32_SYSTEM
+static int
+w32_remove (const char *fname, int wait_for_access)
+{
   wchar_t *wfname;
+  int wtime = 0;
+  int totalwtime = 0;
 
   wfname = utf8_to_wchar (fname);
   if (!wfname)
-    rc = 0;
-  else
+    return -1; /* Error - ERRNO has already been set.  */
+
+ again:
+  if (DeleteFileW (wfname))
     {
-      rc = DeleteFileW (wfname);
-      if (!rc)
-        gnupg_w32_set_errno (-1);
       xfree (wfname);
+      return 0; /* Success.  */
     }
-  if (!rc)
-    return -1;
-  return 0;
-#else
+  if (!wait_for_access
+      || (wait_for_access > 0 && totalwtime > wait_for_access))
+    gnupg_w32_set_errno (-1);
+  else if ((wtime = w32_wait_when_sharing_violation (wtime, fname)))
+    {
+      totalwtime += wtime;
+      goto again;
+    }
+
+  xfree (wfname);
+  return -1;
+}
+#endif /* HAVE_W32_SYSTEM */
+
+/* This is a remove function which allows - on Windows - to wait until
+ * a sharing violation has been solved.  WAIT_FOR_ACCESS may eitehr be
+ * -1 to wait indefinitely or the number of milliseconds to wait
+ * before giving up.  */
+int
+gnupg_remove_ext (const char *fname, int wait_for_access)
+{
+#ifdef HAVE_W32_SYSTEM
+  return w32_remove (fname, wait_for_access);
+#else /* Unix */
+  (void)wait_for_access;
   /* It is common to use /dev/null for testing.  We better don't
    * remove that file.  */
   if (fname && !strcmp (fname, "/dev/null"))
@@ -817,6 +1019,12 @@ gnupg_remove (const char *fname)
   else
     return remove (fname);
 #endif
+}
+
+int
+gnupg_remove (const char *fname)
+{
+  return gnupg_remove_ext (fname, 0);
 }
 
 
@@ -867,33 +1075,12 @@ gnupg_rename_file (const char *oldname, const char *newname, int *block_signals)
   {
     int wtime = 0;
 
-    gnupg_remove (newname);
+    w32_remove (newname, -1);
   again:
     if (w32_rename (oldname, newname))
       {
-        if (GetLastError () == ERROR_SHARING_VIOLATION)
-          {
-            /* Another process has the file open.  We do not use a
-             * lock for read but instead we wait until the other
-             * process has closed the file.  This may take long but
-             * that would also be the case with a dotlock approach for
-             * read and write.  Note that we don't need this on Unix
-             * due to the inode concept.
-             *
-             * So let's wait until the rename has worked.  The retry
-             * intervals are 50, 100, 200, 400, 800, 50ms, ...  */
-            if (!wtime || wtime >= 800)
-              wtime = 50;
-            else
-              wtime *= 2;
-
-            if (wtime >= 800)
-              log_info (_("waiting for file '%s' to become accessible ...\n"),
-                        oldname);
-
-            Sleep (wtime);
-            goto again;
-          }
+        if ((wtime = w32_wait_when_sharing_violation (wtime, oldname)))
+          goto again;
         err = my_error_from_syserror ();
       }
   }
@@ -973,7 +1160,7 @@ modestr_to_mode (const char *modestr, mode_t oldmode)
 int
 gnupg_mkdir (const char *name, const char *modestr)
 {
-  /* Note that gpgrt_mkdir also sets ERRNO in addition to returing an
+  /* Note that gpgrt_mkdir also sets ERRNO in addition to returning an
    * gpg-error style error code.  */
   return gpgrt_mkdir (name, modestr);
 }
@@ -1158,6 +1345,19 @@ gnupg_setenv (const char *name, const char *value, int overwrite)
   return setenv (name, value, overwrite);
 #else /*!HAVE_SETENV*/
   if (! getenv (name) || overwrite)
+#if defined(HAVE_W32_SYSTEM) && defined(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES)
+    {
+      int e = _putenv_s (name, value);
+
+      if (e)
+        {
+          gpg_err_set_errno (e);
+          return -1;
+        }
+      else
+        return 0;
+    }
+#else
     {
       char *buf;
 
@@ -1175,6 +1375,7 @@ gnupg_setenv (const char *name, const char *value, int overwrite)
 # endif
       return putenv (buf);
     }
+#endif /*!HAVE_W32_SYSTEM*/
   return 0;
 #endif /*!HAVE_SETENV*/
 }
@@ -1199,6 +1400,18 @@ gnupg_unsetenv (const char *name)
 
 #ifdef HAVE_UNSETENV
   return unsetenv (name);
+#elif defined(HAVE_W32_SYSTEM) && defined(_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES)
+  {
+    int e = _putenv_s (name, "");
+
+    if (e)
+      {
+	gpg_err_set_errno (e);
+	return -1;
+      }
+    else
+      return 0;
+  }
 #else /*!HAVE_UNSETENV*/
   {
     char *buf;
@@ -1828,4 +2041,45 @@ gnupg_fd_valid (int fd)
     return 0;
   close (d);
   return 1;
+}
+
+
+/* Open a stream from FD (a file descriptor on POSIX, a system
+   handle on Windows), non-closed.  */
+estream_t
+open_stream_nc (gnupg_fd_t fd, const char *mode)
+{
+  es_syshd_t syshd;
+
+#ifdef HAVE_W32_SYSTEM
+  syshd.type = ES_SYSHD_HANDLE;
+  syshd.u.handle = fd;
+#else
+  syshd.type = ES_SYSHD_FD;
+  syshd.u.fd = fd;
+#endif
+
+  return es_sysopen_nc (&syshd, mode);
+}
+
+
+/* Debug helper to track down problems with logging under Windows.  */
+void
+output_debug_string (const char *format, ...)
+{
+#ifdef HAVE_W32_SYSTEM
+  char *buf;
+  va_list arg_ptr;
+
+  va_start (arg_ptr, format);
+  buf = gpgrt_vbsprintf (format, arg_ptr);
+  va_end (arg_ptr);
+  if (buf)
+    OutputDebugStringA (buf);
+  else
+    OutputDebugStringA ("vbsprintf failed");
+  gpgrt_free (buf);
+#else
+  (void)format;
+#endif
 }

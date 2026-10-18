@@ -128,8 +128,9 @@ initialize_module_call_pinentry (void)
 void
 agent_query_dump_state (void)
 {
-  log_info ("agent_query_dump_state: entry_ctx=%p pid=%ld popup_tid=%p\n",
-            entry_ctx, (long)assuan_get_pid (entry_ctx), (void*)popup_tid);
+  log_info ("agent_query_dump_state: entry_ctx=%p pid=%ld popup_tid=%lx\n",
+            entry_ctx, (long)assuan_get_pid (entry_ctx),
+            (unsigned long)popup_tid);
 }
 
 /* Called to make sure that a popup window owned by the current
@@ -883,7 +884,7 @@ struct inq_cb_parm_s
 };
 
 
-/* Return true if PIN is indentical to the last generated pin.  */
+/* Return true if PIN is identical to the last generated pin.  */
 static int
 is_generated_pin (struct inq_cb_parm_s *parm, const char *pin)
 {
@@ -1288,8 +1289,6 @@ build_cmd_setdesc (char *line, size_t linelen, const char *desc)
 static void *
 watch_sock (void *arg)
 {
-  pid_t pid = assuan_get_pid (entry_ctx);
-
   while (1)
     {
       int err;
@@ -1302,7 +1301,7 @@ watch_sock (void *arg)
 
       FD_ZERO (&fdset);
       FD_SET (FD2INT (sock), &fdset);
-      err = npth_select (FD2INT (sock)+1, &fdset, NULL, NULL, &timeout);
+      err = npth_select (FD2NUM (sock)+1, &fdset, NULL, NULL, &timeout);
 
       if (err < 0)
         {
@@ -1317,17 +1316,7 @@ watch_sock (void *arg)
         break;
     }
 
-  if (pid == (pid_t)(-1))
-    ; /* No pid available can't send a kill. */
-#ifdef HAVE_W32_SYSTEM
-  /* Older versions of assuan set PID to 0 on Windows to indicate an
-     invalid value.  */
-  else if (pid != (pid_t) INVALID_HANDLE_VALUE && pid != 0)
-    TerminateProcess ((HANDLE)pid, 1);
-#else
-  else if (pid > 0)
-    kill (pid, SIGINT);
-#endif
+  assuan_pipe_kill_server (entry_ctx);
 
   return NULL;
 }
@@ -2124,7 +2113,6 @@ void
 agent_popup_message_stop (ctrl_t ctrl)
 {
   int rc;
-  pid_t pid;
 
   (void)ctrl;
 
@@ -2137,26 +2125,10 @@ agent_popup_message_stop (ctrl_t ctrl)
       return;
     }
 
-  pid = assuan_get_pid (entry_ctx);
-  if (pid == (pid_t)(-1))
-    ; /* No pid available can't send a kill. */
-  else if (popup_finished)
+  if (popup_finished)
     ; /* Already finished and ready for joining. */
-#ifdef HAVE_W32_SYSTEM
-  /* Older versions of assuan set PID to 0 on Windows to indicate an
-     invalid value.  */
-  else if (pid != (pid_t) INVALID_HANDLE_VALUE
-	   && pid != 0)
-    {
-      HANDLE process = (HANDLE) pid;
-
-      /* Arbitrary error code.  */
-      TerminateProcess (process, 1);
-    }
-#else
-  else if (pid > 0)
-    kill (pid, SIGINT);
-#endif
+  else
+    assuan_pipe_kill_server (entry_ctx);
 
   /* Now wait for the thread to terminate. */
   rc = npth_join (popup_tid, NULL);

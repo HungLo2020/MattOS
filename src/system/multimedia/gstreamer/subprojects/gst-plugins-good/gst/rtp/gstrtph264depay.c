@@ -41,12 +41,14 @@ GST_DEBUG_CATEGORY_STATIC (rtph264depay_debug);
 #define DEFAULT_ACCESS_UNIT   FALSE
 #define DEFAULT_WAIT_FOR_KEYFRAME FALSE
 #define DEFAULT_REQUEST_KEYFRAME FALSE
+#define DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE (32 * 1024 * 1024)
 
 enum
 {
   PROP_0,
   PROP_WAIT_FOR_KEYFRAME,
   PROP_REQUEST_KEYFRAME,
+  PROP_MAX_FRAGMENTATION_UNIT_SIZE,
 };
 
 
@@ -126,6 +128,9 @@ gst_rtp_h264_depay_set_property (GObject * object, guint prop_id,
     case PROP_REQUEST_KEYFRAME:
       self->request_keyframe = g_value_get_boolean (value);
       break;
+    case PROP_MAX_FRAGMENTATION_UNIT_SIZE:
+      self->max_fragmentation_unit_size = g_value_get_uint (value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -144,6 +149,9 @@ gst_rtp_h264_depay_get_property (GObject * object, guint prop_id,
       break;
     case PROP_REQUEST_KEYFRAME:
       g_value_set_boolean (value, self->request_keyframe);
+      break;
+    case PROP_MAX_FRAGMENTATION_UNIT_SIZE:
+      g_value_set_uint (value, self->max_fragmentation_unit_size);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -195,6 +203,24 @@ gst_rtp_h264_depay_class_init (GstRtpH264DepayClass * klass)
           DEFAULT_REQUEST_KEYFRAME,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
+  /**
+   * GstRtpH264Depay:max-fragmentation-unit-size:
+   *
+   * Maximum size in bytes for a fragmentation unit. Larger units
+   * will be dropped to prevent excessive memory usage.
+   *
+   * Use 0 for automatic.
+   *
+   * Since: 1.28.6
+   */
+  g_object_class_install_property (gobject_class,
+      PROP_MAX_FRAGMENTATION_UNIT_SIZE,
+      g_param_spec_uint ("max-fragmentation-unit-size",
+          "Max Fragmentation Unit Size",
+          "Maximum size in bytes for a fragmentation unit (0 = auto)", 0,
+          G_MAXUINT, DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
   gst_element_class_add_static_pad_template (gstelement_class,
       &gst_rtp_h264_depay_src_template);
   gst_element_class_add_static_pad_template (gstelement_class,
@@ -227,6 +253,8 @@ gst_rtp_h264_depay_init (GstRtpH264Depay * rtph264depay)
       (GDestroyNotify) gst_buffer_unref);
   rtph264depay->wait_for_keyframe = DEFAULT_WAIT_FOR_KEYFRAME;
   rtph264depay->request_keyframe = DEFAULT_REQUEST_KEYFRAME;
+  rtph264depay->max_fragmentation_unit_size =
+      DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE;
 }
 
 static void
@@ -1305,11 +1333,13 @@ gst_rtp_h264_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
            * |         NALU Size             |
            * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
            */
-          nalu_size = (payload[0] << 8) | payload[1];
+          nalu_size = GST_READ_UINT16_BE (payload);
+          payload += 2;
+          payload_len -= 2;
 
-          /* don't include nalu_size */
-          if (nalu_size > (payload_len - 2))
-            nalu_size = payload_len - 2;
+          /* Only include as much data as is available */
+          if (nalu_size > payload_len)
+            nalu_size = payload_len;
 
           outsize = nalu_size + sizeof (sync_bytes);
           outbuf = gst_buffer_new_and_alloc (outsize);
@@ -1319,39 +1349,116 @@ gst_rtp_h264_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
             memcpy (map.data, sync_bytes, sizeof (sync_bytes));
           } else {
             map.data[0] = map.data[1] = 0;
-            map.data[2] = payload[0];
-            map.data[3] = payload[1];
+            GST_WRITE_UINT16_BE (&map.data[2], nalu_size);
           }
-
-          /* strip NALU size */
-          payload += 2;
-          payload_len -= 2;
 
           memcpy (map.data + sizeof (sync_bytes), payload, nalu_size);
           gst_buffer_unmap (outbuf, &map);
 
+          payload += nalu_size;
+          payload_len -= nalu_size;
+
           gst_rtp_copy_video_meta (rtph264depay, outbuf, rtp->buffer);
 
-          if (payload_len - nalu_size <= 2)
+          if (payload_len <= 2)
             last = TRUE;
 
           gst_rtp_h264_depay_handle_nal (rtph264depay, outbuf, timestamp,
               marker && last);
-
-          payload += nalu_size;
-          payload_len -= nalu_size;
         }
         break;
       }
       case 26:
-        /* MTAP16    Multi-time aggregation packet      5.7.2 */
-        // header_len = 5;
-        /* fallthrough, not implemented */
       case 27:
+      {
+        const gsize aggregation_unit_size = nal_unit_type == 26 ? 5 : 6;
+
+        /* strip headers */
+        payload += header_len;
+        payload_len -= header_len;
+
+        rtph264depay->wait_start = FALSE;
+
+        /* MTAP16    Multi-time aggregation packet      5.7.2 */
         /* MTAP24    Multi-time aggregation packet      5.7.2 */
-        // header_len = 6;
-        goto not_implemented;
+
+        // guint16 decoding_order_base_number = GST_READ_UINT16_BE (payload);
+        payload += 2;
+        payload_len -= 2;
+
+        while (payload_len > aggregation_unit_size) {
+          gboolean last = FALSE;
+
+          nalu_size = GST_READ_UINT16_BE (payload);
+          payload += 2;
+          payload_len -= 2;
+
+          // guint8 dond = GST_READ_UINT8 (payload);
+          payload += 1;
+          payload_len -= 1;
+
+          guint32 ts_offset;
+          if (nal_unit_type == 26) {
+            ts_offset = GST_READ_UINT16_BE (payload);
+            payload += 2;
+            payload_len -= 2;
+            /* Sign-extend */
+            if (ts_offset & 0x00008000)
+              ts_offset |= 0xffff0000;
+          } else {
+            ts_offset = GST_READ_UINT24_BE (payload);
+            payload += 3;
+            payload_len -= 3;
+            /* Sign-extend */
+            if (ts_offset & 0x00800000)
+              ts_offset |= 0xff000000;
+          }
+
+          /* Only include as much data as is available */
+          if (nalu_size > payload_len)
+            nalu_size = payload_len;
+
+          outsize = nalu_size + sizeof (sync_bytes);
+          outbuf = gst_buffer_new_and_alloc (outsize);
+
+          gst_buffer_map (outbuf, &map, GST_MAP_WRITE);
+          if (rtph264depay->byte_stream) {
+            memcpy (map.data, sync_bytes, sizeof (sync_bytes));
+          } else {
+            map.data[0] = map.data[1] = 0;
+            GST_WRITE_UINT16_BE (&map.data[2], nalu_size);
+          }
+
+          memcpy (map.data + sizeof (sync_bytes), payload, nalu_size);
+          gst_buffer_unmap (outbuf, &map);
+
+          payload += nalu_size;
+          payload_len -= nalu_size;
+
+          gst_rtp_copy_video_meta (rtph264depay, outbuf, rtp->buffer);
+
+          if (payload_len <= aggregation_unit_size)
+            last = TRUE;
+
+          if (ts_offset != 0) {
+            gint32 signed_ts_offset = (gint32) ts_offset;       /* was sign-extended above */
+            if (signed_ts_offset >= 0) {
+              timestamp += gst_util_uint64_scale (ts_offset, GST_SECOND, 90000);
+            } else {
+              GstClockTime diff =
+                  gst_util_uint64_scale (-ts_offset, GST_SECOND, 90000);
+              if (diff >= timestamp)
+                timestamp = 0;
+              else
+                timestamp -= diff;
+            }
+          }
+
+          gst_rtp_h264_depay_handle_nal (rtph264depay, outbuf, timestamp,
+              marker && last);
+        }
         break;
+      }
       case 28:
       case 29:
       {
@@ -1448,6 +1555,9 @@ gst_rtp_h264_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
                 "%u to %u within Fragmentation Unit. Data was lost, dropping "
                 "stored.", rtph264depay->last_fu_seqnum,
                 gst_rtp_buffer_get_seq (rtp));
+            rtph264depay->wait_start = TRUE;
+            rtph264depay->current_fu_type = 0;
+            rtph264depay->last_fu_seqnum = 0;
             gst_rtp_base_depayload_flush (depayload, FALSE);
             gst_adapter_clear (rtph264depay->adapter);
             return NULL;
@@ -1474,8 +1584,24 @@ gst_rtp_h264_depay_process (GstRTPBaseDepayload * depayload, GstRTPBuffer * rtp)
         rtph264depay->fu_marker = marker;
 
         /* if NAL unit ends, flush the adapter */
-        if (E)
+        if (E) {
           gst_rtp_h264_finish_fragmentation_unit (rtph264depay);
+          GST_DEBUG_OBJECT (rtph264depay, "End of Fragmentation Unit");
+        } else {
+          guint limit = rtph264depay->max_fragmentation_unit_size ?
+              rtph264depay->max_fragmentation_unit_size :
+              DEFAULT_MAX_FRAGMENTATION_UNIT_SIZE;
+          if (gst_adapter_available (rtph264depay->adapter) > limit) {
+            GST_WARNING_OBJECT (rtph264depay,
+                "Too big (> %u bytes) fragmentation unit, dropping.", limit);
+            rtph264depay->wait_start = TRUE;
+            rtph264depay->current_fu_type = 0;
+            rtph264depay->last_fu_seqnum = 0;
+            gst_rtp_base_depayload_flush (depayload, FALSE);
+            gst_adapter_clear (rtph264depay->adapter);
+            return NULL;
+          }
+        }
         break;
       }
       default:
@@ -1532,13 +1658,6 @@ undefined_type:
 waiting_start:
   {
     GST_DEBUG_OBJECT (rtph264depay, "waiting for start");
-    gst_rtp_base_depayload_dropped (depayload);
-    return NULL;
-  }
-not_implemented:
-  {
-    GST_ELEMENT_ERROR (rtph264depay, STREAM, FORMAT,
-        (NULL), ("NAL unit type %d not supported yet", nal_unit_type));
     gst_rtp_base_depayload_dropped (depayload);
     return NULL;
   }

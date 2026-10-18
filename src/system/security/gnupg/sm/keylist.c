@@ -56,7 +56,7 @@ struct list_external_parm_s
 #define OID_FLAG_UTF8 2
 /* The extension can be printed as a hex string.  */
 #define OID_FLAG_HEX  4
-/* Define if this specififies a key purpose.  */
+/* Define if this specifies a key purpose.  */
 #define OID_FLAG_KP   8
 
 /* A table mapping OIDs to a descriptive string. */
@@ -179,6 +179,7 @@ static struct
 
   /* GnuPG extensions */
   { "1.3.6.1.4.1.11591.2.1.1", "pkaAddress" },
+  { "1.3.6.1.4.1.11591.2.1.2", "manuNotation" },
   { "1.3.6.1.4.1.11591.2.2.1", "standaloneCertificate" },
   { "1.3.6.1.4.1.11591.2.2.2", "wellKnownPrivateKey" },
   { "1.3.6.1.4.1.11591.2.6.1", "gpgUsageCert", OID_FLAG_KP },
@@ -194,6 +195,18 @@ static struct
   { "1.3.6.1.4.1.41482.3.7", "yubikey-serial-number", OID_FLAG_HEX },
   { "1.3.6.1.4.1.41482.3.8", "yubikey-pin-touch-policy", OID_FLAG_HEX },
   { "1.3.6.1.4.1.41482.3.9", "yubikey-formfactor", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.1", "yk-opgp-cardholder-name", OID_FLAG_UTF8 },
+  { "1.3.6.1.4.1.41482.5.2", "yk-opgp-attst-source", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.3", "yk-opgp-opgp-version-number", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.4", "yk-opgp-attst-fpr", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.5", "yk-opgp-attst-date", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.6", "yk-opgp-attst-sigcount", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.7", "yk-opgp-serial-number", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.8", "yk-opgp-uif", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.9", "yk-opgp-form-factor", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.10","yk-opgp-fips-certified", OID_FLAG_HEX },
+  { "1.3.6.1.4.1.41482.5.11","yk-opgp-cspn-certified", OID_FLAG_HEX },
+
 
   /* Microsoft extensions.  */
   { "1.3.6.1.4.1.311.3.10.3.12","ms-old-documentSigning", OID_FLAG_KP },
@@ -426,6 +439,23 @@ email_kludge (const char *name)
 }
 
 
+/* Check whether the certificate has the de_vs flag set.  */
+static int
+cert_has_de_vs_flag (ksba_cert_t cert)
+{
+  gpg_error_t err;
+  size_t buflen;
+  char buffer[1];
+
+  err = ksba_cert_get_user_data (cert, "is_de_vs",
+                                 &buffer, sizeof (buffer), &buflen);
+  if (!err && buflen && *buffer)
+    return 1;
+
+  return 0;
+}
+
+
 /* Print the compliance flags to field 18.  ALGO is the gcrypt algo
  * number.  NBITS is the length of the key in bits.  */
 static void
@@ -434,13 +464,19 @@ print_compliance_flags (ksba_cert_t cert, int algo, unsigned int nbits,
 {
   int indent = 0;
   int hashalgo;
+  const char *algoid;
 
-  /* Note that we do not need to test for PK_ALGO_FLAG_RSAPSS because
-   * that is not a property of the key but one of the created
-   * signature.  */
-  if (gnupg_pk_is_compliant (CO_DE_VS, algo, 0, NULL, nbits, curvename))
+  if (cert_has_de_vs_flag (cert)
+      && gnupg_pk_is_compliant (CO_DE_VS, algo, 0, NULL, nbits, curvename))
     {
-      hashalgo = gcry_md_map_name (ksba_cert_get_digest_algo (cert));
+      algoid = ksba_cert_get_digest_algo (cert);
+      hashalgo = gcry_md_map_name (algoid);
+      if (!hashalgo && algoid && !strcmp (algoid, "1.2.840.113549.1.1.10"))
+        {
+          /* This is rsaPSS.  We extract the PSS parameters from the
+           * signature value to check the hash algorithm. */
+          hashalgo = gpgsm_pss_hash_algo_from_cert (cert);
+        }
       if (gnupg_digest_is_compliant (CO_DE_VS, hashalgo))
         {
           es_fputs (gnupg_status_compliance_flag (CO_DE_VS), fp);
@@ -1663,6 +1699,7 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
 
       resname = keydb_get_resource_name (hd);
 
+      es_clearerr (fp);
       if (lastresname != resname )
         {
           int i;
@@ -1716,6 +1753,20 @@ list_internal_keys (ctrl_t ctrl, strlist_t names, estream_t fp,
       ksba_cert_release (lastcert);
       lastcert = cert;
       cert = NULL;
+
+      if (es_ferror (fp))
+        rc = gpg_error_from_syserror ();
+
+      /* For faster key listings we flush the output after each cert
+       * only if we list secret keys.  */
+      if ((mode & 2) && es_fflush (fp) && !rc)
+        rc = gpg_error_from_syserror ();
+
+      if (rc)
+        {
+          log_error (_("error writing to output: %s\n"), gpg_strerror (rc));
+          goto leave;
+        }
     }
   if (gpg_err_code (rc) == GPG_ERR_NOT_FOUND)
     rc = 0;

@@ -25,6 +25,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, see <https://www.gnu.org/licenses/>.
+ * SPDX-License-Identifier: (LGPL-3.0-or-later OR GPL-2.0-or-later)
  */
 
 #include <config.h>

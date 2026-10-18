@@ -1,8 +1,9 @@
 project('gstreamer', 'c',
-  version : '1.26.11',
+  version : '1.28.8',
   meson_version : '>= 1.4',
   default_options : [ 'warning_level=1',
-                      'buildtype=debugoptimized' ])
+                      'buildtype=debugoptimized',
+                      'c_std=gnu11,c11' ])
 
 gst_version = meson.project_version()
 version_arr = gst_version.split('.')
@@ -32,17 +33,17 @@ helpers_install_dir = join_paths(libexecdir, 'gstreamer-1.0')
 
 cc = meson.get_compiler('c')
 host_system = host_machine.system()
+subsystem = ''
+if host_system == 'ios'
+  warning('Setting system = \'ios\' in the cross file is deprecated, please use subsystem names')
+  host_system = 'darwin'
+  subsystem = 'ios'
+elif host_system == 'darwin'
+  subsystem = host_machine.subsystem()
+endif
 static_build = get_option('default_library') == 'static'
 
 if host_system == 'darwin'
-  ios_test_code = '''#include <TargetConditionals.h>
-  #if ! TARGET_OS_IPHONE
-  #error "Not iOS/tvOS/watchOS/iPhoneSimulator"
-  #endif'''
-  if cc.compiles(ios_test_code, name : 'building for iOS')
-    host_system = 'ios'
-  endif
-
   add_languages('objc', native: false, required: true)
 endif
 
@@ -163,10 +164,6 @@ elif mem_align_opt == 'pagesize'
   cdata.set('MEMORY_ALIGNMENT_PAGESIZE', 1)
 else
   cdata.set('MEMORY_ALIGNMENT', mem_align_opt.to_int())
-endif
-
-if ['darwin', 'ios'].contains(host_system)
-  cdata.set_quoted('GST_EXTRA_MODULE_SUFFIX', '.dylib')
 endif
 
 if gst_version_nano > 0
@@ -379,11 +376,8 @@ if cc.has_function('strdup')
 elif host_system == 'windows' and cc.has_function('_strdup')
   cdata.set('HAVE__STRDUP', 1) # Windows (MSVC)
 endif
-if host_system != 'windows'
+if host_system != 'windows' and not subsystem.startswith('tvos') and not subsystem.startswith('watchos')
   cdata.set('HAVE_FORK', 1)
-else
-  # libcheck requires HAVE_FORK to be 0 when fork() is not available
-  cdata.set('HAVE_FORK', 0)
 endif
 if cc.has_function('strsignal')
   cdata.set('HAVE_DECL_STRSIGNAL', 1)
@@ -407,6 +401,9 @@ if host_system != 'windows'
   cdata.set('HAVE_PIPE', 1)
 elif cc.has_function('_pipe', prefix : '#include <io.h>')
   cdata.set('HAVE_PIPE', 1)
+endif
+if cc.has_function('elf_aux_info', prefix : '#include <sys/auxv.h>')
+  cdata.set('HAVE_ELF_AUX_INFO', 1)
 endif
 
 # Platform deps; only ws2_32 and execinfo for now
@@ -556,7 +553,7 @@ cdata.set('HAVE_GSL', gsl_dep.found() and gslcblas_dep.found())
 test_deps = [gmp_dep, gsl_dep, gslcblas_dep]
 
 # Used by gstinfo.c
-dl_dep = cc.find_library('dl', required : false)
+dl_dep = dependency('dl', required : false)
 cdata.set('HAVE_DLADDR', cc.has_function('dladdr', dependencies : dl_dep))
 cdata.set('GST_ENABLE_EXTRA_CHECKS', not get_option('extra-checks').disabled())
 cdata.set('USE_POISONING', get_option('poisoning'))
@@ -569,11 +566,14 @@ glib_req = '>= 2.64.0'
 
 # Find dependencies
 glib_dep = dependency('glib-2.0', version: glib_req,
-  fallback: ['glib', 'libglib_dep'])
+    # glib's (new) introspection support is disabled till the cyclic dependency
+    # is fixed: https://gitlab.gnome.org/GNOME/glib/-/issues/3801
+    default_options: {'sysprof': 'disabled', 'introspection': 'disabled'})
 gobject_dep = dependency('gobject-2.0')
 gmodule_dep = dependency('gmodule-no-export-2.0')
 if host_system == 'windows'
-    gio_dep = dependency('gio-2.0')
+    gio_dep = [dependency('gio-2.0'),
+               dependency('gio-windows-2.0')]
 else
     gio_dep = [dependency('gio-2.0'),
                dependency('gio-unix-2.0')]
@@ -606,14 +606,15 @@ endif
 atomic_dep = cc.find_library('atomic', required: false)
 platform_deps += atomic_dep
 
-gir = find_program('g-ir-scanner', required : get_option('introspection'))
+gir = find_program('g-ir-scanner', required : get_option('introspection'),
+    default_options: {'cairo': 'disabled'})
 gnome = import('gnome')
 
 build_gir = gir.found() and (not meson.is_cross_build() or get_option('introspection').enabled())
 
 gir_init_section = [ '--add-init-section=extern void gst_init(gint*,gchar**);' + \
     'g_setenv("GST_REGISTRY_DISABLE", "yes", TRUE);' + \
-    'g_setenv("GST_REGISTRY_1.0", "/no/way/this/exists.reg", TRUE);' + \
+    'g_setenv("GST_REGISTRY_1_0", "@0@", TRUE);'.format(meson.current_build_dir() + '/gir_empty_registry.reg') + \
     'g_setenv("GST_PLUGIN_PATH_1_0", "", TRUE);' + \
     'g_setenv("GST_PLUGIN_SYSTEM_PATH_1_0", "", TRUE);' + \
     'g_setenv("GST_TRACERS", "", TRUE);' + \
@@ -686,7 +687,7 @@ pkgconfig_uninstalled_variables = ['exec_prefix=${prefix}',
     'helpersdir=${gstreamerdir}/libs/gst/helpers']
 pkgconfig_subdirs = ['gstreamer-1.0']
 pkgconfig_libs = []
-if host_system == 'darwin'
+if host_system == 'darwin' and subsystem == 'macos'
   pkgconfig_libs = ['-Wl,-rpath,${libdir}']
 endif
 
@@ -726,7 +727,7 @@ endif
 configure_file(output : 'config.h', configuration : cdata)
 install_data('gst-element-check-1.0.m4', install_dir : join_paths(get_option('datadir'), 'aclocal'))
 
-meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.24.0', meson.project_version())
+meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.26.0', meson.project_version())
 
 plugin_names = []
 gst_plugins = []

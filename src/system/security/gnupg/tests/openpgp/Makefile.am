@@ -57,6 +57,8 @@ XTESTS = \
 	encrypt.scm \
 	encrypt-multifile.scm \
 	encrypt-dsa.scm \
+	encrypt-kyber.scm \
+	encrypt-mlk.scm \
 	compression.scm \
 	seat.scm \
 	clearsig.scm \
@@ -99,12 +101,14 @@ XTESTS = \
 	key-selection.scm \
 	delete-keys.scm \
 	gpgconf.scm \
+	add-recipient.scm \
 	issue2015.scm \
 	issue2346.scm \
 	issue2417.scm \
 	issue2419.scm \
 	issue2929.scm \
-	issue2941.scm
+	issue2941.scm \
+	issue8049.scm
 
 
 # XXX: Currently, one cannot override automake's 'check' target.  As a
@@ -212,7 +216,33 @@ priv_keys = privkeys/50B2D4FA4122C212611048BC5FC31BD44393626E.asc \
 	    privkeys/C6A6390E9388CDBAD71EAEA698233FE5E04F001E.asc \
 	    privkeys/D69102E0F5AC6B6DB8E4D16DA8E18CF46D88CAE3.asc \
 	    privkeys/891067FFFC6D67D37BD4BFC399191C5F3989D1B5.key \
-	    privkeys/F27FC04CB01723A4CB6F5399F7B86CCD82C0169C.key
+	    privkeys/F27FC04CB01723A4CB6F5399F7B86CCD82C0169C.key \
+            privkeys/DC60E0AE48E0F14E8FD7C9C36E18C6651E99BA93.key \
+            privkeys/2F4CD0990D56D41A74456668469E3139A7960CD4.key \
+            privkeys/8B2E1355C97C34E0AC1CBC9DFDF2526BFE8990A7.key \
+            privkeys/F5DB116462B7BD2FA83A4453C4DFA2AE8604FB59.key \
+            privkeys/8F9ABF3E5BBFC50D168DD524EB8F7263E7B33859.key \
+            privkeys/A1598F57316F7FEC3F946895E35A7D2EAE8D3A13.key \
+	    privkeys/19C87B74004E9839F3D56992B0A9943BF90B56F7.key \
+	    privkeys/513906BEA5A40F25C9D6EBBCEF62D0784E7235A5.key \
+	    privkeys/6EC551A7895031EE4543A1C789E16E6A6C229CFC.key \
+	    privkeys/702F599E35E6E0BE68E6FDF25D887229D42780F7.key \
+	    privkeys/7C31A4A632A49C4E8B1C8CBA53976ADFF714510F.key \
+	    privkeys/A1ABFD89944870D04039D40C218EE127254AEEE9.key \
+	    privkeys/A87B85D88DB8B2B5A62A9958C8F2878F49605D09.key \
+	    privkeys/D54E9B75C3541D95C45E430DAC9645E9FB62C668.key \
+	    privkeys/EAD718DCE3D2F33A20BFC8BA617844DEF3FFAF3A.key \
+            privkeys/F27FC04CB01723A4CB6F5399F7B86CCD82C0169C.key \
+            privkeys/7FF53317DEDAC5BB0299C0A754D106F0621C8257.key \
+            privkeys/4046964D48529FC7DE554542F4A658591BE27AF2.key \
+            privkeys/138E37A9418DA4C544BDDCDD11432C01ECEEAED4.key \
+            privkeys/8D69D5C7F91781175A899B1453CEF28BAD533991.key \
+            privkeys/59BE88218A145F87826ABBD49817ED8F26E7DA50.key \
+            privkeys/5F7A0A9BB0B5519F4E2BB2A91B742AE218886888.key \
+            privkeys/4C726A3962D6114D5066551A4143FF3A0414394D.key \
+            privkeys/2E99977AF7BF5029064E39A12FA866A1A79F89C4.key \
+            privkeys/AD0EF479060A5B9DC2B0AD14168770867DE53EB0.key
+
 
 sample_keys = samplekeys/README \
               samplekeys/ecc-sample-1-pub.asc \
@@ -239,7 +269,15 @@ sample_keys = samplekeys/README \
 	      samplekeys/ssh-rsa.key \
 	      samplekeys/issue2346.gpg \
 	      samplekeys/authenticate-only.pub.asc \
-	      samplekeys/authenticate-only.sec.asc
+	      samplekeys/authenticate-only.sec.asc \
+              samplekeys/pqc-sample-1.key.asc \
+              samplekeys/pqc-sample-2.key.asc \
+              samplekeys/pqc-sample-3.key.asc \
+              samplekeys/pqc-sample-4.key.asc \
+              samplekeys/pqc-sample-5.key.asc \
+              samplekeys/ietf27-mlk768-v4-pub.asc \
+              samplekeys/ietf27-mlk768-v6-pub.asc \
+              samplekeys/ietf27-mlk-nistbrain-pub.asc
 
 sample_msgs = samplemsgs/clearsig-1-key-1.asc \
 	      samplemsgs/clearsig-2-keys-1.asc \
@@ -272,7 +310,16 @@ sample_msgs = samplemsgs/clearsig-1-key-1.asc \
 	      samplemsgs/signed-1-key-1.asc \
 	      samplemsgs/signed-1-key-2.asc \
 	      samplemsgs/signed-2-keys-1.asc \
-	      samplemsgs/signed-2-keys-2.asc
+	      samplemsgs/signed-2-keys-2.asc \
+              samplemsgs/pqc-sample-1.enc.asc \
+              samplemsgs/pqc-sample-2.enc.asc \
+              samplemsgs/pqc-sample-3.enc.asc \
+              samplemsgs/pqc-sample-4.enc.asc \
+              samplemsgs/pqc-sample-5.enc.asc \
+              samplemsgs/pqc-mlk1024_np521.enc.asc \
+              samplemsgs/pqc-mlk768_np384.enc.asc \
+              samplemsgs/pqc-mlk1024_bp512.enc.asc \
+              samplemsgs/pqc-mlk768_bp384.enc.asc
 
 EXTRA_DIST = defs.scm trust-pgp/common.scm $(XTESTS) $(TEST_FILES) \
 	     mkdemodirs signdemokey $(priv_keys) $(sample_keys)   \
@@ -280,12 +327,15 @@ EXTRA_DIST = defs.scm trust-pgp/common.scm $(XTESTS) $(TEST_FILES) \
 	     setup.scm shell.scm all-tests.scm signed-messages.scm
 
 CLEANFILES = prepared.stamp x y yy z out err  $(data_files) \
-	     plain-1 plain-2 plain-3 trustdb.gpg *.lock .\#lk* \
+	     plain-1 plain-2 plain-3 trustdb.gpg *.lock \
 	     *.log gpg_dearmor gpg.conf gpg-agent.conf S.gpg-agent \
 	     pubring.gpg pubring.gpg~ pubring.kbx pubring.kbx~ \
 	     common.conf secring.gpg pubring.pkr secring.skr \
 	     gnupg-test.stop random_seed gpg-agent.log tofu.db \
 	     passphrases sshcontrol S.gpg-agent.ssh report.xml
+
+# Path with # (octal 043) needs special care in portable Makefile.
+CLEANFILES += `printf  '.\043lk*'`
 
 clean-local:
 	-rm -rf private-keys-v1.d openpgp-revocs.d tofu.d gpgtar.d

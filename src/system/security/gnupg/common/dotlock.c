@@ -159,7 +159,7 @@
    which is the core of the installed atexit handler.  In case your
    application wants to disable locking completely it may call
 
-     disable_locking ()
+     dotlock_disable ()
 
    before any locks are created.
 
@@ -186,8 +186,6 @@
    module are:
 
      DOTLOCK_USE_PTHREAD  - Define if POSIX threads are in use.
-
-     DOTLOCK_GLIB_LOGGING - Define this to use Glib logging functions.
 
      DOTLOCK_EXT_SYM_PREFIX - Prefix all external symbols with the
                               string to which this macro evaluates.
@@ -304,10 +302,6 @@
 # include <pthread.h>
 #endif
 
-#ifdef DOTLOCK_GLIB_LOGGING
-# include <glib.h>
-#endif
-
 #ifdef GNUPG_MAJOR_VERSION
 # include "util.h"
 # include "common-defs.h"
@@ -337,7 +331,7 @@
 # define xfree(a)	   free ((a))
 #endif
 
-/* Wrapper to set ERRNO (required for W32CE).  */
+/* Wrapper to set ERRNO.  */
 #ifdef GPG_ERROR_VERSION
 #  define my_set_errno(e)  gpg_err_set_errno ((e))
 #else
@@ -350,34 +344,8 @@
 #endif
 
 #ifdef GNUPG_MAJOR_VERSION
-# define my_info_0(a)       log_info ((a))
-# define my_info_1(a,b)     log_info ((a), (b))
-# define my_info_2(a,b,c)   log_info ((a), (b), (c))
-# define my_info_3(a,b,c,d) log_info ((a), (b), (c), (d))
-# define my_error_0(a)      log_error ((a))
-# define my_error_1(a,b)    log_error ((a), (b))
-# define my_error_2(a,b,c)  log_error ((a), (b), (c))
-# define my_debug_1(a,b)    log_debug ((a), (b))
-# define my_fatal_0(a)      log_fatal ((a))
-#elif defined (DOTLOCK_GLIB_LOGGING)
-# define my_info_0(a)       g_message ((a))
-# define my_info_1(a,b)     g_message ((a), (b))
-# define my_info_2(a,b,c)   g_message ((a), (b), (c))
-# define my_info_3(a,b,c,d) g_message ((a), (b), (c), (d))
-# define my_error_0(a)      g_warning ((a))
-# define my_error_1(a,b)    g_warning ((a), (b))
-# define my_error_2(a,b,c)  g_warning ((a), (b), (c))
-# define my_debug_1(a,b)    g_debug ((a), (b))
-# define my_fatal_0(a)      g_error ((a))
+# define my_fatal_0(a)      default_msg_cb (NULL, DOTLOCK_FATAL, (a))
 #else
-# define my_info_0(a)       fprintf (stderr, (a))
-# define my_info_1(a,b)     fprintf (stderr, (a), (b))
-# define my_info_2(a,b,c)   fprintf (stderr, (a), (b), (c))
-# define my_info_3(a,b,c,d) fprintf (stderr, (a), (b), (c), (d))
-# define my_error_0(a)      fprintf (stderr, (a))
-# define my_error_1(a,b)    fprintf (stderr, (a), (b))
-# define my_error_2(a,b,c)  fprintf (stderr, (a), (b), (c))
-# define my_debug_1(a,b)    fprintf (stderr, (a), (b))
 # define my_fatal_0(a)      do { fprintf (stderr,(a)); fflush (stderr); \
                                  abort (); } while (0)
 #endif
@@ -390,20 +358,19 @@
 struct dotlock_handle
 {
   struct dotlock_handle *next;
-  char *lockname;            /* Name of the actual lockfile.          */
-  unsigned int locked:1;     /* Lock status.                          */
-  unsigned int disable:1;    /* If true, locking is disabled.         */
-  unsigned int use_o_excl:1; /* Use open (O_EXCL) for locking.        */
-  unsigned int by_parent:1;  /* Parent does the locking.              */
-  unsigned int no_write:1;   /* No write to the lockfile.             */
+  char *lockname;             /* Name of the actual lockfile.          */
+  unsigned int locked     :1; /* Lock status.                          */
+  unsigned int disable    :1; /* If true, locking is disabled.         */
+  unsigned int use_o_excl :1; /* Use open (O_EXCL) for locking.        */
+  unsigned int by_parent  :1; /* Parent does the locking.              */
+  unsigned int no_write   :1; /* No write to the lockfile.             */
 
   int extra_fd;              /* A place for the caller to store an FD.  */
 
-  /* An optional info callback - see dotlock_set_info_cb.             */
-  int (*info_cb)(dotlock_t, void *,
-                 enum dotlock_reasons reason,
-                 const char *,...);
-  void *info_cb_value;
+  int (*msg_cb)(dotlock_t, void *,
+                enum dotlock_reasons reason,
+                const char *, ...);
+  void *msg_cb_arg;
 
 
 #ifdef HAVE_DOSISH_SYSTEM
@@ -476,10 +443,8 @@ map_w32_to_errno (DWORD w32_err)
       return EIO;
     }
 }
-#endif /*HAVE_DOSISH_SYSTEM*/
 
 
-#ifdef HAVE_W32_SYSTEM
 static int
 any8bitchar (const char *string)
 {
@@ -489,10 +454,31 @@ any8bitchar (const char *string)
         return 1;
   return 0;
 }
-#endif /*HAVE_W32_SYSTEM*/
+#endif /*HAVE_DOSISH_SYSTEM*/
 
 
+static int
+default_msg_cb (dotlock_t h, void *opaque, enum dotlock_reasons reason,
+                const char *format, ...)
+{
+  va_list arg_ptr;
+  int level = GPGRT_LOGLVL_INFO;
 
+  (void)h;
+  (void)opaque;
+#ifdef GNUPG_MAJOR_VERSION
+  va_start (arg_ptr, format);
+  log_logv (level, format, arg_ptr);
+  va_end (arg_ptr);
+
+  if (reason == DOTLOCK_FATAL)
+    abort ();
+#else
+  (void)level;
+  vfprintf (stderr, format, arg_ptr);
+#endif
+  return 0;
+}
 
 /* Entirely disable all locking.  This function should be called
    before any locking is done.  It may be called right at startup of
@@ -556,14 +542,9 @@ read_lockfile (dotlock_t h, int *same_node, int *r_fd)
     {
       int e = errno;
       if (errno != ENOENT)
-        {
-          my_info_2 ("error opening lockfile '%s': %s\n",
-                     h->lockname, strerror(errno) );
-          if (h->info_cb)
-            h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                        "error opening lockfile '%s': %s\n",
-                        h->lockname, strerror (errno) );
-        }
+        h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                   "error opening lockfile '%s': %s\n",
+                   h->lockname, strerror (errno) );
       if (buffer != buffer_space)
         xfree (buffer);
       my_set_errno (e); /* Need to return ERRNO here. */
@@ -580,11 +561,9 @@ read_lockfile (dotlock_t h, int *same_node, int *r_fd)
       if (res < 0)
         {
           int e = errno;
-          my_info_1 ("error reading lockfile '%s'\n", h->lockname );
-          if (h->info_cb)
-            h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                        "error reading lockfile '%s': %s\n",
-                        h->lockname, strerror (errno) );
+          h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                     "error reading lockfile '%s': %s\n",
+                     h->lockname, strerror (errno) );
           close (fd);
           if (buffer != buffer_space)
             xfree (buffer);
@@ -603,10 +582,8 @@ read_lockfile (dotlock_t h, int *same_node, int *r_fd)
 
   if (nread < 11)
     {
-      my_info_1 ("invalid size of lockfile '%s'\n", h->lockname);
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_INV_FILE,
-                    "invalid size of lockfile '%s'\n", h->lockname);
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_INV_FILE,
+                 "invalid size of lockfile '%s'\n", h->lockname);
       if (buffer != buffer_space)
         xfree (buffer);
       my_set_errno (EINVAL);
@@ -617,10 +594,8 @@ read_lockfile (dotlock_t h, int *same_node, int *r_fd)
       || (buffer[10] = 0, pid = atoi (buffer)) == -1
       || !pid )
     {
-      my_error_2 ("invalid pid %d in lockfile '%s'\n", pid, h->lockname);
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_INV_FILE,
-                    "invalid pid %d in lockfile '%s'\n", pid, h->lockname);
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_INV_FILE,
+                 "invalid pid %d in lockfile '%s'\n", pid, h->lockname);
       if (buffer != buffer_space)
         xfree (buffer);
       my_set_errno (EINVAL);
@@ -724,6 +699,7 @@ dotlock_detect_tname (dotlock_t h)
 
       if (dlen > len)
         {
+          closedir (dir);
           xfree (basename);
           xfree (dirname);
           return -1;
@@ -734,6 +710,7 @@ dotlock_detect_tname (dotlock_t h)
       tname_path = strchr (h->tname + strlen (dirname) + 2, '.');
       if (!tname_path)
         {
+          closedir (dir);
           xfree (basename);
           xfree (dirname);
           return -1;
@@ -830,12 +807,9 @@ dotlock_create_unix (dotlock_t h, const char *file_to_lock)
       int saveerrno = errno;
       all_lockfiles = h->next;
       UNLOCK_all_lockfiles ();
-      my_error_2 (_("failed to create temporary file '%s': %s\n"),
-                  h->tname, strerror (errno));
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_WAITING,
-                    _("failed to create temporary file '%s': %s\n"),
-                    h->tname, strerror (errno));
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_WAITING,
+                 _("failed to create temporary file '%s': %s\n"),
+                 h->tname, strerror (errno));
       xfree (h->tname);
       xfree (h);
       my_set_errno (saveerrno);
@@ -867,12 +841,9 @@ dotlock_create_unix (dotlock_t h, const char *file_to_lock)
     default:
       {
         int saveerrno = errno;
-        my_error_2 ("can't check whether hardlinks are supported for '%s': %s\n"
-                    , h->tname, strerror (saveerrno));
-        if (h->info_cb)
-          h->info_cb (h, h->info_cb_value, DOTLOCK_CONFIG_TEST,
-                   "can't check whether hardlinks are supported for '%s': %s\n"
-                   , h->tname, strerror (saveerrno));
+        h->msg_cb (h, h->msg_cb_arg, DOTLOCK_CONFIG_TEST,
+                   "can't check whether hardlinks are supported for '%s': %s\n",
+                   h->tname, strerror (saveerrno));
         my_set_errno (saveerrno);
       }
       goto write_failed;
@@ -915,12 +886,9 @@ dotlock_create_unix (dotlock_t h, const char *file_to_lock)
     int saveerrno = errno;
     all_lockfiles = h->next;
     UNLOCK_all_lockfiles ();
-    my_error_2 (_("error writing to '%s': %s\n"), h->tname, strerror (errno));
-    if (h->info_cb)
-      h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                  _("error writing to '%s': %s\n"),
-                  h->tname, strerror (errno));
-
+    h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+               _("error writing to '%s': %s\n"),
+               h->tname, strerror (errno));
     if ( fd != -1 )
       close (fd);
     unlink (h->tname);
@@ -986,16 +954,15 @@ dotlock_create_w32 (dotlock_t h, const char *file_to_lock)
       int saveerrno = map_w32_to_errno (GetLastError ());
       all_lockfiles = h->next;
       UNLOCK_all_lockfiles ();
-      my_error_2 (_("can't create '%s': %s\n"), h->lockname, w32_strerror (-1));
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                    _("can't create '%s': %s\n"),
-                    h->lockname, w32_strerror (-1));
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                 _("can't create '%s': %s\n"),
+                 h->lockname, w32_strerror (-1));
       xfree (h->lockname);
       xfree (h);
       my_set_errno (saveerrno);
       return NULL;
     }
+  UNLOCK_all_lockfiles ();
   return h;
 }
 #endif /*HAVE_DOSISH_SYSTEM*/
@@ -1015,15 +982,12 @@ dotlock_create_w32 (dotlock_t h, const char *file_to_lock)
    POSIX systems a temporary file ".#lk.<hostname>.pid[.threadid] is
    used.
 
-   FLAGS may include DOTLOCK_PREPARE_CREATE bit, which only allocates
-   the handle and requires a further call to dotlock_finish_create.
-   This can be used to set a callback between these calls.
-
    FLAGS may include DOTLOCK_LOCK_BY_PARENT bit, when it's the parent
-   process controlling the lock.  This is used by dotlock util.
+   process controlling the lock.  This is used by dotlock_tool in
+   gpgconf.
 
    FLAGS may include DOTLOCK_LOCKED bit, when it should not create the
-   lockfile, but to unlock.  This is used by dotlock util.
+   lockfile, but to unlock.  This is used by dotlock_tool in gpgconf.
 
    The function returns an new handle which needs to be released using
    destroy_dotlock but gets also released at the termination of the
@@ -1031,7 +995,11 @@ dotlock_create_w32 (dotlock_t h, const char *file_to_lock)
  */
 
 dotlock_t
-dotlock_create (const char *file_to_lock, unsigned int flags)
+dotlock_create_with (const char *file_to_lock, unsigned int flags,
+                     int (*msg_cb)(dotlock_t, void *,
+                                   enum dotlock_reasons reason,
+                                   const char *, ...),
+                     void *msg_cb_arg)
 {
   static int initialized;
   dotlock_t h;
@@ -1058,7 +1026,7 @@ dotlock_create (const char *file_to_lock, unsigned int flags)
       flags &= ~(DOTLOCK_LOCK_BY_PARENT | DOTLOCK_LOCKED);
     }
 #endif
-  if ((flags & ~DOTLOCK_PREPARE_CREATE))
+  if (flags)
     {
       my_set_errno (EINVAL);
       return NULL;
@@ -1072,6 +1040,8 @@ dotlock_create (const char *file_to_lock, unsigned int flags)
   h->by_parent = by_parent;
   h->no_write = no_write;
 #endif
+  h->msg_cb = msg_cb;
+  h->msg_cb_arg = msg_cb_arg;
 
   if (never_lock)
     {
@@ -1082,24 +1052,6 @@ dotlock_create (const char *file_to_lock, unsigned int flags)
       UNLOCK_all_lockfiles ();
       return h;
     }
-
-  if ((flags & DOTLOCK_PREPARE_CREATE))
-    return h;
-  else
-    return dotlock_finish_create (h, file_to_lock);
-}
-
-
-/* This function may be used along with dotlock_create (file_name,
- * DOTLOCK_PREPARE_CREATE) to finish the creation call. The given
- * filename shall be the same as passed to dotlock_create.  On success
- * the same handle H is returned, on error NULL is returned and H is
- * released.  */
-dotlock_t
-dotlock_finish_create (dotlock_t h, const char *file_to_lock)
-{
-  if (!h || !file_to_lock)
-    return NULL;
 
 #ifdef HAVE_DOSISH_SYSTEM
   return dotlock_create_w32 (h, file_to_lock);
@@ -1127,24 +1079,11 @@ dotlock_get_fd (dotlock_t h)
 }
 
 
-/* Set a callback function for info diagnostics.  The callback
- * function CB is called with the handle, the opaque value OPAQUE, a
- * reason code, and a format string with its arguments.  The callback
- * shall return 0 to continue operation or true in which case the
- * current function will be terminated with an error.  */
-void
-dotlock_set_info_cb (dotlock_t h,
-                     int (*cb)(dotlock_t, void *,
-                               enum dotlock_reasons reason,
-                               const char *,...),
-                     void *opaque)
+dotlock_t
+dotlock_create (const char *file_to_lock, unsigned int flags)
 {
-  h->info_cb = cb;
-  h->info_cb_value = opaque;
+  return dotlock_create_with (file_to_lock, flags, default_msg_cb, NULL);
 }
-
-
-
 
 #ifdef HAVE_POSIX_SYSTEM
 /* Unix specific code of destroy_dotlock.  */
@@ -1303,12 +1242,9 @@ dotlock_take_unix (dotlock_t h, long timeout)
       else if (fd == -1)
         {
           saveerrno = errno;
-          my_error_2 ("lock not made: open(O_EXCL) of '%s' failed: %s\n",
-                      h->lockname, strerror (saveerrno));
-          if (h->info_cb)
-            h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                        "lock not made: open(O_EXCL) of '%s' failed: %s\n",
-                        h->lockname, strerror (saveerrno));
+          h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                     "lock not made: open(O_EXCL) of '%s' failed: %s\n",
+                     h->lockname, strerror (saveerrno));
           my_set_errno (saveerrno);
           return -1;
         }
@@ -1329,12 +1265,9 @@ dotlock_take_unix (dotlock_t h, long timeout)
             }
           /* Write error.  */
           saveerrno = errno;
-          my_error_2 ("lock not made: writing to '%s' failed: %s\n",
-                      h->lockname, strerror (errno));
-          if (h->info_cb)
-            h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                        "lock not made: writing to '%s' failed: %s\n",
-                        h->lockname, strerror (errno));
+          h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                     "lock not made: writing to '%s' failed: %s\n",
+                     h->lockname, strerror (errno));
           close (fd);
           unlink (h->lockname);
           my_set_errno (saveerrno);
@@ -1351,12 +1284,9 @@ dotlock_take_unix (dotlock_t h, long timeout)
       if (stat (h->tname, &sb))
         {
           saveerrno = errno;
-          my_error_1 ("lock not made: Oops: stat of tmp file failed: %s\n",
-                      strerror (errno));
-          if (h->info_cb)
-            h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                        "lock not made: Oops: stat of tmp file failed: %s\n",
-                        strerror (errno));
+          h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                     "lock not made: Oops: stat of tmp file failed: %s\n",
+                     strerror (errno));
           /* In theory this might be a severe error: It is possible
              that link succeeded but stat failed due to changed
              permissions.  We can't do anything about it, though.  */
@@ -1377,14 +1307,11 @@ dotlock_take_unix (dotlock_t h, long timeout)
       if ( errno != ENOENT )
         {
           saveerrno = errno;
-          my_info_0 ("cannot read lockfile\n");
-          if (h->info_cb)
-            h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                        "cannot read lockfile\n");
+          h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                     "cannot read lockfile\n");
           my_set_errno (saveerrno);
           return -1;
         }
-      my_info_0 ("lockfile disappeared\n");
       goto again;
     }
   else if ( (pid == dotlock_get_process_id (h) && same_node && !h->by_parent)
@@ -1431,11 +1358,9 @@ dotlock_take_unix (dotlock_t h, long timeout)
        */
 
       unlink (h->lockname);
-      my_info_1 (_("removing stale lockfile (created by %d)\n"), pid);
       close (fd);
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_STALE_REMOVED,
-                    _("removing stale lockfile (created by %d)\n"), pid);
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_STALE_REMOVED,
+                 _("removing stale lockfile (created by %d)\n"), pid);
       goto again;
     }
 
@@ -1450,7 +1375,7 @@ dotlock_take_unix (dotlock_t h, long timeout)
       int wtimereal;
 
       if (ownerchanged)
-        wtime = 0;  /* Reset because owner chnaged.  */
+        wtime = 0;  /* Reset because owner changed.  */
 
       wtimereal = next_wait_interval (&wtime, &timeout);
       if (!timeout)
@@ -1460,13 +1385,10 @@ dotlock_take_unix (dotlock_t h, long timeout)
       if (sumtime >= 1500)
         {
           sumtime = 0;
-          my_info_3 (_("waiting for lock (held by %d%s) %s...\n"),
-                     pid, maybe_dead, maybe_deadlock(h)? _("(deadlock?) "):"");
-          if (h->info_cb
-              && h->info_cb (h, h->info_cb_value, DOTLOCK_WAITING,
-                             _("waiting for lock (held by %d%s) %s...\n"),
-                             pid, maybe_dead,
-                             maybe_deadlock(h)? _("(deadlock?) "):""))
+          if (h->msg_cb (h, h->msg_cb_arg, DOTLOCK_WAITING,
+                         _("waiting for lock (held by %d%s) %s...\n"),
+                         pid, maybe_dead,
+                         maybe_deadlock(h)? _("(deadlock?) "):""))
             {
               my_set_errno (ECANCELED);
               return -1;
@@ -1509,13 +1431,10 @@ dotlock_take_w32 (dotlock_t h, long timeout)
   w32err = GetLastError ();
   if (w32err != ERROR_LOCK_VIOLATION)
     {
-      my_error_2 (_("lock '%s' not made: %s\n"),
-                  h->lockname, w32_strerror (w32err));
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                    _("lock '%s' not made: %s\n"),
-                    h->lockname, w32_strerror (w32err));
-      _set_errno (map_w32_to_errno (w32err));
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                 _("lock '%s' not made: %s\n"),
+                 h->lockname, w32_strerror (w32err));
+      my_set_errno (map_w32_to_errno (w32err));
       return -1;
     }
 
@@ -1529,10 +1448,8 @@ dotlock_take_w32 (dotlock_t h, long timeout)
 
       if (wtime >= 800)
         {
-          my_info_1 (_("waiting for lock %s...\n"), h->lockname);
-          if (h->info_cb
-              && h->info_cb (h, h->info_cb_value, DOTLOCK_WAITING,
-                             _("waiting for lock %s...\n"), h->lockname))
+          if (h->msg_cb (h, h->msg_cb_arg, DOTLOCK_WAITING,
+                         _("waiting for lock %s...\n"), h->lockname))
             {
               my_set_errno (ECANCELED);
               return -1;
@@ -1562,7 +1479,8 @@ dotlock_take (dotlock_t h, long timeout)
 
   if ( h->locked )
     {
-      my_debug_1 ("Oops, '%s' is already locked\n", h->lockname);
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_LOCKED_ALREADY,
+                 "Oops, '%s' is already locked\n", h->lockname);
       return 0;
     }
 
@@ -1589,19 +1507,15 @@ dotlock_release_unix (dotlock_t h)
   if ( pid == -1 )
     {
       saveerrno = errno;
-      my_error_0 ("release_dotlock: lockfile error\n");
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                    "release_dotlock: lockfile error\n");
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                 "release_dotlock: lockfile error\n");
       my_set_errno (saveerrno);
       return -1;
     }
   if ( pid != dotlock_get_process_id (h) || !same_node )
     {
-      my_error_1 ("release_dotlock: not our lock (pid=%d)\n", pid);
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_CONFLICT,
-                    "release_dotlock: not our lock (pid=%d)\n", pid);
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_CONFLICT,
+                 "release_dotlock: not our lock (pid=%d)\n", pid);
       my_set_errno (EACCES);
       return -1;
     }
@@ -1609,12 +1523,9 @@ dotlock_release_unix (dotlock_t h)
   if ( unlink( h->lockname ) )
     {
       saveerrno = errno;
-      my_error_1 ("release_dotlock: error removing lockfile '%s'\n",
-                  h->lockname);
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                    "release_dotlock: error removing lockfile '%s'\n",
-                    h->lockname);
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                 "release_dotlock: error removing lockfile '%s'\n",
+                 h->lockname);
       my_set_errno (saveerrno);
       return -1;
     }
@@ -1637,12 +1548,9 @@ dotlock_release_w32 (dotlock_t h)
     {
       int ec = (int)GetLastError ();
 
-      my_error_2 ("release_dotlock: error removing lockfile '%s': %s\n",
-                  h->lockname, w32_strerror (ec));
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_FILE_ERROR,
-                    "release_dotlock: error removing lockfile '%s': %s\n",
-                    h->lockname, w32_strerror (ec));
+      h->msg_cb (h, h->msg_cb_arg, DOTLOCK_FILE_ERROR,
+                 "release_dotlock: error removing lockfile '%s': %s\n",
+                 h->lockname, w32_strerror (ec));
       my_set_errno (map_w32_to_errno (ec));
       return -1;
     }
@@ -1673,10 +1581,11 @@ dotlock_release (dotlock_t h)
 
   if ( !h->locked )
     {
-      my_debug_1 ("Oops, '%s' is not locked\n", h->lockname);
-      if (h->info_cb)
-        h->info_cb (h, h->info_cb_value, DOTLOCK_NOT_LOCKED,
-                    "Oops, '%s' is not locked\n", h->lockname);
+      if (!never_lock)
+        {
+          h->msg_cb (h, h->msg_cb_arg, DOTLOCK_NOT_LOCKED,
+                     "Oops, '%s' is not locked\n", h->lockname);
+        }
       return 0;
     }
 

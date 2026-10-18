@@ -266,7 +266,6 @@ gst_gdk_pixbuf_sink_pixbuf_destroy_notify (guchar * pixels,
     GstVideoFrame * frame)
 {
   gst_video_frame_unmap (frame);
-  gst_buffer_unref (frame->buffer);
   g_free (frame);
 }
 
@@ -276,7 +275,7 @@ gst_gdk_pixbuf_sink_get_pixbuf_from_buffer (GstGdkPixbufSink * sink,
 {
   GdkPixbuf *pix = NULL;
   GstVideoFrame *frame;
-  gint minsize, bytes_per_pixel;
+  gint minsize GST_UNUSED_CHECKS, bytes_per_pixel GST_UNUSED_CHECKS;
 
   g_return_val_if_fail (GST_VIDEO_SINK_WIDTH (sink) > 0, NULL);
   g_return_val_if_fail (GST_VIDEO_SINK_HEIGHT (sink) > 0, NULL);
@@ -284,16 +283,17 @@ gst_gdk_pixbuf_sink_get_pixbuf_from_buffer (GstGdkPixbufSink * sink,
   frame = g_new0 (GstVideoFrame, 1);
   gst_video_frame_map (frame, &sink->info, buf, GST_MAP_READ);
 
+#ifndef G_DISABLE_CHECKS
   bytes_per_pixel = (sink->has_alpha) ? 4 : 3;
 
   /* last row needn't have row padding */
   minsize = (GST_VIDEO_FRAME_COMP_STRIDE (frame, 0) *
       (GST_VIDEO_SINK_HEIGHT (sink) - 1)) +
       (bytes_per_pixel * GST_VIDEO_SINK_WIDTH (sink));
+#endif
 
   g_return_val_if_fail (gst_buffer_get_size (buf) >= minsize, NULL);
 
-  gst_buffer_ref (buf);
   pix = gdk_pixbuf_new_from_data (GST_VIDEO_FRAME_COMP_DATA (frame, 0),
       GDK_COLORSPACE_RGB, sink->has_alpha, 8, GST_VIDEO_SINK_WIDTH (sink),
       GST_VIDEO_SINK_HEIGHT (sink), GST_VIDEO_FRAME_COMP_STRIDE (frame, 0),

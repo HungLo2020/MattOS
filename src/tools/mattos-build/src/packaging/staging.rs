@@ -852,9 +852,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                     &staging,
                     "xkbcommon",
                     soname,
-                    // The imported tree omits the ignored aggregate LICENSE;
-                    // retain the upstream README as the package notice.
-                    "src/system/libraries/xkbcommon/README.md",
+                    "src/system/libraries/xkbcommon/LICENSE",
                     "libxkbcommon0",
                 )?;
             }

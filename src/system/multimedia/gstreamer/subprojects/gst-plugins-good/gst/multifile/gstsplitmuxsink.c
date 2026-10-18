@@ -1252,8 +1252,8 @@ eos_context_async (MqStreamCtx * ctx, GstSplitMuxSink * splitmux)
       sinkpad, ctx);
 
   g_assert_nonnull (helper->pad);
-  gst_element_call_async (GST_ELEMENT (splitmux),
-      (GstElementCallAsyncFunc) send_eos_async, helper, NULL);
+  gst_object_call_async (GST_OBJECT (splitmux),
+      (GstObjectCallAsyncFunc) send_eos_async, helper);
 }
 
 /* Called with lock held. TRUE iff all contexts have a
@@ -2148,6 +2148,12 @@ _lock_and_set_to_null (GstElement * element, GstSplitMuxSink * splitmux)
   gst_bin_remove (GST_BIN (splitmux), element);
 }
 
+static void
+_lock_and_set_to_null_async (GstElement * element, GstSplitMuxSink * splitmux)
+{
+  _lock_and_set_to_null (element, splitmux);
+  gst_object_unref (splitmux);
+}
 
 static void
 _send_event (const GValue * value, gpointer user_data)
@@ -2412,12 +2418,12 @@ bus_handler (GstBin * bin, GstMessage * message)
             gst_object_unref (sinksink);
             gst_object_unref (muxersrc);
 
-            gst_element_call_async (muxer,
-                (GstElementCallAsyncFunc) _lock_and_set_to_null,
-                gst_object_ref (splitmux), gst_object_unref);
-            gst_element_call_async (sink,
-                (GstElementCallAsyncFunc) _lock_and_set_to_null,
-                gst_object_ref (splitmux), gst_object_unref);
+            gst_object_call_async (GST_OBJECT_CAST (muxer),
+                (GstObjectCallAsyncFunc) _lock_and_set_to_null_async,
+                gst_object_ref (splitmux));
+            gst_object_call_async (GST_OBJECT_CAST (sink),
+                (GstObjectCallAsyncFunc) _lock_and_set_to_null_async,
+                gst_object_ref (splitmux));
             gst_object_unref (muxer);
           } else {
             g_object_set_qdata ((GObject *) sink, EOS_FROM_US,
@@ -3303,7 +3309,7 @@ handle_mq_input (GstPad * pad, GstPadProbeInfo * info, MqStreamCtx * ctx)
     switch (splitmux->input_state) {
       case SPLITMUX_INPUT_STATE_COLLECTING_GOP_START:
         if (ctx->is_reference) {
-          const InputGop *gop, *next_gop;
+          const InputGop *gop GST_UNUSED_ASSERT, *next_gop;
 
           /* This is the reference context. If it's a keyframe,
            * it marks the start of a new GOP and we should wait in
@@ -3312,8 +3318,10 @@ handle_mq_input (GstPad * pad, GstPadProbeInfo * info, MqStreamCtx * ctx)
            * so set loop_again to FALSE */
           loop_again = FALSE;
 
+#ifndef G_DISABLE_ASSERT
           gop = g_queue_peek_head (&splitmux->pending_input_gops);
           g_assert (gop != NULL);
+#endif
           next_gop = g_queue_peek_nth (&splitmux->pending_input_gops, 1);
 
           if (ctx->in_running_time > splitmux->max_in_running_time)

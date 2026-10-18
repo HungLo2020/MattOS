@@ -1,4 +1,4 @@
-/* frontend.c - Database fronend code for keyboxd
+/* frontend.c - Database frontend code for keyboxd
  * Copyright (C) 2019 g10 Code GmbH
  *
  * This file is part of GnuPG.
@@ -549,6 +549,60 @@ kbxd_delete (ctrl_t ctrl, const unsigned char *ubid)
   else if (the_database.db_type == DB_TYPE_SQLITE)
     {
       err = be_sqlite_delete (ctrl, the_database.backend_handle, request, ubid);
+    }
+  else
+    {
+      log_error ("%s: unsupported database type %d\n",
+                 __func__, the_database.db_type);
+      err = gpg_error (GPG_ERR_INTERNAL);
+    }
+
+
+ leave:
+  release_lock (ctrl);
+  if (DBG_CLOCK)
+    log_clock ("%s: leave", __func__);
+  return err;
+}
+
+
+
+/* Put ephemeral/revoked flag on a key identified by UBID.  */
+gpg_error_t
+kbxd_putkeyflag (ctrl_t ctrl, const unsigned char *ubid,
+                 unsigned int flags, int clear)
+{
+  gpg_error_t err;
+  db_request_t request;
+
+  if (DBG_CLOCK)
+    log_clock ("%s: enter", __func__);
+
+  take_read_write_lock (ctrl);
+
+  /* Allocate a handle object if none exists for this context.  */
+  if (!ctrl->db_req)
+    {
+      ctrl->db_req = xtrycalloc (1, sizeof *ctrl->db_req);
+      if (!ctrl->db_req)
+        {
+          err = gpg_error_from_syserror ();
+          goto leave;
+        }
+    }
+  request = ctrl->db_req;
+
+  if (!the_database.db_type)
+    {
+      log_error ("%s: error: no database configured\n", __func__);
+      err = gpg_error (GPG_ERR_NOT_INITIALIZED);
+      goto leave;
+    }
+
+  if (the_database.db_type == DB_TYPE_SQLITE)
+    {
+      err = be_sqlite_putkeyflag (ctrl, the_database.backend_handle, request, ubid,
+                                  flags, clear);
     }
   else
     {

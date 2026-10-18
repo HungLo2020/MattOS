@@ -345,7 +345,7 @@ endif
 
 # non-GLVND aka Legacy OpenGL
 if need_api_opengl != 'no' and not gl_dep.found()
-  if host_system == 'darwin'
+  if host_system == 'darwin' and subsystem == 'macos'
     gl_dep = dependency('appleframeworks', modules : ['OpenGL'], required : false)
   else
     # override meson's braindead gl detection on osx/windows/etc by forcing pkg-config
@@ -378,7 +378,7 @@ if need_platform_glx != 'no'
   glx_dep = dependency('glx', method: 'pkg-config', required : false)
 
   if not glx_dep.found()
-    if host_system == 'darwin'
+    if host_system == 'darwin' and subsystem == 'macos'
       glx_dep = cc.find_library('GL', required : false)
     elif gl_dep.found()
       glx_dep = gl_dep
@@ -390,7 +390,7 @@ endif
 
 if need_api_opengl != 'no'
   opengl_includes = ''
-  if host_system == 'darwin'
+  if host_system == 'darwin' and subsystem == 'macos'
     opengl_includes += '''
 #if !defined(MAC_OS_X_VERSION_MAX_ALLOWED) || MAC_OS_X_VERSION_MAX_ALLOWED >= 1014
 # define GL_SILENCE_DEPRECATION
@@ -431,7 +431,8 @@ gles2_dep = unneeded_dep
 gles3_h = false
 gles3ext3_h = false
 if need_api_gles2 != 'no'
-  if host_system == 'ios'
+  # watchOS and visionOS do not support CAEAGL
+  if subsystem.startswith('tvos') or subsystem.startswith('ios')
     gles2_dep = dependency('appleframeworks', modules : ['OpenGLES'], required : false)
   else
     if bcm_host_dep.found()
@@ -443,12 +444,7 @@ if need_api_gles2 != 'no'
   endif
 
   if not gles2_dep.found()
-#    if host_system == 'windows'
-#    elif host_system == ios
-#      gles2_dep = cc.find_library('GLESv2', required : false)
-#    else
-      gles2_dep = cc.find_library('GLESv2', required : false)
-#    endif
+    gles2_dep = cc.find_library('GLESv2', required : false)
 
     if not cc.has_header('GLES2/gl2.h', include_directories : compat_includes)
       gles2_dep = unneeded_dep
@@ -466,7 +462,7 @@ if need_api_gles2 != 'no'
   gles3_h = gles2_dep.found() and cc.has_header('GLES3/gl3.h', dependencies : gles2_dep, include_directories : compat_includes)
 
   gles_includes = ''
-  if host_system == 'ios'
+  if subsystem.startswith('tvos') or subsystem.startswith('ios')
     gles_includes += '''
 # include <OpenGLES/ES2/gl.h>
 # include <OpenGLES/ES2/glext.h>
@@ -844,7 +840,7 @@ if need_win_winrt != 'no' and host_system == 'windows'
   endif
 endif
 
-if ['darwin', 'ios'].contains(host_system)
+if host_system == 'darwin'
   if not have_objc
     error('No ObjC compiler found')
   endif
@@ -868,7 +864,7 @@ elif need_platform_cgl == 'no' and need_win_cocoa == 'yes'
   error('Impossible situation requested: Cannot use Cocoa without CGL support')
 endif
 
-if host_system == 'darwin'
+if host_system == 'darwin' and subsystem == 'macos'
   foundation_dep = dependency('appleframeworks', modules : ['Foundation'], required : false)
   quartzcore_dep = dependency('appleframeworks', modules : ['QuartzCore'], required : false)
   corefoundation_dep = dependency('appleframeworks', modules : ['CoreFoundation'], required : false)
@@ -902,19 +898,19 @@ if host_system == 'darwin'
 endif
 
 if need_platform_eagl == 'yes'
-  if host_system != 'ios'
-    error('Can only use EAGL on iOS')
+  if not subsystem.startswith('tvos') and not subsystem.startswith('ios')
+    error('Can only use EAGL on iOS and tvOS')
   endif
   if need_win_eagl == 'no'
     error('Impossible situation requested: Cannot use EAGL platform without the EAGL window system')
-  elif need_api_gles == 'no'
+  elif need_api_gles2 == 'no'
     error('Impossible situation requested: Cannot use EAGL platform without the GLES library')
   endif
 elif need_platform_eagl == 'no' and need_win_eagl == 'yes'
   error('Impossible situation requested: Cannot use EAGL window system without the EAGL platform')
 endif
 
-if host_system == 'ios' and need_platform_eagl != 'no' and need_win_eagl != 'no'
+if (subsystem.startswith('tvos') or subsystem.startswith('ios')) and need_platform_eagl != 'no' and need_win_eagl != 'no'
   foundation_dep = dependency('appleframeworks', modules : ['Foundation'], required : false)
   corefoundation_dep = dependency('appleframeworks', modules : ['CoreFoundation'], required : false)
   coregraphics_dep = dependency('appleframeworks', modules : ['CoreGraphics'], required : false)

@@ -558,7 +558,7 @@ g_buffered_input_stream_fill_finish (GBufferedInputStream  *stream,
 gsize
 g_buffered_input_stream_get_available (GBufferedInputStream *stream)
 {
-  g_return_val_if_fail (G_IS_BUFFERED_INPUT_STREAM (stream), -1);
+  g_return_val_if_fail (G_IS_BUFFERED_INPUT_STREAM (stream), 0);
 
   return stream->priv->end - stream->priv->pos;
 }
@@ -567,14 +567,15 @@ g_buffered_input_stream_get_available (GBufferedInputStream *stream)
  * g_buffered_input_stream_peek:
  * @stream: a [class@Gio.BufferedInputStream]
  * @buffer: (array length=count) (element-type guint8): a pointer to
- *   an allocated chunk of memory
- * @offset: a #gsize
- * @count: a #gsize
+ *   an allocated chunk of memory, which must be at least @count bytes long
+ * @offset: offset into the buffered input to peek from, or zero to peek from
+ *   the next byte in the buffered input onwards
+ * @count: number of bytes to peek
  *
- * Peeks in the buffer, copying data of size @count into @buffer,
- * offset @offset bytes.
+ * Peeks in the buffered input, copying @count bytes of data from @offset bytes
+ * in the buffered input into @buffer.
  *
- * Returns: a #gsize of the number of bytes peeked, or `-1` on error.
+ * Returns: the number of bytes copied, which may be zero
  */
 gsize
 g_buffered_input_stream_peek (GBufferedInputStream *stream,
@@ -585,12 +586,12 @@ g_buffered_input_stream_peek (GBufferedInputStream *stream,
   gsize available;
   gsize end;
 
-  g_return_val_if_fail (G_IS_BUFFERED_INPUT_STREAM (stream), -1);
-  g_return_val_if_fail (buffer != NULL, -1);
+  g_return_val_if_fail (G_IS_BUFFERED_INPUT_STREAM (stream), 0);
+  g_return_val_if_fail (buffer != NULL, 0);
 
   available = g_buffered_input_stream_get_available (stream);
 
-  if (offset > available)
+  if (offset > available || offset > G_MAXSIZE - count)
     return 0;
 
   end = MIN (offset + count, available);
@@ -1045,7 +1046,7 @@ fill_async_callback (GObject      *source_object,
       stream = g_task_get_source_object (task);
       priv = G_BUFFERED_INPUT_STREAM (stream)->priv;
 
-      g_assert_cmpint (priv->end + res, <=, priv->len);
+      g_assert (priv->end + res <= priv->len);
       priv->end += res;
 
       g_task_return_int (task, res);

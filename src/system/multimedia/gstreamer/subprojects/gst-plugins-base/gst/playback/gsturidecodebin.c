@@ -993,6 +993,9 @@ do_async_done (GstURIDecodeBin * dbin)
 #define DEFAULT_QUEUE_MIN_THRESHOLD ((DEFAULT_QUEUE_SIZE * 30) / 100)
 #define DEFAULT_QUEUE_THRESHOLD     ((DEFAULT_QUEUE_SIZE * 95) / 100)
 
+GST_LOG_CONTEXT_STATIC_DEFINE (no_decoder_for_type_log_context,
+    GST_LOG_CONTEXT_FLAG_THROTTLE);
+#define NO_DECODER_FOR_TYPE_LOG_CTX GST_LOG_CONTEXT_LAZY_INIT(no_decoder_for_type_log_context)
 static void
 unknown_type_cb (GstElement * element, GstPad * pad, GstCaps * caps,
     GstURIDecodeBin * decoder)
@@ -1000,7 +1003,8 @@ unknown_type_cb (GstElement * element, GstPad * pad, GstCaps * caps,
   gchar *capsstr;
 
   capsstr = gst_caps_to_string (caps);
-  GST_ELEMENT_WARNING (decoder, STREAM, CODEC_NOT_FOUND,
+  GST_ELEMENT_WARNING_WITH_LOG_CTX (decoder, STREAM, CODEC_NOT_FOUND,
+      NO_DECODER_FOR_TYPE_LOG_CTX,
       (_("No decoder available for type \'%s\'."), capsstr), (NULL));
   g_free (capsstr);
 }
@@ -1051,11 +1055,18 @@ done:
      * decodebins had missing plugins for all of their streams!
      */
     if (!decoder->streams || g_hash_table_size (decoder->streams) == 0) {
-      if (decoder->missing_plugin_errors) {
+      GList *missing_plugin_errors;
+
+      GST_URI_DECODE_BIN_LOCK (decoder);
+      missing_plugin_errors = decoder->missing_plugin_errors;
+      decoder->missing_plugin_errors = NULL;
+      GST_URI_DECODE_BIN_UNLOCK (decoder);
+
+      if (missing_plugin_errors) {
         GString *str = g_string_new ("");
         GList *l;
 
-        for (l = decoder->missing_plugin_errors; l; l = l->next) {
+        for (l = missing_plugin_errors; l; l = l->next) {
           GstMessage *msg = l->data;
           gchar *debug;
 
@@ -1064,8 +1075,8 @@ done:
           g_free (debug);
           gst_message_unref (msg);
         }
-        g_list_free (decoder->missing_plugin_errors);
-        decoder->missing_plugin_errors = NULL;
+        g_list_free (missing_plugin_errors);
+        missing_plugin_errors = NULL;
 
         GST_ELEMENT_ERROR (decoder, CORE, MISSING_PLUGIN, (NULL),
             ("no suitable plugins found:\n%s", str->str));
@@ -2619,8 +2630,10 @@ handle_message (GstBin * bin, GstMessage * msg)
       if (g_error_matches (err, GST_CORE_ERROR, GST_CORE_ERROR_MISSING_PLUGIN)
           || g_error_matches (err, GST_STREAM_ERROR,
               GST_STREAM_ERROR_CODEC_NOT_FOUND)) {
+        GST_URI_DECODE_BIN_LOCK (dec);
         dec->missing_plugin_errors =
             g_list_prepend (dec->missing_plugin_errors, gst_message_ref (msg));
+        GST_URI_DECODE_BIN_UNLOCK (dec);
 
         no_more_pads_full (GST_ELEMENT (GST_MESSAGE_SRC (msg)), FALSE,
             GST_URI_DECODE_BIN (bin));
@@ -2970,9 +2983,11 @@ gst_uri_decode_bin_change_state (GstElement * element,
       remove_decoders (decoder, FALSE);
       remove_source (decoder);
       do_async_done (decoder);
+      GST_URI_DECODE_BIN_LOCK (decoder);
       g_list_free_full (decoder->missing_plugin_errors,
           (GDestroyNotify) gst_message_unref);
       decoder->missing_plugin_errors = NULL;
+      GST_URI_DECODE_BIN_UNLOCK (decoder);
       break;
     case GST_STATE_CHANGE_READY_TO_NULL:
       GST_DEBUG ("ready to null");

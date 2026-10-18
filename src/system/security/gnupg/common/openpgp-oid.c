@@ -43,23 +43,38 @@ static struct {
   const char *oidstr; /* IETF formatted OID.  */
   unsigned int nbits; /* Nominal bit length of the curve.  */
   const char *alias;  /* NULL or alternative name of the curve.  */
+  const char *abbr;   /* NULL or abbreviated name of the curve.  */
   int pubkey_algo;    /* Required OpenPGP algo or 0 for ECDSA/ECDH.  */
 } oidtable[] = {
 
-  { "Curve25519", "1.3.6.1.4.1.3029.1.5.1", 255, "cv25519", PUBKEY_ALGO_ECDH },
-  { "Ed25519",    "1.3.6.1.4.1.11591.15.1", 255, "ed25519", PUBKEY_ALGO_EDDSA },
-  { "Curve25519", "1.3.101.110",            255, "cv25519", PUBKEY_ALGO_ECDH },
-  { "Ed25519",    "1.3.101.112",            255, "ed25519", PUBKEY_ALGO_EDDSA },
-  { "X448",       "1.3.101.111",            448, "cv448",   PUBKEY_ALGO_ECDH },
-  { "Ed448",      "1.3.101.113",            456, "ed448",   PUBKEY_ALGO_EDDSA },
+  { "Curve25519", "1.3.6.1.4.1.3029.1.5.1", 255, "cv25519", NULL,
+    PUBKEY_ALGO_ECDH /* only during development */},
+  { "Ed25519",    "1.3.6.1.4.1.11591.15.1", 255, "ed25519", NULL,
+    PUBKEY_ALGO_EDDSA },
+  { "Curve25519", "1.3.101.110",            255, "cv25519", NULL,
+    PUBKEY_ALGO_ECDH },
+  { "ietf25",     "1.3.6.1.4.1.11591.15.25",255, NULL,      NULL,
+    PUBKEY_ALGO_X25519 },
+  { "Ed25519",    "1.3.101.112",            255, "ed25519", NULL,
+    PUBKEY_ALGO_EDDSA },
+  { "X448",       "1.3.101.111",            448, "cv448",   NULL,
+    PUBKEY_ALGO_ECDH },
+  { "Ed448",      "1.3.101.113",            456, "ed448",   NULL,
+    PUBKEY_ALGO_EDDSA },
 
-  { "NIST P-256",      "1.2.840.10045.3.1.7",    256, "nistp256" },
-  { "NIST P-384",      "1.3.132.0.34",           384, "nistp384" },
-  { "NIST P-521",      "1.3.132.0.35",           521, "nistp521" },
+  { "NIST P-256",      "1.2.840.10045.3.1.7",    256, "nistp256", NULL,
+    0 },
+  { "NIST P-384",      "1.3.132.0.34",           384, "nistp384", NULL,
+    0 },
+  { "NIST P-521",      "1.3.132.0.35",           521, "nistp521", NULL,
+    0 },
 
-  { "brainpoolP256r1", "1.3.36.3.3.2.8.1.1.7",   256 },
-  { "brainpoolP384r1", "1.3.36.3.3.2.8.1.1.11",  384 },
-  { "brainpoolP512r1", "1.3.36.3.3.2.8.1.1.13",  512 },
+  { "brainpoolP256r1", "1.3.36.3.3.2.8.1.1.7",   256, NULL, "bp256",
+    0 },
+  { "brainpoolP384r1", "1.3.36.3.3.2.8.1.1.11",  384, NULL, "bp384",
+    0 },
+  { "brainpoolP512r1", "1.3.36.3.3.2.8.1.1.13",  512, NULL, "bp512",
+    0 },
 
   { "secp256k1",       "1.3.132.0.10",           256 },
 
@@ -118,7 +133,7 @@ make_flagged_int (unsigned long value, char *buf, size_t buflen)
 
   /* fixme: figure out the number of bits in an ulong and start with
      that value as shift (after making it a multiple of 7) a more
-     straigtforward implementation is to do it in reverse order using
+     straightforward implementation is to do it in reverse order using
      a temporary buffer - saves a lot of compares */
   for (more=0, shift=28; shift > 0; shift -= 7)
     {
@@ -432,9 +447,11 @@ openpgp_oid_is_cv448 (gcry_mpi_t a)
    curve names.  If R_ALGO is not NULL and a specific ECC algorithm is
    required for this curve its OpenPGP algorithm number is stored
    there; otherwise 0 is stored which indicates that ECDSA or ECDH can
-   be used. */
+   be used.  SELECTOR specifies which OID should be returned: -1 for
+   don't care, 0 for old OID, 1 for new OID.  */
 const char *
-openpgp_curve_to_oid (const char *name, unsigned int *r_nbits, int *r_algo)
+openpgp_curve_to_oid (const char *name, unsigned int *r_nbits, int *r_algo,
+                      int selector)
 {
   int i;
   unsigned int nbits = 0;
@@ -468,6 +485,14 @@ openpgp_curve_to_oid (const char *name, unsigned int *r_nbits, int *r_algo)
         }
     }
 
+  /* Special handling for Curve25519, where we have two valid OIDs.  */
+  if (algo && i == 0)
+    {
+      /* Select new OID, if wanted.  */
+      if (selector > 0)
+        oidstr = oidtable[2].oidstr;
+    }
+
   if (r_nbits)
     *r_nbits = nbits;
   if (r_algo)
@@ -477,10 +502,20 @@ openpgp_curve_to_oid (const char *name, unsigned int *r_nbits, int *r_algo)
 
 
 /* Map an OpenPGP OID to the Libgcrypt curve name.  Returns NULL for
- * unknown curve names.  Unless CANON is set we prefer an alias name
- * here which is more suitable for printing.  */
+ * unknown curve names.  MODE defines which version of the curve name
+ * is returned.  For example:
+ *
+ * |                  OID | mode=0          | mode=1          | mode=2   |
+ * |----------------------+-----------------+-----------------+----------|
+ * |  1.2.840.10045.3.1.7 | nistp256        | NIST P-256      | nistp256 |
+ * | 1.3.36.3.3.2.8.1.1.7 | brainpoolP256r1 | brainpoolP256r1 | bp256    |
+ *
+ * Thus mode 0 returns the name as commonly used gpg, mode 1 returns
+ * the canonical name, and mode 2 prefers an abbreviated name over the
+ * commonly used name.
+ */
 const char *
-openpgp_oid_to_curve (const char *oidstr, int canon)
+openpgp_oid_to_curve (const char *oidstr, int mode)
 {
   int i;
 
@@ -489,7 +524,15 @@ openpgp_oid_to_curve (const char *oidstr, int canon)
 
   for (i=0; oidtable[i].name; i++)
     if (!strcmp (oidtable[i].oidstr, oidstr))
-      return !canon && oidtable[i].alias? oidtable[i].alias : oidtable[i].name;
+      {
+        if (mode == 2)
+          {
+            if (oidtable[i].abbr)
+              return oidtable[i].abbr;
+            mode = 0; /* No abbreviation - fallback to mode 0.  */
+          }
+        return !mode && oidtable[i].alias? oidtable[i].alias : oidtable[i].name;
+      }
 
   return NULL;
 }
@@ -574,7 +617,9 @@ openpgp_is_curve_supported (const char *name, int *r_algo,
     {
       if ((!ascii_strcasecmp (name, oidtable[idx].name)
            || (oidtable[idx].alias
-               && !ascii_strcasecmp (name, (oidtable[idx].alias))))
+               && !ascii_strcasecmp (name, (oidtable[idx].alias)))
+           || (oidtable[idx].abbr
+               && !ascii_strcasecmp (name, (oidtable[idx].abbr))))
           && curve_supported_p (oidtable[idx].name))
         {
           if (r_algo)
@@ -598,6 +643,7 @@ map_gcry_pk_to_openpgp (enum gcry_pk_algos algo)
     case GCRY_PK_EDDSA:  return PUBKEY_ALGO_EDDSA;
     case GCRY_PK_ECDSA:  return PUBKEY_ALGO_ECDSA;
     case GCRY_PK_ECDH:   return PUBKEY_ALGO_ECDH;
+    case GCRY_PK_KEM:    return PUBKEY_ALGO_KYBER;
     default: return algo < 110 ? (pubkey_algo_t)algo : 0;
     }
 }

@@ -35,6 +35,9 @@ G_BEGIN_DECLS
   (G_TYPE_CHECK_INSTANCE_TYPE((obj),GST_TYPE_AVTP_BASE_DEPAYLOAD))
 #define GST_IS_AVTP_BASE_DEPAYLOAD_CLASS(klass) \
   (G_TYPE_CHECK_CLASS_TYPE((klass),GST_TYPE_AVTP_BASE_DEPAYLOAD))
+#define GST_AVTP_BASE_DEPAYLOAD_GET_CLASS(obj) \
+  (G_TYPE_INSTANCE_GET_CLASS ((obj), GST_AVTP_BASE_DEPAYLOAD, \
+      GstAvtpBaseDepayloadClass))
 
 typedef struct _GstAvtpBaseDepayload GstAvtpBaseDepayload;
 typedef struct _GstAvtpBaseDepayloadClass GstAvtpBaseDepayloadClass;
@@ -48,7 +51,9 @@ struct _GstAvtpBaseDepayload
 
   guint64 streamid;
 
-  GstClockTime prev_ptime;
+  GstClockTime last_dts;
+  gboolean segment_sent;
+
   guint8 seqnum;
 
   gpointer _gst_reserved[GST_PADDING];
@@ -59,9 +64,8 @@ struct _GstAvtpBaseDepayloadClass
   GstElementClass parent_class;
 
   /* Pure virtual function. */
-  GstPadChainFunction chain;
-
-  GstPadEventFunction sink_event;
+  GstFlowReturn (*process) (GstAvtpBaseDepayload *base, GstBuffer *buf);
+  gboolean (*sink_event) (GstAvtpBaseDepayload *base, GstEvent *event);
 
   gpointer _gst_reserved[GST_PADDING];
 };
@@ -71,8 +75,8 @@ GType gst_avtp_base_depayload_get_type (void);
 GstClockTime gst_avtp_base_depayload_tstamp_to_ptime (GstAvtpBaseDepayload *
     avtpbasedepayload, guint32 tstamp, GstClockTime ref);
 
-gboolean gst_avtp_base_depayload_push_segment_event (GstAvtpBaseDepayload *
-    avtpbasedepayload, guint32 avtp_tstamp);
+GstFlowReturn gst_avtp_base_depayload_push (GstAvtpBaseDepayload *
+    avtpbasedepayload, GstBuffer * buffer);
 
 G_END_DECLS
 

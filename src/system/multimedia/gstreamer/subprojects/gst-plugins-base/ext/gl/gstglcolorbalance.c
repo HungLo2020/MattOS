@@ -45,7 +45,6 @@
 
 #include "gstglelements.h"
 #include "gstglcolorbalance.h"
-#include "gstglutils.h"
 
 GST_DEBUG_CATEGORY_STATIC (glcolorbalance_debug);
 #define GST_CAT_DEFAULT glcolorbalance_debug

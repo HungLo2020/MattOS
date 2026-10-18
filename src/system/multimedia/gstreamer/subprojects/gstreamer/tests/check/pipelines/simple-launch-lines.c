@@ -141,11 +141,11 @@ check_state_change_return (GstElement * pipeline, GstState state,
   ret = gst_element_set_state (pipeline, state);
   if (ret != immediate)
     g_critical ("Unexpected set_state return ->%s: %d != %d",
-        gst_element_state_get_name (state), ret, immediate);
+        gst_state_get_name (state), ret, immediate);
   ret = gst_element_get_state (pipeline, NULL, NULL, GST_CLOCK_TIME_NONE);
   if (ret != final)
     g_critical ("Unexpected get_state return ->%s: %d != %d",
-        gst_element_state_get_name (state), ret, final);
+        gst_state_get_name (state), ret, final);
 }
 
 
@@ -312,7 +312,7 @@ GST_END_TEST;
 
 GST_START_TEST (test_typefind_force_sink_caps)
 {
-  const gchar *s;
+  const gchar *s GST_UNUSED_CHECKS;
 
   s = "fakesrc can-activate-push=true num-buffers=5 ! "
       "typefind force-caps=foo/x-bar ! fakesink can-activate-push=true";

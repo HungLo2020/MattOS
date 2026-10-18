@@ -157,7 +157,7 @@ gst_mpegv_parse_class_init (GstMpegvParseClass * klass)
       "MPEG video elementary stream parser",
       "Codec/Parser/Video",
       "Parses and frames MPEG-1 and MPEG-2 elementary video streams",
-      "Wim Taymans <wim.taymans@ccollabora.co.uk>, "
+      "Wim Taymans <wim.taymans@collabora.co.uk>, "
       "Jan Schmidt <thaytan@mad.scientist.com>, "
       "Mark Nauwelaerts <mark.nauwelaerts@collabora.co.uk>");
 
@@ -196,7 +196,7 @@ gst_mpegv_parse_reset_frame (GstMpegvParse * mpvparse)
   mpvparse->ext_count = 0;
   mpvparse->slice_count = 0;
   mpvparse->slice_offset = 0;
-  gst_video_clear_user_data (&mpvparse->user_data, FALSE);
+  gst_video_clear_user_data (&mpvparse->user_data);
 }
 
 static void
@@ -634,7 +634,7 @@ gst_mpegv_parse_handle_frame (GstBaseParse * parse,
   gint off = 0;
   GstMpegVideoPacket packet;
   guint8 *data;
-  gint size;
+  gsize size;
   gboolean need_more = FALSE;
   GstMapInfo map;
 
@@ -729,7 +729,7 @@ exit:
     GstFlowReturn res;
 
     *skipsize = 0;
-    g_assert (off <= map.size);
+    g_assert (off <= size);
     res = gst_mpegv_parse_parse_frame (parse, frame);
     if (res == GST_BASE_PARSE_FLOW_DROPPED)
       frame->flags |= GST_BASE_PARSE_FRAME_FLAG_DROP;

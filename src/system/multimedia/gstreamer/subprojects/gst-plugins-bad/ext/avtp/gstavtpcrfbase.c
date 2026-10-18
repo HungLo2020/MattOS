@@ -72,7 +72,7 @@ gst_avtp_crf_base_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 static GstStateChangeReturn gst_avtp_crf_base_change_state (GstElement *
     element, GstStateChange transition);
-static void crf_listener_thread_func (GstAvtpCrfBase * avtpcrfbase);
+static gpointer crf_listener_thread_func (GstAvtpCrfBase * avtpcrfbase);
 static int setup_socket (GstAvtpCrfBase * avtpcrfbase);
 
 #define gst_avtp_crf_base_parent_class parent_class
@@ -267,7 +267,7 @@ validate_crf_pdu (GstAvtpCrfBase * avtpcrfbase, struct avtp_crf_pdu *crf_pdu,
   guint64 tstamp_interval, base_freq, pull, type;
   guint64 streamid_valid, streamid, data_len;
   guint32 subtype;
-  int res;
+  int res GST_UNUSED_ASSERT;
 
   if (packet_size < sizeof (struct avtp_crf_pdu))
     return FALSE;
@@ -439,7 +439,7 @@ calculate_average_period (GstAvtpCrfBase * avtpcrfbase,
    */
   if (num_pkt_tstamps == 1) {
     guint64 seqnum;
-    int res;
+    int res GST_UNUSED_ASSERT;
 
     res = avtp_crf_pdu_get (crf_pdu, AVTP_CRF_FIELD_SEQ_NUM, &seqnum);
     g_assert (res == 0);
@@ -489,13 +489,13 @@ calculate_average_period (GstAvtpCrfBase * avtpcrfbase,
   data->current_ts = first_pkt_tstamp;
 }
 
-static void
+static gpointer
 crf_listener_thread_func (GstAvtpCrfBase * avtpcrfbase)
 {
   GstAvtpCrfThreadData *data = &avtpcrfbase->thread_data;
   struct avtp_crf_pdu *crf_pdu = g_alloca (MAX_AVTPDU_SIZE);
   guint64 media_clk_reset;
-  int n, res;
+  int n, res GST_UNUSED_ASSERT;
 
   g_assert (data->fd > -1);
 
@@ -532,6 +532,8 @@ crf_listener_thread_func (GstAvtpCrfBase * avtpcrfbase)
 
     calculate_average_period (avtpcrfbase, crf_pdu);
   }
+
+  return NULL;
 }
 
 static void

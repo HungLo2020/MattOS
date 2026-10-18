@@ -125,7 +125,8 @@ struct server_control_s
   unsigned int filter_x509 : 1;
   /* Used by SEARCH and NEXT.  */
   unsigned int no_data_return : 1;
-
+  /* Used by SEARCH and STORE.  */
+  unsigned int ephemeral : 1;
 };
 
 

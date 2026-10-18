@@ -67,3 +67,11 @@ do_test (int argc, char *argv[])
   release_kbnode (kb1);
   xfree (ctrl);
 }
+
+
+nvc_t
+seckey_packet_to_nvc (PKT_public_key *pk)
+{
+  (void)pk;
+  return NULL;
+}

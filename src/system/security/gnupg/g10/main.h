@@ -23,6 +23,7 @@
 #include "../common/types.h"
 #include "../common/iobuf.h"
 #include "../common/util.h"
+#include "../common/name-value.h"
 #include "keydb.h"
 #include "keyedit.h"
 
@@ -108,13 +109,17 @@ char *make_radix64_string( const byte *data, size_t len );
 void trap_unaligned(void);
 void register_secured_file (const char *fname);
 void unregister_secured_file (const char *fname);
-int  is_secured_file (int fd);
+int  is_secured_file (gnupg_fd_t fd);
 int  is_secured_filename (const char *fname);
 u16 checksum_u16( unsigned n );
 u16 checksum( const byte *p, unsigned n );
 u16 checksum_mpi( gcry_mpi_t a );
 u32 buffer_to_u32( const byte *buffer );
 const byte *get_session_marker( size_t *rlen );
+gpg_error_t gnupg_register_partial_file (const char *fname_part,
+                                         const char *fname);
+gpg_error_t gnupg_rollback_partial_file (void);
+gpg_error_t gnupg_commit_partial_file (void);
 
 enum gcry_cipher_algos map_cipher_openpgp_to_gcry (cipher_algo_t algo);
 #define openpgp_cipher_open(_a,_b,_c,_d) \
@@ -202,6 +207,7 @@ unsigned int ecdsa_qbits_from_Q (unsigned int qbits);
 void set_status_fd ( int fd );
 int  is_status_enabled ( void );
 void write_status ( int no );
+void write_status_warning (const char *where, gpg_error_t err);
 void write_status_error (const char *where, gpg_error_t err);
 void write_status_errcode (const char *where, int errcode);
 void write_status_failure (const char *where, gpg_error_t err);
@@ -243,11 +249,16 @@ aead_algo_t use_aead (pk_list_t pk_list, int algo);
 int use_mdc (pk_list_t pk_list,int algo);
 int encrypt_symmetric (const char *filename );
 int encrypt_store (const char *filename );
-int encrypt_crypt (ctrl_t ctrl, int filefd, const char *filename,
+int encrypt_crypt (ctrl_t ctrl, gnupg_fd_t filefd, const char *filename,
                    strlist_t remusr, int use_symkey, pk_list_t provided_keys,
-                   int outputfd);
+                   gnupg_fd_t outputfd);
 void encrypt_crypt_files (ctrl_t ctrl,
                           int nfiles, char **files, strlist_t remusr);
+gpg_error_t reencrypt_to_new_recipients (ctrl_t ctrl, int armor,
+                                         const char *filename, iobuf_t infp,
+                                         strlist_t recipients,
+                                         DEK *dek,
+                                         struct seskey_enc_list *sesenc_list);
 int encrypt_filter (void *opaque, int control,
 		    iobuf_t a, byte *buf, size_t *ret_len);
 
@@ -267,7 +278,8 @@ void sig_check_dump_stats (void);
 /* SIG is a revocation signature.  Check if any of PK's designated
    revokers generated it.  If so, return 0.  Note: this function
    (correctly) doesn't care if the designated revoker is revoked.  */
-int check_revocation_keys (ctrl_t ctrl, PKT_public_key *pk, PKT_signature *sig);
+gpg_error_t check_revocation_keys (ctrl_t ctrl,
+                                   PKT_public_key *pk, PKT_signature *sig);
 /* Check that the backsig BACKSIG from the subkey SUB_PK to its
    primary key MAIN_PK is valid.  */
 int check_backsig(PKT_public_key *main_pk,PKT_public_key *sub_pk,
@@ -311,8 +323,13 @@ unsigned int ask_key_flags (int algo, int subkey, unsigned int current);
 const char *ask_curve (int *algo, int *subkey_algo, const char *current);
 void quick_generate_keypair (ctrl_t ctrl, const char *uid, const char *algostr,
                              const char *usagestr, const char *expirestr);
-void generate_keypair (ctrl_t ctrl, int full, const char *fname,
-                       const char *card_serialno, int card_backup_key);
+
+#define GENERATE_KEYPAIR_FULL        1  /* Full key generation dialog.  */
+#define GENERATE_KEYPAIR_CARDBACKUP  2  /* Create card key with backup. */
+#define GENERATE_KEYPAIR_CARDPRIMARY 4  /* Only the primary card key.   */
+void generate_keypair (ctrl_t ctrl, const char *fname,
+                       const char *card_serialno, unsigned int genflags);
+
 int keygen_set_std_prefs (const char *string,int personal);
 PKT_user_id *keygen_get_std_prefs (void);
 int keygen_add_key_expire( PKT_signature *sig, void *opaque );
@@ -333,6 +350,8 @@ gpg_error_t generate_subkeypair (ctrl_t ctrl, kbnode_t keyblock,
                                  const char *algostr,
                                  const char *usagestr,
                                  const char *expirestr);
+gpg_error_t append_subkey_to_keyblock (ctrl_t ctrl, kbnode_t keyblock,
+                                       PKT_public_key *sub_pk, int use);
 #ifdef ENABLE_CARD_SUPPORT
 gpg_error_t generate_card_subkeypair (ctrl_t ctrl, kbnode_t pub_keyblock,
                                       int keyno, const char *serialno);
@@ -343,7 +362,7 @@ gpg_error_t generate_card_subkeypair (ctrl_t ctrl, kbnode_t pub_keyblock,
 int overwrite_filep( const char *fname );
 char *make_outfile_name( const char *iname );
 char *ask_outfile_name( const char *name, size_t namelen );
-int open_outfile (int out_fd, const char *iname, int mode,
+int open_outfile (gnupg_fd_t out_fd, const char *iname, int mode,
                   int restrictedperm, iobuf_t *a);
 char *get_matching_datafile (const char *sigfilename);
 iobuf_t open_sigfile (const char *sigfilename, progress_filter_context_t *pfx);
@@ -398,10 +417,12 @@ const char *impex_filter_getval (void *cookie, const char *propname);
 gpg_error_t transfer_secret_keys (ctrl_t ctrl, struct import_stats_s *stats,
                                   kbnode_t sec_keyblock, int batch, int force,
                                   int only_marked);
+nvc_t seckey_packet_to_nvc (PKT_public_key *pk);
 
 int collapse_uids (kbnode_t *keyblock);
 int collapse_subkeys (kbnode_t *keyblock);
 
+const char *revocation_reason_code_to_str (int code, char **r_freeme);
 int get_revocation_reason (PKT_signature *sig, char **r_reason,
                            char **r_comment, size_t *r_commentlen);
 
@@ -413,6 +434,7 @@ typedef struct export_stats_s *export_stats_t;
 export_stats_t export_new_stats (void);
 void export_release_stats (export_stats_t stats);
 void export_print_stats (export_stats_t stats);
+void print_status_exported (PKT_public_key *pk);
 
 int parse_export_options(char *str,unsigned int *options,int noisy);
 gpg_error_t parse_and_set_export_filter (const char *string);
@@ -436,7 +458,8 @@ gpg_error_t export_pubkey_buffer (ctrl_t ctrl, const char *keyspec,
                                   void **r_data, size_t *r_datalen);
 
 gpg_error_t receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
-                                       int cleartext, int mode1003,
+                                       int cleartext,
+                                       int mode1003, int is_part2,
                                        char **cache_nonce_addr,
                                        const char *hexgrip,
                                        PKT_public_key *pk, gcry_sexp_t *r_key);
@@ -472,8 +495,8 @@ void secret_key_list (ctrl_t ctrl, strlist_t list );
 gpg_error_t parse_and_set_list_filter (const char *string);
 void print_subpackets_colon(PKT_signature *sig);
 void reorder_keyblock (KBNODE keyblock);
-void list_keyblock_direct (ctrl_t ctrl, kbnode_t keyblock, int secret,
-                           int has_secret, int fpr, int no_validity);
+gpg_error_t list_keyblock_direct (ctrl_t ctrl, kbnode_t keyblock, int secret,
+                                  int has_secret, int fpr, int no_validity);
 int  cmp_signodes (const void *av, const void *bv);
 void print_fingerprint (ctrl_t ctrl, estream_t fp,
                         PKT_public_key *pk, int mode);
@@ -482,6 +505,7 @@ void show_preferences (PKT_user_id *uid, int indent, int mode, int verbose);
 void show_policy_url(PKT_signature *sig,int indent,int mode);
 void show_keyserver_url(PKT_signature *sig,int indent,int mode);
 void show_notation(PKT_signature *sig,int indent,int mode,int which);
+void print_matching_notations (PKT_signature *sig);
 void dump_attribs (const PKT_user_id *uid, PKT_public_key *pk);
 void set_attrib_fd(int fd);
 void print_key_info (ctrl_t ctrl, estream_t fp, int indent,
@@ -490,25 +514,29 @@ void print_key_info_log (ctrl_t ctrl, int loglevel, int indent,
                      PKT_public_key *pk, int secret);
 void print_card_key_info (estream_t fp, KBNODE keyblock);
 void print_key_line (ctrl_t ctrl, estream_t fp, PKT_public_key *pk, int secret);
+void print_revocation_reason_comment (const char *comment, size_t comment_len);
 
 /*-- verify.c --*/
 void print_file_status( int status, const char *name, int what );
 int verify_signatures (ctrl_t ctrl, int nfiles, char **files );
 int verify_files (ctrl_t ctrl, int nfiles, char **files );
-int gpg_verify (ctrl_t ctrl, int sig_fd, int data_fd, estream_t out_fp);
+int gpg_verify (ctrl_t ctrl, gnupg_fd_t sig_fd, gnupg_fd_t data_fd,
+                estream_t out_fp);
 void check_assert_signer_list (const char *mainpkhex, const char *pkhex);
 void check_assert_pubkey_algo (const char *algostr, const char *pkhex);
 
 /*-- decrypt.c --*/
-int decrypt_message (ctrl_t ctrl, const char *filename );
-gpg_error_t decrypt_message_fd (ctrl_t ctrl, int input_fd, int output_fd);
+gpg_error_t decrypt_message (ctrl_t ctrl, const char *filename,
+                             strlist_t remusr);
+gpg_error_t decrypt_message_fd (ctrl_t ctrl, gnupg_fd_t input_fd,
+                                gnupg_fd_t output_fd);
 void decrypt_messages (ctrl_t ctrl, int nfiles, char *files[]);
 
 /*-- plaintext.c --*/
 int hash_datafiles( gcry_md_hd_t md, gcry_md_hd_t md2,
 		    strlist_t files, const char *sigfilename, int textmode);
-int hash_datafile_by_fd ( gcry_md_hd_t md, gcry_md_hd_t md2, int data_fd,
-                          int textmode );
+int hash_datafile_by_fd (gcry_md_hd_t md, gcry_md_hd_t md2,
+                         gnupg_fd_t data_fd, int textmode);
 PKT_plaintext *setup_plaintext_name(const char *filename,IOBUF iobuf);
 
 /*-- server.c --*/
@@ -522,7 +550,8 @@ void change_pin (int no, int allow_admin);
 void card_status (ctrl_t ctrl, estream_t fp, const char *serialno);
 void card_edit (ctrl_t ctrl, strlist_t commands);
 gpg_error_t  card_generate_subkey (ctrl_t ctrl, kbnode_t pub_keyblock);
-int  card_store_subkey (KBNODE node, int use, strlist_t *processed_keys);
+int  card_store_subkey (kbnode_t node, int use, strlist_t *processed_keys,
+                        int *r_selected_use);
 #endif
 
 /*-- migrate.c --*/

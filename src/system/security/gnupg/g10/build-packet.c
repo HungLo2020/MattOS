@@ -38,11 +38,12 @@ static int do_user_id( IOBUF out, int ctb, PKT_user_id *uid );
 static int do_key (iobuf_t out, int ctb, PKT_public_key *pk);
 static int do_symkey_enc( IOBUF out, int ctb, PKT_symkey_enc *enc );
 static int do_pubkey_enc( IOBUF out, int ctb, PKT_pubkey_enc *enc );
+static int do_pubkey_enc_v6 (iobuf_t out, int ctb, PKT_pubkey_enc *enc);
 static u32 calc_plaintext( PKT_plaintext *pt );
 static int do_plaintext( IOBUF out, int ctb, PKT_plaintext *pt );
 static int do_encrypted( IOBUF out, int ctb, PKT_encrypted *ed );
-static int do_encrypted_mdc( IOBUF out, int ctb, PKT_encrypted *ed );
-static int do_encrypted_aead (iobuf_t out, int ctb, PKT_encrypted *ed);
+static int do_encrypted_mdc (iobuf_t out, int ctb, PKT_encrypted *ed );
+static int do_encrypted_ocb (iobuf_t out, int ctb, PKT_encrypted *ed);
 static int do_compressed( IOBUF out, int ctb, PKT_compressed *cd );
 static int do_signature( IOBUF out, int ctb, PKT_signature *sig );
 static int do_onepass_sig( IOBUF out, int ctb, PKT_onepass_sig *ops );
@@ -150,7 +151,7 @@ build_packet (IOBUF out, PACKET *pkt)
       break;
     case PKT_ENCRYPTED:
     case PKT_ENCRYPTED_MDC:
-    case PKT_ENCRYPTED_AEAD:
+    case PKT_ENCRYPTED_OCB:
       new_ctb = pkt->pkt.encrypted->new_ctb;
       break;
     case PKT_COMPRESSED:
@@ -203,8 +204,8 @@ build_packet (IOBUF out, PACKET *pkt)
     case PKT_ENCRYPTED_MDC:
       rc = do_encrypted_mdc (out, ctb, pkt->pkt.encrypted);
       break;
-    case PKT_ENCRYPTED_AEAD:
-      rc = do_encrypted_aead (out, ctb, pkt->pkt.encrypted);
+    case PKT_ENCRYPTED_OCB:
+      rc = do_encrypted_ocb (out, ctb, pkt->pkt.encrypted);
       break;
     case PKT_COMPRESSED:
       rc = do_compressed (out, ctb, pkt->pkt.compressed);
@@ -433,7 +434,7 @@ sos_write (iobuf_t out, gcry_mpi_t a, unsigned int *r_nwritten)
  * Write an opaque string to the output stream without length info.
  */
 gpg_error_t
-gpg_mpi_write_nohdr (iobuf_t out, gcry_mpi_t a)
+gpg_mpi_write_opaque_nohdr (iobuf_t out, gcry_mpi_t a)
 {
   int rc;
 
@@ -449,6 +450,91 @@ gpg_mpi_write_nohdr (iobuf_t out, gcry_mpi_t a)
     rc = gpg_error (GPG_ERR_BAD_MPI);
 
   return rc;
+}
+
+
+/* Write an opaque MPI string with a one-byte octet count to the
+ * output stream.  If R_NWRITTEN is not NULL the number of written
+ * bytes is stored there.  OUT may be NULL in which case only
+ * R_NWRITTEN is updated and error checking is done.   */
+gpg_error_t
+gpg_mpi_write_opaque_8 (iobuf_t out, gcry_mpi_t a, unsigned int *r_nwritten)
+{
+  gpg_error_t err;
+
+  if (gcry_mpi_get_flag (a, GCRYMPI_FLAG_OPAQUE))
+    {
+      unsigned int nbits, nbytes;
+      const void *p;
+
+      p = gcry_mpi_get_opaque (a, &nbits);
+      nbytes = (nbits + 7)/8;
+      if (nbytes > 255)
+        {
+          err = gpg_error (GPG_ERR_TOO_LARGE);
+          if (r_nwritten)
+            *r_nwritten = 0;
+        }
+      else
+        {
+          if (out)
+            {
+              iobuf_put (out, nbytes);
+              err = p ? iobuf_write (out, p, nbytes) : 0;
+            }
+          else
+            err = 0;
+          if (r_nwritten)
+            *r_nwritten = 4 + (p? nbytes : 0);
+        }
+    }
+  else
+    {
+      err = gpg_error (GPG_ERR_BAD_MPI);
+      if (r_nwritten)
+        *r_nwritten = 0;
+    }
+
+  return err;
+}
+
+
+/*
+ * Write an opaque MPI string with a four-byte octet count to the
+ * output stream.  If R_NWRITTEN is not NULL the number of written
+ * bytes is stored there.  OUT may be NULL in which case only
+ * R_NWRITTEN is updated and error checking is done.
+ */
+gpg_error_t
+gpg_mpi_write_opaque_32 (iobuf_t out, gcry_mpi_t a, unsigned int *r_nwritten)
+{
+  gpg_error_t err;
+
+  if (gcry_mpi_get_flag (a, GCRYMPI_FLAG_OPAQUE))
+    {
+      unsigned int nbits, nbytes;
+      const void *p;
+
+      p = gcry_mpi_get_opaque (a, &nbits);
+      nbytes = (nbits + 7)/8;
+      if (out)
+        {
+          write_32 (out, nbytes);
+          err = p ? iobuf_write (out, p, nbytes) : 0;
+        }
+      else
+        err = 0;
+      if (r_nwritten)
+        *r_nwritten = 4 + (p? nbytes : 0);
+    }
+  else
+    {
+      err = gpg_error (GPG_ERR_BAD_MPI);
+      if (r_nwritten)
+        *r_nwritten = 0;
+    }
+
+  return err;
 }
 
 
@@ -601,7 +687,8 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
   u32 pkbytes = 0;
   int is_v5;
 
-  log_assert (pk->version == 0 || pk->version == 4 || pk->version == 5);
+  log_assert (pk->version == 0 || pk->version == 4 || pk->version == 5
+              || pk->version == 6);
   log_assert (ctb_pkttype (ctb) == PKT_PUBLIC_KEY
               || ctb_pkttype (ctb) == PKT_PUBLIC_SUBKEY
               || ctb_pkttype (ctb) == PKT_SECRET_KEY
@@ -618,7 +705,7 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
   /* Note that the Version number, Timestamp, Algo, and the v5 Key
    * material count are written at the end of the function. */
 
-  is_v5 = (pk->version == 5);
+  is_v5 = (pk->version >= 5);
 
   /* Get number of secret and public parameters.  They are held in one
      array: the public ones followed by the secret ones.  */
@@ -639,8 +726,20 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
     {
       if (   (pk->pubkey_algo == PUBKEY_ALGO_ECDSA && (i == 0))
           || (pk->pubkey_algo == PUBKEY_ALGO_EDDSA && (i == 0))
-          || (pk->pubkey_algo == PUBKEY_ALGO_ECDH  && (i == 0 || i == 2)))
-        err = gpg_mpi_write_nohdr (a, pk->pkey[i]);
+          || (pk->pubkey_algo == PUBKEY_ALGO_ECDH  && (i == 0 || i == 2))
+          || (pk->pubkey_algo == PUBKEY_ALGO_KYBER && (i == 0)))
+        err = gpg_mpi_write_opaque_nohdr (a, pk->pkey[i]);
+      else if (pk->pubkey_algo == PUBKEY_ALGO_KYBER && i == 2)
+        {
+          /* Write a four-octet count prefixed Kyber public key.  */
+          err = gpg_mpi_write_opaque_32 (a, pk->pkey[2], NULL);
+        }
+      else if (IS_PUBKEY_ALGO_MLK (pk->pubkey_algo)
+               || pk->pubkey_algo == PUBKEY_ALGO_ED25519
+               || pk->pubkey_algo == PUBKEY_ALGO_X25519)
+        {
+          err = gpg_mpi_write_opaque_nohdr (a, pk->pkey[i]);
+        }
       else if (pk->pubkey_algo == PUBKEY_ALGO_ECDSA
                || pk->pubkey_algo == PUBKEY_ALGO_EDDSA
                || pk->pubkey_algo == PUBKEY_ALGO_ECDH)
@@ -779,9 +878,15 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
 
               for (j=i; j < nskey; j++ )
                 {
-                  if (pk->pubkey_algo == PUBKEY_ALGO_ECDSA
-                      || pk->pubkey_algo == PUBKEY_ALGO_EDDSA
-                      || pk->pubkey_algo == PUBKEY_ALGO_ECDH)
+                  if (pk->pubkey_algo == PUBKEY_ALGO_KYBER && j == 4)
+                    {
+                      if ((err=gpg_mpi_write_opaque_32 (NULL,pk->pkey[j], &n)))
+                        goto leave;
+                    }
+                  else if (pk->pubkey_algo == PUBKEY_ALGO_ECDSA
+                           || pk->pubkey_algo == PUBKEY_ALGO_EDDSA
+                           || pk->pubkey_algo == PUBKEY_ALGO_ECDH
+                           || pk->pubkey_algo == PUBKEY_ALGO_KYBER)
                     {
                       if ((err = sos_write (NULL, pk->pkey[j], &n)))
                         goto leave;
@@ -798,16 +903,26 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
             }
 
           for ( ; i < nskey; i++ )
-            if (pk->pubkey_algo == PUBKEY_ALGO_ECDSA
-                || pk->pubkey_algo == PUBKEY_ALGO_EDDSA
-                || pk->pubkey_algo == PUBKEY_ALGO_ECDH)
-              {
-                if ((err = sos_write (a, pk->pkey[i], NULL)))
-                  goto leave;
-              }
-            else
-              if ((err = gpg_mpi_write (a, pk->pkey[i], NULL)))
-                goto leave;
+            {
+              if (pk->pubkey_algo == PUBKEY_ALGO_KYBER && i == 4)
+                {
+                  err = gpg_mpi_write_opaque_32 (a, pk->pkey[i], NULL);
+                  if (err)
+                    goto leave;
+                }
+              else if (pk->pubkey_algo == PUBKEY_ALGO_ECDSA
+                       || pk->pubkey_algo == PUBKEY_ALGO_EDDSA
+                       || pk->pubkey_algo == PUBKEY_ALGO_ECDH)
+                {
+                  if ((err = sos_write (a, pk->pkey[i], NULL)))
+                    goto leave;
+                }
+              else
+                {
+                  if ((err = gpg_mpi_write (a, pk->pkey[i], NULL)))
+                    goto leave;
+                }
+            }
 
           write_16 (a, ski->csum );
         }
@@ -826,7 +941,10 @@ do_key (iobuf_t out, int ctb, PKT_public_key *pk)
       if (is_v5)
         len += 4; /* public key material count  */
 
-      write_header2 (out, ctb, len, 0);
+      if (pk->version == 6)
+        write_new_header (out, (0xc0|(ctb_pkttype(ctb)&0x3f)), len, 0);
+      else
+        write_header2 (out, ctb, len, 0);
        /* And finally write it out to the real stream. */
       iobuf_put (out, pk->version? pk->version : 4); /* version number  */
       write_32 (out, pk->timestamp );
@@ -894,13 +1012,17 @@ do_symkey_enc( IOBUF out, int ctb, PKT_symkey_enc *enc )
    CTB is the serialization's CTB.  It specifies the header format and
    the packet's type.  The header length must not be set.  */
 static int
-do_pubkey_enc( IOBUF out, int ctb, PKT_pubkey_enc *enc )
+do_pubkey_enc (iobuf_t out, int ctb, PKT_pubkey_enc *enc)
 {
   int rc = 0;
   int n, i;
-  IOBUF a = iobuf_temp();
+  iobuf_t a;
 
   log_assert (ctb_pkttype (ctb) == PKT_PUBKEY_ENC);
+  if (enc->version == 6)
+    return do_pubkey_enc_v6 (out, ctb, enc);
+
+  a = iobuf_temp();
 
   iobuf_put (a, 3); /* Version.  */
 
@@ -921,9 +1043,19 @@ do_pubkey_enc( IOBUF out, int ctb, PKT_pubkey_enc *enc )
 
   for (i=0; i < n && !rc ; i++ )
     {
-      if (enc->pubkey_algo == PUBKEY_ALGO_ECDH && i == 1)
-        rc = gpg_mpi_write_nohdr (a, enc->data[i]);
-      else if (enc->pubkey_algo == PUBKEY_ALGO_ECDH)
+      /* For Kyber we need to insert the algo before the final data
+       * element because it is not stored in the data array.  */
+      if (enc->pubkey_algo == PUBKEY_ALGO_KYBER && i == 2)
+        iobuf_put (a, enc->seskey_algo);
+
+      if (i == 1 && enc->pubkey_algo == PUBKEY_ALGO_ECDH)
+        rc = gpg_mpi_write_opaque_nohdr (a, enc->data[i]);
+      else if (i == 1 && enc->pubkey_algo == PUBKEY_ALGO_KYBER)
+        rc = gpg_mpi_write_opaque_32 (a, enc->data[i], NULL);
+      else if (i == 2 && enc->pubkey_algo == PUBKEY_ALGO_KYBER)
+        rc = gpg_mpi_write_opaque_nohdr (a, enc->data[i]);
+      else if (enc->pubkey_algo == PUBKEY_ALGO_ECDH
+               || enc->pubkey_algo == PUBKEY_ALGO_KYBER)
         rc = sos_write (a, enc->data[i], NULL);
       else
         rc = gpg_mpi_write (a, enc->data[i], NULL);
@@ -935,6 +1067,61 @@ do_pubkey_enc( IOBUF out, int ctb, PKT_pubkey_enc *enc )
       rc = iobuf_write_temp (out, a);
     }
   iobuf_close(a);
+  return rc;
+}
+
+
+static int
+do_pubkey_enc_v6 (iobuf_t out, int ctb, PKT_pubkey_enc *enc)
+{
+  int rc = 0;
+  iobuf_t a;
+
+  a = iobuf_temp();
+  iobuf_put (a, 6); /* The version of this packet.  */
+
+  if (enc->throw_keyid)
+    iobuf_put (a, 0); /* No fingerprint given.  */
+  else
+    {
+      /* Note that we do not support the regular v5 keys here.  v5
+       * keys shall keep using the version 3 pubkey_enc packets
+       * because the v6 format is missing the session key algo and
+       * conveys the full fingerprint.  */
+      iobuf_put (a, (enc->fprlen == 32? 32 : 20) + 1);
+      iobuf_put (a, enc->fprlen == 32? 6 : 4);  /* The _key_ version.  */
+      iobuf_write (a, enc->fpr, sizeof enc->fpr);
+    }
+
+  iobuf_put (a, enc->pubkey_algo );
+
+  if (IS_PUBKEY_ALGO_MLK (enc->pubkey_algo))
+    {
+      rc = gpg_mpi_write_opaque_nohdr (a, enc->data[0]);
+      if (!rc)
+        rc = gpg_mpi_write_opaque_nohdr (a, enc->data[1]);
+      if (!rc)
+        {
+          iobuf_put (a, 40); /* size octet.  */
+          rc = gpg_mpi_write_opaque_nohdr (a, enc->data[2]);
+        }
+    }
+  else if (enc->pubkey_algo == PUBKEY_ALGO_X25519)
+    {
+      rc = gpg_mpi_write_opaque_nohdr (a, enc->data[0]);
+      if (!rc)
+        rc = gpg_mpi_write_opaque_8 (a, enc->data[1], NULL);
+    }
+  else
+    rc = gpg_error (GPG_ERR_INV_PACKET); /* for this algo.  */
+
+  if (!rc)
+    {
+      write_new_header (out, (0xc0|(ctb_pkttype(ctb)&0x3f)),
+                        iobuf_get_temp_length(a), 0);
+      rc = iobuf_write_temp (out, a);
+    }
+  iobuf_close (a);
   return rc;
 }
 
@@ -1054,22 +1241,33 @@ do_encrypted( IOBUF out, int ctb, PKT_encrypted *ed )
    packet to OUT.  (If you use the encryption iobuf filter
    (cipher_filter), then this is done automatically.)  */
 static int
-do_encrypted_mdc( IOBUF out, int ctb, PKT_encrypted *ed )
+do_encrypted_mdc (iobuf_t out, int ctb, PKT_encrypted *ed)
 {
-    int rc = 0;
-    u32 n;
+  u32 n;
 
-    log_assert (ed->mdc_method);
-    log_assert (ctb_pkttype (ctb) == PKT_ENCRYPTED_MDC);
+  log_assert (ctb_pkttype (ctb) == PKT_ENCRYPTED_MDC);
 
-    /* Take version number and the following MDC packet in account. */
-    n = ed->len ? (ed->len + ed->extralen + 1 + 22) : 0;
-    write_header(out, ctb, n );
-    iobuf_put(out, 1 );  /* version */
+  if (ed->version == 2)
+    {
+      /* Take this header (4) in account.  */
+      n = ed->len ? (ed->len + ed->extralen + 4) : 0;
+      write_new_header (out, (0xc0|(ctb_pkttype(ctb)&0x3f)), n, 0);
+      iobuf_writebyte (out, 2);
+      iobuf_writebyte (out, ed->cipher_algo);
+      iobuf_writebyte (out, ed->aead_algo);
+      iobuf_writebyte (out, ed->chunkbyte);
+    }
+  else
+    {
+      log_assert (ed->mdc_method);
+      /* Take version number and the final MDC packet in account. */
+      n = ed->len ? (ed->len + ed->extralen + 1 + 22) : 0;
+      write_header (out, ctb, n);
+      iobuf_put (out, 1);  /* version */
+    }
 
-    /* This is all. The caller has to write the real data */
-
-    return rc;
+  /* This is all. The caller has to write the real data */
+  return 0;
 }
 
 
@@ -1080,11 +1278,11 @@ do_encrypted_mdc( IOBUF out, int ctb, PKT_encrypted *ed )
  * follow up and write the actual encrypted data.  This should be done
  * by pushing the the cipher_filter_aead.  */
 static int
-do_encrypted_aead (iobuf_t out, int ctb, PKT_encrypted *ed)
+do_encrypted_ocb (iobuf_t out, int ctb, PKT_encrypted *ed)
 {
   u32 n;
 
-  log_assert (ctb_pkttype (ctb) == PKT_ENCRYPTED_AEAD);
+  log_assert (ctb_pkttype (ctb) == PKT_ENCRYPTED_OCB);
 
   n = ed->len ? (ed->len + ed->extralen + 4) : 0;
   write_header (out, ctb, n );
@@ -1429,6 +1627,23 @@ build_sig_subpkt_from_sig (PKT_signature *sig, PKT_public_key *pksk,
 	build_sig_subpkt( sig, SIGSUBPKT_SIG_EXPIRE | SIGSUBPKT_FLAG_CRITICAL,
 			  buf, 4 );
       }
+
+    /* Add fpr of the to-be-revoked key in an intended recipient fpr subpacket. */
+    if (IS_KEY_REV (sig))
+      {
+        log_assert (sizeof buf >= sig->rev_subject_info->fprlen + 1);
+
+        buf[0] = sig->rev_subject_info->fprlen == 20? 4:
+          sig->rev_subject_info->fprlen == 32? 5 : 0;
+
+        if (buf[0] == 4 || buf[0] == 5)
+          {
+            memcpy (buf+1, sig->rev_subject_info->fpr,
+                    sig->rev_subject_info->fprlen);
+            build_sig_subpkt (sig, SIGSUBPKT_INT_RCP_FPR,
+                              buf, sig->rev_subject_info->fprlen + 1);
+          }
+      }
 }
 
 void
@@ -1506,17 +1721,18 @@ notation_value_to_human_readable_string (struct notation *notation)
     return xstrdup (notation->value);
 }
 
+
 /* Turn the notation described by the string STRING into a notation.
-
-   STRING has the form:
-
-     - -name - Delete the notation.
-     - name@domain.name=value - Normal notation
-     - !name@domain.name=value - Notation with critical bit set.
-
-   The caller must free the result using free_notation().  */
+ *
+ * STRING has the form:
+ *
+ *   - -name - Delete the notation.
+ *   - name@domain.name=value - Normal notation
+ *   - !name@domain.name=value - Notation with critical bit set.
+ *
+ * The caller must free the result using free_notation().  */
 struct notation *
-string_to_notation(const char *string,int is_utf8)
+string_to_notation (const char *string, int is_utf8)
 {
   const char *s;
   int saw_at=0;
@@ -1604,6 +1820,22 @@ string_to_notation(const char *string,int is_utf8)
   free_notation(notation);
   return NULL;
 }
+
+
+/* Turn the notation described by NAME and VALUE into a notation.
+ * This will be a human readble non-critical notation.
+ * The caller must free the result using free_notation().  */
+struct notation *
+name_value_to_notation (const char *name, const char *value)
+{
+  struct notation *notation;
+
+  notation = xcalloc (1, sizeof *notation);
+  notation->name = xstrdup (name);
+  notation->value = xstrdup (value);
+  return notation;
+}
+
 
 /* Like string_to_notation, but store opaque data rather than human
    readable data.  */
@@ -1755,6 +1987,72 @@ sig_to_notation(PKT_signature *sig)
   return list;
 }
 
+
+/* Return a list of notation data matching NAME.  The caller needs to
+ * to free the list using free_notation.  Other than sig_to_notation
+ * this function does not return the notation in human readable format
+ * but always returns the raw data.  The human readable flag is set
+ * anyway set but .value is always NULL.  */
+struct notation *
+search_sig_notations (PKT_signature *sig, const char *name)
+{
+  const byte *p;
+  size_t len;
+  int seq = 0;
+  int crit;
+  notation_t list = NULL;
+
+  while((p=enum_sig_subpkt (sig, 1, SIGSUBPKT_NOTATION, &len, &seq, &crit)))
+    {
+      int n1,n2;
+      struct notation *n=NULL;
+
+      if (len < 8)
+	{
+	  log_info (_("WARNING: invalid notation data found\n"));
+	  continue;
+	}
+
+      /* name length.  */
+      n1=(p[4]<<8)|p[5];
+      /* value length.  */
+      n2=(p[6]<<8)|p[7];
+
+      if (8 + n1 + n2 != len)
+	{
+	  log_info (_("WARNING: invalid notation data found\n"));
+	  continue;
+	}
+
+      if (!name)
+        ; /* Return everything.  */
+      else if (n1 != strlen (name) || memcmp (p+8, name, n1))
+        continue; /* Not the requested name.  */
+
+
+      n = xmalloc_clear (sizeof *n);
+      n->name = xmalloc (n1+1);
+
+      memcpy (n->name,p + 8, n1);
+      n->name[n1]='\0';
+
+      /* In any case append a Nul. */
+      n->bdat = xmalloc (n2+1);
+      memcpy (n->bdat, p + 8 + n1, n2);
+      n->bdat[n2] = '\0';
+      n->blen = n2;
+      n->flags.human = !!(p[0] & 0x80);
+
+      n->flags.critical = crit;
+
+      n->next = list;
+      list = n;
+    }
+
+  return list;
+}
+
+
 /* Release the resources associated with the *list* of notations.  To
    release a single notation, make sure that notation->next is
    NULL.  */
@@ -1816,36 +2114,67 @@ do_signature( IOBUF out, int ctb, PKT_signature *sig )
 	 prior to the call of this function, because these subpackets
 	 are hashed. */
       nn = sig->hashed? sig->hashed->len : 0;
-      write_16(a, nn);
+      if (sig->version >= 6)
+        write_32(a, nn);
+      else
+        write_16(a, nn);
       if (nn)
         iobuf_write( a, sig->hashed->data, nn );
       nn = sig->unhashed? sig->unhashed->len : 0;
-      write_16(a, nn);
+      if (sig->version >= 6)
+        write_32(a, nn);
+      else
+        write_16(a, nn);
       if (nn)
         iobuf_write( a, sig->unhashed->data, nn );
     }
   iobuf_put(a, sig->digest_start[0] );
   iobuf_put(a, sig->digest_start[1] );
+
+  if (sig->version == 6)
+    {
+      if (sig->salt)
+        {
+          rc = gpg_mpi_write_opaque_8 (a, sig->salt, NULL);
+          if (rc)
+            goto leave;
+        }
+      else
+        iobuf_put (a, 0);
+    }
+
   n = pubkey_get_nsig( sig->pubkey_algo );
   if ( !n )
     write_fake_data( a, sig->data[0] );
   if (sig->pubkey_algo == PUBKEY_ALGO_ECDSA
       || sig->pubkey_algo == PUBKEY_ALGO_EDDSA)
-    for (i=0; i < n && !rc ; i++ )
-      rc = sos_write (a, sig->data[i], NULL);
+    {
+      for (i=0; i < n && !rc ; i++ )
+        rc = sos_write (a, sig->data[i], NULL);
+    }
+  else if (sig->pubkey_algo == PUBKEY_ALGO_ED25519)
+    {
+      rc = gpg_mpi_write_opaque_nohdr (a, sig->data[0]);
+    }
   else
-    for (i=0; i < n && !rc ; i++ )
-      rc = gpg_mpi_write (a, sig->data[i], NULL);
+    {
+      for (i=0; i < n && !rc ; i++ )
+        rc = gpg_mpi_write (a, sig->data[i], NULL);
+    }
 
   if (!rc)
     {
       if ( is_RSA(sig->pubkey_algo) && sig->version < 4 )
         write_sign_packet_header(out, ctb, iobuf_get_temp_length(a) );
+      else if (sig->version == 6)
+        write_new_header (out, (0xc0|(ctb_pkttype(ctb)&0x3f)),
+                          iobuf_get_temp_length (a), 0);
       else
         write_header(out, ctb, iobuf_get_temp_length(a) );
       rc = iobuf_write_temp( out, a );
     }
 
+ leave:
   iobuf_close(a);
   return rc;
 }

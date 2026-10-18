@@ -99,6 +99,8 @@ struct _GstGLWindowPrivate
 
   GMutex sync_message_lock;
   GCond sync_message_cond;
+
+  gboolean request_output_surface;
 };
 
 #define gst_gl_window_parent_class parent_class
@@ -437,13 +439,15 @@ _free_swh_cb (GstSetWindowHandleCb * data)
 void
 gst_gl_window_set_window_handle (GstGLWindow * window, guintptr handle)
 {
-  GstGLWindowClass *window_class;
+  GstGLWindowClass *window_class GST_UNUSED_CHECKS;
   GstSetWindowHandleCb *data;
 
   g_return_if_fail (GST_IS_GL_WINDOW (window));
-  g_return_if_fail (handle != 0);
+
+#ifndef G_DISABLE_CHECKS
   window_class = GST_GL_WINDOW_GET_CLASS (window);
   g_return_if_fail (window_class->set_window_handle != NULL);
+#endif
 
   data = g_new (GstSetWindowHandleCb, 1);
   data->window = gst_object_ref (window);
@@ -1138,6 +1142,44 @@ gst_gl_window_controls_viewport (GstGLWindow * window)
     return FALSE;
 
   return window_class->controls_viewport (window);
+}
+
+/**
+ * gst_gl_window_set_request_output_surface:
+ * @window: a #GstGLWindow
+ * @output_surface: whether to request an output surface.
+ *
+ * Configure whether a visible output surface is requested.
+ *
+ * Since: 1.28
+ */
+void
+gst_gl_window_set_request_output_surface (GstGLWindow * window,
+    gboolean output_surface)
+{
+  GstGLWindowPrivate *priv = gst_gl_window_get_instance_private (window);
+
+  g_return_if_fail (GST_IS_GL_WINDOW (window));
+
+  priv->request_output_surface = output_surface;
+}
+
+/**
+ * gst_gl_window_get_request_output_surface:
+ * @window: a #GstGLWindow
+ *
+ * Returns: whether an visible output surface has been requested
+ *
+ * Since: 1.28
+ */
+gboolean
+gst_gl_window_get_request_output_surface (GstGLWindow * window)
+{
+  GstGLWindowPrivate *priv = gst_gl_window_get_instance_private (window);
+
+  g_return_val_if_fail (GST_IS_GL_WINDOW (window), FALSE);
+
+  return priv->request_output_surface;
 }
 
 static GType gst_gl_dummy_window_get_type (void);

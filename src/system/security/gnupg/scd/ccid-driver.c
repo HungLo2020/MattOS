@@ -1000,7 +1000,7 @@ get_escaped_usb_string (libusb_device_handle *idev, int idx,
 
   /* First get the list of supported languages and use the first one.
      If we do don't find it we try to use English.  Note that this is
-     all in a 2 bute Unicode encoding using little endian. */
+     all in a 2 byte Unicode encoding using little endian. */
   my_npth_unprotect ();
   rc = libusb_control_transfer (idev, LIBUSB_ENDPOINT_IN,
                                 LIBUSB_REQUEST_GET_DESCRIPTOR,
@@ -1812,7 +1812,7 @@ ccid_open_usb_reader (const char *spec_reader_name,
 
   my_npth_protect ();
 
-  /* Perform any vendor specific intialization.  */
+  /* Perform any vendor specific initialization.  */
   rc = ccid_vendor_specific_init (*handle);
 
  leave:
@@ -2117,6 +2117,7 @@ bulk_in (ccid_driver_t handle, unsigned char *buffer, size_t length,
   int msglen;
   int notified = 0;
   int bwi = 1;
+  int retries = 0;
 
   /* Fixme: The next line for the current Valgrind without support
      for USB IOCTLs. */
@@ -2138,6 +2139,13 @@ bulk_in (ccid_driver_t handle, unsigned char *buffer, size_t length,
   if (msglen < 0)
     return CCID_DRIVER_ERR_INV_VALUE;  /* Faulty libusb.  */
   *nread = msglen;
+
+  /* Ignore ZLP (zero length packet) of buggy implementation.  */
+  if (msglen == 0 && retries < 1)
+    {
+      retries++;
+      goto retry;
+    }
 
   if (msglen < 10)
     {

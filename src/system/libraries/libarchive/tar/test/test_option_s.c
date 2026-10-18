@@ -42,7 +42,13 @@ DEFINE_TEST(test_option_s)
 	systemf("%s -cf test1_2.tar -s /d1/d2/ in/d1/foo", testprog);
 	systemf("%s -xf test1_2.tar -C test1", testprog);
 	assertFileContents("foo", 3, "test1/in/d2/foo");
-
+	systemf("%s -cf test1_3.tar -s /o/#/g in/d1/foo", testprog);
+	systemf("%s -xf test1_3.tar -C test1", testprog);
+	assertFileContents("foo", 3, "test1/in/d1/f##");
+	// For the 0-length pattern check, remember that "test1/" isn't part of the string affected by the regexp
+	systemf("%s -cf test1_4.tar -s /f*/[~]/g in/d1/foo", testprog);
+	systemf("%s -xf test1_4.tar -C test1", testprog);
+	assertFileContents("foo", 3, "test1/[]i[]n[]/[]d[]1[]/[f][]o[]o[]");
 	/*
 	 * Test 2: Basic substitution when extracting archive.
 	 */
@@ -279,4 +285,16 @@ DEFINE_TEST(test_option_s)
 	    testprog);
 	assertFileContents("foo", 3, "test14/in/d1/fzo");
 	assertFileContents("bar", 3, "test14/in/d1/baz");
+
+	/*
+	 * Test 15: Directory substitution with escaped delimiter
+	 */
+	assertMakeDir("test15", 0755);
+	systemf("%s -cf test15.tar in/d1/foo", testprog);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	systemf("%s -xf test15.tar -s /d1/d2\\/d3/ -C test15", testprog);
+#else
+	systemf("%s -xf test15.tar -s /d1/d2\\\\/d3/ -C test15", testprog);
+#endif
+	assertFileContents("foo", 3, "test15/in/d2/d3/foo");
 }

@@ -2050,6 +2050,25 @@ ges_clip_get_top_effect_index().</doc>
           </instance-parameter>
         </parameters>
       </method>
+      <method name="is_moving_between_layers" c:identifier="ges_clip_is_moving_between_layers" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-clip.c">Tells you if the clip is currently in the process of being moved from
+one layer to another. This is useful from the layer::clip-added and
+layer::clip-removed callbacks to know if the clip is being moved between
+layers, or is being added/removed for other reasons (like being added
+for the first time, or being actually removed).</doc>
+        <source-position filename="../subprojects/gst-editing-services/ges/ges-clip.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-clip.c">%TRUE if @clip is currently being moved between layers,
+%FALSE otherwise.</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="clip" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-clip.c">A #GESClip</doc>
+            <type name="Clip" c:type="GESClip*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
       <method name="move_to_layer" c:identifier="ges_clip_move_to_layer">
         <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-clip.c">See ges_clip_move_to_layer_full(), which also gives an error.</doc>
         <source-position filename="../subprojects/gst-editing-services/ges/ges-clip.h"/>
@@ -3824,7 +3843,7 @@ Example: "videobalance saturation=1.5 hue=+0.5"</doc>
     <record name="EffectPrivate" c:type="GESEffectPrivate" disguised="1" opaque="1">
       <source-position filename="../subprojects/gst-editing-services/ges/ges-effect.h"/>
     </record>
-    <enumeration name="Error" c:type="GESError">
+    <enumeration name="Error" c:type="GESError" glib:error-domain="GES_ERROR">
       <source-position filename="../subprojects/gst-editing-services/ges/ges-gerror.h"/>
       <member name="asset_wrong_id" value="0" c:identifier="GES_ERROR_ASSET_WRONG_ID">
         <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-gerror.h">The ID passed is malformed</doc>
@@ -15629,11 +15648,11 @@ contains one frame)</doc>
       <source-position filename="../subprojects/gst-editing-services/ges/ges-version.h"/>
       <type name="gint" c:type="gint"/>
     </constant>
-    <constant name="VERSION_MICRO" value="11" c:type="GES_VERSION_MICRO">
+    <constant name="VERSION_MICRO" value="8" c:type="GES_VERSION_MICRO">
       <source-position filename="../subprojects/gst-editing-services/ges/ges-version.h"/>
       <type name="gint" c:type="gint"/>
     </constant>
-    <constant name="VERSION_MINOR" value="26" c:type="GES_VERSION_MINOR">
+    <constant name="VERSION_MINOR" value="28" c:type="GES_VERSION_MINOR">
       <source-position filename="../subprojects/gst-editing-services/ges/ges-version.h"/>
       <type name="gint" c:type="gint"/>
     </constant>
@@ -16479,6 +16498,14 @@ After this call GES should not be used until another ges_init() call.</doc>
           <type name="EditMode" c:type="GESEditMode"/>
         </parameter>
       </parameters>
+    </function>
+    <function name="error_quark" c:identifier="ges_error_quark" version="1.28">
+      <attribute name="doc.skip" value="true"/>
+      <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-gerror.c">Get the error quark for GES errors.</doc>
+      <return-value transfer-ownership="none">
+        <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-gerror.c">The error quark for GES errors</doc>
+        <type name="GLib.Quark" c:type="GQuark"/>
+      </return-value>
     </function>
     <function name="find_formatter_for_uri" c:identifier="ges_find_formatter_for_uri" version="1.18">
       <doc xml:space="preserve" filename="../subprojects/gst-editing-services/ges/ges-formatter.c">Get the best formatter for @uri. It tries to find a formatter

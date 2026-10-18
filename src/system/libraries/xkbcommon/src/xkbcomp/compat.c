@@ -11,7 +11,9 @@
 #include "config.h"
 
 #include <assert.h>
+#include <limits.h>
 
+#include "xkbcommon/xkbcommon.h"
 #include "darray.h"
 #include "keymap.h"
 #include "xkbcomp-priv.h"
@@ -58,10 +60,11 @@ typedef struct {
     darray(SymInterpInfo) interps;
     LedInfo default_led;
     LedInfo leds[XKB_MAX_LEDS];
-    unsigned int num_leds;
+    xkb_led_index_t num_leds;
     ActionsInfo default_actions;
     struct xkb_mod_set mods;
 
+    enum xkb_keymap_format format;
     struct xkb_context *ctx;
 } CompatInfo;
 
@@ -140,10 +143,12 @@ InitLED(LedInfo *info)
 
 static void
 InitCompatInfo(CompatInfo *info, struct xkb_context *ctx,
-               unsigned int include_depth, const struct xkb_mod_set *mods)
+               unsigned int include_depth, enum xkb_keymap_format format,
+               const struct xkb_mod_set *mods)
 {
     memset(info, 0, sizeof(*info));
     info->ctx = ctx;
+    info->format = format;
     info->include_depth = include_depth;
     InitActionsInfo(&info->default_actions);
     InitVMods(&info->mods, mods, include_depth > 0);
@@ -389,7 +394,7 @@ AddLedMap(CompatInfo *info, LedInfo *new, bool same_file)
 
     if (info->num_leds >= XKB_MAX_LEDS) {
         log_err(info->ctx, XKB_LOG_MESSAGE_NO_ID,
-                "Too many LEDs defined (maximum %d)\n",
+                "Too many LEDs defined (maximum %u)\n",
                 XKB_MAX_LEDS);
         return false;
     }
@@ -453,14 +458,17 @@ HandleIncludeCompatMap(CompatInfo *info, IncludeStmt *include)
         return false;
     }
 
-    InitCompatInfo(&included, info->ctx, info->include_depth + 1, &info->mods);
+    InitCompatInfo(&included, info->ctx, info->include_depth + 1,
+                   info->format, &info->mods);
     included.name = steal(&include->stmt);
 
     for (IncludeStmt *stmt = include; stmt; stmt = stmt->next_incl) {
         CompatInfo next_incl;
         XkbFile *file;
 
-        file = ProcessIncludeFile(info->ctx, stmt, FILE_TYPE_COMPAT);
+        char path[PATH_MAX];
+        file = ProcessIncludeFile(info->ctx, stmt, FILE_TYPE_COMPAT,
+                                  path, sizeof(path));
         if (!file) {
             info->errorCount += 10;
             ClearCompatInfo(&included);
@@ -468,7 +476,7 @@ HandleIncludeCompatMap(CompatInfo *info, IncludeStmt *include)
         }
 
         InitCompatInfo(&next_incl, info->ctx, info->include_depth + 1,
-                       &included.mods);
+                       info->format, &included.mods);
         next_incl.default_interp = info->default_interp;
         next_incl.default_led = info->default_led;
 
@@ -513,12 +521,12 @@ SetInterpField(CompatInfo *info, SymInterpInfo *si, const char *field,
 
             /* Parse actions and add only defined actions */
             darray(union xkb_action) actions = darray_new();
-            unsigned int act_index = 0;
             for (ExprDef *act = value->actions.actions;
-                 act; act = (ExprDef *) act->common.next, act_index++) {
+                 act; act = (ExprDef *) act->common.next) {
                 union xkb_action toAct = { 0 };
-                if (!HandleActionDef(info->ctx, &info->default_actions,
-                                     &info->mods, act, &toAct)) {
+                if (!HandleActionDef(info->ctx, info->format,
+                                     &info->default_actions, &info->mods,
+                                     act, &toAct)) {
                     darray_free(actions);
                     return false;
                 }
@@ -551,7 +559,8 @@ SetInterpField(CompatInfo *info, SymInterpInfo *si, const char *field,
                 darray_steal(actions, &si->interp.a.actions, NULL);
             }
         }
-        else if (HandleActionDef(info->ctx, &info->default_actions, &info->mods,
+        else if (HandleActionDef(info->ctx, info->format,
+                                 &info->default_actions, &info->mods,
                                  value, &si->interp.a.action))
             si->interp.num_actions =
                 (si->interp.a.action.type != ACTION_TYPE_NONE);
@@ -633,7 +642,8 @@ SetLedMapField(CompatInfo *info, LedInfo *ledi, const char *field,
         if (arrayNdx)
             return ReportLedNotArray(info, ledi, field);
 
-        if (!ExprResolveMask(info->ctx, value, &mask, groupMaskNames))
+        const xkb_layout_index_t max_groups = format_max_groups(info->format);
+        if (!ExprResolveGroupMask(info->ctx, max_groups, value, &mask))
             return ReportLedBadType(info, ledi, field, "group mask");
 
         ledi->led.groups = mask;
@@ -739,10 +749,15 @@ HandleGlobalVar(CompatInfo *info, VarDef *stmt)
         ret = SetLedMapField(info, &temp, field, ndx, stmt->value);
         MergeLedMap(info, &info->default_led, &temp, true);
     }
-    else {
-        ret = SetDefaultActionField(info->ctx, &info->default_actions,
-                                    &info->mods, elem, field, ndx,
+    else if (elem) {
+        ret = SetDefaultActionField(info->ctx, info->format,
+                                    &info->default_actions, &info->mods,
+                                    elem, field, ndx,
                                     stmt->value, stmt->merge);
+    } else {
+        log_err(info->ctx, XKB_ERROR_UNKNOWN_DEFAULT_FIELD,
+                "Default defined for unknown field \"%s\"; Ignored\n", field);
+        return false;
     }
     return ret;
 }
@@ -755,9 +770,10 @@ HandleInterpBody(CompatInfo *info, VarDef *def, SymInterpInfo *si)
     ExprDef *arrayNdx;
 
     for (; def; def = (VarDef *) def->common.next) {
-        ok = ExprResolveLhs(info->ctx, def->name, &elem, &field, &arrayNdx);
-        if (!ok)
+        if (!ExprResolveLhs(info->ctx, def->name, &elem, &field, &arrayNdx)) {
+            ok = false;
             continue;
+        }
         if (elem) {
             log_err(info->ctx, XKB_LOG_MESSAGE_NO_ID,
                     "Cannot set a global default value for \"%s\" element from "
@@ -767,7 +783,8 @@ HandleInterpBody(CompatInfo *info, VarDef *def, SymInterpInfo *si)
             ok = false;
             continue;
         }
-        ok = SetInterpField(info, si, field, arrayNdx, def->value);
+        if (!SetInterpField(info, si, field, arrayNdx, def->value))
+            ok = false;
     }
 
     return ok;
@@ -809,16 +826,12 @@ HandleInterpDef(CompatInfo *info, InterpDef *def)
 static bool
 HandleLedMapDef(CompatInfo *info, LedMapDef *def)
 {
-    LedInfo ledi;
-    VarDef *var;
-    bool ok;
-
-    ledi = info->default_led;
+    LedInfo ledi = info->default_led;
     ledi.merge = def->merge;
     ledi.led.name = def->name;
 
-    ok = true;
-    for (var = def->body; var != NULL; var = (VarDef *) var->common.next) {
+    bool ok = true;
+    for (VarDef *var = def->body; var != NULL; var = (VarDef *) var->common.next) {
         const char *elem, *field;
         ExprDef *arrayNdx;
         if (!ExprResolveLhs(info->ctx, var->name, &elem, &field, &arrayNdx)) {
@@ -942,7 +955,7 @@ CopyLedMapDefsToKeymap(struct xkb_keymap *keymap, CompatInfo *info)
                 /* Not place to put it; ignore. */
                 if (i >= XKB_MAX_LEDS) {
                     log_err(keymap->ctx, XKB_LOG_MESSAGE_NO_ID,
-                            "Too many indicators (maximum is %d); "
+                            "Too many indicators (maximum is %u); "
                             "Indicator name \"%s\" ignored\n",
                             XKB_MAX_LEDS, LEDText(info, ledi));
                     continue;
@@ -999,7 +1012,7 @@ CompileCompatMap(XkbFile *file, struct xkb_keymap *keymap)
 {
     CompatInfo info;
 
-    InitCompatInfo(&info, keymap->ctx, 0, &keymap->mods);
+    InitCompatInfo(&info, keymap->ctx, 0, keymap->format, &keymap->mods);
 
     if (file != NULL)
         HandleCompatMapFile(&info, file);

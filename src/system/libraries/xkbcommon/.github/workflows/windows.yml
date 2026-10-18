@@ -2,9 +2,13 @@ name: windows
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - 'releases/**'
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - 'releases/**'
 
 # Set permissions at the job level.
 permissions: {}
@@ -14,21 +18,24 @@ jobs:
     runs-on: windows-2022
     permissions:
       contents: read
+    strategy:
+      matrix:
+        cc: ['cl', 'clang-cl']
+    env:
+      CC: ${{matrix.cc}}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Install dependencies
-        shell: powershell
+        shell: cmd
         run: |
-          # Jinja2 is needed for merge-modes tests
-          python -m pip install --upgrade meson Jinja2
-          Invoke-WebRequest -Uri https://github.com/lexxmark/winflexbison/releases/download/v2.5.23/win_flex_bison-2.5.23.zip -OutFile win_flex_bison.zip
-          Expand-Archive -Path win_flex_bison.zip -DestinationPath bin
-          Write-Output ((Get-Location).ToString() + "./bin") | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+          :: Jinja2 is needed for merge-modes tests
+          python -m pip install --upgrade "meson!=1.11.0" Jinja2
+          choco install -y winflexbison3
       - name: Setup
         shell: cmd
         run: |

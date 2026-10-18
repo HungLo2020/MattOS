@@ -178,6 +178,10 @@ gpg_error_t be_sqlite_store (ctrl_t ctrl, backend_handle_t backend_hd,
                              const void *blob, size_t bloblen);
 gpg_error_t be_sqlite_delete (ctrl_t ctrl, backend_handle_t backend_hd,
                               db_request_t request, const unsigned char *ubid);
+gpg_error_t be_sqlite_putkeyflag (ctrl_t ctrl, backend_handle_t backend_hd,
+                                  db_request_t request,
+                                  const unsigned char *ubid,
+                                  unsigned int flags, int clear);
 
 
 #endif /*KBX_BACKEND_H*/

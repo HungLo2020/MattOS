@@ -32,17 +32,17 @@ Test compilation but do not print the keymap
 .
 .It Fl \-rmlvo
 Print the full RMLVO with the defaults filled in for missing elements
+in YAML format
 .
 .It Fl \-kccgst
 Print a keymap which only includes the KcCGST component names instead
 of the full keymap
 .
-.It Fl \-keymap Oo Ar PATH Oc , Fl \-from\-xkb Oo Ar PATH Oc
-Load the XKB file from a file, ignore RMLVO options. If
-.Ar PATH
-is empty or
-.Dq \- ,
-read the stdin.
+.It Fl \-kccgst-yaml
+Print the KcCGST component names in YAML format.
+.
+.It Fl \-modmaps
+Print real and virtual key modmaps and modifiers encodings in YAML format.
 .
 .It Fl \-include Ar PATH
 Add the given path to the include path list.
@@ -55,6 +55,34 @@ to add the default include paths.
 .It Fl \-include\-defaults
 Add the default set of include directories.
 This option is order-dependent, include paths given first are searched first.
+.
+.It Fl \-input\-format Ar keymap_format
+The keymap format (numeric or label, e.g.\&
+.Dq v1 )
+for parsing
+.
+.It Fl \-output\-format Ar keymap_format
+The keymap format (numeric or label, e.g.\&
+.Dq v1 )
+for serializing
+.
+.It Fl \-format Ar keymap_format
+The keymap format (numeric or label, e.g.\&
+.Dq v1 )
+for both parsing and serializing
+.
+.It Fl \-no\-pretty
+Disable pretty-printing for keymap serialization.
+.
+.It Fl \-drop\-unused
+Disable unused bits serialization.
+.
+.It Fl \-keymap Oo Ar PATH Oc , Fl \-from\-xkb Oo Ar PATH Oc
+Load the XKB keymap from a file, ignore RMLVO options. If
+.Ar PATH
+is empty or
+.Dq \- ,
+read the stdin.
 .
 .It Fl \-rules Ar rules
 The XKB ruleset

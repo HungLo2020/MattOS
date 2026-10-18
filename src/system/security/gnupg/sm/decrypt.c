@@ -73,335 +73,6 @@ string_from_gcry_buffer (gcry_buffer_t *buffer)
 }
 
 
-/* Helper to construct and hash the
- *  ECC-CMS-SharedInfo ::= SEQUENCE {
- *      keyInfo         AlgorithmIdentifier,
- *      entityUInfo [0] EXPLICIT OCTET STRING OPTIONAL,
- *      suppPubInfo [2] EXPLICIT OCTET STRING  }
- * as described in RFC-5753, 7.2.  */
-static gpg_error_t
-hash_ecc_cms_shared_info (gcry_md_hd_t hash_hd, const char *wrap_algo_str,
-                          unsigned int keylen,
-                          const void *ukm, unsigned int ukmlen)
-{
-  gpg_error_t err;
-  void *p;
-  unsigned char *oid;
-  size_t n, oidlen, toidlen, tkeyinfo, tukmlen, tsupppubinfo;
-  unsigned char keylenbuf[6];
-  membuf_t mb = MEMBUF_ZERO;
-
-  err = ksba_oid_from_str (wrap_algo_str, &oid, &oidlen);
-  if (err)
-    return err;
-  toidlen = get_tlv_length (CLASS_UNIVERSAL, TAG_OBJECT_ID, 0, oidlen);
-  tkeyinfo = get_tlv_length (CLASS_UNIVERSAL, TAG_SEQUENCE, 1, toidlen);
-
-  tukmlen = ukm? get_tlv_length (CLASS_CONTEXT, 0, 1, ukmlen) : 0;
-
-  keylen *= 8;
-  keylenbuf[0] = TAG_OCTET_STRING;
-  keylenbuf[1] = 4;
-  keylenbuf[2] = (keylen >> 24);
-  keylenbuf[3] = (keylen >> 16);
-  keylenbuf[4] = (keylen >> 8);
-  keylenbuf[5] = keylen;
-
-  tsupppubinfo = get_tlv_length (CLASS_CONTEXT, 2, 1, sizeof keylenbuf);
-
-  put_tlv_to_membuf (&mb, CLASS_UNIVERSAL, TAG_SEQUENCE, 1,
-                     tkeyinfo + tukmlen + tsupppubinfo);
-  put_tlv_to_membuf (&mb, CLASS_UNIVERSAL, TAG_SEQUENCE, 1,
-                     toidlen);
-  put_tlv_to_membuf (&mb, CLASS_UNIVERSAL, TAG_OBJECT_ID, 0, oidlen);
-  put_membuf (&mb, oid, oidlen);
-  ksba_free (oid);
-
-  if (ukm)
-    {
-      put_tlv_to_membuf (&mb, CLASS_CONTEXT, 0, 1, ukmlen);
-      put_membuf (&mb, ukm, ukmlen);
-    }
-
-  put_tlv_to_membuf (&mb, CLASS_CONTEXT, 2, 1, sizeof keylenbuf);
-  put_membuf (&mb, keylenbuf, sizeof keylenbuf);
-
-  p = get_membuf (&mb, &n);
-  if (!p)
-    return gpg_error_from_syserror ();
-
-  gcry_md_write (hash_hd, p, n);
-  xfree (p);
-  return 0;
-}
-
-
-
-/* Derive a KEK (key wrapping key) using (SECRET,SECRETLEN), an
- * optional (UKM,ULMLEN), the wrap algorithm WRAP_ALGO_STR in decimal
- * dotted form, and the hash algorithm HASH_ALGO.  On success a key of
- * length KEYLEN is stored at KEY.  */
-gpg_error_t
-ecdh_derive_kek (unsigned char *key, unsigned int keylen,
-                 int hash_algo, const char *wrap_algo_str,
-                 const void *secret, unsigned int secretlen,
-                 const void *ukm, unsigned int ukmlen)
-{
-  gpg_error_t err = 0;
-  unsigned int hashlen;
-  gcry_md_hd_t hash_hd;
-  unsigned char counter;
-  unsigned int n, ncopy;
-
-  hashlen = gcry_md_get_algo_dlen (hash_algo);
-  if (!hashlen)
-    return gpg_error (GPG_ERR_INV_ARG);
-
-  err = gcry_md_open (&hash_hd, hash_algo, 0);
-  if (err)
-    return err;
-
-  /* According to SEC1 3.6.1 we should check that
-   *   SECRETLEN + UKMLEN + 4 < maxhashlen
-   * However, we have no practical limit on the hash length and thus
-   * there is no point in checking this.  The second check that
-   *   KEYLEN < hashlen*(2^32-1)
-   * is obviously also not needed.
-   */
-  for (n=0, counter=1; n < keylen; counter++)
-    {
-      if (counter > 1)
-        gcry_md_reset (hash_hd);
-      gcry_md_write (hash_hd, secret, secretlen);
-      gcry_md_write (hash_hd, "\x00\x00\x00", 3);  /* MSBs of counter */
-      gcry_md_write (hash_hd, &counter, 1);
-      err = hash_ecc_cms_shared_info (hash_hd, wrap_algo_str, keylen,
-                                      ukm, ukmlen);
-      if (err)
-        break;
-      gcry_md_final (hash_hd);
-      if (n + hashlen > keylen)
-        ncopy = keylen - n;
-      else
-        ncopy = hashlen;
-      memcpy (key+n, gcry_md_read (hash_hd, 0), ncopy);
-      n += ncopy;
-    }
-
-  gcry_md_close (hash_hd);
-  return err;
-}
-
-
-/* This function will modify SECRET.  NBITS is the size of the curve
- * which which we took from the certificate.  */
-static gpg_error_t
-ecdh_decrypt (unsigned char *secret, size_t secretlen,
-              unsigned int nbits, gcry_sexp_t enc_val,
-              unsigned char **r_result, unsigned int *r_resultlen)
-{
-  gpg_error_t err;
-  gcry_buffer_t ioarray[4] = { {0}, {0}, {0}, {0} };
-  char *encr_algo_str = NULL;
-  char *wrap_algo_str = NULL;
-  int hash_algo, cipher_algo;
-  const unsigned char *ukm;  /* Alias for ioarray[2].  */
-  unsigned int ukmlen;
-  const unsigned char *data;  /* Alias for ioarray[3].  */
-  unsigned int datalen;
-  unsigned int keylen;
-  unsigned char key[32];
-  gcry_cipher_hd_t cipher_hd = NULL;
-  unsigned char *result = NULL;
-  unsigned int resultlen;
-
-  *r_resultlen = 0;
-  *r_result = NULL;
-
-  /* Extract X from SECRET; this is the actual secret.  Unless a
-   * smartcard diretcly returns X, it must be in the format of:
-   *
-   *   04 || X || Y
-   *   40 || X
-   *   41 || X
-   */
-  if (secretlen < 2)
-    return gpg_error (GPG_ERR_BAD_DATA);
-  if (secretlen == (nbits+7)/8)
-    ; /* Matches curve length - this is already the X coordinate.  */
-  else if (*secret == 0x04)
-    {
-      secretlen--;
-      memmove (secret, secret+1, secretlen);
-      if ((secretlen & 1))
-        return gpg_error (GPG_ERR_BAD_DATA);
-      secretlen /= 2;
-    }
-  else if (*secret == 0x40 || *secret == 0x41)
-    {
-      secretlen--;
-      memmove (secret, secret+1, secretlen);
-    }
-  else
-    return gpg_error (GPG_ERR_BAD_DATA);
-  if (!secretlen)
-    return gpg_error (GPG_ERR_BAD_DATA);
-
-  if (DBG_CRYPTO)
-    log_printhex (secret, secretlen, "ECDH X ..:");
-
-  /* We have now the shared secret bytes in (SECRET,SECRETLEN).  Now
-   * we will compute the KEK using a value dervied from the secret
-   * bytes. */
-  err = gcry_sexp_extract_param (enc_val, "enc-val",
-                                 "&'encr-algo''wrap-algo''ukm'?s",
-                                 ioarray+0, ioarray+1,
-                                 ioarray+2, ioarray+3, NULL);
-  if (err)
-    {
-      log_error ("extracting ECDH parameter failed: %s\n", gpg_strerror (err));
-      goto leave;
-    }
-  encr_algo_str = string_from_gcry_buffer (ioarray);
-  if (!encr_algo_str)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-  wrap_algo_str = string_from_gcry_buffer (ioarray+1);
-  if (!wrap_algo_str)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-  ukm = ioarray[2].data;
-  ukmlen = ioarray[2].len;
-  data = ioarray[3].data;
-  datalen = ioarray[3].len;
-
-  /* Check parameters.  */
-  if (DBG_CRYPTO)
-    {
-      log_debug ("encr_algo: %s\n", encr_algo_str);
-      log_debug ("wrap_algo: %s\n", wrap_algo_str);
-      log_printhex (ukm, ukmlen, "ukm .....:");
-      log_printhex (data, datalen, "data ....:");
-    }
-
-  if (!strcmp (encr_algo_str, "1.3.132.1.11.1"))
-    {
-      /* dhSinglePass-stdDH-sha256kdf-scheme */
-      hash_algo = GCRY_MD_SHA256;
-    }
-  else if (!strcmp (encr_algo_str, "1.3.132.1.11.2"))
-    {
-      /* dhSinglePass-stdDH-sha384kdf-scheme */
-      hash_algo = GCRY_MD_SHA384;
-    }
-  else if (!strcmp (encr_algo_str, "1.3.132.1.11.3"))
-    {
-      /* dhSinglePass-stdDH-sha512kdf-scheme */
-      hash_algo = GCRY_MD_SHA512;
-    }
-  else if (!strcmp (encr_algo_str, "1.3.133.16.840.63.0.2"))
-    {
-      /* dhSinglePass-stdDH-sha1kdf-scheme */
-      hash_algo = GCRY_MD_SHA1;
-    }
-  else
-    {
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
-      goto leave;
-    }
-
-  if (!strcmp (wrap_algo_str, "2.16.840.1.101.3.4.1.5"))
-    {
-      cipher_algo = GCRY_CIPHER_AES128;
-      keylen = 16;
-    }
-  else if (!strcmp (wrap_algo_str, "2.16.840.1.101.3.4.1.25"))
-    {
-      cipher_algo = GCRY_CIPHER_AES192;
-      keylen = 24;
-    }
-  else if (!strcmp (wrap_algo_str, "2.16.840.1.101.3.4.1.45"))
-    {
-      cipher_algo = GCRY_CIPHER_AES256;
-      keylen = 32;
-    }
-  else
-    {
-      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
-      goto leave;
-    }
-
-  err = ecdh_derive_kek (key, keylen, hash_algo, wrap_algo_str,
-                         secret, secretlen, ukm, ukmlen);
-  if (err)
-    goto leave;
-
-  if (DBG_CRYPTO)
-    log_printhex (key, keylen, "KEK .....:");
-
-  /* Unwrap the key.  */
-  if ((datalen % 8) || datalen < 16)
-    {
-      log_error ("can't use a shared secret of %u bytes for ecdh\n", datalen);
-      err = gpg_error (GPG_ERR_BAD_DATA);
-      goto leave;
-    }
-
-  resultlen = datalen - 8;
-  result = xtrymalloc_secure (resultlen);
-  if (!result)
-    {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
-
-  err = gcry_cipher_open (&cipher_hd, cipher_algo, GCRY_CIPHER_MODE_AESWRAP, 0);
-  if (err)
-    {
-      log_error ("ecdh failed to initialize AESWRAP: %s\n", gpg_strerror (err));
-      goto leave;
-    }
-
-  err = gcry_cipher_setkey (cipher_hd, key, keylen);
-  wipememory (key, sizeof key);
-  if (err)
-    {
-      log_error ("ecdh failed in gcry_cipher_setkey: %s\n", gpg_strerror (err));
-      goto leave;
-    }
-
-  err = gcry_cipher_decrypt (cipher_hd, result, resultlen, data, datalen);
-  if (err)
-    {
-      log_error ("ecdh failed in gcry_cipher_decrypt: %s\n",gpg_strerror (err));
-      goto leave;
-    }
-
-  *r_resultlen = resultlen;
-  *r_result = result;
-  result = NULL;
-
- leave:
-  if (result)
-    {
-      wipememory (result, resultlen);
-      xfree (result);
-    }
-  gcry_cipher_close (cipher_hd);
-  xfree (encr_algo_str);
-  xfree (wrap_algo_str);
-  xfree (ioarray[0].data);
-  xfree (ioarray[1].data);
-  xfree (ioarray[2].data);
-  xfree (ioarray[3].data);
-  return err;
-}
-
-
 /* Helper for pwri_decrypt to parse the derive info.
  * Example data for (DER,DERLEN):
  * SEQUENCE {
@@ -555,7 +226,7 @@ pwri_decrypt (ctrl_t ctrl, gcry_sexp_t enc_val,
                                  ioarray+2, ioarray+3, ioarray+4, NULL);
   if (err)
     {
-      /* If this is not pwri element, it is likly a kekri element
+      /* If this is not pwri element, it is likely a kekri element
        * which we do not yet support.  Change the error back to the
        * original as returned by ksba_cms_get_issuer.  */
       if (gpg_err_code (err) == GPG_ERR_NOT_FOUND)
@@ -764,11 +435,270 @@ pwri_decrypt (ctrl_t ctrl, gcry_sexp_t enc_val,
 }
 
 
+static int
+determine_wrap_cipher (unsigned char *wrap_algo, size_t len)
+{
+  int cipher = -1;
+
+  if (len == 22 && !memcmp (wrap_algo, "2.16.840.1.101.3.4.1.5", len))
+    cipher = GCRY_CIPHER_AES128;
+  else if (len == 23 && !memcmp (wrap_algo, "2.16.840.1.101.3.4.1.25", len))
+    cipher = GCRY_CIPHER_AES192;
+  else if (len == 23 && !memcmp (wrap_algo, "2.16.840.1.101.3.4.1.45", len))
+    cipher = GCRY_CIPHER_AES256;
+
+  return cipher;
+}
+
+static int
+determine_hashalgo (unsigned char *kdf_scheme, size_t len)
+{
+  int hashalgo = -1;
+
+  if (len == 14 && !memcmp (kdf_scheme, "1.3.132.1.11.1", len))
+    {
+      /* dhSinglePass-stdDH-sha256kdf-scheme */
+      hashalgo = GCRY_MD_SHA256;
+    }
+  else if (len == 14 && !memcmp (kdf_scheme, "1.3.132.1.11.2", len))
+    {
+      /* dhSinglePass-stdDH-sha384kdf-scheme */
+      hashalgo = GCRY_MD_SHA384;
+    }
+  else if (len == 14 && !memcmp (kdf_scheme, "1.3.132.1.11.3", len))
+    {
+      /* dhSinglePass-stdDH-sha512kdf-scheme */
+      hashalgo = GCRY_MD_SHA512;
+    }
+  else if (len == 21 && !memcmp (kdf_scheme, "1.3.133.16.840.63.0.2", len))
+    {
+      /* dhSinglePass-stdDH-sha1kdf-scheme */
+      hashalgo = GCRY_MD_SHA1;
+    }
+
+  return hashalgo;
+}
+
+
+/* Construct the
+ *  ECC-CMS-SharedInfo ::= SEQUENCE {
+ *      keyInfo         AlgorithmIdentifier,
+ *      entityUInfo [0] EXPLICIT OCTET STRING OPTIONAL,
+ *      suppPubInfo [2] EXPLICIT OCTET STRING  }
+ * as described in RFC-5753, 7.2.  */
+static gpg_error_t
+build_shared_info (size_t kek_len, const char *wrap_algo_str,
+                   const void *ukm, size_t ukm_len,
+                   unsigned char **result_p, size_t *len_p)
+{
+  gpg_error_t err;
+  unsigned char *oid;
+  size_t oidlen, toidlen, tkeyinfo, tukmlen, tsupppubinfo;
+  unsigned char keylenbuf[6];
+  membuf_t mb = MEMBUF_ZERO;
+
+  err = ksba_oid_from_str (wrap_algo_str, &oid, &oidlen);
+  if (err)
+    return err;
+
+  toidlen = get_tlv_length (CLASS_UNIVERSAL, TAG_OBJECT_ID, 0, oidlen);
+  tkeyinfo = get_tlv_length (CLASS_UNIVERSAL, TAG_SEQUENCE, 1, toidlen);
+
+  tukmlen = ukm? get_tlv_length (CLASS_CONTEXT, 0, 1, ukm_len) : 0;
+
+  kek_len *= 8;
+  keylenbuf[0] = TAG_OCTET_STRING;
+  keylenbuf[1] = 4;
+  keylenbuf[2] = (kek_len >> 24);
+  keylenbuf[3] = (kek_len >> 16);
+  keylenbuf[4] = (kek_len >> 8);
+  keylenbuf[5] = kek_len;
+
+  tsupppubinfo = get_tlv_length (CLASS_CONTEXT, 2, 1, sizeof keylenbuf);
+
+  put_tlv_to_membuf (&mb, CLASS_UNIVERSAL, TAG_SEQUENCE, 1,
+                     tkeyinfo + tukmlen + tsupppubinfo);
+  put_tlv_to_membuf (&mb, CLASS_UNIVERSAL, TAG_SEQUENCE, 1,
+                     toidlen);
+  put_tlv_to_membuf (&mb, CLASS_UNIVERSAL, TAG_OBJECT_ID, 0, oidlen);
+  put_membuf (&mb, oid, oidlen);
+  ksba_free (oid);
+
+  if (ukm)
+    {
+      put_tlv_to_membuf (&mb, CLASS_CONTEXT, 0, 1, ukm_len);
+      put_membuf (&mb, ukm, ukm_len);
+    }
+
+  put_tlv_to_membuf (&mb, CLASS_CONTEXT, 2, 1, sizeof keylenbuf);
+  put_membuf (&mb, keylenbuf, sizeof keylenbuf);
+
+  if (!(*result_p = get_membuf (&mb, len_p)))
+    err = gpg_error_from_syserror ();
+
+  return err;
+}
+
+
+/* Derive a KEK (key wrapping/encoding key) using (SECRET,SECRETLEN), an
+ * optional (UKM,ULMLEN), the wrap algorithm WRAP_ALGO_STR in decimal
+ * dotted form, and the hash algorithm HASH_ALGO.  On success a key of
+ * length KEK_LEN is stored at KEK_KEY.  */
+gpg_error_t
+ecdh_derive_kek (unsigned char *kek_key, unsigned int kek_len,
+                 int hash_algo, const char *wrap_algo_str,
+                 const void *secret, unsigned int secretlen,
+                 const void *ukm, unsigned int ukmlen)
+{
+  gpg_error_t err;
+  unsigned char *kdf_params = NULL;
+  size_t kdf_params_len;
+
+  err = build_shared_info (kek_len, wrap_algo_str, ukm, ukmlen,
+                           &kdf_params, &kdf_params_len);
+  if (err)
+    return err;
+
+  err = gnupg_ecc_kem_kdf (kek_key, kek_len, GCRY_KDF_X963_KDF, hash_algo,
+                           secret, secretlen,
+                           (char *)kdf_params, kdf_params_len);
+  return err;
+}
+
+
+/* Maximum buffer length of encrypted session key in S-Expressoin for
+ * KEM API.  */
+#define ENC_VAL_KEM_MAX 1024
+
+/* For ECC, get the session key by asking gpg-agent with KEM API.  */
+static gpg_error_t
+ecc_kem_pkdecrypt (ctrl_t ctrl, const char *hexkeygrip,
+                   const char *desc, ksba_const_sexp_t enc_val,
+                   char **r_seskey, size_t *r_seskeylen)
+{
+  gcry_error_t err;
+  gcry_sexp_t s_enc_val;
+
+  gcry_mpi_t encrypted_sessionkey_mpi = NULL;
+  gcry_mpi_t ecc_ct_mpi = NULL;
+  gcry_buffer_t encr_algo = { 0, 0, 0, NULL };
+  gcry_buffer_t wrap_algo = { 0, 0, 0, NULL };
+  gcry_buffer_t ukm = { 0, 0, 0, NULL };
+
+  int keywrap_cipher_algo, kdf_hash_algo;
+  size_t kek_len;
+
+  char *wrap_algo_str;
+
+  unsigned char *kdf_params = NULL;
+  size_t kdf_params_len;
+
+  gcry_sexp_t s_enc_val_kem;
+  unsigned char enc_val_kem[ENC_VAL_KEM_MAX];
+  size_t enc_val_kem_len;
+
+  /*
+   * Firstly, from ENC_VAL, extract hash algo for KDF, key
+   * wrap cipher algo, cipher text, wrapped session key, and
+   * optional user key material (UKM).
+   */
+  err = gcry_sexp_sscan (&s_enc_val, NULL, enc_val,
+                         gcry_sexp_canon_len (enc_val, 0, NULL, NULL));
+  if (err)
+    goto leave;
+
+  err = gcry_sexp_extract_param (s_enc_val, "enc-val",
+                                 "/es&'encr-algo''wrap-algo''ukm'?",
+                                 &ecc_ct_mpi, &encrypted_sessionkey_mpi,
+                                 &encr_algo, &wrap_algo, &ukm, NULL);
+  gcry_sexp_release (s_enc_val);
+  if (err)
+    {
+      if (opt.verbose)
+        log_info ("%s: extracting parameters failed\n", __func__);
+      goto leave;
+    }
+
+  if (!encr_algo.data || !wrap_algo.data)
+    {
+      if (opt.verbose)
+        log_info ("%s: the KDF parameters are required\n", __func__);
+      err = gpg_error (GPG_ERR_INV_DATA);
+      goto leave;
+    }
+
+  kdf_hash_algo = determine_hashalgo (encr_algo.data, encr_algo.size);
+  if (kdf_hash_algo < 0)
+    {
+      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      goto leave;
+    }
+
+  keywrap_cipher_algo = determine_wrap_cipher (wrap_algo.data,
+                                               wrap_algo.size);
+  if (keywrap_cipher_algo < 0)
+    {
+      err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+      goto leave;
+    }
+
+  kek_len = gcry_cipher_get_algo_keylen (keywrap_cipher_algo);
+  if (kek_len == 0)
+    {
+      err = gpg_error (GPG_ERR_INV_DATA);
+      goto leave;
+    }
+
+  wrap_algo_str = string_from_gcry_buffer (&wrap_algo);
+  if (!wrap_algo_str)
+    {
+      err = gpg_error_from_syserror ();
+      goto leave;
+    }
+
+  /* Secondly, compose the KDF parameters.  */
+  err = build_shared_info (kek_len, wrap_algo_str, ukm.data, ukm.size,
+                           &kdf_params, &kdf_params_len);
+  xfree (wrap_algo_str);
+  if (err)
+    goto leave;
+
+  /* Thirdly, build the S-EXP for the request to the gpg-agent.  */
+  err = gcry_sexp_build (&s_enc_val_kem, NULL,
+                         "(enc-val(ecc(c%d)(h%d)(e%m)(s%m)(kdf-params%b)))",
+                         keywrap_cipher_algo, kdf_hash_algo,
+                         ecc_ct_mpi, encrypted_sessionkey_mpi,
+                         (int)kdf_params_len, kdf_params);
+  if (err)
+    goto leave;
+
+  enc_val_kem_len = gcry_sexp_sprint (s_enc_val_kem, GCRYSEXP_FMT_CANON,
+                                      enc_val_kem, ENC_VAL_KEM_MAX);
+  gcry_sexp_release (s_enc_val_kem);
+  if (!enc_val_kem_len)
+    {
+      err = gpg_error (GPG_ERR_TOO_LARGE);
+      goto leave;
+    }
+
+  /* Ask gpg-agent to decrypt the wrapped session key with KEM API.  */
+  err = gpgsm_agent_pkdecrypt (ctrl, hexkeygrip, desc, 1, enc_val_kem,
+                               r_seskey, r_seskeylen);
+ leave:
+  xfree (kdf_params);
+  gcry_free (encr_algo.data);
+  gcry_free (wrap_algo.data);
+  gcry_free (ukm.data);
+  gcry_mpi_release (ecc_ct_mpi);
+  gcry_mpi_release (encrypted_sessionkey_mpi);
+  return err;
+}
+
 /* Decrypt the session key and fill in the parm structure.  The
    algo and the IV is expected to be already in PARM. */
 static int
 prepare_decryption (ctrl_t ctrl, const char *hexkeygrip,
-                    int pk_algo, unsigned int nbits, const char *desc,
+                    int pk_algo, const char *desc,
                     ksba_const_sexp_t enc_val,
                     struct decrypt_filter_parm_s *parm)
 {
@@ -780,21 +710,6 @@ prepare_decryption (ctrl_t ctrl, const char *hexkeygrip,
   if (DBG_CRYPTO)
     log_printcanon ("decrypting:", enc_val, 0);
 
-  if (!pwri)
-    {
-      rc = gpgsm_agent_pkdecrypt (ctrl, hexkeygrip, desc, enc_val,
-                                  &seskey, &seskeylen);
-      if (rc)
-        {
-          log_error ("error decrypting session key: %s\n", gpg_strerror (rc));
-          goto leave;
-        }
-
-      if (DBG_CRYPTO)
-        log_printhex (seskey, seskeylen, "DEK frame:");
-    }
-
-  n=0;
   if (pwri) /* Password based encryption.  */
     {
       gcry_sexp_t s_enc_val;
@@ -813,64 +728,69 @@ prepare_decryption (ctrl_t ctrl, const char *hexkeygrip,
       xfree (seskey);
       seskey = decrypted;
       seskeylen = decryptedlen;
-    }
-  else if (pk_algo == GCRY_PK_ECC)
-    {
-      gcry_sexp_t s_enc_val;
-      unsigned char *decrypted;
-      unsigned int decryptedlen;
-
-      rc = gcry_sexp_sscan (&s_enc_val, NULL, enc_val,
-                            gcry_sexp_canon_len (enc_val, 0, NULL, NULL));
-      if (rc)
-        goto leave;
-
-      rc = ecdh_decrypt (seskey, seskeylen, nbits, s_enc_val,
-                         &decrypted, &decryptedlen);
-      gcry_sexp_release (s_enc_val);
-      if (rc)
-        goto leave;
-      xfree (seskey);
-      seskey = decrypted;
-      seskeylen = decryptedlen;
-
-    }
-  else if (seskeylen == 32 || seskeylen == 24 || seskeylen == 16)
-    {
-      /* Smells like an AES-128, 3-DES, or AES-256 key.  This might
-       * happen because a SC has already done the unpacking.  A better
-       * solution would be to test for this only after we triggered
-       * the GPG_ERR_INV_SESSION_KEY. */
+      n = 0;
     }
   else
     {
-      if (n + 7 > seskeylen )
+      if (pk_algo == GCRY_PK_ECC)
+        rc = ecc_kem_pkdecrypt (ctrl, hexkeygrip, desc, enc_val,
+                                &seskey, &seskeylen);
+      else
+        rc = gpgsm_agent_pkdecrypt (ctrl, hexkeygrip, desc, 0, enc_val,
+                                    &seskey, &seskeylen);
+
+      if (rc)
         {
-          rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
+          log_error ("error decrypting session key: %s\n", gpg_strerror (rc));
           goto leave;
         }
 
-      /* FIXME: Actually the leading zero is required but due to the way
-         we encode the output in libgcrypt as an MPI we are not able to
-         encode that leading zero.  However, when using a Smartcard we are
-         doing it the right way and therefore we have to skip the zero.  This
-         should be fixed in gpg-agent of course. */
-      if (!seskey[n])
-        n++;
+      if (DBG_CRYPTO)
+        log_printhex (seskey, seskeylen, "DEK frame:");
 
-      if (seskey[n] != 2 )  /* Wrong block type version. */
+      n = 0;
+      if (pk_algo == GCRY_PK_ECC)
         {
-          rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
-          goto leave;
+          /* When it's ECC, no more checks are needed.  It's done in
+           * the agent side.  */
         }
-
-      for (n++; n < seskeylen && seskey[n]; n++) /* Skip the random bytes. */
-        ;
-      n++; /* and the zero byte */
-      if (n >= seskeylen )
+      else if (seskeylen == 32 || seskeylen == 24 || seskeylen == 16)
         {
-          rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
-          goto leave;
+          /* Smells like an AES-128, 3-DES, or AES-256 key.  This might
+           * happen because a SC has already done the unpacking.  A better
+           * solution would be to test for this only after we triggered
+           * the GPG_ERR_INV_SESSION_KEY. */
+        }
+      else
+        {
+          if (n + 7 > seskeylen )
+            {
+              rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
+              goto leave;
+            }
+
+          /* FIXME: Actually the leading zero is required but due to the way
+             we encode the output in libgcrypt as an MPI we are not able to
+             encode that leading zero.  However, when using a Smartcard we are
+             doing it the right way and therefore we have to skip the zero.  This
+             should be fixed in gpg-agent of course. */
+          if (!seskey[n])
+            n++;
+
+          if (seskey[n] != 2 )  /* Wrong block type version. */
+            {
+              rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
+              goto leave;
+            }
+
+          for (n++; n < seskeylen && seskey[n]; n++) /* Skip the random bytes. */
+            ;
+          n++; /* and the zero byte */
+          if (n >= seskeylen )
+            {
+              rc = gpg_error (GPG_ERR_INV_SESSION_KEY);
+              goto leave;
+            }
         }
     }
 
@@ -1052,7 +972,7 @@ decrypt_gcm_filter (void *arg,
 
 /* Perform a decrypt operation.  */
 int
-gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
+gpgsm_decrypt (ctrl_t ctrl, estream_t in_fp, estream_t out_fp)
 {
   int rc;
   gnupg_ksba_io_t b64reader = NULL;
@@ -1063,7 +983,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
   ksba_stop_reason_t stopreason;
   KEYDB_HANDLE kh;
   int recp;
-  estream_t in_fp = NULL;
   struct decrypt_filter_parm_s dfparm;
   char *curve = NULL;
 
@@ -1076,14 +995,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
     {
       log_error (_("failed to allocate keyDB handle\n"));
       rc = gpg_error (GPG_ERR_GENERAL);
-      goto leave;
-    }
-
-  in_fp = es_fdopen_nc (in_fd, "rb");
-  if (!in_fp)
-    {
-      rc = gpg_error_from_syserror ();
-      log_error ("fdopen() failed: %s\n", strerror (errno));
       goto leave;
     }
 
@@ -1184,7 +1095,7 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
               goto leave;
             }
 
-          /* For CMS, CO_DE_VS demands CBC mode.  */
+          /* For CMS, CO_DE_VS demands CBC or GCM mode - check it.  */
           dfparm.is_de_vs = gnupg_cipher_is_compliant (CO_DE_VS, algo, mode);
 
           audit_log_i (ctrl->audit, AUDIT_DATA_CIPHER_ALGO, algo);
@@ -1209,9 +1120,9 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
 
           for (recp=0; !any_key; recp++)
             {
-              char *issuer;
-              ksba_sexp_t serial;
-              ksba_sexp_t enc_val;
+              char *issuer = NULL;
+              ksba_sexp_t serial = NULL;
+              ksba_sexp_t enc_val = NULL;
               char *hexkeygrip = NULL;
               char *pkalgostr = NULL;
               char *pkfpr = NULL;
@@ -1338,7 +1249,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                     (dfparm.is_de_vs
                      && gnupg_pk_is_compliant (CO_DE_VS, pk_algo, 0,
                                                NULL, nbits, curve));
-
                 oops:
                   if (rc)
                     {
@@ -1346,9 +1256,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                        * don't have.  */
                       dfparm.is_de_vs = 0;
                     }
-                  xfree (issuer);
-                  xfree (serial);
-                  ksba_cert_release (cert);
                 }
 
               if ((!hexkeygrip || !pk_algo) && !maybe_pwri)
@@ -1365,9 +1272,10 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                   if (maybe_pwri && opt.verbose)
                     log_info ("recp %d - KEKRI or PWRI\n", recp);
 
-                  rc = prepare_decryption (ctrl, hexkeygrip, pk_algo, nbits,
+                  rc = prepare_decryption (ctrl, hexkeygrip, pk_algo,
                                            desc, enc_val, &dfparm);
                   xfree (enc_val);
+                  enc_val = NULL;
                   if (rc)
                     {
                       log_info ("decrypting session key failed: %s\n",
@@ -1384,20 +1292,79 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                          decrypt_gcm_filter : decrypt_filter,
                          &dfparm);
 
-                      if (dfparm.is_de_vs
-                          && gnupg_gcrypt_is_compliant (CO_DE_VS))
-                        gpgsm_status (ctrl, STATUS_DECRYPTION_COMPLIANCE_MODE,
-                                      gnupg_status_compliance_flag (CO_DE_VS));
-                      else if (opt.require_compliance
-                               && opt.compliance == CO_DE_VS)
+                      /* Check the cert chain for CO_DE_VS compliance. */
+                      if (cert && opt.compliance == CO_DE_VS)
                         {
-                          log_error (_("operation forced to fail due to"
-                                       " unfulfilled compliance rules\n"));
-                          gpgsm_errors_seen = 1;
+                          ksba_isotime_t sigtime, keyexptime;
+                          unsigned int verifyflags;
+                          size_t buflen;
+                          char buf[1];
+
+                          dfparm.is_de_vs =
+                            (dfparm.is_de_vs &&
+                             gnupg_gcrypt_is_compliant (CO_DE_VS));
+
+                          rc = gpgsm_validate_chain (ctrl, cert,
+                                                     *sigtime? sigtime :
+                                                     "19700101T000000",
+                                                     keyexptime, 0,
+                                                     NULL, 0, &verifyflags);
+                          audit_log_ok (ctrl->audit, AUDIT_CHAIN_STATUS, rc);
+                          if (rc)
+                            {
+                              dfparm.is_de_vs = 0;
+
+                              log_error ("invalid certification chain: %s\n",
+                                         gpg_strerror (rc));
+                              if (gpg_err_code (rc) == GPG_ERR_BAD_CERT_CHAIN
+                                  || gpg_err_code (rc) == GPG_ERR_BAD_CERT
+                                  || gpg_err_code (rc) == GPG_ERR_BAD_CA_CERT
+                                  || gpg_err_code (rc) == GPG_ERR_CERT_REVOKED)
+                                gpgsm_status_with_err_code (ctrl,
+                                                            STATUS_TRUST_NEVER,
+                                                            NULL,
+                                                            gpg_err_code (rc));
+                              else
+                                gpgsm_status_with_err_code
+                                  (ctrl, STATUS_TRUST_UNDEFINED,
+                                   NULL, gpg_err_code (rc));
+                            }
+                          else if (!ksba_cert_get_user_data (cert, "is_de_vs",
+                                                             &buf, sizeof (buf),
+                                                             &buflen) && buflen)
+                            {
+                              /* Last condition for de-vs compliance is met
+                               * (cert has de-vs flag). So we can print the
+                               * status line for de-vs compliance.*/
+                              if (dfparm.is_de_vs && buf[0])
+                                gpgsm_status (ctrl, STATUS_DECRYPTION_COMPLIANCE_MODE,
+                                              gnupg_status_compliance_flag (CO_DE_VS));
+                              else
+                                dfparm.is_de_vs = 0;
+                            }
+                          else
+                            {
+                              dfparm.is_de_vs = 0;
+                              if (opt.require_compliance)
+                                {
+                                  log_error ("get_user_data(is_de_vs) failed.\n");
+                                  gpgsm_errors_seen = 1;
+                                }
+                            }
+
+                          if (!dfparm.is_de_vs && opt.require_compliance)
+                            {
+                              log_error (_("operation forced to fail due to"
+                                           " unfulfilled compliance rules\n"));
+                              gpgsm_errors_seen = 1;
+                            }
                         }
                     }
                   audit_log_ok (ctrl->audit, AUDIT_RECP_RESULT, rc);
                 }
+              xfree (issuer);
+              xfree (serial);
+              ksba_cert_release (cert);
               xfree (pkalgostr);
               xfree (pkfpr);
               xfree (hexkeygrip);
@@ -1410,8 +1377,8 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
             {
               for (;; recp++)
                 {
-                  char *issuer;
-                  ksba_sexp_t serial;
+                  char *issuer = NULL;
+                  ksba_sexp_t serial = NULL;
                   int tmp_rc;
 
                   tmp_rc = ksba_cms_get_issuer_serial (cms, recp,
@@ -1488,7 +1455,14 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
                 }
               if (DBG_CRYPTO)
                 log_printhex (authtag, authtaglen, "Authtag ...:");
-              rc = gcry_cipher_checktag (dfparm.hd, authtag, authtaglen);
+              if (authtaglen < 12)
+                {
+                  log_info ("authentication tag is too short (%zu octets)\n",
+                            authtaglen);
+                  rc = gpg_error (GPG_ERR_CHECKSUM);
+                }
+              else
+                rc = gcry_cipher_checktag (dfparm.hd, authtag, authtaglen);
               xfree (authtag);
               if (rc)
                 log_error ("data is not authentic: %s\n", gpg_strerror (rc));
@@ -1520,7 +1494,6 @@ gpgsm_decrypt (ctrl_t ctrl, int in_fd, estream_t out_fp)
   gnupg_ksba_destroy_reader (b64reader);
   gnupg_ksba_destroy_writer (b64writer);
   keydb_release (kh);
-  es_fclose (in_fp);
   if (dfparm.hd)
     gcry_cipher_close (dfparm.hd);
   return rc;

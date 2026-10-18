@@ -345,6 +345,7 @@ contenttype_sources = []
 portal_sources = []
 unix_sources = []
 win32_sources = []
+have_gio_launch_desktop = false
 
 # This is also used by tests/gdbus-daemon, so use files() to include the path
 gdbus_daemon_sources = [
@@ -367,6 +368,12 @@ if host_system != 'windows'
     'ggtknotificationbackend.c',
   )
 
+  document_portal_sources = [files(
+      'gdocumentportal.c',
+    ),
+    xdp_dbus_generated,
+  ]
+
   portal_sources = [files(
       'gdocumentportal.c',
       'gopenuriportal.c',
@@ -379,7 +386,7 @@ if host_system != 'windows'
       'gportalnotificationbackend.c',
       'gsandbox.c',
     ),
-    xdp_dbus_generated
+    document_portal_sources,
   ]
 
   gio_unix_include_headers = files(
@@ -390,9 +397,20 @@ if host_system != 'windows'
     'gunixoutputstream.h',
   )
 
+  if glib_conf.has('HAVE_SYSINFO')
+    unix_sources += files(
+      'gmemorymonitorpoll.c',
+    )
+  endif
+  
+  if host_system != 'sunos'
+    unix_sources += files('gmemorymonitorpsi.c')
+  endif
+
   if glib_have_cocoa
     settings_sources += files('gnextstepsettingsbackend.m')
     contenttype_sources += files('gcontenttype-osx.m')
+    unix_sources += files('glocalfile-osx.m')
     unix_sources += files('gosxappinfo.m')
     framework_dep = dependency('appleframeworks', modules : ['Foundation', 'CoreFoundation', 'AppKit'])
     platform_deps += [framework_dep]
@@ -403,20 +421,25 @@ if host_system != 'windows'
     contenttype_sources += files('gcontenttype-fdo.c')
     unix_sources += files('gdesktopappinfo.c')
     gio_unix_include_headers += files('gdesktopappinfo.h')
-    launch_desktop_sources = files('gio-launch-desktop.c')
 
-    if host_system == 'linux'
-      launch_desktop_sources += files('../glib/gjournal-private.c')
+    if process_spawn_allowed
+      launch_desktop_sources = files('gio-launch-desktop.c')
+
+      if host_system == 'linux'
+        launch_desktop_sources += files('../glib/gjournal-private.c')
+      endif
+
+      have_gio_launch_desktop = true
+      gio_launch_desktop = executable('gio-launch-desktop', launch_desktop_sources,
+        dependencies: [app_profile_dep],
+        include_directories : glibinc,
+        install : true,
+        install_dir : multiarch_libexecdir,
+        install_tag : 'bin',
+        c_args : gio_c_args,
+        # intl.lib is not compatible with SAFESEH
+        link_args : noseh_link_args)
     endif
-
-    gio_launch_desktop = executable('gio-launch-desktop', launch_desktop_sources,
-      include_directories : glibinc,
-      install : true,
-      install_dir : multiarch_libexecdir,
-      install_tag : 'bin',
-      c_args : gio_c_args,
-      # intl.lib is not compatible with SAFESEH
-      link_args : noseh_link_args)
   endif
 
   subdir('xdgmime')
@@ -428,6 +451,7 @@ if host_system != 'windows'
     unix_sources += files(
       'gnetworkmonitornetlink.c',
       'gnetworkmonitornm.c',
+      'gnetworkmonitorsystemd.c',
     )
   endif
 else
@@ -457,13 +481,21 @@ else
   )
 
   if glib_build_shared
-    gio_win_rc = configure_file(
-      input: 'gio.rc.in',
+    gio_rc_conf = configuration_data({
+      'NAME': 'GIO',
+      'FILENAME': (cc.get_argument_syntax() == 'msvc' ? '' : 'lib') + 'gio-' + glib_api_version + '-' + soversion.to_string() + '.dll',
+      'DESCRIPTION': 'Gio is a library providing general purpose I/O, networking, IPC, settings, and other high level application functionality',
+    })
+    gio_rc_conf.merge_from(rc_conf_base)
+    lib_rc = configure_file(
+      input: lib_rc_in,
       output: 'gio.rc',
-      configuration: glibconfig_conf,
+      configuration: gio_rc_conf,
     )
-    gio_win_res = windows.compile_resources(gio_win_rc)
-    win32_sources += [gio_win_res]
+    win32_sources += [windows.compile_resources(lib_rc,
+      # Workaround for https://github.com/llvm/llvm-project/issues/63426
+      args: ['-c', '65001'],
+    )]
   endif
 
   gio_win32_include_headers = files(
@@ -524,10 +556,13 @@ gio_base_sources = files(
   'giomodule-priv.c',
   'gioscheduler.c',
   'giostream.c',
+  'giptosmessage.c',
+  'gipv6tclassmessage.c',
   'gloadableicon.c',
   'gmarshal-internal.c',
   'gmount.c',
   'gmemorymonitor.c',
+  'gmemorymonitorbase.c',
   'gmemorymonitordbus.c',
   'gmemoryinputstream.c',
   'gmemoryoutputstream.c',
@@ -681,6 +716,8 @@ gio_headers = files(
   'gioscheduler.h',
   'giostream.h',
   'giotypes.h',
+  'giptosmessage.h',
+  'gipv6tclassmessage.h',
   'gloadableicon.h',
   'gmount.h',
   'gmemoryinputstream.h',
@@ -1022,14 +1059,14 @@ gio_tool = executable('gio', gio_tool_sources,
   c_args : gio_c_args,
   # intl.lib is not compatible with SAFESEH
   link_args : noseh_link_args,
-  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, app_profile_dep])
 
 executable('gresource', 'gresource-tool.c',
   install : true,
   install_tag : 'bin',
   # intl.lib is not compatible with SAFESEH
   link_args : noseh_link_args,
-  dependencies : [libelf, libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+  dependencies : [libelf, libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, app_profile_dep])
 
 gio_querymodules = executable('gio-querymodules', 'gio-querymodules.c', 'giomodule-priv.c',
   install : true,
@@ -1038,7 +1075,7 @@ gio_querymodules = executable('gio-querymodules', 'gio-querymodules.c', 'giomodu
   c_args : gio_c_args,
   # intl.lib is not compatible with SAFESEH
   link_args : noseh_link_args,
-  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, app_profile_dep])
 
 glib_compile_schemas = executable('glib-compile-schemas',
   ['glib-compile-schemas.c'],
@@ -1047,7 +1084,7 @@ glib_compile_schemas = executable('glib-compile-schemas',
   install_tag : 'bin',
   # intl.lib is not compatible with SAFESEH
   link_args : noseh_link_args,
-  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, gvdb_dep])
+  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, gvdb_dep, app_profile_dep])
 
 glib_compile_resources = executable('glib-compile-resources',
   [gconstructor_as_data_h, 'glib-compile-resources.c'],
@@ -1056,7 +1093,7 @@ glib_compile_resources = executable('glib-compile-resources',
   c_args : gio_c_args,
   # intl.lib is not compatible with SAFESEH
   link_args : noseh_link_args,
-  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, gvdb_dep])
+  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, gvdb_dep, app_profile_dep])
 install_data('gresource.dtd',
   install_dir: get_option('datadir') / dtds_subdir,
   install_tag: 'devel',
@@ -1077,7 +1114,7 @@ executable('gsettings', 'gsettings-tool.c',
   c_args : gio_c_args,
   # intl.lib is not compatible with SAFESEH
   link_args : noseh_link_args,
-  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, app_profile_dep])
 install_data('gschema.dtd',
   install_dir : get_option('datadir') / schemas_subdir,
   install_tag : 'devel',
@@ -1088,13 +1125,13 @@ install_data(['gschema.loc', 'gschema.its'],
   install_tag : 'devel',
 )
 
-executable('gdbus', 'gdbus-tool.c',
+gdbus_tool = executable('gdbus', 'gdbus-tool.c',
   install : true,
   install_tag : 'bin',
   c_args : gio_c_args,
   # intl.lib is not compatible with SAFESEH
   link_args : noseh_link_args,
-  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+  dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, app_profile_dep])
 
 if host_system != 'windows' and not glib_have_cocoa
   executable('gapplication', 'gapplication-tool.c',
@@ -1103,7 +1140,7 @@ if host_system != 'windows' and not glib_have_cocoa
     c_args : gio_c_args,
     # intl.lib is not compatible with SAFESEH
     link_args : noseh_link_args,
-    dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep])
+    dependencies : [libgio_dep, libgobject_dep, libgmodule_dep, libglib_dep, app_profile_dep])
 endif
 
 if enable_systemtap

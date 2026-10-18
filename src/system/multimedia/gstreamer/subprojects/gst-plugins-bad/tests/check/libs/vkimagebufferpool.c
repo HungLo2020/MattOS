@@ -26,6 +26,10 @@
 #include <gst/check/gstcheck.h>
 #include <gst/vulkan/vulkan.h>
 
+#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
+#include "gst/vulkan/gstvkvideoutils-private.h"
+#endif
+
 static GstVulkanInstance *instance;
 static GstVulkanDevice *device;
 static GstVulkanQueue *queue = NULL;
@@ -208,7 +212,7 @@ GST_START_TEST (test_decoding_image)
 }
 
 GST_END_TEST;
-#endif
+#endif /* GST_VULKAN_HAVE_VIDEO_EXTENSIONS */
 
 static Suite *
 vkimagebufferpool_suite (void)
@@ -220,7 +224,6 @@ vkimagebufferpool_suite (void)
   suite_add_tcase (s, tc_basic);
   tcase_add_checked_fixture (tc_basic, setup, teardown);
 
-  /* FIXME: CI doesn't have a software vulkan renderer (and none exists currently) */
   instance = gst_vulkan_instance_new ();
   have_instance = gst_vulkan_instance_open (instance, NULL);
   gst_object_unref (instance);
@@ -235,4 +238,8 @@ vkimagebufferpool_suite (void)
   return s;
 }
 
+#ifdef __APPLE__
+GST_CHECK_MAIN_NOFORK (vkimagebufferpool);
+#else
 GST_CHECK_MAIN (vkimagebufferpool);
+#endif

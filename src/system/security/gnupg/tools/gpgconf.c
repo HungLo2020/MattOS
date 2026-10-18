@@ -33,11 +33,11 @@
 #include "../common/sysutils.h"
 #include "../common/init.h"
 #include "../common/status.h"
-#include "../common/exechelp.h"
 #include "../common/dotlock.h"
 
 #ifdef HAVE_W32_SYSTEM
 #include <windows.h>
+#include <aclapi.h>
 #endif
 
 /* Constants to identify the commands and options. */
@@ -63,6 +63,7 @@ enum cmd_and_opt_values
     oStatusFD,
     oShowSocket,
     oChUid,
+    oDebug,
 
     aListComponents,
     aCheckPrograms,
@@ -135,6 +136,7 @@ static gpgrt_opt_t opts[] =
     ARGPARSE_s_n (oNoVerbose, "no-verbose", "@"),
     ARGPARSE_s_n (oShowSocket, "show-socket", "@"),
     ARGPARSE_s_s (oChUid, "chuid", "@"),
+    ARGPARSE_s_s (oDebug, "debug", "@"),
 
     ARGPARSE_end ()
   };
@@ -152,6 +154,13 @@ static estream_t statusfp;
 static void show_versions (estream_t fp);
 static void show_configs (estream_t fp);
 
+
+/* The list of supported debug flags.  */
+static struct debug_flags_s debug_flags [] =
+  {
+    { DBG_W32_API      , "w32-api" },
+    { 0, NULL }
+  };
 
 
 /* Print usage information and provide strings for help. */
@@ -343,7 +352,7 @@ list_dirs (estream_t fp, char **names, int show_config_mode)
 
 #ifdef HAVE_W32_SYSTEM
   tmp = read_w32_registry_string (NULL,
-                                  GNUPG_REGISTRY_DIR,
+                                  gnupg_registry_dir (),
                                   "HomeDir");
   if (tmp)
     {
@@ -352,14 +361,14 @@ list_dirs (estream_t fp, char **names, int show_config_mode)
 
       xfree (tmp);
       if ((tmp = read_w32_registry_string ("HKEY_CURRENT_USER",
-                                           GNUPG_REGISTRY_DIR,
+                                           gnupg_registry_dir (),
                                            "HomeDir")))
         {
           xfree (tmp);
           hkcu = 1;
         }
       if ((tmp = read_w32_registry_string ("HKEY_LOCAL_MACHINE",
-                                           GNUPG_REGISTRY_DIR,
+                                           gnupg_registry_dir (),
                                            "HomeDir")))
         {
           xfree (tmp);
@@ -372,15 +381,15 @@ list_dirs (estream_t fp, char **names, int show_config_mode)
                     "Note: homedir taken from registry key %s%s\\%s:%s\n"
                     "\n",
                     hkcu?"HKCU":"", hklm?"HKLM":"",
-                    GNUPG_REGISTRY_DIR, "HomeDir");
+                    gnupg_registry_dir (), "HomeDir");
       else
         log_info ("Warning: homedir taken from registry key (%s:%s) in%s%s\n",
-                  GNUPG_REGISTRY_DIR, "HomeDir",
+                  gnupg_registry_dir (), "HomeDir",
                   hkcu?" HKCU":"",
                   hklm?" HKLM":"");
     }
   else if ((tmp = read_w32_registry_string (NULL,
-                                            GNUPG_REGISTRY_DIR,
+                                            gnupg_registry_dir (),
                                             NULL)))
     {
       xfree (tmp);
@@ -391,7 +400,7 @@ list_dirs (estream_t fp, char **names, int show_config_mode)
                     "\n", GNUPG_REGISTRY_DIR);
       else
         log_info ("Warning: registry key (%s) without value in HKCU or HKLM\n",
-                  GNUPG_REGISTRY_DIR);
+                  gnupg_registry_dir ());
     }
 
 #else /*!HAVE_W32_SYSTEM*/
@@ -725,6 +734,13 @@ main (int argc, char **argv)
           break;
         case oShowSocket: show_socket = 1; break;
         case oChUid:      changeuser = pargs.r.ret_str; break;
+        case oDebug:
+          if (parse_debug_flag (pargs.r.ret_str, &opt.debug, debug_flags))
+            {
+              pargs.r_opt = ARGPARSE_INVALID_ARG;
+              pargs.err = ARGPARSE_PRINT_ERROR;
+            }
+          break;
 
 	case aListDirs:
         case aListComponents:
@@ -750,9 +766,12 @@ main (int argc, char **argv)
 	  cmd = pargs.r_opt;
 	  break;
 
-        default: pargs.err = 2; break;
+        default: pargs.err = ARGPARSE_PRINT_ERROR; break;
 	}
     }
+
+  if (opt.debug && !opt.verbose)
+    opt.verbose = 1;
 
   gpgrt_argparse (NULL, &pargs, NULL);  /* Release internal state.  */
 
@@ -775,7 +794,7 @@ main (int argc, char **argv)
   if (changeuser && (err = gnupg_chuid (changeuser, 0)))
     gpgconf_failure (err);
 
-  /* Set the configuraton directories for use by gpgrt_argparser.  We
+  /* Set the configuration directories for use by gpgrt_argparser.  We
    * don't have a configuration file for this program but we have code
    * which reads the component's config files.  */
   gpgrt_set_confdir (GPGRT_CONFDIR_SYS, gnupg_sysconfdir ());
@@ -1183,21 +1202,206 @@ get_revision_from_blurb (const char *blurb, int *r_len)
 }
 
 
+#ifdef HAVE_W32_SYSTEM
+/* Return a string describing the current integrity level of the process.  */
+static const char *
+w32_get_integrity_level (void)
+{
+  HANDLE token;
+  DWORD elevation;
+  DWORD wordsize;
+  PTOKEN_MANDATORY_LABEL integrity_label = NULL;
+  size_t integrity_label_size;
+  DWORD integrity_level;
+
+  if (!OpenProcessToken (GetCurrentProcess(), TOKEN_QUERY, &token))
+    return "[error getting token]";
+
+  wordsize = sizeof (wordsize);
+  if (!token || token == INVALID_HANDLE_VALUE
+      || !GetTokenInformation (token, TokenElevation, &elevation,
+                               sizeof (TokenElevation), &wordsize))
+    {
+      CloseHandle (token);
+      return "[error getting token info]";
+    }
+
+  /* Get the required size */
+  if (GetTokenInformation (token, TokenIntegrityLevel, NULL, 0, &wordsize)
+      || GetLastError () != ERROR_INSUFFICIENT_BUFFER)
+    {
+      CloseHandle (token);
+      return "[error getting size of integrity label]";
+    }
+  integrity_label_size = wordsize;
+  integrity_label = xcalloc (1, integrity_label_size);
+
+  if (!GetTokenInformation (token, TokenIntegrityLevel,
+                            integrity_label, integrity_label_size, &wordsize))
+    {
+      xfree (integrity_label);
+      CloseHandle (token);
+      return "[error getting integrity label]";
+    }
+
+  /* Get the last integrity level */
+  integrity_level = *GetSidSubAuthority (integrity_label->Label.Sid,
+     (DWORD)(UCHAR)(*GetSidSubAuthorityCount(integrity_label->Label.Sid) - 1));
+
+  xfree (integrity_label);
+  CloseHandle (token);
+
+  if (integrity_level >= SECURITY_MANDATORY_SYSTEM_RID)
+    return "System";
+  else if (integrity_level >= SECURITY_MANDATORY_HIGH_RID)
+    return "High";
+  else if (integrity_level >= SECURITY_MANDATORY_MEDIUM_RID)
+    return "Medium";
+  else if (integrity_level >= SECURITY_MANDATORY_LOW_RID)
+    return "Low";
+  else
+    return "Below low";
+}
+
+
+/* Return a string describing the integrity level of a file object.  */
+static const char *
+w32_get_file_integrity_level (const char *path)
+{
+  const char *result = NULL;
+  int wrc;
+  DWORD integrity_level;
+  PACL sacl = NULL;
+  PSECURITY_DESCRIPTOR psd = NULL;
+  ACL_SIZE_INFORMATION asi;
+  int aceidx;
+  union {
+    void *data;
+    PSYSTEM_MANDATORY_LABEL_ACE label;
+    PACE_HEADER header;
+  } ace;
+  PSID sid;
+  unsigned char *psubauthcount;
+  unsigned long *psubauth;
+  static SID_IDENTIFIER_AUTHORITY seclabelauth
+    = SECURITY_MANDATORY_LABEL_AUTHORITY;
+
+  /* Set the default value - used if result is still NULL. */
+  integrity_level = SECURITY_MANDATORY_MEDIUM_RID;
+
+  {
+    wchar_t *wpath = gpgrt_fname_to_wchar (path);
+    if (!wpath)
+      {
+        log_error ("error re-encoding '%s': %s\n", path,
+                   gpg_strerror (gpg_error_from_syserror ()));
+        result = "[error getting security info]";
+        goto leave;
+      }
+    wrc = GetNamedSecurityInfoW (wpath,
+                                 SE_FILE_OBJECT, LABEL_SECURITY_INFORMATION,
+                                 NULL, NULL, NULL, &sacl, &psd);
+    xfree (wpath);
+  }
+  if (wrc)
+    {
+      gnupg_w32_set_errno (wrc);
+      if ((opt.debug & DBG_W32_API))
+        log_debug ("error getting security info for '%s': %s (%d)\n",
+                   path, gpg_strerror (gpg_error_from_syserror ()), wrc);
+      result = "[error getting security info]";
+      goto leave;
+    }
+  if (!sacl)
+    {
+      if ((opt.debug & DBG_W32_API))
+        log_debug ("no SACL for '%s'\n", path);
+      goto leave;
+    }
+
+  if (!GetAclInformation (sacl, &asi, sizeof(asi), AclSizeInformation))
+    {
+      gnupg_w32_set_errno (-1);
+      if ((opt.debug & DBG_W32_API))
+        log_debug ("error getting ACL information for '%s': %s\n", path,
+                   gpg_strerror (gpg_error_from_syserror ()));
+      goto leave;
+    }
+
+  for (aceidx = 0; aceidx < asi.AceCount; aceidx++)
+    {
+      if ((opt.debug & DBG_W32_API))
+        log_debug ("checking ACE no %d\n", aceidx);
+      if (!GetAce (sacl, 0, &ace.data))
+        {
+          gnupg_w32_set_errno (-1);
+          if ((opt.debug & DBG_W32_API))
+            log_debug ("error getting ACE no %d for '%s': %s\n", aceidx, path,
+                      gpg_strerror (gpg_error_from_syserror ()));
+          continue;
+        }
+
+      if (ace.header->AceType != SYSTEM_MANDATORY_LABEL_ACE_TYPE)
+        continue;
+
+      sid = &ace.label->SidStart;
+
+      psubauthcount = GetSidSubAuthorityCount (sid);
+      if (!psubauthcount || *psubauthcount != 1)
+        continue;
+      if (memcmp (&seclabelauth,
+                  GetSidIdentifierAuthority (sid),
+                  sizeof(SID_IDENTIFIER_AUTHORITY)))
+        continue;
+
+      psubauth = GetSidSubAuthority (sid, 0);
+      if (psubauth)
+        {
+          integrity_level = *psubauth;
+          break; /* We return the first valid one.  */
+        }
+    }
+
+ leave:
+  if (result)
+    ;
+  else if (integrity_level >= SECURITY_MANDATORY_SYSTEM_RID)
+    result = "System";
+  else if (integrity_level >= SECURITY_MANDATORY_HIGH_RID)
+    result = "High";
+  else if (integrity_level >= SECURITY_MANDATORY_MEDIUM_RID)
+    result = "Medium";
+  else if (integrity_level >= SECURITY_MANDATORY_LOW_RID)
+    result = "Low";
+  else
+    result = "Below low";
+
+  if (psd)
+    LocalFree (psd);
+
+  return result;
+}
+#endif /*HAVE_W32_SYSTEM*/
+
+
 static void
 show_version_gnupg (estream_t fp, const char *prefix)
 {
-  char *fname, *p, *p0;
+  char *fname, *p;
   size_t n;
   estream_t verfp;
   char *line = NULL;
   size_t line_len = 0;
   ssize_t length;
+  int in_build = 0;
 
-  es_fprintf (fp, "%s%sGnuPG %s (%s)\n%s%s\n", prefix, *prefix?"":"* ",
-              gpgrt_strusage (13), BUILD_REVISION, prefix, gpgrt_strusage (17));
+  es_fprintf (fp, "%s%sGnuPG %s (%s)\n%sOS: %s\n",
+              prefix, *prefix?"":"* ",
+              gpgrt_strusage (13), BUILD_COMMITID,
+              prefix, gpgrt_strusage (17));
 
-  /* Show the GnuPG VS-Desktop version in --show-configs mode  */
-  if (prefix && *prefix)
+  /* Always show the GnuPG VS-Desktop version.  */
+  if (prefix)
     {
       fname = make_filename (gnupg_bindir (), NULL);
       n = strlen (fname);
@@ -1213,8 +1417,10 @@ show_version_gnupg (estream_t fp, const char *prefix)
           else
             {
               int lnr = 0;
+              char *p_version = NULL;
+              char *p_cidinst = NULL;
+              char *p_cidcfg  = NULL;
 
-              p0 = NULL;
               while ((length = es_read_line (verfp, &line, &line_len, NULL))>0)
                 {
                   lnr++;
@@ -1223,33 +1429,61 @@ show_version_gnupg (estream_t fp, const char *prefix)
                     {
                       /* Old file format where we look only at the
                        * first line.  */
-                      p0 = line;
+                      p_version = line;
                       break;
                     }
-                  else if (!strncmp (line, "version=", 8))
-                    {
-                      p0 = line + 8;
-                      break;
-                    }
+                  else if (!strncmp (line, "[Build]", 7))
+                    in_build = 1;
+                  else if ( *line == '[')
+                    in_build = 0;
+                  else if (!p_version && !strncmp (line, "version=", 8))
+                    p_version = xstrdup (line + 8);
+                  else if (in_build && !p_cidinst
+                           && !strncmp (line, "cidInstaller=", 13))
+                    p_cidinst = xstrdup(line + 13);
+                  else if (in_build && !p_cidcfg
+                           && !strncmp (line, "cidConfig=", 10))
+                    p_cidcfg = xstrdup (line + 10);
                 }
               if (length < 0 || es_ferror (verfp))
                 es_fprintf (fp, "%s[VERSION file read error]\n", prefix);
-              else if (p0)
+              else if (p_version)
                 {
-                  for (p=p0; *p; p++)
-                    if (*p < ' ' || *p > '~' || *p == '[')
-                      *p = '?';
-                  es_fprintf (fp, "%s%s\n", prefix, p0);
+                  es_fprintf (fp, "%sPackage: ", prefix);
+                  es_write_sanitized (fp, p_version, strlen (p_version),
+                                      "[]", NULL);
+                  es_fputc ('\n', fp);
+                  if (p_cidinst && *p_cidinst)
+                    {
+                      es_fprintf (fp, "%scidPkg: ", prefix);
+                      es_write_sanitized (fp, p_cidinst, strlen (p_cidinst),
+                                          "[]", NULL);
+                      es_fputc ('\n', fp);
+                    }
+                  if (p_cidcfg && *p_cidcfg)
+                    {
+                      es_fprintf (fp, "%scidCfg: ", prefix);
+                      es_write_sanitized (fp, p_cidcfg, strlen (p_cidcfg),
+                                          "[]", NULL);
+                      es_fputc ('\n', fp);
+                    }
                 }
               else
                 es_fprintf (fp, "%s[VERSION file is empty]\n", prefix);
 
+              xfree (p_version);
+              xfree (p_cidinst);
+              xfree (p_cidcfg);
               es_fclose (verfp);
             }
         }
       xfree (fname);
     }
   xfree (line);
+
+  p = gnupg_myproc_self ();
+  es_fprintf (fp, "%sSelf: %s\n", prefix, p);
+  xfree (p);
 
 #ifdef HAVE_W32_SYSTEM
   {
@@ -1265,6 +1499,14 @@ show_version_gnupg (estream_t fp, const char *prefix)
                 osvi.szCSDVersion,
                 *osvi.szCSDVersion? ")":""
                 );
+    es_fprintf (fp, "%sIntegrity: %s\n", prefix, w32_get_integrity_level ());
+    es_fprintf (fp, "%sCodepages:", prefix);
+    if (GetConsoleCP () != GetConsoleOutputCP ())
+      es_fprintf (fp, " %u/%u", GetConsoleCP (), GetConsoleOutputCP ());
+    else
+      es_fprintf (fp, " %u", GetConsoleCP ());
+    es_fprintf (fp, " %u", GetACP ());
+    es_fprintf (fp, " %u\n", GetOEMCP ());
   }
 #endif /*HAVE_W32_SYSTEM*/
 }
@@ -1308,17 +1550,16 @@ show_versions_via_dirmngr (estream_t fp)
   const char *pgmname;
   const char *argv[2];
   estream_t outfp;
-  pid_t pid;
+  gpgrt_process_t proc;
   char *line = NULL;
   size_t line_len = 0;
   ssize_t length;
-  int exitcode;
 
   pgmname = gnupg_module_name (GNUPG_MODULE_NAME_DIRMNGR);
   argv[0] = "--gpgconf-versions";
   argv[1] = NULL;
-  err = gnupg_spawn_process (pgmname, argv, NULL, 0,
-                             NULL, &outfp, NULL, &pid);
+  err = gpgrt_process_spawn (pgmname, argv, GPGRT_PROCESS_STDOUT_PIPE,
+                             NULL, &proc);
   if (err)
     {
       log_error ("error spawning %s: %s", pgmname, gpg_strerror (err));
@@ -1326,6 +1567,7 @@ show_versions_via_dirmngr (estream_t fp)
       return;
     }
 
+  gpgrt_process_get_streams (proc, 0, NULL, &outfp, NULL);
   while ((length = es_read_line (outfp, &line, &line_len, NULL)) > 0)
     {
       /* Strip newline and carriage return, if present.  */
@@ -1346,15 +1588,61 @@ show_versions_via_dirmngr (estream_t fp)
                  pgmname, gpg_strerror (err));
     }
 
-  err = gnupg_wait_process (pgmname, pid, 1, &exitcode);
-  if (err)
+  err = gpgrt_process_wait (proc, 1);
+  if (!err)
     {
-      log_error ("running %s failed (exitcode=%d): %s\n",
-                 pgmname, exitcode, gpg_strerror (err));
-      es_fprintf (fp, "[error: can't get further info]\n");
+      int exitcode;
+
+      gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &exitcode);
+      if (exitcode)
+        {
+          log_error ("running %s failed (exitcode=%d): %s\n",
+                     pgmname, exitcode, gpg_strerror (err));
+          es_fprintf (fp, "[error: can't get further info]\n");
+        }
     }
-  gnupg_release_process (pid);
+  gpgrt_process_release (proc);
   xfree (line);
+}
+
+
+static void
+show_versioninfo_txt (estream_t fp)
+{
+  char *fname;
+  estream_t infp;
+
+  es_fputs ("* Versioninfo\n", fp);
+
+  fname = make_filename (gnupg_bindir (), "../../versioninfo.txt", NULL);
+  infp = es_fopen (fname, "r");
+  if (!infp)
+    {
+      xfree (fname);
+      fname = make_filename (gnupg_bindir (),
+                             "../../Gpg4win/versioninfo.txt", NULL);
+      infp = es_fopen (fname, "r");
+    }
+  if (!infp)
+    es_fprintf (fp, "[versioninfo.txt not found]\n");
+  else
+    {
+      char *line = NULL;
+      size_t line_len = 0;
+
+      es_fprintf (fp, "# Content of '%s':\n", fname);
+      while (es_read_line (infp, &line, &line_len, NULL) > 0)
+        {
+          /* Prefix each line with a colon and a space to mark it as
+           * source code. */
+          es_fputs (": ", fp);
+          es_fputs (line, fp);
+        }
+      es_fputs ("# End of versioninfo.txt\n", fp);
+      xfree (line);
+    }
+  es_fclose (fp);
+  xfree (fname);
 }
 
 
@@ -1369,6 +1657,11 @@ show_versions (estream_t fp)
   show_version_gpgrt (fp);
   es_fputc ('\n', fp);
   show_versions_via_dirmngr (fp);
+  if (opt.verbose)
+    {
+      es_fputc ('\n', fp);
+      show_versioninfo_txt (fp);
+    }
 }
 
 
@@ -1481,6 +1774,82 @@ show_configs_one_file (const char *fname, int global, estream_t outfp,
 }
 
 
+/* Read registry string wrapper which also support the GnuPG Registry
+ * emulation.  */
+static char *
+my_read_reg_string (const char *name, int *r_hklm_fallback)
+{
+#ifdef HAVE_W32_SYSTEM
+  return read_w32_reg_string (name, r_hklm_fallback);
+#else
+  static gpgrt_nvc_t registry;
+  static int no_registry;
+  const char *s;
+  gpgrt_nve_t e;
+  char *namebuffer = NULL;
+  char *p;
+
+  if (r_hklm_fallback)
+    *r_hklm_fallback = 0; /* We only support HKLM */
+
+  if (no_registry)
+    return NULL;
+
+  /* Read and parse the registry if not yet done.  */
+  if (!registry)
+    {
+      gpg_error_t err;
+      int lnr;
+      char *fname;
+      estream_t fp;
+
+      fname = make_filename (gnupg_sysconfdir (), "Registry", NULL);
+      fp = es_fopen (fname, "r");
+      if (!fp)
+        {
+          no_registry = 1;
+          return NULL;
+        }
+      if (opt.verbose)
+        log_info ("Note: Using Registry emulation file '%s'\n", fname);
+
+      err = gpgrt_nvc_parse (&registry, &lnr, fp, GPGRT_NVC_SECTION);
+      es_fclose (fp);
+      if (err)
+        {
+          log_info ("%s:%d: error parsing Registry emulation file: %s\n",
+                    fname, lnr, gpg_strerror (err));
+          no_registry = 1;
+          xfree (fname);
+          return NULL;
+        }
+      xfree (fname);
+    }
+
+  if (name)
+    {
+      namebuffer = xstrdup (name);
+      for (p=namebuffer; *p; p++)
+        if (*p == '\\')
+          *p = '/';
+      name = namebuffer;
+    }
+
+  e = gpgrt_nvc_lookup (registry, name);
+  if (!e && *name != '/')
+    {
+      /* Strip any HKLM or HKCU prefix and try again.  */
+      name = strchr (name, '/');
+      if (name)
+        e = gpgrt_nvc_lookup (registry, name);
+    }
+  xfree (namebuffer);
+  s = e? gpgrt_nve_value (e) : NULL;
+  return s? xtrystrdup (s) : NULL;
+#endif
+}
+
+
 #ifdef HAVE_W32_SYSTEM
 /* Print registry entries relevant to the GnuPG system and related
  * software.  */
@@ -1490,13 +1859,14 @@ show_other_registry_entries (estream_t outfp)
   static struct {
     int group;
     const char *name;
+    unsigned int prependregkey:1;
   } names[] =
   {
     { 1, "HKLM\\Software\\Gpg4win:Install Directory" },
     { 1, "HKLM\\Software\\Gpg4win:Desktop-Version" },
     { 1, "HKLM\\Software\\Gpg4win:VS-Desktop-Version" },
-    { 1, "\\" GNUPG_REGISTRY_DIR ":HomeDir" },
-    { 1, "\\" GNUPG_REGISTRY_DIR ":DefaultLogFile" },
+    { 1, ":HomeDir", 1 },
+    { 1, ":DefaultLogFile", 1 },
     { 2, "\\Software\\Microsoft\\Office\\Outlook\\Addins\\GNU.GpgOL"
       ":LoadBehavior" },
     { 2, "HKCU\\Software\\Microsoft\\Office\\16.0\\Outlook\\Options\\Mail:"
@@ -1523,17 +1893,19 @@ show_other_registry_entries (estream_t outfp)
     { 3, "splitBCCMails" },
     { 3, "combinedOpsEnabled" },
     { 3, "encryptSubject" },
+    { 3, "noSaveBeforeDecrypt" },
+    { 3, "closeOnUnknownWriteEvent" },
+    { 3, "disableTitusHandling" },
+    { 3, "disableAutoPreview" },
+    { 3, "attachHTMLonlyOnReadAsPlain" },
+    { 3, "smimeNoCertSigErr" },
+    { 3, "smimeHtmlWarnShown" },
+    { 3, "alwaysShowApproval" },
+    { 3, "syncDec" },
+    { 3, "syncEnc" },
+    { 3, "draftEnc" },
+    { 3, "draftKey" },
     { 0, NULL }
-    /*  We should add the following key but also hide unset ones.:
-     *   "smimeNoCertSigErr"
-     *   "smimeHtmlWarnShown"
-     *   "alwaysShowApproval"
-     *   "syncDec"
-     *   "syncEnc"
-     *   "draftEnc"
-     *   "draftKey"
-     * Or we just interate over the GpgOL keys.
-     */
   };
   int idx;
   int group = 0;
@@ -1552,8 +1924,15 @@ show_other_registry_entries (estream_t outfp)
                                 names[idx].name, NULL);
           name = namebuf;
         }
+      else if (names[idx].prependregkey)
+        {
+          xfree (namebuf);
+          namebuf = xstrconcat ("\\", gnupg_registry_dir (),
+                                names[idx].name, NULL);
+          name = namebuf;
+        }
 
-      value = read_w32_reg_string (name, &from_hklm);
+      value = my_read_reg_string (name, &from_hklm);
       if (!value)
         continue;
 
@@ -1579,6 +1958,7 @@ show_other_registry_entries (estream_t outfp)
 
   xfree (namebuf);
 }
+#endif /*HAVE_W32_SYSTEM*/
 
 
 /* Print registry entries take from a configuration file.  */
@@ -1620,7 +2000,7 @@ show_registry_entries_from_file (estream_t outfp)
         continue;
 
       xfree (value);
-      value = read_w32_reg_string (line, &from_hklm);
+      value = my_read_reg_string (line, &from_hklm);
       if (!value)
         continue;
 
@@ -1646,7 +2026,6 @@ show_registry_entries_from_file (estream_t outfp)
   es_fclose (fp);
   xfree (fname);
 }
-#endif /*HAVE_W32_SYSTEM*/
 
 
 /* Show all config files.  */
@@ -1678,17 +2057,8 @@ show_configs (estream_t outfp)
   es_fprintf (outfp, "* General information\n");
   es_fprintf (outfp, "** Versions\n");
   show_version_gnupg (outfp, "  ");
-  es_fprintf (outfp, "  Libgcrypt %s\n", gcry_check_version (NULL));
-  es_fprintf (outfp, "  GpgRT %s\n", gpg_error_check_version (NULL));
-#ifdef HAVE_W32_SYSTEM
-  es_fprintf (outfp, "  Codepages:");
-  if (GetConsoleCP () != GetConsoleOutputCP ())
-    es_fprintf (outfp, " %u/%u", GetConsoleCP (), GetConsoleOutputCP ());
-  else
-    es_fprintf (outfp, " %u", GetConsoleCP ());
-  es_fprintf (outfp, " %u", GetACP ());
-  es_fprintf (outfp, " %u\n", GetOEMCP ());
-#endif
+  es_fprintf (outfp, "  Libgcrypt: %s\n", gcry_check_version (NULL));
+  es_fprintf (outfp, "  GpgRT: %s\n", gpg_error_check_version (NULL));
   es_fprintf (outfp, "\n\n");
 
   es_fprintf (outfp, "** Directories\n");
@@ -1746,7 +2116,6 @@ show_configs (estream_t outfp)
         es_fprintf (outfp, "#+end_example\n");
     }
 
-#ifdef HAVE_W32_SYSTEM
   es_fprintf (outfp, "** Registry entries\n");
   es_fprintf (outfp, "#+begin_example\n");
   any = 0;
@@ -1763,7 +2132,7 @@ show_configs (estream_t outfp)
                 any = 1;
                 es_fprintf (outfp, "Encountered in config files:\n");
               }
-            if ((p = read_w32_reg_string (sl->d, &from_hklm)))
+            if ((p = my_read_reg_string (sl->d, &from_hklm)))
               es_fprintf (outfp, "  %s ->%s<-%s\n", sl->d, p,
                           from_hklm? " [hklm]":"");
             else
@@ -1771,10 +2140,11 @@ show_configs (estream_t outfp)
             xfree (p);
           }
     }
+#ifdef HAVE_W32_SYSTEM
   show_other_registry_entries (outfp);
+#endif /*HAVE_W32_SYSTEM*/
   show_registry_entries_from_file (outfp);
   es_fprintf (outfp, "#+end_example\n");
-#endif /*HAVE_W32_SYSTEM*/
 
   free_strlist (list);
 
@@ -1825,5 +2195,38 @@ show_configs (estream_t outfp)
         }
     }
   gnupg_closedir (dir);
+
+#ifdef HAVE_W32_SYSTEM
+  {
+    char *topsysconf, *p;
+    const char *sysconf_ilvl;
+
+    /* The sysconf directory should end in "\\etc\\gnupg".  We check
+     * that there is the "etc" part and then strip the gnupg directory
+     * part.  This way we can check that the entire etc directory is
+     * not user writable.  */
+    topsysconf = xstrdup (gnupg_sysconfdir ());
+    p = strrchr (topsysconf, '\\');
+    if (p && p - topsysconf >= 4  && !strncmp (p-4, "\\etc\\", 5))
+      *p = 0;
+
+    sysconf_ilvl = w32_get_file_integrity_level (topsysconf);
+    if (opt.verbose)
+      log_info ("integrity level of '%s' is: %s\n", topsysconf, sysconf_ilvl);
+    if (strcmp (sysconf_ilvl, "High"))
+      {
+        if (!anywarn)
+          {
+            anywarn = 1;
+            es_fprintf (outfp, "* Warnings\n");
+          }
+        es_fprintf (outfp,
+                    "- sysconfdir is not secured - please run:\n"
+                    "    icacls \"%s\" /setintegritylevel h\n", topsysconf );
+      }
+    xfree (topsysconf);
+  }
+#endif /*HAVE_W32_SYSTEM*/
+
   es_fprintf (outfp, "# eof #\n");
 }

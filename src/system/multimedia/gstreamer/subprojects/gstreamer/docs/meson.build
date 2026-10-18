@@ -17,6 +17,15 @@ if static_build
     subdir_done()
 endif
 
+if get_option('check').disabled()
+    if get_option('doc').enabled()
+        error('Documentation enabled but not supported when gstcheck is disabled')
+    endif
+
+    message('gstcheck is disabled, can\'t build the documentation')
+    subdir_done()
+endif
+
 hotdoc_plugin_scanner = executable('gst-hotdoc-plugins-scanner',
   'gst-hotdoc-plugins-scanner.c',
   c_args : gst_c_args,

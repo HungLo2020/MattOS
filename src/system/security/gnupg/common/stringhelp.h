@@ -61,6 +61,7 @@ char *make_absfilename (const char *first_part, ...) GPGRT_ATTR_SENTINEL(0);
 char *make_absfilename_try (const char *first_part,
                             ...) GPGRT_ATTR_SENTINEL(0);
 int compare_filenames( const char *a, const char *b );
+int has_suffix (const char *fname, const char *suffix);
 
 uint64_t string_to_u64 (const char *string);
 int hextobyte (const char *s);
@@ -169,6 +170,13 @@ int compare_version_strings (const char *my_version, const char *req_version);
 
 /* Format a string so that it fits within about TARGET_COLS columns.  */
 char *format_text (const char *text, int target_cols, int max_cols);
+
+
+/* Return a new malloced string with the first occurance of SUBSTR in
+ * STRING replaced by REPLACE.  Returns NULL on memory error.  */
+char *replace_substr (const char *string,
+                      const char *substr, const char *replace);
+
 
 /* Substitute variables in STRING.  */
 char *substitute_vars (const char *string,

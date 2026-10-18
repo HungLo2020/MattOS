@@ -70,12 +70,9 @@
 #include "gunicode.h"
 #include "gutils.h"
 
-#ifndef G_OS_WIN32
-static void stack_trace (const char * const *args);
-#endif
-
 /* Default to using LLDB for backtraces on macOS. */
 #ifdef __APPLE__
+#include <TargetConditionals.h>
 #define USE_LLDB
 #endif
 
@@ -83,6 +80,11 @@ static void stack_trace (const char * const *args);
 #define DEBUGGER "lldb"
 #else
 #define DEBUGGER "gdb"
+#endif
+
+#if defined(G_OS_UNIX) && (!defined(__APPLE__) || TARGET_OS_OSX)
+#define HAVE_STACK_TRACE
+static void stack_trace (const char * const *args);
 #endif
 
 /* People want to hit this from their debugger... */
@@ -140,7 +142,7 @@ volatile gboolean glib_on_error_halt = TRUE;
  * This function may cause different actions on non-UNIX platforms.
  *
  * On Windows consider using the `G_DEBUGGER` environment
- * variable (see [Running GLib Applications](glib-running.html)) and
+ * variable (see [Running GLib Applications](running.html)) and
  * calling g_on_error_stack_trace() instead.
  */
 void
@@ -243,12 +245,12 @@ g_on_error_query (const gchar *prg_name)
  * g_on_error_query(). If called directly, it will raise an
  * exception, which will crash the program. If the `G_DEBUGGER` environment
  * variable is set, a debugger will be invoked to attach and
- * handle that exception (see [Running GLib Applications](glib-running.html)).
+ * handle that exception (see [Running GLib Applications](running.html)).
  */
 void
 g_on_error_stack_trace (const gchar *prg_name)
 {
-#if defined(G_OS_UNIX)
+#ifdef HAVE_STACK_TRACE
   pid_t pid;
   gchar buf[16];
   gchar buf2[64];
@@ -290,18 +292,26 @@ g_on_error_stack_trace (const gchar *prg_name)
   while (1)
     {
       pid_t retval = waitpid (pid, &status, 0);
-      if (WIFEXITED (retval) || WIFSIGNALED (retval))
+      if (retval == -1)
+        {
+          if (errno == EAGAIN || errno == EINTR)
+            continue;
+          break;
+        }
+      else if (WIFEXITED (status) || WIFSIGNALED (status))
         break;
     }
 #else
+#ifdef G_OS_WIN32
   if (IsDebuggerPresent ())
     G_BREAKPOINT ();
   else
+#endif
     g_abort ();
 #endif
 }
 
-#ifndef G_OS_WIN32
+#ifdef HAVE_STACK_TRACE
 
 static gboolean stack_trace_done = FALSE;
 
@@ -491,7 +501,7 @@ stack_trace (const char * const *args)
                     }
                   break;
                 case 1:
-                  if (idx < BUFSIZE)
+                  if (idx < BUFSIZE - 1)
                     buffer[idx++] = c;
                   if ((c == '\n') || (c == '\r'))
                     {

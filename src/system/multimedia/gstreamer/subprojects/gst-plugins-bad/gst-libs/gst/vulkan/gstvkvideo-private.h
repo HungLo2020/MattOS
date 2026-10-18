@@ -22,7 +22,7 @@
 
 #include <gst/gst.h>
 #include <gst/vulkan/gstvkapi.h>
-#include <gst/vulkan/gstvkvideoutils.h>
+#include "gstvkvideoutils-private.h"
 
 G_BEGIN_DECLS
 
@@ -44,41 +44,55 @@ struct _GstVulkanVideoSession
 typedef enum {
   GST_VK_VIDEO_EXTENSION_DECODE_H264,
   GST_VK_VIDEO_EXTENSION_DECODE_H265,
+  GST_VK_VIDEO_EXTENSION_DECODE_VP9,
+  GST_VK_VIDEO_EXTENSION_DECODE_AV1,
   GST_VK_VIDEO_EXTENSION_ENCODE_H264,
   GST_VK_VIDEO_EXTENSION_ENCODE_H265,
+  GST_VK_VIDEO_EXTENSION_ENCODE_AV1,
+  GST_VK_VIDEO_EXTENSION_MAX,
 } GST_VK_VIDEO_EXTENSIONS;
 
-#define GST_VULKAN_VIDEO_FN_LIST(V)                                            \
-  V(GetPhysicalDeviceVideoFormatProperties)                                    \
-  V(GetPhysicalDeviceVideoCapabilities)                                        \
-  V(CreateVideoSession)                                                        \
-  V(DestroyVideoSession)                                                       \
-  V(GetVideoSessionMemoryRequirements)                                         \
-  V(DestroyVideoSessionParameters)                                             \
-  V(UpdateVideoSessionParameters)                                              \
-  V(CreateVideoSessionParameters)                                              \
-  V(BindVideoSessionMemory)                                                    \
-  V(CmdPipelineBarrier2)                                                       \
-  V(CmdBeginVideoCoding)                                                       \
-  V(CmdControlVideoCoding)                                                     \
-  V(CmdEndVideoCoding)                                                         \
-  V(CmdDecodeVideo)                                                            \
-  V(CmdEncodeVideo)                                                            \
-  V(GetEncodedVideoSessionParameters)                                          \
+#define GST_VULKAN_DEVICE_VIDEO_FN_LIST_COMMON(V)       \
+  V(CreateVideoSession)                                 \
+  V(DestroyVideoSession)                                \
+  V(GetVideoSessionMemoryRequirements)                  \
+  V(DestroyVideoSessionParameters)                      \
+  V(UpdateVideoSessionParameters)                       \
+  V(CreateVideoSessionParameters)                       \
+  V(BindVideoSessionMemory)                             \
+  V(CmdBeginVideoCoding)                                \
+  V(CmdControlVideoCoding)                              \
+  V(CmdEndVideoCoding)
+
+#define GST_VULKAN_DEVICE_VIDEO_FN_LIST_DECODE(V)       \
+  V(CmdDecodeVideo)
+
+#define GST_VULKAN_DEVICE_VIDEO_FN_LIST_ENCODE(V)       \
+  V(CmdEncodeVideo)                                     \
+  V(GetEncodedVideoSessionParameters)
+
+#define GST_VULKAN_INSTANCE_VIDEO_FN_LIST_ENCODE(V)            \
   V(GetPhysicalDeviceVideoEncodeQualityLevelProperties)
 
 struct _GstVulkanVideoFunctions
 {
 #define DEFINE_FUNCTION(name) G_PASTE(G_PASTE(PFN_vk, name), KHR) name;
-    GST_VULKAN_VIDEO_FN_LIST (DEFINE_FUNCTION)
+    GST_VULKAN_DEVICE_VIDEO_FN_LIST_COMMON (DEFINE_FUNCTION)
+    GST_VULKAN_DEVICE_VIDEO_FN_LIST_DECODE (DEFINE_FUNCTION)
+    GST_VULKAN_DEVICE_VIDEO_FN_LIST_ENCODE (DEFINE_FUNCTION)
+    GST_VULKAN_INSTANCE_VIDEO_FN_LIST_ENCODE (DEFINE_FUNCTION)
 #undef DEFINE_FUNCTION
 };
 
-extern const VkExtensionProperties _vk_codec_extensions[4];
+#define GST_VULKAN_VIDEO_CODEC_OPERATION_IS_DECODE(codec) ((codec & 0x0000ffff) == codec)
+#define GST_VULKAN_VIDEO_CODEC_OPERATION_IS_ENCODE(codec) ((codec & 0xffff0000) == codec)
+
+extern const VkExtensionProperties _vk_codec_extensions[GST_VK_VIDEO_EXTENSION_MAX];
 extern const VkComponentMapping _vk_identity_component_map;
 
-gboolean                gst_vulkan_video_get_vk_functions       (GstVulkanInstance * instance,
-                                                                 GstVulkanVideoFunctions * vk_funcs);
+gboolean                gst_vulkan_video_get_vk_functions       (GstVulkanDevice * device,
+                                                                 GstVulkanVideoFunctions * vk_funcs,
+                                                                 VkVideoCodecOperationFlagBitsKHR codec_op);
 
 gboolean                gst_vulkan_video_session_create         (GstVulkanVideoSession * session,
                                                                  GstVulkanDevice * device,
@@ -98,6 +112,12 @@ GstVulkanImageView *    gst_vulkan_video_image_create_view     (GstBuffer * buf,
                                                                 gboolean is_out,
                                                                 GstVulkanHandle * sampler);
 
-gboolean                gst_vulkan_video_has_maintenance1      (GstVulkanDevice * device);
+GST_VULKAN_API
+gboolean                gst_vulkan_video_try_configuration     (GstVulkanPhysicalDevice * device,
+                                                                GstVulkanVideoProfile * profile,
+                                                                GstVulkanVideoCapabilities * out_vkcaps,
+                                                                GstCaps ** out_caps,
+                                                                GArray ** out_formats,
+                                                                GError ** error);
 
 G_END_DECLS

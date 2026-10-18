@@ -70,12 +70,6 @@ static gboolean _do_convert_draw (GstGLContext * context,
 
 /* *INDENT-OFF* */
 
-typedef struct
-{
-  GstGLColorConvert *convert;
-  GstBuffer *outbuf;
-} CopyMetaData;
-
 #define YUV_TO_RGB_COEFFICIENTS \
       "uniform mat4 to_RGB_matrix;\n" \
 
@@ -449,7 +443,7 @@ static const struct shader_templ templ_AV12_to_RGB =
     "  int tile_index = tile_coord.y * tiles_per_row + tile_coord.x;\n" \
     "  int linear_index = tile_index * tile_size + delta_coord.y * dim.x + delta_coord.x;\n" \
     "  linear_index += need_offset * tile_size / 2;\n" \
-    "  return ivec2(linear_index % width, linear_index / width);\n" \
+    "  return ivec2(int(mod(float(linear_index), float(width))), linear_index / width);\n" \
     "}\n"
 
 /* TILED semi-planar to RGB conversion */
@@ -466,12 +460,12 @@ static const gchar templ_TILED_SEMI_PLANAR_to_RGB_BODY[] =
     "\n"
     "  ivec2 coord = ivec2(gl_FragCoord.xy);\n"
     "  ivec2 tile_coord = coord / luma_dim;\n"
-    "  ivec2 delta_coord = coord %% luma_dim;\n" \
+    "  ivec2 delta_coord = ivec2(mod(vec2(coord), vec2(luma_dim)));\n" \
     "  texel = frag_to_tile(tile_coord, delta_coord, luma_dim, iwidth, tiles_per_row, 0);\n"
     "  yuva.x = texelFetch(Ytex, texel, 0).r;\n"
     "\n"
     "  ivec2 chroma_tcoord = ivec2(tile_coord.x, tile_coord.y / fy);\n"
-    "  texel = frag_to_tile(chroma_tcoord, delta_coord / 2, chroma_dim, iwidth / 2, tiles_per_row, tile_coord.y %% fy);\n"
+    "  texel = frag_to_tile(chroma_tcoord, delta_coord / 2, chroma_dim, iwidth / 2, tiles_per_row, ivec2(mod(float(tile_coord.y), float(fy))));\n"
     "  yuva.yz = texelFetch(UVtex, texel, 0).%c%c;\n"
     "  yuva.a = 1.0;\n"
     "\n"
@@ -519,8 +513,8 @@ static const gchar glsl_func_YUY2_UYVY_unpack[] =
     "  yuva.x = texture2D(tex, v_texcoord * vert_to_tex * tex_scale0)[input_swizzle[0]];\n"
     /* v_texcoord are normalized, texcoord may not be e.g. rectangle textures */
     "  vec2 half_poffset = vec2(poffset_x / 2.0, poffset_y / 2.0);\n"
-    "  int inorder = int(((v_texcoord.x * vert_to_tex.x - half_poffset.x) * chroma_sampling.x + half_poffset.x) * width / vert_to_tex) % 2;\n"
-    "  if (inorder == 0) {\n"
+    "  float inorder = mod(float(int(((v_texcoord.x * vert_to_tex.x - half_poffset.x) * chroma_sampling.x + half_poffset.x) * width / vert_to_tex.x)), 2.0);\n"
+    "  if (inorder < 1.0) {\n"
     "    dx2 = -dx1;\n"
     "    dx1 = 0.0;\n"
     "  }\n"
@@ -633,7 +627,7 @@ static const struct shader_templ templ_PLANAR_YUV_to_YUY2_UYVY =
 static const char glsl_func_v210_unpack[] =
     "ivec2 v210_component_to_texel(int comp) {\n"
     // (the texel index in the row, the swizzle index in that texel)
-    "  return ivec2(comp / 3, comp % 3);\n"
+    "  return ivec2(comp / 3, int(mod(float(comp), 3.0)));\n"
     "}\n"
     "ivec2 v210_y_xoffset(int xpos) {\n"
     // 1 3 5 7 9 ...
@@ -721,9 +715,9 @@ static const char glsl_func_v210_pack[] =
     // factor of 2/3 (4/6) different
     "  vec2 half_x_offset = vec2(poffset_x * 0.66666 / 2.0, 0.0);\n"
     "  int xpos = int(texcoord.x * out_width);\n"
-    "  ivec2 sub_idx0 = block_indices[(xpos % 4) * 3 + 0];\n"
-    "  ivec2 sub_idx1 = block_indices[(xpos % 4) * 3 + 1];\n"
-    "  ivec2 sub_idx2 = block_indices[(xpos % 4) * 3 + 2];\n"
+    "  ivec2 sub_idx0 = block_indices[int(mod(float(xpos), 4.0)) * 3 + 0];\n"
+    "  ivec2 sub_idx1 = block_indices[int(mod(float(xpos), 4.0)) * 3 + 1];\n"
+    "  ivec2 sub_idx2 = block_indices[int(mod(float(xpos), 4.0)) * 3 + 2];\n"
     "  vec2 block_offset = vec2(float((xpos / 4) * 6) * poffset_x, texcoord.y * vert_to_tex.y) + half_x_offset;\n"
     "  texcoord0 = block_offset + vec2(float(sub_idx0[0]) * poffset_x, 0.0);\n"
     "  texcoord1 = block_offset + vec2(float(sub_idx1[0]) * poffset_x, 0.0);\n"
@@ -1171,6 +1165,10 @@ struct _GstGLColorConvertPrivate
 
   GstBufferPool *pool;
   gboolean pool_started;
+
+  /* Used to detect crop changes and update vertices */
+  gint padded_width;
+  gint padded_height;
 };
 
 GST_DEBUG_CATEGORY_STATIC (gst_gl_color_convert_debug);
@@ -1479,6 +1477,8 @@ _gst_gl_color_convert_set_caps_unlocked (GstGLColorConvert * convert,
   gst_caps_replace (&convert->priv->out_caps, out_caps);
   convert->priv->from_texture_target = from_target;
   convert->priv->to_texture_target = to_target;
+  convert->priv->padded_width = in_info.width;
+  convert->priv->padded_height = in_info.height;
   convert->initted = FALSE;
 
   convert->passthrough = passthrough;
@@ -1658,7 +1658,7 @@ _init_supported_formats (GstGLContext * context, gboolean output,
   if (!output || (!context || context->gl_vtable->DrawBuffers))
     _append_value_string_list (supported_formats, "GBRA", "GBR", "RGBP", "BGRP",
         "Y444", "I420", "YV12", "Y42B", "Y41B", "NV12", "NV21", "NV16", "NV61",
-        "A420", "AV12", "A444", "A422", NULL);
+        "NV24", "A420", "AV12", "A444", "A422", NULL);
 
   /* Requires reading from a RG/LA framebuffer... */
   if (!context || (USING_GLES3 (context) || USING_OPENGL (context)))
@@ -1679,7 +1679,7 @@ _init_supported_formats (GstGLContext * context, gboolean output,
   if (!context || gst_gl_format_is_supported (context, GST_GL_RGB10_A2)) {
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
     _append_value_string_list (supported_formats, "BGR10A2_LE", "RGB10A2_LE",
-        "Y410", "v210", NULL);
+        "BGR10x2_LE", "RGB10x2_LE", "Y410", "v210", NULL);
 #else
     _append_value_string_list (supported_formats, "Y410", NULL);
 #endif
@@ -1718,12 +1718,12 @@ _init_supported_formats (GstGLContext * context, gboolean output,
     _append_value_string_list (supported_formats, "A420_10LE", "A422_10LE",
         "A444_10LE", "A444_12LE", "A422_12LE", "A420_12LE", "A444_16LE",
         "A422_16LE", "A420_16LE", "I420_12LE", "I420_10LE", "I422_10LE",
-        "I422_12LE", "Y444_10LE", "Y444_16LE", NULL);
+        "I422_12LE", "Y444_10LE", "Y444_12LE", "Y444_16LE", NULL);
 #else
     _append_value_string_list (supported_formats, "A420_10BE", "A422_10BE",
         "A444_10BE", "A444_12BE", "A422_12BE", "A420_12BE", "A444_16BE",
         "A422_16BE", "A420_16BE", "I420_12BE", "I420_10BE", "I422_10BE",
-        "I422_12BE", "Y444_10BE", "Y444_16BE", NULL);
+        "I422_12BE", "Y444_10BE", "Y444_12BE", "Y444_16BE", NULL);
 #endif
   }
 
@@ -1758,16 +1758,17 @@ gst_gl_color_convert_caps_transform_format_info (GstGLContext * context,
 
   _init_value_string_list (&rgb_formats, "RGBA", "ARGB", "BGRA", "ABGR", "RGBx",
       "xRGB", "BGRx", "xBGR", "RGB", "BGR", "ARGB64", "BGR10A2_LE",
-      "RGB10A2_LE", "RGBA64_LE", "RGBA64_BE", "RBGA", "GBRA", "GBR",
-      "RGBP", "BGRP", "RGB16", "BGR16", NULL);
+      "RGB10A2_LE", "BGR10x2_LE", "RGB10x2_LE", "RGBA64_LE", "RGBA64_BE",
+      "RBGA", "GBRA", "GBR", "RGBP", "BGRP", "RGB16", "BGR16", NULL);
   _init_value_string_list (&planar_yuv_formats, "Y444", "Y444_10LE",
-      "Y444_16LE", "Y444_10BE", "Y444_16BE", "I420", "Y42B", "Y41B", "A420",
-      "A444", "A422", "A420_10LE", "A422_10LE", "A444_10LE", "A444_12LE",
-      "A422_12LE", "A420_12LE", "A444_16LE", "A422_16LE", "A420_16LE",
-      "I420_12LE", "I420_10LE", "I422_10LE", "I422_12LE", "A420_10BE",
-      "A422_10BE", "A444_10BE", "A444_12BE", "A422_12BE", "A420_12BE",
-      "A444_16BE", "A422_16BE", "A420_16BE", "I420_12BE", "I420_10BE",
-      "I422_10BE", "I422_12BE", "v210", "UYVY", "YUY2", NULL);
+      "Y444_12LE", "Y444_16LE", "Y444_10BE", "Y444_12BE", "Y444_16BE", "I420",
+      "Y42B", "Y41B", "A420", "A444", "A422", "A420_10LE", "A422_10LE",
+      "A444_10LE", "A444_12LE", "A422_12LE", "A420_12LE", "A444_16LE",
+      "A422_16LE", "A420_16LE", "I420_12LE", "I420_10LE", "I422_10LE",
+      "I422_12LE", "A420_10BE", "A422_10BE", "A444_10BE", "A444_12BE",
+      "A422_12BE", "A420_12BE", "A444_16BE", "A422_16BE", "A420_16BE",
+      "I420_12BE", "I420_10BE", "I422_10BE", "I422_12BE", "v210", "UYVY",
+      "YUY2", NULL);
   _init_supported_formats (context, output, &supported_formats);
   gst_value_intersect (&supported_rgb_formats, &rgb_formats,
       &supported_formats);
@@ -2268,15 +2269,9 @@ video_format_to_gl_reorder (GstVideoFormat v_format, gint * reorder,
       reorder[3] = 2;
       break;
     case GST_VIDEO_FORMAT_GBR:
-      if (input) {
-        reorder[0] = 2;
-        reorder[1] = 0;
-        reorder[2] = 1;
-      } else {
-        reorder[0] = 0;
-        reorder[1] = 1;
-        reorder[2] = 2;
-      }
+      reorder[0] = 2;
+      reorder[1] = 0;
+      reorder[2] = 1;
       reorder[3] = 3;
       break;
     default:
@@ -2572,6 +2567,7 @@ _YUV_to_RGB (GstGLColorConvert * convert)
       }
       case GST_VIDEO_FORMAT_NV12:
       case GST_VIDEO_FORMAT_NV16:
+      case GST_VIDEO_FORMAT_NV24:
       case GST_VIDEO_FORMAT_NV21:
       case GST_VIDEO_FORMAT_NV61:
       case GST_VIDEO_FORMAT_P010_10LE:
@@ -2705,11 +2701,15 @@ _RGB_to_YUV (GstGLColorConvert * convert)
         break;
       case GST_VIDEO_FORMAT_NV12:
       case GST_VIDEO_FORMAT_NV16:
+      case GST_VIDEO_FORMAT_NV24:
         info->templ = &templ_RGB_to_SEMI_PLANAR_YUV;
         info->frag_body =
             g_strdup_printf (templ_RGB_to_SEMI_PLANAR_YUV_BODY, "");
         if (out_format == GST_VIDEO_FORMAT_NV16) {
           info->chroma_sampling[0] = 2.0f;
+          info->chroma_sampling[1] = 1.0f;
+        } else if (out_format == GST_VIDEO_FORMAT_NV24) {
+          info->chroma_sampling[0] = 1.0f;
           info->chroma_sampling[1] = 1.0f;
         } else {
           info->chroma_sampling[0] = info->chroma_sampling[1] = 2.0f;
@@ -3421,6 +3421,36 @@ _init_convert (GstGLColorConvert * convert)
     gl->BindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
   }
 
+  GstVideoMeta *v_meta = gst_buffer_get_video_meta (convert->inbuf);
+  if ((v_meta && (v_meta->width != convert->priv->padded_width
+              || v_meta->height != convert->priv->padded_height)) ||
+      (!v_meta && (convert->in_info.width != convert->priv->padded_width ||
+              convert->in_info.height != convert->priv->padded_height))) {
+    gdouble padded_width = v_meta ? v_meta->width : convert->in_info.width;
+    gdouble padded_height = v_meta ? v_meta->height : convert->in_info.height;
+    gdouble display_width = GST_VIDEO_INFO_WIDTH (&convert->in_info);
+    gdouble display_height = GST_VIDEO_INFO_HEIGHT (&convert->in_info);
+
+    float scale_x = display_width / padded_width;
+    float scale_y = display_height / padded_height;
+
+    GLfloat crop_vertices[20];
+    memcpy (crop_vertices, vertices, sizeof (crop_vertices));
+
+    for (int i = 0; i < 4; i++) {
+      crop_vertices[i * 5 + 3] *= scale_x;      // U
+      crop_vertices[i * 5 + 4] *= scale_y;      // V
+    }
+
+    gl->BindBuffer (GL_ARRAY_BUFFER, convert->priv->vertex_buffer);
+    gl->BufferData (GL_ARRAY_BUFFER, 4 * 5 * sizeof (GLfloat),
+        crop_vertices, GL_STATIC_DRAW);
+    gl->BindBuffer (GL_ARRAY_BUFFER, 0);
+
+    convert->priv->padded_width = padded_width;
+    convert->priv->padded_height = padded_height;
+  }
+
   gl->BindTexture (GL_TEXTURE_2D, 0);
 
   convert->initted = TRUE;
@@ -3637,31 +3667,6 @@ out:
   return res;
 }
 
-static gboolean
-foreach_metadata (GstBuffer * inbuf, GstMeta ** meta, gpointer user_data)
-{
-  CopyMetaData *data = user_data;
-  GstGLColorConvert *convert = data->convert;
-  const GstMetaInfo *info = (*meta)->info;
-  GstBuffer *outbuf = data->outbuf;
-
-  if (!gst_meta_api_type_has_tag (info->api, _gst_meta_tag_memory) &&
-      info->api != gst_video_overlay_composition_meta_api_get_type () &&
-      info->api != gst_gl_sync_meta_api_get_type ()) {
-    GstMetaTransformCopy copy_data = { FALSE, 0, -1 };
-    if (info->transform_func) {
-      GST_TRACE_OBJECT (convert, "copy metadata %s", g_type_name (info->api));
-      info->transform_func (outbuf, *meta, inbuf,
-          _gst_meta_transform_copy, &copy_data);
-    } else {
-      GST_DEBUG_OBJECT (convert, "couldn't copy metadata %s",
-          g_type_name (info->api));
-    }
-  }
-
-  return TRUE;
-}
-
 /* Called by the idle function in the gl thread */
 void
 _do_convert (GstGLContext * context, GstGLColorConvert * convert)
@@ -3797,8 +3802,6 @@ _do_convert (GstGLContext * context, GstGLColorConvert * convert)
   }
 
   if (convert->outbuf) {
-    CopyMetaData data;
-    GstVideoOverlayCompositionMeta *composition_meta;
     GstGLSyncMeta *sync_meta;
 
     if (G_UNLIKELY (!gst_buffer_is_writable (convert->outbuf))) {
@@ -3814,18 +3817,6 @@ _do_convert (GstGLContext * context, GstGLColorConvert * convert)
           convert->outbuf);
     }
     gst_gl_sync_meta_set_sync_point (sync_meta, convert->context);
-
-    composition_meta =
-        gst_buffer_get_video_overlay_composition_meta (convert->inbuf);
-    if (composition_meta) {
-      GST_DEBUG ("found video overlay composition meta, applying on output.");
-      gst_buffer_add_video_overlay_composition_meta
-          (convert->outbuf, composition_meta->overlay);
-    }
-
-    data.convert = convert;
-    data.outbuf = convert->outbuf;
-    gst_buffer_foreach_meta (convert->inbuf, foreach_metadata, &data);
   }
 
   convert->priv->result = res;

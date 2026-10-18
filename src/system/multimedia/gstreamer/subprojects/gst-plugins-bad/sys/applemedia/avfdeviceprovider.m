@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include <TargetConditionals.h>
 #import <AVFoundation/AVFoundation.h>
 #include "avfvideosrc.h"
 #include "avfdeviceprovider.h"
@@ -36,6 +37,9 @@ static GstDevice *gst_avf_device_new (const gchar * device_name, int device_inde
                                       GstStructure *props);
 G_DEFINE_TYPE (GstAVFDeviceProvider, gst_avf_device_provider,
                GST_TYPE_DEVICE_PROVIDER);
+
+GST_DEVICE_PROVIDER_REGISTER_DEFINE (avfdeviceprovider, "avfdeviceprovider",
+    GST_RANK_PRIMARY, GST_TYPE_AVF_DEVICE_PROVIDER);
 
 static GList *gst_avf_device_provider_probe (GstDeviceProvider * provider);
 
@@ -81,13 +85,18 @@ gst_av_capture_device_get_props (AVCaptureDevice *device)
   g_free (unique_id);
   g_free (model_id);
 
-#ifndef HAVE_IOS
-  char *manufacturer = g_strdup ([[device manufacturer] UTF8String]);
-  gst_structure_set (props,
-    "avf.manufacturer", G_TYPE_STRING, manufacturer,
-  NULL);
-
-  g_free (manufacturer);
+#if !TARGET_OS_WATCH
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 140000
+  if (__builtin_available (macOS 10.9, iOS 14.0, tvOS 17.0, *)) {
+#else
+  if (__builtin_available (macOS 10.9, iOS 14.0, tvOS 17.0, visionOS 2.1, *)) {
+#endif
+    char *manufacturer = g_strdup ([[device manufacturer] UTF8String]);
+    gst_structure_set (props,
+      "avf.manufacturer", G_TYPE_STRING, manufacturer,
+    NULL);
+    g_free (manufacturer);
+  }
 #endif
 
   return props;

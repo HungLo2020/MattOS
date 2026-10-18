@@ -4,9 +4,10 @@
  */
 
 /*
- * The parser should work with reasonably recent versions of either
- * bison or byacc.  So if you make changes, try to make sure it works
- * in both!
+ * The parser should work with reasonably recent versions of bison.
+ *
+ * byacc support was dropped, because it does not support the following features:
+ * - `%define parse.error detailed`
  */
 
 /* The following goes in the header */
@@ -39,6 +40,9 @@ struct parser_param {
 
 #define parser_warn(param, warning_id, fmt, ...) \
     scanner_warn((param)->scanner, warning_id, fmt, ##__VA_ARGS__)
+
+#define parser_vrb(param, verbosity, warning_id, fmt, ...) \
+    scanner_vrb((param)->scanner, verbosity, warning_id, fmt, ##__VA_ARGS__)
 
 static void
 _xkbcommon_error(struct parser_param *param, const char *msg)
@@ -87,70 +91,73 @@ resolve_keysym(struct parser_param *param, struct sval name, xkb_keysym_t *sym_r
 %lex-param      { struct scanner *param_scanner }
 %parse-param    { struct parser_param *param }
 
+%define parse.error detailed
+
 %token
-        END_OF_FILE     0
-        ERROR_TOK       255
-        XKB_KEYMAP      1
-        XKB_KEYCODES    2
-        XKB_TYPES       3
-        XKB_SYMBOLS     4
-        XKB_COMPATMAP   5
-        XKB_GEOMETRY    6
-        XKB_SEMANTICS   7
-        XKB_LAYOUT      8
-        INCLUDE         10
-        OVERRIDE        11
-        AUGMENT         12
-        REPLACE         13
-        ALTERNATE       14
-        VIRTUAL_MODS    20
-        TYPE            21
-        INTERPRET       22
-        ACTION_TOK      23
-        KEY             24
-        ALIAS           25
-        GROUP           26
-        MODIFIER_MAP    27
-        INDICATOR       28
-        SHAPE           29
-        KEYS            30
-        ROW             31
-        SECTION         32
-        OVERLAY         33
-        TEXT            34
-        OUTLINE         35
-        SOLID           36
-        LOGO            37
-        VIRTUAL         38
-        EQUALS          40
-        PLUS            41
-        MINUS           42
-        DIVIDE          43
-        TIMES           44
-        OBRACE          45
-        CBRACE          46
-        OPAREN          47
-        CPAREN          48
-        OBRACKET        49
-        CBRACKET        50
-        DOT             51
-        COMMA           52
-        SEMI            53
-        EXCLAM          54
-        INVERT          55
-        STRING          60
-        INTEGER         61
-        FLOAT           62
-        IDENT           63
-        KEYNAME         64
-        PARTIAL         70
-        DEFAULT         71
-        HIDDEN          72
-        ALPHANUMERIC_KEYS       73
-        MODIFIER_KEYS           74
-        KEYPAD_KEYS             75
-        FUNCTION_KEYS           76
-        ALTERNATE_GROUP         77
+        END_OF_FILE     0 "end of file"
+        ERROR_TOK       255 "invalid token"
+        XKB_KEYMAP      1 "xkb_keymap"
+        XKB_KEYCODES    2 "xkb_keycodes"
+        XKB_TYPES       3 "xkb_types"
+        XKB_SYMBOLS     4 "xkb_symbols"
+        XKB_COMPATMAP   5 "xkb_compatibility"
+        XKB_GEOMETRY    6 "xkb_geometry"
+        XKB_SEMANTICS   7 "xkb_semantics"
+        XKB_LAYOUT      8 "xkb_layout"
+        INCLUDE         10 "include"
+        OVERRIDE        11 "override"
+        AUGMENT         12 "augment"
+        REPLACE         13 "replace"
+        ALTERNATE       14 "alternate"
+        VIRTUAL_MODS    20 "virtual_modifiers"
+        TYPE            21 "type"
+        INTERPRET       22 "interpret"
+        ACTION_TOK      23 "action"
+        KEY             24 "key"
+        ALIAS           25 "alias"
+        GROUP           26 "group"
+        MODIFIER_MAP    27 "modifier_map"
+        INDICATOR       28 "indicator"
+        SHAPE           29 "shape"
+        KEYS            30 "keys"
+        ROW             31 "row"
+        SECTION         32 "section"
+        OVERLAY         33 "overlay"
+        TEXT            34 "text"
+        OUTLINE         35 "outline"
+        SOLID           36 "solid"
+        LOGO            37 "logo"
+        VIRTUAL         38 "virtual"
+        EQUALS          40 "="
+        PLUS            41 "+"
+        MINUS           42 "-"
+        DIVIDE          43 "/"
+        TIMES           44 "*"
+        OBRACE          45 "{"
+        CBRACE          46 "}"
+        OPAREN          47 "("
+        CPAREN          48 ")"
+        OBRACKET        49 "["
+        CBRACKET        50 "]"
+        DOT             51 "."
+        COMMA           52 ","
+        SEMI            53 ";"
+        EXCLAM          54 "!"
+        INVERT          55 "~"
+        STRING          60 "string literal"
+        DECIMAL_DIGIT   61 "decimal digit"
+        INTEGER         62 "integer literal"
+        FLOAT           63 "float literal"
+        IDENT           64 "identifier"
+        KEYNAME         65 "key name"
+        PARTIAL         70 "partial"
+        DEFAULT         71 "default"
+        HIDDEN          72 "hidden"
+        ALPHANUMERIC_KEYS       73 "alphanumeric_keys"
+        MODIFIER_KEYS           74 "modifier_keys"
+        KEYPAD_KEYS             75 "keypad_keys"
+        FUNCTION_KEYS           76 "function_keys"
+        ALTERNATE_GROUP         77 "alternate_group"
 
 %right  EQUALS
 %left   PLUS MINUS
@@ -192,7 +199,7 @@ resolve_keysym(struct parser_param *param, struct sval name, xkb_keysym_t *sym_r
         struct { XkbFile *head; XkbFile *last; } fileList;
 }
 
-%type <num>     INTEGER FLOAT
+%type <num>     DECIMAL_DIGIT INTEGER FLOAT
 %type <str>     STRING
 %type <sval>    IDENT
 %type <atom>    KEYNAME
@@ -924,14 +931,23 @@ KeySymLit       :       IDENT
                                     param,
                                     XKB_WARNING_UNRECOGNIZED_KEYSYM,
                                     "unrecognized keysym \"%.*s\"",
-                                    $1.len, $1.start
+                                    (unsigned int) $1.len, $1.start
                                 );
                                 $$ = XKB_KEY_NoSymbol;
                             }
                         }
                         /* Handle keysym that is also a keyword  */
                 |       SECTION { $$ = XKB_KEY_section; }
-                |       Integer
+                |       DECIMAL_DIGIT
+                        {
+                            /*
+                             * Special case for digits 0..9:
+                             * map to XKB_KEY_0 .. XKB_KEY_9, consistent with
+                             * other keysym names: <name> → XKB_KEY_<name>.
+                             */
+                            $$ = XKB_KEY_0 + (xkb_keysym_t) $1;
+                        }
+                |       INTEGER
                         {
                             if ($1 < XKB_KEYSYM_MIN) {
                                 /* Negative value */
@@ -946,11 +962,14 @@ KeySymLit       :       IDENT
                                 );
                                 $$ = XKB_KEY_NoSymbol;
                             }
-                            else if ($1 < 10) {
-                                /* Special case for digits 0..9:
-                                 * map to XKB_KEY_0 .. XKB_KEY_9 */
-                                $$ = XKB_KEY_0 + (xkb_keysym_t) $1;
-                            }
+                            /*
+                             * Integers 0..9 are handled with DECIMAL_DIGIT if
+                             * they were formatted as single characters '0'..'9'.
+                             * Otherwise they are handled here as raw keysyms
+                             * values. E.g. `01` and `0x1` are interpreted as
+                             * the keysym 0x0001, while `1` is interpreted as
+                             * XKB_KEY_1.
+                             */
                             else {
                                 /* Any other numeric value */
                                 if ($1 <= XKB_KEYSYM_MAX) {
@@ -972,8 +991,15 @@ KeySymLit       :       IDENT
                                     );
                                     $$ = XKB_KEY_NoSymbol;
                                 }
-                                parser_warn(
-                                    param, XKB_WARNING_NUMERIC_KEYSYM,
+                                parser_vrb(
+                                    /*
+                                     * Require an extra high verbosity, because
+                                     * keysyms are formatted as number unless
+                                     * enabling pretty-pretting for the
+                                     * serialization.
+                                     */
+                                    param, XKB_LOG_VERBOSITY_COMPREHENSIVE,
+                                    XKB_WARNING_NUMERIC_KEYSYM,
                                     "numeric keysym \"%#06"PRIx64"\" (%"PRId64")",
                                     $1, $1
                                 );
@@ -985,17 +1011,20 @@ SignedNumber    :       MINUS Number    { $$ = -$2; }
                 |       Number          { $$ = $1; }
                 ;
 
-Number          :       FLOAT   { $$ = $1; }
-                |       INTEGER { $$ = $1; }
+Number          :       FLOAT         { $$ = $1; }
+                |       DECIMAL_DIGIT { $$ = $1; }
+                |       INTEGER       { $$ = $1; }
                 ;
 
 Float           :       FLOAT   { $$ = 0; }
                 ;
 
-Integer         :       INTEGER { $$ = $1; }
+Integer         :       INTEGER       { $$ = $1; }
+                |       DECIMAL_DIGIT { $$ = $1; }
                 ;
 
-KeyCode         :       INTEGER { $$ = $1; }
+KeyCode         :       INTEGER       { $$ = $1; }
+                |       DECIMAL_DIGIT { $$ = $1; }
                 ;
 
 Ident           :       IDENT   { $$ = xkb_atom_intern(param->ctx, $1.start, $1.len); }
@@ -1014,6 +1043,7 @@ MapName         :       STRING  { $$ = $1; }
 
 %%
 
+/* Parse a specific section */
 XkbFile *
 parse(struct xkb_context *ctx, struct scanner *scanner, const char *map)
 {
@@ -1064,11 +1094,33 @@ parse(struct xkb_context *ctx, struct scanner *scanner, const char *map)
     }
 
     if (first)
-        log_vrb(ctx, 5,
+        log_vrb(ctx, XKB_LOG_VERBOSITY_DETAILED,
                 XKB_WARNING_MISSING_DEFAULT_SECTION,
                 "No map in include statement, but \"%s\" contains several; "
                 "Using first defined map, \"%s\"\n",
                 scanner->file_name, safe_map_name(first));
 
     return first;
+}
+
+/* Parse the next section */
+bool
+parse_next(struct xkb_context *ctx, struct scanner *scanner, XkbFile **xkb_file)
+{
+    int ret;
+    struct parser_param param = {
+        .scanner = scanner,
+        .ctx = ctx,
+        .rtrn = NULL,
+        .more_maps = false,
+    };
+
+    if ((ret = yyparse(&param)) == 0 && param.more_maps) {
+        *xkb_file = param.rtrn;
+        return true;
+    } else {
+        FreeXkbFile(param.rtrn);
+        *xkb_file = NULL;
+        return (ret == 0);
+    }
 }

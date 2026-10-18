@@ -1,11 +1,21 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <stdlib.h>
 
+#include "test-common.h"
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
 static void
 test_animation (const gchar *filename)
 {
   GError *error = NULL;
   GdkPixbufAnimation* result = NULL;
+
+  if (!format_supported (filename))
+    {
+      g_test_skip ("format not supported");
+      return;
+    }
 
   result = gdk_pixbuf_animation_new_from_file (g_test_get_filename (G_TEST_DIST, filename, NULL), &error);
   g_assert_no_error (error);

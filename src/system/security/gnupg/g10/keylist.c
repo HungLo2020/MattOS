@@ -82,7 +82,7 @@ static estream_t attrib_fp;
 
 
 
-static void list_keyblock (ctrl_t ctrl,
+static gpg_error_t list_keyblock (ctrl_t ctrl,
                            kbnode_t keyblock, int secret, int has_secret,
                            int fpr, struct keylist_context *listctx);
 
@@ -132,6 +132,8 @@ parse_and_set_list_filter (const char *string)
     err = recsel_parse_expr (&list_filter.selkey, string+7);
   else
     err = gpg_error (GPG_ERR_INV_NAME);
+  if (!err && DBG_RECSEL)
+    recsel_dump (list_filter.selkey);
 
   return err;
 }
@@ -365,11 +367,12 @@ print_card_key_info (estream_t fp, kbnode_t keyblock)
  *  -1 - print to the TTY
  *   0 - print to stdout.
  *   1 - use log_info
+ *   2 - print colon delimited pfc record to stdout.
  */
 void
 show_preferences (PKT_user_id *uid, int indent, int mode, int verbose)
 {
-  estream_t fp = mode < 0? NULL : mode ? log_get_stream () : es_stdout;
+  estream_t fp;
   const prefitem_t fake = { 0, 0 };
   const prefitem_t *prefs;
   int i;
@@ -384,7 +387,44 @@ show_preferences (PKT_user_id *uid, int indent, int mode, int verbose)
   else
     return;
 
-  if (verbose)
+  if (mode < 0 )
+    fp = NULL;
+  else if (mode == 1)
+    fp = log_get_stream ();
+  else /* Mode 0 or 2 */
+    fp = es_stdout;
+
+  if (mode == 2)  /* Print preference record.  */
+    {
+      static char ptypes[] = { PREFTYPE_SYM, PREFTYPE_HASH,
+                               PREFTYPE_ZIP, PREFTYPE_AEAD };
+      int t, any;
+
+      es_fputs ("pfc::", fp); /* Second field is RFU */
+      for (t=0; t < DIM (ptypes); t++)
+        {
+          any = 0;
+          for (i = 0; prefs[i].type; i++)
+            if (prefs[i].type == ptypes[t])
+              {
+                es_fprintf (fp, "%s%d", any? ",":"", prefs[i].value);
+                any = 1;
+              }
+          es_putc (':', fp);
+        }
+      es_putc (':', fp);  /* Two more reserved fields.  */
+      es_putc (':', fp);
+      any = 0;
+      if (uid->flags.mdc)
+        { es_fprintf (fp, "mdc"); any = 1; }
+      if (uid->flags.aead)
+        { es_fprintf (fp, "%saead", any?",":"");  any = 1; };
+      if (!uid->flags.ks_modify)
+        { es_fprintf (fp, "%sno-ks-modify", any?",":""); }
+      es_putc (':', fp); /* One final colon for easier reading.  */
+      es_putc ('\n', fp);
+    }
+  else if (verbose)
     {
       int any, des_seen = 0, sha1_seen = 0, uncomp_seen = 0;
 
@@ -636,6 +676,7 @@ show_keyserver_url (PKT_signature * sig, int indent, int mode)
  * Defined bits in WHICH:
  *   1 - standard notations
  *   2 - user notations
+ *   4 - print notations normally hidden
  */
 void
 show_notation (PKT_signature * sig, int indent, int mode, int which)
@@ -651,6 +692,9 @@ show_notation (PKT_signature * sig, int indent, int mode, int which)
   /* There may be multiple notations in the same sig. */
   for (nd = notations; nd; nd = nd->next)
     {
+       if (!(which & 4) && !strcmp (nd->name, "manu"))
+        continue;
+
       if (mode != 2)
 	{
 	  int has_at = !!strchr (nd->name, '@');
@@ -703,6 +747,41 @@ show_notation (PKT_signature * sig, int indent, int mode, int which)
 }
 
 
+/* Output all the notation data in SIG matching a name given by
+ * --print-notation to stdout.  */
+void
+print_matching_notations (PKT_signature *sig)
+{
+  notation_t nd, notations;
+  strlist_t sl;
+  const char *s;
+
+  if (!opt.print_notations)
+    return;
+
+  notations = sig_to_notation (sig);
+  for (nd = notations; nd; nd = nd->next)
+    {
+      for (sl=opt.print_notations; sl; sl = sl->next)
+        if (!strcmp (sl->d, nd->name))
+          break;
+      if (!sl || !*nd->value)
+        continue;
+      es_fprintf (es_stdout, "%s: ", nd->name);
+      for (s = nd->value; *s; s++)
+        {
+          if (*s == '\n')
+            es_fprintf (es_stdout, "\n%*s", (int)strlen (nd->name)+2, "");
+          else if (*s >= ' ' || *s != '\t')
+            es_putc (*s, es_stdout);
+        }
+      es_putc ('\n', es_stdout);
+    }
+
+  free_notation (notations);
+}
+
+
 static void
 print_signature_stats (struct keylist_context *s)
 {
@@ -745,6 +824,7 @@ list_all (ctrl_t ctrl, int secret, int mark_secret)
   int any_secret;
   const char *lastresname, *resname;
   struct keylist_context listctx;
+  gpg_error_t listerr = 0;
 
   memset (&listctx, 0, sizeof (listctx));
   if (opt.check_sigs)
@@ -802,13 +882,13 @@ list_all (ctrl_t ctrl, int secret, int mark_secret)
                 }
             }
           merge_keys_and_selfsig (ctrl, keyblock);
-          list_keyblock (ctrl, keyblock, secret, any_secret, opt.fingerprint,
-                         &listctx);
+          listerr = list_keyblock (ctrl, keyblock, secret, any_secret,
+                                   opt.fingerprint, &listctx);
         }
       release_kbnode (keyblock);
       keyblock = NULL;
     }
-  while (!(rc = keydb_search_next (hd)));
+  while (!listerr && !(rc = keydb_search_next (hd)));
   es_fflush (es_stdout);
   if (rc && gpg_err_code (rc) != GPG_ERR_NOT_FOUND)
     log_error ("keydb_search_next failed: %s\n", gpg_strerror (rc));
@@ -839,6 +919,7 @@ list_one (ctrl_t ctrl, strlist_t names, int secret, int mark_secret)
   const char *keyring_str = _("Keyring");
   int i;
   struct keylist_context listctx;
+  gpg_error_t listerr = 0;
 
   memset (&listctx, 0, sizeof (listctx));
   if (!secret && opt.check_sigs)
@@ -853,7 +934,10 @@ list_one (ctrl_t ctrl, strlist_t names, int secret, int mark_secret)
    * functions) or to have the search function return indicators for
    * found names.  Yet another way is to use the keydb search
    * facilities directly. */
-  rc = getkey_bynames (ctrl, &ctx, NULL, names, secret, &keyblock);
+  rc = getkey_bynames (ctrl, &ctx, NULL, names,
+                       (GETKEY_ALLOW_ADSK
+                        | (secret ? GETKEY_WANT_SECRET : 0)),
+                       &keyblock);
   if (rc)
     {
       log_error ("error reading key: %s\n", gpg_strerror (rc));
@@ -887,12 +971,12 @@ list_one (ctrl_t ctrl, strlist_t names, int secret, int mark_secret)
                 es_putc ('-', es_stdout);
               es_putc ('\n', es_stdout);
             }
-          list_keyblock (ctrl, keyblock, secret, any_secret,
-                         opt.fingerprint, &listctx);
+          listerr = list_keyblock (ctrl, keyblock, secret, any_secret,
+                                   opt.fingerprint, &listctx);
         }
       release_kbnode (keyblock);
     }
-  while (!getkey_next (ctrl, ctx, NULL, &keyblock));
+  while (!listerr && !getkey_next (ctrl, ctx, NULL, &keyblock));
   getkey_end (ctrl, ctx);
 
   if (opt.check_sigs && !opt.with_colons)
@@ -910,12 +994,13 @@ locate_one (ctrl_t ctrl, strlist_t names, int no_local)
   GETKEY_CTX ctx = NULL;
   KBNODE keyblock = NULL;
   struct keylist_context listctx;
+  gpg_error_t listerr = 0;
 
   memset (&listctx, 0, sizeof (listctx));
   if (opt.check_sigs)
     listctx.check_sigs = 1;
 
-  for (sl = names; sl; sl = sl->next)
+  for (sl = names; sl && !listerr; sl = sl->next)
     {
       rc = get_best_pubkey_byname (ctrl,
                                    no_local? GET_PUBKEY_NO_LOCAL
@@ -933,10 +1018,11 @@ locate_one (ctrl_t ctrl, strlist_t names, int no_local)
 	{
 	  do
 	    {
-	      list_keyblock (ctrl, keyblock, 0, 0, opt.fingerprint, &listctx);
+	      listerr = list_keyblock (ctrl, keyblock, 0, 0,
+                                       opt.fingerprint, &listctx);
 	      release_kbnode (keyblock);
 	    }
-	  while (ctx && !getkey_next (ctrl, ctx, NULL, &keyblock));
+	  while (!listerr && ctx && !getkey_next (ctrl, ctx, NULL, &keyblock));
 	  getkey_end (ctrl, ctx);
 	  ctx = NULL;
 	}
@@ -1171,6 +1257,77 @@ dump_attribs (const PKT_user_id *uid, PKT_public_key *pk)
 }
 
 
+static void
+print_keygrip (const char *keygrip)
+{
+  const char *s;
+
+  s = strchr (keygrip, ',');
+  if (s)
+    es_fprintf (es_stdout, "      Keygrip = %.*s,\n%*s%s\n",
+                (int)(s-keygrip), keygrip, 16, "", s+1);
+  else
+    es_fprintf (es_stdout, "      Keygrip = %s\n", keygrip);
+}
+
+
+/* If PK is given the output is written to a new file instead of
+ * stdout.  */
+static void
+print_x509_notations (struct notation *nots, PKT_public_key *pk)
+{
+  gpg_error_t err;
+  gpgrt_b64state_t state = NULL;
+  char hexfpr[2*4 + 1 + 2*MAX_FINGERPRINT_LEN+4+1];
+  char sha1[20];
+  estream_t fp;
+
+  for (; nots; nots = nots->next)
+    {
+      if (pk)
+        {
+          gcry_md_hash_buffer (GCRY_MD_SHA1, sha1, nots->bdat, nots->blen);
+          bin2hex (sha1+16, 4, hexfpr);
+          hexfpr[2*4] = '-';
+          hexfingerprint (pk, hexfpr + 2*4+1, 2*MAX_FINGERPRINT_LEN);
+          strcat (hexfpr, ".pem");
+          fp = es_fopen (hexfpr, "w");
+          if (!fp)
+            {
+              err = gpg_err_code_from_syserror ();
+              goto b64fail;
+            }
+        }
+      else
+        fp = es_stdout;
+      state = gpgrt_b64enc_start (fp, "CERTIFICATE");
+      if (!state)
+        {
+          err = gpg_err_code_from_syserror ();
+          goto b64fail;
+        }
+      err = gpgrt_b64enc_write (state, nots->bdat, nots->blen);
+      if (err)
+        goto b64fail;
+      err = gpgrt_b64enc_finish (state);
+      if (err)
+        goto b64fail;
+      if (fp != es_stdout)
+        {
+          es_fclose (fp);
+          fp = NULL;
+        }
+    }
+  return;
+
+ b64fail:
+  log_error ("error writing base64 encoded notation: %s\n", gpg_strerror (err));
+  gpgrt_b64enc_finish (state);
+  if (fp && fp != es_stdout)
+    gpgrt_fcancel (fp);
+}
+
+
 /* Order two signatures.  We first order by keyid and then by creation
  * time.  */
 int
@@ -1216,174 +1373,274 @@ cmp_signodes (const void *av, const void *bv)
 }
 
 
+/* Given a domain name at NAME with length NAME, check whether this is
+ * a valid domain name and in that case return a malloced string ith
+ * the name.  Escaped dots are ignored and removed from the result.
+ * Example: "example\.org" -> "example.org" Note that the input may
+ * not be Nul terminated.  */
+static char *
+parse_trust_name (const char *name, size_t namelen)
+{
+  char *buffer, *p;
+
+  p = buffer = xtrymalloc (namelen+1);
+  if (!buffer)
+    return NULL; /* Oops - caller needs to use some fallback  */
+
+  for (;  namelen; name++, namelen--)
+    {
+      if (*name == '\\' && namelen > 1 && name[1] == '.')
+        ; /* Skip the escape character.  */
+      else
+        *p++ = *name;
+    }
+  *p = 0;
+  if (!is_valid_domain_name (buffer))
+    {
+      xfree (buffer);
+      buffer = NULL;
+    }
+  return buffer;
+}
+
+
+void
+print_revocation_reason_comment (const char *comment, size_t comment_len)
+{
+  const byte *s, *s_lf;
+  size_t n, n_lf;
+
+  if (!comment || !comment_len)
+    return;
+
+  s = comment;
+  n = comment_len;
+  s_lf = NULL;
+  do
+    {
+      /* We don't want any empty lines, so we skip them.  */
+      for (;n && *s == '\n'; s++, n--)
+        ;
+      if (n)
+        {
+          s_lf = memchr (s, '\n', n);
+          n_lf = s_lf? s_lf - s : n;
+          es_fprintf (es_stdout, "         %s",
+                      _("revocation comment: "));
+          es_write_sanitized (es_stdout, s, n_lf, NULL, NULL);
+          es_putc ('\n', es_stdout);
+          s += n_lf; n -= n_lf;
+        }
+    } while (s_lf);
+}
+
+
+static void
+print_revocation_reason (PKT_public_key *pk)
+{
+  char *freeme;
+  const char *codestr;
+
+  if (!pk->revoked.got_reason)
+    return;
+
+  if (!pk->revoked.reason_code && !pk->revoked.reason_comment)
+    return; /* Do not print "revocation reason: No reason specified". */
+
+  codestr = revocation_reason_code_to_str (pk->revoked.reason_code, &freeme);
+  es_fprintf (es_stdout, "      %s%s\n",
+              _("reason for revocation: "), codestr);
+  xfree (freeme);
+  print_revocation_reason_comment (pk->revoked.reason_comment,
+                                   pk->revoked.reason_comment_len);
+}
+
+
 /* Helper for list_keyblock_print.  The caller must have set
  * NODFLG_MARK_B to indicate self-signatures.  */
 static void
 list_signature_print (ctrl_t ctrl, kbnode_t keyblock, kbnode_t node,
-                      struct keylist_context *listctx)
+                      struct keylist_context *listctx, PKT_public_key *lastpk)
 {
-          /* (extra indentation to keep the diff history short)  */
-	  PKT_signature *sig = node->pkt->pkt.signature;
-	  int rc, sigrc;
-	  char *sigstr;
-          char *reason_text = NULL;
-          char *reason_comment = NULL;
-          size_t reason_commentlen;
-          int reason_code = 0;
+  PKT_signature *sig = node->pkt->pkt.signature;
+  int rc, sigrc;
+  char *sigstr;
+  char *reason_text = NULL;
+  char *reason_comment = NULL;
+  size_t reason_commentlen;
+  int reason_code = 0;
 
-	  if (listctx->check_sigs)
-	    {
-	      rc = check_key_signature (ctrl, keyblock, node, NULL);
-	      switch (gpg_err_code (rc))
-		{
-		case 0:
-		  listctx->good_sigs++;
-		  sigrc = '!';
-		  break;
-		case GPG_ERR_BAD_SIGNATURE:
-		  listctx->inv_sigs++;
-		  sigrc = '-';
-		  break;
-		case GPG_ERR_NO_PUBKEY:
-		case GPG_ERR_UNUSABLE_PUBKEY:
-		  listctx->no_key++;
-		  return;
-                case GPG_ERR_DIGEST_ALGO:
-                case GPG_ERR_PUBKEY_ALGO:
-                  if (!(opt.list_options & LIST_SHOW_UNUSABLE_SIGS))
-                    return;
-                  /* fallthru. */
-		default:
-		  listctx->oth_err++;
-		  sigrc = '%';
-		  break;
-		}
+  if (listctx->check_sigs)
+    {
+      rc = check_key_signature (ctrl, keyblock, node, NULL);
+      switch (gpg_err_code (rc))
+	{
+	case 0:
+	  listctx->good_sigs++;
+	  sigrc = '!';
+	  break;
+	case GPG_ERR_BAD_SIGNATURE:
+	  listctx->inv_sigs++;
+	  sigrc = '-';
+	  break;
+	case GPG_ERR_NO_PUBKEY:
+	case GPG_ERR_UNUSABLE_PUBKEY:
+	  listctx->no_key++;
+	  return;
+        case GPG_ERR_DIGEST_ALGO:
+        case GPG_ERR_PUBKEY_ALGO:
+          if (!(opt.list_options & LIST_SHOW_UNUSABLE_SIGS))
+            return;
+          /* fallthru. */
+	default:
+	  listctx->oth_err++;
+	  sigrc = '%';
+	  break;
+	}
 
-	      /* TODO: Make sure a cached sig record here still has
-	         the pk that issued it.  See also
-	         keyedit.c:print_and_check_one_sig */
-	    }
-	  else
-	    {
-              if (!(opt.list_options & LIST_SHOW_UNUSABLE_SIGS)
-                  && (gpg_err_code (openpgp_pk_test_algo (sig->pubkey_algo)
-                                    == GPG_ERR_PUBKEY_ALGO)
-                      || gpg_err_code (openpgp_md_test_algo (sig->digest_algo)
-                                       == GPG_ERR_DIGEST_ALGO)
-                      || (sig->digest_algo == DIGEST_ALGO_SHA1
-                          && !(node->flag & NODFLG_MARK_B) /*no selfsig*/
-                          && !opt.flags.allow_weak_key_signatures)))
-                return;
-	      rc = 0;
-	      sigrc = ' ';
-	    }
+      /* TODO: Make sure a cached sig record here still has
+         the pk that issued it.  See also
+         keyedit.c:print_and_check_one_sig */
+    }
+  else
+    {
+      if (!(opt.list_options & LIST_SHOW_UNUSABLE_SIGS)
+          && (gpg_err_code (openpgp_pk_test_algo (sig->pubkey_algo)
+                            == GPG_ERR_PUBKEY_ALGO)
+              || gpg_err_code (openpgp_md_test_algo (sig->digest_algo)
+                               == GPG_ERR_DIGEST_ALGO)
+              || (sig->digest_algo == DIGEST_ALGO_SHA1
+                  && !(node->flag & NODFLG_MARK_B) /*no selfsig*/
+                  && !opt.flags.allow_weak_key_signatures)))
+        return;
+      rc = 0;
+      sigrc = ' ';
+    }
 
-	  if (sig->sig_class == 0x20 || sig->sig_class == 0x28
-	      || sig->sig_class == 0x30)
+  if (IS_KEY_REV (sig) || IS_SUBKEY_REV (sig) || IS_UID_REV (sig))
+    {
+      sigstr = "rev";
+      reason_code = get_revocation_reason (sig, &reason_text,
+                                           &reason_comment,
+                                           &reason_commentlen);
+    }
+  else if (IS_UID_SIG (sig))
+    sigstr = "sig";
+  else if (IS_SUBKEY_SIG (sig))
+    sigstr = "sig";
+  else if (IS_KEY_SIG (sig))
+    sigstr = "sig";
+  else
+    {
+      es_fprintf (es_stdout, "sig                             "
+	      "[unexpected signature class 0x%02x]\n",
+	      sig->sig_class);
+      return;
+    }
+
+  es_fputs (sigstr, es_stdout);
+  es_fprintf (es_stdout, "%c%c %c%c%c%c%c%c %s %s",
+	  sigrc, (sig->sig_class - 0x10 > 0 &&
+		  sig->sig_class - 0x10 <
+		  4) ? '0' + sig->sig_class - 0x10 : ' ',
+	  sig->flags.exportable ? ' ' : 'L',
+	  sig->flags.revocable ? ' ' : 'R',
+	  sig->flags.policy_url ? 'P' : ' ',
+	  sig->flags.notation ? 'N' : ' ',
+	  sig->flags.expired ? 'X' : ' ',
+	  (sig->trust_depth > 9) ? 'T' : (sig->trust_depth >
+					  0) ? '0' +
+	  sig->trust_depth : ' ', keystr (sig->keyid),
+	  datestr_from_sig (sig));
+  if (opt.list_options & LIST_SHOW_SIG_EXPIRE)
+    es_fprintf (es_stdout, " %s", expirestr_from_sig (sig));
+  es_fprintf (es_stdout, "  ");
+  if (sigrc == '%')
+    es_fprintf (es_stdout, "[%s] ", gpg_strerror (rc));
+  else if (sigrc == '?')
+    ;
+  else if ((node->flag & NODFLG_MARK_B))
+    es_fputs (_("[self-signature]"), es_stdout);
+  else if (!opt.fast_list_mode )
+    {
+      size_t n;
+      char *p = get_user_id (ctrl, sig->keyid, &n, NULL);
+      print_utf8_buffer (es_stdout, p, n);
+      xfree (p);
+    }
+  if ((opt.list_options & LIST_SHOW_TRUSTSIG)
+      && (sig->trust_depth || sig->trust_value || sig->trust_regexp))
+    {
+      es_fprintf (es_stdout, " [T=%d,%d", sig->trust_depth, sig->trust_value);
+      if (sig->trust_regexp)
+        {
+          size_t n = strlen (sig->trust_regexp);
+          char *tname = NULL;
+
+          if (!strncmp (sig->trust_regexp, "<[^>]+[@.]", 10)
+              && n > 12 && !strcmp (sig->trust_regexp+n-2, ">$")
+              && (tname=parse_trust_name (sig->trust_regexp+10, n-12)))
             {
-              sigstr = "rev";
-              reason_code = get_revocation_reason (sig, &reason_text,
-                                                   &reason_comment,
-                                                   &reason_commentlen);
+              es_fprintf (es_stdout, ",\"%s", tname);
+              xfree (tname);
             }
-	  else if ((sig->sig_class & ~3) == 0x10)
-	    sigstr = "sig";
-	  else if (sig->sig_class == 0x18)
-	    sigstr = "sig";
-	  else if (sig->sig_class == 0x1F)
-	    sigstr = "sig";
-	  else
-	    {
-	      es_fprintf (es_stdout, "sig                             "
-		      "[unexpected signature class 0x%02x]\n",
-		      sig->sig_class);
-	      return;
-	    }
-
-	  es_fputs (sigstr, es_stdout);
-	  es_fprintf (es_stdout, "%c%c %c%c%c%c%c%c %s %s",
-		  sigrc, (sig->sig_class - 0x10 > 0 &&
-			  sig->sig_class - 0x10 <
-			  4) ? '0' + sig->sig_class - 0x10 : ' ',
-		  sig->flags.exportable ? ' ' : 'L',
-		  sig->flags.revocable ? ' ' : 'R',
-		  sig->flags.policy_url ? 'P' : ' ',
-		  sig->flags.notation ? 'N' : ' ',
-		  sig->flags.expired ? 'X' : ' ',
-		  (sig->trust_depth > 9) ? 'T' : (sig->trust_depth >
-						  0) ? '0' +
-		  sig->trust_depth : ' ', keystr (sig->keyid),
-		  datestr_from_sig (sig));
-	  if (opt.list_options & LIST_SHOW_SIG_EXPIRE)
-	    es_fprintf (es_stdout, " %s", expirestr_from_sig (sig));
-	  es_fprintf (es_stdout, "  ");
-	  if (sigrc == '%')
-	    es_fprintf (es_stdout, "[%s] ", gpg_strerror (rc));
-	  else if (sigrc == '?')
-	    ;
-	  else if ((node->flag & NODFLG_MARK_B))
-            es_fputs (_("[self-signature]"), es_stdout);
-          else if (!opt.fast_list_mode )
-	    {
-	      size_t n;
-	      char *p = get_user_id (ctrl, sig->keyid, &n, NULL);
-	      print_utf8_buffer (es_stdout, p, n);
-	      xfree (p);
-	    }
-	  es_putc ('\n', es_stdout);
-
-	  if (sig->flags.policy_url
-	      && (opt.list_options & LIST_SHOW_POLICY_URLS))
-	    show_policy_url (sig, 3, 0);
-
-	  if (sig->flags.notation && (opt.list_options & LIST_SHOW_NOTATIONS))
-	    show_notation (sig, 3, 0,
-			   ((opt.
-			     list_options & LIST_SHOW_STD_NOTATIONS) ? 1 : 0)
-			   +
-			   ((opt.
-			     list_options & LIST_SHOW_USER_NOTATIONS) ? 2 :
-			    0));
-
-	  if (sig->flags.pref_ks
-	      && (opt.list_options & LIST_SHOW_KEYSERVER_URLS))
-	    show_keyserver_url (sig, 3, 0);
-
-          if (reason_text && (reason_code || reason_comment))
+          else
             {
-              es_fprintf (es_stdout, "      %s%s\n",
-                          _("reason for revocation: "), reason_text);
-              if (reason_comment)
-                {
-                  const byte *s, *s_lf;
-                  size_t n, n_lf;
-
-                  s = reason_comment;
-                  n = reason_commentlen;
-                  s_lf = NULL;
-                  do
-                    {
-                      /* We don't want any empty lines, so we skip them.  */
-                      for (;n && *s == '\n'; s++, n--)
-                        ;
-                      if (n)
-                        {
-                          s_lf = memchr (s, '\n', n);
-                          n_lf = s_lf? s_lf - s : n;
-                          es_fprintf (es_stdout, "         %s",
-                                      _("revocation comment: "));
-                          es_write_sanitized (es_stdout, s, n_lf, NULL, NULL);
-                          es_putc ('\n', es_stdout);
-                          s += n_lf; n -= n_lf;
-                        }
-                    } while (s_lf);
-                }
+              es_fputs (",R\"", es_stdout);
+              es_write_sanitized (es_stdout, sig->trust_regexp, n, "\"", NULL);
             }
+          es_putc ('\"', es_stdout);
+        }
+      es_putc (']', es_stdout);
+    }
+  es_putc ('\n', es_stdout);
 
-          xfree (reason_text);
-          xfree (reason_comment);
+  if (sig->flags.policy_url
+      && (opt.list_options & LIST_SHOW_POLICY_URLS))
+    show_policy_url (sig, 3, 0);
 
-	  /* fixme: check or list other sigs here */
+  if (sig->flags.notation && (opt.list_options & LIST_SHOW_NOTATIONS))
+    show_notation (sig, 3, 0,
+                   ((opt.
+                     list_options & LIST_SHOW_STD_NOTATIONS) ? 1 : 0) +
+                   ((opt.
+                     list_options & LIST_SHOW_USER_NOTATIONS) ? 2 : 0) +
+                   ((opt.
+                     list_options & LIST_SHOW_HIDDEN_NOTATIONS) ? 4 : 0));
+
+  if (sig->flags.notation
+      && (opt.list_options
+          & (LIST_SHOW_X509_NOTATIONS|LIST_STORE_X509_NOTATIONS)))
+    {
+      struct notation *nots;
+
+      if ((IS_KEY_SIG (sig) || IS_SUBKEY_SIG (sig))
+          && (nots = search_sig_notations (sig,
+                                           "x509certificate@pgp.com")))
+        {
+          if ((opt.list_options & LIST_STORE_X509_NOTATIONS))
+            print_x509_notations (nots, lastpk);
+          else
+            print_x509_notations (nots, NULL);
+          free_notation (nots);
+        }
+    }
+
+  if (sig->flags.pref_ks
+      && (opt.list_options & LIST_SHOW_KEYSERVER_URLS))
+    show_keyserver_url (sig, 3, 0);
+
+  if (reason_text && (reason_code || reason_comment))
+    {
+      es_fprintf (es_stdout, "      %s%s\n",
+                  _("reason for revocation: "), reason_text);
+      print_revocation_reason_comment (reason_comment, reason_commentlen);
+    }
+
+  xfree (reason_text);
+  xfree (reason_comment);
+
+  /* fixme: check or list other sigs here */
 }
 
 
@@ -1394,6 +1651,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
   int rc;
   kbnode_t node;
   PKT_public_key *pk;
+  PKT_public_key *lastpk;
   u32 *mainkid;
   int skip_sigs = 0;
   char *hexgrip = NULL;
@@ -1410,6 +1668,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
 
   pk = node->pkt->pkt.public_key;
   mainkid = pk_keyid (pk);
+  lastpk = pk;
 
   if (secret || opt.with_keygrip)
     {
@@ -1437,7 +1696,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
     print_fingerprint (ctrl, NULL, pk, 0);
 
   if (opt.with_keygrip && hexgrip)
-    es_fprintf (es_stdout, "      Keygrip = %s\n", hexgrip);
+    print_keygrip (hexgrip);
 
   if (serialno)
     print_card_serialno (serialno);
@@ -1560,6 +1819,7 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
 	{
 	  PKT_public_key *pk2 = node->pkt->pkt.public_key;
 
+          lastpk = pk2;
 	  if ((pk2->flags.revoked || pk2->has_expired)
 	      && !(opt.list_options & LIST_SHOW_UNUSABLE_SUBKEYS))
 	    {
@@ -1595,13 +1855,15 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
                 print_card_serialno (serialno);
             }
           if (opt.with_keygrip && hexgrip)
-            es_fprintf (es_stdout, "      Keygrip = %s\n", hexgrip);
+            print_keygrip (hexgrip);
 	  if (opt.with_key_data)
 	    print_key_data (pk2);
           if (opt.with_key_screening)
             print_pk_screening (pk2, 0);
 	}
-      else if (opt.list_sigs
+      else if ((opt.list_sigs
+                || (opt.list_options
+                    & (LIST_SHOW_X509_NOTATIONS|LIST_STORE_X509_NOTATIONS)))
 	       && node->pkt->pkttype == PKT_SIGNATURE && !skip_sigs)
 	{
           kbnode_t n;
@@ -1629,7 +1891,8 @@ list_keyblock_print (ctrl_t ctrl, kbnode_t keyblock, int secret, int fpr,
             qsort (sigarray, sigcount, sizeof *sigarray, cmp_signodes);
 
           for (idx=0; idx < sigcount; idx++)
-            list_signature_print (ctrl, keyblock, sigarray[idx], listctx);
+            list_signature_print (ctrl, keyblock, sigarray[idx], listctx,
+                                  lastpk);
           xfree (sigarray);
 	}
     }
@@ -1744,6 +2007,7 @@ print_compliance_flags (PKT_public_key *pk,
   if (!keylength)
     keylength = nbits_from_pk (pk);
 
+  /* FIXME:CO_FIPS */
   if (pk->version == 5)
     {
       es_fputs (gnupg_status_compliance_flag (CO_GNUPG), es_stdout);
@@ -1786,6 +2050,7 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
   unsigned int keylength;
   char *curve = NULL;
   const char *curvename = NULL;
+  char pkstrbuf[PUBKEY_STRING_SIZE];
 
   /* Get the keyid from the keyblock.  */
   node = find_kbnode (keyblock, PKT_PUBLIC_KEY);
@@ -1875,6 +2140,14 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
         curvename = curve;
       es_fputs (curvename, es_stdout);
     }
+  else if (pk->pubkey_algo == PUBKEY_ALGO_KYBER)
+    {
+      /* Note that Kyber should actually not appear here because it is
+       * the primary key and Kyber is not able to certify.  But we
+       * prepare it here for future composite algorithms and in case
+       * of faulty packets. */
+      es_fputs (pubkey_string (pk, pkstrbuf, sizeof pkstrbuf), es_stdout);
+    }
   es_putc (':', es_stdout);		/* End of field 17. */
   print_compliance_flags (pk, keylength, curvename);
   es_putc (':', es_stdout);		/* End of field 18 (compliance). */
@@ -1886,6 +2159,26 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
     es_write_sanitized (es_stdout, pk->updateurl, strlen (pk->updateurl),
                         ":", NULL);
   es_putc (':', es_stdout);		/* End of field 20 (origin). */
+  if (pk->flags.revoked && pk->revoked.got_reason
+      && (pk->revoked.reason_code || pk->revoked.reason_comment))
+    {
+      char *freeme;
+      const char *s;
+      size_t n;
+
+      s = revocation_reason_code_to_str (pk->revoked.reason_code, &freeme);
+      n = strlen (s);
+      es_write_sanitized (es_stdout, s, n, ":", NULL);
+      if (n && s[n-1] != '.')
+        es_putc ('.', es_stdout);
+      es_putc ('\\', es_stdout);  /* C-style escaped colon.  */
+      es_putc ('n', es_stdout);
+      es_write_sanitized (es_stdout, pk->revoked.reason_comment,
+                          pk->revoked.reason_comment_len,
+                          ":", NULL);
+      xfree (freeme);
+      es_putc (':', es_stdout);		/* End of field 21 (comment). */
+    }
   es_putc ('\n', es_stdout);
 
   print_revokers (es_stdout, 1, pk);
@@ -1946,6 +2239,8 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
                                 ":", NULL);
           es_putc (':', es_stdout);	/* End of field 20 (origin). */
 	  es_putc ('\n', es_stdout);
+          if ((opt.list_options & (LIST_SHOW_PREF|LIST_SHOW_PREF_VERBOSE)))
+            show_preferences (uid, 0, 2, 0);
 #ifdef USE_TOFU
 	  if (!uid->attrib_data && opt.with_tofu_info
               && (opt.trust_model == TM_TOFU || opt.trust_model == TM_TOFU_PGP))
@@ -2025,6 +2320,11 @@ list_keyblock_colon (ctrl_t ctrl, kbnode_t keyblock,
               if (!curvename)
                 curvename = curve;
               es_fputs (curvename, es_stdout);
+            }
+          else if (pk2->pubkey_algo == PUBKEY_ALGO_KYBER)
+            {
+              es_fputs (pubkey_string (pk2, pkstrbuf, sizeof pkstrbuf),
+                        es_stdout);
             }
           es_putc (':', es_stdout);	/* End of field 17. */
           print_compliance_flags (pk2, keylength, curvename);
@@ -2250,11 +2550,18 @@ reorder_keyblock (KBNODE keyblock)
 }
 
 
-static void
+/* Note: If this function returns an error the caller is expected to
+ * honor this and stop all further processing.  Any error returned
+ * will be a write error (to stdout) and a diagnostics is always
+ * printed using log_error.  */
+static gpg_error_t
 list_keyblock (ctrl_t ctrl,
                KBNODE keyblock, int secret, int has_secret, int fpr,
                struct keylist_context *listctx)
 {
+  gpg_error_t err = 0;
+
+  es_clearerr (es_stdout);
   reorder_keyblock (keyblock);
 
   if (list_filter.selkey)
@@ -2272,7 +2579,7 @@ list_keyblock (ctrl_t ctrl,
             }
         }
       if (!selected)
-        return;  /* Skip this one.  */
+        return 0;  /* Skip this one.  */
     }
 
   if (opt.with_colons)
@@ -2286,24 +2593,36 @@ list_keyblock (ctrl_t ctrl,
   else
     list_keyblock_print (ctrl, keyblock, secret, fpr, listctx);
 
-  if (secret)
-    es_fflush (es_stdout);
+  if (es_ferror (es_stdout))
+    err = gpg_error_from_syserror ();
+
+  if (secret && es_fflush (es_stdout) && !err)
+    err = gpg_error_from_syserror ();
+
+  if (err)
+    log_error (_("error writing to stdout: %s\n"), gpg_strerror (err));
+
+  return err;
 }
 
 
 /* Public function used by keygen to list a keyblock.  If NO_VALIDITY
  * is set the validity of a key is never shown.  */
-void
+gpg_error_t
 list_keyblock_direct (ctrl_t ctrl,
                       kbnode_t keyblock, int secret, int has_secret, int fpr,
                       int no_validity)
 {
   struct keylist_context listctx;
+  gpg_error_t err;
 
   memset (&listctx, 0, sizeof (listctx));
   listctx.no_validity = !!no_validity;
-  list_keyblock (ctrl, keyblock, secret, has_secret, fpr, &listctx);
+  if (opt.check_sigs)
+    listctx.check_sigs = 1;
+  err = list_keyblock (ctrl, keyblock, secret, has_secret, fpr, &listctx);
   keylist_context_release (&listctx);
+  return err;
 }
 
 
@@ -2575,6 +2894,10 @@ print_key_line (ctrl_t ctrl, estream_t fp, PKT_public_key *pk, int secret)
   if (pk->flags.primary &&
       !opt.fingerprint && !opt.with_fingerprint)
     print_fingerprint (ctrl, fp, pk, 20);
+
+  /* Print the revocation reason.  */
+  if (pk->flags.revoked)
+    print_revocation_reason (pk);
 }
 
 

@@ -706,7 +706,7 @@ yuv_to_rgb_create_uniform_memory (GstVulkanColorConvert * conv,
   if (sinfo->user_data) {
     return gst_memory_ref (sinfo->user_data);
   } else {
-    struct YUVUpdateData data;
+    struct YUVUpdateData data = { 0 };
     ConvertInfo *conv_info;
     GstMapInfo map_info;
     GstMemory *uniforms;
@@ -899,8 +899,8 @@ gst_vulkan_color_convert_class_init (GstVulkanColorConvertClass * klass)
   gstelement_class = (GstElementClass *) klass;
   gstbasetransform_class = (GstBaseTransformClass *) klass;
 
-  gst_element_class_set_metadata (gstelement_class, "Vulkan Color Convert",
-      "Filter/Video/Convert", "A Vulkan Color Convert",
+  gst_element_class_set_static_metadata (gstelement_class,
+      "Vulkan Color Convert", "Filter/Video/Convert", "A Vulkan Color Convert",
       "Matthew Waters <matthew@centricular.com>");
 
   gst_element_class_add_static_pad_template (gstelement_class,

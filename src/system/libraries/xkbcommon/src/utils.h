@@ -32,10 +32,19 @@
 # ifndef S_ISREG
 #  define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
 # endif
+#ifdef _MSC_VER
 typedef SSIZE_T ssize_t;
+#endif
 #endif
 
 #include "darray.h"
+
+static inline bool
+is_aligned(const void *restrict pointer, size_t byte_count)
+{
+    return (uintptr_t) pointer % byte_count == 0;
+}
+
 
 #define ARRAY_SIZE(arr) ((sizeof(arr) / sizeof(*(arr))))
 
@@ -106,9 +115,23 @@ istreq(const char *s1, const char *s2)
 }
 
 static inline bool
-istreq_prefix(const char *s1, const char *s2)
+istrneq(const char *s1, const char *s2, size_t len)
 {
-    return istrncmp(s1, s2, strlen(s1)) == 0;
+    return istrncmp(s1, s2, len) == 0;
+}
+
+#define istreq_prefix(s1, s2) istrneq(s1, s2, sizeof(s1) - 1)
+
+static inline char *
+strcpy_safe(char *dest, size_t size, const char *src) {
+    if (!dest || !size || !src)
+        return NULL;
+    const char * const limit = dest + size - 1;
+    while (dest < limit && *src) {
+        *dest++ = *src++;
+    }
+    *dest = '\0';
+    return *src ? NULL : dest;
 }
 
 static inline char *
@@ -217,10 +240,10 @@ is_graph(char ch)
  * Note: this is 1-based! It's more useful this way, and returns 0 when
  * mask is all 0s.
  */
-static inline unsigned
+static inline unsigned int
 msb_pos(uint32_t mask)
 {
-    unsigned pos = 0;
+    unsigned int pos = 0;
     while (mask) {
         pos++;
         mask >>= 1u;

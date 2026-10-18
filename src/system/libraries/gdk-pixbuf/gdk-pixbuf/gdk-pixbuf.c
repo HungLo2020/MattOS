@@ -52,9 +52,6 @@
  * function will compute an optimal rowstride so that rendering can be
  * performed with an efficient algorithm.
  *
- * As a special case, you can use the [`ctor@GdkPixbuf.Pixbuf.new_from_xpm_data`]
- * function to create a pixbuf from inline XPM image data.
- * 
  * You can also copy an existing pixbuf with the [method@Pixbuf.copy]
  * function. This is not the same as just acquiring a reference to
  * the old pixbuf instance: the copy function will actually duplicate
@@ -232,9 +229,12 @@ gdk_pixbuf_class_init (GdkPixbufClass *klass)
         object_class->get_property = gdk_pixbuf_get_property;
         object_class->constructed = gdk_pixbuf_constructed;
 
-#define PIXBUF_PARAM_FLAGS G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY|\
-                           G_PARAM_EXPLICIT_NOTIFY|\
-                           G_PARAM_STATIC_NAME|G_PARAM_STATIC_NICK|G_PARAM_STATIC_BLURB
+#define PIXBUF_PARAM_FLAGS      (G_PARAM_READWRITE | \
+                                G_PARAM_CONSTRUCT_ONLY | \
+                                G_PARAM_EXPLICIT_NOTIFY | \
+                                G_PARAM_STATIC_NAME | \
+                                G_PARAM_STATIC_NICK | \
+                                G_PARAM_STATIC_BLURB)
         /**
          * GdkPixbuf:n-channels:
          *
@@ -1470,7 +1470,7 @@ gdk_pixbuf_get_property (GObject         *object,
                 g_value_set_pointer (value, gdk_pixbuf_get_pixels (pixbuf));
                 break;
         case PROP_PIXEL_BYTES:
-                g_value_set_boxed (value, gdk_pixbuf_read_pixel_bytes (pixbuf));
+                g_value_take_boxed (value, gdk_pixbuf_read_pixel_bytes (pixbuf));
                 break;
         default:
                 G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1484,10 +1484,10 @@ make_storage_invalid (GdkPixbuf *pixbuf)
         char *buf;
         gsize bufsize = 3;
 
-        buf = g_new0(char, bufsize);
+        buf = g_new0 (char, bufsize);
 
         pixbuf->storage = STORAGE_BYTES;
-        pixbuf->s.bytes.bytes = g_bytes_new_with_free_func (buf, bufsize, g_free, NULL);
+        pixbuf->s.bytes.bytes = g_bytes_new_take (buf, bufsize);
 
         pixbuf->colorspace = GDK_COLORSPACE_RGB;
         pixbuf->n_channels = 3;

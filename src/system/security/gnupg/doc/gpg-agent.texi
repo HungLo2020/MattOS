@@ -72,7 +72,7 @@ the included Secure Shell Agent you may start the agent using:
 @c   One way of enforcing this split is a per-key or per-session
 @c   passphrase, known only by the owner, which must be supplied to the
 @c   agent to permit the use of the secret key material.  Another way is
-@c   with an out-of-band permission mechanism (e.g. a button or GUI
+@c   with an out-of-band permission mechanism (e.g@:. a button or GUI
 @c   interface that the owner has access to, but the supplicant does not).
 @c
 @c   The rationale for this separation is that it allows access to the
@@ -111,8 +111,8 @@ Please make sure that a proper pinentry program has been installed
 under the default filename (which is system dependent) or use the
 option @option{pinentry-program} to specify the full name of that program.
 It is often useful to install a symbolic link from the actual used
-pinentry (e.g. @file{@value{BINDIR}/pinentry-gtk}) to the expected
-one (e.g. @file{@value{BINDIR}/pinentry}).
+pinentry (e.g., @file{@value{BINDIR}/pinentry-gtk}) to the expected
+one (e.g., @file{@value{BINDIR}/pinentry}).
 
 @manpause
 @noindent
@@ -167,21 +167,17 @@ gpg-agent: @code{gpg-agent --daemon /bin/sh}.  This way you get a new
 shell with the environment setup properly; after you exit from this
 shell, gpg-agent terminates within a few seconds.
 
-@item --supervised
+@item --deprecated-supervised
 @opindex supervised
 Run in the foreground, sending logs by default to stderr, and
 listening on provided file descriptors, which must already be bound to
-listening sockets.  This option is deprecated and not supported on
-Windows.
+listening sockets.  This option is not supported on Windows and
+deprecated since version 2.3.6.  To clarify its deprecation the option
+has been renamed with version 2.5.3.
 
 If in @file{common.conf} the option @option{no-autostart} is set, any
 start attempts will be ignored.
 
-In --supervised mode, different file descriptors can be provided for
-use as different socket types (e.g. ssh, extra) as long as they are
-identified in the environment variable @code{LISTEN_FDNAMES} (see
-sd_listen_fds(3) on some Linux distributions for more information on
-this convention).
 @end table
 
 @mansect options
@@ -259,7 +255,7 @@ however carefully selected to best aid in debugging.
 @item --debug @var{flags}
 @opindex debug
 Set debug flags.  All flags are or-ed and @var{flags} may be given
-in C syntax (e.g. 0x0042) or as a comma separated list of flag names.
+in C syntax (e.g., 0x0042) or as a comma separated list of flag names.
 To get a list of all supported flags the single word "help" can be
 used. This option is only useful for debugging and the behavior may
 change at any time without notice.
@@ -293,6 +289,12 @@ rngd -f -r /dev/urandom}.
 This option enables extra debug information pertaining to the
 Pinentry.  As of now it is only useful when used along with
 @code{--debug 1024}.
+
+@item --debug-no-libgcrypt
+@opindex debug-no-libgcrypt
+Do no use the debug flags "crypto" and "mpi" to enable similar debug
+features in Libgcrypt.  Note well: This is a maintainer only option
+and may thus be changed or removed at any time without notice.
 
 @item --no-detach
 @opindex no-detach
@@ -345,7 +347,7 @@ specify the logging output.
 @anchor{option --no-allow-mark-trusted}
 @item --no-allow-mark-trusted
 @opindex no-allow-mark-trusted
-Do not allow clients to mark keys as trusted, i.e. put them into the
+Do not allow clients to mark keys as trusted, i.e., put them into the
 @file{trustlist.txt} file.  This makes it harder for users to inadvertently
 accept Root-CA keys.
 
@@ -410,10 +412,7 @@ control this behavior but this command line option takes precedence.
 Set the time a cache entry is valid to @var{n} seconds.  The default
 is 600 seconds.  Each time a cache entry is accessed, the entry's
 timer is reset.  To set an entry's maximum lifetime, use
-@command{max-cache-ttl}.  Note that a cached passphrase may not be
-evicted immediately from memory if no client requests a cache
-operation.  This is due to an internal housekeeping function which is
-only run every few seconds.
+@command{max-cache-ttl}.
 
 @item --default-cache-ttl-ssh @var{n}
 @opindex default-cache-ttl
@@ -592,6 +591,16 @@ Ignore requests to change the current @code{tty} or X window system's
 @code{DISPLAY} variable respectively.  This is useful to lock the
 pinentry to pop up at the @code{tty} or display you started the agent.
 
+@item --change-std-env-name -@var{name}
+@opindex change-std-env-name
+The agent uses a fixed list of environment variables which are passed
+on to the Pinentry.  This option allows to remove variables from that
+list.  For example:
+@smallexample
+  change-std-env-name -DBUS_SESSION_BUS_ADDRESS
+@end smallexample
+
+
 @item --listen-backlog @var{n}
 @opindex listen-backlog
 Set the size of the queue for pending connections.  The default is 64.
@@ -716,7 +725,7 @@ The order in which keys are presented to ssh are:
 
 Editing the "Use-for-ssh" values can be done with an editor or using
 @command{gpg-connect-agent} and "KEYATTR" (Remember to append a colon
-to the key; i.e. use "Use-for-ssh:").
+to the key; i.e., use "Use-for-ssh:").
 
 
 @anchor{option --ssh-fingerprint-digest}
@@ -724,7 +733,7 @@ to the key; i.e. use "Use-for-ssh:").
 @opindex ssh-fingerprint-digest
 
 Select the digest algorithm used to compute ssh fingerprints that are
-communicated to the user, e.g. in pinentry dialogs.  OpenSSH has
+communicated to the user, e.g., in pinentry dialogs.  OpenSSH has
 transitioned from using MD5 to the more secure SHA256.
 
 
@@ -830,7 +839,7 @@ It might even be advisable to change the permissions to read-only so
 that this file can't be changed inadvertently.
 
 As a special feature a line @code{include-default} will include a global
-list of trusted certificates (e.g. @file{@value{SYSCONFDIR}/trustlist.txt}).
+list of trusted certificates (e.g., @file{@value{SYSCONFDIR}/trustlist.txt}).
 This global list is also used if the local list is not available;
 the @ref{option --no-user-trustlist} enforces the use of only
 this global list.
@@ -841,11 +850,14 @@ caller:
 @table @code
 
 @item relax
+@itemx norelax
 @cindex relax
+@cindex norelax
 Relax checking of some root certificate requirements.  As of now this
 flag allows the use of root certificates with a missing basicConstraints
 attribute (despite that it is a MUST for CA certificates) and disables
-CRL checking for the root certificate.
+CRL checking for the root certificate.  This is by default enabled.
+Use "norelax" to disable it.
 
 @item cm
 If validation of a certificate finally issued by a CA with this flag set
@@ -856,6 +868,9 @@ The CA is allowed to issue certificates for qualified signatures.
 This flag has an effect only if used in the global list.  This is now
 the preferred way to mark such CA; the old way of having a separate
 file @file{qualified.txt} is still supported.
+
+@item noconsent
+Do not require consent from a user to create a qualified signature.
 
 @item de-vs
 The CA is part of an approved PKI for the German classification level
@@ -892,7 +907,7 @@ The keygrip may be prefixed with a @code{!} to disable an entry.
 
 The following example lists exactly one key.  Note that keys available
 through a OpenPGP smartcard in the active smartcard reader are
-implicitly added to this list; i.e. there is no need to list them.
+implicitly added to this list; i.e., there is no need to list them.
 
 @cartouche
 @smallexample
@@ -925,7 +940,7 @@ a small helper script is provided to create these files (@pxref{addgnupghome}).
 @mansect signals
 @node Agent Signals
 @section Use of some signals
-A running @command{gpg-agent} may be controlled by signals, i.e. using
+A running @command{gpg-agent} may be controlled by signals, i.e., using
 the @command{kill} command to send a signal to the process.
 
 Here is a list of supported signals:
@@ -1407,7 +1422,7 @@ convention either the hexified fingerprint of the key shall be used for
 calling application and a colon: Like @code{gpg:somestring}.
 
 @var{error_message} is either a single @code{X} for no error message or
-a string to be shown as an error message like (e.g. "invalid
+a string to be shown as an error message like (e.g., "invalid
 passphrase").  Blanks must be percent escaped or replaced by @code{+}'.
 
 @var{prompt} is either a single @code{X} for a default prompt or the

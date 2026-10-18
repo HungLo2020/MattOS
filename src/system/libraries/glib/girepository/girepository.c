@@ -135,6 +135,15 @@ struct _GIRepository
 
 G_DEFINE_TYPE (GIRepository, gi_repository, G_TYPE_OBJECT);
 
+static GITypelib *
+require_internal (GIRepository           *repository,
+                  const char             *namespace,
+                  const char             *version,
+                  GIRepositoryLoadFlags   flags,
+                  const char * const     *search_paths,
+                  size_t                  n_search_paths,
+                  GError                **error);
+
 #ifdef G_PLATFORM_WIN32
 #include <windows.h>
 
@@ -198,13 +207,13 @@ gi_repository_get_library_path_macos (void)
           if (cmd->cmd == LC_SEGMENT)
             {
               struct segment_command *seg = (struct segment_command *) cmd;
-              if (((intptr_t) ptr >= (seg->vmaddr + offset)) && ((intptr_t) ptr < (seg->vmaddr + offset + seg->vmsize)))
+              if (((intptr_t) ptr >= ((intptr_t) seg->vmaddr + offset)) && ((intptr_t) ptr < ((intptr_t) seg->vmaddr + offset + (intptr_t) seg->vmsize)))
                 return _dyld_get_image_name (i);
            }
           if (cmd->cmd == LC_SEGMENT_64)
             {
               struct segment_command_64 *seg = (struct segment_command_64 *) cmd;
-              if (((uintptr_t ) ptr >= (seg->vmaddr + offset)) && ((uintptr_t ) ptr < (seg->vmaddr + offset + seg->vmsize)))
+              if (((intptr_t) ptr >= ((intptr_t) seg->vmaddr + offset)) && ((intptr_t) ptr < ((intptr_t) seg->vmaddr + offset + (intptr_t) seg->vmsize)))
                 return _dyld_get_image_name (i);
             }
           /* Jump to the next command */
@@ -596,6 +605,10 @@ load_dependencies_recurse (GIRepository *repository,
     {
       int i;
 
+      const char * const *search_path =
+        (const char * const *) repository->typelib_search_path->pdata;
+      gsize search_path_len = repository->typelib_search_path->len;
+
       for (i = 0; dependencies[i]; i++)
         {
           char *dependency = dependencies[i];
@@ -604,11 +617,13 @@ load_dependencies_recurse (GIRepository *repository,
           const char *dependency_version;
 
           last_dash = strrchr (dependency, '-');
-          dependency_namespace = g_strndup (dependency, last_dash - dependency);
+          g_assert (last_dash != NULL);  /* get_typelib_dependencies() guarantees this */
+          dependency_namespace = g_strndup (dependency, (size_t) (last_dash - dependency));
           dependency_version = last_dash+1;
 
-          if (!gi_repository_require (repository, dependency_namespace, dependency_version,
-                                      0, error))
+          if (!require_internal (repository, dependency_namespace, dependency_version,
+                                 0, search_path, search_path_len,
+                                 error))
             {
               g_free (dependency_namespace);
               g_strfreev (dependencies);
@@ -648,7 +663,7 @@ static const char *
 register_internal (GIRepository *repository,
                    const char   *source,
                    gboolean      lazy,
-                   GITypelib     *typelib,
+                   GITypelib    *typelib,
                    GError      **error)
 {
   Header *header;
@@ -702,6 +717,9 @@ register_internal (GIRepository *repository,
 
   /* These types might be resolved now, clear the cache */
   g_hash_table_remove_all (repository->unknown_gtypes);
+
+  /* Success */
+  g_assert (namespace != NULL);
 
   return namespace;
 }
@@ -782,7 +800,8 @@ get_typelib_dependencies_transitive (GIRepository *repository,
 
       /* Recurse for this namespace. */
       last_dash = strrchr (dependency, '-');
-      dependency_namespace = g_strndup (dependency, last_dash - dependency);
+      g_assert (last_dash != NULL);  /* get_typelib_dependencies() guarantees this */
+      dependency_namespace = g_strndup (dependency, (size_t) (last_dash - dependency));
 
       typelib = get_registered (repository, dependency_namespace, NULL);
       g_return_if_fail (typelib != NULL);
@@ -973,12 +992,12 @@ gi_repository_get_n_infos (GIRepository *repository,
   GITypelib *typelib;
   unsigned int n_interfaces = 0;
 
-  g_return_val_if_fail (GI_IS_REPOSITORY (repository), -1);
-  g_return_val_if_fail (namespace != NULL, -1);
+  g_return_val_if_fail (GI_IS_REPOSITORY (repository), 0);
+  g_return_val_if_fail (namespace != NULL, 0);
 
   typelib = get_registered (repository, namespace, NULL);
 
-  g_return_val_if_fail (typelib != NULL, -1);
+  g_return_val_if_fail (typelib != NULL, 0);
 
   n_interfaces = ((Header *)typelib->data)->n_local_entries;
 
@@ -1739,7 +1758,12 @@ enumerate_namespace_versions (const char         *namespace,
 
               name_end = strrchr (entry, '.');
               last_dash = strrchr (entry, '-');
-              version = g_strndup (last_dash+1, name_end-(last_dash+1));
+
+              /* These are guaranteed by the suffix and prefix checks above: */
+              g_assert (name_end != NULL);
+              g_assert (last_dash != NULL);
+
+              version = g_strndup (last_dash + 1, (size_t) (name_end - (last_dash + 1u)));
               if (!parse_version (version, &major, &minor))
                 {
                   g_free (version);
@@ -2002,6 +2026,56 @@ require_internal (GIRepository           *repository,
   return ret;
 }
 
+static GITypelib *
+require_internal_with_platform_data (GIRepository           *repository,
+                                     const char             *namespace,
+                                     const char             *version,
+                                     GIRepositoryLoadFlags   flags,
+                                     const char * const     *search_paths,
+                                     size_t                  search_paths_len,
+                                     GError                **error)
+{
+  GITypelib *typelib;
+
+  typelib = require_internal (repository, namespace, version, flags,
+                              search_paths, search_paths_len,
+                              error);
+  if (!typelib)
+    return NULL;
+
+#if defined (G_OS_UNIX) || defined (G_OS_WIN32)
+  /* Backward compatibility hack: if we're loading GLib/Gio-2.0, we automatically
+   * load the platform specific introspection data that used to exist inside
+   * GLib/Gio-2.0
+   */
+  if ((g_str_equal (namespace, "GLib") || g_str_equal (namespace, "Gio")) &&
+      (!version || g_str_equal (version, "2.0")))
+    {
+      GError *local_error = NULL;
+      char *platform_namespace = NULL;
+
+#  if defined (G_OS_UNIX)
+      platform_namespace = g_strconcat (namespace, "Unix", NULL);
+#  elif defined (G_OS_WIN32)
+      platform_namespace = g_strconcat (namespace, "Win32", NULL);
+#  endif /* defined (G_OS_LINUX) */
+
+      if (!require_internal (repository, platform_namespace, version, flags,
+                             search_paths, search_paths_len,
+                             &local_error))
+        {
+          g_critical ("Unable to load platform-specific GIO introspection data: %s",
+                      local_error->message);
+          g_error_free (local_error);
+        }
+
+      g_clear_pointer (&platform_namespace, g_free);
+    }
+#endif /* defined(G_OS_UNIX) || defined(G_OS_WIN32) */
+
+  return typelib;
+}
+
 /**
  * gi_repository_require:
  * @repository: A #GIRepository
@@ -2022,19 +2096,24 @@ require_internal (GIRepository           *repository,
  * Since: 2.80
  */
 GITypelib *
-gi_repository_require (GIRepository  *repository,
-                       const char    *namespace,
-                       const char    *version,
-                       GIRepositoryLoadFlags flags,
-                       GError       **error)
+gi_repository_require (GIRepository           *repository,
+                       const char             *namespace,
+                       const char             *version,
+                       GIRepositoryLoadFlags   flags,
+                       GError                **error)
 {
-  GITypelib *typelib;
+  const char * const *search_paths;
+  size_t search_paths_len;
 
-  typelib = require_internal (repository, namespace, version, flags,
-                              (const char * const *) repository->typelib_search_path->pdata,
-                              repository->typelib_search_path->len, error);
+  g_return_val_if_fail (GI_IS_REPOSITORY (repository), NULL);
+  g_return_val_if_fail (namespace != NULL, NULL);
 
-  return typelib;
+  search_paths = (const char * const *) repository->typelib_search_path->pdata;
+  search_paths_len = repository->typelib_search_path->len;
+
+  return require_internal_with_platform_data (repository, namespace, version, flags,
+                                              search_paths, search_paths_len,
+                                              error);
 }
 
 /**
@@ -2068,8 +2147,12 @@ gi_repository_require_private (GIRepository           *repository,
 {
   const char * const search_path[] = { typelib_dir, NULL };
 
-  return require_internal (repository, namespace, version, flags,
-                           search_path, 1, error);
+  g_return_val_if_fail (GI_IS_REPOSITORY (repository), NULL);
+  g_return_val_if_fail (namespace != NULL, NULL);
+
+  return require_internal_with_platform_data (repository, namespace, version, flags,
+                                              search_path, 1,
+                                              error);
 }
 
 static gboolean
@@ -2263,4 +2346,34 @@ gi_typelib_blob_type_to_info_type (GITypelibBlobType blob_type)
     default:
       return (GIInfoType) blob_type;
     }
+}
+
+/**
+ * gi_repository_dup_default:
+ *
+ * Gets the singleton process-global default `GIRepository`.
+ *
+ * The singleton is needed for situations where you must coordinate between
+ * bindings and libraries which also need to interact with introspection which
+ * could affect the bindings. For example, a Python application using a
+ * GObject-based library through `GIRepository` to load plugins also written in
+ * Python.
+ *
+ * Returns: (transfer full): the global singleton repository
+ *
+ * Since: 2.86
+ */
+GIRepository *
+gi_repository_dup_default (void)
+{
+  static GIRepository *instance;
+
+  if (g_once_init_enter (&instance))
+    {
+      GIRepository *repository = gi_repository_new ();
+      g_object_add_weak_pointer (G_OBJECT (repository), (gpointer *)&instance);
+      g_once_init_leave (&instance, repository);
+    }
+
+  return g_object_ref (instance);
 }

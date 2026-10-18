@@ -777,7 +777,7 @@ usage.</doc>
       <method name="get_tls_authentication_mode" c:identifier="gst_rtsp_auth_get_tls_authentication_mode">
         <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-auth.c">Get the #GTlsAuthenticationMode.</doc>
         <source-position filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-auth.h"/>
-        <return-value transfer-ownership="full">
+        <return-value transfer-ownership="none">
           <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-auth.c">the #GTlsAuthenticationMode.</doc>
           <type name="Gio.TlsAuthenticationMode" c:type="GTlsAuthenticationMode"/>
         </return-value>
@@ -2243,6 +2243,13 @@ that created the client but can be overridden later.</doc>
             <type name="RTSPContext"/>
           </parameter>
         </parameters>
+      </glib:signal>
+      <glib:signal name="pre-closed" when="last" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-client.c">Provide a way for an application to be notified when a connection is closed,
+before the client's sessions are cleaned up.</doc>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
       </glib:signal>
       <glib:signal name="pre-describe-request" when="last" version="1.12">
         <return-value transfer-ownership="none">
@@ -5506,18 +5513,20 @@ launch parameter.</doc>
           </parameter>
         </parameters>
       </virtual-method>
-      <virtual-method name="create_pipeline" introspectable="0">
-        <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">create a new pipeline or re-use an existing one and
-      add the #GstRTSPMedia's element created by @construct to the pipeline.</doc>
+      <virtual-method name="create_pipeline">
+        <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">Create a new pipeline and assign it to media.</doc>
         <source-position filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h"/>
-        <return-value>
+        <return-value transfer-ownership="none" nullable="1">
+          <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">the #GstElement pipeline.</doc>
           <type name="Gst.Element" c:type="GstElement*"/>
         </return-value>
         <parameters>
           <instance-parameter name="factory" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">a #GstRTSPMediaFactory</doc>
             <type name="RTSPMediaFactory" c:type="GstRTSPMediaFactory*"/>
           </instance-parameter>
           <parameter name="media" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">a #GstRTSPMedia</doc>
             <type name="RTSPMedia" c:type="GstRTSPMedia*"/>
           </parameter>
         </parameters>
@@ -6593,19 +6602,22 @@ This options is only relevant when ensure-keyunit-on-start is enabled.</doc>
           </parameters>
         </callback>
       </field>
-      <field name="create_pipeline" introspectable="0">
+      <field name="create_pipeline">
         <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">create a new pipeline or re-use an existing one and
       add the #GstRTSPMedia's element created by @construct to the pipeline.</doc>
-        <callback name="create_pipeline" introspectable="0">
+        <callback name="create_pipeline">
           <source-position filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h"/>
-          <return-value>
+          <return-value transfer-ownership="none" nullable="1">
+            <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">the #GstElement pipeline.</doc>
             <type name="Gst.Element" c:type="GstElement*"/>
           </return-value>
           <parameters>
             <parameter name="factory" transfer-ownership="none">
+              <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">a #GstRTSPMediaFactory</doc>
               <type name="RTSPMediaFactory" c:type="GstRTSPMediaFactory*"/>
             </parameter>
             <parameter name="media" transfer-ownership="none">
+              <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-media-factory.h">a #GstRTSPMedia</doc>
               <type name="RTSPMedia" c:type="GstRTSPMedia*"/>
             </parameter>
           </parameters>
@@ -11269,6 +11281,10 @@ passed @tr.</doc>
           </parameter>
         </parameters>
       </method>
+      <property name="timed-out" version="1.28" transfer-ownership="none" default-value="FALSE">
+        <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-stream-transport.c">Whether this transport is timed out</doc>
+        <type name="gboolean" c:type="gboolean"/>
+      </property>
       <field name="parent">
         <doc xml:space="preserve" filename="../subprojects/gst-rtsp-server/gst/rtsp-server/rtsp-stream-transport.h">parent instance</doc>
         <type name="GObject.Object" c:type="GObject"/>

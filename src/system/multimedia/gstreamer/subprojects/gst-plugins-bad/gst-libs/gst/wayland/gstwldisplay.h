@@ -30,11 +30,11 @@ G_BEGIN_DECLS
 #define GST_TYPE_WL_DISPLAY (gst_wl_display_get_type ())
 
 GST_WL_API
-G_DECLARE_FINAL_TYPE (GstWlDisplay, gst_wl_display, GST, WL_DISPLAY, GObject);
+G_DECLARE_FINAL_TYPE (GstWlDisplay, gst_wl_display, GST, WL_DISPLAY, GstObject);
 
 struct _GstWlDisplay
 {
-  GObject parent_instance;
+  GstObject parent_instance;
 };
 
 GST_WL_API
@@ -120,5 +120,32 @@ struct wp_single_pixel_buffer_manager_v1 * gst_wl_display_get_single_pixel_buffe
 
 GST_WL_API
 gboolean gst_wl_display_has_own_display (GstWlDisplay * self);
+
+GST_WL_API
+struct wp_color_manager_v1 *gst_wl_display_get_color_manager_v1 (GstWlDisplay * self);
+
+GST_WL_API
+struct wp_color_representation_manager_v1 *gst_wl_display_get_color_representation_manager_v1 (GstWlDisplay * self);
+
+GST_WL_API
+gboolean gst_wl_display_is_color_parametric_creator_supported (GstWlDisplay * self);
+
+GST_WL_API
+gboolean gst_wl_display_is_color_mastering_display_supported (GstWlDisplay * self);
+
+GST_WL_API
+gboolean gst_wl_display_is_color_transfer_function_supported (GstWlDisplay * self, uint32_t transfer_function);
+
+GST_WL_API
+gboolean gst_wl_display_are_color_primaries_supported (GstWlDisplay * self, uint32_t primaries);
+
+GST_WL_API
+gboolean gst_wl_display_is_color_alpha_mode_supported (GstWlDisplay * self, uint32_t alpha_mode);
+
+GST_WL_API
+gboolean gst_wl_display_are_color_coefficients_supported (GstWlDisplay * self, uint32_t coefficients, uint32_t range);
+
+GST_WL_API
+GstWlOutput * gst_wl_display_get_output_by_name (GstWlDisplay * self, const gchar * output_name);
 
 G_END_DECLS

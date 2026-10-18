@@ -202,7 +202,7 @@ pixdata_equal (GdkPixbuf  *test,
   if (memcmp (gdk_pixbuf_get_pixels (test), gdk_pixbuf_get_pixels (ref),
           gdk_pixbuf_get_byte_length (test)) != 0)
     {
-      gint x, y, width, height, n_channels, rowstride;
+      gint x, y, width, height, n_channels, rowstride, i;
       const guchar *test_pixels, *ref_pixels;
 
       rowstride = gdk_pixbuf_get_rowstride (test);
@@ -220,7 +220,18 @@ pixdata_equal (GdkPixbuf  *test,
         {
           for (x = 0; x < width; x++)
             {
-              if (memcmp (&test_pixels[x * n_channels], &ref_pixels[x * n_channels], n_channels) != 0)
+              gboolean similar = TRUE;
+              for (i = 0; i < n_channels; i++)
+                {
+                  int diff = (int)test_pixels[x * n_channels + i] - (int)ref_pixels[x * n_channels + i];
+                  if (diff < -1 || diff > 1)
+                    {
+                      similar = FALSE;
+                      break;
+                    }
+                }
+
+              if (!similar)
                 {
                   if (n_channels == 4)
                     {

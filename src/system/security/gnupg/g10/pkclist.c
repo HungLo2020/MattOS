@@ -129,8 +129,8 @@ show_revocation_reason (ctrl_t ctrl, PKT_public_key *pk, int mode)
     int rc;
 
     /* get the keyblock */
-    fingerprint_from_pk( pk, fingerprint, &fingerlen );
-    rc = get_pubkey_byfprint (ctrl, NULL, &keyblock, fingerprint, fingerlen);
+    fingerprint_from_pk (pk, fingerprint, &fingerlen);
+    rc = get_pubkey_byfpr (ctrl, NULL, &keyblock, fingerprint, fingerlen);
     if( rc ) { /* that should never happen */
 	log_debug( "failed to get the keyblock\n");
 	return;
@@ -618,7 +618,7 @@ check_signatures_trust (ctrl_t ctrl, kbnode_t keyblock, PKT_public_key *pk,
   targetuid = NULL;
   if (uidbased)
     {
-      u32 tmpcreated = 0; /* Helper to find the lates user ID.  */
+      u32 tmpcreated = 0; /* Helper to find the latest user ID.  */
       PKT_user_id *tmpuid;
 
       for (n=keyblock; n; n = n->next)
@@ -714,7 +714,7 @@ check_signatures_trust (ctrl_t ctrl, kbnode_t keyblock, PKT_public_key *pk,
   if ((trustlevel & TRUST_FLAG_DISABLED))
     log_info (_("Note: This key has been disabled.\n"));
 
-  /* Now let the user know what up with the trustlevel. */
+  /* Now let the user know what is up with the trustlevel. */
   switch ( (trustlevel & TRUST_MASK) )
     {
     case TRUST_EXPIRED:
@@ -1546,7 +1546,7 @@ select_algo_from_prefs(PK_LIST pk_list, int preftype,
              Instead it is better to use SHA-256 as implicit algorithm
              (which will be the case for rfc4880bis anyway).  */
 
-          if (opt.compliance == CO_DE_VS)
+          if (opt.compliance == CO_DE_VS || opt.compliance == CO_FIPS)
             implicit = DIGEST_ALGO_SHA256;
           else
             implicit = DIGEST_ALGO_SHA1;

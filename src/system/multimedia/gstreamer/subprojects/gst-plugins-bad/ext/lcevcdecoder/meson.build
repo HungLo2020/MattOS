@@ -4,11 +4,15 @@ lcevcdecoder_sources = [
   'gstlcevcdec.c',
   'gstlcevcdecodebin.c',
   'gstlcevch264decodebin.c',
+  'gstlcevch265decodebin.c',
+  'gstlcevch266decodebin.c',
 ]
 
 lcevcdecoder_headers = [
   'gstlcevcdec.h',
   'gstlcevch264decodebin.h',
+  'gstlcevch265decodebin.h',
+  'gstlcevch266decodebin.h',
   'gstlcevcdecutils.h',
   'gstlcevcdecodebin.h',
 ]
@@ -22,7 +26,7 @@ plugin_sources += {
   'lcevcdecoder': pathsep.join(doc_sources)
 }
 
-lcevc_dec_dep = dependency ('lcevc_dec', required: get_option('lcevcdecoder'))
+lcevc_dec_dep = dependency ('lcevc_dec', version: '>= 4.0.1', required: get_option('lcevcdecoder'))
 
 if lcevc_dec_dep.found()
   gstlcevcdecoder = library('gstlcevcdecoder',

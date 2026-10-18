@@ -80,7 +80,6 @@ struct _GstTranscoder
   GMainLoop *loop;
 
   GstElement *transcodebin;
-  GstBus *bus;
   GstState target_state, current_state;
   gboolean is_live, is_eos;
   GSource *tick_source, *ready_timeout_source;
@@ -665,13 +664,11 @@ state_changed_cb (G_GNUC_UNUSED GstBus * bus, GstMessage * msg,
     gchar *transition_name;
 
     GST_DEBUG_OBJECT (self, "Changed state old: %s new: %s pending: %s",
-        gst_element_state_get_name (old_state),
-        gst_element_state_get_name (new_state),
-        gst_element_state_get_name (pending_state));
+        gst_state_get_name (old_state),
+        gst_state_get_name (new_state), gst_state_get_name (pending_state));
 
     transition_name = g_strdup_printf ("%s_%s",
-        gst_element_state_get_name (old_state),
-        gst_element_state_get_name (new_state));
+        gst_state_get_name (old_state), gst_state_get_name (new_state));
     dump_dot_file (self, transition_name);
     g_free (transition_name);
 
@@ -727,8 +724,7 @@ request_state_cb (G_GNUC_UNUSED GstBus * bus, GstMessage * msg,
 
   gst_message_parse_request_state (msg, &state);
 
-  GST_DEBUG_OBJECT (self, "State %s requested",
-      gst_element_state_get_name (state));
+  GST_DEBUG_OBJECT (self, "State %s requested", gst_state_get_name (state));
 
   self->target_state = state;
   state_ret = gst_element_set_state (self->transcodebin, state);
@@ -736,7 +732,7 @@ request_state_cb (G_GNUC_UNUSED GstBus * bus, GstMessage * msg,
     GError *err = g_error_new (GST_TRANSCODER_ERROR,
         GST_TRANSCODER_ERROR_FAILED,
         "Failed to change to requested state %s",
-        gst_element_state_get_name (state));
+        gst_state_get_name (state));
 
     api_bus_post_message (self, GST_TRANSCODER_MESSAGE_ERROR,
         GST_TRANSCODER_MESSAGE_DATA_ERROR, G_TYPE_ERROR, err, NULL);
@@ -802,7 +798,7 @@ gst_transcoder_main (gpointer data)
   g_source_attach (source, self->context);
   g_source_unref (source);
 
-  self->bus = bus = gst_element_get_bus (self->transcodebin);
+  bus = gst_element_get_bus (self->transcodebin);
   gst_bus_add_signal_watch (bus);
 
   g_signal_connect (G_OBJECT (bus), "message::error", G_CALLBACK (error_cb),
@@ -1471,7 +1467,7 @@ gst_transcoder_message_parse_state (GstMessage * msg,
  * Since: 1.20
  */
 void
-gst_transcoder_message_parse_error (GstMessage * msg, GError * error,
+gst_transcoder_message_parse_error (GstMessage * msg, GError ** error,
     GstStructure ** details)
 {
   PARSE_MESSAGE_FIELD (msg, GST_TRANSCODER_MESSAGE_DATA_ERROR, G_TYPE_ERROR,
@@ -1491,7 +1487,7 @@ gst_transcoder_message_parse_error (GstMessage * msg, GError * error,
  * Since: 1.20
  */
 void
-gst_transcoder_message_parse_warning (GstMessage * msg, GError * error,
+gst_transcoder_message_parse_warning (GstMessage * msg, GError ** error,
     GstStructure ** details)
 {
   PARSE_MESSAGE_FIELD (msg, GST_TRANSCODER_MESSAGE_DATA_WARNING, G_TYPE_ERROR,

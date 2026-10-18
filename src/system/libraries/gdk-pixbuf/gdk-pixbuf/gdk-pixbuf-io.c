@@ -47,6 +47,8 @@
 #include <mach-o/dyld.h>
 #endif
 
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
 /**
  * GdkPixbufModule:
  * @module_name: the name of the module, usually the same as the
@@ -629,7 +631,7 @@ gdk_pixbuf_io_init_builtin (void)
         load_one_builtin_module (tiff);
 #endif
 #ifdef INCLUDE_xpm
-        load_one_builtin_module (xpm);
+        load_one_builtin_module (legacy-xpm);
 #endif
 #ifdef INCLUDE_xbm
         load_one_builtin_module (xbm);
@@ -659,6 +661,37 @@ gdk_pixbuf_io_init_builtin (void)
         /* Except the gdip-png loader which normally isn't built at all even */
         load_one_builtin_module (png);
 #endif
+#ifdef INCLUDE_glycin
+        load_one_builtin_module (avif);
+        load_one_builtin_module (bmp);
+        load_one_builtin_module (dds);
+        load_one_builtin_module (gif);
+        load_one_builtin_module (heic);
+        load_one_builtin_module (ico);
+        load_one_builtin_module (jpeg);
+        load_one_builtin_module (jxl);
+        load_one_builtin_module (openexr);
+        load_one_builtin_module (png);
+        load_one_builtin_module (pnm);
+        load_one_builtin_module (qoi);
+        load_one_builtin_module (raw);
+        load_one_builtin_module (svg);
+        load_one_builtin_module (tga);
+        load_one_builtin_module (tiff);
+        load_one_builtin_module (webp);
+        load_one_builtin_module (xbm);
+        load_one_builtin_module (xpm);
+#endif
+#ifdef INCLUDE_android
+	load_one_builtin_module (jpeg);
+	load_one_builtin_module (png);
+	load_one_builtin_module (gif);
+	load_one_builtin_module (webp);
+	load_one_builtin_module (bmp);
+	load_one_builtin_module (ico);
+	load_one_builtin_module (wbmp);
+	load_one_builtin_module (heif);
+#endif
 
 #undef load_one_builtin_module
 }
@@ -666,16 +699,17 @@ gdk_pixbuf_io_init_builtin (void)
 static gboolean
 gdk_pixbuf_io_init (void)
 {
+#ifdef USE_GMODULE
 	char *module_file;
-	gboolean ret;
+
+	module_file = gdk_pixbuf_get_module_file ();
+	gdk_pixbuf_io_init_modules (module_file, NULL);
+	g_free (module_file);
+#endif
 
 	gdk_pixbuf_io_init_builtin ();
-#ifdef USE_GMODULE
-	module_file = gdk_pixbuf_get_module_file ();
-#endif
-	ret = gdk_pixbuf_io_init_modules (module_file, NULL);
-	g_free (module_file);
-	return ret;
+
+	return file_formats != NULL;
 }
 
 #define module(type) \
@@ -703,6 +737,35 @@ module (gdip_gif);
 module (gdip_jpeg);
 module (gdip_png);
 module (gdip_tiff);
+
+module (glycin_avif);
+module (glycin_bmp);
+module (glycin_dds);
+module (glycin_gif);
+module (glycin_heic);
+module (glycin_ico);
+module (glycin_jpeg);
+module (glycin_jxl);
+module (glycin_openexr);
+module (glycin_png);
+module (glycin_pnm);
+module (glycin_qoi);
+module (glycin_raw);
+module (glycin_svg);
+module (glycin_tga);
+module (glycin_tiff);
+module (glycin_webp);
+module (glycin_xbm);
+module (glycin_xpm);
+
+module (android_jpeg);
+module (android_png);
+module (android_gif);
+module (android_webp);
+module (android_bmp);
+module (android_ico);
+module (android_wbmp);
+module (android_heif);
 
 #undef module
 
@@ -738,6 +801,37 @@ gdk_pixbuf_load_module_unlocked (GdkPixbufModule *image_module,
 #ifdef INCLUDE_gdip_png
         try_module (png,gdip_png);
 #endif
+#ifdef INCLUDE_glycin
+        try_module (avif,    glycin_avif);
+        try_module (bmp,     glycin_bmp);
+        try_module (dds,     glycin_dds);
+        try_module (gif,     glycin_gif);
+        try_module (heic,    glycin_heic);
+        try_module (ico,     glycin_ico);
+        try_module (jpeg,    glycin_jpeg);
+        try_module (jxl,     glycin_jxl);
+        try_module (openexr, glycin_openexr);
+        try_module (png,     glycin_png);
+        try_module (pnm,     glycin_pnm);
+        try_module (qoi,     glycin_qoi);
+        try_module (raw,     glycin_raw);
+        try_module (svg,     glycin_svg);
+        try_module (tga,     glycin_tga);
+        try_module (tiff,    glycin_tiff);
+        try_module (webp,    glycin_webp);
+        try_module (xbm,     glycin_xbm);
+        try_module (xpm,     glycin_xpm);
+#endif
+#ifdef INCLUDE_android
+	try_module (jpeg,android_jpeg);
+	try_module (png,android_png);
+	try_module (gif,android_gif);
+	try_module (webp,android_webp);
+	try_module (bmp,android_bmp);
+	try_module (ico,android_ico);
+	try_module (wbmp,android_wbmp);
+	try_module (heif,android_heif);
+#endif
 #ifdef INCLUDE_png
         try_module (png,png);
 #endif
@@ -763,7 +857,7 @@ gdk_pixbuf_load_module_unlocked (GdkPixbufModule *image_module,
         try_module (tiff,tiff);
 #endif
 #ifdef INCLUDE_xpm
-        try_module (xpm,xpm);
+        try_module (legacy-xpm,xpm);
 #endif
 #ifdef INCLUDE_xbm
         try_module (xbm,xbm);
@@ -812,6 +906,7 @@ gdk_pixbuf_load_module_unlocked (GdkPixbufModule *image_module,
 
                 image_module->module = module;        
         
+
                 if (g_module_symbol (module, "fill_vtable", &sym)) {
                         fill_vtable = (GdkPixbufModuleFillVtableFunc) sym;
                         (* fill_vtable) (image_module);
@@ -1653,13 +1748,13 @@ out:
 
 
 /**
- * gdk_pixbuf_new_from_stream_at_scale_async:
+ * gdk_pixbuf_new_from_stream_at_scale_async: (finish-func gdk_pixbuf_new_from_stream_finish)
  * @stream: a `GInputStream` from which to load the pixbuf
  * @width: the width the image should have or -1 to not constrain the width
  * @height: the height the image should have or -1 to not constrain the height
  * @preserve_aspect_ratio: `TRUE` to preserve the image's aspect ratio
- * @cancellable: (allow-none): optional `GCancellable` object, `NULL` to ignore
- * @callback: a `GAsyncReadyCallback` to call when the pixbuf is loaded
+ * @cancellable: (nullable): optional `GCancellable` object, `NULL` to ignore
+ * @callback: (scope async) (closure user_data): a `GAsyncReadyCallback` to call when the pixbuf is loaded
  * @user_data: the data to pass to the callback function
  *
  * Creates a new pixbuf by asynchronously loading an image from an input stream.
@@ -1764,14 +1859,17 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 	 * compressed, and uncompressed on-the-fly.
          */
 	if (g_resources_get_info  (resource_path, 0, &data_size, NULL, NULL) &&
-	    data_size > sizeof(guint32) &&
+	    data_size > sizeof (guint32) &&
 	    (bytes = g_resources_lookup_data (resource_path, 0, NULL)) != NULL) {
-		GdkPixbuf*pixbuf = NULL;
+		GdkPixbuf *pixbuf = NULL;
 		const guint8 *stream = g_bytes_get_data (bytes, NULL);
 		GdkPixdata pixdata;
 		guint32 magic;
 
-		magic = (stream[0] << 24) + (stream[1] << 16) + (stream[2] << 8) + stream[3];
+                magic = ((guint32) stream[0] << 24)
+                      + ((guint32) stream[1] << 16)
+                      + ((guint32) stream[2] << 8)
+                      +  (guint32) stream[3];
 		if (magic == GDK_PIXBUF_MAGIC_NUMBER &&
 		    gdk_pixdata_deserialize (&pixdata, data_size, stream, NULL)) {
 			pixbuf = gdk_pixbuf_from_pixdata (&pixdata, FALSE, NULL);
@@ -1870,10 +1968,10 @@ gdk_pixbuf_new_from_resource_at_scale (const char *resource_path,
 }
 
 /**
- * gdk_pixbuf_new_from_stream_async:
+ * gdk_pixbuf_new_from_stream_async: (finish-func gdk_pixbuf_new_from_stream_finish)
  * @stream: a `GInputStream` from which to load the pixbuf
- * @cancellable: (allow-none): optional `GCancellable` object, `NULL` to ignore
- * @callback: a `GAsyncReadyCallback` to call when the pixbuf is loaded
+ * @cancellable: (nullable): optional `GCancellable` object, `NULL` to ignore
+ * @callback: (scope async) (closure user_data): a `GAsyncReadyCallback` to call when the pixbuf is loaded
  * @user_data: the data to pass to the callback function
  *
  * Creates a new pixbuf by asynchronously loading an image from an input stream.
@@ -2155,6 +2253,10 @@ gdk_pixbuf_get_file_info_finish (GAsyncResult         *async_result,
  * program's C source.
  *
  * Returns: (nullable): A newly-created pixbuf
+ * 
+ * Deprecated: 2.44: Use [ctor@GdkPixbuf.Pixbuf.new_from_stream] with
+ *   a [class@Gio.MemoryInputStream], making sure to handle errors in
+ *   case the XPM format loader is not available
  **/
 GdkPixbuf *
 gdk_pixbuf_new_from_xpm_data (const char **data)
@@ -2166,7 +2268,7 @@ gdk_pixbuf_new_from_xpm_data (const char **data)
 
         g_return_val_if_fail (data != NULL, NULL);
 
-        xpm_module = _gdk_pixbuf_get_named_module ("xpm", &error);
+        xpm_module = _gdk_pixbuf_get_named_module ("legacy-xpm", &error);
         if (xpm_module == NULL) {
                 g_warning ("Error loading XPM image loader: %s", error->message);
                 g_error_free (error);
@@ -2696,14 +2798,14 @@ gdk_pixbuf_save_to_callback    (GdkPixbuf  *pixbuf,
 
 /**
  * gdk_pixbuf_save_to_callbackv:
- * @pixbuf: a `GdkPixbuf`.
- * @save_func: (scope call): a function that is called to save each block of data that
- *   the save routine generates.
- * @user_data: (closure): user data to pass to the save function.
- * @type: name of file format.
+ * @pixbuf: a `GdkPixbuf`
+ * @save_func: (scope call) (closure user_data): a function that is called to
+ *   save each block of data that the save routine generates
+ * @user_data: user data to pass to the save function
+ * @type: name of file format
  * @option_keys: (array zero-terminated=1) (element-type utf8) (nullable): name of options to set
  * @option_values: (array zero-terminated=1) (element-type utf8) (nullable): values for named options
- * @error: (allow-none): return location for error, or `NULL`
+ * @error: return location for error, or `NULL`
  *
  * Vector version of `gdk_pixbuf_save_to_callback()`.
  *
@@ -2757,7 +2859,7 @@ gdk_pixbuf_save_to_callbackv   (GdkPixbuf  *pixbuf,
  *   to the new buffer.
  * @buffer_size: location to receive the size of the new buffer.
  * @type: name of file format.
- * @error: (allow-none): return location for error, or `NULL`
+ * @error: return location for error, or `NULL`
  * @...: list of key-value save options
  *
  * Saves pixbuf to a new buffer in format `type`, which is currently "jpeg",
@@ -3084,7 +3186,7 @@ save_to_stream_thread (GTask                 *task,
 }
 
 /**
- * gdk_pixbuf_save_to_streamv_async:
+ * gdk_pixbuf_save_to_streamv_async: (finish-func gdk_pixbuf_save_to_stream_finish)
  * @pixbuf: a `GdkPixbuf`
  * @stream: a `GOutputStream` to which to save the pixbuf
  * @type: name of file format
@@ -3142,7 +3244,7 @@ gdk_pixbuf_save_to_streamv_async (GdkPixbuf           *pixbuf,
 }
 
 /**
- * gdk_pixbuf_save_to_stream_async:
+ * gdk_pixbuf_save_to_stream_async: (finish-func gdk_pixbuf_save_to_stream_finish)
  * @pixbuf: a `GdkPixbuf`
  * @stream: a `GOutputStream` to which to save the pixbuf
  * @type: name of file format

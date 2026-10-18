@@ -79,15 +79,15 @@ GST_VALIDATE_API
 GstValidateMediaDescriptorWriter * gst_validate_media_descriptor_writer_new_discover (GstValidateRunner *runner,
                                                                      const gchar *uri,
                                                                      GstValidateMediaDescriptorWriterFlags flags,
-                                                                     GError **err);
+                                                                     GError **err) G_GNUC_WARN_UNUSED_RESULT;
 
 GST_VALIDATE_API
 GstValidateMediaDescriptorWriter * gst_validate_media_descriptor_writer_new          (GstValidateRunner *runner,
                                                                      const gchar *location,
                                                                      GstClockTime duration,
-                                                                     gboolean seekable);
+                                                                     gboolean seekable) G_GNUC_WARN_UNUSED_RESULT;
 
-gchar * gst_validate_media_descriptor_writer_get_xml_path        (GstValidateMediaDescriptorWriter *writer);
+gchar * gst_validate_media_descriptor_writer_get_xml_path        (GstValidateMediaDescriptorWriter *writer) G_GNUC_WARN_UNUSED_RESULT;
 
 gboolean gst_validate_media_descriptor_writer_detects_frames     (GstValidateMediaDescriptorWriter *writer);
 GstClockTime gst_validate_media_descriptor_writer_get_duration   (GstValidateMediaDescriptorWriter *writer);
@@ -111,7 +111,7 @@ GST_VALIDATE_API
 gboolean gst_validate_media_descriptor_writer_write              (GstValidateMediaDescriptorWriter * writer,
                                                          const gchar * filename);
 GST_VALIDATE_API
-gchar * gst_validate_media_descriptor_writer_serialize           (GstValidateMediaDescriptorWriter *writer);
+gchar * gst_validate_media_descriptor_writer_serialize           (GstValidateMediaDescriptorWriter *writer) G_GNUC_WARN_UNUSED_RESULT;
 
 
 G_END_DECLS

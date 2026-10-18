@@ -1184,8 +1184,8 @@ on_queue_bitrate_changed (GstElement * queue, GParamSpec * pspec,
 {
   GstURISourceBin *urisrc = GST_URI_SOURCE_BIN (user_data);
 
-  gst_element_call_async (GST_ELEMENT (urisrc),
-      (GstElementCallAsyncFunc) update_queue_values, NULL, NULL);
+  gst_object_call_async (GST_OBJECT (urisrc),
+      (GstObjectCallAsyncFunc) update_queue_values, NULL);
 }
 
 static void
@@ -1894,6 +1894,8 @@ analyse_pad_foreach (const GValue * item, AnalyseData * data)
 
     expose_output_pad (urisrc, output_pad);
     gst_object_unref (output_pad);
+  } else if (gst_caps_get_size (padcaps) == 0) {
+    GST_DEBUG_OBJECT (urisrc, "Pad with empty or any caps -- ignoring");
   } else {
     GST_DEBUG_OBJECT (urisrc, "Handling non-raw pad");
     /* The caps are non-raw, we handle it directly */
@@ -2452,8 +2454,8 @@ free_output_slot_async (GstURISourceBin * urisrc, OutputSlotInfo * slot)
 {
   GST_LOG_OBJECT (urisrc, "pushing output slot on thread pool to free");
   slot->linked_info->outputs = g_list_remove (slot->linked_info->outputs, slot);
-  gst_element_call_async (GST_ELEMENT_CAST (urisrc),
-      (GstElementCallAsyncFunc) call_free_output_slot, slot, NULL);
+  gst_object_call_async (GST_OBJECT_CAST (urisrc),
+      (GstObjectCallAsyncFunc) call_free_output_slot, slot);
 }
 
 /* remove source and all related elements */

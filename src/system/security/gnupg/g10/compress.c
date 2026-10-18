@@ -81,7 +81,7 @@ init_compress( compress_filter_context_t *zfx, z_stream *zs )
         g10_exit (2);
     }
 
-    zfx->outbufsize = 8192;
+    zfx->outbufsize = 65536;
     zfx->outbuf = xmalloc( zfx->outbufsize );
 }
 
@@ -181,6 +181,7 @@ do_uncompress( compress_filter_context_t *zfx, z_stream *zs,
 	    nread = iobuf_read( a, zfx->inbuf + n, count );
 	    if( nread == -1 ) nread = 0;
 	    n += nread;
+            if ((rc = iobuf_error(a))) goto leave;
 	    /* Algo 1 has no zlib header which requires us to give
 	     * inflate an extra dummy byte to read. To be on the safe
 	     * side we allow for up to 4 ff bytes.  */
@@ -213,10 +214,11 @@ do_uncompress( compress_filter_context_t *zfx, z_stream *zs,
     } while (zs->avail_out && zrc != Z_STREAM_END && zrc != Z_BUF_ERROR
              && !leave);
 
+ leave:
     *ret_len = zfx->outbufsize - zs->avail_out;
     if( DBG_FILTER )
-	log_debug("do_uncompress: returning %u bytes (%u ignored)\n",
-                  (unsigned int)*ret_len, (unsigned int)zs->avail_in );
+	log_debug("do_uncompress: returning %u bytes (%u ignored), %d\n",
+                  (unsigned int)*ret_len, (unsigned int)zs->avail_in, rc);
     return rc;
 }
 

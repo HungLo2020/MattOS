@@ -781,7 +781,11 @@ g_system_thread_new (GThreadFunc proxy,
 G_ALWAYS_INLINE static inline void
 g_thread_yield_impl (void)
 {
-  sched_yield ();
+#ifdef HAVE_CLOCK_NANOSLEEP
+  clock_nanosleep (CLOCK_MONOTONIC, 0, &(struct timespec){ 0, 1 }, NULL);
+#else
+  nanosleep (&(struct timespec){ 0, 1 }, NULL);
+#endif
 }
 
 void
@@ -812,7 +816,7 @@ g_system_thread_set_name (const gchar *name)
 #if defined(HAVE_PTHREAD_SETNAME_NP_WITHOUT_TID)
   pthread_setname_np (name); /* on OS X and iOS */
 #elif defined(HAVE_PTHREAD_SETNAME_NP_WITH_TID)
-#ifdef __LINUX__
+#ifdef __linux__
 #define MAX_THREADNAME_LEN 16
 #else
 #define MAX_THREADNAME_LEN 32

@@ -57,12 +57,12 @@
 #include "volume.h"
 
 #define DEFAULT_ALLOW_MODULE_LOADING 	"true"
-#define DEFAULT_MIN_REQ		"128/48000"
+#define DEFAULT_MIN_REQ		"256/48000"
 #define DEFAULT_DEFAULT_REQ	"960/48000"
-#define DEFAULT_MIN_FRAG	"128/48000"
+#define DEFAULT_MIN_FRAG	"256/48000"
 #define DEFAULT_DEFAULT_FRAG	"96000/48000"
 #define DEFAULT_DEFAULT_TLENGTH	"96000/48000"
-#define DEFAULT_MIN_QUANTUM	"128/48000"
+#define DEFAULT_MIN_QUANTUM	"256/48000"
 #define DEFAULT_FORMAT		"F32"
 #define DEFAULT_POSITION	"[ FL FR ]"
 #define DEFAULT_IDLE_TIMEOUT	"0"
@@ -71,6 +71,7 @@
 /* The max amount of data we send in one block when capturing. In PulseAudio this
  * size is derived from the mempool PA_MEMPOOL_SLOT_SIZE */
 #define MAX_BLOCK	(64*1024)
+#define MAX_ALLOCA_SIZE	(64*1024)
 
 #define TEMPORARY_MOVE_TIMEOUT	(SPA_NSEC_PER_SEC)
 
@@ -984,10 +985,22 @@ static void manager_metadata(void *data, struct pw_manager_object *o,
 			else
 				client->default_force_mono_audio = spa_streq(default_, "true");
 		}
+
+		if (spa_streq(key, METADATA_BLUETOOTH_HEADSET_AUTOSWITCH)) {
+			client->have_bluetooth_headset_autoswitch = true;
+
+			if (spa_json_str_object_find(value, strlen(value),
+						"default", default_, sizeof(default_)) < 0)
+				client->default_bluetooth_headset_autoswitch = false;
+			else
+				client->default_bluetooth_headset_autoswitch = spa_streq(default_, "true");
+		}
 	}
 	if (subject == PW_ID_CORE && o == client->metadata_sm_settings) {
 		if (spa_streq(key, METADATA_FEATURES_AUDIO_MONO))
 			client->force_mono_audio = spa_streq(value, "true");
+		if (spa_streq(key, METADATA_BLUETOOTH_HEADSET_AUTOSWITCH))
+			client->bluetooth_headset_autoswitch = spa_streq(value, "true");
 	}
 }
 
@@ -1103,8 +1116,8 @@ static void stream_control_info(void *data, uint32_t id,
 	switch (id) {
 	case SPA_PROP_channelVolumes:
 		if (!stream->volume_set) {
-			stream->volume.channels = control->n_values;
-			memcpy(stream->volume.values, control->values, control->n_values * sizeof(float));
+			stream->volume.channels = SPA_MIN(control->n_values, CHANNELS_MAX);
+			memcpy(stream->volume.values, control->values, stream->volume.channels * sizeof(float));
 			pw_log_info("stream %p: volume changed %f", stream, stream->volume.values[0]);
 		}
 		break;
@@ -1152,6 +1165,25 @@ static void stream_state_changed(void *data, enum pw_stream_state old,
 		break;
 	}
 
+	/* Only emit suspended if we are created and not a corked stream, this means the
+	 * paused on our stream needs to be caused by the sink suspend or an unlink. */
+	if (stream->create_tag == SPA_ID_INVALID && !stream->corked) {
+		if (old == PW_STREAM_STATE_PAUSED && state == PW_STREAM_STATE_STREAMING &&
+		    stream->dont_inhibit_auto_suspend && stream->is_suspended) {
+			stream_send_suspended(stream, false);
+			stream->is_suspended = false;
+		}
+		if (old == PW_STREAM_STATE_STREAMING && state == PW_STREAM_STATE_PAUSED &&
+		    stream->dont_inhibit_auto_suspend && !stream->is_suspended) {
+			if (stream->fail_on_suspend) {
+				stream->killed = true;
+				destroy_stream = true;
+			} else {
+				stream_send_suspended(stream, true);
+			}
+			stream->is_suspended = true;
+		}
+	}
 	if (destroy_stream) {
 		pw_work_queue_add(impl->work_queue, stream, 0,
 				do_destroy_stream, NULL);
@@ -1325,9 +1357,20 @@ do_process_done(struct spa_loop *loop,
 		avail = spa_ringbuffer_get_read_index(&stream->ring, &index);
 
 		if (!spa_list_is_empty(&client->out_messages)) {
-			pw_log_debug("%p: [%s] pending read:%u avail:%d",
-					stream, client->name, index, avail);
-			return 0;
+			/* Try to flush the pending messages first. A control
+			 * message queued for a sibling stream in this same
+			 * cycle (a playback stream's REQUEST) would otherwise
+			 * make us skip this cycle, and when one is queued
+			 * every cycle it starves this capture stream
+			 * persistently while the connection itself keeps
+			 * flowing. Only skip when the messages really cannot
+			 * be flushed (socket backed up). */
+			if (client_flush_messages(client) < 0 ||
+			    !spa_list_is_empty(&client->out_messages)) {
+				pw_log_debug("%p: [%s] pending read:%u avail:%d",
+						stream, client->name, index, avail);
+				return 0;
+			}
 		}
 
 		if (avail <= 0) {
@@ -1513,7 +1556,7 @@ static void stream_process(void *data)
 
 	pw_stream_get_time_n(stream->stream, &pd.pwt, sizeof(pd.pwt));
 
-	pw_loop_invoke(impl->loop,
+	pw_loop_invoke(impl->main_loop,
 			do_process_done, 1, &pd, sizeof(pd), false, stream);
 }
 
@@ -1758,6 +1801,8 @@ static int do_create_playback_stream(struct client *client, uint32_t command, ui
 	stream->muted_set = muted_set;
 	stream->is_underrun = true;
 	stream->underrun_for = -1;
+	stream->fail_on_suspend = fail_on_suspend;
+	stream->dont_inhibit_auto_suspend = dont_inhibit_auto_suspend;
 
 	pw_properties_set(props, "pulse.corked", corked ? "true" : "false");
 
@@ -2033,6 +2078,8 @@ static int do_create_record_stream(struct client *client, uint32_t command, uint
 	stream->volume_set = volume_set;
 	stream->muted = muted;
 	stream->muted_set = muted_set;
+	stream->fail_on_suspend = fail_on_suspend;
+	stream->dont_inhibit_auto_suspend = dont_inhibit_auto_suspend;
 
 	if (client->quirks & QUIRK_REMOVE_CAPTURE_DONT_MOVE)
 		no_move = false;
@@ -2055,6 +2102,7 @@ static int do_create_record_stream(struct client *client, uint32_t command, uint
 		flags |= PW_STREAM_FLAG_DONT_RECONNECT;
 
 	if (direct_on_input_idx != SPA_ID_INVALID) {
+		dont_inhibit_auto_suspend = false;
 		source_index = direct_on_input_idx;
 	} else if (source_name != NULL) {
 		if ((id = atoi(source_name)) != 0)
@@ -2076,10 +2124,10 @@ static int do_create_record_stream(struct client *client, uint32_t command, uint
 			pw_properties_set(props,
 					PW_KEY_TARGET_OBJECT, source_name);
 		}
-		if (is_monitor)
-			pw_properties_set(props,
-					PW_KEY_STREAM_CAPTURE_SINK, "true");
 	}
+	if (is_monitor)
+		pw_properties_set(props,
+				PW_KEY_STREAM_CAPTURE_SINK, "true");
 	if (dont_inhibit_auto_suspend)
 		pw_properties_set(props, PW_KEY_NODE_PASSIVE, "true");
 
@@ -2656,6 +2704,8 @@ static int do_cork_stream(struct client *client, uint32_t command, uint32_t tag,
 	stream = pw_map_lookup(&client->streams, channel);
 	if (stream == NULL || stream->type == STREAM_TYPE_UPLOAD)
 		return -ENOENT;
+	if (stream->create_tag != SPA_ID_INVALID)
+		return -ENOENT;
 
 	stream_set_corked(stream, cork);
 	if (cork) {
@@ -2685,6 +2735,8 @@ static int do_flush_trigger_prebuf_stream(struct client *client, uint32_t comman
 
 	stream = pw_map_lookup(&client->streams, channel);
 	if (stream == NULL || stream->type == STREAM_TYPE_UPLOAD)
+		return -ENOENT;
+	if (stream->create_tag != SPA_ID_INVALID)
 		return -ENOENT;
 
 	switch (command) {
@@ -3133,9 +3185,11 @@ static int do_set_port_latency_offset(struct client *client, uint32_t command, u
 		return -ENOENT;
 
 	collect_card_info(card, &card_info);
+	if (card_info.n_ports > MAX_ALLOCA_SIZE / sizeof(*port_info))
+		return -ENOMEM;
 	port_info = alloca(card_info.n_ports * sizeof(*port_info));
 	card_info.active_profile = SPA_ID_INVALID;
-	n_ports = collect_port_info(card, &card_info, NULL, port_info);
+	n_ports = collect_port_info(card, &card_info, NULL, port_info, NULL);
 
 	/* Set offset on all devices of the port */
 	res = -ENOENT;
@@ -3184,6 +3238,8 @@ static int do_set_stream_name(struct client *client, uint32_t command, uint32_t 
 
 	stream = pw_map_lookup(&client->streams, channel);
 	if (stream == NULL || stream->type == STREAM_TYPE_UPLOAD)
+		return -ENOENT;
+	if (stream->create_tag != SPA_ID_INVALID)
 		return -ENOENT;
 
 	items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_NAME, name);
@@ -3240,7 +3296,7 @@ static int do_update_proplist(struct client *client, uint32_t command, uint32_t 
 static int do_remove_proplist(struct client *client, uint32_t command, uint32_t tag, struct message *m)
 {
 	uint32_t i, channel;
-	struct spa_dict dict;
+	struct spa_dict dict = SPA_DICT_INIT(NULL, 0);
 	struct spa_dict_item *items;
 
 	spa_autoptr(pw_properties) props = pw_properties_new(NULL, NULL);
@@ -3272,6 +3328,8 @@ static int do_remove_proplist(struct client *client, uint32_t command, uint32_t 
 	}
 
 	dict.n_items = props->dict.n_items;
+	if (dict.n_items > MAX_ALLOCA_SIZE / sizeof(struct spa_dict_item))
+		return -ENOMEM;
 	dict.items = items = alloca(sizeof(struct spa_dict_item) * dict.n_items);
 	for (i = 0; i < dict.n_items; i++) {
 		items[i].key = props->dict.items[i].key;
@@ -3555,6 +3613,8 @@ static int fill_card_info(struct client *client, struct message *m,
 		TAG_U32, card_info.n_profiles,			/* n_profiles */
 		TAG_INVALID);
 
+	if (card_info.n_profiles > MAX_ALLOCA_SIZE / sizeof(*profile_info))
+		return -ENOMEM;
 	profile_info = alloca(card_info.n_profiles * sizeof(*profile_info));
 	n_profiles = collect_profile_info(o, &card_info, profile_info);
 
@@ -3584,9 +3644,11 @@ static int fill_card_info(struct client *client, struct message *m,
 		uint32_t n_ports;
 		struct port_info *port_info, *pi;
 
+		if (card_info.n_ports > MAX_ALLOCA_SIZE / sizeof(*port_info))
+			return -ENOMEM;
 		port_info = alloca(card_info.n_ports * sizeof(*port_info));
 		card_info.active_profile = SPA_ID_INVALID;
-		n_ports = collect_port_info(o, &card_info, NULL, port_info);
+		n_ports = collect_port_info(o, &card_info, NULL, port_info, NULL);
 
 		message_put(m,
 			TAG_U32, n_ports,				/* n_ports */
@@ -3599,10 +3661,10 @@ static int fill_card_info(struct client *client, struct message *m,
 
 			pi = &port_info[n];
 
-			if (pi->info && pi->n_props > 0) {
+			if (pi->info && pi->n_props > 0 &&
+			    pi->n_props <= MAX_ALLOCA_SIZE / sizeof(*items)) {
 				items = alloca(pi->n_props * sizeof(*items));
-				dict.items = items;
-				pdict = collect_props(pi->info, &dict);
+				pdict = collect_props(pi->info, &dict, items, pi->n_props);
 			}
 
 			message_put(m,
@@ -3787,9 +3849,12 @@ static int fill_sink_info(struct client *client, struct message *m,
 	if (client->version >= 16) {
 		uint32_t n_ports, n;
 		struct port_info *port_info, *pi;
+		const char *active_port_name = NULL;
 
+		if (card_info.n_ports > MAX_ALLOCA_SIZE / sizeof(*port_info))
+			return -ENOMEM;
 		port_info = alloca(card_info.n_ports * sizeof(*port_info));
-		n_ports = collect_port_info(card, &card_info, &dev_info, port_info);
+		n_ports = collect_port_info(card, &card_info, &dev_info, port_info, &active_port_name);
 
 		message_put(m,
 			TAG_U32, n_ports,			/* n_ports */
@@ -3814,7 +3879,7 @@ static int fill_sink_info(struct client *client, struct message *m,
 			}
 		}
 		message_put(m,
-			TAG_STRING, dev_info.active_port_name,		/* active port name */
+			TAG_STRING, active_port_name,		/* active port name */
 			TAG_INVALID);
 	}
 	if (client->version >= 21) {
@@ -3983,9 +4048,12 @@ static int fill_source_info(struct client *client, struct message *m,
 	if (client->version >= 16) {
 		uint32_t n_ports, n;
 		struct port_info *port_info, *pi;
+		const char *active_port_name = NULL;
 
+		if (card_info.n_ports > MAX_ALLOCA_SIZE / sizeof(*port_info))
+			return -ENOMEM;
 		port_info = alloca(card_info.n_ports * sizeof(*port_info));
-		n_ports = collect_port_info(card, &card_info, &dev_info, port_info);
+		n_ports = collect_port_info(card, &card_info, &dev_info, port_info, &active_port_name);
 
 		message_put(m,
 			TAG_U32, n_ports,			/* n_ports */
@@ -4010,7 +4078,7 @@ static int fill_source_info(struct client *client, struct message *m,
 			}
 		}
 		message_put(m,
-			TAG_STRING, dev_info.active_port_name,		/* active port name */
+			TAG_STRING, active_port_name,		/* active port name */
 			TAG_INVALID);
 	}
 	if (client->version >= 21) {
@@ -4484,7 +4552,7 @@ static int do_set_stream_buffer_attr(struct client *client, uint32_t command, ui
 			commands[command].name, tag, channel);
 
 	stream = pw_map_lookup(&client->streams, channel);
-	if (stream == NULL)
+	if (stream == NULL || stream->create_tag != SPA_ID_INVALID)
 		return -ENOENT;
 
 	if (command == COMMAND_SET_PLAYBACK_STREAM_BUFFER_ATTR) {
@@ -4574,6 +4642,11 @@ static int do_update_stream_sample_rate(struct client *client, uint32_t command,
 	stream = pw_map_lookup(&client->streams, channel);
 	if (stream == NULL || stream->type == STREAM_TYPE_UPLOAD)
 		return -ENOENT;
+	if (stream->create_tag != SPA_ID_INVALID)
+		return -ENOENT;
+
+	if (rate == 0 || rate > RATE_MAX)
+		return -EINVAL;
 
 	stream->rate = rate;
 
@@ -4677,6 +4750,10 @@ static int do_set_default(struct client *client, uint32_t command, uint32_t tag,
 
 	pw_log_info("[%s] %s tag:%u name:%s", client->name,
 			commands[command].name, tag, name);
+
+	/* @NONE@ is used to clear the setting */
+	if (spa_streq(name, "@NONE@"))
+		name = NULL;
 
 	if (name != NULL && (o = find_device(client, SPA_ID_INVALID, name, sink, NULL)) == NULL)
 		return -ENOENT;
@@ -5526,7 +5603,7 @@ struct pw_protocol_pulse *pw_protocol_pulse_new(struct pw_context *context,
 	spa_list_init(&impl->cleanup_clients);
 	spa_list_init(&impl->free_messages);
 
-	impl->loop = pw_context_get_main_loop(context);
+	impl->main_loop = pw_context_get_main_loop(context);
 	impl->work_queue = pw_context_get_work_queue(context);
 	impl->timer_queue = pw_context_get_timer_queue(context);
 

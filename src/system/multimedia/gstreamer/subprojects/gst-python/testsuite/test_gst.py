@@ -162,6 +162,20 @@ class TestCaps(TestCase):
         s = caps.get_structure(0)
         self.assertNotEqual(ptr, s.__ptr__())
 
+    def test_iterate(self):
+        Gst.init(None)
+        caps = Gst.Caps()
+        caps.append_structure(Gst.Structure('test1', one=1))
+        caps.append_structure(Gst.Structure('test2', two=2))
+        caps.append_structure(Gst.Structure('test3', three=3))
+        self.assertEqual(len(caps), 3)
+        items = [s for s in caps]
+        self.assertEqual(items[0]['one'], 1)
+        self.assertEqual(items[1]['two'], 2)
+        self.assertEqual(items[2]['three'], 3)
+        with self.assertRaises(IndexError):
+            caps[3]
+
 
 class TestStructure(TestCase):
 
@@ -172,6 +186,20 @@ class TestStructure(TestCase):
 
         test = Gst.Structure('test,test=1')
         self.assertEqual(test['test'], 1)
+
+    def test_iterate_items(self):
+        Gst.init(None)
+        test = Gst.Structure('test', one=1, two=2, three=3)
+        self.assertEqual(len(test), 3)
+        self.assertEqual(test["one"], 1)
+        self.assertEqual(test["two"], 2)
+        self.assertEqual(test["three"], 3)
+        items = {k: v for k, v in test.items()}
+        self.assertEqual(items, {'one': 1, 'two': 2, 'three': 3})
+        keys = [k for k in test]
+        self.assertEqual(keys, ['one', 'two', 'three'])
+        with self.assertRaises(KeyError):
+            test["four"]
 
 
 class TestEvent(TestCase):
@@ -224,6 +252,23 @@ class TestBin(TestCase):
     def test_add_pad(self):
         Gst.init(None)
         self.assertEqual(Gst.ElementFactory.make("bin", None).sinkpads, [])
+
+    def test_make_and_add(self):
+        Gst.init(None)
+        bin = Gst.Bin()
+        with self.assertRaises(Gst.MissingPluginError):
+            bin.make_and_add("nonexistent")
+        e = bin.make_and_add("identity")
+        # Adding the same element again should fail
+        with self.assertRaises(Gst.AddError):
+            bin.add(e)
+
+    def test_iterate(self):
+        Gst.init(None)
+        bin = Gst.Bin()
+        e = bin.make_and_add("identity")
+        chidren = [c for c in bin]
+        self.assertEqual(chidren, [e])
 
 
 class TestBuffer(TestCase):

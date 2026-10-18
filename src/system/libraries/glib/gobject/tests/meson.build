@@ -28,35 +28,10 @@ marshalers_c = custom_target('marshalers_c',
   ],
 )
 
-# We must embed custom-dispatch.exe with an application
-# manifest to pacify UAC in order to run on 32-bit Windows
-# builds, otherwise the test will not run as UAC will kill it.
-extra_custom_dispatch_objs = []
-if embed_uac_manifest
-  uac_exe_pkg = 'gobject'
-  uac_exe_name = 'custom-dispatch'
-
-  # Well, we have to forgo the xxx.exe.manifest in the output listing, since
-  # compile_resources doesn't like to consume targets with multiple outputs,
-  # and the xxx.exe.manifest and xxx.rc are tied together
-  uac_rc = custom_target(
-    '@0@.rc'.format(uac_exe_name),
-    output: ['@0@.rc'.format(uac_exe_name)],
-    command: [gen_uac_manifest,
-              '-p=@0@'.format(uac_exe_pkg),
-              '-n=@0@'.format(uac_exe_name),
-              '--pkg-version=@0@'.format(meson.project_version()),
-              '--output-dir=@OUTDIR@'],
-  )
-  extra_custom_dispatch_objs = import('windows').compile_resources(uac_rc)
-endif
-
 gobject_tests = {
   'notify-init' : {},
   'notify-init2' : {},
-  'custom-dispatch' : {
-    'extra_objs' : extra_custom_dispatch_objs,
-  },
+  'custom-dispatch' : {},
   'qdata' : {},
   'accumulator' : {
     'source' : ['accumulator.c', marshalers_h, marshalers_c],
@@ -79,7 +54,10 @@ gobject_tests = {
   'basic-signals' : {},
   'singleton' : {},
   'threadtests' : {},
-  'dynamictests' : {},
+  'dynamictests' : {
+    # FIXME: https://gitlab.gnome.org/GNOME/glib/-/issues/1672
+    'can_fail': 'thread' in glib_sanitizers,
+  },
   'binding' : {},
   'bindinggroup' : {},
   'properties' : {},
@@ -95,7 +73,11 @@ gobject_tests = {
     'source' : 'private.c',
   },
   'closure' : {},
-  'closure-refcount' : { 'suite': ['slow'] },
+  'closure-refcount' : {
+    'suite': ['slow'],
+    # FIXME: https://gitlab.gnome.org/GNOME/glib/-/issues/1672
+    'can_fail': 'thread' in glib_sanitizers,
+  },
   'object' : {},
   'signal-handler' : {},
   'ifaceproperties' : {},
@@ -113,7 +95,10 @@ gobject_tests = {
     ]),
   },
   'objects-refcount2' : {'suite' : ['slow']},
-  'properties-refcount1' : {},
+  'properties-refcount1' : {
+    # FIXME: https://gitlab.gnome.org/GNOME/glib/-/issues/1672
+    'can_fail': 'thread' in glib_sanitizers,
+  },
   'properties-refcount2' : {'suite' : ['slow']},
   'properties-refcount3' : {'suite' : ['slow']},
   'properties-refcount4' : {},
@@ -124,6 +109,8 @@ gobject_tests = {
   'signals-refcount2' : {
     'source' : 'signals-refcount.c',
     'c_args' : ['-DTESTNUM=2'],
+    # FIXME: https://gitlab.gnome.org/GNOME/glib/-/issues/1672
+    'can_fail': 'thread' in glib_sanitizers,
   },
   'signals-refcount3' : {
     'source' : 'signals-refcount.c',
@@ -132,6 +119,8 @@ gobject_tests = {
   'signals-refcount4' : {
     'source' : 'signals-refcount.c',
     'c_args' : ['-DTESTNUM=4'],
+    # FIXME: https://gitlab.gnome.org/GNOME/glib/-/issues/1672
+    'can_fail': 'thread' in glib_sanitizers,
   },
 }
 
@@ -178,13 +167,12 @@ test_env = environment()
 test_env.set('G_TEST_SRCDIR', meson.current_source_dir())
 test_env.set('G_TEST_BUILDDIR', meson.current_build_dir())
 
-test_deps = [libm, thread_dep, libglib_dep, libgobject_dep]
-test_cargs = ['-DG_LOG_DOMAIN="GLib-GObject"', '-UG_DISABLE_ASSERT']
+test_deps = [libm, thread_dep, libglib_dep, libgobject_dep, test_profile_dep]
+test_cargs = ['-DG_LOG_DOMAIN="GLib-GObject"', '-UG_DISABLE_ASSERT', warning_sign_conversion_args]
 test_cpp_args = test_cargs
 
 foreach test_name, extra_args : gobject_tests
   source = extra_args.get('source', test_name + '.c')
-  extra_objs = extra_args.get('extra_objs', [])
   install = installed_tests_enabled and extra_args.get('install', true)
 
   if install
@@ -201,8 +189,13 @@ foreach test_name, extra_args : gobject_tests
     )
   endif
 
-  exe = executable(test_name, source, extra_objs,
-    c_args : test_cargs + extra_args.get('c_args', []),
+  c_args = test_cargs + extra_args.get('c_args', [])
+  if 'cpp' not in extra_args.get('suite', [])
+    c_args += [warning_shorten_64_to_32_args]
+  endif
+
+  exe = executable(test_name, source,
+    c_args : c_args,
     cpp_args : test_cpp_args + extra_args.get('cpp_args', []),
     dependencies : test_deps + extra_args.get('dependencies', []),
     install_dir: installed_tests_execdir,
@@ -235,6 +228,9 @@ endforeach
 python_test_env = test_env
 python_test_env.prepend('PYTHONPATH', python_test_libraries_path)
 python_test_env.prepend('PYTHONPATH', python_test_libraries_built)
+if python_test_env_common_path.length() > 0
+  python_test_env.prepend('PATH', python_test_env_common_path)
+endif
 
 foreach test_name, extra_args : python_tests
   depends = [extra_args.get('depends', [])]

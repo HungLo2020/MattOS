@@ -107,7 +107,7 @@ static gpgrt_opt_t opts[] = {
                                " a record oriented format"},
   { oProxy,    "proxy",     2,
                 "|NAME|ignore host part and connect through NAME"},
-  { oStartTLS, "starttls",  0, "use STARTLS for the connection"},
+  { oStartTLS, "starttls",  0, "use STARTTLS for the connection"},
   { oLdapTLS,  "ldaptls",   0, "use a TLS for the connection"},
   { oNtds,     "ntds",      0, "authenticate using AD"},
   { oARecOnly, "areconly",  0, "do only an A record lookup"},
@@ -390,7 +390,7 @@ set_timeout (void)
           /* Initially set the timer.  */
           SetWaitableTimer (timer, &due_time, 0, NULL, NULL, 0);
 
-          if (CreateThread (&sec_attr, 0, alarm_thread, timer, 0, &tid))
+          if (!CreateThread (&sec_attr, 0, alarm_thread, timer, 0, &tid))
             log_error ("failed to create alarm thread\n");
         }
       else /* Retrigger the timer.  */

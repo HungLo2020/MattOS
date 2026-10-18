@@ -38,6 +38,22 @@
 (define delta "Delta <delta@invalid.example.net>")
 (define deltahash "359DC5EFF98B14A58AAA615C638E8BD0CEDA537B")
 
+;; The last year PGP can represent is 2105 but in our tests we can
+;; only use 2038 for signed 32 bit time_t systems.
+(define last-pgp-date
+  (if (*long-time-t?*) "2105-01-01" "2038-01-01"))
+(define last-pgp-date-5min
+  (if (*long-time-t?*) "21050101T115500" "20380101T115500"))
+
+;; UTC 2105-01-01 12:00:00 or 2038-01-01 12:00:00
+(define last-pgp-seconds
+  (if (*long-time-t?*) 4260254400 2145960000))
+;; And the same but 5 minutes earlier:
+;; UTC 2105-01-01 11:55:00 or 2038-01-01 11:55:00
+(define last-pgp-seconds-5min
+  (if (*long-time-t?*) 4260254100 2145959700))
+
+
 (define (key-data key)
   (filter (lambda (x) (or (string=? (car x) "pub")
                           (string=? (car x) "sub")))
@@ -144,22 +160,17 @@
      (assert (= count (length subkeys)))
      (if check (check (last subkeys)))))
  ;; A bunch of arguments...
- '(()
+ `(()
    (- - -)
    (default default never)
    (rsa "sign auth encr" "seconds=600") ;; GPGME uses this
    (rsa "auth,encr" "2") ;; "without a letter, days is assumed"
-   ;; Sadly, the timestamp is truncated by the use of time_t on
-   ;; systems where time_t is a signed 32 bit value.
-   (rsa "sign" "2038-01-01")      ;; unix millennium
-   (rsa "sign" "20380101T115500") ;; unix millennium
-   ;; Once fixed, we can use later timestamps:
-   ;; (rsa "sign" "2105-01-01")      ;; "last year GnuPG can represent is 2105"
-   ;; (rsa "sign" "21050101T115500") ;; "last year GnuPG can represent is 2105"
+   (rsa "sign" ,last-pgp-date)
+   (rsa "sign" ,last-pgp-date-5min)
    (rsa sign "2d")
    (rsa1024 sign "2w")
    (rsa2048 encr "2m")
-   (rsa4096 sign,auth "2y")
+   (rsa4096 "sign,auth" "2y")
    (future-default))
  ;; ... with functions to check that the created key matches the
  ;; expectations (or #f for no tests).
@@ -186,8 +197,7 @@
   (lambda (subkey)
     (assert (= 1 (:alg subkey)))
     (assert (string-contains? (:cap subkey) "s"))
-    (assert (time-matches? 2145960000    ;; UTC 2038-01-01 12:00:00
-			   ;; 4260254400 ;; UTC 2105-01-01 12:00:00
+    (assert (time-matches? last-pgp-seconds
 			   (string->number (:expire subkey))
 			   ;; GnuPG choses the middle of the day (local time)
 			   ;; when no hh:mm:ss is specified
@@ -195,8 +205,7 @@
   (lambda (subkey)
     (assert (= 1 (:alg subkey)))
     (assert (string-contains? (:cap subkey) "s"))
-    (assert (time-matches? 2145959700    ;; UTC 2038-01-01 11:55:00
-			   ;; 4260254100 ;; UTC 2105-01-01 11:55:00
+    (assert (time-matches? last-pgp-seconds-5min
 			   (string->number (:expire subkey))
 			   (minutes->seconds 5))))
   (lambda (subkey)

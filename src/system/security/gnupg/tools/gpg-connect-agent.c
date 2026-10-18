@@ -36,9 +36,6 @@
 #include "../common/sysutils.h"
 #include "../common/membuf.h"
 #include "../common/ttyio.h"
-#ifdef HAVE_W32_SYSTEM
-#  include "../common/exechelp.h"
-#endif
 #include "../common/init.h"
 #include "../common/comopt.h"
 
@@ -898,8 +895,10 @@ static void
 do_sendfd (assuan_context_t ctx, char *line)
 {
   estream_t fp;
-  char *name, *mode, *p;
-  int rc, fd;
+  char *name, *p;
+  int rc;
+  char mode[32];
+  es_syshd_t hd;
 
   /* Get file name. */
   name = line;
@@ -911,16 +910,24 @@ do_sendfd (assuan_context_t ctx, char *line)
     p++;
 
   /* Get mode.  */
-  mode = p;
-  if (!*mode)
-    mode = "r";
+  if (!*p)
+    {
+      mode[0] = 'r';
+      mode[1] = 0;
+      p = &mode[1];
+    }
   else
     {
-      for (p=mode; *p && !spacep (p); p++)
-        ;
-      if (*p)
-        *p++ = 0;
+      int i;
+      for (i = 0; *p && !spacep (p); p++)
+        mode[i++] = *p;
+      mode[i] = 0;
+      p = &mode[i];
     }
+
+#ifdef HAVE_W32_SYSTEM
+  strcpy (p, ",sysopen");
+#endif
 
   /* Open and send. */
   fp = es_fopen (name, mode);
@@ -930,15 +937,30 @@ do_sendfd (assuan_context_t ctx, char *line)
                  name, mode, strerror (errno));
       return;
     }
-  fd = es_fileno (fp);
 
+  es_syshd (fp, &hd);
+
+#ifdef HAVE_W32_SYSTEM
+  if (opt.verbose)
+    log_error ("file '%s' opened in \"%s\" mode, fd=%p\n",
+               name, mode, hd.u.handle);
+#else
   if (opt.verbose)
     log_error ("file '%s' opened in \"%s\" mode, fd=%d\n",
-               name, mode, fd);
+               name, mode, hd.u.fd);
+#endif
 
-  rc = assuan_sendfd (ctx, INT2FD (fd) );
+#ifdef HAVE_W32_SYSTEM
+  rc = assuan_sendfd (ctx, hd.u.handle);
   if (rc)
-    log_error ("sending descriptor %d failed: %s\n", fd, gpg_strerror (rc));
+    log_error ("sending descriptor %p failed: %s\n", hd.u.handle,
+               gpg_strerror (rc));
+#else
+  rc = assuan_sendfd (ctx, hd.u.fd);
+  if (rc)
+    log_error ("sending descriptor %d failed: %s\n", hd.u.fd,
+               gpg_strerror (rc));
+#endif
   es_fclose (fp);
 }
 
@@ -1013,8 +1035,9 @@ do_open (char *line)
 #if defined(HAVE_W32_SYSTEM)
       {
         HANDLE prochandle, handle, newhandle;
+        char numbuf[35];
 
-        handle = (void*)_get_osfhandle (fd);
+        handle = (HANDLE)_get_osfhandle (fd);
 
         prochandle = OpenProcess (PROCESS_DUP_HANDLE, FALSE, server_pid);
         if (!prochandle)
@@ -1035,11 +1058,13 @@ do_open (char *line)
           }
         CloseHandle (prochandle);
         open_fd_table[fd].handle = newhandle;
+
+        snprintf (numbuf, sizeof numbuf, "%p", open_fd_table[fd].handle);
+        set_var (varname, numbuf);
       }
       if (opt.verbose)
-        log_info ("file '%s' opened in \"%s\" mode, fd=%d  (libc=%d)\n",
-                   name, mode, (int)open_fd_table[fd].handle, fd);
-      set_int_var (varname, (int)open_fd_table[fd].handle);
+        log_info ("file '%s' opened in \"%s\" mode, fd=%p  (libc=%d)\n",
+                   name, mode, open_fd_table[fd].handle, fd);
 #else /* Unix */
       if (opt.verbose)
         log_info ("file '%s' opened in \"%s\" mode, fd=%d\n",
@@ -1060,13 +1085,28 @@ do_open (char *line)
 static void
 do_close (char *line)
 {
-  int fd = atoi (line);
+  int fd;
 
 #ifdef HAVE_W32_SYSTEM
   int i;
+  gpg_error_t err;
+  es_syshd_t syshd;
+
+  err = gnupg_parse_fdstr (line, &syshd);
+  if (err)
+    {
+      log_error ("given fd (system handle) is not valid\n");
+      return;
+    }
+
+  if (syshd.type == ES_SYSHD_FD)
+    {
+      log_error ("given fd is stdin/out/err\n");
+      return;
+    }
 
   for (i=0; i < DIM (open_fd_table); i++)
-    if ( open_fd_table[i].inuse && open_fd_table[i].handle == (void*)fd)
+    if (open_fd_table[i].inuse && open_fd_table[i].handle == syshd.u.handle)
       break;
   if (i < DIM (open_fd_table))
     fd = i;
@@ -1075,6 +1115,8 @@ do_close (char *line)
       log_error ("given fd (system handle) has not been opened\n");
       return;
     }
+#else
+  fd = atoi (line);
 #endif
 
   if (fd < 0 || fd >= DIM (open_fd_table))
@@ -1105,7 +1147,7 @@ do_showopen (void)
     if (open_fd_table[i].inuse)
       {
 #ifdef HAVE_W32_SYSTEM
-        printf ("%-15d (libc=%d)\n", (int)open_fd_table[i].handle, i);
+        printf ("%p (libc=%d)\n", open_fd_table[i].handle, i);
 #else
         printf ("%-15d\n", i);
 #endif
@@ -2302,14 +2344,14 @@ start_agent (void)
     err = start_new_dirmngr (&ctx,
                              GPG_ERR_SOURCE_DEFAULT,
                              opt.dirmngr_program,
-                             opt.autostart,
+                             opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
                              !opt.quiet, 0,
                              NULL, NULL);
   else if (opt.use_keyboxd)
     err = start_new_keyboxd (&ctx,
                              GPG_ERR_SOURCE_DEFAULT,
                              opt.keyboxd_program,
-                             opt.autostart,
+                             opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
                              !opt.quiet, 0,
                              NULL, NULL);
   else
@@ -2318,7 +2360,7 @@ start_agent (void)
                                opt.agent_program,
                                NULL, NULL,
                                session_env,
-                               opt.autostart,
+                               opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
                                !opt.quiet, 0,
                                NULL, NULL);
 

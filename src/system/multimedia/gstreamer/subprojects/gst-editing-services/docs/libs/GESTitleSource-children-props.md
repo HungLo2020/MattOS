@@ -12,6 +12,20 @@ Value type: #guint
 
 See #GstBaseTextOverlay:color
 
+#### `draw-shadow`
+
+Whether to draw shadow
+
+Value type: #gboolean
+
+See #GstBaseTextOverlay:draw-shadow
+
+#### `fheight`
+
+height of the source in float
+
+Value type: #gfloat
+
 #### `font-desc`
 
 Pango font description of font to be used for rendering. See documentation of
@@ -28,6 +42,24 @@ Foreground color to use (big-endian ARGB)
 Value type: #guint
 
 See #videotestsrc:foreground-color
+
+#### `fposx`
+
+x position of the stream in float
+
+Value type: #gfloat
+
+#### `fposy`
+
+y position of the stream in float
+
+Value type: #gfloat
+
+#### `fwidth`
+
+width of the source in float
+
+Value type: #gfloat
 
 #### `halignment`
 
@@ -47,6 +79,15 @@ See #GstBaseTextOverlay:halignment
 height of the source
 
 Value type: #gint
+
+#### `operator`
+
+Blending operator to use for blending this pad over the previous ones
+
+Valid values:
+  - **Source** (0) – source
+  - **Over** (1) – over
+  - **Add** (2) – add
 
 #### `outline-color`
 
@@ -86,6 +127,7 @@ Valid values:
   - **Spokes** (22) – spokes
   - **Gradient** (23) – gradient
   - **Colors** (24) – colors
+  - **SMPTE test pattern, RP 219 conformant** (25) – smpte-rp-219
 
 See #videotestsrc:pattern
 
@@ -100,6 +142,14 @@ Value type: #gint
 y position of the stream
 
 Value type: #gint
+
+#### `reverse`
+
+Whether to playback the source reverse or not
+
+Value type: #gboolean
+
+See #nlesource:reverse
 
 #### `shaded-background`
 
@@ -143,7 +193,7 @@ See #GstBaseTextOverlay:text-x
 
 #### `text-y`
 
-Resulting X position of font rendering.
+Resulting Y position of font rendering.
 
 Value type: #gint
 
@@ -218,4 +268,12 @@ Vertical position when using clamped position alignment
 Value type: #gdouble
 
 See #GstBaseTextOverlay:ypos
+
+#### `zorder`
+
+z order of the stream.
+**WARNING**: Setting it manually overrides the #GESLayer:priority and should be
+used very carefully
+
+Value type: #guint
 

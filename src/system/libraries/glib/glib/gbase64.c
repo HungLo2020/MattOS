@@ -240,8 +240,10 @@ g_base64_encode (const guchar *data,
                  gsize         len)
 {
   gchar *out;
-  gint state = 0, outlen;
+  gint state = 0;
   gint save = 0;
+  gsize outlen;
+  gsize allocsize;
 
   g_return_val_if_fail (data != NULL || len == 0, NULL);
 
@@ -249,10 +251,15 @@ g_base64_encode (const guchar *data,
      +1 is needed for trailing \0, also check for unlikely integer overflow */
   g_return_val_if_fail (len < ((G_MAXSIZE - 1) / 4 - 1) * 3, NULL);
 
-  out = g_malloc ((len / 3 + 1) * 4 + 1);
+  allocsize = (len / 3 + 1) * 4 + 1;
+  out = g_malloc (allocsize);
 
   outlen = g_base64_encode_step (data, len, FALSE, out, &state, &save);
+  g_assert (outlen <= allocsize);
+
   outlen += g_base64_encode_close (FALSE, out + outlen, &state, &save);
+  g_assert (outlen <= allocsize);
+
   out[outlen] = '\0';
 
   return (gchar *) out;
@@ -279,7 +286,7 @@ static const unsigned char mime_base64_rank[256] = {
 
 /**
  * g_base64_decode_step: (skip)
- * @in: (array length=len) (element-type guint8): binary input data
+ * @in: (array length=len): base-64 encoded input data
  * @len: max length of @in data to decode
  * @out: (out caller-allocates) (array) (element-type guint8): output buffer
  * @state: (inout): Saved state between steps, initialize to 0

@@ -56,6 +56,7 @@ struct _GstH265Parse
   gint parsed_par_n, parsed_par_d;
   gint parsed_fps_n, parsed_fps_d;
   GstVideoColorimetry parsed_colorimetry;
+  gboolean lcevc;
   /* current codec_data in output caps, if any */
   GstBuffer *codec_data;
   /* input codec_data, if any */
@@ -85,6 +86,7 @@ struct _GstH265Parse
   gboolean have_vps_in_frame;
   gboolean have_sps_in_frame;
   gboolean have_pps_in_frame;
+  gboolean have_aud_in_frame;
 
   gboolean first_frame;
 
@@ -110,9 +112,19 @@ struct _GstH265Parse
   gboolean predicted;
   gboolean bidirectional;
   gboolean header;
-  gboolean framerate_from_caps;
   /* AU state */
   gboolean picture_start;
+
+  /* tracing state whether h265parse needs to insert AUD or not.
+   * Used when in_format == byte-stream */
+  gboolean aud_needed;
+
+  /* For insertion of AU Delimiter */
+  gboolean aud_insert;
+
+  /* layer id info of first slice of the current AU */
+  guint layer_id;
+  guint temporal_id_plus1;
 
   GstVideoParseUserData user_data;
   GstVideoParseUserDataUnregistered user_data_unregistered;

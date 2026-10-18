@@ -743,7 +743,7 @@ gst_glimage_sink_class_init (GstGLImageSinkClass * klass)
 
   gst_video_overlay_install_properties (gobject_class, PROP_LAST);
 
-  gst_element_class_set_metadata (element_class, "OpenGL video sink",
+  gst_element_class_set_static_metadata (element_class, "OpenGL video sink",
       "Sink/Video", "A videosink based on OpenGL",
       "Julien Isorce <julien.isorce@gmail.com>");
 
@@ -1067,13 +1067,35 @@ _ensure_gl_setup (GstGLImageSink * gl_sink)
             gst_gl_display_get_gl_context_for_thread (gl_sink->display, NULL);
       }
 
-      if (!gst_gl_display_create_context (gl_sink->display,
-              other_context, &context, &error)) {
-        if (other_context)
-          gst_object_unref (other_context);
-        GST_OBJECT_UNLOCK (gl_sink->display);
-        goto context_error;
+      g_signal_emit_by_name (gl_sink->display, "create-context", other_context,
+          &context);
+      if (!context) {
+        GstGLWindow *window;
+        context = gst_gl_context_new (gl_sink->display);
+        if (!context) {
+          g_set_error (&error, GST_GL_CONTEXT_ERROR,
+              GST_GL_CONTEXT_ERROR_FAILED, "Failed to create GL context");
+          gst_clear_object (&other_context);
+          GST_OBJECT_UNLOCK (gl_sink->display);
+          goto context_error;
+        }
+
+        GST_DEBUG_OBJECT (gl_sink,
+            "creating context %" GST_PTR_FORMAT " from other context %"
+            GST_PTR_FORMAT, context, other_context);
+
+        window = gst_gl_display_create_window (context->display);
+        gst_gl_window_set_request_output_surface (window, TRUE);
+        gst_gl_context_set_window (context, window);
+        gst_clear_object (&window);
+        if (!gst_gl_context_create (context, other_context, &error)) {
+          gst_clear_object (&other_context);
+          gst_clear_object (&context);
+          GST_OBJECT_UNLOCK (gl_sink->display);
+          goto context_error;
+        }
       }
+
       _set_context (gl_sink, context);
       context = NULL;
 
@@ -1266,8 +1288,8 @@ gst_glimage_sink_change_state (GstElement * element, GstStateChange transition)
   GstGLContext *context;
 
   GST_DEBUG ("changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   glimage_sink = GST_GLIMAGE_SINK (element);
 
@@ -1543,6 +1565,11 @@ update_output_format (GstGLImageSink * glimage_sink)
 
   *out_info = glimage_sink->in_info;
   previous_target = glimage_sink->texture_target;
+
+  /* Reset the padded information, this will allow dectecting any difference
+   * between the texture allocated size and the display size. */
+  glimage_sink->padded_width = GST_VIDEO_INFO_WIDTH (out_info);
+  glimage_sink->padded_height = GST_VIDEO_INFO_HEIGHT (out_info);
 
   mv_mode = GST_VIDEO_INFO_MULTIVIEW_MODE (&glimage_sink->in_info);
 
@@ -2453,6 +2480,34 @@ gst_glimage_sink_on_draw (GstGLImageSink * gl_sink)
     gl->ActiveTexture (GL_TEXTURE0);
     gl->BindTexture (gl_target, gl_sink->redisplay_texture);
     gst_gl_shader_set_uniform_1i (gl_sink->redisplay_shader, "tex", 0);
+
+    GstVideoMeta *v_meta =
+        gst_buffer_get_video_meta (gl_sink->stored_buffer[0]);
+    if (v_meta && (v_meta->width != gl_sink->padded_width
+            || v_meta->height != gl_sink->padded_height)) {
+      gdouble padded_width = v_meta->width;
+      gdouble padded_height = v_meta->height;
+      gdouble display_width = GST_VIDEO_INFO_WIDTH (&gl_sink->out_info);
+      gdouble display_height = GST_VIDEO_INFO_HEIGHT (&gl_sink->out_info);
+
+      float scale_x = display_width / padded_width;
+      float scale_y = display_height / padded_height;
+
+      GLfloat crop_vertices[20];
+      memcpy (crop_vertices, vertices, sizeof (crop_vertices));
+
+      for (int i = 0; i < 4; i++) {
+        crop_vertices[i * 5 + 3] *= scale_x;    // U
+        crop_vertices[i * 5 + 4] *= scale_y;    // V
+      }
+
+      gl->BufferData (GL_ARRAY_BUFFER, 4 * 5 * sizeof (GLfloat),
+          crop_vertices, GL_STATIC_DRAW);
+
+      gl_sink->padded_width = v_meta->width;
+      gl_sink->padded_height = v_meta->height;
+    }
+
     {
       GstVideoAffineTransformationMeta *af_meta;
       gfloat matrix[16];
@@ -2461,14 +2516,10 @@ gst_glimage_sink_on_draw (GstGLImageSink * gl_sink)
           gst_buffer_get_video_affine_transformation_meta
           (gl_sink->stored_buffer[0]);
 
-      if (gl_sink->transform_matrix) {
-        gfloat tmp[16];
+      gst_gl_get_affine_transformation_meta_as_ndc (af_meta, matrix);
 
-        gst_gl_get_affine_transformation_meta_as_ndc (af_meta, tmp);
-        gst_gl_multiply_matrix4 (tmp, gl_sink->transform_matrix, matrix);
-      } else {
-        gst_gl_get_affine_transformation_meta_as_ndc (af_meta, matrix);
-      }
+      if (gl_sink->transform_matrix)
+        gst_gl_multiply_matrix4 (matrix, gl_sink->transform_matrix, matrix);
 
       gst_gl_shader_set_uniform_matrix_4fv (gl_sink->redisplay_shader,
           "u_transformation", 1, FALSE, matrix);

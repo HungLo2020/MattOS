@@ -31,7 +31,7 @@
 #include "certcache.h"
 #include "ocsp.h"
 
-/* The maximum size we allow as a response from an OCSP reponder. */
+/* The maximum size we allow as a response from an OCSP responder. */
 #define MAX_RESPONSE_SIZE 65536
 
 
@@ -165,6 +165,10 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp,
       return err;
     }
 
+  /* Tell Libksba to use SHA256 for hashing elements of the CERTID.  */
+  if ((opt.compat_flags & COMPAT_OCSP_SHA256_CERTID))
+    ksba_ocsp_set_nonce (ocsp, NULL, 32);
+
   {
     size_t n;
     unsigned char nonce[32];
@@ -197,6 +201,9 @@ do_ocsp_request (ctrl_t ctrl, ksba_ocsp_t ocsp,
       return err;
     }
 
+  if (*opt.user_agent)
+    es_fprintf (http_get_write_ptr (http),
+                "User-Agent: %s\r\n", opt.user_agent);
   es_fprintf (http_get_write_ptr (http),
 	      "Content-Type: application/ocsp-request\r\n"
 	      "Content-Length: %lu\r\n",
@@ -526,7 +533,7 @@ check_signature_core (ctrl_t ctrl, ksba_cert_t cert, gcry_sexp_t s_sig,
 /* Check the signature of an OCSP response.  OCSP is the context,
    S_SIG the signature value and MD the handle of the hash we used for
    the response.  This function automagically finds the correct public
-   key.  If SIGNER_FPR_LIST is not NULL, the default OCSP reponder has been
+   key.  If SIGNER_FPR_LIST is not NULL, the default OCSP responder has been
    used and thus the certificate is one of those identified by
    the fingerprints. */
 static gpg_error_t
@@ -651,7 +658,7 @@ check_signature (ctrl_t ctrl,
    or directly through the CERT object is valid by running an OCSP
    transaction.  With FORCE_DEFAULT_RESPONDER set only the configured
    default responder is used.  If R_REVOKED_AT or R_REASON are not
-   NULL and the certificat has been revoked the revocation time and
+   NULL and the certificate has been revoked the revocation time and
    the reasons are stored there. */
 gpg_error_t
 ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
@@ -723,7 +730,7 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
     }
 
   /* Figure out the OCSP responder to use.
-     1. Try to get the reponder from the certificate.
+     1. Try to get the responder from the certificate.
         We do only take http and https style URIs into account.
      2. If this fails use the default responder, if any.
    */
@@ -941,7 +948,7 @@ ocsp_isvalid (ctrl_t ctrl, ksba_cert_t cert, const char *cert_fpr,
       gnupg_copy_time (tmp_time, next_update);
       add_seconds_to_isotime (tmp_time,
                               opt.ocsp_current_period+opt.ocsp_max_clock_skew);
-      if (!*tmp_time && strcmp (tmp_time, current_time) < 0 )
+      if (strcmp (tmp_time, current_time) < 0 )
         {
           log_error (_("OCSP responder returned an too old status\n"));
           log_info ("used now: %s  next_update: %s\n",

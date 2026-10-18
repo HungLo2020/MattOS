@@ -53,7 +53,7 @@ struct resource_item {
 
 
 /* Data used to keep track of keybox daemon sessions.  This allows us
- * to use several sessions with the keyboxd and also to re-use already
+ * to use several sessions with the keyboxd and also to reuse already
  * established sessions.  Note that gpgdm.h defines the type
  * keydb_local_t for this structure.  */
 struct keydb_local_s
@@ -115,7 +115,8 @@ struct keydb_handle {
 
   /* Various flags.  */
   unsigned int last_ubid_valid:1;
-  unsigned int last_is_ephemeral;  /* Last found key is ephemeral.  */
+  unsigned int last_is_ephemeral:1;  /* Last found key is ephemeral.  */
+  unsigned int last_is_revoked:1;  /* Last found key is revoked.  */
 
   /* The UBID of the last returned keyblock.  */
   unsigned char last_ubid[UBID_LEN];
@@ -161,10 +162,17 @@ gpgsm_keydb_deinit_session_data (ctrl_t ctrl)
         log_error ("oops: trying to cleanup an active keydb context\n");
       else
         {
-          kbx_client_data_release (kbl->kcd);
-          kbl->kcd = NULL;
           assuan_release (kbl->ctx);
           kbl->ctx = NULL;
+          /*
+           * Since there may be pipe output FD sent to the server (so
+           * that it can receive data through the pipe), we should
+           * release the assuan connection before releasing KBL->KCD.
+           * This way, the data receiving thread can finish cleanly,
+           * and we can join the thread.
+           */
+          kbx_client_data_release (kbl->kcd);
+          kbl->kcd = NULL;
         }
       xfree (kbl);
     }
@@ -440,25 +448,13 @@ keydb_add_resource (ctrl_t ctrl, const char *url, int force, int *auto_created)
           err = gpg_error (GPG_ERR_RESOURCE_LIMIT);
         else
           {
-            KEYBOX_HANDLE kbxhd;
-
             all_resources[used_resources].type = rt;
             all_resources[used_resources].u.kr = NULL; /* Not used here */
             all_resources[used_resources].token = token;
 
-            /* Do a compress run if needed and the keybox is not locked. */
-            kbxhd = keybox_new_x509 (token, 0);
-            if (kbxhd)
-              {
-                if (!keybox_lock (kbxhd, 1, 0))
-                  {
-                    keybox_compress (kbxhd);
-                    keybox_lock (kbxhd, 0, 0);
-                  }
-
-                keybox_release (kbxhd);
-              }
-
+            /* Do a compress run if needed and no other user is
+             * currently using the keybox. */
+            keybox_compress_when_no_other_users (token, 0);
             used_resources++;
           }
       }
@@ -516,7 +512,8 @@ create_new_context (ctrl_t ctrl, assuan_context_t *r_ctx)
   err = start_new_keyboxd (&ctx,
                            GPG_ERR_SOURCE_DEFAULT,
                            opt.keyboxd_program,
-                           opt.autostart, opt.verbose, DBG_IPC,
+                           opt.autostart?ASSHELP_FLAG_AUTOSTART:0,
+                           opt.verbose, DBG_IPC,
                            NULL, ctrl);
   if (!opt.autostart && gpg_err_code (err) == GPG_ERR_NO_KEYBOXD)
     {
@@ -580,9 +577,7 @@ open_context (ctrl_t ctrl, keydb_local_t *r_kbl)
           return err;
         }
 
-      /* We use D-lines in 2.4 for communication due to a bug with fd
-       * passing.  See T6512.  */
-      err = kbx_client_data_new (&kbl->kcd, kbl->ctx, 1);
+      err = kbx_client_data_new (&kbl->kcd, kbl->ctx, 0);
       if (err)
         {
           assuan_release (kbl->ctx);
@@ -661,6 +656,20 @@ keydb_new (ctrl_t ctrl)
   return hd;
 }
 
+
+static void
+kbx_client_set_ephemeral (kbx_client_data_t kcd, int is_ephemeral)
+{
+  gpg_error_t err;
+
+  err = kbx_client_data_simple (kcd, is_ephemeral
+                                ? "SETEPHEMERAL"
+                                : "SETEPHEMERAL --clear");
+  if (err)
+    log_error ("failed to set ephemeral mode\n");
+}
+
+
 void
 keydb_release (KEYDB_HANDLE hd)
 {
@@ -679,6 +688,8 @@ keydb_release (KEYDB_HANDLE hd)
   if (hd->use_keyboxd)
     {
       kbl = hd->kbl;
+      if (hd->is_ephemeral)
+        kbx_client_set_ephemeral (kbl->kcd, 0);
       if (DBG_CLOCK)
         log_clock ("close_context (found)");
       if (!kbl->is_active)
@@ -747,6 +758,7 @@ keydb_get_resource_name (KEYDB_HANDLE hd)
   return s? s: "";
 }
 
+
 /* Switch the handle into ephemeral mode and return the original value. */
 int
 keydb_set_ephemeral (KEYDB_HANDLE hd, int yes)
@@ -756,24 +768,24 @@ keydb_set_ephemeral (KEYDB_HANDLE hd, int yes)
   if (!hd)
     return 0;
 
-  if (hd->use_keyboxd)
-    return 0; /* FIXME: No support yet.  */
-
-
   yes = !!yes;
+
   if (hd->is_ephemeral != yes)
     {
-      for (i=0; i < hd->used; i++)
-        {
-          switch (hd->active[i].type)
-            {
-            case KEYDB_RESOURCE_TYPE_NONE:
-              break;
-            case KEYDB_RESOURCE_TYPE_KEYBOX:
-              keybox_set_ephemeral (hd->active[i].u.kr, yes);
-              break;
-            }
-        }
+      if (hd->use_keyboxd)
+        kbx_client_set_ephemeral (hd->kbl->kcd, yes);
+      else
+        for (i=0; i < hd->used; i++)
+          {
+            switch (hd->active[i].type)
+              {
+              case KEYDB_RESOURCE_TYPE_NONE:
+                break;
+              case KEYDB_RESOURCE_TYPE_KEYBOX:
+                keybox_set_ephemeral (hd->active[i].u.kr, yes);
+                break;
+              }
+          }
     }
 
   i = hd->is_ephemeral;
@@ -814,7 +826,7 @@ lock_all (KEYDB_HANDLE hd)
 {
   int i, rc = 0;
 
-  if (hd->use_keyboxd)
+  if (hd->keep_lock)
     return 0;
 
   /* Fixme: This locking scheme may lead to deadlock if the resources
@@ -856,14 +868,31 @@ lock_all (KEYDB_HANDLE hd)
 }
 
 static void
+do_fp_close (KEYDB_HANDLE hd)
+{
+  int i;
+
+  for (i=0; i < hd->used; i++)
+    {
+      switch (hd->active[i].type)
+        {
+        case KEYDB_RESOURCE_TYPE_NONE:
+          break;
+        case KEYDB_RESOURCE_TYPE_KEYBOX:
+          keybox_fp_close (hd->active[i].u.kr);
+          break;
+        }
+    }
+}
+
+static void
 unlock_all (KEYDB_HANDLE hd)
 {
   int i;
 
-  if (hd->use_keyboxd)
-    return;
+  do_fp_close (hd);
 
-  if (!hd->locked || hd->keep_lock)
+  if (!hd->locked)
     return;
 
   for (i=hd->used-1; i >= 0; i--)
@@ -1047,17 +1076,26 @@ keydb_get_flags (KEYDB_HANDLE hd, int which, int idx, unsigned int *value)
   if (DBG_CLOCK)
     log_clock ("%s: enter (hd=%p)\n", __func__, hd);
 
-  if (hd->use_keyboxd)
+  if (!hd->use_keyboxd && (hd->found < 0 || hd->found >= hd->used))
     {
-      /* FIXME */
-      *value = 0;
-      err = 0;
+      err = gpg_error (GPG_ERR_NOTHING_FOUND);
       goto leave;
     }
 
-  if ( hd->found < 0 || hd->found >= hd->used)
+  if (hd->use_keyboxd)
     {
-      err = gpg_error (GPG_ERR_NOTHING_FOUND);
+      *value = 0;
+      err = 0;
+      if (which == KEYBOX_FLAG_VALIDITY)
+        {
+          if (hd->last_is_revoked)
+            *value = VALIDITY_REVOKED;
+        }
+      else if (which == KEYBOX_FLAG_BLOB)
+        {
+          if (hd->last_is_ephemeral)
+            *value = KEYBOX_FLAG_BLOB_EPHEMERAL;
+        }
       goto leave;
     }
 
@@ -1085,8 +1123,8 @@ keydb_get_flags (KEYDB_HANDLE hd, int which, int idx, unsigned int *value)
    that some flag values can't be updated and thus may return an
    error, some other flag values may be masked out before an update.
    Returns 0 on success or an error code. */
-gpg_error_t
-keydb_set_flags (KEYDB_HANDLE hd, int which, int idx, unsigned int value)
+static gpg_error_t
+do_set_flags (KEYDB_HANDLE hd, int which, int idx, unsigned int value)
 {
   gpg_error_t err = 0;
 
@@ -1180,8 +1218,8 @@ store_inq_cb (void *opaque, const char *line)
 /*
  * Insert a new Certificate into one of the resources.
  */
-gpg_error_t
-keydb_insert_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
+static gpg_error_t
+do_insert_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
 {
   gpg_error_t err;
   int idx;
@@ -1215,6 +1253,12 @@ keydb_insert_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
       goto leave;
     }
 
+  if (!hd->locked)
+    {
+      err = gpg_error (GPG_ERR_NOT_LOCKED);
+      goto leave;
+    }
+
   if ( hd->found >= 0 && hd->found < hd->used)
     idx = hd->found;
   else if ( hd->current >= 0 && hd->current < hd->used)
@@ -1222,12 +1266,6 @@ keydb_insert_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
   else
     {
       err = gpg_error (GPG_ERR_GENERAL);
-      goto leave;
-    }
-
-  if (!hd->locked)
-    {
-      err = gpg_error (GPG_ERR_NOT_LOCKED);
       goto leave;
     }
 
@@ -1243,8 +1281,6 @@ keydb_insert_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
       err = keybox_insert_cert (hd->active[idx].u.kr, cert, digest);
       break;
     }
-
-  unlock_all (hd);
 
  leave:
   if (DBG_CLOCK)
@@ -1269,6 +1305,18 @@ keydb_update_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
   if (!hd)
     return gpg_error (GPG_ERR_INV_VALUE);
 
+  if (hd->use_keyboxd)
+    {
+      /* FIXME */
+      goto leave;
+    }
+
+  if (!hd->locked)
+    {
+      err = gpg_error (GPG_ERR_NOT_LOCKED);
+      goto leave;
+    }
+
   if ( hd->found < 0 || hd->found >= hd->used)
     return gpg_error (GPG_ERR_NOT_FOUND);
 
@@ -1277,16 +1325,6 @@ keydb_update_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
 
   if (DBG_CLOCK)
     log_clock ("%s: enter (hd=%p)\n", __func__, hd);
-
-  if (hd->use_keyboxd)
-    {
-      /* FIXME */
-      goto leave;
-    }
-
-  err = lock_all (hd);
-  if (err)
-    goto leave;
 
   gpgsm_get_fingerprint (cert, GCRY_MD_SHA1, digest, NULL); /* kludge*/
 
@@ -1301,7 +1339,6 @@ keydb_update_cert (KEYDB_HANDLE hd, ksba_cert_t cert)
       break;
     }
 
-  unlock_all (hd);
  leave:
   if (DBG_CLOCK)
     log_clock ("%s: leave (err=%s)\n", __func__, gpg_strerror (err));
@@ -1366,8 +1403,6 @@ keydb_delete (KEYDB_HANDLE hd)
       err = keybox_delete (hd->active[hd->found].u.kr);
       break;
     }
-
-  unlock_all (hd);
 
  leave:
   if (DBG_CLOCK)
@@ -1546,7 +1581,7 @@ keydb_search_desc_dump (struct keydb_search_desc *desc)
 
 
 
-/* Status callback for SEARCH and NEXT operaions.  */
+/* Status callback for SEARCH and NEXT operations.  */
 static gpg_error_t
 search_status_cb (void *opaque, const char *line)
 {
@@ -1569,8 +1604,14 @@ search_status_cb (void *opaque, const char *line)
           else
             {
               hd->last_ubid_valid = 1;
+              hd->last_is_ephemeral = 0;
+              hd->last_is_revoked = 0;
               s += n;
-              hd->last_is_ephemeral = (*s == 'e');
+              if (s[0] && s[1])
+                {
+                  hd->last_is_ephemeral = (s[0] == 'e');
+                  hd->last_is_revoked = (s[1] == 'r');
+                }
             }
         }
     }
@@ -1595,7 +1636,7 @@ search_status_cb (void *opaque, const char *line)
  * keydb_search_reset().
  *
  * If no key matches the search description, the error code
- * GPG_ERR_NOT_FOUND is retruned.  If there was a match, 0 is
+ * GPG_ERR_NOT_FOUND is returned.  If there was a match, 0 is
  * returned.  If an error occurred, that error code is returned.
  *
  * The returned key is considered to be selected and the certificate
@@ -1605,7 +1646,7 @@ keydb_search (ctrl_t ctrl, KEYDB_HANDLE hd,
               KEYDB_SEARCH_DESC *desc, size_t ndesc)
 {
   gpg_error_t err = gpg_error (GPG_ERR_EOF);
-  unsigned long skipped;
+  unsigned long skipped = 0;
   int i;
 
   if (!hd)
@@ -1667,111 +1708,145 @@ keydb_search (ctrl_t ctrl, KEYDB_HANDLE hd,
           goto leave;
         }
 
-      /* FIXME: Implement --multi */
-      switch (desc->mode)
+      for (i = 0; i < ndesc; i++)
+        if (desc->mode == KEYDB_SEARCH_MODE_FIRST)
+          {
+            /* If any description has mode FIRST, this item trumps all
+             * other descriptions.  */
+            snprintf (line, sizeof line, "SEARCH --x509");
+            goto do_search;
+          }
+
+      for (i=0 ; i < ndesc; i++)
         {
-        case KEYDB_SEARCH_MODE_EXACT:
-          snprintf (line, sizeof line, "SEARCH --x509 =%s", desc[0].u.name);
-          break;
+          int moretocome = (i + 1 < ndesc);
+          const char *more = moretocome? "--x509 --more" : "--x509";
 
-        case KEYDB_SEARCH_MODE_SUBSTR:
-          snprintf (line, sizeof line, "SEARCH --x509 *%s", desc[0].u.name);
-          break;
-
-        case KEYDB_SEARCH_MODE_MAIL:
-          snprintf (line, sizeof line, "SEARCH --x509 <%s",
-                    desc[0].u.name + (desc[0].u.name[0] == '<'));
-          break;
-
-        case KEYDB_SEARCH_MODE_MAILSUB:
-          snprintf (line, sizeof line, "SEARCH --x509 @%s", desc[0].u.name);
-          break;
-
-        case KEYDB_SEARCH_MODE_MAILEND:
-          snprintf (line, sizeof line, "SEARCH --x509 .%s", desc[0].u.name);
-          break;
-
-        case KEYDB_SEARCH_MODE_WORDS:
-          snprintf (line, sizeof line, "SEARCH --x509 +%s", desc[0].u.name);
-          break;
-
-        case KEYDB_SEARCH_MODE_SHORT_KID:
-          snprintf (line, sizeof line, "SEARCH --x509 0x%08lX",
-                    (ulong)desc->u.kid[1]);
-          break;
-
-        case KEYDB_SEARCH_MODE_LONG_KID:
-          snprintf (line, sizeof line, "SEARCH --x509 0x%08lX%08lX",
-                    (ulong)desc->u.kid[0], (ulong)desc->u.kid[1]);
-          break;
-
-        case KEYDB_SEARCH_MODE_FPR:
-          {
-            unsigned char hexfpr[MAX_FINGERPRINT_LEN * 2 + 1];
-            log_assert (desc[0].fprlen <= MAX_FINGERPRINT_LEN);
-            bin2hex (desc[0].u.fpr, desc[0].fprlen, hexfpr);
-            snprintf (line, sizeof line, "SEARCH --x509 0x%s", hexfpr);
-          }
-          break;
-
-        case KEYDB_SEARCH_MODE_ISSUER:
-          snprintf (line, sizeof line, "SEARCH --x509 #/%s", desc[0].u.name);
-          break;
-
-        case KEYDB_SEARCH_MODE_ISSUER_SN:
-          if (desc[0].snhex)
-            snprintf (line, sizeof line, "SEARCH --x509 #%.*s/%s",
-                      (int)desc[0].snlen, desc[0].sn, desc[0].u.name);
-          else
+          switch (desc->mode)
             {
-              char *hexsn = bin2hex (desc[0].sn, desc[0].snlen, NULL);
-              if (!hexsn)
+            case KEYDB_SEARCH_MODE_EXACT:
+              snprintf (line, sizeof line, "SEARCH %s =%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_SUBSTR:
+              snprintf (line, sizeof line, "SEARCH %s *%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_MAIL:
+              snprintf (line, sizeof line, "SEARCH %s <%s",
+                        more, desc[i].u.name + (desc[i].u.name[i] == '<'));
+              break;
+
+            case KEYDB_SEARCH_MODE_MAILSUB:
+              snprintf (line, sizeof line, "SEARCH %s @%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_MAILEND:
+              snprintf (line, sizeof line, "SEARCH %s .%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_WORDS:
+              snprintf (line, sizeof line, "SEARCH %s +%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_SHORT_KID:
+              snprintf (line, sizeof line, "SEARCH %s 0x%08lX", more,
+                        (ulong)desc[i].u.kid[1]);
+              break;
+
+            case KEYDB_SEARCH_MODE_LONG_KID:
+              snprintf (line, sizeof line, "SEARCH %s 0x%08lX%08lX", more,
+                        (ulong)desc[i].u.kid[0], (ulong)desc[i].u.kid[1]);
+              break;
+
+            case KEYDB_SEARCH_MODE_FPR:
+              {
+                unsigned char hexfpr[MAX_FINGERPRINT_LEN * 2 + 1];
+                log_assert (desc[i].fprlen <= MAX_FINGERPRINT_LEN);
+                bin2hex (desc[i].u.fpr, desc[i].fprlen, hexfpr);
+                snprintf (line, sizeof line, "SEARCH %s 0x%s", more, hexfpr);
+              }
+              break;
+
+            case KEYDB_SEARCH_MODE_ISSUER:
+              snprintf (line, sizeof line, "SEARCH %s #/%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_ISSUER_SN:
+              if (desc[i].snhex)
+                snprintf (line, sizeof line, "SEARCH %s #%.*s/%s", more,
+                          (int)desc[i].snlen, desc[i].sn, desc[i].u.name);
+              else
                 {
-                  err = gpg_error_from_syserror ();
-                  goto leave;
+                  char *hexsn = bin2hex (desc[i].sn, desc[i].snlen, NULL);
+                  if (!hexsn)
+                    {
+                      err = gpg_error_from_syserror ();
+                      goto leave;
+                    }
+                  snprintf (line, sizeof line, "SEARCH %s #%s/%s",
+                            more, hexsn, desc[i].u.name);
+                  xfree (hexsn);
                 }
-              snprintf (line, sizeof line, "SEARCH --x509 #%s/%s",
-                        hexsn, desc[0].u.name);
-              xfree (hexsn);
+              break;
+
+            case KEYDB_SEARCH_MODE_SN:
+              snprintf (line, sizeof line, "SEARCH %s #%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_SUBJECT:
+              snprintf (line, sizeof line, "SEARCH %s /%s",
+                        more, desc[i].u.name);
+              break;
+
+            case KEYDB_SEARCH_MODE_KEYGRIP:
+              {
+                unsigned char hexgrip[KEYGRIP_LEN * 2 + 1];
+                bin2hex (desc[i].u.grip, KEYGRIP_LEN, hexgrip);
+                snprintf (line, sizeof line, "SEARCH %s &%s", more, hexgrip);
+              }
+              break;
+
+            case KEYDB_SEARCH_MODE_UBID:
+              {
+                unsigned char hexubid[UBID_LEN * 2 + 1];
+                bin2hex (desc[i].u.ubid, UBID_LEN, hexubid);
+                snprintf (line, sizeof line, "SEARCH %s ^%s", more, hexubid);
+              }
+              break;
+
+            case KEYDB_SEARCH_MODE_NEXT:
+              log_debug ("%s: mode next - we should not get to here!\n",
+                         __func__);
+              snprintf (line, sizeof line, "NEXT --x509");
+              break;
+
+            case KEYDB_SEARCH_MODE_FIRST:
+              log_debug ("%s: mode first - we should not get to here!\n",
+                         __func__);
+              /*fallthru*/
+            default:
+              err = gpg_error (GPG_ERR_INV_ARG);
+              goto leave;
             }
-          break;
 
-        case KEYDB_SEARCH_MODE_SN:
-          snprintf (line, sizeof line, "SEARCH --x509 #%s", desc[0].u.name);
-          break;
-
-        case KEYDB_SEARCH_MODE_SUBJECT:
-          snprintf (line, sizeof line, "SEARCH --x509 /%s", desc[0].u.name);
-          break;
-
-        case KEYDB_SEARCH_MODE_KEYGRIP:
-          {
-            unsigned char hexgrip[KEYGRIP_LEN * 2 + 1];
-            bin2hex (desc[0].u.grip, KEYGRIP_LEN, hexgrip);
-            snprintf (line, sizeof line, "SEARCH --x509 &%s", hexgrip);
-          }
-          break;
-
-        case KEYDB_SEARCH_MODE_UBID:
-          {
-            unsigned char hexubid[UBID_LEN * 2 + 1];
-            bin2hex (desc[0].u.ubid, UBID_LEN, hexubid);
-            snprintf (line, sizeof line, "SEARCH --x509 ^%s", hexubid);
-          }
-          break;
-
-        case KEYDB_SEARCH_MODE_FIRST:
-          snprintf (line, sizeof line, "SEARCH --x509");
-          break;
-
-        case KEYDB_SEARCH_MODE_NEXT:
-          log_debug ("%s: mode next - we should not get to here!\n", __func__);
-          snprintf (line, sizeof line, "NEXT --x509");
-          break;
-
-        default:
-          err = gpg_error (GPG_ERR_INV_ARG);
-          goto leave;
+          if (moretocome)
+            {
+              /* To avoid silent truncation we error out on a too long line.  */
+              if (strlen (line) + 5 >= sizeof line)
+                err = gpg_error (GPG_ERR_ASS_LINE_TOO_LONG);
+              else
+                err = kbx_client_data_simple (hd->kbl->kcd, line);
+              if (err)
+                goto leave;
+            }
         }
 
     do_search:
@@ -1968,7 +2043,7 @@ keydb_store_cert (ctrl_t ctrl, ksba_cert_t cert, int ephemeral, int *existed)
 
   if (!kh->use_keyboxd)
     {
-      rc = lock_all (kh);
+      rc = keydb_lock (kh);
       if (rc)
         return rc;
     }
@@ -2013,7 +2088,7 @@ keydb_store_cert (ctrl_t ctrl, ksba_cert_t cert, int ephemeral, int *existed)
       return rc;
     }
 
-  rc = keydb_insert_cert (kh, cert);
+  rc = do_insert_cert (kh, cert);
   if (rc)
     {
       log_error (_("error storing certificate: %s\n"), gpg_strerror (rc));
@@ -2025,61 +2100,20 @@ keydb_store_cert (ctrl_t ctrl, ksba_cert_t cert, int ephemeral, int *existed)
 }
 
 
-/* This is basically keydb_set_flags but it implements a complete
+/* This is basically do_set_flags but it implements a complete
    transaction by locating the certificate in the DB and updating the
    flags. */
-gpg_error_t
-keydb_set_cert_flags (ctrl_t ctrl, ksba_cert_t cert, int ephemeral,
-                      int which, int idx,
-                      unsigned int mask, unsigned int value)
+static gpg_error_t
+set_cert_flags (KEYDB_HANDLE kh, int which, int idx,
+                unsigned int mask, unsigned int value)
 {
-  KEYDB_HANDLE kh;
   gpg_error_t err;
-  unsigned char fpr[20];
   unsigned int old_value;
-
-  if (!gpgsm_get_fingerprint (cert, 0, fpr, NULL))
-    {
-      log_error (_("failed to get the fingerprint\n"));
-      return gpg_error (GPG_ERR_GENERAL);
-    }
-
-  kh = keydb_new (ctrl);
-  if (!kh)
-    {
-      log_error (_("failed to allocate keyDB handle\n"));
-      return gpg_error (GPG_ERR_ENOMEM);;
-    }
-
-  if (ephemeral)
-    keydb_set_ephemeral (kh, 1);
-
-  if (!kh->use_keyboxd)
-    {
-      err = keydb_lock (kh);
-      if (err)
-        {
-          log_error (_("error locking keybox: %s\n"), gpg_strerror (err));
-          keydb_release (kh);
-          return err;
-        }
-    }
-
-  err = keydb_search_fpr (ctrl, kh, fpr);
-  if (err)
-    {
-      if (gpg_err_code (err) != GPG_ERR_NOT_FOUND)
-        log_error (_("problem re-searching certificate: %s\n"),
-                   gpg_strerror (err));
-      keydb_release (kh);
-      return err;
-    }
 
   err = keydb_get_flags (kh, which, idx, &old_value);
   if (err)
     {
       log_error (_("error getting stored flags: %s\n"), gpg_strerror (err));
-      keydb_release (kh);
       return err;
     }
 
@@ -2087,19 +2121,104 @@ keydb_set_cert_flags (ctrl_t ctrl, ksba_cert_t cert, int ephemeral,
 
   if (value != old_value)
     {
-      err = keydb_set_flags (kh, which, idx, value);
+      err = do_set_flags (kh, which, idx, value);
       if (err)
         {
           log_error (_("error storing flags: %s\n"), gpg_strerror (err));
-          keydb_release (kh);
           return err;
         }
     }
 
-  keydb_release (kh);
   return 0;
 }
 
+
+/*
+ * Modify a flag (specified by WHICH) using VALUE with MASK on CERT.
+ * EPHEMERAL and IDX argument are not in use.
+ */
+gpg_error_t
+keydb_set_cert_flags (ctrl_t ctrl, ksba_cert_t cert, int ephemeral,
+                      int which, int idx,
+                      unsigned int mask, unsigned int value)
+{
+  gpg_error_t err;
+  KEYDB_HANDLE hd;
+  unsigned char fpr[20];
+
+  (void)ephemeral;
+
+  if (!gpgsm_get_fingerprint (cert, 0, fpr, NULL))
+    {
+      log_error (_("failed to get the fingerprint\n"));
+      return gpg_error (GPG_ERR_GENERAL);
+    }
+
+  hd = keydb_new (ctrl);
+  if (!hd)
+    {
+      log_error (_("failed to allocate keyDB handle\n"));
+      return gpg_error (GPG_ERR_ENOMEM);;
+    }
+
+  keydb_set_ephemeral (hd, 1);
+
+  if (!hd->use_keyboxd)
+    {
+      err = keydb_lock (hd);
+      if (err)
+        {
+          log_error (_("error locking keybox: %s\n"), gpg_strerror (err));
+          goto leave;
+        }
+    }
+
+  err = keydb_search_fpr (ctrl, hd, fpr);
+  if (err)
+    {
+      if (gpg_err_code (err) != GPG_ERR_NOT_FOUND)
+        log_error (_("problem re-searching certificate: %s\n"),
+                   gpg_strerror (err));
+      goto leave;
+    }
+
+  if (hd->use_keyboxd)
+    {
+      char line[ASSUAN_LINELENGTH];
+      unsigned char hexubid[UBID_LEN * 2 + 1];
+      const char *flag;
+
+      if (!hd->last_ubid_valid)
+        {
+          err = gpg_error (GPG_ERR_VALUE_NOT_FOUND);
+          goto leave;
+        }
+
+      bin2hex (hd->last_ubid, UBID_LEN, hexubid);
+      if (which == KEYBOX_FLAG_VALIDITY)
+        flag = "--revoked";
+      else if (which == KEYBOX_FLAG_BLOB)
+        flag = "--ephemeral";
+      else
+        {
+          err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+          goto leave;
+        }
+
+      snprintf (line, sizeof line, "PUTKEYFLAG %s%s%s",
+                flag, value ? " " : " --clear ", hexubid);
+      err = assuan_transact (hd->kbl->ctx, line,
+                             NULL, NULL,
+                             NULL, NULL,
+                             keydb_default_status_cb, hd);
+    }
+  else
+    err = set_cert_flags (hd, which, idx, mask, value);
+
+ leave:
+  keydb_release (hd);
+  return err;
+}
 
 /* Reset all the certificate flags we have stored with the certificates
    for performance reasons. */
@@ -2168,22 +2287,44 @@ keydb_clear_some_cert_flags (ctrl_t ctrl, strlist_t names)
       if (!names)
         desc[0].mode = KEYDB_SEARCH_MODE_NEXT;
 
-      err = keydb_get_flags (hd, KEYBOX_FLAG_VALIDITY, 0, &old_value);
-      if (err)
+      if (hd->use_keyboxd)
         {
-          log_error (_("error getting stored flags: %s\n"),
-                     gpg_strerror (err));
-          goto leave;
-        }
+          char line[ASSUAN_LINELENGTH];
+          unsigned char hexubid[UBID_LEN * 2 + 1];
 
-      value = (old_value & ~VALIDITY_REVOKED);
-      if (value != old_value)
+          if (!hd->last_ubid_valid)
+            {
+              err = gpg_error (GPG_ERR_VALUE_NOT_FOUND);
+              goto leave;
+            }
+
+          bin2hex (hd->last_ubid, UBID_LEN, hexubid);
+          snprintf (line, sizeof line, "PUTKEYFLAG --revoked --clear %s",
+                    hexubid);
+          err = assuan_transact (hd->kbl->ctx, line,
+                                 NULL, NULL,
+                                 NULL, NULL,
+                                 keydb_default_status_cb, hd);
+        }
+      else
         {
-          err = keydb_set_flags (hd, KEYBOX_FLAG_VALIDITY, 0, value);
+          err = keydb_get_flags (hd, KEYBOX_FLAG_VALIDITY, 0, &old_value);
           if (err)
             {
-              log_error (_("error storing flags: %s\n"), gpg_strerror (err));
+              log_error (_("error getting stored flags: %s\n"),
+                         gpg_strerror (err));
               goto leave;
+            }
+
+          value = (old_value & ~VALIDITY_REVOKED);
+          if (value != old_value)
+            {
+              err = do_set_flags (hd, KEYBOX_FLAG_VALIDITY, 0, value);
+              if (err)
+                {
+                  log_error (_("error storing flags: %s\n"), gpg_strerror (err));
+                  goto leave;
+                }
             }
         }
     }

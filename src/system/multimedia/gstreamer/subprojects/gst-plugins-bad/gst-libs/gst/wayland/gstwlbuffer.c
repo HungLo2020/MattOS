@@ -172,9 +172,10 @@ static const struct wl_buffer_listener buffer_listener = {
 static void
 gstmemory_disposed (GstWlBuffer * self)
 {
+#ifndef G_DISABLE_ASSERT
   GstWlBufferPrivate *priv = gst_wl_buffer_get_instance_private (self);
-
   g_assert (!priv->used_by_compositor);
+#endif
 
   GST_TRACE_OBJECT (self, "owning GstMemory was finalized");
 
@@ -302,4 +303,18 @@ gst_wl_buffer_get_display (GstWlBuffer * self)
   GstWlBufferPrivate *priv = gst_wl_buffer_get_instance_private (self);
 
   return priv->display;
+}
+
+GstVideoMeta *
+gst_wl_buffer_get_video_meta (GstWlBuffer * self)
+{
+  GstWlBufferPrivate *priv = gst_wl_buffer_get_instance_private (self);
+  return gst_buffer_get_video_meta (priv->current_gstbuffer);
+}
+
+GstVideoCropMeta *
+gst_wl_buffer_get_video_crop_meta (GstWlBuffer * self)
+{
+  GstWlBufferPrivate *priv = gst_wl_buffer_get_instance_private (self);
+  return gst_buffer_get_video_crop_meta (priv->current_gstbuffer);
 }

@@ -284,7 +284,7 @@ pubkey_from_pk_file (app_t app, int pkfid, int cfid,
   *r_pk = NULL;
   *r_pklen = 0;
 
-  if (app->appversion == 15)
+  if (app->appversion == 15 || app->appversion == 232)
     {
       /* Signature Card v2 - get keygrip from the certificate.  */
       unsigned char *cert;
@@ -528,7 +528,7 @@ find_fid_by_keyref (app_t app, const char *keyref, int *r_idx, int *r_algo)
               break;
           if (!filelist[idx].fid)
             {
-              log_debug ("nks: Ooops: Unkown FID cached!\n");
+              log_debug ("nks: Ooops: Unknown FID cached!\n");
               err = gpg_error (GPG_ERR_BUG);
               goto leave;
             }
@@ -726,7 +726,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
 
         /* We use a helper array so that we can control that there is
          * no superfluous application switches.  */
-        if (app->appversion == 15)
+        if (app->appversion == 15 || app->appversion == 232)
           {
             tmp[0] = get_chv_status (app, 0, 0x03);
             tmp[1] = get_chv_status (app, 0, 0x04);
@@ -737,7 +737,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
             tmp[1] = get_chv_status (app, 0, 0x01);
           }
         tmp[2] = get_chv_status (app, app->app_local->qes_app_id, 0x81);
-        if (app->appversion == 15)
+        if (app->appversion == 15 || app->appversion == 232)
           tmp[3] = get_chv_status (app, app->app_local->qes_app_id, 0x82);
         else
           tmp[3] = get_chv_status (app, app->app_local->qes_app_id, 0x83);
@@ -1620,7 +1620,7 @@ verify_pin (app_t app, int pwid, const char *desc,
   pininfo.fixedlen = -1;
 
   /* FIXME: TCOS allows one to read the min. and max. values - do this.  */
-  if (app->appversion == 15)
+  if (app->appversion == 15 || app->appversion == 232)
     {
       if (app->app_local->active_nks_app == NKS_APP_NKS && pwid == 0x03)
         pininfo.minlen = 6;
@@ -1935,7 +1935,7 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
 
   if (app->app_local->active_nks_app == NKS_APP_ESIGN)
     pwid = 0x81;
-  else if (app->appversion == 15)
+  else if (app->appversion == 15 || app->appversion == 232)
     pwid = 0x03;
   else
     pwid = 0x00;
@@ -2029,7 +2029,7 @@ do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
     }
 
   /* We use the Global PIN 1 */
-  if (app->appversion == 15)
+  if (app->appversion == 15 || app->appversion == 232)
     pwid = 0x03;
   else
     pwid = 0x00;
@@ -2080,7 +2080,7 @@ parse_pwidstr (app_t app, const char *pwidstr, int new_mode,
                int *r_nks_app_id, int *r_pwid)
 {
   const char *desc;
-  int nks15 = app->appversion == 15;
+  int nks15 = (app->appversion == 15 || app->appversion == 232);
 
   if (!pwidstr)
     desc = NULL;
@@ -2223,7 +2223,7 @@ do_change_pin (app_t app, ctrl_t ctrl,  const char *pwidstr,
           err = gpg_error_from_syserror ();
           goto leave;
         }
-      if (app->appversion == 15)
+      if (app->appversion == 15 || app->appversion == 232)
         {
           memset (oldpin, '0', 5);
           oldpinlen = 5;  /* 5 ascii zeroes.  */
@@ -2577,7 +2577,7 @@ app_select_nks (app_t app)
             log_info ("Using only the IDLM application\n");
         }
 
-      if (app->appversion == 15)
+      if (app->appversion == 15 || app->appversion == 232)
         app->app_local->qes_app_id = NKS_APP_ESIGN;
       else
         app->app_local->qes_app_id = NKS_APP_SIGG;

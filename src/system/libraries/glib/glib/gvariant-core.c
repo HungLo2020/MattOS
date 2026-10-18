@@ -287,6 +287,12 @@ g_variant_unlock (GVariant *value)
   g_bit_unlock (&value->state, 0);
 }
 
+static inline gboolean
+g_variant_is_serialised (GVariant *value)
+{
+  return (g_atomic_int_get (&value->state) & STATE_SERIALISED) != 0;
+}
+
 /* < private >
  * g_variant_release_children:
  * @value: a #GVariant
@@ -1075,6 +1081,9 @@ g_variant_is_floating (GVariant *value)
 gsize
 g_variant_get_size (GVariant *value)
 {
+  if (g_variant_is_serialised (value))
+    return value->size;
+
   g_variant_lock (value);
   g_variant_ensure_size (value);
   g_variant_unlock (value);
@@ -1119,6 +1128,9 @@ g_variant_get_size (GVariant *value)
 gconstpointer
 g_variant_get_data (GVariant *value)
 {
+  if (g_variant_is_serialised (value))
+    return value->contents.serialised.data;
+
   g_variant_lock (value);
   g_variant_ensure_serialised (value);
   g_variant_unlock (value);
@@ -1135,6 +1147,9 @@ g_variant_get_data (GVariant *value)
  * g_variant_get_data(), except that the returned #GBytes holds
  * a reference to the variant data.
  *
+ * This function cannot fail, even for corrupted variants. In that case
+ * it will return a #GBytes filled with nul bytes.
+ *
  * Returns: (transfer full): A new #GBytes representing the variant data
  *
  * Since: 2.36
@@ -1147,9 +1162,12 @@ g_variant_get_data_as_bytes (GVariant *value)
   gsize bytes_size = 0;
   gsize size;
 
-  g_variant_lock (value);
-  g_variant_ensure_serialised (value);
-  g_variant_unlock (value);
+  if (!g_variant_is_serialised (value))
+    {
+      g_variant_lock (value);
+      g_variant_ensure_serialised (value);
+      g_variant_unlock (value);
+    }
 
   if (value->contents.serialised.bytes != NULL)
     bytes_data = g_bytes_get_data (value->contents.serialised.bytes, &bytes_size);
@@ -1161,8 +1179,10 @@ g_variant_get_data_as_bytes (GVariant *value)
 
   if (data == NULL)
     {
-      g_assert (size == 0);
-      data = bytes_data;
+      if (size == 0)
+        return g_bytes_new (NULL, 0);
+      else
+        return g_bytes_new_take (g_malloc0 (size), size);
     }
 
   if (bytes_data != NULL && data == bytes_data && size == bytes_size)
@@ -1200,11 +1220,14 @@ g_variant_n_children (GVariant *value)
 {
   gsize n_children;
 
+  if (g_variant_is_serialised (value))
+    return g_variant_serialised_n_children (g_variant_to_serialised (value));
+
   g_variant_lock (value);
 
   if (value->state & STATE_SERIALISED)
-    n_children = g_variant_serialised_n_children (
-        g_variant_to_serialised (value));
+    /* Another thread may have serialized @value after the fast-path check. */
+    n_children = g_variant_serialised_n_children (g_variant_to_serialised (value));
   else
     n_children = value->contents.tree.n_children;
 
@@ -1309,8 +1332,11 @@ g_variant_get_child_value (GVariant *value,
     child->size = s_child.size;
     g_atomic_ref_count_init (&child->ref_count);
     child->depth = value->depth + 1;
-    child->contents.serialised.bytes =
-      g_bytes_ref (value->contents.serialised.bytes);
+    if (value->contents.serialised.bytes != NULL)
+      child->contents.serialised.bytes =
+        g_bytes_ref (value->contents.serialised.bytes);
+    else
+      child->contents.serialised.bytes = NULL;
     child->contents.serialised.data = s_child.data;
     child->contents.serialised.ordered_offsets_up_to = (value->state & STATE_TRUSTED) ? G_MAXSIZE : s_child.ordered_offsets_up_to;
     child->contents.serialised.checked_offsets_up_to = (value->state & STATE_TRUSTED) ? G_MAXSIZE : s_child.checked_offsets_up_to;
@@ -1417,10 +1443,20 @@ g_variant_store (GVariant *value,
 {
   g_return_if_fail (data != NULL);
 
+  if (g_variant_is_serialised (value))
+    {
+      if (value->contents.serialised.data != NULL)
+        memcpy (data, value->contents.serialised.data, value->size);
+      else
+        memset (data, 0, value->size);
+      return;
+    }
+
   g_variant_lock (value);
 
   if (value->state & STATE_SERIALISED)
     {
+      /* Another thread may have serialized @value after the fast-path check. */
       if (value->contents.serialised.data != NULL)
         memcpy (data, value->contents.serialised.data, value->size);
       else

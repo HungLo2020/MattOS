@@ -135,7 +135,7 @@ GThreadFunctions g_thread_functions_for_glib_use =
 static guint64
 gettime (void)
 {
-  return g_get_monotonic_time () * 1000;
+  return (guint64) g_get_monotonic_time () * 1000;
 }
 
 guint64 (*g_thread_gettime) (void) = gettime;
@@ -803,8 +803,8 @@ guint
 g_static_rec_mutex_unlock_full (GStaticRecMutex *mutex)
 {
   GRecMutex *rm;
-  gint depth;
-  gint i;
+  guint depth;
+  guint i;
 
   rm = g_static_rec_mutex_get_rec_mutex_impl (mutex);
 
@@ -851,7 +851,7 @@ g_static_rec_mutex_free (GStaticRecMutex *mutex)
 /**
  * GStaticRWLock: (skip):
  *
- * The #GStaticRWLock struct represents a read-write lock. A read-write
+ * The [struct@StaticRWLock] struct represents a read-write lock. A read-write
  * lock can be used for protecting data that some portions of code only
  * read from, while others also write. In such situations it is
  * desirable that several readers can read at once, whereas of course
@@ -895,8 +895,8 @@ g_static_rec_mutex_free (GStaticRecMutex *mutex)
  * ]|
  *
  * This example shows an array which can be accessed by many readers
- * (the my_array_get() function) simultaneously, whereas the writers
- * (the my_array_set() function) will only be allowed once at a time
+ * (the `my_array_get()` function) simultaneously, whereas the writers
+ * (the `my_array_set()` function) will only be allowed once at a time
  * and only if no readers currently access the array. This is because
  * of the potentially dangerous resizing of the array. Using these
  * functions is fully multi-thread safe now.
@@ -908,23 +908,23 @@ g_static_rec_mutex_free (GStaticRecMutex *mutex)
  * to finish their operation. As soon as the last reader unlocks the
  * data, the writer will lock it.
  *
- * Even though #GStaticRWLock is not opaque, it should only be used
+ * Even though [struct@StaticRWLock] is not opaque, it should only be used
  * with the following functions.
  *
- * All of the g_static_rw_lock_* functions can be used even if
- * g_thread_init() has not been called. Then they do nothing, apart
- * from g_static_rw_lock_*_trylock, which does nothing but returning %TRUE.
+ * All of the `g_static_rw_lock_*` functions can be used even if
+ * [func@Thread.init] has not been called. Then they do nothing, apart
+ * from `g_static_rw_lock_*_trylock`, which does nothing but returning true.
  *
  * A read-write lock has a higher overhead than a mutex. For example, both
- * g_static_rw_lock_reader_lock() and g_static_rw_lock_reader_unlock() have
- * to lock and unlock a #GStaticMutex, so it takes at least twice the time
- * to lock and unlock a #GStaticRWLock that it does to lock and unlock a
- * #GStaticMutex. So only data structures that are accessed by multiple
+ * [method@StaticRWLock.reader_lock] and [method@StaticRWLock.reader_unlock] have
+ * to lock and unlock a [struct@StaticMutex], so it takes at least twice the time
+ * to lock and unlock a [struct@StaticRWLock] that it does to lock and unlock a
+ * [struct@StaticMutex]. So only data structures that are accessed by multiple
  * readers, and which keep the lock for a considerable time justify a
- * #GStaticRWLock. The above example most probably would fare better with a
- * #GStaticMutex.
+ * [struct@StaticRWLock]. The above example most probably would fare better with a
+ * [struct@StaticMutex].
  *
- * Deprecated: 2.32: Use a #GRWLock instead
+ * Deprecated: 2.32: Use a [struct@RWLock] instead
  **/
 
 /**
@@ -1196,7 +1196,7 @@ g_static_rw_lock_free (GStaticRWLock* lock)
 /* GPrivate {{{1 ------------------------------------------------------ */
 
 /**
- * g_private_new: (skip):
+ * g_private_new: (skip) (constructor) (not method):
  * @notify: a #GDestroyNotify
  *
  * Creates a new #GPrivate.
@@ -1204,7 +1204,7 @@ g_static_rw_lock_free (GStaticRWLock* lock)
  * Deprecated:2.32: dynamic allocation of #GPrivate is a bad idea.  Use
  *                  static storage and G_PRIVATE_INIT() instead.
  *
- * Returns: a newly allocated #GPrivate (which can never be destroyed)
+ * Returns: (transfer full): a newly allocated #GPrivate (which can never be destroyed)
  */
 GPrivate *
 g_private_new (GDestroyNotify notify)
@@ -1443,11 +1443,11 @@ g_static_private_free (GStaticPrivate *private_key)
 /* GMutex {{{1 ------------------------------------------------------ */
 
 /**
- * g_mutex_new: (skip):
+ * g_mutex_new: (skip) (constructor) (not method):
  *
  * Allocates and initializes a new #GMutex.
  *
- * Returns: a newly allocated #GMutex. Use g_mutex_free() to free
+ * Returns: (transfer full): a newly allocated #GMutex. Use g_mutex_free() to free
  *
  * Deprecated: 2.32: GMutex can now be statically allocated, or embedded
  * in structures and initialised with g_mutex_init().
@@ -1485,11 +1485,11 @@ g_mutex_free (GMutex *mutex)
 /* GCond {{{1 ------------------------------------------------------ */
 
 /**
- * g_cond_new: (skip):
+ * g_cond_new: (skip) (constructor) (not method):
  *
  * Allocates and initializes a new #GCond.
  *
- * Returns: a newly allocated #GCond. Free with g_cond_free()
+ * Returns: (transfer full): a newly allocated #GCond. Free with g_cond_free()
  *
  * Deprecated: 2.32: GCond can now be statically allocated, or embedded
  * in structures and initialised with g_cond_init().

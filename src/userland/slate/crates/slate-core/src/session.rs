@@ -2,6 +2,11 @@
 use crate::*;
 
 impl App {
+    /// Open a folder as a workspace. Every route (Open Folder, recent projects,
+    /// the palette, a folder dropped or opened as a file) comes here, so they
+    /// agree: this window's own folder is shown, one open in another window is
+    /// not opened twice, and otherwise the GUI asks (or follows
+    /// "open-folder-in") whether to use this window or a new one.
     pub(crate) fn open_workspace(&mut self, path: PathBuf) -> Result<()> {
         let path = if path.is_absolute() {
             path
@@ -12,13 +17,43 @@ impl App {
         if !path.is_dir() {
             bail!("Select a workspace folder");
         }
-        if !self.terminal_frontend {
-            self.frontend_requests
-                .push(format!("open-workspace:{}", path.display()));
-        } else if path == self.root {
+        if path == self.root {
             self.expand_workspace()?;
             self.browse(path)?;
-        } else if !self.saves.pending_save.is_empty() {
+            self.focus_file_browser()?;
+            self.status = "This folder is already open in this window".into();
+            return Ok(());
+        }
+        if workspace::open_elsewhere(&path) {
+            bail!("{} is already open in another Slate window", path.display());
+        }
+        let place = if self.terminal_frontend {
+            "current"
+        } else {
+            self.preferences.open_folder_in.as_str()
+        };
+        match place {
+            "new" => self.open_workspace_window(&path),
+            "current" => self.open_workspace_here(path)?,
+            _ => {
+                self.pending_workspace = Some(path.clone());
+                self.prompt = Some(search::Prompt {
+                    kind: "open-folder-where".into(),
+                    input: path.display().to_string(),
+                    ..Default::default()
+                });
+            }
+        }
+        Ok(())
+    }
+    pub(crate) fn open_workspace_window(&mut self, path: &Path) {
+        self.frontend_requests
+            .push(format!("open-workspace:{}", path.display()));
+        self.status = format!("Opening {} in a new window", path.display());
+    }
+    /// Replace this window's workspace, asking first about unsaved changes.
+    pub(crate) fn open_workspace_here(&mut self, path: PathBuf) -> Result<()> {
+        if !self.saves.pending_save.is_empty() {
             bail!("Wait for saves to finish before switching workspaces");
         } else if self.dirty() {
             self.pending_workspace = Some(path.clone());
@@ -46,6 +81,8 @@ impl App {
         next.terminal_frontend = self.terminal_frontend;
         next.elevation_mode = self.elevation_mode;
         next.inbox = self.inbox.clone();
+        // Frontends that cache the session's content start over.
+        next.session = self.session + 1;
         next.enable_workspace(true)?;
         self.flush_workspace()?;
         *self = next;
@@ -97,7 +134,11 @@ impl App {
             document.label = None;
             opened.push((document, spec.line, spec.column));
         }
-        for file in &launch.files {
+        // Recovery checkpoints hold a bounded number of documents; opening
+        // more would leave the whole session without crash recovery.
+        let room = workspace::MAX_DOCUMENTS.saturating_sub(opened.len());
+        let skipped = launch.files.len().saturating_sub(room);
+        for file in launch.files.iter().take(room) {
             let document = if file.path.exists() {
                 Document::open(&file.path)
                     .with_context(|| format!("Cannot open {}", file.path.display()))?
@@ -153,12 +194,34 @@ impl App {
             positions.push((view, line, column));
         }
         let mut layout = Node::default_layout(11, 12);
+        // Beyond one pane's tab limit, further files open in editor panes
+        // split beside it.
+        let mut chunks = tabs.chunks(crate::layout::MAX_TABS);
         if let Some((pane_tabs, _)) = layout.pane_mut(2) {
-            *pane_tabs = tabs;
+            *pane_tabs = chunks.next().unwrap_or_default().to_vec();
+        }
+        let mut last = 2;
+        for chunk in chunks {
+            ids += 2;
+            let (pane, split) = (ids - 1, ids);
+            layout.split(last, Axis::Vertical, pane, split, chunk[0].clone());
+            if let Some((pane_tabs, _)) = layout.pane_mut(pane) {
+                *pane_tabs = chunk.to_vec();
+            }
+            last = pane;
+        }
+        if skipped > 0 {
+            notices.push(format!(
+                "Opened {} of {} files: a session holds at most {} documents",
+                launch.files.len() - skipped,
+                launch.files.len(),
+                workspace::MAX_DOCUMENTS
+            ));
         }
         let mut app = Self {
             browser: root.clone(),
             pending_workspace: None,
+            session: 0,
             root: root.clone(),
             documents,
             views,
@@ -170,9 +233,13 @@ impl App {
             status: String::new(),
             quit: false,
             clipboard: String::new(),
-            files: vec![],
+            files: Default::default(),
             expanded_folders: Default::default(),
             pending_file: None,
+            pending_reveal: None,
+            browse_requests: 0,
+            browse_sent: None,
+            browse_replies: 0,
             pending_path_dialog: None,
             git: git::Panel::default(),
             selected: 0,
@@ -181,6 +248,7 @@ impl App {
             revision: 1,
             files_revision: 1,
             render_cache: BTreeMap::new(),
+            text_cache: BTreeMap::new(),
             screen_builds: 0,
             typing: false,
             ids,
@@ -205,6 +273,8 @@ impl App {
             ),
             system_colors: None,
             terminal_colors: theme::Palette::dark(true),
+            files_colors: theme::Palette::dark(false),
+            git_colors: theme::Palette::dark(false),
             file_mode,
             elevation_mode: ElevationMode::None,
             last_cut: None,
@@ -242,6 +312,7 @@ impl App {
             project_search_policy: Default::default(),
             last_search_files: Vec::new(),
             replace_backups: Vec::new(),
+            replace_undoing: false,
             lsp: Default::default(),
             formatting: Default::default(),
             tasks: BTreeMap::new(),
@@ -250,10 +321,14 @@ impl App {
             trusted: trust::is_trusted(&root),
             pending_trust: None,
             trust_cache: Default::default(),
+            trust_generation: 0,
+            session_trust: Vec::new(),
             fold_cache: Default::default(),
             wrap_cache: Default::default(),
             fuzzy_worker: None,
             search_worker: None,
+            outline_worker: None,
+            outline_ticket: Default::default(),
         };
         app.read_layouts();
         app.load_preferences();

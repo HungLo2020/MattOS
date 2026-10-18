@@ -1468,11 +1468,12 @@ static GstElement *
 try_element (GstPlaySink * playsink, GstElement * element, gboolean unref)
 {
   GstStateChangeReturn ret;
-  GstBus *element_bus;
 
   if (element) {
-    element_bus = gst_element_get_bus (element);
+#ifndef G_DISABLE_ASSERT
+    GstBus *element_bus = gst_element_get_bus (element);
     g_assert (!element_bus);
+#endif
     gst_element_set_bus (element, GST_BIN_CAST (playsink)->child_bus);
 
     ret = gst_element_set_state (element, GST_STATE_READY);
@@ -3229,7 +3230,7 @@ gst_play_sink_do_reconfigure (GstPlaySink * playsink)
 
   GST_PLAY_SINK_LOCK (playsink);
   GST_OBJECT_LOCK (playsink);
-  /* get flags, there are protected with the object lock */
+  /* get flags, they're protected with the object lock */
   flags = playsink->flags;
   GST_OBJECT_UNLOCK (playsink);
 
@@ -4526,7 +4527,11 @@ gst_play_sink_refresh_pad (GstPlaySink * playsink, GstPad * pad,
     *block_id =
         gst_pad_add_probe (blockpad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
         sinkpad_blocked_cb, playsink, NULL);
-    PENDING_FLAG_SET (playsink, type);
+    /* Don't set PENDING for text pads - subtitle data is sparse and may
+     * not arrive before video/audio, which would cause reconfiguration to
+     * wait indefinitely. */
+    if (type != GST_PLAY_SINK_TYPE_TEXT)
+      PENDING_FLAG_SET (playsink, type);
     gst_object_unref (blockpad);
   }
   GST_PLAY_SINK_UNLOCK (playsink);
@@ -4614,8 +4619,8 @@ gst_play_sink_request_pad (GstPlaySink * playsink, GstPlaySinkType type)
       block_id = &playsink->video_block_id;
       break;
     case GST_PLAY_SINK_TYPE_TEXT:
-      GST_LOG_OBJECT (playsink, "ghosting text");
       if (!playsink->text_pad) {
+        GST_LOG_OBJECT (playsink, "ghosting text");
         playsink->text_pad =
             gst_ghost_pad_new_no_target ("text_sink", GST_PAD_SINK);
         created = TRUE;
@@ -4661,7 +4666,11 @@ gst_play_sink_request_pad (GstPlaySink * playsink, GstPlaySinkType type)
       *block_id =
           gst_pad_add_probe (blockpad, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
           sinkpad_blocked_cb, playsink, NULL);
-      PENDING_FLAG_SET (playsink, type);
+      /* Don't set PENDING for text pads - subtitle data is sparse and may
+       * not arrive before video/audio, which would cause reconfiguration to
+       * wait indefinitely. */
+      if (type != GST_PLAY_SINK_TYPE_TEXT)
+        PENDING_FLAG_SET (playsink, type);
       gst_object_unref (blockpad);
     }
     GST_PLAY_SINK_UNLOCK (playsink);

@@ -99,7 +99,7 @@ typedef struct _GstTestSrcBin GstTestSrcBin;
 typedef struct _GstTestSrcBinClass GstTestSrcBinClass;
 
 /* *INDENT-OFF* */
-GType gst_test_src_bin_get_type (void) G_GNUC_CONST;
+GType gst_test_src_bin_get_type (void);
 /* *INDENT-ON* */
 
 struct _GstTestSrcBinClass
@@ -572,9 +572,8 @@ gst_test_src_bin_uri_handler_set_uri (GstURIHandler * handler,
     if (self->expose_sources_async) {
       GST_OBJECT_UNLOCK (self);
 
-      gst_element_call_async (GST_ELEMENT (self),
-          (GstElementCallAsyncFunc) gst_test_src_bin_create_sources,
-          NULL, NULL);
+      gst_object_call_async (GST_OBJECT (self),
+          (GstObjectCallAsyncFunc) gst_test_src_bin_create_sources, NULL);
     } else {
       GST_OBJECT_UNLOCK (self);
 
@@ -619,7 +618,7 @@ gst_test_src_bin_set_property (GObject * object, guint prop_id,
   switch (prop_id) {
     case PROP_STREAM_TYPES:
     {
-      gboolean set G_GNUC_UNUSED;       /* G_DISABLE_ASSERT */
+      gboolean set GST_UNUSED_ASSERT;
       gchar *uri = g_strdup_printf ("testbin://%s", g_value_get_string (value));
 
       set = gst_uri_handler_set_uri (GST_URI_HANDLER (self), uri, NULL);
@@ -680,9 +679,8 @@ gst_test_src_bin_change_state (GstElement * element, GstStateChange transition)
   switch (transition) {
     case GST_STATE_CHANGE_READY_TO_PAUSED:{
       if (self->expose_sources_async) {
-        gst_element_call_async (element,
-            (GstElementCallAsyncFunc) gst_test_src_bin_create_sources,
-            NULL, NULL);
+        gst_object_call_async (GST_OBJECT_CAST (element),
+            (GstObjectCallAsyncFunc) gst_test_src_bin_create_sources, NULL);
       } else {
         gst_test_src_bin_create_sources (self);
       }

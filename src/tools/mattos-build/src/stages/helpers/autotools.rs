@@ -35,10 +35,23 @@ fn build_autotools_import(
         "gmp" => "skip-regenerated-info-docs-and-normalize-public-cflags-v2",
         _ => "",
     };
+    // A stage-cache miss does not invalidate Autoconf's saved environment.
+    // config.status can otherwise reconfigure with an old pkg-config overlay
+    // against a dependency's newly installed headers and libraries. Bind the
+    // private build directory to published dependency bytes, as Meson does.
+    let dependency_outputs = dependencies
+        .iter()
+        .map(|dependency| {
+            let manifest = stage_cache::read_stage_manifest(repo_root, dependency)
+                .with_context(|| format!("failed to read {dependency} dependency manifest"))?;
+            Ok::<_, anyhow::Error>(format!("{dependency}={}", manifest.output_content_digest))
+        })
+        .collect::<Result<Vec<_>>>()?;
     let stamp = format!(
-        "{state}\n{}\ndependencies={}\n{adaptation_stamp}\n",
+        "{state}\n{}\ndependencies={}\n{adaptation_stamp}\ndependency-outputs={}\n",
         options.join("\n"),
-        dependencies.join(",")
+        dependencies.join(","),
+        dependency_outputs.join(",")
     );
     if fs::read_to_string(&stamp_path).ok().as_deref() != Some(stamp.as_str()) {
         remove_path_if_exists(&source_copy)?;
@@ -475,6 +488,69 @@ fn build_autotools_import(
     Ok(())
 }
 
+#[cfg(test)]
+mod autotools_configuration_tests {
+    use super::*;
+
+    #[test]
+    fn dependency_bytes_refresh_configure_but_metadata_only_changes_reuse_it() {
+        let root = tempfile::tempdir().unwrap();
+        let repo = root.path();
+        let source = repo.join("fixture-source");
+        fs::create_dir_all(&source).unwrap();
+        fs::create_dir_all(repo.join("upstream/state")).unwrap();
+        fs::write(repo.join("upstream/state/fixture.toml"), "fixture-v1\n").unwrap();
+        let configure = source.join("configure");
+        fs::write(&configure, concat!(
+            "#!/bin/sh\nset -eu\n",
+            "pkg-config --modversion fixture-dep > configured-version\n",
+            "cat > Makefile <<'EOF'\n",
+            "all:\n\tcp configured-version result\n",
+            "install: all\n\tmkdir -p $(DESTDIR)/usr/share/fixture\n",
+            "\tcp result $(DESTDIR)/usr/share/fixture/version\nEOF\n",
+        )).unwrap();
+        set_mode(configure, 0o755).unwrap();
+        let descriptor = "out/build/fixture-dep/install/usr/lib/x86_64-linux-gnu/pkgconfig/fixture-dep.pc";
+        let spec = cache_manifest::StageSpec {
+            id: "fixture-dep".into(),
+            source_inputs: vec!["dependency-source".into()],
+            configuration_inputs: Vec::new(),
+            tools: Vec::new(),
+            dependencies: Vec::new(),
+            outputs: vec![descriptor.into()],
+            recipe: "fixture-producer".into(),
+        };
+        let publish = |source_identity: &str, version: &str| {
+            fs::write(repo.join("dependency-source"), source_identity).unwrap();
+            stage_cache::execute_cached_stage(repo, &spec, || Ok(()), || {
+                let path = repo.join(descriptor);
+                fs::create_dir_all(path.parent().unwrap())?;
+                fs::write(path, format!(
+                    "prefix=/usr\nName: fixture-dep\nDescription: fixture\nVersion: {version}\n"
+                ))?;
+                Ok(())
+            }).unwrap();
+        };
+        let build = || build_autotools_import(
+            repo, "fixture", "fixture-source", &["fixture-dep"], &[],
+            &["usr/share/fixture/version"],
+        ).unwrap();
+        let output = repo.join("out/build/fixture/install/usr/share/fixture/version");
+        let sentinel = repo.join("out/build/fixture/build/retained");
+        publish("source-one", "1.0");
+        build();
+        assert_eq!(fs::read_to_string(&output).unwrap().trim(), "1.0");
+        fs::write(&sentinel, "keep for identical dependency bytes").unwrap();
+        publish("metadata-only-update", "1.0");
+        build();
+        assert!(sentinel.is_file());
+        publish("source-two", "2.0");
+        build();
+        assert!(!sentinel.exists());
+        assert_eq!(fs::read_to_string(output).unwrap().trim(), "2.0");
+    }
+}
+
 fn build_file(repo_root: &Path) -> Result<()> {
     build_autotools_import(
         repo_root,
@@ -690,13 +766,16 @@ fn build_xkbcommon(repo_root: &Path) -> Result<()> {
     }
     run_cmd_with_env_overrides(
         repo_root,
-        "ninja",
+        "meson",
         &[
+            "compile",
             "-C",
             path_str(&build_dir)?,
-            "libxkbcommon.so.0.9.2",
-            "libxkbcommon-x11.so.0.9.2",
-            "libxkbregistry.so.0.9.2",
+            // Meson resolves logical targets to this release's filenames.
+            // Building only the libraries avoids the upstream test programs.
+            "xkbcommon",
+            "xkbcommon-x11",
+            "xkbregistry",
         ],
         &env,
     )?;

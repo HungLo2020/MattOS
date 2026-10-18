@@ -32,7 +32,6 @@
 
 #include "gstglelements.h"
 #include "gstgldownloadelement.h"
-#include "gstglutils.h"
 
 GST_DEBUG_CATEGORY_STATIC (gst_gl_download_element_debug);
 #define GST_CAT_DEFAULT gst_gl_download_element_debug
@@ -864,7 +863,7 @@ gst_gl_download_element_class_init (GstGLDownloadElementClass * klass)
   gst_element_class_add_static_pad_template (element_class,
       &gst_gl_download_element_sink_pad_template);
 
-  gst_element_class_set_metadata (element_class,
+  gst_element_class_set_static_metadata (element_class,
       "OpenGL downloader", "Filter/Video",
       "Downloads data from OpenGL", "Matthew Waters <matthew@centricular.com>");
 
@@ -961,7 +960,9 @@ _convert_dma_drm (GstGLContext * context, GstStructure * s)
     GValue newfmtval = G_VALUE_INIT;
 
     if (context && gst_gl_dma_buf_transform_drm_formats_to_gst_formats (context,
-            drmval, GST_GL_DRM_FORMAT_INCLUDE_EMULATED, &newfmtval)) {
+            drmval,
+            GST_GL_DRM_FORMAT_INCLUDE_EMULATED |
+            GST_GL_DRM_FORMAT_DIRECT_IMPORT, &newfmtval)) {
       gst_structure_set_value (s, "format", &newfmtval);
       gst_structure_remove_field (s, "drm-format");
       g_value_unset (&newfmtval);
@@ -975,7 +976,7 @@ _convert_dma_drm (GstGLContext * context, GstStructure * s)
     if (!context) {
       gst_structure_remove_field (s, "drm-format");
     } else if (gst_gl_dma_buf_transform_gst_formats_to_drm_formats (context,
-            fmtval, 0, &drmfmtval)) {
+            fmtval, GST_GL_DRM_FORMAT_INCLUDE_EMULATED, &drmfmtval)) {
       gst_structure_set_value (s, "drm-format", &drmfmtval);
       g_value_unset (&drmfmtval);
     } else {
@@ -1390,6 +1391,8 @@ gst_gl_download_element_prepare_output_buffer (GstBaseTransform * bt,
       *outbuf = wrapped_dmabuf;
 
       return GST_FLOW_OK;
+    } else {
+      GST_WARNING_OBJECT (dl, "could not unwrap dma-buf-backed GL buffer");
     }
   }
 
@@ -1513,6 +1516,8 @@ gst_gl_download_element_decide_allocation (GstBaseTransform * trans,
 
       gst_query_parse_nth_allocation_pool (query, 0,
           &download->foreign_dmabuf_pool, NULL, NULL, NULL);
+      GST_INFO_OBJECT (trans, "using foreign dmabuf pool %" GST_PTR_FORMAT,
+          download->foreign_dmabuf_pool);
       download->foreign_dmabuf_caps = gst_caps_ref (caps);
 
       gst_query_remove_nth_allocation_pool (query, 0);
@@ -1599,7 +1604,8 @@ gst_gl_download_element_propose_allocation (GstBaseTransform * bt,
         GST_GL_DOWNLOAD_ELEMENT (bt)->foreign_dmabuf_pool,
         GST_GL_DOWNLOAD_ELEMENT (bt)->foreign_dmabuf_caps);
 
-    GST_LOG_OBJECT (bt, "offering dma-buf-backed GL buffer pool");
+    GST_INFO_OBJECT (bt,
+        "offering dma-buf-backed GL buffer pool %" GST_PTR_FORMAT, pool);
   }
 #endif
 

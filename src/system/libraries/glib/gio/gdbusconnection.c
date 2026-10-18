@@ -461,7 +461,7 @@ enum {
     FLAG_INITIALIZED = 1 << 0,
     FLAG_EXIT_ON_CLOSE = 1 << 1,
     FLAG_CLOSED = 1 << 2
-};
+} G_GNUC_FLAG_ENUM;
 
 struct _GDBusConnection
 {
@@ -698,7 +698,7 @@ check_initialized (GDBusConnection *connection)
 
 typedef enum {
     MAY_BE_UNINITIALIZED = (1<<1)
-} CheckUnclosedFlags;
+} G_GNUC_FLAG_ENUM CheckUnclosedFlags;
 
 /*
  * Check the same thing as check_initialized(), and also that the
@@ -2866,7 +2866,7 @@ initable_init (GInitable     *initable,
   /* Because of init_lock, we can't get here twice in different threads */
   g_assert (connection->initialization_error == NULL);
 
-  /* The user can pass multiple (but mutally exclusive) construct
+  /* The user can pass multiple (but mutually exclusive) construct
    * properties:
    *
    *  - stream (of type GIOStream)
@@ -4501,10 +4501,7 @@ purge_all_signal_subscriptions (GDBusConnection *connection)
 static GDBusInterfaceVTable *
 _g_dbus_interface_vtable_copy (const GDBusInterfaceVTable *vtable)
 {
-  /* Don't waste memory by copying padding - remember to update this
-   * when changing struct _GDBusInterfaceVTable in gdbusconnection.h
-   */
-  return g_memdup2 ((gconstpointer) vtable, 3 * sizeof (gpointer));
+  return g_memdup2 ((gconstpointer) vtable, sizeof (GDBusInterfaceVTable));
 }
 
 static void
@@ -4518,10 +4515,7 @@ _g_dbus_interface_vtable_free (GDBusInterfaceVTable *vtable)
 static GDBusSubtreeVTable *
 _g_dbus_subtree_vtable_copy (const GDBusSubtreeVTable *vtable)
 {
-  /* Don't waste memory by copying padding - remember to update this
-   * when changing struct _GDBusSubtreeVTable in gdbusconnection.h
-   */
-  return g_memdup2 ((gconstpointer) vtable, 3 * sizeof (gpointer));
+  return g_memdup2 ((gconstpointer) vtable, sizeof (GDBusSubtreeVTable));
 }
 
 static void
@@ -4756,7 +4750,7 @@ invoke_get_property_in_idle_cb (gpointer _data)
 
   if (value != NULL)
     {
-      g_assert_no_error (error);
+      g_assert (error == NULL);
 
       g_variant_take_ref (value);
       reply = g_dbus_message_new_method_reply (data->message);

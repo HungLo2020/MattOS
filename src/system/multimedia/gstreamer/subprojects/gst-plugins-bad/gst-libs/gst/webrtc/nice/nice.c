@@ -23,10 +23,20 @@
 
 #include "nice.h"
 #include "nicestream.h"
+#include "niceutils.h"
 /* libnice */
 #include <agent.h>
 
 #define HTTP_PROXY_PORT_DEFAULT 3128
+#define MAX_CLOSING_TIME_MILLI_SECONDS 2 * 1000 /* limit closing procedure to 2s */
+
+typedef struct
+{
+  GMutex mutex;                 /* Mutex for guarding count */
+  GCond cond;                   /* Condition for signaling that all resolves have finished */
+  guint count;
+  gboolean cancelled;
+} OutstandingResolves;
 
 /* XXX:
  *
@@ -70,6 +80,12 @@ struct _GstWebRTCNicePrivate
   GHashTable *turn_servers;
 
   GstUri *http_proxy;
+
+  gchar *remote_ufrag;
+  gchar *remote_pwd;
+
+  GCancellable *resolve_cancellable;
+  OutstandingResolves *outstanding_resolves;    /* keeps track of uncompleted resolve tasks */
 };
 
 #define gst_webrtc_nice_parent_class parent_class
@@ -77,6 +93,59 @@ G_DEFINE_TYPE_WITH_CODE (GstWebRTCNice, gst_webrtc_nice,
     GST_TYPE_WEBRTC_ICE, G_ADD_PRIVATE (GstWebRTCNice)
     GST_DEBUG_CATEGORY_INIT (gst_webrtc_nice_debug, "webrtcnice", 0,
         "webrtcnice"););
+
+static OutstandingResolves *
+outstanding_resolves_ref (OutstandingResolves * r)
+{
+  return g_atomic_rc_box_acquire (r);
+}
+
+static void
+outstanding_resolves_free (OutstandingResolves * r)
+{
+  g_cond_clear (&r->cond);
+  g_mutex_clear (&r->mutex);
+}
+
+static void
+outstanding_resolves_unref (OutstandingResolves * r)
+{
+  g_atomic_rc_box_release_full (r, (GDestroyNotify) outstanding_resolves_free);
+}
+
+static void
+outstanding_resolves_dec (OutstandingResolves * r)
+{
+  g_mutex_lock (&r->mutex);
+  r->count--;
+  if (r->count == 0)
+    g_cond_signal (&r->cond);
+  g_mutex_unlock (&r->mutex);
+}
+
+static gboolean
+outstanding_resolves_try_inc (OutstandingResolves * r)
+{
+  gboolean ret = FALSE;
+  g_mutex_lock (&r->mutex);
+  if (!r->cancelled) {
+    r->count++;
+    ret = TRUE;
+  }
+  g_mutex_unlock (&r->mutex);
+
+  return ret;
+}
+
+static void
+outstanding_resolves_wait (OutstandingResolves * r)
+{
+  g_mutex_lock (&r->mutex);
+  r->cancelled = TRUE;
+  while (r->count != 0)
+    g_cond_wait (&r->cond, &r->mutex);
+  g_mutex_unlock (&r->mutex);
+}
 
 static gboolean
 _unlock_pc_thread (GMutex * lock)
@@ -133,6 +202,7 @@ _stop_thread (GstWebRTCNice * ice)
   g_mutex_unlock (&ice->priv->lock);
 
   g_thread_unref (ice->priv->thread);
+  ice->priv->thread = NULL;
 }
 
 struct NiceStreamItem
@@ -284,6 +354,7 @@ struct resolve_host_data
   GstResolvedCallback resolved_callback;
   gpointer user_data;
   GDestroyNotify notify;
+  OutstandingResolves *outstanding_resolves;
 };
 
 static struct resolve_host_data *
@@ -330,6 +401,9 @@ on_resolve_host (GResolver * resolver, GAsyncResult * res, gpointer user_data)
   GError *error = NULL;
   GList *addresses;
 
+  outstanding_resolves_dec (rh->outstanding_resolves);
+  outstanding_resolves_unref (rh->outstanding_resolves);
+
   if (!nice) {
     error = g_error_new_literal (G_IO_ERROR, G_IO_ERROR_CANCELLED, "Cancelled");
     rh->resolved_callback (NULL, NULL, error, rh->user_data);
@@ -366,15 +440,18 @@ resolve_host_main_cb (gpointer user_data)
   struct resolve_host_data *rh = user_data;
   GstWebRTCNice *nice = g_weak_ref_get (&rh->nice_weak);
 
-  if (nice) {
+  if (nice && outstanding_resolves_try_inc (rh->outstanding_resolves)) {
     /* no need to error anymore if the main context disappears and this task is
      * not run */
     rh->main_context_handled = TRUE;
 
     GST_DEBUG_OBJECT (nice, "Resolving host %s", rh->host);
-    g_resolver_lookup_by_name_async (resolver, rh->host, NULL,
-        (GAsyncReadyCallback) on_resolve_host, resolve_host_data_ref (rh));
+    g_resolver_lookup_by_name_async (resolver, rh->host,
+        nice->priv->resolve_cancellable, (GAsyncReadyCallback) on_resolve_host,
+        resolve_host_data_ref (rh));
     gst_object_unref (nice);
+  } else {
+    outstanding_resolves_unref (rh->outstanding_resolves);
   }
 
   return G_SOURCE_REMOVE;
@@ -415,6 +492,8 @@ resolve_host_async (GstWebRTCNice * nice, const gchar * host,
   rh->resolved_callback = resolved_callback;
   rh->user_data = user_data;
   rh->notify = notify;
+  rh->outstanding_resolves =
+      outstanding_resolves_ref (nice->priv->outstanding_resolves);
 
   GST_TRACE_OBJECT (nice, "invoking main context for resolving host %s "
       "with data %p", host, rh);
@@ -551,27 +630,20 @@ gst_webrtc_nice_add_stream (GstWebRTCICE * ice, guint session_id)
   return item->stream;
 }
 
-static void
-_on_new_candidate (NiceAgent * agent, NiceCandidate * candidate,
-    GstWebRTCNice * ice)
+void
+gst_webrtc_nice_fill_local_candidate_credentials (NiceAgent * agent,
+    NiceCandidate * candidate)
 {
-  struct NiceStreamItem *item;
-  gchar *attr;
-
-  item = _find_item (ice, -1, candidate->stream_id, NULL);
-  if (!item) {
-    GST_WARNING_OBJECT (ice, "received signal for non-existent stream %u",
-        candidate->stream_id);
-    return;
-  }
 
   if (!candidate->username || !candidate->password) {
-    gboolean got_credentials;
-    gchar *ufrag, *password;
+    gchar *ufrag = NULL, *password = NULL;
 
-    got_credentials = nice_agent_get_local_credentials (ice->priv->nice_agent,
-        candidate->stream_id, &ufrag, &password);
-    g_warn_if_fail (got_credentials);
+    if (!nice_agent_get_local_credentials (agent, candidate->stream_id, &ufrag,
+            &password)) {
+      g_warning ("Failed to get local credentials for stream %u",
+          candidate->stream_id);
+      return;
+    }
 
     if (!candidate->username)
       candidate->username = ufrag;
@@ -583,8 +655,40 @@ _on_new_candidate (NiceAgent * agent, NiceCandidate * candidate,
     else
       g_free (password);
   }
+}
 
-  attr = nice_agent_generate_local_candidate_sdp (agent, candidate);
+void
+gst_webrtc_nice_fill_remote_candidate_credentials (GstWebRTCNice * nice,
+    NiceCandidate * candidate)
+{
+  if (!candidate->username)
+    candidate->username = g_strdup (nice->priv->remote_ufrag);
+
+  if (!candidate->password)
+    candidate->password = g_strdup (nice->priv->remote_pwd);
+}
+
+static void
+_on_new_candidate (NiceAgent * agent, NiceCandidate * candidate,
+    GstWebRTCNice * ice)
+{
+  struct NiceStreamItem *item;
+  NiceCandidate *c;
+  gchar *attr;
+
+  item = _find_item (ice, -1, candidate->stream_id, NULL);
+  if (!item) {
+    GST_WARNING_OBJECT (ice, "received signal for non-existent stream %u",
+        candidate->stream_id);
+    return;
+  }
+
+  c = nice_candidate_copy (candidate);
+  gst_webrtc_nice_fill_local_candidate_credentials (agent, c);
+
+  attr = nice_agent_generate_local_candidate_sdp (agent, c);
+
+  nice_candidate_free (c);
 
   if (ice->priv->on_candidate)
     ice->priv->on_candidate (GST_WEBRTC_ICE (ice), item->session_id, attr,
@@ -605,79 +709,6 @@ gst_webrtc_nice_find_transport (GstWebRTCICE * ice, GstWebRTCICEStream * stream,
 
   return gst_webrtc_ice_stream_find_transport (item->stream, component);
 }
-
-#if 0
-/* TODO don't rely on libnice to (de)serialize candidates */
-static NiceCandidateType
-_candidate_type_from_string (const gchar * s)
-{
-  if (g_strcmp0 (s, "host") == 0) {
-    return NICE_CANDIDATE_TYPE_HOST;
-  } else if (g_strcmp0 (s, "srflx") == 0) {
-    return NICE_CANDIDATE_TYPE_SERVER_REFLEXIVE;
-  } else if (g_strcmp0 (s, "prflx") == 0) {     /* FIXME: is the right string? */
-    return NICE_CANDIDATE_TYPE_PEER_REFLEXIVE;
-  } else if (g_strcmp0 (s, "relay") == 0) {
-    return NICE_CANDIDATE_TYPE_RELAY;
-  } else {
-    g_assert_not_reached ();
-    return 0;
-  }
-}
-
-static const gchar *
-_candidate_type_to_string (NiceCandidateType type)
-{
-  switch (type) {
-    case NICE_CANDIDATE_TYPE_HOST:
-      return "host";
-    case NICE_CANDIDATE_TYPE_SERVER_REFLEXIVE:
-      return "srflx";
-    case NICE_CANDIDATE_TYPE_PEER_REFLEXIVE:
-      return "prflx";
-    case NICE_CANDIDATE_TYPE_RELAY:
-      return "relay";
-    default:
-      g_assert_not_reached ();
-      return NULL;
-  }
-}
-
-static NiceCandidateTransport
-_candidate_transport_from_string (const gchar * s)
-{
-  if (g_strcmp0 (s, "UDP") == 0) {
-    return NICE_CANDIDATE_TRANSPORT_UDP;
-  } else if (g_strcmp0 (s, "TCP tcptype") == 0) {
-    return NICE_CANDIDATE_TRANSPORT_TCP_ACTIVE;
-  } else if (g_strcmp0 (s, "tcp-passive") == 0) {       /* FIXME: is the right string? */
-    return NICE_CANDIDATE_TRANSPORT_TCP_PASSIVE;
-  } else if (g_strcmp0 (s, "tcp-so") == 0) {
-    return NICE_CANDIDATE_TRANSPORT_TCP_SO;
-  } else {
-    g_assert_not_reached ();
-    return 0;
-  }
-}
-
-static const gchar *
-_candidate_type_to_string (NiceCandidateType type)
-{
-  switch (type) {
-    case NICE_CANDIDATE_TYPE_HOST:
-      return "host";
-    case NICE_CANDIDATE_TYPE_SERVER_REFLEXIVE:
-      return "srflx";
-    case NICE_CANDIDATE_TYPE_PEER_REFLEXIVE:
-      return "prflx";
-    case NICE_CANDIDATE_TYPE_RELAY:
-      return "relay";
-    default:
-      g_assert_not_reached ();
-      return NULL;
-  }
-}
-#endif
 
 /* parse the address for possible resolution */
 static gboolean
@@ -848,6 +879,9 @@ gst_webrtc_nice_add_candidate (GstWebRTCICE * ice, GstWebRTCICEStream * stream,
   if (candidate == NULL) {
     nice_agent_peer_candidate_gathering_done (nice->priv->nice_agent,
         item->nice_stream_id);
+    if (promise) {
+      gst_promise_reply (promise, NULL);
+    }
     return;
   }
 
@@ -916,6 +950,9 @@ gst_webrtc_nice_add_candidate (GstWebRTCICE * ice, GstWebRTCICEStream * stream,
 
   add_ice_candidate_to_libnice (ice, item->nice_stream_id, cand);
   nice_candidate_free (cand);
+  if (promise) {
+    gst_promise_reply (promise, NULL);
+  }
 }
 
 static gboolean
@@ -935,6 +972,11 @@ gst_webrtc_nice_set_remote_credentials (GstWebRTCICE * ice,
 
   nice_agent_set_remote_credentials (nice->priv->nice_agent,
       item->nice_stream_id, ufrag, pwd);
+
+  g_free (nice->priv->remote_ufrag);
+  g_free (nice->priv->remote_pwd);
+  nice->priv->remote_ufrag = g_strdup (ufrag);
+  nice->priv->remote_pwd = g_strdup (pwd);
 
   return TRUE;
 }
@@ -1096,8 +1138,8 @@ gst_webrtc_nice_set_tos (GstWebRTCICE * ice, GstWebRTCICEStream * stream,
   nice_agent_set_stream_tos (nice->priv->nice_agent, item->nice_stream_id, tos);
 }
 
-static const gchar *
-_relay_type_to_string (GstUri * turn_server)
+const gchar *
+gst_webrtc_nice_get_candidate_relay_protocol (GstUri * turn_server)
 {
   const gchar *scheme;
   const gchar *transport;
@@ -1120,8 +1162,9 @@ _relay_type_to_string (GstUri * turn_server)
   return "none";
 }
 
-static gchar *
-_get_server_url (GstWebRTCNice * ice, NiceCandidate * cand)
+gchar *
+gst_webrtc_nice_get_candidate_server_url (GstWebRTCNice * ice,
+    NiceCandidate * cand)
 {
   switch (cand->type) {
     case NICE_CANDIDATE_TYPE_RELAYED:{
@@ -1147,55 +1190,72 @@ _get_server_url (GstWebRTCNice * ice, NiceCandidate * cand)
   }
 }
 
-/* TODO: replace it with nice_candidate_type_to_string()
- * when it's ready for use
- * https://libnice.freedesktop.org/libnice/NiceCandidate.html#nice-candidate-type-to-string
- */
-static const gchar *
-_candidate_type_to_string (NiceCandidateType type)
-{
-  switch (type) {
-    case NICE_CANDIDATE_TYPE_HOST:
-      return "host";
-    case NICE_CANDIDATE_TYPE_SERVER_REFLEXIVE:
-      return "srflx";
-    case NICE_CANDIDATE_TYPE_PEER_REFLEXIVE:
-      return "prflx";
-    case NICE_CANDIDATE_TYPE_RELAYED:
-      return "relay";
-    default:
-      g_assert_not_reached ();
-      return NULL;
-  }
-}
-
 static void
 _populate_candidate_stats (GstWebRTCNice * ice, NiceCandidate * cand,
     GstWebRTCICEStream * stream, GstWebRTCICECandidateStats * stats,
-    gboolean is_local)
+    GstWebRTCNiceCandidateOrigin origin)
 {
   gchar ipaddr[INET6_ADDRSTRLEN];
 
   g_assert (cand != NULL);
 
   nice_address_to_string (&cand->addr, ipaddr);
-  stats->port = nice_address_get_port (&cand->addr);
-  stats->ipaddr = g_strdup (ipaddr);
-  stats->stream_id = stream->stream_id;
-  stats->type = _candidate_type_to_string (cand->type);
-  stats->prio = cand->priority;
-  stats->proto =
+  GST_WEBRTC_ICE_CANDIDATE_STATS_PORT (stats) =
+      nice_address_get_port (&cand->addr);
+  GST_WEBRTC_ICE_CANDIDATE_STATS_ADDRESS (stats) = g_strdup (ipaddr);
+  GST_WEBRTC_ICE_CANDIDATE_STATS_STREAM_ID (stats) = stream->stream_id;
+  GST_WEBRTC_ICE_CANDIDATE_STATS_TYPE (stats) =
+      nice_candidate_type_to_string (cand->type);
+  GST_WEBRTC_ICE_CANDIDATE_STATS_PRIORITY (stats) = cand->priority;
+  GST_WEBRTC_ICE_CANDIDATE_STATS_PROTOCOL (stats) =
       cand->transport == NICE_CANDIDATE_TRANSPORT_UDP ? "udp" : "tcp";
-  if (is_local) {
-    if (cand->type == NICE_CANDIDATE_TYPE_RELAYED)
-      stats->relay_proto = _relay_type_to_string (ice->priv->turn_server);
-    stats->url = _get_server_url (ice, cand);
+  if (origin == GST_WEBRTC_NICE_CANDIDATE_ORIGIN_LOCAL) {
+    if (cand->type == NICE_CANDIDATE_TYPE_RELAYED) {
+      NiceAddress relay_address;
+      nice_candidate_relay_address (cand, &relay_address);
+
+      GST_WEBRTC_ICE_CANDIDATE_STATS_RELATED_ADDRESS (stats) =
+          nice_address_dup_string (&relay_address);
+      GST_WEBRTC_ICE_CANDIDATE_STATS_RELATED_PORT (stats) =
+          nice_address_get_port (&relay_address);
+
+      GST_WEBRTC_ICE_CANDIDATE_STATS_RELAY_PROTOCOL (stats) =
+          gst_webrtc_nice_get_candidate_relay_protocol (ice->priv->turn_server);
+    }
+    GST_WEBRTC_ICE_CANDIDATE_STATS_URL (stats) =
+        gst_webrtc_nice_get_candidate_server_url (ice, cand);
   }
+
+  GST_WEBRTC_ICE_CANDIDATE_STATS_FOUNDATION (stats) =
+      g_strdup (cand->foundation);
+
+  switch (cand->transport) {
+    case NICE_CANDIDATE_TRANSPORT_UDP:
+      GST_WEBRTC_ICE_CANDIDATE_STATS_TCP_TYPE (stats) =
+          GST_WEBRTC_ICE_TCP_CANDIDATE_TYPE_NONE;
+      break;
+    case NICE_CANDIDATE_TRANSPORT_TCP_ACTIVE:
+      GST_WEBRTC_ICE_CANDIDATE_STATS_TCP_TYPE (stats) =
+          GST_WEBRTC_ICE_TCP_CANDIDATE_TYPE_ACTIVE;
+      break;
+    case NICE_CANDIDATE_TRANSPORT_TCP_PASSIVE:
+      GST_WEBRTC_ICE_CANDIDATE_STATS_TCP_TYPE (stats) =
+          GST_WEBRTC_ICE_TCP_CANDIDATE_TYPE_PASSIVE;
+      break;
+    case NICE_CANDIDATE_TRANSPORT_TCP_SO:
+      GST_WEBRTC_ICE_CANDIDATE_STATS_TCP_TYPE (stats) =
+          GST_WEBRTC_ICE_TCP_CANDIDATE_TYPE_SO;
+      break;
+  };
+
+  GST_WEBRTC_ICE_CANDIDATE_STATS_USERNAME_FRAGMENT (stats) =
+      g_strdup (cand->username);
 }
 
 static void
 _populate_candidate_list_stats (GstWebRTCNice * ice, GSList * cands,
-    GstWebRTCICEStream * stream, GPtrArray * result, gboolean is_local)
+    GstWebRTCICEStream * stream, GPtrArray * result,
+    GstWebRTCNiceCandidateOrigin origin)
 {
   GSList *item;
 
@@ -1203,7 +1263,7 @@ _populate_candidate_list_stats (GstWebRTCNice * ice, GSList * cands,
     GstWebRTCICECandidateStats *stats =
         g_malloc0 (sizeof (GstWebRTCICECandidateStats));
     NiceCandidate *c = item->data;
-    _populate_candidate_stats (ice, c, stream, stats, is_local);
+    _populate_candidate_stats (ice, c, stream, stats, origin);
     g_ptr_array_add (result, stats);
   }
 
@@ -1223,7 +1283,8 @@ gst_webrtc_nice_get_local_candidates (GstWebRTCICE * ice,
   cands = nice_agent_get_local_candidates (nice->priv->nice_agent,
       stream->stream_id, NICE_COMPONENT_TYPE_RTP);
 
-  _populate_candidate_list_stats (nice, cands, stream, result, TRUE);
+  _populate_candidate_list_stats (nice, cands, stream, result,
+      GST_WEBRTC_NICE_CANDIDATE_ORIGIN_LOCAL);
   g_slist_free_full (cands, (GDestroyNotify) nice_candidate_free);
 
   return (GstWebRTCICECandidateStats **) g_ptr_array_free (result, FALSE);
@@ -1242,37 +1303,11 @@ gst_webrtc_nice_get_remote_candidates (GstWebRTCICE * ice,
   cands = nice_agent_get_remote_candidates (nice->priv->nice_agent,
       stream->stream_id, NICE_COMPONENT_TYPE_RTP);
 
-  _populate_candidate_list_stats (nice, cands, stream, result, FALSE);
+  _populate_candidate_list_stats (nice, cands, stream, result,
+      GST_WEBRTC_NICE_CANDIDATE_ORIGIN_REMOTE);
   g_slist_free_full (cands, (GDestroyNotify) nice_candidate_free);
 
   return (GstWebRTCICECandidateStats **) g_ptr_array_free (result, FALSE);
-}
-
-static gboolean
-gst_webrtc_nice_get_selected_pair (GstWebRTCICE * ice,
-    GstWebRTCICEStream * stream, GstWebRTCICECandidateStats ** local_stats,
-    GstWebRTCICECandidateStats ** remote_stats)
-{
-  GstWebRTCNice *nice = GST_WEBRTC_NICE (ice);
-  NiceCandidate *local_cand = NULL;
-  NiceCandidate *remote_cand = NULL;
-
-
-  if (stream) {
-    if (nice_agent_get_selected_pair (nice->priv->nice_agent, stream->stream_id,
-            NICE_COMPONENT_TYPE_RTP, &local_cand, &remote_cand)) {
-      *local_stats = g_new0 (GstWebRTCICECandidateStats, 1);
-      _populate_candidate_stats (nice, local_cand, stream, *local_stats, TRUE);
-
-      *remote_stats = g_new0 (GstWebRTCICECandidateStats, 1);
-      _populate_candidate_stats (nice, remote_cand, stream, *remote_stats,
-          FALSE);
-
-      return TRUE;
-    }
-  }
-
-  return FALSE;
 }
 
 static void
@@ -1574,6 +1609,115 @@ gst_webrtc_nice_get_http_proxy (GstWebRTCICE * ice)
     return NULL;
 }
 
+struct close_data
+{
+  GstPromise *promise;
+  gboolean agent_closed;
+};
+
+static struct close_data *
+close_data_new (GstPromise * p)
+{
+  struct close_data *d = g_new0 (struct close_data, 1);
+  d->promise = p ? gst_promise_ref (p) : NULL;
+  d->agent_closed = FALSE;
+  return d;
+}
+
+static void
+close_data_free (struct close_data *d)
+{
+  if (d->promise)
+    gst_promise_unref (d->promise);
+  g_free (d);
+}
+
+static void
+_agent_closed_cb (GObject * src, GAsyncResult * result, gpointer user_data)
+{
+  struct close_data *d = (struct close_data *) user_data;
+
+  /* 9. Set the [[IceTransportState]] slot of each of connection's
+   * RTCIceTransports to "closed". */
+  /* FIXME: We don't expose IceTransportState yet. */
+
+  if (d->promise) {
+    gst_promise_reply (d->promise, NULL);
+  }
+
+  d->agent_closed = TRUE;
+}
+
+static gboolean
+_agent_closed_timeout_cb (gpointer user_data)
+{
+  gboolean *agent_timeout = user_data;
+
+  *agent_timeout = TRUE;
+  return FALSE;
+};
+
+static void
+_close_agent (GstWebRTCNice * ice, GstPromise * promise)
+{
+  GMainContext *main_context = NULL;
+  struct close_data *agent_close_data = NULL;
+  gboolean agent_timeout = FALSE;
+  GSource *timeout_source;
+
+  if (!ice->priv->thread) {
+    if (promise) {
+      GError *error =
+          g_error_new (GST_WEBRTC_ERROR, GST_WEBRTC_ERROR_INTERNAL_FAILURE,
+          "ICE thread not running");
+      GstStructure *s = gst_structure_new ("application/x-gst-promise", "error",
+          G_TYPE_ERROR, error, NULL);
+      gst_promise_reply (promise, s);
+      g_clear_error (&error);
+    };
+    return;
+  }
+
+  g_cancellable_cancel (ice->priv->resolve_cancellable);
+
+  main_context = g_main_context_new ();
+  g_main_context_push_thread_default (main_context);
+  timeout_source = g_timeout_source_new (MAX_CLOSING_TIME_MILLI_SECONDS);
+  g_source_set_callback (timeout_source, _agent_closed_timeout_cb,
+      &agent_timeout, NULL);
+  g_source_attach (timeout_source, main_context);
+
+  /* 8. Destroy connection's ICE Agent, abruptly ending any active ICE
+   * processing and releasing any relevant resources (e.g. TURN permissions). */
+  agent_close_data = close_data_new (promise);
+  nice_agent_close_async (ice->priv->nice_agent, _agent_closed_cb,
+      agent_close_data);
+
+  while (!agent_close_data->agent_closed && !agent_timeout) {
+    g_main_context_iteration (main_context, TRUE);
+  }
+  if (agent_timeout) {
+    GST_WARNING ("nice_agent_close_async() did not finish");
+  }
+  g_source_destroy (timeout_source);
+  g_source_unref (timeout_source);
+  g_main_context_pop_thread_default (main_context);
+  g_main_context_unref (main_context);
+  close_data_free (agent_close_data);
+
+  outstanding_resolves_wait (ice->priv->outstanding_resolves);
+  _stop_thread (ice);
+}
+
+static void
+gst_webrtc_nice_close (GstWebRTCICE * ice, GstPromise * promise)
+{
+  GstWebRTCNice *nice = GST_WEBRTC_NICE (ice);
+
+  /* https://www.w3.org/TR/webrtc/#dom-rtcpeerconnection-close */
+  _close_agent (nice, promise);
+}
+
 static void
 gst_webrtc_nice_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec)
@@ -1646,7 +1790,10 @@ gst_webrtc_nice_finalize (GObject * object)
 
   g_signal_handlers_disconnect_by_data (ice->priv->nice_agent, ice);
 
-  _stop_thread (ice);
+  _close_agent (ice, NULL);
+
+  g_clear_object (&ice->priv->resolve_cancellable);
+  outstanding_resolves_unref (ice->priv->outstanding_resolves);
 
   if (ice->priv->on_candidate_notify)
     ice->priv->on_candidate_notify (ice->priv->on_candidate_data);
@@ -1669,6 +1816,9 @@ gst_webrtc_nice_finalize (GObject * object)
 
   g_hash_table_unref (ice->priv->turn_servers);
 
+  g_free (ice->priv->remote_ufrag);
+  g_free (ice->priv->remote_pwd);
+
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
@@ -1682,11 +1832,8 @@ gst_webrtc_nice_constructed (GObject * object)
 
   options |= NICE_AGENT_OPTION_ICE_TRICKLE;
   options |= NICE_AGENT_OPTION_REGULAR_NOMINATION;
-
-/*  https://gitlab.freedesktop.org/libnice/libnice/-/merge_requests/257 */
-#ifdef HAVE_LIBNICE_CONSENT_FIX
+  options |= NICE_AGENT_OPTION_CLOSE_FORCED;
   options |= NICE_AGENT_OPTION_CONSENT_FRESHNESS;
-#endif
 
   ice->priv->nice_agent = nice_agent_new_full (ice->priv->main_context,
       NICE_COMPATIBILITY_RFC5245, options);
@@ -1728,7 +1875,7 @@ gst_webrtc_nice_class_init (GstWebRTCNiceClass * klass)
       gst_webrtc_nice_get_local_candidates;
   gst_webrtc_ice_class->get_remote_candidates =
       gst_webrtc_nice_get_remote_candidates;
-  gst_webrtc_ice_class->get_selected_pair = gst_webrtc_nice_get_selected_pair;
+  gst_webrtc_ice_class->close = gst_webrtc_nice_close;
 
   gobject_class->constructed = gst_webrtc_nice_constructed;
   gobject_class->get_property = gst_webrtc_nice_get_property;
@@ -1776,6 +1923,11 @@ gst_webrtc_nice_init (GstWebRTCNice * ice)
       g_array_new (FALSE, TRUE, sizeof (struct NiceStreamItem));
   g_array_set_clear_func (ice->priv->nice_stream_map,
       (GDestroyNotify) _clear_ice_stream);
+
+  ice->priv->resolve_cancellable = g_cancellable_new ();
+  ice->priv->outstanding_resolves = g_atomic_rc_box_new0 (OutstandingResolves);
+  g_mutex_init (&ice->priv->outstanding_resolves->mutex);
+  g_cond_init (&ice->priv->outstanding_resolves->cond);
 }
 
 GstWebRTCNice *

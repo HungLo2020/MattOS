@@ -27,9 +27,6 @@
 #  include <winsock2.h>
 # endif
 # include <windows.h>
-# ifndef VER_PLATFORM_WIN32_WINDOWS
-#  define VER_PLATFORM_WIN32_WINDOWS 1
-# endif
 #endif
 
 #include "gpg.h"
@@ -95,8 +92,15 @@ w32_system (const char *command)
           return -1;
         }
       if (DBG_EXTPROG)
-        log_debug ("ShellExecuteEx succeeded (hProcess=%p,hInstApp=%d)\n",
-                   see.hProcess, (int)see.hInstApp);
+        {
+          /* hInstApp has HINSTANCE type.  The documentations says
+             that it's not a true HINSTANCE and it can be cast only to
+             an int.  */
+          int hinstance = (intptr_t)see.hInstApp;
+
+          log_debug ("ShellExecuteEx succeeded (hProcess=%p,hInstApp=%d)\n",
+                     see.hProcess, hinstance);
+        }
 
       if (!see.hProcess)
         {
@@ -381,16 +385,7 @@ static const char *
 get_default_photo_command(void)
 {
 #if defined(_WIN32)
-  OSVERSIONINFO osvi;
-
-  memset(&osvi,0,sizeof(osvi));
-  osvi.dwOSVersionInfoSize=sizeof(osvi);
-  GetVersionEx(&osvi);
-
-  if(osvi.dwPlatformId==VER_PLATFORM_WIN32_WINDOWS)
-    return "start /w %i";
-  else
-    return "!ShellExecute 400 %i";
+  return "!ShellExecute 400 %i";
 #elif defined(__APPLE__)
   /* OS X.  This really needs more than just __APPLE__. */
   return "open %I";
@@ -428,7 +423,6 @@ show_photo (const char *command, const char *name, const void *image, u32 len)
 }
 #else /* ! NO_EXEC */
 #include "../common/membuf.h"
-#include "../common/exechelp.h"
 
 /* Makes a temp directory and filenames */
 static int
@@ -599,34 +593,35 @@ run_with_pipe (struct spawn_info *info, const void *image, u32 len)
                " external programs\n"));
   return;
 #else /* !EXEC_TEMPFILE_ONLY */
-  int to[2];
-  pid_t pid;
   gpg_error_t err;
   const char *argv[4];
-
-  err = gnupg_create_pipe (to);
-  if (err)
-    return;
+  gpgrt_process_t proc;
 
   fill_command_argv (argv, info->command);
-  err = gnupg_spawn_process_fd (argv[0], argv+1, to[0], -1, -1, &pid);
-
-  close (to[0]);
-
+  err = gpgrt_process_spawn (argv[0], argv+1, GPGRT_PROCESS_STDIN_PIPE,
+                             NULL, &proc);
   if (err)
-    {
-      log_error (_("unable to execute shell '%s': %s\n"),
-                 argv[0], gpg_strerror (err));
-      close (to[1]);
-    }
+    log_error (_("unable to execute shell '%s': %s\n"),
+               argv[0], gpg_strerror (err));
   else
     {
-      write (to[1], image, len);
-      close (to[1]);
+      int fd_in;
 
-      err = gnupg_wait_process (argv[0], pid, 1, NULL);
+      err = gpgrt_process_get_fds (proc, 0, &fd_in, NULL, NULL);
+      if (err)
+        log_error ("unable to get pipe connection '%s': %s\n",
+                   argv[2], gpg_strerror (err));
+      else
+        {
+          write (fd_in, image, len);
+          close (fd_in);
+        }
+
+      err = gpgrt_process_wait (proc, 1);
       if (err)
         log_error (_("unnatural exit of external program\n"));
+
+      gpgrt_process_release (proc);
     }
 #endif /* !EXEC_TEMPFILE_ONLY */
 }
@@ -694,14 +689,11 @@ show_photo (const char *command, const char *name, const void *image, u32 len)
         log_error (_("system error while calling external program: %s\n"),
                    strerror (errno));
 #else
-      pid_t pid;
       gpg_error_t err;
       const char *argv[4];
 
       fill_command_argv (argv, spawn->command);
-      err = gnupg_spawn_process_fd (argv[0], argv+1, -1, -1, -1, &pid);
-      if (!err)
-        err = gnupg_wait_process (argv[0], pid, 1, NULL);
+      err = gpgrt_process_spawn (argv[0], argv+1, 0, NULL, NULL);
       if (err)
         log_error (_("unnatural exit of external program\n"));
 #endif

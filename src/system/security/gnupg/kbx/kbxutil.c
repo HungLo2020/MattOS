@@ -132,7 +132,6 @@ my_strusage( int level )
 }
 
 
-
 /*  static void */
 /*  wrong_args( const char *text ) */
 /*  { */
@@ -386,7 +385,7 @@ import_openpgp (const char *filename, int dryrun)
   p = (unsigned char *)buffer;
   for (;;)
     {
-      err = _keybox_parse_openpgp (p, buflen, &nparsed, &info);
+      err = _keybox_parse_openpgp (p, buflen, 0, &nparsed, &info);
       assert (nparsed <= buflen);
       if (err)
         {

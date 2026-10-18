@@ -195,6 +195,7 @@ gst_gl_format_from_video_info (GstGLContext * context,
     case GST_VIDEO_FORMAT_NV21:
     case GST_VIDEO_FORMAT_NV16:
     case GST_VIDEO_FORMAT_NV61:
+    case GST_VIDEO_FORMAT_NV24:
     case GST_VIDEO_FORMAT_NV12_16L32S:
     case GST_VIDEO_FORMAT_NV12_4L4:
       n_plane_components = plane == 0 ? 1 : 2;
@@ -215,6 +216,8 @@ gst_gl_format_from_video_info (GstGLContext * context,
       break;
     case GST_VIDEO_FORMAT_BGR10A2_LE:
     case GST_VIDEO_FORMAT_RGB10A2_LE:
+    case GST_VIDEO_FORMAT_BGR10x2_LE:
+    case GST_VIDEO_FORMAT_RGB10x2_LE:
     case GST_VIDEO_FORMAT_Y410:
     case GST_VIDEO_FORMAT_v210:
       return GST_GL_RGB10_A2;
@@ -265,6 +268,8 @@ gst_gl_format_from_video_info (GstGLContext * context,
     case GST_VIDEO_FORMAT_A444_16BE:
     case GST_VIDEO_FORMAT_Y444_10LE:
     case GST_VIDEO_FORMAT_Y444_10BE:
+    case GST_VIDEO_FORMAT_Y444_12LE:
+    case GST_VIDEO_FORMAT_Y444_12BE:
     case GST_VIDEO_FORMAT_Y444_16LE:
     case GST_VIDEO_FORMAT_Y444_16BE:
       return GST_GL_R16;
@@ -503,14 +508,16 @@ get_single_planar_format_gl_swizzle_order (GstVideoFormat format,
   g_return_if_fail (finfo->flags & GST_VIDEO_FORMAT_FLAG_RGB
       || format == GST_VIDEO_FORMAT_AYUV || format == GST_VIDEO_FORMAT_VUYA);
 
-  if (format == GST_VIDEO_FORMAT_BGR10A2_LE) {
+  if (format == GST_VIDEO_FORMAT_BGR10A2_LE
+      || format == GST_VIDEO_FORMAT_BGR10x2_LE) {
     swizzle[0] = 2;
     swizzle[1] = 1;
     swizzle[2] = 0;
     swizzle[3] = 3;
     return;
   }
-  if (format == GST_VIDEO_FORMAT_RGB10A2_LE) {
+  if (format == GST_VIDEO_FORMAT_RGB10A2_LE
+      || format == GST_VIDEO_FORMAT_RGB10x2_LE) {
     swizzle[0] = 0;
     swizzle[1] = 1;
     swizzle[2] = 2;
@@ -577,9 +584,16 @@ gst_gl_video_format_swizzle (GstVideoFormat video_format, int *swizzle)
     case GST_VIDEO_FORMAT_RGBP:
       get_single_planar_format_gl_swizzle_order (GST_VIDEO_FORMAT_RGB, swizzle);
       return TRUE;
+    case GST_VIDEO_FORMAT_GBRA:
+      swizzle[0] = 2;
+      swizzle[1] = 0;
+      swizzle[2] = 1;
+      swizzle[3] = 3;
+      return TRUE;
     case GST_VIDEO_FORMAT_AV12:
     case GST_VIDEO_FORMAT_NV12:
     case GST_VIDEO_FORMAT_NV16:
+    case GST_VIDEO_FORMAT_NV24:
     case GST_VIDEO_FORMAT_P010_10LE:
     case GST_VIDEO_FORMAT_P010_10BE:
     case GST_VIDEO_FORMAT_P012_LE:
@@ -623,6 +637,8 @@ gst_gl_video_format_swizzle (GstVideoFormat video_format, int *swizzle)
     case GST_VIDEO_FORMAT_A444_16BE:
     case GST_VIDEO_FORMAT_Y444_10BE:
     case GST_VIDEO_FORMAT_Y444_10LE:
+    case GST_VIDEO_FORMAT_Y444_12BE:
+    case GST_VIDEO_FORMAT_Y444_12LE:
     case GST_VIDEO_FORMAT_Y444_16BE:
     case GST_VIDEO_FORMAT_Y444_16LE:
       swizzle[0] = 0;

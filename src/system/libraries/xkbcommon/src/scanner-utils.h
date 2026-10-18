@@ -21,7 +21,7 @@
 /* Point to some substring in the file; used to avoid copying. */
 struct sval {
     const char *start;
-    unsigned int len;
+    size_t len;
 };
 typedef darray(struct sval) darray_sval;
 
@@ -56,6 +56,12 @@ struct scanner {
     const char *s;
     size_t pos;
     size_t len;
+    /*
+     * Internal buffer.
+     * Since this is used to handle paths that are possibly absolute, in theory
+     * we should size it to PATH_MAX. However it is very unlikely to reach such
+     * long paths in our context.
+     */
     char buf[1024];
     size_t buf_pos;
     /* The position of the start of the current token. */
@@ -81,13 +87,13 @@ scanner_token_location(struct scanner *s);
                       loc.column, ##__VA_ARGS__);                                   \
 } while(0)
 
-#define scanner_err(scanner, id, fmt, ...)                     \
-    scanner_log_with_code(scanner, XKB_LOG_LEVEL_ERROR, 0, id, \
-                          fmt, ##__VA_ARGS__)
+#define scanner_err(scanner, id, fmt, ...)              \
+    scanner_log_with_code(scanner, XKB_LOG_LEVEL_ERROR, \
+                          XKB_LOG_VERBOSITY_MINIMAL, id, fmt, ##__VA_ARGS__)
 
-#define scanner_warn(scanner, id, fmt, ...)                      \
-    scanner_log_with_code(scanner, XKB_LOG_LEVEL_WARNING, 0, id, \
-                          fmt, ##__VA_ARGS__)
+#define scanner_warn(scanner, id, fmt, ...)               \
+    scanner_log_with_code(scanner, XKB_LOG_LEVEL_WARNING, \
+                          XKB_LOG_VERBOSITY_MINIMAL, id, fmt, ##__VA_ARGS__)
 
 #define scanner_vrb(scanner, verbosity, id, fmt, ...)                    \
     scanner_log_with_code(scanner, XKB_LOG_LEVEL_WARNING, verbosity, id, \

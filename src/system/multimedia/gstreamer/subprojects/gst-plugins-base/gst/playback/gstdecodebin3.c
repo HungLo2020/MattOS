@@ -307,7 +307,7 @@ struct _GstDecodebin3
   GList *decodable_factories;
 
   /* counters for pads */
-  guint32 apadcount, vpadcount, tpadcount, opadcount;
+  guint32 apadcount, vpadcount, tpadcount, mpadcount, opadcount;
 
   /* Properties */
   GstCaps *caps;
@@ -531,6 +531,19 @@ GST_STATIC_PAD_TEMPLATE ("text_%u",
     GST_PAD_SOMETIMES,
     GST_STATIC_CAPS_ANY);
 
+/**
+ * GstDecodebin3!metadata_%u:
+ *
+ * Pad template for metadata source pads.
+ *
+ * Since: 1.28
+ */
+static GstStaticPadTemplate metadata_src_template =
+GST_STATIC_PAD_TEMPLATE ("metadata_%u",
+    GST_PAD_SRC,
+    GST_PAD_SOMETIMES,
+    GST_STATIC_CAPS_ANY);
+
 static GstStaticPadTemplate src_template = GST_STATIC_PAD_TEMPLATE ("src_%u",
     GST_PAD_SRC,
     GST_PAD_SOMETIMES,
@@ -691,6 +704,8 @@ gst_decodebin3_class_init (GstDecodebin3Class * klass)
       gst_static_pad_template_get (&audio_src_template));
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&text_src_template));
+  gst_element_class_add_pad_template (element_class,
+      gst_static_pad_template_get (&metadata_src_template));
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&src_template));
 
@@ -1359,8 +1374,8 @@ remove_slot_from_streaming_thread (GstDecodebin3 * dbin, MultiQueueSlot * slot)
   /* The minimum interleave might have changed, recalculate it */
   gst_decodebin3_update_min_interleave (dbin);
 
-  gst_element_call_async (GST_ELEMENT_CAST (dbin),
-      (GstElementCallAsyncFunc) mq_slot_free, slot, NULL);
+  gst_object_call_async (GST_OBJECT_CAST (dbin),
+      (GstObjectCallAsyncFunc) mq_slot_free, slot);
 }
 
 static void
@@ -1871,10 +1886,12 @@ gst_decodebin_input_free (DecodebinInput * input)
 static gboolean
 sink_query_function (GstPad * sinkpad, GstDecodebin3 * dbin, GstQuery * query)
 {
+#ifndef G_DISABLE_CHECKS
   DecodebinInput *input =
       g_object_get_data (G_OBJECT (sinkpad), "decodebin.input");
 
   g_return_val_if_fail (input, FALSE);
+#endif
 
   GST_DEBUG_OBJECT (sinkpad, "query %" GST_PTR_FORMAT, query);
 
@@ -3981,7 +3998,7 @@ cleanup:
  * @msg: A pointer to a #GstMessage
  *
  * (Re)Configure the @output for the associated slot active stream.
- * 
+ *
  * Returns: #TRUE if the output was properly (re)configured. #FALSE if it
  * failed, in which case the stream shouldn't be used and the @msg might contain
  * a message to be posted on the bus.
@@ -4523,6 +4540,10 @@ db_output_stream_new (GstDecodebin3 * dbin, GstStreamType type)
     templ = &text_src_template;
     counter = &dbin->tpadcount;
     prefix = "text";
+  } else if (type & GST_STREAM_TYPE_METADATA) {
+    templ = &metadata_src_template;
+    counter = &dbin->mpadcount;
+    prefix = "metadata";
   } else {
     templ = &src_template;
     counter = &dbin->opadcount;

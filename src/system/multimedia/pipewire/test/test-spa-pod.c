@@ -286,8 +286,19 @@ PWTEST(pod_init)
 		spa_assert_se(SPA_POD_SIZE(&pod) == 14);
 		spa_assert_se(SPA_POD_TYPE(&pod) == SPA_TYPE_String);
 		spa_assert_se(SPA_POD_BODY_SIZE(&pod) == 6);
-		spa_assert_se(!spa_pod_is_string(&pod.pod.pod));
+		spa_assert_se(spa_pod_is_string(&pod.pod.pod));
 		spa_assert_se(spa_pod_copy_string(&pod.pod.pod, sizeof(val), val) < 0);
+
+		/* a valid string that does not fit in dest is rejected, not
+		 * silently truncated */
+		pod.pod	= SPA_POD_INIT_String(9);
+		strncpy(pod.str, "test", 9);
+
+		spa_assert_se(spa_pod_copy_string(&pod.pod.pod, 4, val) == -ENOSPC);
+		spa_assert_se(spa_streq(val, ""));
+		/* an exact fit is still accepted */
+		spa_assert_se(spa_pod_copy_string(&pod.pod.pod, 9, val) == 0);
+		spa_assert_se(spa_streq(val, "test"));
 	}
 	{
 		struct spa_pod_rectangle pod = SPA_POD_INIT_Rectangle(SPA_RECTANGLE(320,240));
@@ -524,6 +535,8 @@ PWTEST(pod_build)
 	spa_assert_se(memcmp(&val.F, &SPA_FRACTION(25,1), sizeof(struct spa_fraction)) == 0);
 
 	spa_assert_se((pod = spa_pod_next(pod)) != NULL && spa_pod_is_inside(head, len, pod));
+	spa_assert_se(array->type == SPA_TYPE_Array);
+	spa_assert_se(array->size >= sizeof(struct spa_pod_array_body));
 	spa_assert_se(spa_pod_is_array(pod));
 	spa_assert_se(SPA_POD_ARRAY_VALUE_TYPE(pod) == SPA_TYPE_Int);
 	spa_assert_se(SPA_POD_ARRAY_VALUE_SIZE(pod) == sizeof(int32_t));
@@ -542,6 +555,8 @@ PWTEST(pod_build)
 	}
 
 	spa_assert_se((pod = spa_pod_next(pod)) != NULL && spa_pod_is_inside(head, len, pod));
+	spa_assert_se(array->type == SPA_TYPE_Array);
+	spa_assert_se(array->size >= sizeof(struct spa_pod_array_body));
 	spa_assert_se(spa_pod_is_array(pod));
 	spa_assert_se(SPA_POD_ARRAY_VALUE_TYPE(pod) == SPA_TYPE_Long);
 	spa_assert_se(SPA_POD_ARRAY_VALUE_SIZE(pod) == sizeof(int64_t));
@@ -691,6 +706,10 @@ PWTEST(pod_empty)
 	array = spa_pod_builder_pop(&b, &f);
 	spa_assert_se(array != NULL);
 	spa_debug_mem(0, array, 16);
+	spa_assert_se(array->type == SPA_TYPE_Array);
+	spa_assert_se(array->size == sizeof(struct spa_pod_array_body));
+	spa_assert_se(SPA_POD_ARRAY_VALUE_TYPE(array) == SPA_TYPE_Id);
+	spa_assert_se(SPA_POD_ARRAY_VALUE_SIZE(array) == 4);
 	spa_assert_se(spa_pod_is_array(array));
 	a2 = spa_pod_get_array(array, &n_vals);
 	spa_assert_se(a2 != NULL);
@@ -700,6 +719,8 @@ PWTEST(pod_empty)
 	spa_assert_se(spa_pod_builder_push_array(&b, &f) == 0);
 	array = spa_pod_builder_pop(&b, &f);
 	spa_assert_se(array != NULL);
+	spa_assert_se(array->type == SPA_TYPE_Array);
+	spa_assert_se(array->size >= sizeof(struct spa_pod_array_body));
 	spa_assert_se(spa_pod_is_array(array));
 	a2 = spa_pod_get_array(array, &n_vals);
 	spa_assert_se(a2 != NULL);
@@ -710,6 +731,8 @@ PWTEST(pod_empty)
 	spa_assert_se(spa_pod_builder_none(&b) == 0);
 	array = spa_pod_builder_pop(&b, &f);
 	spa_assert_se(array != NULL);
+	spa_assert_se(array->type == SPA_TYPE_Array);
+	spa_assert_se(array->size >= sizeof(struct spa_pod_array_body));
 	spa_assert_se(spa_pod_is_array(array));
 	a2 = spa_pod_get_array(array, &n_vals);
 	spa_assert_se(a2 != NULL);
@@ -718,6 +741,8 @@ PWTEST(pod_empty)
 	spa_pod_builder_init(&b, buffer, sizeof(buffer));
 	spa_assert_se(spa_pod_builder_array(&b, 4, SPA_TYPE_Id, 0, NULL) == 0);
 	array = (struct spa_pod*)buffer;
+	spa_assert_se(array->type == SPA_TYPE_Array);
+	spa_assert_se(array->size >= sizeof(struct spa_pod_array_body));
 	spa_assert_se(spa_pod_is_array(array));
 	a2 = spa_pod_get_array(array, &n_vals);
 	spa_assert_se(a2 != NULL);
@@ -730,6 +755,10 @@ PWTEST(pod_empty)
 	choice = spa_pod_builder_pop(&b, &f);
 	spa_assert_se(choice != NULL);
 	spa_debug_mem(0, choice, 32);
+	spa_assert_se(choice->type == SPA_TYPE_Choice);
+	spa_assert_se(choice->size == sizeof(struct spa_pod_choice_body));
+	spa_assert_se(SPA_POD_CHOICE_TYPE(choice) == SPA_CHOICE_None);
+	spa_assert_se(SPA_POD_CHOICE_CHILD(choice)->size == 4);
 	spa_assert_se(spa_pod_is_choice(choice));
 	ch2 = spa_pod_get_values(choice, &n_vals, &ch);
 	spa_assert_se(ch2 != NULL);
@@ -739,6 +768,8 @@ PWTEST(pod_empty)
 	spa_assert_se(spa_pod_builder_push_choice(&b, &f, 0, 0) == 0);
 	choice = spa_pod_builder_pop(&b, &f);
 	spa_assert_se(choice != NULL);
+	spa_assert_se(SPA_POD_CHOICE_TYPE(choice) == SPA_CHOICE_None);
+	spa_assert_se(SPA_POD_CHOICE_CHILD(choice)->size == 0);
 	spa_assert_se(spa_pod_is_choice(choice));
 	ch2 = spa_pod_get_values(choice, &n_vals, &ch);
 	spa_assert_se(ch2 != NULL);
@@ -749,6 +780,8 @@ PWTEST(pod_empty)
 	spa_assert_se(spa_pod_builder_none(&b) == 0);
 	choice = spa_pod_builder_pop(&b, &f);
 	spa_assert_se(choice != NULL);
+	spa_assert_se(SPA_POD_CHOICE_TYPE(choice) == SPA_CHOICE_None);
+	spa_assert_se(SPA_POD_CHOICE_CHILD(choice)->size == 0);
 	spa_assert_se(spa_pod_is_choice(choice));
 	ch2 = spa_pod_get_values(choice, &n_vals, &ch);
 	spa_assert_se(ch2 != NULL);
@@ -1248,7 +1281,7 @@ PWTEST(pod_parser)
 	spa_assert_se(spa_pod_parser_push_object(&p, &f, SPA_TYPE_OBJECT_Format, NULL) == -EPROTO);
 	spa_assert_se(p.state.offset == 0);
 	spa_assert_se(spa_pod_parser_push_object(&p, &f, SPA_TYPE_OBJECT_Props, NULL) == 0);
-	spa_assert_se(p.state.offset == 392);
+	spa_assert_se(p.state.offset == sizeof(struct spa_pod_object));
 	spa_assert_se(spa_pod_parser_frame(&p, &f) == val.P);
 
 	spa_zero(val);
@@ -1590,7 +1623,7 @@ PWTEST(pod_overflow)
 	spa_pod_builder_push_object(&b, &f[0], SPA_TYPE_OBJECT_PropInfo, SPA_PARAM_PropInfo);
 	spa_pod_builder_add(&b,
 			SPA_PROP_INFO_id,    SPA_POD_Id(32567359),
-			SPA_PROP_INFO_type,  SPA_POD_CHOICE_ENUM_Int(1, 0),
+			SPA_PROP_INFO_type,  SPA_POD_Int(0),
 			SPA_PROP_INFO_description,  SPA_POD_String("DV Timings"),
 			0);
 
@@ -1647,7 +1680,7 @@ PWTEST(pod_overflow2)
 	spa_pod_builder_push_object(&b, &f[0], SPA_TYPE_OBJECT_PropInfo, SPA_PARAM_PropInfo);
 	spa_pod_builder_add(&b,
 			SPA_PROP_INFO_id,    SPA_POD_Id(32567359),
-			SPA_PROP_INFO_type,  SPA_POD_CHOICE_ENUM_Int(1, 0),
+			SPA_PROP_INFO_type,  SPA_POD_Int(0),
 			SPA_PROP_INFO_description,  SPA_POD_String("DV Timings"),
 			0);
 

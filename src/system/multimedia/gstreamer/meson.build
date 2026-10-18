@@ -1,5 +1,5 @@
 project('gstreamer-full', 'c',
-  version : '1.26.11',
+  version : '1.28.8',
   meson_version : '>= 1.4',
   default_options : ['buildtype=debugoptimized',
                      # Needed due to https://github.com/mesonbuild/meson/issues/1889,
@@ -35,9 +35,16 @@ endif
 gitlint_req = '>= 0.18'
 gitlint = find_program('gitlint', version: gitlint_req, required: false)
 if gitlint.found()
-  gitlint_status = run_command(gitlint, 'install-hook', check: false)
-  if gitlint_status.returncode() != 0
-    warning(gitlint_status.stderr().strip())
+  git = find_program('git', required: false)
+  if git.found() and fs.is_dir(meson.current_source_dir() / '.git')
+    gitlint_status = run_command(git, 'hook', 'run', 'commit-msg', check: false)
+    # exit code 253 means "wrong invocation" in Gitlint
+    if gitlint_status.returncode() != 253
+      gitlint_status = run_command(gitlint, 'install-hook', check: false)
+      if gitlint_status.returncode() != 0
+        warning(gitlint_status.stderr().strip())
+      endif
+    endif
   endif
 else
   warning('gitlint not found or too old, please install it with your package manager or `python3 -m pip install gitlint` to enable the commit message hook')
@@ -138,7 +145,6 @@ subprojects = [
   ['gst-devtools', { 'option': get_option('devtools'), 'build-hotdoc': true}],
   ['gst-integration-testsuites', { 'option': get_option('devtools') }],
   ['gst-editing-services', { 'option': get_option('ges'), 'build-hotdoc': true}],
-  ['gstreamer-vaapi', { 'option': get_option('vaapi'), 'build-hotdoc': true}],
   ['gstreamer-sharp', { 'option': get_option('sharp') }],
   ['pygobject', { 'option': get_option('python'), 'match_gst_version': false, 'sysdep': 'pygobject-3.0', 'sysdep_version': '>= 3.8' }],
   ['gst-python', { 'option': gst_python_option}],
@@ -166,7 +172,7 @@ endif
 
 orc_option = get_option('orc')
 # There is a check below to keep this in sync with subprojects/gst-plugins-base/meson.build
-orc_req = '>= 0.4.24'
+orc_req = '>= 0.4.34'
 orc_source_option = get_option('orc-source')
 orc_subproject = disabler()
 if orc_option.allowed()
@@ -354,6 +360,22 @@ pathsep = host_machine.system() == 'windows' ? ';' : ':'
 all_plugins_paths = pathsep.join(all_plugins_paths)
 
 devenv = environment()
+
+# Allow installing 3rd party plugins in gstreamer/prefix/
+devenv_prefixdir = meson.current_source_dir() / 'prefix'
+devenv.prepend('GST_PLUGIN_PATH', devenv_prefixdir / 'lib' / 'gstreamer-1.0')
+devenv.prepend('GST_VALIDATE_SCENARIOS_PATH', devenv_prefixdir / 'share' / 'gstreamer-1.0' / 'validate' / 'scenarios')
+devenv.prepend('GI_TYPELIB_PATH', devenv_prefixdir / 'lib' / 'girepository-1.0')
+devenv.prepend('PKG_CONFIG_PATH', devenv_prefixdir / 'lib' / 'pkgconfig')
+devenv.prepend('PATH', devenv_prefixdir / 'bin')
+library_path = 'LD_LIBRARY_PATH'
+if host_machine.system() == 'darwin'
+  library_path = 'DYLD_LIBRARY_PATH'
+elif host_machine.system() == 'windows'
+  library_path = 'PATH'
+endif
+devenv.prepend(library_path, [devenv_prefixdir / 'lib', devenv_prefixdir / 'lib64'])
+
 if not building_full
   devenv.prepend('GST_PLUGIN_PATH', all_plugins_dirs)
 else

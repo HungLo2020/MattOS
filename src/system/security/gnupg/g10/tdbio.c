@@ -118,19 +118,12 @@ static void create_hashtable (ctrl_t ctrl, TRUSTREC *vr, int type);
 
 
 /*
- * Take a lock on the trustdb file name.  I a lock file can't be
- * created the function terminates the process.  Except for a
- * different return code the function does nothing if the lock has
- * already been taken.
- *
- * Returns: True if lock already exists, False if the lock has
- *          actually been taken.
+ * Take a lock on the trustdb file name.  If a lock file can't be
+ * created the function terminates the process.
  */
-static int
+static void
 take_write_lock (void)
 {
-  int rc;
-
   if (!lockhandle)
     lockhandle = dotlock_create (db_name, 0);
   if (!lockhandle)
@@ -140,16 +133,12 @@ take_write_lock (void)
     {
       if (dotlock_take (lockhandle, -1) )
         log_fatal ( _("can't lock '%s'\n"), db_name );
-      rc = 0;
     }
-  else
-    rc = 1;
 
   if (opt.lock_once)
     is_locked = 1;
   else
     is_locked++;
-  return rc;
 }
 
 
@@ -428,7 +417,6 @@ int
 tdbio_sync (void)
 {
     CACHE_CTRL r;
-    int did_lock = 0;
 
     if( db_fd == -1 )
 	open_db();
@@ -440,9 +428,7 @@ tdbio_sync (void)
     if( !cache_is_dirty )
 	return 0;
 
-    if (!take_write_lock ())
-        did_lock = 1;
-
+    take_write_lock ();
     for( r = cache_list; r; r = r->next ) {
 	if( r->flags.used && r->flags.dirty ) {
 	    int rc = write_cache_item( r );
@@ -451,8 +437,7 @@ tdbio_sync (void)
 	}
     }
     cache_is_dirty = 0;
-    if (did_lock)
-        release_write_lock ();
+    release_write_lock ();
 
     return 0;
 }

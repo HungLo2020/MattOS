@@ -281,7 +281,7 @@ removes this data object.  GnuPG does not use this info.
 Change the User Interaction Flag.  That flags tells whether the
 confirmation button of a token shall be used.  @var{n} must in the
 range 1 to 3.  "permanent" is the same as "on" but the flag can't be
-changed anmore.
+changed anymore.
 
 @item UNBLOCK
 @opindex unblock
@@ -546,7 +546,7 @@ be printed; to create a new key anyway the option @samp{--force} can be
 used.  Note that only the private and public keys have been created
 but no certificates are stored in the key slots.  In fact, GnuPG uses
 its own non-standard method to store just the public key in place of
-the the certificate.  Other application will not be able to make use
+the certificate.  Other application will not be able to make use
 these keys until @command{gpgsm} or another tool has been used to
 create and store the respective certificates.   Let us see what the
 list command now shows:

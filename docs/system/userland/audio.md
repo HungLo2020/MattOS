@@ -1,6 +1,6 @@
 # Desktop audio
 
-The Plasma profile uses PipeWire, its PulseAudio compatibility server, and
+The Plasma profile uses PipeWire 1.6.9, its PulseAudio compatibility server, and
 WirePlumber as the session manager. Hardware audio requires the native ALSA
 library, ALSA UCM hardware profiles, and PipeWire's ALSA SPA plugin.
 The native ALSA utilities provide playback/mixer diagnostics and the upstream

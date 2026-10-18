@@ -1723,7 +1723,7 @@ static int mixer_class_event(snd_mixer_class_t *class, unsigned int mask,
 	// assertion in alsa-lib since the list is not empty.
         _helem = snd_mixer_elem_get_private(melem);
         *_helem = NULL;
-        snd_mixer_elem_detach(melem, helem);
+        snd_mixer_elem_remove(melem);
     } else if (mask & SND_CTL_EVENT_MASK_ADD) {
         snd_ctl_elem_iface_t iface = snd_hctl_elem_get_interface(helem);
         if (iface == SND_CTL_ELEM_IFACE_CARD || iface == SND_CTL_ELEM_IFACE_PCM) {
@@ -2020,14 +2020,24 @@ int pa_alsa_get_hdmi_eld(snd_hctl_elem_t *elem, pa_hdmi_eld *eld) {
         sad_count = 0;
     }
 
+    /* Look up speaker presence in Speaker Allocation Data Block */
+    eld->speakers = elddata[7] & 0x7f;
+
+    eld->lpcm_channels = 0;
     eld->iec958_codecs = 0;
+
     for (unsigned i = 0; i < sad_count; i++) {
         uint8_t *sad = &elddata[20 + mnl + 3 * i];
+	uint8_t lpcm_channels;
 
         /* https://en.wikipedia.org/wiki/Extended_Display_Identification_Data#Audio_Data_Blocks */
         switch ((sad[0] & 0x78) >> 3) {
             case 1:
                 eld->iec958_codecs |= 1ULL << SPA_AUDIO_IEC958_CODEC_PCM;
+		/* Lowest 3 bits are channel count - 1 */
+		lpcm_channels = (sad[0] & 0x07) + 1;
+		if (lpcm_channels > eld->lpcm_channels)
+			eld->lpcm_channels = lpcm_channels;
                 break;
             case 2:
                 eld->iec958_codecs |= 1ULL << SPA_AUDIO_IEC958_CODEC_AC3;

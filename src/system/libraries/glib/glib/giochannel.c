@@ -939,34 +939,6 @@ g_io_channel_get_line_term (GIOChannel *channel,
  *
  * Returns: the status of the operation. 
  **/
-/**
- * GIOFlags:
- * @G_IO_FLAG_NONE: no special flags set. Since: 2.74
- * @G_IO_FLAG_APPEND: turns on append mode, corresponds to %O_APPEND
- *     (see the documentation of the UNIX open() syscall)
- * @G_IO_FLAG_NONBLOCK: turns on nonblocking mode, corresponds to
- *     %O_NONBLOCK/%O_NDELAY (see the documentation of the UNIX open()
- *     syscall)
- * @G_IO_FLAG_IS_READABLE: indicates that the io channel is readable.
- *     This flag cannot be changed.
- * @G_IO_FLAG_IS_WRITABLE: indicates that the io channel is writable.
- *     This flag cannot be changed.
- * @G_IO_FLAG_IS_WRITEABLE: a misspelled version of @G_IO_FLAG_IS_WRITABLE
- *     that existed before the spelling was fixed in GLib 2.30. It is kept
- *     here for compatibility reasons. Deprecated since 2.30
- * @G_IO_FLAG_IS_SEEKABLE: indicates that the io channel is seekable,
- *     i.e. that g_io_channel_seek_position() can be used on it.
- *     This flag cannot be changed.
- * @G_IO_FLAG_MASK: the mask that specifies all the valid flags.
- * @G_IO_FLAG_GET_MASK: the mask of the flags that are returned from
- *     g_io_channel_get_flags()
- * @G_IO_FLAG_SET_MASK: the mask of the flags that the user can modify
- *     with g_io_channel_set_flags()
- *
- * Specifies properties of a #GIOChannel. Some of the flags can only be
- * read with g_io_channel_get_flags(), but not changed with
- * g_io_channel_set_flags().
- */
 GIOStatus
 g_io_channel_set_flags (GIOChannel  *channel,
                         GIOFlags     flags,
@@ -1828,7 +1800,8 @@ read_again:
         {
           if (channel->line_term)
             {
-              if (memcmp (channel->line_term, nextchar, line_term_len) == 0)
+              if ((size_t) (lastchar - nextchar) >= line_term_len &&
+                  memcmp (channel->line_term, nextchar, line_term_len) == 0)
                 {
                   line_length = nextchar - use_buf->str;
                   got_term_len = line_term_len;
@@ -1854,7 +1827,8 @@ read_again:
                       got_term_len = 1;
                     goto done;
                   case '\xe2': /* Unicode paragraph separator */
-                    if (strncmp ("\xe2\x80\xa9", nextchar, 3) == 0)
+                    if ((size_t) (lastchar - nextchar) >= 3 &&
+                        strncmp ("\xe2\x80\xa9", nextchar, 3) == 0)
                       {
                         line_length = nextchar - use_buf->str;
                         got_term_len = 3;

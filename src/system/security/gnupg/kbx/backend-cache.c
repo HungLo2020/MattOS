@@ -1149,7 +1149,7 @@ be_cache_pubkey (ctrl_t ctrl, const unsigned char *ubid,
       struct _keybox_openpgp_info info;
       struct _keybox_openpgp_key_info *kinfo;
 
-      err = _keybox_parse_openpgp (blob, bloblen, NULL, &info);
+      err = _keybox_parse_openpgp (blob, bloblen, 0, NULL, &info);
       if (err)
         {
           log_info ("cache: error parsing OpenPGP blob: %s\n",

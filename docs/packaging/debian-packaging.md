@@ -204,6 +204,8 @@ alone and depends on its runtime closure (`FLATPAK_CLOSURE_PACKAGES` in
 | `bubblewrap` | `bwrap` |
 | `xdg-dbus-proxy` | `xdg-dbus-proxy` |
 
+GdkPixbuf 2.44.8 explicitly enables its native PNG and GIF loaders and disables
+the optional Glycin backend, preserving the existing offline runtime closure.
 gdk-pixbuf finds loader modules (its GIF loader; PNG is built in) only
 through `loaders.cache`, which its install step skips under `DESTDIR`, so the
 package generates it at staging with the build's `gdk-pixbuf-query-loaders`

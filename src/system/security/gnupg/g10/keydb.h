@@ -37,14 +37,14 @@
                           || IS_SUBKEY_REV(s) \
                           || IS_ATTST_SIGS(s) )
 #define IS_SIG(s)        (!IS_CERT(s))
-#define IS_KEY_SIG(s)    ((s)->sig_class == 0x1f)
-#define IS_UID_SIG(s)    (((s)->sig_class & ~3) == 0x10)
+#define IS_KEY_SIG(s)    ((s)->sig_class == SIGCLASS_KEY)
+#define IS_UID_SIG(s)    (((s)->sig_class & ~3) == SIGCLASS_CERT)
 #define IS_ATTST_SIGS(s) ((s)->sig_class == 0x16)
-#define IS_SUBKEY_SIG(s) ((s)->sig_class == 0x18)
-#define IS_BACK_SIG(s)   ((s)->sig_class == 0x19)
-#define IS_KEY_REV(s)    ((s)->sig_class == 0x20)
-#define IS_UID_REV(s)    ((s)->sig_class == 0x30)
-#define IS_SUBKEY_REV(s) ((s)->sig_class == 0x28)
+#define IS_SUBKEY_SIG(s) ((s)->sig_class == SIGCLASS_SUBKEY)
+#define IS_BACK_SIG(s)   ((s)->sig_class == SIGCLASS_BACKSIG)
+#define IS_KEY_REV(s)    ((s)->sig_class == SIGCLASS_KEYREV)
+#define IS_UID_REV(s)    ((s)->sig_class == SIGCLASS_CERTREV)
+#define IS_SUBKEY_REV(s) ((s)->sig_class == SIGCLASS_SUBREV)
 
 struct getkey_ctx_s;
 typedef struct getkey_ctx_s *GETKEY_CTX;
@@ -357,7 +357,6 @@ int get_pubkey_fast (ctrl_t ctrl, PKT_public_key *pk, u32 *keyid);
 kbnode_t get_pubkeyblock_for_sig (ctrl_t ctrl, PKT_signature *sig);
 
 /* Return the key block for the key with KEYID.  */
-#define GET_PUBKEYBLOCK_FLAG_ADSK  1 /* Allow returning ADSK key.  */
 kbnode_t get_pubkeyblock_ext (ctrl_t ctrl, u32 *keyid, unsigned int flags);
 kbnode_t get_pubkeyblock (ctrl_t ctrl, u32 *keyid);
 
@@ -383,6 +382,12 @@ enum get_pubkey_modes
    GET_PUBKEY_NO_LOCAL = 2,
    GET_PUBKEY_TRY_LDAP = 3
   };
+
+/* Other flags for functions in getkey.c  */
+#define GETKEY_WANT_SECRET   1  /* Only return keys having a secret key.  */
+#define GETKEY_WITH_UNUSABLE 2  /* Include unusable keys.  */
+#define GETKEY_ALLOW_ADSK    4  /* Always return ADSK keys.  */
+
 
 /* Find a public key identified by NAME.  */
 int get_pubkey_byname (ctrl_t ctrl, enum get_pubkey_modes mode,
@@ -413,19 +418,19 @@ gpg_error_t get_pubkey_from_buffer (ctrl_t ctrl, PKT_public_key *pkbuf,
 gpg_error_t get_seckey (ctrl_t ctrl, PKT_public_key *pk, u32 *keyid);
 
 /* Lookup a key with the specified fingerprint.  */
-int get_pubkey_byfprint (ctrl_t ctrl, PKT_public_key *pk, kbnode_t *r_keyblock,
-                         const byte *fprint, size_t fprint_len);
+int get_pubkey_byfpr (ctrl_t ctrl, PKT_public_key *pk, kbnode_t *r_keyblock,
+                      const byte *fpr, size_t fprlen);
+
+/* This function is similar to get_pubkey_byfpr, but it doesn't
+   merge the self-signed data into the public key and subkeys or into
+   the user ids.  */
+gpg_error_t get_pubkey_byfpr_fast (ctrl_t ctrl, PKT_public_key *pk,
+                                   const byte *fpr, size_t fprlen);
 
 /* This function is similar to get_pubkey_byfprint, but it doesn't
    merge the self-signed data into the public key and subkeys or into
    the user ids.  */
-gpg_error_t get_pubkey_byfprint_fast (ctrl_t ctrl, PKT_public_key *pk,
-                                      const byte *fprint, size_t fprint_len);
-
-/* This function is similar to get_pubkey_byfprint, but it doesn't
-   merge the self-signed data into the public key and subkeys or into
-   the user ids.  */
-gpg_error_t get_keyblock_byfprint_fast (ctrl_t ctrl,
+gpg_error_t get_keyblock_byfpr_fast (ctrl_t ctrl,
                                      kbnode_t *r_keyblock,
                                      KEYDB_HANDLE *r_hd,
                                      int primary_only,
@@ -449,7 +454,7 @@ gpg_error_t get_seckey_default_or_card (ctrl_t ctrl, PKT_public_key *pk,
 /* Search for keys matching some criteria.  */
 gpg_error_t getkey_bynames (ctrl_t ctrl,
                             getkey_ctx_t *retctx, PKT_public_key *pk,
-                            strlist_t names, int want_secret,
+                            strlist_t names, unsigned int flags,
                             kbnode_t *ret_keyblock);
 
 /* Search for one key matching some criteria.  */
@@ -504,7 +509,7 @@ char *pubkey_string (PKT_public_key *pk, char *buffer, size_t bufsize);
 int compare_pubkey_string (const char *astr, const char *bstr);
 #define PUBKEY_STRING_SIZE 32
 u32 v3_keyid (gcry_mpi_t a, u32 *ki);
-void hash_public_key( gcry_md_hd_t md, PKT_public_key *pk );
+void hash_public_key( gcry_md_hd_t md, PKT_public_key *pk, PKT_signature *sig);
 char *format_keyid (u32 *keyid, int format, char *buffer, int len);
 
 /* Return PK's keyid.  The memory is owned by PK.  */
@@ -592,7 +597,8 @@ char *hexfingerprint (PKT_public_key *pk, char *buffer, size_t buflen);
 char *v5hexfingerprint (PKT_public_key *pk, char *buffer, size_t buflen);
 char *format_hexfingerprint (const char *fingerprint,
                              char *buffer, size_t buflen);
-gpg_error_t keygrip_from_pk (PKT_public_key *pk, unsigned char *array);
+gpg_error_t keygrip_from_pk (PKT_public_key *pk, unsigned char *array,
+                             int get_second);
 gpg_error_t hexkeygrip_from_pk (PKT_public_key *pk, char **r_grip);
 char *ecdh_param_str_from_pk (PKT_public_key *pk);
 

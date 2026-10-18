@@ -2,20 +2,24 @@ name: macos
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - 'releases/**'
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - 'releases/**'
 
 # Set permissions at the job level.
 permissions: {}
 
 jobs:
   macos:
-    runs-on: macos-13
+    runs-on: macos-14
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -23,7 +27,7 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: |
-          brew install bison libxml2 meson ninja xkeyboardconfig xorg-server
+          brew install bison libxml2 meson ninja xkeyboard-config xorg-server
           brew link bison --force
           brew link libxml2 --force
           # https://docs.brew.sh/Homebrew-and-Python#pep-668-python312-and-virtual-environments
@@ -41,7 +45,7 @@ jobs:
             meson setup \
               -Denable-wayland=false \
               -Denable-x11=true \
-              -Dxkb-config-root="$(brew --prefix xkeyboardconfig)/share/X11/xkb" \
+              -Dxkb-config-root="$(brew --prefix xkeyboard-config)/share/X11/xkb" \
               -Dx-locale-root="$(brew --prefix xorg-server)/share/X11/locale" \
               build
       - name: Build
@@ -51,4 +55,5 @@ jobs:
       - name: Test
         run: |
           source venv/bin/activate
-          meson test -C build --print-errorlogs
+          # FIXME: deactivate x11 tests for now
+          meson test -C build --print-errorlogs --no-suite x11

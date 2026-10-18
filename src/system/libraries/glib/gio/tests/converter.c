@@ -24,6 +24,43 @@
 #include <string.h>
 
 static void
+test_charset_unsupported (void)
+{
+  GCharsetConverter *converter;
+  GError *error = NULL;
+
+  converter = g_charset_converter_new ("UTF-8",
+                                       "this-charset-does-not-exist",
+                                       &error);
+  g_assert_null (converter);
+  g_assert_nonnull (error);
+  g_assert_cmpuint (error->domain, ==, G_IO_ERROR);
+  g_clear_error (&error);
+}
+
+static void
+test_charset_cancellable (void)
+{
+  GCharsetConverter *converter;
+  GCancellable *cancellable;
+  GError *error = NULL;
+
+  cancellable = g_cancellable_new ();
+  g_cancellable_cancel (cancellable);
+  converter = g_initable_new (G_TYPE_CHARSET_CONVERTER,
+                              cancellable,
+                              &error,
+                              "to-charset", "UTF-8",
+                              "from-charset", "UTF-8",
+                              NULL);
+  g_assert_null (converter);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED);
+
+  g_clear_error (&error);
+  g_object_unref (cancellable);
+}
+
+static void
 test_extra_bytes_at_end (void)
 {
   char data[1024];
@@ -96,14 +133,52 @@ test_convert_bytes (void)
   g_bytes_unref (bytes);
 }
 
+static void
+test_gzip_os_property (void)
+{
+  const int os_testvalue = 42;
+  const char *data = "Hello World";
+  GBytes *bytes;
+  GZlibCompressor *compressor;
+  GError *error = NULL;
+  GBytes *result;
+  int os;
+  const char *encoded;
+
+  bytes = g_bytes_new_static (data, sizeof (data));
+
+  compressor = g_zlib_compressor_new (G_ZLIB_COMPRESSOR_FORMAT_GZIP, 9);
+  g_zlib_compressor_set_os (compressor, os_testvalue);
+  g_assert_cmpint (g_zlib_compressor_get_os (compressor), ==, os_testvalue);
+
+  g_object_get (compressor, "os", &os, NULL);
+  g_assert_cmpint (os, ==, os_testvalue);
+
+  result = g_converter_convert_bytes (G_CONVERTER (compressor), bytes, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (result);
+
+  /* The OS is stored in the 10th byte of the header, see RFC 1952 */
+  g_assert_cmpint (g_bytes_get_size (result), >, 10);
+  encoded = g_bytes_get_data (result, NULL);
+  g_assert_cmpint (encoded[9], ==, os_testvalue);
+
+  g_bytes_unref (result);
+  g_object_unref (compressor);
+  g_bytes_unref (bytes);
+}
+
 int
 main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
 
+  g_test_add_func ("/converter/charset-unsupported", test_charset_unsupported);
+  g_test_add_func ("/converter/charset-cancellable", test_charset_cancellable);
   g_test_add_func ("/converter/bytes", test_convert_bytes);
   g_test_add_func ("/converter/extra-bytes-at-end", test_extra_bytes_at_end);
+  g_test_add_func ("/converter/gzip-os-property", test_gzip_os_property);
 
   return g_test_run();
 }

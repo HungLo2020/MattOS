@@ -26,6 +26,8 @@
 #include <gst/video/video.h>
 #include <gst/video/gstvideoencoder.h>
 
+#include <math.h>
+
 #if !SVT_AV1_CHECK_VERSION(1,2,1)
 #define SVT_AV1_RC_MODE_CQP_OR_CRF 0
 #define SVT_AV1_RC_MODE_VBR 1
@@ -436,7 +438,7 @@ gst_svtav1enc_set_property (GObject * object, guint property_id,
       break;
     case PROP_LEVEL_OF_PARALLELISM:
 #if SVT_AV1_CHECK_VERSION(3, 0, 0)
-      svtav1enc->level_of_parallelism = g_value_get_int (value);
+      svtav1enc->level_of_parallelism = g_value_get_uint (value);
 #endif
       break;
     case PROP_LOGICAL_PROCESSORS:
@@ -502,7 +504,7 @@ gst_svtav1enc_get_property (GObject * object, guint property_id, GValue * value,
     case PROP_LEVEL_OF_PARALLELISM:
     case PROP_LOGICAL_PROCESSORS:
 #if SVT_AV1_CHECK_VERSION(3, 0, 0)
-      g_value_set_int (value, svtav1enc->level_of_parallelism);
+      g_value_set_uint (value, svtav1enc->level_of_parallelism);
 #else
       g_value_set_uint (value, svtav1enc->logical_processors);
 #endif
@@ -554,6 +556,14 @@ gst_svtav1enc_deallocate_svt_buffers (GstSvtAv1Enc * svtav1enc)
     g_free (svtav1enc->input_buf);
     svtav1enc->input_buf = NULL;
   }
+}
+
+static inline guint16
+mdcv_to_svtav1 (guint16 x)
+{
+  gdouble v = (gdouble) x / 50000;
+  v = round (v * (1 << 16));
+  return GUINT16_TO_BE (v > 65535 ? 65535 : (guint16) v);
 }
 
 static gboolean
@@ -762,26 +772,38 @@ gst_svtav1enc_configure_svt (GstSvtAv1Enc * svtav1enc)
   GstVideoMasteringDisplayInfo master_display_info;
   if (gst_video_mastering_display_info_from_caps (&master_display_info,
           svtav1enc->state->caps)) {
+    gdouble max_lum, min_lum;
+
     svtav1enc->svt_config->mastering_display.r.x =
-        master_display_info.display_primaries[0].x;
+        mdcv_to_svtav1 (master_display_info.display_primaries[0].x);
     svtav1enc->svt_config->mastering_display.r.y =
-        master_display_info.display_primaries[0].y;
+        mdcv_to_svtav1 (master_display_info.display_primaries[0].y);
     svtav1enc->svt_config->mastering_display.g.x =
-        master_display_info.display_primaries[1].x;
+        mdcv_to_svtav1 (master_display_info.display_primaries[1].x);
     svtav1enc->svt_config->mastering_display.g.y =
-        master_display_info.display_primaries[1].y;
+        mdcv_to_svtav1 (master_display_info.display_primaries[1].y);
     svtav1enc->svt_config->mastering_display.b.x =
-        master_display_info.display_primaries[2].x;
+        mdcv_to_svtav1 (master_display_info.display_primaries[2].x);
     svtav1enc->svt_config->mastering_display.b.y =
-        master_display_info.display_primaries[2].y;
+        mdcv_to_svtav1 (master_display_info.display_primaries[2].y);
     svtav1enc->svt_config->mastering_display.white_point.x =
-        master_display_info.white_point.x;
+        mdcv_to_svtav1 (master_display_info.white_point.x);
     svtav1enc->svt_config->mastering_display.white_point.y =
-        master_display_info.white_point.y;
+        mdcv_to_svtav1 (master_display_info.white_point.y);
+
+    max_lum =
+        round ((gdouble) master_display_info.max_display_mastering_luminance /
+        10000 * (1 << 8));
+    min_lum =
+        round ((gdouble) master_display_info.min_display_mastering_luminance /
+        10000 * (1 << 14));
     svtav1enc->svt_config->mastering_display.max_luma =
-        master_display_info.max_display_mastering_luminance;
+        GUINT32_TO_BE ((guint32) max_lum);
     svtav1enc->svt_config->mastering_display.min_luma =
-        master_display_info.min_display_mastering_luminance;
+        GUINT32_TO_BE ((guint32) min_lum);
+#if !(SVT_AV1_CHECK_VERSION(3, 0, 0))
+    svtav1enc->svt_config->high_dynamic_range_input = TRUE;
+#endif
   } else {
     memset (&svtav1enc->svt_config->mastering_display,
         0, sizeof (svtav1enc->svt_config->mastering_display));
@@ -791,9 +813,9 @@ gst_svtav1enc_configure_svt (GstSvtAv1Enc * svtav1enc)
   if (gst_video_content_light_level_from_caps (&content_light_level,
           svtav1enc->state->caps)) {
     svtav1enc->svt_config->content_light_level.max_cll =
-        content_light_level.max_content_light_level;
+        GUINT16_TO_BE (content_light_level.max_content_light_level);
     svtav1enc->svt_config->content_light_level.max_fall =
-        content_light_level.max_frame_average_light_level;
+        GUINT16_TO_BE (content_light_level.max_frame_average_light_level);
   } else {
     memset (&svtav1enc->svt_config->content_light_level,
         0, sizeof (svtav1enc->svt_config->content_light_level));

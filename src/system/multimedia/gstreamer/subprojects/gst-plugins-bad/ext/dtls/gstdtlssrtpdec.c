@@ -31,6 +31,17 @@
 #include "gstdtlssrtpdec.h"
 #include "gstdtlsconnection.h"
 
+/**
+ * SECTION: element-dtlssrtpdec
+ * @title: dtlssrtpdec
+ *
+ * This element decodes SRTP packets with a key received from DTLS. Before 1.28
+ * the default X509 PEM certificate was encoded using a RSA 2048 bits private
+ * key. Since 1.28 the default certificate is encoded using a ECDSA P-256
+ * private key.
+ *
+ */
+
 static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
@@ -125,7 +136,7 @@ gst_dtls_srtp_dec_class_init (GstDtlsSrtpDecClass * klass)
   properties[PROP_PEM] =
       g_param_spec_string ("pem",
       "PEM string",
-      "A string containing a X509 certificate and RSA private key in PEM format",
+      "A string containing a X509 certificate and private key in PEM format",
       DEFAULT_PEM,
       G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | GST_PARAM_DOC_SHOW_DEFAULT);
 
@@ -153,7 +164,7 @@ gst_dtls_srtp_dec_class_init (GstDtlsSrtpDecClass * klass)
       "DTLS-SRTP Decoder",
       "Decoder/Network/DTLS/SRTP",
       "Decodes SRTP packets with a key received from DTLS",
-      "Patrik Oldsberg patrik.oldsberg@ericsson.com");
+      "Patrik Oldsberg <patrik.oldsberg@ericsson.com>");
 }
 
 static void
@@ -171,7 +182,7 @@ gst_dtls_srtp_dec_init (GstDtlsSrtpDec * self)
   GstElementClass *klass = GST_ELEMENT_GET_CLASS (GST_ELEMENT (self));
   GstPadTemplate *templ;
   GstPad *target_pad, *ghost_pad;
-  gboolean ret;
+  gboolean ret GST_UNUSED_CHECKS;
 
 /*
                                  +-----------+
@@ -311,7 +322,7 @@ gst_dtls_srtp_dec_request_new_pad (GstElement * element,
   GstDtlsSrtpDec *self = GST_DTLS_SRTP_DEC (element);
   GstElementClass *klass = GST_ELEMENT_GET_CLASS (element);
   GstPad *ghost_pad = NULL;
-  gboolean ret;
+  gboolean ret GST_UNUSED_CHECKS;
 
   GST_DEBUG_OBJECT (element, "pad requested");
 
@@ -459,7 +470,7 @@ gst_dtls_srtp_dec_remove_dtls_element (GstDtlsSrtpBin * bin)
 {
   GstDtlsSrtpDec *self = GST_DTLS_SRTP_DEC (bin);
   GstPad *demux_pad;
-  gulong id;
+  gulong id GST_UNUSED_CHECKS;
 
   if (!bin->dtls_element) {
     return;

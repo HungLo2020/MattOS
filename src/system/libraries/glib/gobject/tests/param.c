@@ -195,13 +195,13 @@ test_param_spec_ulong (void)
 
   g_param_value_set_default (pspec, &value);
   g_assert_true (G_VALUE_TYPE (&value) == G_TYPE_ULONG);
-  g_assert_cmpint (g_value_get_ulong (&value), ==, 30);
+  g_assert_cmpuint (g_value_get_ulong (&value), ==, 30);
   g_assert_true (g_param_value_defaults (pspec, &value));
 
   g_value_set_ulong (&value, 0);
   g_assert_false (g_param_value_is_valid (pspec, &value));
   g_assert_true (g_param_value_validate (pspec, &value));
-  g_assert_cmpint (g_value_get_ulong (&value), ==, 20);
+  g_assert_cmpuint (g_value_get_ulong (&value), ==, 20);
 
   g_param_spec_unref (pspec);
 }
@@ -239,13 +239,13 @@ test_param_spec_uint64 (void)
 
   g_param_value_set_default (pspec, &value);
   g_assert_true (G_VALUE_TYPE (&value) == G_TYPE_UINT64);
-  g_assert_cmpint (g_value_get_uint64 (&value), ==, 30);
+  g_assert_cmpuint (g_value_get_uint64 (&value), ==, 30);
   g_assert_true (g_param_value_defaults (pspec, &value));
 
   g_value_set_uint64 (&value, 0);
   g_assert_false (g_param_value_is_valid (pspec, &value));
   g_assert_true (g_param_value_validate (pspec, &value));
-  g_assert_cmpint (g_value_get_uint64 (&value), ==, 20);
+  g_assert_cmpuint (g_value_get_uint64 (&value), ==, 20);
 
   g_param_spec_unref (pspec);
 }
@@ -522,12 +522,12 @@ test_param_spec_gtype (void)
   g_value_set_gtype (&value, G_TYPE_INT);
   g_assert_false (g_param_value_is_valid (pspec, &value));
   g_assert_true (g_param_value_validate (pspec, &value));
-  g_assert_cmpint (g_value_get_gtype (&value), ==, G_TYPE_PARAM);
+  g_assert_cmpuint (g_value_get_gtype (&value), ==, G_TYPE_PARAM);
 
   g_value_set_gtype (&value, G_TYPE_PARAM_INT);
   g_assert_true (g_param_value_is_valid (pspec, &value));
   g_assert_false (g_param_value_validate (pspec, &value));
-  g_assert_cmpint (g_value_get_gtype (&value), ==, G_TYPE_PARAM_INT);
+  g_assert_cmpuint (g_value_get_gtype (&value), ==, G_TYPE_PARAM_INT);
 
   g_param_spec_unref (pspec);
 }
@@ -823,7 +823,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_INT, type));        \
   g_value_init (&src, G_TYPE_INT);                                      \
   g_value_init (&dest, type);                                           \
-  g_value_set_int (&src, value);                                        \
+  g_value_set_int (&src, (int) value);                                  \
   g_assert_true (g_value_transform (&src, &dest));                      \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                    \
   g_value_unset (&src);                                                 \
@@ -834,7 +834,7 @@ test_value_transform (void)
    * https://bugzilla.gnome.org/show_bug.cgi?id=659870
    * for why it is broken.
    */
-  CHECK_INT_CONVERSION(G_TYPE_CHAR, g_assert_cmpuint, char, 124)
+  CHECK_INT_CONVERSION(G_TYPE_CHAR, g_assert_cmpint, char, 124)
 
   CHECK_INT_CONVERSION(G_TYPE_CHAR, g_assert_cmpint, schar, -124)
   CHECK_INT_CONVERSION(G_TYPE_CHAR, g_assert_cmpint, schar, 124)
@@ -855,7 +855,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_UINT, type));       \
   g_value_init (&src, G_TYPE_UINT);                                     \
   g_value_init (&dest, type);                                           \
-  g_value_set_uint (&src, value);                                       \
+  g_value_set_uint (&src, (unsigned int) value);                        \
   g_assert_true (g_value_transform (&src, &dest));                      \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                    \
   g_value_unset (&src);                                                 \
@@ -880,7 +880,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_LONG, type));       \
   g_value_init (&src, G_TYPE_LONG);                                     \
   g_value_init (&dest, type);                                           \
-  g_value_set_long (&src, value);                                       \
+  g_value_set_long (&src, (long) value);                                \
   g_assert_true (g_value_transform (&src, &dest));                      \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                    \
   g_value_unset (&src);                                                 \
@@ -905,7 +905,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_ULONG, type));      \
   g_value_init (&src, G_TYPE_ULONG);                                    \
   g_value_init (&dest, type);                                           \
-  g_value_set_ulong (&src, value);                                      \
+  g_value_set_ulong (&src, (gulong) value);                             \
   g_assert_true (g_value_transform (&src, &dest));                      \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                    \
   g_value_unset (&src);                                                 \
@@ -930,7 +930,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_INT64, type));      \
   g_value_init (&src, G_TYPE_INT64);                                    \
   g_value_init (&dest, type);                                           \
-  g_value_set_int64 (&src, value);                                      \
+  g_value_set_int64 (&src, (gint64) value);                             \
   g_assert_true (g_value_transform (&src, &dest));                      \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                    \
   g_value_unset (&src);                                                 \
@@ -955,7 +955,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_UINT64, type));     \
   g_value_init (&src, G_TYPE_UINT64);                                   \
   g_value_init (&dest, type);                                           \
-  g_value_set_uint64 (&src, value);                                     \
+  g_value_set_uint64 (&src, (guint64) value);                           \
   g_assert_true (g_value_transform (&src, &dest));                      \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                    \
   g_value_unset (&src);                                                 \
@@ -980,7 +980,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_FLOAT, type));     \
   g_value_init (&src, G_TYPE_FLOAT);                                   \
   g_value_init (&dest, type);                                          \
-  g_value_set_float (&src, value);                                     \
+  g_value_set_float (&src, (float) value);                             \
   g_assert_true (g_value_transform (&src, &dest));                     \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                   \
   g_value_unset (&src);                                                \
@@ -1005,7 +1005,7 @@ test_value_transform (void)
   g_assert_true (g_value_type_transformable (G_TYPE_DOUBLE, type));     \
   g_value_init (&src, G_TYPE_DOUBLE);                                   \
   g_value_init (&dest, type);                                           \
-  g_value_set_double (&src, value);                                     \
+  g_value_set_double (&src, (double) value);                            \
   g_assert_true (g_value_transform (&src, &dest));                      \
   cmpfunc (g_value_get_##getter (&dest), ==, value);                    \
   g_value_unset (&src);                                                 \
@@ -1164,10 +1164,16 @@ test_interface_default_init (TestInterfaceInterface *iface)
               continue;
 
             /* we think that this is impossible.  make sure. */
-            pspec = g_param_spec_object ("xyz", "xyz", "xyz", types[i], j);
+            pspec = g_param_spec_object ("xyz", "xyz", "xyz", types[i], (GParamFlags) j);
 
-            g_test_expect_message (G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL,
-                                   "*assertion*pspec->flags*failed*");
+            if ((j & (G_PARAM_READABLE | G_PARAM_WRITABLE)) &&
+                (j & (G_PARAM_CONSTRUCT | G_PARAM_CONSTRUCT_ONLY)) == (G_PARAM_CONSTRUCT | G_PARAM_CONSTRUCT_ONLY))
+              g_test_expect_message (G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL,
+                                     "*cannot have both G_PARAM_CONSTRUCT and G_PARAM_CONSTRUCT_ONLY*");
+            else
+              g_test_expect_message (G_LOG_DOMAIN, G_LOG_LEVEL_CRITICAL,
+                                     "*assertion*pspec->flags*failed*");
+
             g_object_interface_install_property (iface, pspec);
             g_test_assert_expected_messages ();
 
@@ -1176,7 +1182,7 @@ test_interface_default_init (TestInterfaceInterface *iface)
 
         /* install the property */
         g_snprintf (prop_name, sizeof prop_name, "%s-%s", names[i], perms[j]);
-        pspec = g_param_spec_object (prop_name, prop_name, prop_name, types[i], j);
+        pspec = g_param_spec_object (prop_name, prop_name, prop_name, types[i], (GParamFlags) j);
         g_object_interface_install_property (iface, pspec);
       }
 }
@@ -1270,7 +1276,7 @@ static gint valid_impl_types[48][4] = {
 /* We also try to change the flags.  We must ensure that all
  * implementations provide all functionality promised by the interface.
  * We must therefore never remove readability or writability (but we can
- * add them).  Construct-only is a restrictions that applies to
+ * add them).  Construct-only is a restriction that applies to
  * writability, so we can never add it unless writability was never
  * present in the first place, in which case "writable at construct
  * only" is still better than "not writable".
@@ -1290,7 +1296,7 @@ static gint valid_impl_types[48][4] = {
  *                        rwc, wc
  *
  * We can represent this with a 16-by-16 table.  The rows represent the
- * flags of the property on the interface.  The columns is the flags to
+ * flags of the property on the interface.  The columns are the flags to
  * try to use when overriding the property.  The cell contents are:
  *
  *   - 0:   invalid because the interface property doesn't exist (invalid flags)
@@ -1320,8 +1326,8 @@ static gint valid_impl_flags[16][16] = {
 
 static guint change_this_flag;
 static guint change_this_type;
-static guint use_this_flag;
-static guint use_this_type;
+static GParamFlags use_this_flag;
+static size_t use_this_type_index;
 
 typedef GObjectClass TestImplementationClass;
 typedef GObject TestImplementation;
@@ -1371,15 +1377,15 @@ static void test_implementation_class_init (TestImplementationClass *class)
     g_error ("Interface property does not exist");
 
   g_snprintf (prop_name, sizeof prop_name, "%s-%s", names[change_this_type], perms[change_this_flag]);
-  pspec = g_param_spec_object (prop_name, prop_name, prop_name, types[use_this_type], use_this_flag);
+  pspec = g_param_spec_object (prop_name, prop_name, prop_name, types[use_this_type_index], use_this_flag);
   g_object_class_install_property (class, 1, pspec);
 }
 
 typedef struct {
-  gint change_this_flag;
-  gint change_this_type;
-  gint use_this_flag;
-  gint use_this_type;
+  guint change_this_flag;
+  guint change_this_type;
+  GParamFlags use_this_flag;
+  size_t use_this_type_index;
 } TestParamImplementData;
 
 static void
@@ -1401,7 +1407,7 @@ test_param_implement_child (gconstpointer user_data)
   change_this_flag = data->change_this_flag;
   change_this_type = data->change_this_type;
   use_this_flag = data->use_this_flag;
-  use_this_type = data->use_this_type;
+  use_this_type_index = data->use_this_type_index;
 
   g_type_class_ref (test_implementation_get_type ());
 }
@@ -1421,7 +1427,7 @@ test_param_implement (void)
   for (change_this_flag = 0; change_this_flag < 16; change_this_flag++)
     for (change_this_type = 0; change_this_type < 3; change_this_type++)
       for (use_this_flag = 0; use_this_flag < 16; use_this_flag++)
-        for (use_this_type = 0; use_this_type < 4; use_this_type++)
+        for (use_this_type_index = 0; use_this_type_index < 4; use_this_type_index++)
           {
             if (!g_test_undefined ())
               {
@@ -1429,15 +1435,14 @@ test_param_implement (void)
                 if (valid_impl_flags[change_this_flag][use_this_flag] != 'v')
                   continue;
 
-                if (valid_impl_types[change_this_type * 16 + change_this_flag][use_this_type] != 'v')
+                if (valid_impl_types[change_this_type * 16 + change_this_flag][use_this_type_index] != 'v')
                   continue;
               }
 
-            test_path = g_strdup_printf ("/param/implement/subprocess/%d-%d-%d-%d",
+            test_path = g_strdup_printf ("/param/implement/subprocess/%u-%u-%u-%" G_GSIZE_FORMAT,
                                          change_this_flag, change_this_type,
-                                         use_this_flag, use_this_type);
-            g_test_trap_subprocess (test_path, G_TIME_SPAN_SECOND,
-                                    G_TEST_SUBPROCESS_DEFAULT);
+                                         use_this_flag, use_this_type_index);
+            g_test_trap_subprocess (test_path, 0, G_TEST_SUBPROCESS_DEFAULT);
             g_free (test_path);
 
             /* We want to ensure that any flags mismatch problems are reported first. */
@@ -1445,14 +1450,18 @@ test_param_implement (void)
               {
               case 0:
                 /* make sure the other table agrees */
-                g_assert_cmpint (valid_impl_types[change_this_type * 16 + change_this_flag][use_this_type], ==, 0);
+                g_assert_cmpint (valid_impl_types[change_this_type * 16 + change_this_flag][use_this_type_index], ==, 0);
                 g_test_trap_assert_failed ();
                 g_test_trap_assert_stderr ("*Interface property does not exist*");
                 continue;
 
               case 'i':
                 g_test_trap_assert_failed ();
-                g_test_trap_assert_stderr ("*pspec->flags*");
+                if ((use_this_flag & (G_PARAM_READABLE | G_PARAM_WRITABLE)) &&
+                    (use_this_flag & (G_PARAM_CONSTRUCT | G_PARAM_CONSTRUCT_ONLY)) == (G_PARAM_CONSTRUCT | G_PARAM_CONSTRUCT_ONLY))
+                  g_test_trap_assert_stderr ("*cannot have both G_PARAM_CONSTRUCT and G_PARAM_CONSTRUCT_ONLY*");
+                else
+                  g_test_trap_assert_stderr ("*pspec->flags*");
                 continue;
 
               case 'f':
@@ -1470,7 +1479,7 @@ test_param_implement (void)
               }
 
             /* Next, we check if there should have been a type error. */
-            switch (valid_impl_types[change_this_type * 16 + change_this_flag][use_this_type])
+            switch (valid_impl_types[change_this_type * 16 + change_this_flag][use_this_type_index])
               {
               case 0:
                 /* this should have been caught above */
@@ -1545,8 +1554,8 @@ param_int_init (GParamSpec *pspec)
 {
   GParamSpecInt *ispec = (GParamSpecInt *)pspec;
 
-  ispec->minimum = 0x7fffffff;
-  ispec->maximum = 0x80000000;
+  ispec->minimum = (int) 0x7fffffff;
+  ispec->maximum = (int) 0x80000000;
   ispec->default_value = 0;
 }
 
@@ -1684,11 +1693,11 @@ main (int argc, char *argv[])
   for (data.change_this_flag = 0; data.change_this_flag < 16; data.change_this_flag++)
     for (data.change_this_type = 0; data.change_this_type < 3; data.change_this_type++)
       for (data.use_this_flag = 0; data.use_this_flag < 16; data.use_this_flag++)
-        for (data.use_this_type = 0; data.use_this_type < 4; data.use_this_type++)
+        for (data.use_this_type_index = 0; data.use_this_type_index < 4; data.use_this_type_index++)
           {
-            test_path = g_strdup_printf ("/param/implement/subprocess/%d-%d-%d-%d",
+            test_path = g_strdup_printf ("/param/implement/subprocess/%u-%u-%u-%" G_GSIZE_FORMAT,
                                          data.change_this_flag, data.change_this_type,
-                                         data.use_this_flag, data.use_this_type);
+                                         data.use_this_flag, data.use_this_type_index);
             test_data = g_memdup2 (&data, sizeof (TestParamImplementData));
             g_test_add_data_func_full (test_path, g_steal_pointer (&test_data), test_param_implement_child, g_free);
             g_free (test_path);

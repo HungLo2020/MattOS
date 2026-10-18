@@ -37,6 +37,12 @@ The environment allowlist is `CC`, `CXX`, `AR`, `AS`, `LD`, `NM`, `RANLIB`, `STR
 
 Dependency manifests retain both upstream input and output digests in their diagnostic details, but only the output-content digest participates in a consumer key. This preserves true dependency invalidation while preventing a rebuild that republishes byte-identical output from causing a false cascade.
 
+Autotools and Meson also bind their private configure/build-directory stamps
+to those dependency output digests. A changed dependency discards stale
+configuration before rebuilding; in particular, Autoconf's `config.status`
+must not reuse an old pkg-config overlay after a library update. A dependency
+that republishes identical bytes keeps the existing private configuration.
+
 Documentation directories and conventional upstream README/change-log/license files are excluded from compilation source digests. Package keys separately include source documentation because licenses or other source documents can be installed into package payloads. Timestamps are not cache keys.
 
 A stage is reused only when its schema and full input digest match, every expected output exists, the complete output inventory/content/mode/symlink digest matches, and stage-specific lightweight validation succeeds. Missing files, unexpected files, mode changes, symlink changes, compiler changes, configuration changes, dependency changes, or content corruption force a rebuild.

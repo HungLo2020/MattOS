@@ -1903,7 +1903,7 @@ gst_rtspsrc_provide_clock (GstElement * element)
 static gboolean
 gst_rtspsrc_set_proxy (GstRTSPSrc * rtsp, const gchar * proxy)
 {
-  gchar *p, *at, *col;
+  const gchar *p, *at, *col;
 
   g_free (rtsp->proxy_user);
   rtsp->proxy_user = NULL;
@@ -1913,7 +1913,7 @@ gst_rtspsrc_set_proxy (GstRTSPSrc * rtsp, const gchar * proxy)
   rtsp->proxy_host = NULL;
   rtsp->proxy_port = 0;
 
-  p = (gchar *) proxy;
+  p = proxy;
 
   if (p == NULL)
     return TRUE;
@@ -4217,12 +4217,12 @@ set_manager_buffer_mode (GstRTSPSrc * src)
 }
 
 static void
-update_srtcp_params (GstRTSPStream * stream)
+update_srtcp_params (GstRTSPStream * stream, gboolean update)
 {
   GstStructure *s = gst_caps_get_structure (stream->srtcpparams, 0);
   if (s) {
     GstBuffer *buf;
-    GstBuffer *mki_buf;
+    GstBuffer *mki_buf = NULL;
     const gchar *str;
     GType ciphertype, authtype;
     GValue rtcp_cipher = G_VALUE_INIT, rtcp_auth = G_VALUE_INIT;
@@ -4239,6 +4239,22 @@ update_srtcp_params (GstRTSPStream * stream)
     gst_structure_get (s, "srtp-key", GST_TYPE_BUFFER, &buf, NULL);
     gst_structure_get (s, "mki", GST_TYPE_BUFFER, &mki_buf, NULL);
 
+    if (update) {
+      GstBuffer *current_mki_buf = NULL;
+
+      g_object_get (stream->srtpenc, "mki", &current_mki_buf, NULL);
+
+      if ((current_mki_buf != NULL) != (mki_buf != NULL)) {
+        GstRTSPSrc *rtspsrc = GST_RTSPSRC (stream->parent);
+        GST_WARNING_OBJECT (rtspsrc,
+            "Mixed MKI and non-MKI keys detected in the same SRTP session. "
+            "Current key has %s MKI, new key has %s MKI",
+            current_mki_buf ? "an" : "no", mki_buf ? "an" : "no");
+      }
+
+      gst_clear_buffer (&current_mki_buf);
+    }
+
     g_object_set_property (G_OBJECT (stream->srtpenc), "rtp-cipher",
         &rtcp_cipher);
     g_object_set_property (G_OBJECT (stream->srtpenc), "rtp-auth", &rtcp_auth);
@@ -4251,7 +4267,7 @@ update_srtcp_params (GstRTSPStream * stream)
     g_value_unset (&rtcp_cipher);
     g_value_unset (&rtcp_auth);
     gst_buffer_unref (buf);
-    gst_buffer_unref (mki_buf);
+    gst_clear_buffer (&mki_buf);
   }
 }
 
@@ -4294,7 +4310,7 @@ request_key (GstElement * srtpdec, guint ssrc, GstRTSPStream * stream)
       gst_caps_unref (stream->srtcpparams);
 
     stream->srtcpparams = signal_get_srtcp_params (rtspsrc, stream);
-    update_srtcp_params (stream);
+    update_srtcp_params (stream, TRUE);
   } else {
     GST_ERROR_OBJECT (rtspsrc, "No MIKEYs for stream with id %u", stream->id);
     return NULL;
@@ -4414,7 +4430,7 @@ request_rtcp_encoder (GstElement * rtpbin, guint session,
     }
 
     /* get RTCP crypto parameters from caps */
-    update_srtcp_params (stream);
+    update_srtcp_params (stream, FALSE);
   }
   name = g_strdup_printf ("rtcp_sink_%d", session);
   pad = gst_element_request_pad_simple (stream->srtpenc, name);
@@ -5806,6 +5822,15 @@ gst_rtsp_conninfo_connect (GstRTSPSrc * src, GstRTSPConnInfo * info,
         gst_rtsp_connection_set_tunneled (info->connection, TRUE);
         gst_rtsp_connection_set_ignore_x_server_reply (info->connection,
             src->ignore_x_server_reply);
+
+        if (src->user_agent) {
+          GString *user_agent = g_string_new (src->user_agent);
+
+          g_string_replace (user_agent, "{VERSION}", PACKAGE_VERSION, 0);
+          gst_rtsp_connection_add_extra_http_request_header (info->connection,
+              "User-Agent", user_agent->str);
+          g_string_free (user_agent, TRUE);
+        }
       }
 
       if (src->proxy_host) {
@@ -6120,6 +6145,11 @@ gst_rtspsrc_handle_data (GstRTSPSrc * src, GstRTSPMessage * message)
   if (outpad == NULL)
     goto unknown_stream;
 
+  /* In onvif mode, ignore data arriving before the PLAY response */
+  if (src->onvif_mode && src->out_segment.format == GST_FORMAT_UNDEFINED) {
+    goto early_data_discard;
+  }
+
   /* take the message body for further processing */
   gst_rtsp_message_steal_body (message, &data, &size);
 
@@ -6281,6 +6311,14 @@ gst_rtspsrc_handle_data (GstRTSPSrc * src, GstRTSPMessage * message)
   return ret;
 
   /* ERRORS */
+early_data_discard:
+  {
+    GST_DEBUG_OBJECT (src,
+        "Discarding early data on channel %d in ONVIF mode (arrived before the PLAY response)",
+        channel);
+    gst_rtsp_message_unset (message);
+    return GST_FLOW_OK;
+  }
 unknown_stream:
   {
     GST_DEBUG_OBJECT (src, "unknown stream on channel %d, ignored", channel);
@@ -8337,8 +8375,13 @@ gst_rtspsrc_setup_streams_start (GstRTSPSrc * src, gboolean async)
 
         sskip = (GstRTSPStream *) skip->data;
 
-        /* skip all streams with the same control url */
-        if (g_str_equal (stream->conninfo.location, sskip->conninfo.location)) {
+        /*
+         * Skip all streams with the same control URL. Streams without a control
+         * URL have no setup URL, are skipped above already and have a NULL
+         * location, so don't compare against those.
+         */
+        if (sskip->conninfo.location != NULL &&
+            g_str_equal (stream->conninfo.location, sskip->conninfo.location)) {
           GST_DEBUG_OBJECT (src, "found stream %p with same control %s",
               sskip, sskip->conninfo.location);
           sskip->skipped = TRUE;
@@ -9706,6 +9749,12 @@ restart:
 
     if (async)
       GST_ELEMENT_PROGRESS (src, CONTINUE, "request", ("Sending PLAY request"));
+
+    /* In onvif mode, invalid output segment before sending PLAY request, as some
+     * servers will send us invalid data before the PLAY response and we should discard
+     * it
+     */
+    gst_segment_init (&src->out_segment, GST_FORMAT_UNDEFINED);
 
     if ((res =
             gst_rtspsrc_send (src, conninfo, &request, &response, NULL, NULL,

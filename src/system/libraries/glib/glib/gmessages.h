@@ -32,6 +32,7 @@
 #endif
 
 #include <stdarg.h>
+#include <stdlib.h>
 #include <glib/gatomic.h>
 #include <glib/gtypes.h>
 #include <glib/gmacros.h>
@@ -67,7 +68,7 @@ typedef enum
   G_LOG_LEVEL_DEBUG             = 1 << 7,
 
   G_LOG_LEVEL_MASK              = ~(G_LOG_FLAG_RECURSION | G_LOG_FLAG_FATAL)
-} GLogLevelFlags;
+} G_GNUC_FLAG_ENUM GLogLevelFlags;
 
 /* GLib log levels that are considered fatal by default */
 #define G_LOG_FATAL_MASK        (G_LOG_FLAG_RECURSION | G_LOG_LEVEL_ERROR)
@@ -116,6 +117,9 @@ GLogLevelFlags  g_log_set_fatal_mask    (const gchar    *log_domain,
                                          GLogLevelFlags  fatal_mask);
 GLIB_AVAILABLE_IN_ALL
 GLogLevelFlags  g_log_set_always_fatal  (GLogLevelFlags  fatal_mask);
+
+GLIB_AVAILABLE_IN_2_86
+GLogLevelFlags  g_log_get_always_fatal  (void);
 
 /* Structured logging mechanism. */
 
@@ -326,7 +330,7 @@ void g_log_structured_standard (const gchar    *log_domain,
                         g_log_structured_standard (G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, \
                                                    __FILE__, G_STRINGIFY (__LINE__), \
                                                    G_STRFUNC, __VA_ARGS__); \
-                        for (;;) ;                                              \
+                        abort ();                                               \
                       } G_STMT_END
 #define g_message(...)  g_log_structured_standard (G_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE, \
                                                    __FILE__, G_STRINGIFY (__LINE__), \
@@ -344,14 +348,11 @@ void g_log_structured_standard (const gchar    *log_domain,
                                                    __FILE__, G_STRINGIFY (__LINE__), \
                                                    G_STRFUNC, __VA_ARGS__)
 #else
-/* for(;;) ; so that GCC knows that control doesn't go past g_error().
- * Put space before ending semicolon to avoid C++ build warnings.
- */
 #define g_error(...)  G_STMT_START {                 \
                         g_log (G_LOG_DOMAIN,         \
                                G_LOG_LEVEL_ERROR,    \
                                __VA_ARGS__);         \
-                        for (;;) ;                   \
+                        abort ();                    \
                       } G_STMT_END
 #define g_message(...)  g_log (G_LOG_DOMAIN,         \
                                G_LOG_LEVEL_MESSAGE,  \
@@ -375,7 +376,7 @@ void g_log_structured_standard (const gchar    *log_domain,
                                g_log_structured_standard (G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, \
                                                           __FILE__, G_STRINGIFY (__LINE__), \
                                                           G_STRFUNC, format); \
-                               for (;;) ;                                            \
+                               abort ();                                             \
                              } G_STMT_END
 #define g_message(format...)  g_log_structured_standard (G_LOG_DOMAIN, G_LOG_LEVEL_MESSAGE, \
                                                          __FILE__, G_STRINGIFY (__LINE__), \
@@ -397,7 +398,7 @@ void g_log_structured_standard (const gchar    *log_domain,
                                 g_log (G_LOG_DOMAIN,         \
                                        G_LOG_LEVEL_ERROR,    \
                                        format);              \
-                                for (;;) ;                   \
+                                abort ();                    \
                               } G_STMT_END
 
 #define g_message(format...)    g_log (G_LOG_DOMAIN,         \
@@ -429,7 +430,7 @@ g_error (const gchar *format,
   g_logv (G_LOG_DOMAIN, G_LOG_LEVEL_ERROR, format, args);
   va_end (args);
 
-  for(;;) ;
+  abort ();
 }
 static inline void
 g_message (const gchar *format,
@@ -587,7 +588,7 @@ GPrintFunc      g_set_printerr_handler  (GPrintFunc      func);
  *
  * To debug failure of a g_return_if_fail() check, run the code under a debugger
  * with `G_DEBUG=fatal-criticals` or `G_DEBUG=fatal-warnings` defined in the
- * environment (see [Running GLib Applications](glib-running.html)):
+ * environment (see [Running GLib Applications](running.html)):
  *
  * |[
  *   G_DEBUG=fatal-warnings gdb ./my-program

@@ -170,7 +170,7 @@ void _keybox_update_header_blob (KEYBOXBLOB blob, int for_openpgp);
 
 /*-- keybox-openpgp.c --*/
 gpg_error_t _keybox_parse_openpgp (const unsigned char *image, size_t imagelen,
-                                   size_t *nparsed,
+                                   int only_primary, size_t *nparsed,
                                    keybox_openpgp_info_t info);
 void _keybox_destroy_openpgp_info (keybox_openpgp_info_t info);
 

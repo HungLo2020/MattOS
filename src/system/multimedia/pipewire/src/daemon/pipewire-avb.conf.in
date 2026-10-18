@@ -30,6 +30,11 @@ context.modules = [
             #rt.prio      = @rtprio_client@
             #rt.time.soft = -1
             #rt.time.hard = -1
+            #rlimits.enabled = true
+            #rtportal.enabled = true
+            #rtkit.enabled = true
+            #uclamp.min = 0
+            #uclamp.max = 1024
         }
         flags = [ ifexists nofail ]
     }
@@ -67,6 +72,7 @@ avb.properties = {
     # the addresses this server listens on
     #ifname = "eth0.2"
     ifname = "enp3s0"
+    milan = false
 }
 
 avb.properties.rules = [

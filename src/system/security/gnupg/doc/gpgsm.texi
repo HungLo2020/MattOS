@@ -136,7 +136,7 @@ Run in server mode and wait for commands on the @code{stdin}.
 Behave as a Dirmngr client issuing the request @var{command} with the
 optional list of @var{args}.  The output of the Dirmngr is printed
 stdout.  Please note that file names given as arguments should have an
-absolute file name (i.e. commencing with @code{/}) because they are
+absolute file name (i.e., commencing with @code{/}) because they are
 passed verbatim to the Dirmngr and the working directory of the
 Dirmngr might not be the same as the one of this client.  Currently it
 is not possible to pass data via stdin to the Dirmngr.  @var{command}
@@ -259,7 +259,7 @@ optional @var{pattern}. Those pattern consist of a list of user ids
 @option{--armor} option a few informational lines are prepended before
 each block.  There is one limitation: As there is no commonly agreed
 upon way to pack more than one certificate into an ASN.1 structure,
-the binary export (i.e. without using @option{armor}) works only for
+the binary export (i.e., without using @option{armor}) works only for
 the export of one certificate.  Thus it is required to specify a
 @var{pattern} which yields exactly one certificate.  Ephemeral
 certificate are only exported if all @var{pattern} are given as
@@ -271,7 +271,8 @@ Export the private key and the certificate identified by @var{key-id}
 using the PKCS#12 format.  When used with the @code{--armor} option a few
 informational lines are prepended to the output.  Note, that the PKCS#12
 format is not very secure and proper transport security should be used
-to convey the exported key.  (@xref{option --p12-charset}.)
+to convey the exported key.  The option @code{--no-protection} can be
+used to export without passphrase protection.  (@xref{option --p12-charset}.)
 
 @item --export-secret-key-p8 @var{key-id}
 @itemx --export-secret-key-raw @var{key-id}
@@ -290,11 +291,12 @@ Import the certificates from the PEM or binary encoded files as well as
 from signed-only messages.  This command may also be used to import a
 secret key from a PKCS#12 file.
 
-@item --learn-card
+@item --learn-card [@var{serialno}]
 @opindex learn-card
-Read information about the private keys from the smartcard and import
-the certificates from there.  This command utilizes the @command{gpg-agent}
-and in turn the @command{scdaemon}.
+Read information about the private keys from the current smartcard and import
+the certificates from there.  This command utilizes @command{gpg-agent}
+and in turn @command{scdaemon}.  If @var{serialno} is provided the
+system first makes that card the current one.
 
 @item --change-passphrase @var{user_id}
 @opindex change-passphrase
@@ -462,7 +464,7 @@ line of the @file{trustlist.txt}
 @opindex force-crl-refresh
 Tell the dirmngr to reload the CRL for each request.  For better
 performance, the dirmngr will actually optimize this by suppressing
-the loading for short time intervals (e.g. 30 minutes). This option
+the loading for short time intervals (e.g., 30 minutes). This option
 is useful to make sure that a fresh CRL is available for certificates
 hold in the keybox.  The suggested way of doing this is by using it
 along with the option @option{--with-validation} for a key listing
@@ -523,6 +525,25 @@ will not be rejected due to an unknown critical extension.  Use this
 option with care because extensions are usually flagged as critical
 for a reason.
 
+@item --attribute @var{string}
+@opindex attribute
+Add a signed or unsigend attribute to a signature.  The attribute is
+expected as an an OID in dotted-decimal form, a colon, the letters 's'
+or 'u', a colon, the hex-encoded DER representation of the attribute
+value without the outer SET_OF tag.  To include several elements into
+the SET they are simply concatenated.  Take care to provide proper
+DER.  Instead of this format a few special system attributes may also
+be requested.  Here is the very short list of currently defined system
+attributes:
+
+@table @code
+@item _signingCertificateV2
+Insert a signed attribute with the SHA-256 hash of the respective
+signer's certificate.
+@end table
+
+
+
 @end table
 
 @c *******************************************
@@ -539,7 +560,7 @@ Create PEM encoded output.  Default is binary output.
 
 @item --base64
 @opindex base64
-Create Base-64 encoded output; i.e. PEM without the header lines.
+Create Base-64 encoded output; i.e., PEM without the header lines.
 
 @item --assume-armor
 @opindex assume-armor
@@ -639,11 +660,11 @@ done with @code{--with-colons}.
 @item --no-pretty-dn
 @opindex no-pretty-dn
 By default gpgsm prints distinguished names (DNs) like the Issuer or
-Subject in a more readable format (e.g. using a well defined order of
+Subject in a more readable format (e.g., using a well defined order of
 the parts).  However, this format can't be used as input strings.
 This option reverts printing to standard RFC-2253 format and thus
-avoids the need to use --dump-cert or --with-colons to get the
-``real'' name.
+avoids the need to use @option{--dump-cert} or @option{--with-colons}
+to get the ``real'' name.
 
 @end table
 
@@ -654,25 +675,30 @@ avoids the need to use --dump-cert or --with-colons to get the
 @subsection How to change how the CMS is created
 
 @table @gnupgtabopt
-@item --include-certs @var{n}
-@opindex include-certs
-Using @var{n} of -2 includes all certificate except for the root cert,
--1 includes all certs, 0 does not include any certs, 1 includes only the
-signers cert and all other positive values include up to @var{n}
-certificates starting with the signer cert.  The default is -2.
-
 @item --cipher-algo @var{oid}
 @opindex cipher-algo
-Use the cipher algorithm with the ASN.1 object identifier @var{oid} for
-encryption.  For convenience the strings @code{3DES}, @code{AES} and
-@code{AES256} may be used instead of their OIDs.  The default is
-@code{AES} (2.16.840.1.101.3.4.1.2).
+Use the cipher algorithm with the ASN.1 object identifier @var{oid}
+for encryption. The OID must be specified in dotted notation.  For
+convenience the names @code{3DES}, @code{AES}, @code{AES256}, and some
+others are allowed instead of an explicit OID.  To specify the
+encryption mode either the respective OID can be used or the mode is
+appended after a dash to the name.  Currently supported modes are
+@code{CBC} and @code{GCM} with the former being implicitly appended.
+The current default algorithm is @code{AES256-CBC}
+(2.16.840.1.101.3.4.1.42).
 
 @item --digest-algo @code{name}
 Use @code{name} as the message digest algorithm.  Usually this
 algorithm is deduced from the respective signing certificate.  This
 option forces the use of the given algorithm and may lead to severe
 interoperability problems.
+
+@item --include-certs @var{n}
+@opindex include-certs
+Using @var{n} of -2 includes all certificate except for the root cert,
+-1 includes all certs, 0 does not include any certs, 1 includes only the
+signers cert and all other positive values include up to @var{n}
+certificates starting with the signer cert.  The default is -2.
 
 @end table
 
@@ -747,6 +773,13 @@ guaranteed to return with an exit code of 0 if and only if a signature
 has been encountered, is valid, and the key matches one of the
 fingerprints given by this option.
 
+@item --assert-validsig
+@opindex assert-validsig
+This option checks whether at least one fully valid and trusted
+signature was detected.  Using this option avoids the need to parse
+the status output for the presense of the VALIDSIG and TRUST_FULLY
+lines.
+
 @item --always-trust
 @opindex always-trust
 Force encryption to the specified certificates without any validation
@@ -769,7 +802,7 @@ key database clear of unneeded certificates stored on smartcards.
 This option is only useful for testing; it sets the system time back or
 forth to @var{epoch} which is the number of seconds elapsed since the year
 1970.  Alternatively @var{epoch} may be given as a full ISO time string
-(e.g. "20070924T154812").
+(e.g., "20070924T154812").
 
 @item --with-ephemeral-keys
 @opindex with-ephemeral-keys
@@ -785,10 +818,22 @@ list of flag names and are OR-ed together.  The special flag "none"
 clears the list and allows one to start over with an empty list.  To get a
 list of available flags the sole word "help" can be used.
 
+@item --enable-special-filenames
+@opindex enable-special-filenames
+This option enables a mode in which filenames of the form
+@file{-&n}, where n is a non-negative decimal number,
+refer to the file descriptor n and not to a file with that name.
+
+@item --disable-fd-translation
+@opindex disable-fd-translation
+This option changes the behaviour for all following options to expect
+libc file descriptors instead of HANDLE values on the command line.
+The option has an effect only on Windows.
+
 @item --debug-level @var{level}
 @opindex debug-level
-Select the debug level for investigating problems. @var{level} may be
-a numeric value or by a keyword:
+Select the debug level for investigating problems.  @var{level} may be
+a numeric value or a keyword:
 
 @table @code
 @item none
@@ -810,13 +855,14 @@ only enabled if the keyword is used.
 @end table
 
 How these messages are mapped to the actual debugging flags is not
-specified and may change with newer releases of this program. They are
-however carefully selected to best aid in debugging.
+specified and may change with newer releases of this program.  This is
+a legacy option; in general it is better to select specific debug
+flags using the @option{--debug}.
 
 @item --debug @var{flags}
 @opindex debug
 Set debug flags.  All flags are or-ed and @var{flags} may be given
-in C syntax (e.g. 0x0042) or as a comma separated list of flag names.
+in C syntax (e.g., 0x0042) or as a comma separated list of flag names.
 To get a list of all supported flags the single word "help" can be
 used. This option is only useful for debugging and the behavior may
 change at any time without notice.
@@ -847,6 +893,12 @@ This is actually not a debugging option but only useful as such.  It
 lets @command{gpgsm} ignore all notAfter dates, this is used by the regression
 tests.
 
+@item --debug-no-libgcrypt
+@opindex debug-no-libgcrypt
+Do no use the debug flags "crypto" and "mpi" to enable similar debug
+features in Libgcrypt.  Note well: This is a maintainer only option
+and may thus be changed or removed at any time without notice.
+
 @item --passphrase-fd @code{n}
 @opindex passphrase-fd
 Read the passphrase from file descriptor @code{n}. Only the first line
@@ -875,6 +927,13 @@ are:
   Pinentry the user is not prompted again if he enters a bad password.
 @end table
 
+@item --no-protection
+@opindex no-protection
+When exporting a private key in the PKCS#12 format do not use a
+passphrase to protect the key.  Please use this option only along with
+a PKCS#12 export becuase it may eventually also have an effect for
+other commands.
+
 @item --request-origin @var{origin}
 @opindex request-origin
 Tell gpgsm to assume that the operation ultimately originated at
@@ -887,6 +946,12 @@ operation requested by a web browser.
 @item --no-common-certs-import
 @opindex no-common-certs-import
 Suppress the import of common certificates on keybox creation.
+
+
+@item --no-qes-note
+@opindex no-qes-note
+Do not print notices that ``this software is not officially approved
+to create or verify QES signatures''.
 
 @end table
 
@@ -957,9 +1022,9 @@ like this:
 This is the legacy method to mark root certificates as usable for
 qualified certificates.  Qualified certificates are capable of
 creating legally binding signatures in the same way as handwritten
-signatures.  The modern method to mark such root certificates is to
-use the "qual" flag in the system trustlist.txt; see the gpg-agent man
-page for details.
+signatures (QES).  The modern method to mark such root certificates is
+to use the "qual" flag in the system trustlist.txt; see the gpg-agent
+man page for details.
 
 Comments int his file start with a hash mark and empty lines are
 ignored.  Lines do have a length limit but this is not a serious
@@ -993,9 +1058,9 @@ This is plain text file with a few help entries used with
 @command{gpg} and @command{gpgsm}.  The standard file has English help
 texts; to install localized versions use filenames like @file{help.LL.txt}
 with LL denoting the locale.  GnuPG comes with a set of predefined help
-files in the data directory (e.g. @file{@value{DATADIR}/gnupg/help.de.txt})
+files in the data directory (e.g., @file{@value{DATADIR}/gnupg/help.de.txt})
 and allows overriding of any help item by help files stored in the
-system configuration directory (e.g. @file{@value{SYSCONFDIR}/help.de.txt}).
+system configuration directory (e.g., @file{@value{SYSCONFDIR}/help.de.txt}).
 For a reference of the help file's syntax, please see the installed
 @file{help.txt} file.
 
@@ -1006,11 +1071,10 @@ This file is a collection of common certificates used to populated a
 newly created @file{pubring.kbx}.  An administrator may replace this
 file with a custom one.  The format is a concatenation of PEM encoded
 X.509 certificates.  This global file is installed in the data directory
-(e.g. @file{@value{DATADIR}/com-certs.pem}).
+(e.g., @file{@value{DATADIR}/com-certs.pem}).
 
 @end table
 
-@c man:.RE
 Note that on larger installations, it is useful to put predefined files
 into the directory @file{/etc/skel/.gnupg/} so that newly created users
 start up with a working configuration.  For existing users a small
@@ -1119,7 +1183,7 @@ of a transfer error, a program error or tampering with the message).
   @end table
 
 @item Error verifying a signature
-For some reason the signature could not be verified, i.e. it cannot be
+For some reason the signature could not be verified, i.e., it cannot be
 decided whether the signature is valid or invalid.  A common reason for
 this is a missing certificate.
 
@@ -1167,6 +1231,9 @@ Print @var{text} as diagnostic.
 
 @item %dry-run
 Suppress actual key generation (useful for syntax checking).
+
+@item %no-protection
+Creates the private key without a passphrase.
 
 @item %commit
 Perform the key generation.  Note that an implicit commit is done at
@@ -1300,7 +1367,7 @@ provides a regular command line interface which exhibits a full client
 to this protocol (but uses internal linking).  To start
 @command{gpgsm} as a server the command line the option
 @code{--server} must be used.  Additional options are provided to
-select the communication method (i.e. the name of the socket).
+select the communication method (i.e., the name of the socket).
 
 We assume that the connection has already been established; see the
 Assuan manual for details.
@@ -1364,7 +1431,7 @@ correct.
   OUTPUT FD[=@var{n}] [--armor|--base64]
 @end example
 
-Set the file descriptor to be used for the output (i.e. the encrypted
+Set the file descriptor to be used for the output (i.e., the encrypted
 message). Obviously the pipe must be open at that point, the server
 establishes its own end.  If the server returns an error the client
 should consider this session failed.
@@ -1407,11 +1474,11 @@ The decryption is done by using the command
   DECRYPT
 @end example
 
-It performs the decrypt operation after doing some check on the internal
-state (e.g. that all needed data has been set).  Because it utilizes
-the GPG-Agent for the session key decryption, there is no need to ask
-the client for a protecting passphrase - GpgAgent takes care of this by
-requesting this from the user.
+It performs the decrypt operation after doing some check on the
+internal state (e.g., that all needed data has been set).  Because it
+utilizes the GPG-Agent for the session key decryption, there is no
+need to ask the client for a protecting passphrase --- GpgAgent takes
+care of this by requesting this from the user.
 
 
 @node GPGSM SIGN
@@ -1769,6 +1836,11 @@ encrypt operation.  Note that this option is ignored if
 
 @item input-size-hint
 This is the same as the @option{--input-size-hint} command line option.
+
+@item no-protection
+If @var{value} is true exported keys are not protected by a
+passphrase.  This can be reset with a value of 0 or a RESET command.
+This is the same as the command line option @option{--no-protection}.
 
 @end table
 

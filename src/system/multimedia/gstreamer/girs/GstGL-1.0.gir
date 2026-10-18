@@ -1243,6 +1243,19 @@ current in the calling thread.</doc>
           </instance-parameter>
         </parameters>
       </virtual-method>
+      <method name="get_gl_context" c:identifier="gst_gl_base_src_get_gl_context" version="1.28">
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglbasesrc.h"/>
+        <return-value transfer-ownership="full" nullable="1">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglbasesrc.c">the configured #GstGLContext.</doc>
+          <type name="GLContext" c:type="GstGLContext*"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="base_src" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglbasesrc.c">a #GstGLBaseSrc</doc>
+            <type name="GLBaseSrc" c:type="GstGLBaseSrc*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
       <property name="timestamp-offset" writable="1" transfer-ownership="none" default-value="0">
         <type name="gint64" c:type="gint64"/>
       </property>
@@ -3510,6 +3523,10 @@ extension.</doc>
       <member name="include_emulated" value="4" c:identifier="GST_GL_DRM_FORMAT_INCLUDE_EMULATED" version="1.26" glib:nick="include-emulated" glib:name="GST_GL_DRM_FORMAT_INCLUDE_EMULATED">
         <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglutils.h">include emulated formats</doc>
       </member>
+      <member name="direct_import" value="8" c:identifier="GST_GL_DRM_FORMAT_DIRECT_IMPORT" version="1.28" glib:nick="direct-import" glib:name="GST_GL_DRM_FORMAT_DIRECT_IMPORT">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglutils.h">EGL is responsible for the colorspace conversion. In this case, all
+supported modifiers get translated to RGBA.</doc>
+      </member>
     </bitfield>
     <class name="GLFilter" c:symbol-prefix="gl_filter" c:type="GstGLFilter" parent="GLBaseFilter" glib:type-name="GstGLFilter" glib:get-type="gst_gl_filter_get_type" glib:type-struct="GLFilterClass">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglfilter.c">#GstGLFilter helps to implement simple OpenGL filter elements taking a
@@ -5070,9 +5087,7 @@ manually.</doc>
         <type name="guint" c:type="guint"/>
       </field>
       <field name="overlays" readable="0" private="1">
-        <type name="GLib.List" c:type="GList*">
-          <type name="gpointer" c:type="gpointer"/>
-        </type>
+        <type name="GLib.Queue" c:type="GQueue*"/>
       </field>
       <field name="shader" readable="0" private="1">
         <type name="GLShader" c:type="GstGLShader*"/>
@@ -8608,6 +8623,19 @@ require this to be called with a valid handle before drawing can commence.</doc>
           </instance-parameter>
         </parameters>
       </method>
+      <method name="get_request_output_surface" c:identifier="gst_gl_window_get_request_output_surface" version="1.28">
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.h"/>
+        <return-value transfer-ownership="none">
+          <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.c">whether an visible output surface has been requested</doc>
+          <type name="gboolean" c:type="gboolean"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="window" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.c">a #GstGLWindow</doc>
+            <type name="GLWindow" c:type="GstGLWindow*"/>
+          </instance-parameter>
+        </parameters>
+      </method>
       <method name="get_surface_dimensions" c:identifier="gst_gl_window_get_surface_dimensions" version="1.6">
         <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.h"/>
         <return-value transfer-ownership="none">
@@ -8954,6 +8982,23 @@ according to the #GstVideoOverlay interface.</doc>
           <parameter name="height" transfer-ownership="none">
             <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.c">height</doc>
             <type name="gint" c:type="gint"/>
+          </parameter>
+        </parameters>
+      </method>
+      <method name="set_request_output_surface" c:identifier="gst_gl_window_set_request_output_surface" version="1.28">
+        <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.c">Configure whether a visible output surface is requested.</doc>
+        <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.h"/>
+        <return-value transfer-ownership="none">
+          <type name="none" c:type="void"/>
+        </return-value>
+        <parameters>
+          <instance-parameter name="window" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.c">a #GstGLWindow</doc>
+            <type name="GLWindow" c:type="GstGLWindow*"/>
+          </instance-parameter>
+          <parameter name="output_surface" transfer-ownership="none">
+            <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglwindow.c">whether to request an output surface.</doc>
+            <type name="gboolean" c:type="gboolean"/>
           </parameter>
         </parameters>
       </method>
@@ -9812,11 +9857,11 @@ user-defined purposes.</doc>
         </parameter>
       </parameters>
     </function-macro>
-    <constant name="GL_COLOR_CONVERT_EXT_FORMATS" value=", RGBA64_LE, BGR10A2_LE, RGB10A2_LE, P010_10LE, P012_LE, P016_LE, Y212_LE, Y412_LE, A444_16LE, A422_16LE, A420_16LE, A444_12LE, A422_12LE, A420_12LE, A420_10LE, A422_10LE, A444_10LE, I420_12LE, I420_10LE, I422_10LE, I422_12LE, Y444_16LE, Y444_10LE" c:type="GST_GL_COLOR_CONVERT_EXT_FORMATS" introspectable="0">
+    <constant name="GL_COLOR_CONVERT_EXT_FORMATS" value=", RGBA64_LE, BGR10A2_LE, RGB10A2_LE, BGR10x2_LE, RGB10x2_LE, P010_10LE, P012_LE, P016_LE, Y212_LE, Y412_LE, A444_16LE, A422_16LE, A420_16LE, A444_12LE, A422_12LE, A420_12LE, A420_10LE, A422_10LE, A444_10LE, I420_12LE, I420_10LE, I422_10LE, I422_12LE, Y444_16LE, Y444_12LE, Y444_10LE" c:type="GST_GL_COLOR_CONVERT_EXT_FORMATS" introspectable="0">
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglcolorconvert.h"/>
       <type name="utf8" c:type="gchar*"/>
     </constant>
-    <constant name="GL_COLOR_CONVERT_FORMATS" value="{ RGBA, RGB, RGBx, BGR, BGRx, BGRA, xRGB, xBGR, ARGB, ABGR, GBRA, GBR, RGBP, BGRP, Y444, I420, YV12, Y42B, Y41B, NV12, NV21, NV16, NV61, YUY2, UYVY, Y210, AYUV, VUYA, Y410, A444, A422, GRAY8, GRAY16_LE, GRAY16_BE, RGB16, BGR16, ARGB64, A420, AV12, NV12_16L32S, NV12_4L4, RBGA, v210" c:type="GST_GL_COLOR_CONVERT_FORMATS">
+    <constant name="GL_COLOR_CONVERT_FORMATS" value="{ RGBA, RGB, RGBx, BGR, BGRx, BGRA, xRGB, xBGR, ARGB, ABGR, GBRA, GBR, RGBP, BGRP, Y444, I420, YV12, Y42B, Y41B, NV12, NV21, NV16, NV61, NV24, YUY2, UYVY, Y210, AYUV, VUYA, Y410, A444, A422, GRAY8, GRAY16_LE, GRAY16_BE, RGB16, BGR16, ARGB64, A420, AV12, NV12_16L32S, NV12_4L4, RBGA, v210" c:type="GST_GL_COLOR_CONVERT_FORMATS">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglcolorconvert.h">The currently supported formats that can be converted</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglcolorconvert.h"/>
       <type name="utf8" c:type="gchar*"/>
@@ -10059,11 +10104,11 @@ e.g. for `CONFIG_ID`: `GST_GL_CONFIG_ATTRIB_NAME (CONFIG_ID)`</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglmemorypbo.h"/>
       <type name="utf8" c:type="gchar*"/>
     </constant>
-    <constant name="GL_MEMORY_VIDEO_EXT_FORMATS" value=", RGBA64_LE, BGR10A2_LE, RGB10A2_LE, P010_10LE, P012_LE, P016_LE, Y212_LE, Y412_LE, A444_16LE, A422_16LE, A420_16LE, A444_12LE, A422_12LE, A420_12LE, A420_10LE, A422_10LE, A444_10LE, I420_12LE, I420_10LE, I422_10LE, I422_12LE, Y444_10LE, Y444_16LE" c:type="GST_GL_MEMORY_VIDEO_EXT_FORMATS" introspectable="0">
+    <constant name="GL_MEMORY_VIDEO_EXT_FORMATS" value=", RGBA64_LE, BGR10A2_LE, RGB10A2_LE, BGR10x2_LE, RGB10x2_LE, P010_10LE, P012_LE, P016_LE, Y212_LE, Y412_LE, A444_16LE, A422_16LE, A420_16LE, A444_12LE, A422_12LE, A420_12LE, A420_10LE, A422_10LE, A444_10LE, I420_12LE, I420_10LE, I422_10LE, I422_12LE, Y444_10LE, Y444_12LE, Y444_16LE" c:type="GST_GL_MEMORY_VIDEO_EXT_FORMATS" introspectable="0">
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglmemory.h"/>
       <type name="utf8" c:type="gchar*"/>
     </constant>
-    <constant name="GL_MEMORY_VIDEO_FORMATS_STR" value="{ RGBA, BGRA, RGBx, BGRx, ARGB, ABGR, xRGB, xBGR, GBRA, GBR, RGBP, BGRP, RGB, BGR, RGB16, BGR16, AYUV, VUYA, A444, A422, Y410, I420, YV12, NV12, NV21, NV16, NV61, YUY2, UYVY, Y210, Y41B, Y42B, Y444, GRAY8, GRAY16_LE, GRAY16_BE, ARGB64, A420, AV12, NV12_16L32S, NV12_4L4, RBGA, v210" c:type="GST_GL_MEMORY_VIDEO_FORMATS_STR">
+    <constant name="GL_MEMORY_VIDEO_FORMATS_STR" value="{ RGBA, BGRA, RGBx, BGRx, ARGB, ABGR, xRGB, xBGR, GBRA, GBR, RGBP, BGRP, RGB, BGR, RGB16, BGR16, AYUV, VUYA, A444, A422, Y410, I420, YV12, NV12, NV21, NV16, NV61, NV24, YUY2, UYVY, Y210, Y41B, Y42B, Y444, GRAY8, GRAY16_LE, GRAY16_BE, ARGB64, A420, AV12, NV12_16L32S, NV12_4L4, RBGA, v210" c:type="GST_GL_MEMORY_VIDEO_FORMATS_STR">
       <doc xml:space="preserve" filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglmemory.h">List of video formats that are supported by #GstGLMemory</doc>
       <source-position filename="../subprojects/gst-plugins-base/gst-libs/gst/gl/gstglmemory.h"/>
       <type name="utf8" c:type="gchar*"/>

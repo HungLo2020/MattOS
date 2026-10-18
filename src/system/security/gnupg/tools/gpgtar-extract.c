@@ -24,6 +24,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <fcntl.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -31,7 +33,6 @@
 
 #include "../common/i18n.h"
 #include <gpg-error.h>
-#include "../common/exechelp.h"
 #include "../common/sysutils.h"
 #include "../common/ccparray.h"
 #include "gpgtar.h"
@@ -370,6 +371,112 @@ create_directory (const char *dirprefix)
 }
 
 
+/* Check the output directory DIRNAME if it's not symlink and empty.
+   Return 1 if good, 0 otherwise.  */
+static int
+check_output_directory (const char *dirname)
+{
+#ifdef HAVE_W32_SYSTEM
+#define dirent _wdirent
+#define DIR _WDIR
+#define readdir _wreaddir
+#define closedir _wclosedir
+#endif
+  DIR *d;
+  struct dirent *dent;
+  int count = 0;
+
+#ifdef HAVE_W32_SYSTEM
+  wchar_t *wdirname;
+  DWORD attr;
+
+  wdirname = utf8_to_wchar (dirname);
+  if (!wdirname)
+    return 0;
+
+  attr = GetFileAttributesW (wdirname);
+
+  if (attr == INVALID_FILE_ATTRIBUTES)
+    {
+      log_error ("error getting attributes '%s': %s\n", dirname, w32_strerror (-1));
+      xfree (wdirname);
+      return 0;
+    }
+  else if ((attr & FILE_ATTRIBUTE_REPARSE_POINT))
+    {
+      /* It's reparse point (possibly symlink), not good.  */
+      log_error ("Not a regular directory (may be symlink): %s\n", dirname);
+      xfree (wdirname);
+      return 0;
+    }
+
+  d = _wopendir (wdirname);
+  xfree (wdirname);
+#else
+# if O_NOFOLLOW == 0
+  struct stat sbuf;
+
+  if (lstat (dirname, &sbuf))
+    return 0;
+
+  if (S_ISLNK (sbuf.st_mode))
+    {
+      /* It's symlink, not good.  */
+      log_error ("It's symbolic link: %s\n", dirname);
+      return 0;
+    }
+
+  d = opendir (dirname);
+# else
+  int fd;
+
+  /* With O_NOFOLLOW, make sure it's not symlink.  */
+  fd = open (dirname, (O_RDONLY | O_NOFOLLOW));
+  if (fd < 0)
+    {
+      log_error ("Can't open (symlink?): %s\n", dirname);
+      return 0;
+    }
+
+  d = fdopendir (fd);
+# endif
+#endif
+
+  if (d == NULL)
+    return 0;
+
+  while ((dent = readdir (d)) != NULL)
+    {
+      if (dent->d_name[0] == '.' && dent->d_name[1] == 0)
+        continue;
+
+      if (dent->d_name[0] == '.' && dent->d_name[1] == '.'
+          && dent->d_name[2] == 0)
+        continue;
+
+      count++;
+    }
+
+  /* In case of fdopendir, FD is released by closedir. */
+  closedir (d);
+
+  if (count)
+    {
+      /* It's not empty, not good.  */
+      log_error ("Directory not empty: %s\n", dirname);
+      return 0;
+    }
+
+  /* Good.  */
+  return 1;
+}
+
+#ifdef HAVE_W32_SYSTEM
+#undef dirent
+#undef DIR
+#undef readdir
+#undef closedir
+#endif
 
 gpg_error_t
 gpgtar_extract (const char *filename, int decrypt)
@@ -382,14 +489,29 @@ gpgtar_extract (const char *filename, int decrypt)
   char *dirname = NULL;
   struct tarinfo_s tarinfo_buffer;
   tarinfo_t tarinfo = &tarinfo_buffer;
-  pid_t pid = (pid_t)(-1);
+  gpgrt_process_t proc = NULL;
   char *logfilename = NULL;
   unsigned long long notextracted;
 
   memset (&tarinfo_buffer, 0, sizeof tarinfo_buffer);
 
   if (opt.directory)
-    dirname = xtrystrdup (opt.directory);
+    {
+      dirname = xtrystrdup (opt.directory);
+      if (!dirname)
+        {
+          err = gpg_error_from_syserror ();
+          goto leave;
+        }
+
+      if (!(opt.compat_flags & COMPAT_NO_DIR_CHECK)
+          && gnupg_access (dirname, F_OK) == 0
+          && !check_output_directory (dirname))
+        {
+          err = gpg_error (GPG_ERR_INV_ARG);
+          goto leave;
+        }
+    }
   else
     {
       if (opt.filename)
@@ -427,21 +549,32 @@ gpgtar_extract (const char *filename, int decrypt)
     {
       strlist_t arg;
       ccparray_t ccp;
+#ifdef HAVE_W32_SYSTEM
+      HANDLE except[2] = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE };
+#else
       int except[2] = { -1, -1 };
+#endif
       const char **argv;
+      gpgrt_spawn_actions_t act = NULL;
 
       ccparray_init (&ccp, 0);
       if (opt.batch)
         ccparray_put (&ccp, "--batch");
       if (opt.require_compliance)
         ccparray_put (&ccp, "--require-compliance");
-      if (opt.status_fd != -1)
+      if (opt.status_fd)
         {
           static char tmpbuf[40];
+          es_syshd_t hd;
 
-          snprintf (tmpbuf, sizeof tmpbuf, "--status-fd=%d", opt.status_fd);
+          snprintf (tmpbuf, sizeof tmpbuf, "--status-fd=%s", opt.status_fd);
           ccparray_put (&ccp, tmpbuf);
-          except[0] = opt.status_fd;
+          es_syshd (opt.status_stream, &hd);
+#ifdef HAVE_W32_SYSTEM
+          except[0] = hd.u.handle;
+#else
+          except[0] = hd.u.fd;
+#endif
         }
       if (opt.with_log)
         {
@@ -468,14 +601,27 @@ gpgtar_extract (const char *filename, int decrypt)
           goto leave;
         }
 
-      err = gnupg_spawn_process (opt.gpg_program, argv,
-                                 except[0] == -1? NULL : except,
-                                 ((filename? 0 : GNUPG_SPAWN_KEEP_STDIN)
-                                  | GNUPG_SPAWN_KEEP_STDERR),
-                                 NULL, &stream, NULL, &pid);
+      err = gpgrt_spawn_actions_new (&act);
+      if (err)
+        {
+          xfree (argv);
+          goto leave;
+        }
+
+#ifdef HAVE_W32_SYSTEM
+      gpgrt_spawn_actions_set_inherit_handles (act, except);
+#else
+      gpgrt_spawn_actions_set_inherit_fds (act, except);
+#endif
+      err = gpgrt_process_spawn (opt.gpg_program, argv,
+                                 ((filename ? 0 : GPGRT_PROCESS_STDIN_KEEP)
+                                  | GPGRT_PROCESS_STDOUT_PIPE
+                                  | GPGRT_PROCESS_STDERR_KEEP), act, &proc);
+      gpgrt_spawn_actions_release (act);
       xfree (argv);
       if (err)
         goto leave;
+      gpgrt_process_get_streams (proc, 0, NULL, &stream, NULL);
       es_set_binary (stream);
     }
   else if (filename)
@@ -488,7 +634,7 @@ gpgtar_extract (const char *filename, int decrypt)
         {
           err = gpg_error_from_syserror ();
           log_error ("error opening '%s': %s\n", filename, gpg_strerror (err));
-          return err;
+          goto leave;
         }
       if (stream == es_stdin)
         es_set_binary (es_stdin);
@@ -503,6 +649,8 @@ gpgtar_extract (const char *filename, int decrypt)
   for (;;)
     {
       err = gpgtar_read_header (stream, tarinfo, &header, &extheader);
+      if (!err && !header)
+        break;  /* End of archive.  */
       if (err || header == NULL)
         goto leave;
 
@@ -515,23 +663,25 @@ gpgtar_extract (const char *filename, int decrypt)
       header = NULL;
     }
 
-  if (pid != (pid_t)(-1))
+  if (proc)
     {
-      int exitcode;
-
       err = es_fclose (stream);
       stream = NULL;
       if (err)
         log_error ("error closing pipe: %s\n", gpg_strerror (err));
-      else
+
+      err = gpgrt_process_wait (proc, 1);
+      if (!err)
         {
-          err = gnupg_wait_process (opt.gpg_program, pid, 1, &exitcode);
-          if (err)
+          int exitcode;
+
+          gpgrt_process_ctl (proc, GPGRT_PROCESS_GET_EXIT_ID, &exitcode);
+          if (exitcode)
             log_error ("running %s failed (exitcode=%d): %s",
                        opt.gpg_program, exitcode, gpg_strerror (err));
-          gnupg_release_process (pid);
-          pid = (pid_t)(-1);
         }
+      gpgrt_process_release (proc);
+      proc = NULL;
     }
 
  leave:
@@ -571,5 +721,6 @@ gpgtar_extract (const char *filename, int decrypt)
   xfree (logfilename);
   if (stream != es_stdin)
     es_fclose (stream);
+  gpgrt_process_release (proc);
   return err;
 }

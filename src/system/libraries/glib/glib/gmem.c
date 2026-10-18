@@ -98,7 +98,7 @@ g_malloc (gsize n_bytes)
       gpointer mem;
 
       mem = malloc (n_bytes);
-      TRACE (GLIB_MEM_ALLOC((void*) mem, (unsigned int) n_bytes, 0, 0));
+      TRACE (GLIB_MEM_ALLOC ((void *) mem, n_bytes, 0, 0));
       if (mem)
 	return mem;
 
@@ -106,7 +106,7 @@ g_malloc (gsize n_bytes)
                G_STRLOC, n_bytes);
     }
 
-  TRACE(GLIB_MEM_ALLOC((void*) NULL, (int) n_bytes, 0, 0));
+  TRACE (GLIB_MEM_ALLOC ((void *) NULL, n_bytes, 0, 0));
 
   return NULL;
 }
@@ -131,7 +131,7 @@ g_malloc0 (gsize n_bytes)
       gpointer mem;
 
       mem = calloc (1, n_bytes);
-      TRACE (GLIB_MEM_ALLOC((void*) mem, (unsigned int) n_bytes, 1, 0));
+      TRACE (GLIB_MEM_ALLOC ((void *) mem, n_bytes, 1, 0));
       if (mem)
 	return mem;
 
@@ -139,7 +139,7 @@ g_malloc0 (gsize n_bytes)
                G_STRLOC, n_bytes);
     }
 
-  TRACE(GLIB_MEM_ALLOC((void*) NULL, (int) n_bytes, 1, 0));
+  TRACE (GLIB_MEM_ALLOC ((void *) NULL, n_bytes, 1, 0));
 
   return NULL;
 }
@@ -169,7 +169,7 @@ g_realloc (gpointer mem,
   if (G_LIKELY (n_bytes))
     {
       newmem = realloc (mem, n_bytes);
-      TRACE (GLIB_MEM_REALLOC((void*) newmem, (void*)mem, (unsigned int) n_bytes, 0));
+      TRACE (GLIB_MEM_REALLOC ((void *) newmem, (void *) mem, n_bytes, 0));
       if (newmem)
 	return newmem;
 
@@ -320,7 +320,7 @@ g_try_malloc (gsize n_bytes)
   else
     mem = NULL;
 
-  TRACE (GLIB_MEM_ALLOC((void*) mem, (unsigned int) n_bytes, 0, 1));
+  TRACE (GLIB_MEM_ALLOC ((void *) mem, n_bytes, 0, 1));
 
   return mem;
 }
@@ -375,13 +375,11 @@ g_try_realloc (gpointer mem,
       free (mem);
     }
 
-  TRACE (GLIB_MEM_REALLOC((void*) newmem, (void*)mem, (unsigned int) n_bytes, 1));
+  TRACE (GLIB_MEM_REALLOC ((void *) newmem, (void *) mem, n_bytes, 1));
 
   return newmem;
 }
 
-
-#define SIZE_OVERFLOWS(a,b) (G_UNLIKELY ((b) > 0 && (a) > G_MAXSIZE / (b)))
 
 /**
  * g_malloc_n:
@@ -401,13 +399,15 @@ gpointer
 g_malloc_n (gsize n_blocks,
 	    gsize n_block_bytes)
 {
-  if (SIZE_OVERFLOWS (n_blocks, n_block_bytes))
+  size_t len;
+
+  if (!g_size_checked_mul (&len, n_blocks, n_block_bytes))
     {
       g_error ("%s: overflow allocating %"G_GSIZE_FORMAT"*%"G_GSIZE_FORMAT" bytes",
                G_STRLOC, n_blocks, n_block_bytes);
     }
 
-  return g_malloc (n_blocks * n_block_bytes);
+  return g_malloc (len);
 }
 
 /**
@@ -428,13 +428,15 @@ gpointer
 g_malloc0_n (gsize n_blocks,
 	     gsize n_block_bytes)
 {
-  if (SIZE_OVERFLOWS (n_blocks, n_block_bytes))
+  size_t len;
+
+  if (!g_size_checked_mul (&len, n_blocks, n_block_bytes))
     {
       g_error ("%s: overflow allocating %"G_GSIZE_FORMAT"*%"G_GSIZE_FORMAT" bytes",
                G_STRLOC, n_blocks, n_block_bytes);
     }
 
-  return g_malloc0 (n_blocks * n_block_bytes);
+  return g_malloc0 (len);
 }
 
 /**
@@ -457,13 +459,15 @@ g_realloc_n (gpointer mem,
 	     gsize    n_blocks,
 	     gsize    n_block_bytes)
 {
-  if (SIZE_OVERFLOWS (n_blocks, n_block_bytes))
+  size_t len;
+
+  if (!g_size_checked_mul (&len, n_blocks, n_block_bytes))
     {
       g_error ("%s: overflow allocating %"G_GSIZE_FORMAT"*%"G_GSIZE_FORMAT" bytes",
                G_STRLOC, n_blocks, n_block_bytes);
     }
 
-  return g_realloc (mem, n_blocks * n_block_bytes);
+  return g_realloc (mem, len);
 }
 
 /**
@@ -481,10 +485,12 @@ gpointer
 g_try_malloc_n (gsize n_blocks,
 		gsize n_block_bytes)
 {
-  if (SIZE_OVERFLOWS (n_blocks, n_block_bytes))
+  size_t len;
+
+  if (!g_size_checked_mul (&len, n_blocks, n_block_bytes))
     return NULL;
 
-  return g_try_malloc (n_blocks * n_block_bytes);
+  return g_try_malloc (len);
 }
 
 /**
@@ -502,10 +508,12 @@ gpointer
 g_try_malloc0_n (gsize n_blocks,
 		 gsize n_block_bytes)
 {
-  if (SIZE_OVERFLOWS (n_blocks, n_block_bytes))
+  size_t len;
+
+  if (!g_size_checked_mul (&len, n_blocks, n_block_bytes))
     return NULL;
 
-  return g_try_malloc0 (n_blocks * n_block_bytes);
+  return g_try_malloc0 (len);
 }
 
 /**
@@ -525,10 +533,12 @@ g_try_realloc_n (gpointer mem,
 		 gsize    n_blocks,
 		 gsize    n_block_bytes)
 {
-  if (SIZE_OVERFLOWS (n_blocks, n_block_bytes))
+  size_t len;
+
+  if (!g_size_checked_mul (&len, n_blocks, n_block_bytes))
     return NULL;
 
-  return g_try_realloc (mem, n_blocks * n_block_bytes);
+  return g_try_realloc (mem, len);
 }
 
 /**
@@ -637,17 +647,15 @@ g_aligned_alloc (gsize n_blocks,
                G_STRLOC, alignment, sizeof (void *));
     }
 
-  if (SIZE_OVERFLOWS (n_blocks, n_block_bytes))
+  if (!g_size_checked_mul (&real_size, n_blocks, n_block_bytes))
     {
       g_error ("%s: overflow allocating %"G_GSIZE_FORMAT"*%"G_GSIZE_FORMAT" bytes",
                G_STRLOC, n_blocks, n_block_bytes);
     }
 
-  real_size = n_blocks * n_block_bytes;
-
   if (G_UNLIKELY (real_size == 0))
     {
-      TRACE(GLIB_MEM_ALLOC((void*) NULL, (int) real_size, 0, 0));
+      TRACE (GLIB_MEM_ALLOC ((void *) NULL, real_size, 0, 0));
       return NULL;
     }
 
@@ -685,7 +693,7 @@ g_aligned_alloc (gsize n_blocks,
 # error "This platform does not have an aligned memory allocator."
 #endif
 
-  TRACE (GLIB_MEM_ALLOC((void*) res, (unsigned int) real_size, 0, 0));
+  TRACE (GLIB_MEM_ALLOC ((void *) res, real_size, 0, 0));
   if (res)
     return res;
 

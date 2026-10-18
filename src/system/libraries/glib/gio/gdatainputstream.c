@@ -977,7 +977,7 @@ g_data_input_stream_read_complete (GTask *task,
 
   if (read_length || skip_length)
     {
-      gssize bytes;
+      G_GNUC_UNUSED gssize bytes;
 
       data->length = read_length;
       line = g_malloc (read_length + 1);
@@ -985,10 +985,10 @@ g_data_input_stream_read_complete (GTask *task,
 
       /* we already checked the buffer.  this shouldn't fail. */
       bytes = g_input_stream_read (stream, line, read_length, NULL, NULL);
-      g_assert_cmpint (bytes, ==, read_length);
+      g_assert (bytes >= 0 && (size_t) bytes == read_length);
 
       bytes = g_input_stream_skip (stream, skip_length, NULL, NULL);
-      g_assert_cmpint (bytes, ==, skip_length);
+      g_assert (bytes >= 0 && (size_t) bytes == skip_length);
     }
 
   g_task_return_pointer (task, line, g_free);
@@ -1167,8 +1167,8 @@ g_data_input_stream_read_line_async (GDataInputStream    *stream,
  * @stop_chars: characters to terminate the read.
  * @io_priority: the [I/O priority](iface.AsyncResult.html#io-priority) of the request
  * @cancellable: (nullable): optional #GCancellable object, %NULL to ignore.
- * @callback: (scope async): callback to call when the request is satisfied.
- * @user_data: (closure): the data to pass to callback function.
+ * @callback: (scope async) (closure user_data): callback to call when the request is satisfied.
+ * @user_data: the data to pass to callback function.
  *
  * The asynchronous version of g_data_input_stream_read_until().
  * It is an error to have two outstanding calls to this function.
@@ -1415,8 +1415,8 @@ g_data_input_stream_read_upto (GDataInputStream  *stream,
  *     nul-terminated
  * @io_priority: the [I/O priority](iface.AsyncResult.html#io-priority) of the request
  * @cancellable: (nullable): optional #GCancellable object, %NULL to ignore
- * @callback: (scope async): callback to call when the request is satisfied
- * @user_data: (closure): the data to pass to callback function
+ * @callback: (scope async) (closure user_data): callback to call when the request is satisfied
+ * @user_data: the data to pass to callback function
  *
  * The asynchronous version of g_data_input_stream_read_upto().
  * It is an error to have two outstanding calls to this function.

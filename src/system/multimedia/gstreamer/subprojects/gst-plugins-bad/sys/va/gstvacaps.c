@@ -28,7 +28,6 @@
 #include <gst/va/vasurfaceimage.h>
 #include <va/va_drmcommon.h>
 
-#include "gstvadisplay_priv.h"
 #include "gstvaprofile.h"
 
 GST_DEBUG_CATEGORY_EXTERN (gstva_debug);
@@ -824,12 +823,6 @@ _caps_is (GstCaps * caps, const gchar * feature)
 
   features = gst_caps_get_features (caps, 0);
   return gst_caps_features_contains (features, feature);
-}
-
-gboolean
-gst_caps_is_dmabuf (GstCaps * caps)
-{
-  return _caps_is (caps, GST_CAPS_FEATURE_MEMORY_DMABUF);
 }
 
 gboolean

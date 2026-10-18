@@ -121,7 +121,7 @@ struct
   /* Flag disallowing bypassing of the warning.  */
   int enforce_passphrase_constraints;
 
-  /* The require minmum length of a passphrase. */
+  /* The required minimum length of a passphrase. */
   unsigned int min_passphrase_len;
 
   /* The minimum number of non-alpha characters in a passphrase.  */
@@ -286,10 +286,13 @@ struct server_control_s
     int algo;
     unsigned char value[MAX_DIGEST_LEN];
     unsigned int raw_value: 1;
-    unsigned int is_pss: 1;    /* DATA holds PSS formated data.  */
+    unsigned int is_pss: 1;    /* DATA holds PSS formatted data.  */
   } digest;
+  unsigned int have_keygrip:  1;
+  unsigned int have_keygrip1: 1;
   unsigned char keygrip[20];
-  int have_keygrip;
+  unsigned char keygrip1[20]; /* Another keygrip for hybrid crypto.  */
+
 
   /* A flag to enable a hack to send the PKAUTH command instead of the
      PKSIGN command to the scdaemon.  */
@@ -428,6 +431,7 @@ void *get_agent_daemon_notify_event (void);
 #endif
 void agent_sighup_action (void);
 int map_pk_openpgp_to_gcry (int openpgp_algo);
+void agent_kick_the_loop (void);
 
 /*-- command.c --*/
 gpg_error_t agent_inq_pinentry_launched (ctrl_t ctrl, unsigned long pid,
@@ -475,7 +479,7 @@ gpg_error_t agent_write_private_key (ctrl_t ctrl,
                                      int force,
                                      const char *serialno, const char *keyref,
                                      const char *dispserialno,
-                                     time_t timestamp);
+                                     time_t timestamp, const char *linkattr);
 gpg_error_t agent_key_from_file (ctrl_t ctrl,
                                  const char *cache_nonce,
                                  const char *desc_text,
@@ -533,7 +537,7 @@ int agent_clear_passphrase (ctrl_t ctrl,
 /*-- cache.c --*/
 void initialize_module_cache (void);
 void deinitialize_module_cache (void);
-void agent_cache_housekeeping (void);
+struct timespec *agent_cache_expiration (void);
 void agent_flush_cache (int pincache_only);
 int agent_put_cache (ctrl_t ctrl, const char *key, cache_mode_t cache_mode,
                      const char *data, int ttl);
@@ -555,6 +559,17 @@ gpg_error_t agent_pksign (ctrl_t ctrl, const char *cache_nonce,
 gpg_error_t agent_pkdecrypt (ctrl_t ctrl, const char *desc_text,
                              const unsigned char *ciphertext, size_t ciphertextlen,
                              membuf_t *outbuf, int *r_padding);
+
+enum kemids
+  {
+    KEM_PQC_PGP,
+    KEM_PGP,
+    KEM_CMS
+  };
+
+gpg_error_t agent_kem_decrypt (ctrl_t ctrl, const char *desc_text, int kemid,
+                               const unsigned char *ct, size_t ctlen,
+                               membuf_t *outbuf);
 
 /*-- genkey.c --*/
 #define CHECK_CONSTRAINTS_NOT_EMPTY  1
@@ -621,7 +636,8 @@ gpg_error_t agent_write_shadow_key (ctrl_t ctrl, const unsigned char *grip,
 /*-- trustlist.c --*/
 void initialize_module_trustlist (void);
 gpg_error_t agent_istrusted (ctrl_t ctrl, const char *fpr, int *r_disabled);
-gpg_error_t agent_listtrusted (void *assuan_context);
+gpg_error_t agent_listtrusted (ctrl_t ctrl, void *assuan_context,
+                               int status_mode);
 gpg_error_t agent_marktrusted (ctrl_t ctrl, const char *name,
                                const char *fpr, int flag);
 void agent_reload_trustlist (void);
@@ -638,6 +654,9 @@ int divert_tpm2_pkdecrypt (ctrl_t ctrl,
                            char **r_buf, size_t *r_len, int *r_padding);
 int divert_tpm2_writekey (ctrl_t ctrl, const unsigned char *grip,
                           gcry_sexp_t s_skey);
+int agent_tpm2d_ecc_kem (ctrl_t ctrl, const unsigned char *shadow_info,
+                         const unsigned char *ecc_ct,
+                         size_t ecc_point_len, unsigned char *ecc_ecdh);
 #else /*!HAVE_LIBTSS*/
 static inline int
 divert_tpm2_pksign (ctrl_t ctrl,
@@ -669,6 +688,16 @@ divert_tpm2_writekey (ctrl_t ctrl, const unsigned char *grip,
   (void)ctrl; (void)grip; (void)s_skey;
   return gpg_error (GPG_ERR_NOT_SUPPORTED);
 }
+
+static inline int
+agent_tpm2d_ecc_kem (ctrl_t ctrl, const unsigned char *shadow_info,
+                     const unsigned char *ecc_ct,
+                     size_t ecc_point_len, unsigned char *ecc_ecdh)
+{
+  (void)ctrl; (void)shadow_info; (void)ecc_ct;
+  (void)ecc_point_len; (void)ecc_ecdh;
+  return gpg_error (GPG_ERR_NOT_SUPPORTED);
+}
 #endif /*!HAVE_LIBTSS*/
 
 
@@ -688,6 +717,9 @@ int divert_generic_cmd (ctrl_t ctrl,
 gpg_error_t divert_writekey (ctrl_t ctrl, int force, const char *serialno,
                              const char *keyref,
                              const char *keydata, size_t keydatalen);
+
+gpg_error_t agent_card_ecc_kem (ctrl_t ctrl, const unsigned char *ecc_ct,
+                                size_t ecc_point_len, unsigned char *ecc_ecdh);
 
 /*-- call-daemon.c --*/
 gpg_error_t daemon_start (enum daemon_type type, ctrl_t ctrl, int req_sock);
@@ -711,7 +743,7 @@ int agent_tpm2d_pkdecrypt (ctrl_t ctrl, const unsigned char *cipher,
 			   char **r_buf, size_t *r_len);
 
 /*-- call-scd.c --*/
-int agent_card_learn (ctrl_t ctrl,
+int agent_card_learn (ctrl_t ctrl, const char *demand_sn,
                       void (*kpinfo_cb)(void*, const char *),
                       void *kpinfo_cb_arg,
                       void (*certinfo_cb)(void*, const char *),
@@ -736,7 +768,9 @@ int agent_card_pkdecrypt (ctrl_t ctrl,
                           void *getpin_cb_arg,
                           const char *desc_text,
                           const unsigned char *indata, size_t indatalen,
-                          char **r_buf, size_t *r_buflen, int *r_padding);
+                          unsigned char **r_buf, size_t *r_buflen,
+                          int *r_padding);
+
 int agent_card_readcert (ctrl_t ctrl,
                          const char *id, char **r_buf, size_t *r_buflen);
 int agent_card_readkey (ctrl_t ctrl, const char *id,
@@ -758,9 +792,9 @@ void agent_card_free_keyinfo (struct card_key_info_s *l);
 gpg_error_t agent_card_keyinfo (ctrl_t ctrl, const char *keygrip,
                                 int cap, struct card_key_info_s **result);
 
-
 /*-- learncard.c --*/
-int agent_handle_learn (ctrl_t ctrl, int send, void *assuan_context, int force);
+int agent_handle_learn (ctrl_t ctrl, int send, void *assuan_context,
+                        int force, const char *demand_sn);
 
 
 /*-- cvt-openpgp.c --*/

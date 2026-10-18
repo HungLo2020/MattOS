@@ -294,8 +294,8 @@ gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr)
 	else
 	  {
 	    pk2 = xmalloc_clear (sizeof *pk2);
-	    rc = get_pubkey_byfprint (ctrl, pk2, NULL,
-                                      pk->revkey[i].fpr, pk->revkey[i].fprlen);
+	    rc = get_pubkey_byfpr (ctrl, pk2, NULL,
+                                   pk->revkey[i].fpr, pk->revkey[i].fprlen);
 	  }
 
 	/* We have the revocation key.  */
@@ -333,7 +333,7 @@ gen_desig_revoke (ctrl_t ctrl, const char *uname, strlist_t locusr)
 	    if( !opt.armor )
 	      tty_printf(_("ASCII armored output forced.\n"));
 
-	    if( (rc = open_outfile (-1, NULL, 0, 1, &out )) )
+	    if( (rc = open_outfile (GNUPG_INVALID_FD, NULL, 0, 1, &out )) )
 	      goto leave;
 
 	    afx->what = 1;
@@ -464,7 +464,7 @@ create_revocation (ctrl_t ctrl,
 
   afx = new_armor_context ();
 
-  if ((rc = open_outfile (-1, filename, suffix, 1, &out)))
+  if ((rc = open_outfile (GNUPG_INVALID_FD, filename, suffix, 1, &out)))
     goto leave;
 
   if (leadintext )
@@ -611,7 +611,7 @@ gen_standard_revoke (ctrl_t ctrl, PKT_public_key *psk, const char *cache_nonce)
   if (!rc && !opt.quiet)
     log_info (_("revocation certificate stored as '%s.rev'\n"), fname);
 
-  xfree (leadin);
+  es_free (leadin);
   xfree (fname);
 
   return rc;

@@ -89,14 +89,16 @@ static sqlite3 *database_hd;
 /* A lockfile used make sure only we are accessing the database.  */
 static dotlock_t database_lock;
 
-/* The version of our current database schema.  */
-#define DATABASE_VERSION 1
+/* The version of our current database schema and the maximum version
+ * supported without migration.  */
+#define DATABASE_VERSION 2
+#define DATABASE_VERSION_MAX 2
 
 /* Table definitions for the database.  */
 static struct
 {
   const char *sql;
-  int special;
+  const char *name;
 } table_definitions[] =
   {
    { "PRAGMA foreign_keys = ON" },
@@ -109,7 +111,7 @@ static struct
    { "CREATE TABLE IF NOT EXISTS config ("
      "name  TEXT NOT NULL UNIQUE,"
      "value TEXT NOT NULL "
-     ")", 1 },
+     ")", "config" },
 
    /* The actual data; either X.509 certificates or OpenPGP
     * keyblocks.  */
@@ -132,7 +134,7 @@ static struct
    { "CREATE TABLE IF NOT EXISTS fingerprint ("
      /* The fingerprint, for OpenPGP either 20 octets or 32 octets;
       * for X.509 it is the same as the UBID.  */
-     "fpr  BLOB NOT NULL PRIMARY KEY,"
+     "fpr  BLOB NOT NULL,"
      /* The long keyid as a 64 bit blob.  */
      "kid  BLOB NOT NULL,"
      /* The keygrip for this key.  */
@@ -141,13 +143,18 @@ static struct
       * order number for the keys similar to uidno.  */
      "subkey INTEGER NOT NULL,"
      /* The Unique Blob ID (possibly truncated fingerprint).  */
-     "ubid BLOB NOT NULL REFERENCES pubkey"
-     ")"  },
+     "ubid BLOB NOT NULL REFERENCES pubkey,"
+     /* Various bit flags for future extensions.  */
+     "flags INTEGER NOT NULL DEFAULT 0"
+     ")", "fpr"  },
 
    /* Indices for the fingerprint table.  */
-   { "CREATE INDEX IF NOT EXISTS fingerprintidx0 on fingerprint (ubid)"    },
-   { "CREATE INDEX IF NOT EXISTS fingerprintidx1 on fingerprint (fpr)"     },
-   { "CREATE INDEX IF NOT EXISTS fingerprintidx2 on fingerprint (keygrip)" },
+   { "CREATE INDEX IF NOT EXISTS fingerprintidx0 on fingerprint (ubid)",
+     "fpr-index"    },
+   { "CREATE INDEX IF NOT EXISTS fingerprintidx1 on fingerprint (fpr)",
+     "fpr-index"    },
+   { "CREATE INDEX IF NOT EXISTS fingerprintidx2 on fingerprint (keygrip)",
+     "fpr-index"    },
 
    /* Table to allow fast access via user ids or mail addresses.  */
    { "CREATE TABLE IF NOT EXISTS userid ("
@@ -550,10 +557,95 @@ dblock_info_cb (dotlock_t h, void *opaque, enum dotlock_reasons reason,
           log_error ("sending status line failed: %s\n", gpg_strerror (err));
           rc = 1;  /* snprintf failed.  */
         }
+    }
+  else
+    {
+      va_start (arg_ptr, format);
+      log_logv (GPGRT_LOGLVL_INFO, format, arg_ptr);
+      va_end (arg_ptr);
 
+      if (reason == DOTLOCK_FATAL)
+        abort ();
     }
   return rc;
 }
+
+
+/* Migrate from database version 1 to 2.  We need apply this change:
+ *        CREATE TABLE IF NOT EXISTS fingerprint (
+ *    -     fpr  BLOB NOT NULL PRIMARY KEY,
+ *    +     fpr  BLOB NOT NULL,
+ * That is dropping the wrong PRIMARY KEY constraint.  Unfortunately
+ * this is not a straightforward ALTER TABLE.  The function is only
+ * called from create_or_open_database but it is guaranteed that the
+ * database is open.
+ */
+static gpg_error_t
+migrate_from_v1_to_v2 (void)
+{
+  gpg_error_t err;
+  int idx;
+  const char *origsql = NULL;
+  char *sql = NULL;
+  int intransaction = 0;
+
+  log_info ("migrating database from version 1 to version 2\n");
+  for (idx=0; idx < DIM(table_definitions); idx++)
+    if (table_definitions[idx].name
+        && !strcmp (table_definitions[idx].name, "fpr"))
+      {
+        origsql = table_definitions[idx].sql;
+        break;
+      }
+  log_assert (origsql);
+  sql = replace_substr (origsql, " fingerprint ", " fingerprint_new ");
+  if (!sql)
+    return gpg_error_from_syserror ();
+
+  err = run_sql_statement ("begin transaction");
+  if (err)
+    goto leave;
+  intransaction = 1;
+  err = run_sql_statement (sql);
+  if (err)
+    goto leave;
+  err = run_sql_statement ("INSERT"
+                           " INTO fingerprint_new(fpr,kid,keygrip,subkey,ubid)"
+                           " SELECT * FROM fingerprint");
+  if (err)
+    goto leave;
+  err = run_sql_statement ("DROP TABLE fingerprint");
+  if (err)
+    goto leave;
+  err = run_sql_statement ("ALTER TABLE fingerprint_new RENAME TO fingerprint");
+  if (err)
+    goto leave;
+  for (idx=0; idx < DIM(table_definitions); idx++)
+    if (table_definitions[idx].name
+        && !strcmp (table_definitions[idx].name, "fpr-index"))
+      {
+        err = run_sql_statement (table_definitions[idx].sql);
+        if (err)
+          goto leave;
+      }
+  err = set_config_value ("dbversion", STR2(DATABASE_VERSION));
+  if (err)
+    goto leave;
+  err = run_sql_statement ("commit");
+  if (err)
+    goto leave;
+  intransaction = 0;
+  log_info ("database migration succeeded\n");
+
+
+ leave:
+  if (intransaction && run_sql_statement ("rollback"))
+    log_error ("Warning: database rollback failed - should not happen!\n");
+  xfree (sql);
+  return err;
+}
+
+
 
 /* Create and initialize a new SQL database file if it does not
  * exists; else open it and check that all required objects are
@@ -567,6 +659,7 @@ create_or_open_database (ctrl_t ctrl, const char *filename)
   char *value;
   int dbversion;
   int setdbversion = 0;
+  int baddbversion = 0;
 
   acquire_mutex ();
 
@@ -579,7 +672,7 @@ create_or_open_database (ctrl_t ctrl, const char *filename)
   /* To avoid races with other temporary instances of keyboxd trying
    * to create or update the database, we run the database with a lock
    * file held. */
-  database_lock = dotlock_create (filename, DOTLOCK_PREPARE_CREATE);
+  database_lock = dotlock_create_with (filename, 0, dblock_info_cb, ctrl);
   if (!database_lock)
     {
       err = gpg_error_from_syserror ();
@@ -587,8 +680,6 @@ create_or_open_database (ctrl_t ctrl, const char *filename)
         log_info ("can't allocate dotlock handle: %s\n", gpg_strerror (err));
       goto leave;
     }
-  dotlock_set_info_cb (database_lock, dblock_info_cb, ctrl);
-  database_lock = dotlock_finish_create (database_lock, filename);
   if (!database_lock)
     {
       err = gpg_error_from_syserror ();
@@ -631,12 +722,14 @@ create_or_open_database (ctrl_t ctrl, const char *filename)
   sqlite3_extended_result_codes (database_hd, 1);
 
   /* Create the tables if needed.  */
+  dbversion = 0; /* unknown.  */
   for (idx=0; idx < DIM(table_definitions); idx++)
     {
       err = run_sql_statement (table_definitions[idx].sql);
       if (err)
         goto leave;
-      if (table_definitions[idx].special == 1)
+      if (table_definitions[idx].name
+          && !strcmp (table_definitions[idx].name, "config"))
         {
           /* Check and create dbversion etc entries.  */
           err = get_config_value ("dbversion", &value);
@@ -652,10 +745,11 @@ create_or_open_database (ctrl_t ctrl, const char *filename)
               err = 0;
               dbversion = 0;
             }
-          else if ((dbversion = atoi (value)) < 1)
+          else if ((dbversion = atoi (value)) < DATABASE_VERSION
+                   || dbversion > DATABASE_VERSION_MAX)
             {
               log_error ("database version %d is not valid\n", dbversion);
-              dbversion = 0;
+              baddbversion = 1;
             }
           log_info ("database version: %d\n", dbversion);
 
@@ -674,8 +768,12 @@ create_or_open_database (ctrl_t ctrl, const char *filename)
         }
     }
 
-  if (!opt.quiet)
-    log_info (_("database '%s' created\n"), filename);
+  if (opt.quiet)
+    ;
+  else if (setdbversion)
+    log_info ("database '%s' created\n", filename);
+  else
+    log_info ("database '%s' opened\n", filename);
 
   if (setdbversion)
     {
@@ -683,17 +781,25 @@ create_or_open_database (ctrl_t ctrl, const char *filename)
       if (!err)
         err = set_config_value ("created", isotimestamp (gnupg_get_time ()));
     }
+  else if (dbversion == 1 && DATABASE_VERSION == 2)
+    err = migrate_from_v1_to_v2 ();
+  else if (baddbversion)
+    {
+      log_info ("no migration procedure for this database version available\n");
+      err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+    }
+  else
+    err = 0;
 
+  if (err)
+    goto leave;
 
-  err = 0;
 
  leave:
   if (err)
     {
       log_error (_("error creating database '%s': %s\n"),
                  filename, gpg_strerror (err));
-      if (dotlock_is_locked (database_lock))
-        dotlock_release (database_lock);
       dotlock_destroy (database_lock);
       database_lock = NULL;
     }
@@ -887,7 +993,7 @@ run_select_statement (ctrl_t ctrl, be_sqlite_local_t ctx,
       goto leave;
     }
 
-  /* Check whether we can re-use the current select statement.  */
+  /* Check whether we can reuse the current select statement.  */
   if (!ctx->select_stmt)
     ;
   else if (ctx->select_mode != desc[descidx].mode)
@@ -1257,6 +1363,20 @@ be_sqlite_search (ctrl_t ctrl,
       int is_ephemeral, is_revoked;
       int pk_no, uid_no;
 
+      n = sqlite3_column_int (ctx->select_stmt, 2);
+      if (!n && sqlite3_errcode (database_hd) == SQLITE_NOMEM)
+        {
+          err = gpg_error (gpg_err_code_from_sqlite (SQLITE_NOMEM));
+          show_sqlstmt (ctx->select_stmt);
+          log_error ("error in returned SQL column EPHEMERAL: %s)\n",
+                     gpg_strerror (err));
+          goto leave;
+        }
+      is_ephemeral = !!n;
+
+      if (!ctrl->ephemeral && is_ephemeral)
+        goto again;
+
       ubid = sqlite3_column_blob (ctx->select_stmt, 0);
       n = sqlite3_column_bytes (ctx->select_stmt, 0);
       if (!ubid || n < 0)
@@ -1304,17 +1424,6 @@ be_sqlite_search (ctrl_t ctrl,
         }
       pubkey_type = n;
 
-      n = sqlite3_column_int (ctx->select_stmt, 2);
-      if (!n && sqlite3_errcode (database_hd) == SQLITE_NOMEM)
-        {
-          err = gpg_error (gpg_err_code_from_sqlite (SQLITE_NOMEM));
-          show_sqlstmt (ctx->select_stmt);
-          log_error ("error in returned SQL column EPHEMERAL: %s)\n",
-                     gpg_strerror (err));
-          goto leave;
-        }
-      is_ephemeral = !!n;
-
       n = sqlite3_column_int (ctx->select_stmt, 3);
       if (!n && sqlite3_errcode (database_hd) == SQLITE_NOMEM)
         {
@@ -1352,10 +1461,10 @@ be_sqlite_search (ctrl_t ctrl,
                          gpg_strerror (err));
               uid_no = 0;
             }
-          else if (n < 0)
-            uid_no = 0;
+          else if (n < 1)
+            uid_no = 0;  /* Also the reserved index for the X.509 issuer.  */
           else
-            uid_no = n + 1;
+            uid_no = n;
         }
       else
         uid_no = 0;
@@ -1372,9 +1481,9 @@ be_sqlite_search (ctrl_t ctrl,
               goto leave;
             }
           else if (n < 0)
-            pk_no = 0;
+            pk_no = 0;  /* (should not be seen.) */
           else
-            pk_no = n + 1;
+            pk_no = n;
         }
       else
         pk_no = 0;
@@ -1409,7 +1518,7 @@ be_sqlite_search (ctrl_t ctrl,
 /* Helper for be_sqlite_store to update or insert a row in the pubkey
  * table.  */
 static gpg_error_t
-store_into_pubkey (enum kbxd_store_modes mode,
+store_into_pubkey (enum kbxd_store_modes mode, int is_ephemeral,
                    enum pubkey_types pktype, const unsigned char *ubid,
                    const void *blob, size_t bloblen)
 {
@@ -1418,12 +1527,12 @@ store_into_pubkey (enum kbxd_store_modes mode,
   sqlite3_stmt *stmt = NULL;
 
   if (mode == KBXD_STORE_UPDATE)
-    sqlstr = ("UPDATE pubkey set keyblob = ?3, type = ?2 WHERE ubid = ?1");
+    sqlstr = ("UPDATE pubkey SET ephemeral = ?4, keyblob = ?3, type = ?2 WHERE ubid = ?1");
   else if (mode == KBXD_STORE_INSERT)
-    sqlstr = ("INSERT INTO pubkey(ubid,type,keyblob) VALUES(?1,?2,?3)");
+    sqlstr = ("INSERT INTO pubkey(ubid,type,keyblob,ephemeral) VALUES(?1,?2,?3,?4)");
   else /* Auto */
-    sqlstr = ("INSERT OR REPLACE INTO pubkey(ubid,type,keyblob)"
-              " VALUES(?1,?2,?3)");
+    sqlstr = ("INSERT OR REPLACE INTO pubkey(ubid,type,keyblob,ephemeral)"
+              " VALUES(?1,?2,?3,?4)");
   err = run_sql_prepare (sqlstr, NULL, NULL, &stmt);
   if (err)
     goto leave;
@@ -1434,6 +1543,9 @@ store_into_pubkey (enum kbxd_store_modes mode,
   if (err)
     goto leave;
   err = run_sql_bind_blob (stmt, 3, blob, bloblen);
+  if (err)
+    goto leave;
+  err = run_sql_bind_int (stmt, 4, is_ephemeral);
   if (err)
     goto leave;
 
@@ -1622,7 +1734,7 @@ be_sqlite_store (ctrl_t ctrl, backend_handle_t backend_hd,
     }
   else
     {
-      err = _keybox_parse_openpgp (blob, bloblen, NULL, &info);
+      err = _keybox_parse_openpgp (blob, bloblen, 0, NULL, &info);
       if (err)
         {
           log_info ("error parsing OpenPGP blob: %s\n", gpg_strerror (err));
@@ -1655,7 +1767,7 @@ be_sqlite_store (ctrl_t ctrl, backend_handle_t backend_hd,
     }
   in_transaction = 1;
 
-  err = store_into_pubkey (mode, pktype, ubid, blob, bloblen);
+  err = store_into_pubkey (mode, ctrl->ephemeral, pktype, ubid, blob, bloblen);
   if (err)
     goto leave;
 
@@ -1870,6 +1982,91 @@ be_sqlite_delete (ctrl_t ctrl, backend_handle_t backend_hd,
     err = run_sql_statement_bind_ubid
       ("DELETE from pubkey WHERE ubid = ?1", ubid);
 
+
+ leave:
+  if (stmt)
+    sqlite3_finalize (stmt);
+
+  if (in_transaction && !err)
+    {
+      if (opt.active_transaction)
+        ; /* We are in a global transaction.  */
+      else
+        err = run_sql_statement ("commit");
+    }
+  else if (in_transaction)
+    {
+      if (opt.active_transaction)
+        ; /* We are in a global transaction.  */
+      else if (run_sql_statement ("rollback"))
+        log_error ("Warning: database rollback failed - should not happen!\n");
+    }
+  release_mutex ();
+  return err;
+}
+
+
+/* Put ephemeral/revoked flag on a key identified by UBID from the
+ * database.  BACKEND_HD is the handle for this backend and REQUEST
+ * is the current database request object.
+ * FLAGS means: 1 for ephemeral, 2 for revoked.
+ * CLEAR = 1 when clearing the flag.
+ */
+gpg_error_t
+be_sqlite_putkeyflag (ctrl_t ctrl, backend_handle_t backend_hd,
+                      db_request_t request, const unsigned char *ubid,
+                      unsigned int flags, int clear)
+{
+  gpg_error_t err;
+  db_request_part_t part;
+  /* be_sqlite_local_t ctx; */
+  sqlite3_stmt *stmt = NULL;
+  int in_transaction = 0;
+
+  (void)ctrl;
+
+  log_assert (backend_hd && backend_hd->db_type == DB_TYPE_SQLITE);
+  log_assert (request);
+
+  acquire_mutex ();
+
+  /* Find the specific request part or allocate it.  */
+  err = be_find_request_part (backend_hd, request, &part);
+  if (err)
+    goto leave;
+  /* ctx = part->besqlite; */
+
+  if (!opt.active_transaction)
+    {
+      err = run_sql_statement ("begin transaction");
+      if (err)
+        goto leave;
+      if (opt.in_transaction)
+        opt.active_transaction = 1;
+    }
+  in_transaction = 1;
+
+  if (flags & (1 << 0))
+    {
+      if (clear)
+        err = run_sql_statement_bind_ubid
+          ("UPDATE pubkey SET ephemeral = 0 WHERE ubid = ?1", ubid);
+      else
+        err = run_sql_statement_bind_ubid
+          ("UPDATE pubkey SET ephemeral = 1 WHERE ubid = ?1", ubid);
+      if (err)
+        goto leave;
+    }
+
+  if (flags & (1 << 1))
+    {
+      if (clear)
+        err = run_sql_statement_bind_ubid
+          ("UPDATE pubkey SET revoked = 0 WHERE ubid = ?1", ubid);
+      else
+        err = run_sql_statement_bind_ubid
+          ("UPDATE pubkey SET revoked = 1 WHERE ubid = ?1", ubid);
+    }
 
  leave:
   if (stmt)

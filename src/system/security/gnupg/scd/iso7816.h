@@ -29,6 +29,11 @@
 #define ISO7816_CHANGE_REFERENCE_DATA 0x24
 #define ISO7816_RESET_RETRY_COUNTER   0x2C
 
+/* Flags to encode which data should be returned by SELECT.  */
+#define ISO7816_SELECT_NORESP  0  /* no response */
+#define ISO7816_SELECT_FCI     1  /* query FCI (file control information) */
+#define ISO7816_SELECT_FCP     2  /* query FCP (file control parameters)  */
+
 /* Error codes returned by iso7816_verify_status.  A non-negative
  * number gives the number of left tries.
  * NB: The values are also used by the CHV-STATUS lines and thus are

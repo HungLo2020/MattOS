@@ -75,6 +75,7 @@ typedef enum
   GST_V4L2_TRANSPORT = 1u << 2,
   GST_V4L2_NO_PARSE = 1u << 3,
   GST_V4L2_BAYER = GST_V4L2_RAW | (1u << 5),
+  GST_V4L2_MPLANE = 1u << 6,
   GST_V4L2_ALL = 0xffff
 } GstV4L2FormatFlags;
 
@@ -195,16 +196,16 @@ static GstV4L2FormatDesc gst_v4l2_formats[] = {
   /* Luminance+Chrominance formats */
   {MAP_FMT (YUV410, YUV9),    KNOWN_DRM_MAP,              GST_V4L2_RAW},
   {MAP_FMT (YVU410, YVU9),    KNOWN_DRM_MAP,              GST_V4L2_RAW},
-  {MAP_FMT (YUV420M, I420),   KNOWN_DRM_MAP,              GST_V4L2_RAW},
+  {MAP_FMT (YUV420M, I420),   KNOWN_DRM_MAP,              GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (YUV420, I420),    KNOWN_DRM_MAP,              GST_V4L2_RAW},
-  {MAP_FMT (YVU420M, YV12),   KNOWN_DRM_MAP,              GST_V4L2_RAW},
+  {MAP_FMT (YVU420M, YV12),   KNOWN_DRM_MAP,              GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (YVU420, YV12),    KNOWN_DRM_MAP,              GST_V4L2_RAW},
   {MAP_FMT (YUYV, YUY2),      KNOWN_DRM_MAP,              GST_V4L2_RAW},
   {MAP_FMT (YYUV, UNKNOWN),   MAP_DRM (YVYU, LINEAR),     GST_V4L2_RAW},
   {MAP_FMT (YVYU, YVYU),      KNOWN_DRM_MAP,              GST_V4L2_RAW},
   {MAP_FMT (UYVY, UYVY),      KNOWN_DRM_MAP,              GST_V4L2_RAW},
-  {MAP_FMT (VYUY, UNKNOWN),   MAP_DRM (VYUY, LINEAR),     GST_V4L2_RAW},
-  {MAP_FMT (YUV422M, Y42B),   KNOWN_DRM_MAP,              GST_V4L2_RAW},
+  {MAP_FMT (VYUY, VYUY),      KNOWN_DRM_MAP,              GST_V4L2_RAW},
+  {MAP_FMT (YUV422M, Y42B),   KNOWN_DRM_MAP,              GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (YUV422P, Y42B),   KNOWN_DRM_MAP,              GST_V4L2_RAW},
   {MAP_FMT (YUV411P, Y41B),   KNOWN_DRM_MAP,              GST_V4L2_RAW},
   {MAP_FMT (Y41P, UNKNOWN),   MAP_DRM (INVALID, INVALID), GST_V4L2_RAW},
@@ -216,22 +217,22 @@ static GstV4L2FormatDesc gst_v4l2_formats[] = {
   {MAP_FMT (M420, UNKNOWN),   MAP_DRM (INVALID, INVALID),  GST_V4L2_RAW},
 
   /* two planes -- one Y,         one Cr + Cb interleaved  */
-  {MAP_FMT (NV12M, NV12),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW},
+  {MAP_FMT (NV12M, NV12),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (NV12, NV12),                        KNOWN_DRM_MAP,                      GST_V4L2_RAW},
-  {MAP_FMT (NV12MT, NV12_64Z32),                KNOWN_DRM_MAP,                      GST_V4L2_RAW},
-  {MAP_FMT (NV12MT_16X16, UNKNOWN),             MAP_DRM (NV12, SAMSUNG_16_16_TILE), GST_V4L2_RAW},
-  {MAP_FMT (NV12_16L16, UNKNOWN),               MAP_DRM (NV12, SAMSUNG_16_16_TILE), GST_V4L2_RAW},
-  {MAP_FMT (NV12M_8L128, NV12_8L128),           MAP_DRM (INVALID, INVALID),         GST_V4L2_RAW},
-  {MAP_FMT (NV12M_10BE_8L128, NV12_10BE_8L128), MAP_DRM (INVALID, INVALID),         GST_V4L2_RAW},
-  {MAP_FMT (NV21M, NV21),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW},
+  {MAP_FMT (NV12MT, NV12_64Z32),                KNOWN_DRM_MAP,                      GST_V4L2_RAW | GST_V4L2_MPLANE},
+  {MAP_FMT (NV12MT_16X16, UNKNOWN),             MAP_DRM (NV12, SAMSUNG_16_16_TILE), GST_V4L2_RAW | GST_V4L2_MPLANE},
+  {MAP_FMT (NV12_16L16, UNKNOWN),               MAP_DRM (NV12, SAMSUNG_16_16_TILE), GST_V4L2_RAW | GST_V4L2_MPLANE},
+  {MAP_FMT (NV12M_8L128, NV12_8L128),           MAP_DRM (INVALID, INVALID),         GST_V4L2_RAW | GST_V4L2_MPLANE},
+  {MAP_FMT (NV12M_10BE_8L128, NV12_10BE_8L128), MAP_DRM (INVALID, INVALID),         GST_V4L2_RAW | GST_V4L2_MPLANE},
+  {MAP_FMT (NV21M, NV21),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (NV21, NV21),                        KNOWN_DRM_MAP,                      GST_V4L2_RAW},
-  {MAP_FMT (NV16M, NV16),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW},
+  {MAP_FMT (NV16M, NV16),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (NV16, NV16),                        KNOWN_DRM_MAP,                      GST_V4L2_RAW},
-  {MAP_FMT (NV61M, NV61),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW},
+  {MAP_FMT (NV61M, NV61),                       KNOWN_DRM_MAP,                      GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (NV61, NV61),                        KNOWN_DRM_MAP,                      GST_V4L2_RAW},
   {MAP_FMT (NV24, NV24),                        KNOWN_DRM_MAP,                      GST_V4L2_RAW},
   {MAP_FMT (NV42, UNKNOWN),                     MAP_DRM (NV42, LINEAR),             GST_V4L2_RAW},
-  {MAP_FMT (MM21, NV12_16L32S),                 KNOWN_DRM_MAP,                      GST_V4L2_RAW},
+  {MAP_FMT (MM21, NV12_16L32S),                 KNOWN_DRM_MAP,                      GST_V4L2_RAW | GST_V4L2_MPLANE},
   {MAP_FMT (P010, P010_10LE),                   KNOWN_DRM_MAP,                      GST_V4L2_RAW},
 
   /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
@@ -276,6 +277,7 @@ static GstV4L2FormatDesc gst_v4l2_formats[] = {
   {MAP_ENC_FMT (VC1_ANNEX_L, ENCODED),  GST_V4L2_CODEC},
   {MAP_ENC_FMT (VP8, ENCODED),          GST_V4L2_CODEC | GST_V4L2_NO_PARSE},
   {MAP_ENC_FMT (VP9, ENCODED),          GST_V4L2_CODEC | GST_V4L2_NO_PARSE},
+  {MAP_ENC_FMT (AV1, ENCODED),          GST_V4L2_CODEC},
 
   /*  Vendor-specific formats   */
   {MAP_ENC_FMT (WNVA, ENCODED),     GST_V4L2_CODEC | GST_V4L2_RESOLUTION_AND_RATE},
@@ -553,7 +555,9 @@ gst_v4l2_object_install_m2m_properties_helper (GObjectClass * gobject_class)
   g_object_class_install_property (gobject_class, PROP_EXTRA_CONTROLS,
       g_param_spec_boxed ("extra-controls", "Extra Controls",
           "Extra v4l2 controls (CIDs) for the device",
-          GST_TYPE_STRUCTURE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+          GST_TYPE_STRUCTURE,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS |
+          GST_PARAM_MUTABLE_PLAYING));
 }
 
 /* Support for 32bit off_t, this wrapper is casting off_t to gint64 */
@@ -1509,53 +1513,53 @@ gst_v4l2_object_v4l2fourcc_is_rgb (guint32 fourcc)
 
 static const GstV4L2FormatDesc *
 gst_v4l2_object_get_desc_from_video_format (GstVideoFormat format,
-    const GstV4L2FormatDesc ** fallback)
+    const GstV4L2FormatDesc ** desc)
 {
   const GstV4L2FormatDesc *formats = gst_v4l2_format_desc ();
-  const GstV4L2FormatDesc *ret = NULL;
+  const GstV4L2FormatDesc *nc_desc = NULL;
   gint i;
 
-  if (fallback)
-    *fallback = NULL;
+  if (desc)
+    *desc = NULL;
 
   for (i = 0; i < GST_V4L2_FORMAT_COUNT; i++) {
     if (formats[i].gst_format == format) {
-      if (!ret)
-        ret = &formats[i];
-      else if (fallback && !*fallback)
-        *fallback = &formats[i];
+      if (!nc_desc)
+        nc_desc = &formats[i];
+      else if (desc && !*desc)
+        *desc = &formats[i];
       else
         break;
     }
   }
 
-  return ret;
+  return nc_desc;
 }
 
 static const GstV4L2FormatDesc *
 gst_v4l2_object_get_desc_from_drm_fourcc (guint32 drm_fourcc,
-    guint64 drm_modifier, const GstV4L2FormatDesc ** fallback)
+    guint64 drm_modifier, const GstV4L2FormatDesc ** desc)
 {
   const GstV4L2FormatDesc *formats = gst_v4l2_format_desc ();
-  const GstV4L2FormatDesc *ret = NULL;
+  const GstV4L2FormatDesc *nc_desc = NULL;
   gint i;
 
-  if (fallback)
-    *fallback = NULL;
+  if (desc)
+    *desc = NULL;
 
   for (i = 0; i < GST_V4L2_FORMAT_COUNT; i++) {
     if (formats[i].drm_fourcc == drm_fourcc
         && formats[i].drm_modifier == drm_modifier) {
-      if (!ret)
-        ret = &formats[i];
-      else if (fallback && !*fallback)
-        *fallback = &formats[i];
+      if (!nc_desc)
+        nc_desc = &formats[i];
+      else if (desc && !*desc)
+        *desc = &formats[i];
       else
         break;
     }
   }
 
-  return ret;
+  return nc_desc;
 }
 
 static gboolean
@@ -1636,6 +1640,11 @@ gst_v4l2_object_v4l2fourcc_to_bare_struct (guint32 fourcc,
       break;
     case V4L2_PIX_FMT_VP9:
       structure = gst_structure_new_empty ("video/x-vp9");
+      break;
+    case V4L2_PIX_FMT_AV1:
+      structure = gst_structure_new ("video/x-av1",
+          "stream-format", G_TYPE_STRING, "obu-stream", "alignment",
+          G_TYPE_STRING, "tu", NULL);
       break;
     case V4L2_PIX_FMT_DV:
       structure =
@@ -2025,7 +2034,7 @@ gst_v4l2_object_get_caps_info (GstV4l2Object * v4l2object, GstCaps * caps,
     goto invalid_format;
 
   if (g_str_equal (mimetype, "video/x-raw")) {
-    const GstV4L2FormatDesc *desc, *fallback_desc = NULL;
+    const GstV4L2FormatDesc *nc_desc, *desc = NULL;
     GstVideoFormat format = GST_VIDEO_INFO_FORMAT (&info->vinfo);
     if (format == GST_VIDEO_FORMAT_DMA_DRM) {
       const GstStructure *s = gst_caps_get_structure (caps, 0);
@@ -2035,16 +2044,16 @@ gst_v4l2_object_get_caps_info (GstV4l2Object * v4l2object, GstCaps * caps,
               "drm-format"), &drm_modifier);
       /* we can't support single plane fallback with opaque DRM fourcc since we
        * don't know how to extrapolate the missing strides and offsets. */
-      desc = gst_v4l2_object_get_desc_from_drm_fourcc (drm_fourcc, drm_modifier,
+      nc_desc =
+          gst_v4l2_object_get_desc_from_drm_fourcc (drm_fourcc, drm_modifier,
           NULL);
     } else {
-      desc =
-          gst_v4l2_object_get_desc_from_video_format (format, &fallback_desc);
+      nc_desc = gst_v4l2_object_get_desc_from_video_format (format, &desc);
     }
+    if (nc_desc)
+      fourcc_nc = nc_desc->v4l2_format;
     if (desc)
-      fourcc_nc = desc->v4l2_format;
-    if (fallback_desc)
-      fourcc = fallback_desc->v4l2_format;
+      fourcc = desc->v4l2_format;
   } else if (g_str_equal (mimetype, "video/mpegts")) {
     fourcc = V4L2_PIX_FMT_MPEG;
   } else if (g_str_equal (mimetype, "video/x-dv")) {
@@ -2094,6 +2103,8 @@ gst_v4l2_object_get_caps_info (GstV4l2Object * v4l2object, GstCaps * caps,
     fourcc = V4L2_PIX_FMT_VP8;
   } else if (g_str_equal (mimetype, "video/x-vp9")) {
     fourcc = V4L2_PIX_FMT_VP9;
+  } else if (g_str_equal (mimetype, "video/x-av1")) {
+    fourcc = V4L2_PIX_FMT_AV1;
   } else if (g_str_equal (mimetype, "video/x-bayer")) {
     const gchar *format = gst_structure_get_string (structure, "format");
     if (format) {
@@ -2146,18 +2157,14 @@ gst_v4l2_object_get_caps_info (GstV4l2Object * v4l2object, GstCaps * caps,
     fourcc = V4L2_PIX_FMT_PWC2;
   }
 
-  /* Prefer the non-contiguous if supported */
-  v4l2object->prefered_non_contiguous = TRUE;
-
+  /* Prefer the non-contiguous (mplane) format if the device supports it */
   if (fourcc_nc)
     fmt = gst_v4l2_object_get_format_from_fourcc (v4l2object, fourcc_nc);
   else if (fourcc == 0)
     goto unhandled_format;
 
-  if (fmt == NULL) {
+  if (fmt == NULL)
     fmt = gst_v4l2_object_get_format_from_fourcc (v4l2object, fourcc);
-    v4l2object->prefered_non_contiguous = FALSE;
-  }
 
   if (fmt == NULL)
     goto unsupported_format;
@@ -3131,8 +3138,6 @@ gst_v4l2_object_probe_caps_for_format (GstV4l2Object * v4l2object,
       size.index++;
     } while (v4l2object->ioctl (fd, VIDIOC_ENUM_FRAMESIZES, &size) >= 0);
 
-    v4l2object->max_width = maxw;
-    v4l2object->max_height = maxh;
     GST_DEBUG_OBJECT (v4l2object->dbg_obj,
         "done iterating discrete frame sizes");
   } else if (size.type == V4L2_FRMSIZE_TYPE_STEPWISE) {
@@ -3185,8 +3190,6 @@ gst_v4l2_object_probe_caps_for_format (GstV4l2Object * v4l2object,
       gst_v4l2_object_update_and_append (v4l2object, pixelformat, ret, tmp,
           sysmem_tmpl, dmabuf_tmpl);
 
-      v4l2object->max_width = maxw;
-      v4l2object->max_height = maxh;
     }
   } else if (size.type == V4L2_FRMSIZE_TYPE_CONTINUOUS) {
     guint32 maxw, maxh;
@@ -3218,8 +3221,6 @@ gst_v4l2_object_probe_caps_for_format (GstV4l2Object * v4l2object,
       gst_v4l2_object_update_and_append (v4l2object, pixelformat, ret, tmp,
           sysmem_tmpl, dmabuf_tmpl);
 
-      v4l2object->max_width = maxw;
-      v4l2object->max_height = maxh;
     }
   } else {
     gst_structure_free (template);
@@ -3294,9 +3295,6 @@ default_frame_sizes:
       min_w = min_h = 1;
     if (max_w == 0 || max_h == 0)
       max_w = max_h = GST_V4L2_MAX_SIZE;
-    v4l2object->max_width = max_w;
-    v4l2object->max_height = max_h;
-
     /* Since we can't get framerate directly, try to use the current norm */
     if (v4l2object->tv_norm && v4l2object->norms) {
       GList *norms;
@@ -3878,17 +3876,15 @@ field_to_str (enum v4l2_field f)
   return "unknown";
 }
 
-static guint
-calculate_max_sizeimage (GstV4l2Object * v4l2object, guint pixel_bitdepth)
+static gsize
+calculate_max_sizeimage (guint width, guint height, guint pixel_bitdepth)
 {
-  guint max_width, max_height;
-  guint sizeimage;
+  guint64 sizeimage;
 
-  max_width = v4l2object->max_width;
-  max_height = v4l2object->max_height;
-  sizeimage = max_width * max_height * pixel_bitdepth / 8 / 2;
+  sizeimage = MAX ((guint64) ENCODED_BUFFER_MIN_SIZE,
+      ((guint64) width * height * pixel_bitdepth) / 8);
 
-  return MAX (ENCODED_BUFFER_MIN_SIZE, sizeimage);
+  return (gsize) MIN (sizeimage, (guint64) G_MAXSIZE);
 }
 
 static gboolean
@@ -3954,9 +3950,13 @@ gst_v4l2_object_set_format_full (GstV4l2Object * v4l2object, GstCaps * caps,
       n_v4l_planes = 1;
   }
 
-  /* If our preference is single plane, then set te number of plane to 1 */
-  if (!v4l2object->prefered_non_contiguous)
-    n_v4l_planes = 1;
+  /* If the selected format is not a multi-planar (mplane) format, use 1 plane */
+  {
+    const GstV4L2FormatDesc *fmt_desc =
+        gst_v4l2_object_get_desc_from_v4l2fourcc (pixelformat);
+    if (!fmt_desc || !(fmt_desc->flags & GST_V4L2_MPLANE))
+      n_v4l_planes = 1;
+  }
 
   field = get_v4l2_field_for_info (&info.vinfo);
   if (field != V4L2_FIELD_NONE)
@@ -4152,7 +4152,7 @@ gst_v4l2_object_set_format_full (GstV4l2Object * v4l2object, GstCaps * caps,
 
     if (GST_VIDEO_INFO_FORMAT (&info.vinfo) == GST_VIDEO_FORMAT_ENCODED)
       format.fmt.pix_mp.plane_fmt[0].sizeimage =
-          calculate_max_sizeimage (v4l2object, pixel_bitdepth);
+          calculate_max_sizeimage (width, height, pixel_bitdepth);
   } else {
     gint stride = GST_VIDEO_INFO_PLANE_STRIDE (&info.vinfo, 0);
 
@@ -4172,7 +4172,7 @@ gst_v4l2_object_set_format_full (GstV4l2Object * v4l2object, GstCaps * caps,
 
     if (GST_VIDEO_INFO_FORMAT (&info.vinfo) == GST_VIDEO_FORMAT_ENCODED)
       format.fmt.pix.sizeimage =
-          calculate_max_sizeimage (v4l2object, pixel_bitdepth);
+          calculate_max_sizeimage (width, height, pixel_bitdepth);
   }
 
   GST_DEBUG_OBJECT (v4l2object->dbg_obj, "Desired format is %dx%d, format "
@@ -5434,9 +5434,15 @@ gst_v4l2_object_probe_caps (GstV4l2Object * v4l2object, GstCaps * filter)
       GstCaps *format_caps = gst_caps_new_empty ();
 
       if (dmabuf_tmpl) {
-        gst_caps_append_structure (format_caps,
-            gst_structure_copy (dmabuf_tmpl));
-        add_alternate_variant (v4l2object, format_caps, dmabuf_tmpl, NULL);
+        /* Tag the candidate structure itself with the DMABuf memory feature
+         * instead of corrupting the caller owned filter caps. */
+        gst_caps_append_structure_full (format_caps,
+            gst_structure_copy (dmabuf_tmpl),
+            gst_caps_features_new_single_static_str
+            (GST_CAPS_FEATURE_MEMORY_DMABUF));
+        add_alternate_variant (v4l2object, format_caps, dmabuf_tmpl,
+            gst_caps_features_new_single_static_str
+            (GST_CAPS_FEATURE_MEMORY_DMABUF));
       }
 
       if (sysmem_tmpl) {
@@ -6086,10 +6092,11 @@ gst_v4l2_object_propose_allocation (GstV4l2Object * obj, GstQuery * query)
 {
   GstBufferPool *pool = NULL;
   /* we need at least 2 buffers to operate */
-  guint size, min, max;
+  guint size, min, max, aligned_size = 0;
   GstCaps *caps;
   gboolean need_pool;
   GstStructure *allocation_meta = NULL;
+  GstAllocationParams allocation_params;
 
   /* Set defaults allocation parameters */
   size = GST_V4L2_SIZE (obj);
@@ -6138,6 +6145,24 @@ gst_v4l2_object_propose_allocation (GstV4l2Object * obj, GstQuery * query)
   gst_v4l2_get_driver_min_buffers (obj);
 
   min = MAX (obj->min_buffers, GST_V4L2_MIN_BUFFERS (obj));
+
+  /* If the driver has any size alignment requirements, suggest the difference
+   * between aligned size and actual size as extra padding to the upstream
+   * element */
+  if (V4L2_TYPE_IS_MULTIPLANAR (obj->type)) {
+    /* FIXME */
+  } else {
+    aligned_size = obj->format.fmt.pix.sizeimage;
+  }
+
+  gst_allocation_params_init (&allocation_params);
+  allocation_params.padding = aligned_size - size;
+
+  if (allocation_params.padding) {
+    gst_query_add_allocation_param (query, NULL, &allocation_params);
+    /* Update size to aligned size required by driver */
+    size = aligned_size;
+  }
 
   gst_query_add_allocation_pool (query, pool, size, min, max);
 

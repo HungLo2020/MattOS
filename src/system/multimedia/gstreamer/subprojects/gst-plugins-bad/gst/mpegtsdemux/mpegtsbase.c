@@ -60,13 +60,15 @@ static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
     );
 
 #define DEFAULT_IGNORE_PCR FALSE
+#define DEFAULT_SKEW_CORRECTIONS TRUE
 
 enum
 {
   PROP_0,
   PROP_PARSE_PRIVATE_SECTIONS,
   PROP_IGNORE_PCR,
-  /* FILL ME */
+  PROP_SKEW_CORRECTIONS
+      /* FILL ME */
 };
 
 static void mpegts_base_dispose (GObject * object);
@@ -149,7 +151,7 @@ mpegts_base_class_init (MpegTSBaseClass * klass)
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   /**
-   * GstMpegtsBase:ignore-pcr:
+   * MpegTSBase:ignore-pcr:
    *
    * Ignore PCR (Program Clock Reference) data from MPEG-TS PSI.
    * This can help with playback of some broken files.
@@ -159,6 +161,20 @@ mpegts_base_class_init (MpegTSBaseClass * klass)
   g_object_class_install_property (gobject_class, PROP_IGNORE_PCR,
       g_param_spec_boolean ("ignore-pcr", "Ignore PCR stream for timing",
           "Ignore PCR stream for timing", DEFAULT_IGNORE_PCR,
+          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+
+  /**
+   * MpegTSBase:skew-corrections:
+   *
+   * With push TIME inputs, apply continuous skew corrections to the output. The
+   * default is enabled. You can disable it if downstream doesn't require live
+   * synchronization.
+   *
+   * Since: 1.28
+   */
+  g_object_class_install_property (gobject_class, PROP_SKEW_CORRECTIONS,
+      g_param_spec_boolean ("skew-corrections", "Apply skew corrections",
+          "Apply skew corrections", DEFAULT_SKEW_CORRECTIONS,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
   klass->sink_query = GST_DEBUG_FUNCPTR (mpegts_base_default_sink_query);
@@ -180,6 +196,9 @@ mpegts_base_set_property (GObject * object, guint prop_id,
     case PROP_IGNORE_PCR:
       base->ignore_pcr = g_value_get_boolean (value);
       break;
+    case PROP_SKEW_CORRECTIONS:
+      base->packetizer->skew_correction = g_value_get_boolean (value);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
   }
@@ -197,6 +216,9 @@ mpegts_base_get_property (GObject * object, guint prop_id,
       break;
     case PROP_IGNORE_PCR:
       g_value_set_boolean (value, base->ignore_pcr);
+      break;
+    case PROP_SKEW_CORRECTIONS:
+      g_value_set_boolean (value, base->packetizer->skew_correction);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -269,6 +291,7 @@ mpegts_base_init (MpegTSBase * base)
 
   base->disposed = FALSE;
   base->packetizer = mpegts_packetizer_new ();
+  base->packetizer->skew_correction = DEFAULT_SKEW_CORRECTIONS;
   base->programs =
       g_ptr_array_new_full (16, (GDestroyNotify) mpegts_base_free_program);
 
@@ -600,9 +623,13 @@ find_registration_in_descriptors (GPtrArray * descriptors,
   for (i = 0; i < nb_desc; i++) {
     GstMpegtsDescriptor *desc = g_ptr_array_index (descriptors, i);
     if (desc->tag == GST_MTS_DESC_REGISTRATION) {
-      guint32 reg_desc = GST_READ_UINT32_BE (desc->data + 2);
-      if (reg_desc == registration_id)
-        return TRUE;
+      if (G_UNLIKELY (desc->length < 4)) {
+        GST_WARNING ("Registration descriptor with length < 4. (Corrupted ?)");
+      } else {
+        guint32 reg_desc = GST_READ_UINT32_BE (desc->data + 2);
+        if (reg_desc == registration_id)
+          return TRUE;
+      }
     }
   }
   return FALSE;
@@ -1929,8 +1956,6 @@ mpegts_base_handle_seek_event (MpegTSBase * base, GstPad * pad,
     flush_event = NULL;
   }
 
-  if (flush_event)
-    gst_event_unref (flush_event);
   gst_pad_start_task (base->sinkpad, (GstTaskFunction) mpegts_base_loop, base,
       NULL);
 

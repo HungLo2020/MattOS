@@ -63,7 +63,7 @@ dearmor_file( const char *fname )
 
     push_armor_filter ( afx, inp );
 
-    if( (rc = open_outfile (-1, fname, 0, 0, &out)) )
+    if( (rc = open_outfile (GNUPG_INVALID_FD, fname, 0, 0, &out)) )
 	goto leave;
 
     iobuf_copy (out, inp);
@@ -113,7 +113,7 @@ enarmor_file( const char *fname )
     }
 
 
-    if( (rc = open_outfile (-1, fname, 1, 0, &out )) )
+    if( (rc = open_outfile (GNUPG_INVALID_FD, fname, 1, 0, &out )) )
 	goto leave;
 
     afx->what = 4;

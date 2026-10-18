@@ -255,11 +255,9 @@ lock_and_unlock (const char *fname)
   dotlock_t h;
   unsigned long usec;
 
-  h = dotlock_create (fname, DOTLOCK_PREPARE_CREATE);
+  h = dotlock_create_with (fname, lock_info_cb, NULL);
   if (!h)
     die ("error creating lock file for '%s': %s", fname, strerror (errno));
-  dotlock_set_info_cb (h, lock_info_cb, NULL);
-  h = dotlock_finish_create (h, fname);
   if (!h)
     die ("error finishing lock file creation for '%s': %s",
          fname, strerror (errno));

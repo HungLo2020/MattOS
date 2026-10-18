@@ -32,6 +32,7 @@
 #include <string.h>
 
 #include "gstvulkanelements.h"
+#include "gstvkutils.h"
 #include "vkdownload.h"
 
 GST_DEBUG_CATEGORY (gst_debug_vulkan_download);
@@ -83,7 +84,6 @@ struct ImageToRawDownload
   GstVideoInfo out_info;
 
   GstBufferPool *pool;
-  gboolean pool_active;
 
   GstVulkanOperation *exec;
 };
@@ -138,6 +138,61 @@ _image_to_raw_propose_allocation (gpointer impl, GstQuery * decide_query,
   /* FIXME: implement */
 }
 
+static gboolean
+_image_to_raw_decide_allocation (gpointer impl, GstQuery * query)
+{
+  struct ImageToRawDownload *raw = impl;
+  GstStructure *config;
+  guint min = 1, max = 0, size = 1;
+  GstCaps *caps;
+  gboolean update_pool = FALSE;
+  GstBufferPool *pool = NULL;
+
+  gst_query_parse_allocation (query, &caps, NULL);
+  if (!caps)
+    return FALSE;
+
+  if (gst_query_get_n_allocation_pools (query) > 0) {
+    gst_query_parse_nth_allocation_pool (query, 0, &pool, &size, &min, &max);
+    if (GST_IS_VULKAN_BUFFER_POOL (pool)) {
+      update_pool = TRUE;
+    } else {
+      gst_clear_object (&pool);
+    }
+  }
+
+  /* let's null current pool */
+  gst_clear_object (&raw->pool);
+
+  if (!pool) {
+    pool = gst_vulkan_buffer_pool_new (raw->download->device);
+  }
+
+  config = gst_buffer_pool_get_config (pool);
+
+  gst_buffer_pool_config_set_params (config, raw->download->out_caps, size,
+      min, max);
+  if (gst_query_find_allocation_meta (query, GST_VIDEO_META_API_TYPE, NULL)) {
+    gst_buffer_pool_config_add_option (config,
+        GST_BUFFER_POOL_OPTION_VIDEO_META);
+  }
+
+  if (!gst_buffer_pool_set_config (pool, config)) {
+    gst_clear_object (&pool);
+    GST_ERROR_OBJECT (raw->download, "Failed to set buffer pool config");
+    return FALSE;
+  }
+
+  if (update_pool)
+    gst_query_set_nth_allocation_pool (query, 0, pool, size, min, max);
+  else
+    gst_query_add_allocation_pool (query, pool, size, min, max);
+
+  raw->pool = pool;
+
+  return TRUE;
+}
+
 static GstFlowReturn
 _image_to_raw_perform (gpointer impl, GstBuffer * inbuf, GstBuffer ** outbuf)
 {
@@ -161,22 +216,13 @@ _image_to_raw_perform (gpointer impl, GstBuffer * inbuf, GstBuffer ** outbuf)
   }
 
   if (!raw->pool) {
-    GstStructure *config;
-    guint min = 0, max = 0;
-    gsize size = 1;
-
-    raw->pool = gst_vulkan_buffer_pool_new (raw->download->device);
-    config = gst_buffer_pool_get_config (raw->pool);
-    gst_buffer_pool_config_set_params (config, raw->download->out_caps, size,
-        min, max);
-    if (!gst_buffer_pool_set_config (raw->pool, config)) {
-      gst_clear_object (&raw->pool);
-      return GST_FLOW_ERROR;
-    }
+    GST_ERROR_OBJECT (raw->download, "No pool found.");
+    goto error;
   }
-  if (!raw->pool_active) {
-    gst_buffer_pool_set_active (raw->pool, TRUE);
-    raw->pool_active = TRUE;
+
+  if (!gst_buffer_pool_set_active (raw->pool, TRUE)) {
+    GST_ERROR_OBJECT (raw->download, "Couldn't activate pool.");
+    goto error;
   }
 
   if ((ret =
@@ -236,49 +282,60 @@ _image_to_raw_perform (gpointer impl, GstBuffer * inbuf, GstBuffer ** outbuf)
 
   for (i = 0; i < n_planes; i++) {
     VkBufferImageCopy region;
-    GstMemory *out_mem;
+    GstMemory *mem;
     GstVulkanBufferMemory *buf_mem;
     GstVulkanImageMemory *img_mem;
-    gint idx;
     const VkImageAspectFlags aspects[] = { VK_IMAGE_ASPECT_PLANE_0_BIT,
       VK_IMAGE_ASPECT_PLANE_1_BIT, VK_IMAGE_ASPECT_PLANE_2_BIT,
     };
     VkImageAspectFlags plane_aspect;
+    guint32 width, height, row, img_h;
 
-    idx = MIN (i, n_mems - 1);
-    img_mem = (GstVulkanImageMemory *) gst_buffer_peek_memory (inbuf, idx);
-
-    out_mem = gst_buffer_peek_memory (*outbuf, i);
-    if (!gst_is_vulkan_buffer_memory (out_mem)) {
-      GST_WARNING_OBJECT (raw->download,
-          "Output is not a GstVulkanBufferMemory");
+    mem = gst_vulkan_buffer_peek_plane_memory (inbuf, &raw->in_info, i);
+    if (!mem)
+      goto unlock_error;
+    if (!gst_is_vulkan_image_memory (mem)) {
+      GST_WARNING_OBJECT (raw->download, "Input buffer is not a Vulkan image");
       goto unlock_error;
     }
-    buf_mem = (GstVulkanBufferMemory *) out_mem;
+    img_mem = (GstVulkanImageMemory *) mem;
+
+    mem = gst_vulkan_buffer_peek_plane_memory (*outbuf, &raw->out_info, i);
+    if (!mem)
+      goto unlock_error;
+    if (!gst_is_vulkan_buffer_memory (mem)) {
+      GST_WARNING_OBJECT (raw->download,
+          "Output buffer is not a Vulkan buffer");
+      goto unlock_error;
+    }
+    buf_mem = (GstVulkanBufferMemory *) mem;
 
     if (n_planes == n_mems)
       plane_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
     else
       plane_aspect = aspects[i];
 
+    gst_vulkan_buffer_get_plane_dimensions (*outbuf, &raw->out_info, i, &width,
+        &height, &row, &img_h);
+
     /* *INDENT-OFF* */
     region = (VkBufferImageCopy) {
-        .bufferOffset = 0,
-        .bufferRowLength = GST_VIDEO_INFO_COMP_WIDTH (&raw->in_info, i),
-        .bufferImageHeight = GST_VIDEO_INFO_COMP_HEIGHT (&raw->in_info, i),
-        .imageSubresource = {
-             /* XXX: each plane is a buffer */
-          .aspectMask = plane_aspect,
-            .mipLevel = 0,
-            .baseArrayLayer = 0,
-            .layerCount = 1,
-        },
-        .imageOffset = { .x = 0, .y = 0, .z = 0, },
-        .imageExtent = {
-            .width = GST_VIDEO_INFO_COMP_WIDTH (&raw->out_info, i),
-            .height = GST_VIDEO_INFO_COMP_HEIGHT (&raw->out_info, i),
-            .depth = 1,
-        }
+      .bufferOffset = 0,
+      .bufferRowLength = row,
+      .bufferImageHeight = img_h,
+      .imageSubresource = {
+        /* XXX: each plane is a buffer */
+        .aspectMask = plane_aspect,
+        .mipLevel = 0,
+        .baseArrayLayer = 0,
+        .layerCount = 1,
+      },
+      .imageOffset = { .x = 0, .y = 0, .z = 0, },
+      .imageExtent = {
+        .width = width,
+        .height = height,
+        .depth = 1,
+      }
     };
     /* *INDENT-ON* */
 
@@ -321,10 +378,7 @@ _image_to_raw_free (gpointer impl)
   struct ImageToRawDownload *raw = impl;
 
   if (raw->pool) {
-    if (raw->pool_active) {
-      gst_buffer_pool_set_active (raw->pool, FALSE);
-    }
-    raw->pool_active = FALSE;
+    gst_buffer_pool_set_active (raw->pool, FALSE);
     gst_object_unref (raw->pool);
     raw->pool = NULL;
   }
@@ -346,6 +400,7 @@ static const struct DownloadMethod image_to_raw_download = {
   _image_to_raw_transform_caps,
   _image_to_raw_set_caps,
   _image_to_raw_propose_allocation,
+  _image_to_raw_decide_allocation,
   _image_to_raw_perform,
   _image_to_raw_free,
 };
@@ -441,7 +496,7 @@ gst_vulkan_download_class_init (GstVulkanDownloadClass * klass)
   gstelement_class = (GstElementClass *) klass;
   gstbasetransform_class = (GstBaseTransformClass *) klass;
 
-  gst_element_class_set_metadata (gstelement_class, "Vulkan Downloader",
+  gst_element_class_set_static_metadata (gstelement_class, "Vulkan Downloader",
       "Filter/Video", "A Vulkan data downloader",
       "Matthew Waters <matthew@centricular.com>");
 
@@ -556,8 +611,8 @@ gst_vulkan_download_change_state (GstElement * element,
   GstStateChangeReturn ret = GST_STATE_CHANGE_SUCCESS;
 
   GST_DEBUG ("changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:
@@ -756,7 +811,40 @@ gst_vulkan_download_propose_allocation (GstBaseTransform * bt,
 static gboolean
 gst_vulkan_download_decide_allocation (GstBaseTransform * bt, GstQuery * query)
 {
-  return TRUE;
+  GstVulkanDownload *vk_download = GST_VULKAN_DOWNLOAD (bt);
+  guint i;
+  gboolean ret = TRUE;
+
+  for (i = 0; i < G_N_ELEMENTS (download_methods); i++) {
+    GstCaps *templ;
+    gboolean res;
+
+    templ = gst_static_caps_get (download_methods[i]->in_template);
+    if (!gst_caps_can_intersect (vk_download->in_caps, templ)) {
+      gst_caps_unref (templ);
+      continue;
+    }
+    gst_caps_unref (templ);
+
+    templ = gst_static_caps_get (download_methods[i]->out_template);
+    if (!gst_caps_can_intersect (vk_download->out_caps, templ)) {
+      gst_caps_unref (templ);
+      continue;
+    }
+    gst_caps_unref (templ);
+
+    res =
+        download_methods[i]->decide_allocation (vk_download->download_impls[i],
+        query);
+
+    /* if all methods fail, function fails */
+    if (i == 0)
+      ret = res;
+    else
+      ret |= res;
+  }
+
+  return ret;
 }
 
 static gboolean

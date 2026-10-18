@@ -19,12 +19,12 @@
 ## Process this file with automake to produce Makefile.in
 
 # We want to also build the wixlib for use by GnuPG Desktop
-WITH_MSI=
+WITH_MSI=1
 
 # Location of the released tarball archives.  This is prefixed by
 # the variable RELEASE_ARCHIVE in ~/.gnupg-autogen.rc.  For example:
 # RELEASE_ARCHIVE=user@host:archive/tarballs
-RELEASE_ARCHIVE_SUFFIX  = gnupg/v2.4
+RELEASE_ARCHIVE_SUFFIX  = gnupg/v2.5
 # The variable RELEASE_SIGNKEY in ~/.gnupg-autogen.rc is used
 # to specify the key for signing.  For example:
 # RELEASE_SIGNKEY=D8692123C4065DEA5E0F3AB5249B39D24F25E3B6
@@ -46,6 +46,7 @@ EXTRA_DIST = build-aux/config.rpath build-aux/potomo autogen.sh autogen.rc \
              COPYING.CC0 COPYING.other                      \
 	     build-aux/git-log-fix build-aux/git-log-footer \
 	     build-aux/getswdb.sh                           \
+	     build-aux/mk-sbom.sh                           \
 	     build-aux/speedo.mk                            \
              build-aux/speedo/zlib.pc			    \
              build-aux/speedo/w32/inst-options.ini	    \
@@ -163,7 +164,7 @@ dist-hook: gen-ChangeLog
 
 distcheck-hook:
 	set -e; ( \
-	pref="#+macro: gnupg24_" ;\
+	pref="#+macro: gnupg26_" ;\
 	reldate="$$(date -u +%Y-%m-%d)" ;\
         echo "$${pref}ver  $(PACKAGE_VERSION)"  ;\
         echo "$${pref}date $${reldate}" ;\
@@ -312,8 +313,9 @@ sign-release:
 	      gpg -sbu $$mysignkey $${wixlibfile} ;\
 	  fi; \
 	  cat $(RELEASE_NAME).swdb >swdb.snippet;\
-	  echo '#+macro: gnupg24_branch  STABLE-BRANCH-2-4' >>swdb.snippet;\
+	  echo '#+macro: gnupg26_branch  master' >>swdb.snippet;\
 	  cat  $${release_w32_name}.exe.swdb >>swdb.snippet;\
+	  echo "#+macro: gnupg26_w32_ssiz $$(wc -c <$${release_w32_name}.tar.xz|awk '{print int($$1/1024)}')k" >>swdb.snippet ;\
 	  echo >>swdb.snippet ;\
 	  sha1sum $${files1} >>swdb.snippet ;\
           cat "../$(RELEASE_NAME).buildlog" swdb.snippet \

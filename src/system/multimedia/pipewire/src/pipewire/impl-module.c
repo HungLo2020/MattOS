@@ -154,6 +154,9 @@ pw_context_load_module(struct pw_context *context,
 		NULL
 	};
 
+	while ((p = strstr(name, "../")) != NULL)
+		name = p + 3;
+
 	pw_log_info("%p: name:%s args:%s", context, name, args);
 
 	module_dir = getenv("PIPEWIRE_MODULE_DIR");
@@ -206,6 +209,7 @@ pw_context_load_module(struct pw_context *context,
 	this = &impl->this;
 	this->context = context;
 	this->properties = properties;
+	this->info.props = &this->properties->dict;
 	properties = NULL;
 
 	spa_hook_list_init(&this->listener_list);
@@ -234,7 +238,6 @@ pw_context_load_module(struct pw_context *context,
 	pw_properties_setf(this->properties, PW_KEY_OBJECT_ID, "%d", this->info.id);
 	pw_properties_setf(this->properties, PW_KEY_OBJECT_SERIAL, "%"PRIu64,
 			pw_global_get_serial(this->global));
-	this->info.props = &this->properties->dict;
 
 	pw_global_update_keys(this->global, &this->properties->dict, keys);
 
@@ -354,7 +357,6 @@ int pw_impl_module_update_properties(struct pw_impl_module *module, const struct
 	int changed;
 
 	changed = pw_properties_update(module->properties, dict);
-	module->info.props = &module->properties->dict;
 
 	pw_log_debug("%p: updated %d properties", module, changed);
 

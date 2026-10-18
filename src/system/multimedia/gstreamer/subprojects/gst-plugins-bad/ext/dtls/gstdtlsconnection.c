@@ -1114,16 +1114,29 @@ openssl_verify_callback (int preverify_ok, X509_STORE_CTX * x509_ctx)
   } else {
     bio = BIO_new (BIO_s_mem ());
     if (bio) {
-      gchar buffer[2048];
       gint len;
+      gint read_len;
 
       len =
           X509_NAME_print_ex (bio,
           X509_get_subject_name (X509_STORE_CTX_get0_cert (x509_ctx)), 1,
           XN_FLAG_MULTILINE);
-      BIO_read (bio, buffer, len);
-      buffer[len] = '\0';
-      GST_DEBUG_OBJECT (self, "Peer certificate received:\n%s", buffer);
+
+      if (len > 0) {
+        gchar *buffer;
+
+        buffer = g_new (gchar, (gsize) len + 1);
+        read_len = BIO_read (bio, buffer, len);
+        if (read_len > 0) {
+          buffer[read_len] = '\0';
+          GST_DEBUG_OBJECT (self, "Peer certificate received:\n%s", buffer);
+        } else {
+          GST_DEBUG_OBJECT (self, "failed to read certificate subject");
+        }
+        g_free (buffer);
+      } else {
+        GST_DEBUG_OBJECT (self, "failed to read certificate subject");
+      }
       BIO_free (bio);
     } else {
       GST_DEBUG_OBJECT (self, "failed to create certificate print membio");
@@ -1217,8 +1230,9 @@ bio_method_read (BIO * bio, char *out_buffer, int size)
   internal_size = priv->bio_buffer_len - priv->bio_buffer_offset;
 
   if (!priv->bio_buffer) {
-    GST_LOG_OBJECT (self, "BIO: EOF");
-    return 0;
+    GST_LOG_OBJECT (self, "BIO: no data available, retry later");
+    BIO_set_retry_read (bio);
+    return -1;
   }
 
   if (!out_buffer || size <= 0) {

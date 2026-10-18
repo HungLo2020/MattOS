@@ -112,7 +112,7 @@ keyid_from_fpr20 (ctrl_t ctrl, const byte *fpr, u32 *keyid)
       int rc;
 
       memset (&pk, 0, sizeof pk);
-      rc = get_pubkey_byfprint (ctrl, &pk, NULL, fpr, fprlen);
+      rc = get_pubkey_byfpr (ctrl, &pk, NULL, fpr, fprlen);
       if (rc)
         {
           log_printhex (fpr, fprlen,
@@ -1523,7 +1523,7 @@ list_trust_path( const char *username )
 /****************
  * Enumerate all keys, which are needed to build all trust paths for
  * the given key.  This function does not return the key itself or
- * the ultimate key (the last point in cerificate chain).  Only
+ * the ultimate key (the last point in certificate chain).  Only
  * certificate chains which ends up at an ultimately trusted key
  * are listed.	If ownertrust or validity is not NULL, the corresponding
  * value for the returned LID is also returned in these variable(s).
@@ -2240,15 +2240,18 @@ validate_keys (ctrl_t ctrl, int interactive)
       keyblock = get_pubkeyblock (ctrl, k->kid);
       if (!keyblock)
         {
-          log_info (_("Note: ultimately trusted key %s not found\n"),
-                     keystr(k->kid));
+          if (!opt.quiet)
+            log_info (_("Note: ultimately trusted key %s not found\n"),
+                      keystr(k->kid));
           continue;
         }
       pk = keyblock->pkt->pkt.public_key;
       if (pk->has_expired)
         {
-          log_info (_("Note: ultimately trusted key %s expired\n"),
-                     keystr(k->kid));
+          if (!opt.quiet)
+            log_info (_("Note: ultimately trusted key %s expired\n"),
+                      keystr(k->kid));
+          release_kbnode (keyblock);
           continue;
         }
 

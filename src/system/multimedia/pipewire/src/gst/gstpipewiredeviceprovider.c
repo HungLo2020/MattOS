@@ -729,8 +729,16 @@ static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
     if (!spa_streq(name, "default"))
       return;
 
+    /* PipeWire re-emits the global event for the same id when the client's
+     * permissions change. Only bind and add the listener once, otherwise we
+     * would re-append the already-linked metadata_listener hook and corrupt
+     * the proxy's listener list. */
+    if (self->metadata != NULL)
+      return;
+
     self->metadata =
         pw_registry_bind(self->registry, id, type, PW_VERSION_METADATA, 0);
+    self->metadata_id = id;
     pw_metadata_add_listener(self->metadata, &self->metadata_listener,
                              &metadata_events, self);
   }
@@ -744,6 +752,13 @@ no_mem:
 
 static void registry_event_global_remove(void *data, uint32_t id)
 {
+  GstPipeWireDeviceProvider *self = data;
+
+  if (self->metadata != NULL && self->metadata_id == id) {
+    spa_hook_remove(&self->metadata_listener);
+    pw_proxy_destroy((struct pw_proxy *)self->metadata);
+    self->metadata = NULL;
+  }
 }
 
 static const struct pw_registry_events registry_events = {
@@ -792,6 +807,7 @@ gst_pipewire_device_provider_probe (GstDeviceProvider * provider)
   GST_DEBUG_OBJECT (self, "disconnect");
 
   g_clear_pointer ((struct pw_proxy**)&self->registry, pw_proxy_destroy);
+  spa_hook_remove (&self->core_listener);
   pw_thread_loop_unlock (self->core->loop);
   g_clear_pointer (&self->core, gst_pipewire_core_release);
 
@@ -866,6 +882,7 @@ gst_pipewire_device_provider_stop (GstDeviceProvider * provider)
 
   g_clear_pointer ((struct pw_proxy**)&self->registry, pw_proxy_destroy);
   if (self->core != NULL) {
+    spa_hook_remove (&self->core_listener);
     pw_thread_loop_unlock (self->core->loop);
   }
   g_clear_pointer (&self->core, gst_pipewire_core_release);

@@ -38,13 +38,14 @@
 #endif
 
 #include "avfassetsrc.h"
+#include "helpers.h"
 #include "coremediabuffer.h"
 
 GST_DEBUG_CATEGORY_STATIC (gst_avf_asset_src_debug);
 #define GST_CAT_DEFAULT gst_avf_asset_src_debug
 
 #define CMTIME_TO_GST_TIME(x) \
-    (x.value == 0 ? 0 : (guint64)(x.value * GST_SECOND / x.timescale));
+    (CMTIME_IS_INVALID(x) ? GST_CLOCK_TIME_NONE : (guint64)(x.value * GST_SECOND / x.timescale));
 #define GST_AVF_ASSET_SRC_LOCK(x) (g_mutex_lock (&x->lock));
 #define GST_AVF_ASSET_SRC_UNLOCK(x) (g_mutex_unlock (&x->lock));
 #define MEDIA_TYPE_TO_STR(x) \
@@ -122,8 +123,16 @@ _do_init (GType avf_assetsrc_type)
       0, "avfassetsrc element");
 }
 
+#ifndef HAVE_IOS
+#define AV_RANK GST_RANK_SECONDARY
+#else
+#define AV_RANK GST_RANK_PRIMARY
+#endif
+
 G_DEFINE_TYPE_WITH_CODE (GstAVFAssetSrc, gst_avf_asset_src, GST_TYPE_ELEMENT,
     _do_init (g_define_type_id));
+GST_ELEMENT_REGISTER_DEFINE_WITH_CODE (avfassetsrc, "avfassetsrc", AV_RANK,
+    GST_TYPE_AVF_ASSET_SRC, gst_applemedia_init_once ());
 
 
 /* GObject vmethod implementations */
@@ -1050,14 +1059,17 @@ gst_avf_asset_src_uri_handler_init (gpointer g_iface, gpointer iface_data)
     return NULL;
   }
 
+  ts = CMSampleBufferGetPresentationTimeStamp (cmbuf);
+  if (!CMTIME_IS_VALID (ts)) {
+    GST_WARNING ("Buffer %p has invalid timestamp", cmbuf);
+  }
+  dur = CMSampleBufferGetDuration (cmbuf);
   buf = gst_core_media_buffer_new (cmbuf, FALSE, NULL);
   CFRelease (cmbuf);
   if (buf == NULL)
     return NULL;
-  /* cmbuf is now retained by buf (in meta) */
-  dur = CMSampleBufferGetDuration (cmbuf);
-  ts = CMSampleBufferGetPresentationTimeStamp (cmbuf);
-  if (dur.value != 0) {
+
+  if (CMTIME_IS_VALID (dur) && dur.value != 0) {
     GST_BUFFER_DURATION (buf) = CMTIME_TO_GST_TIME (dur);
   }
   GST_BUFFER_TIMESTAMP (buf) = CMTIME_TO_GST_TIME (ts);
@@ -1065,7 +1077,14 @@ gst_avf_asset_src_uri_handler_init (gpointer g_iface, gpointer iface_data)
       GST_TIME_FORMAT, MEDIA_TYPE_TO_STR (type),
       GST_TIME_ARGS(GST_BUFFER_TIMESTAMP (buf)),
       GST_TIME_ARGS(GST_BUFFER_DURATION (buf)));
-  if (GST_BUFFER_TIMESTAMP (buf) > position) {
+
+  /* FIXME: Buffers with invalid timestamp don't contribute to advancing the
+   * position. We have options: 1) try to use the previous buffer duration if
+   * available, 2) advance by one nominal frame duration (though this won't work
+   * with VFR content), or 3) advance by some epsilon value. Not sure yet what's
+   * best.
+   */
+  if (GST_BUFFER_TIMESTAMP_IS_VALID (buf) && GST_BUFFER_TIMESTAMP (buf) > position) {
     position = GST_BUFFER_TIMESTAMP (buf);
   }
   return buf;

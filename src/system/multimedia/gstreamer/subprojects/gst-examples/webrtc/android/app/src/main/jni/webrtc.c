@@ -205,7 +205,7 @@ on_incoming_decodebin_stream (GstElement * decodebin, GstPad * pad,
       webrtc->video_sink = sink;
       if (webrtc->native_window)
         gst_video_overlay_set_window_handle (GST_VIDEO_OVERLAY (sink),
-            (gpointer) webrtc->native_window);
+            (guintptr) webrtc->native_window);
     }
   } else if (g_str_has_prefix (name, "audio")) {
     handle_media_stream (pad, webrtc->pipe, "audioconvert", "autoaudiosink");
@@ -293,10 +293,12 @@ on_offer_created (GstPromise * promise, gpointer user_data)
   GstWebRTCSessionDescription *offer = NULL;
   WebRTC *webrtc = (WebRTC *) user_data;
   const GstStructure *reply;
+  GstPromiseResult result GST_UNUSED_ASSERT;
 
   g_assert (webrtc->app_state == PEER_CALL_NEGOTIATING);
 
-  g_assert (gst_promise_wait (promise) == GST_PROMISE_RESULT_REPLIED);
+  result = gst_promise_wait (promise);
+  g_assert (result == GST_PROMISE_RESULT_REPLIED);
   reply = gst_promise_get_reply (promise);
   gst_structure_get (reply, "offer",
       GST_TYPE_WEBRTC_SESSION_DESCRIPTION, &offer, NULL);

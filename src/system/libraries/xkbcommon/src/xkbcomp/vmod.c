@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: HPND
  */
 
-#include "atom.h"
 #include "config.h"
 
 #include <stdint.h>
 
 #include "xkbcommon/xkbcommon.h"
+#include "atom.h"
 #include "keymap.h"
 #include "text.h"
 #include "expr.h"
@@ -163,7 +163,7 @@ HandleVModDef(struct xkb_context *ctx, struct xkb_mod_set *mods, VModDef *stmt)
     if (mods->num_mods >= XKB_MAX_MODS) {
         log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
                 "Cannot define virtual modifier %s: "
-                "too many modifiers defined (maximum %d)\n",
+                "too many modifiers defined (maximum %u)\n",
                 xkb_atom_text(ctx, stmt->name), XKB_MAX_MODS);
         return false;
     }

@@ -1,5 +1,5 @@
 project('gst-python', 'c',
-  version : '1.26.11',
+  version : '1.28.8',
   meson_version : '>= 1.4',
   default_options : [ 'warning_level=1',
                       'buildtype=debugoptimized' ])
@@ -16,14 +16,11 @@ add_project_arguments('-DHAVE_CONFIG_H', language: 'c')
 
 gst_req = '>= @0@.@1@.0'.format(gst_version_major, gst_version_minor)
 
-gst_dep = dependency('gstreamer-1.0', version : gst_req,
-  allow_fallback: true)
-gstbase_dep = dependency('gstreamer-base-1.0', version : gst_req,
-  allow_fallback: true)
-gstbad_dep = dependency('gstreamer-analytics-1.0', version :gst_req,
-  fallback : [])
+gst_dep = dependency('gstreamer-1.0', version : gst_req)
+gstbase_dep = dependency('gstreamer-base-1.0', version : gst_req)
+gstbad_dep = dependency('gstreamer-analytics-1.0', version :gst_req)
 gmodule_dep = dependency('gmodule-no-export-2.0')
-libdl = cc.find_library('dl', required: false)
+libdl = dependency('dl', required: false)
 pygobject_dep = dependency('pygobject-3.0', allow_fallback: true, version: '>= 3.8')
 
 pymod = import('python')
@@ -132,10 +129,16 @@ cdata.set_quoted('PY_LIB_FNAME', pylib_fname)
 configure_file(output : 'config.h', configuration : cdata)
 configinc = include_directories('.')
 
-meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.24.0', meson.project_version())
+meson.add_dist_script('scripts/gen-changelog.py', meson.project_name(), '1.26.0', meson.project_version())
+
+# dist common files from monorepo root
+if not meson.is_subproject()
+  meson.add_dist_script('scripts/dist-common-files.py', meson.project_version())
+endif
 
 pkgconfig = import('pkgconfig')
-plugins_install_dir = join_paths(libdir, 'gstreamer-1.0')
+plugins_install_dir = join_paths(get_option('libdir'), 'gstreamer-1.0')
+python_plugin_install_dir = join_paths(plugins_install_dir, 'python')
 plugins_pkgconfig_install_dir = join_paths(plugins_install_dir, 'pkgconfig')
 if get_option('default_library') == 'shared'
   # If we don't build static plugins there is no need to generate pc files
@@ -146,6 +149,7 @@ subdir('gi')
 if not get_option('plugin').disabled()
   if get_option('default_library') != 'static'
     subdir('plugin')
+    subdir('plugins')
   else
     warning('Python plugin not supported with `static` builds yet.')
   endif
@@ -153,3 +157,6 @@ endif
 if not get_option('tests').disabled()
   subdir('testsuite')
 endif
+
+# This makes "import gi" load or overrides, see gi/__init__.py
+meson.add_devenv({'PYTHONPATH': meson.current_source_dir()}, method: 'prepend')

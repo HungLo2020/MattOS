@@ -4,16 +4,20 @@
  */
 
 #include "config.h"
+
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
+#include <locale.h>
 #include <stdio.h>
 
 #include "xkbcommon/xkbcommon-compose.h"
+#include "xkbcommon/xkbcommon-keysyms.h"
 
 #include "test.h"
 #include "src/utf8.h"
 #include "src/keysym.h"
+#include "src/compose/constants.h"
 #include "src/compose/parser.h"
 #include "src/compose/escape.h"
 #include "src/compose/dump.h"
@@ -124,7 +128,7 @@ test_compose_seq_va(struct xkb_compose_table *table, va_list ap)
             xkb_keysym_get_name(expected_keysym, buffer, sizeof(buffer));
             fprintf(stderr, "expected keysym: %s\n", buffer);
             xkb_keysym_get_name(keysym, buffer, sizeof(buffer));
-            fprintf(stderr, "got keysym (%#x): %s\n", keysym, buffer);
+            fprintf(stderr, "got keysym (%#06"PRIx32"): %s\n", keysym, buffer);
             goto fail;
         }
     }
@@ -375,8 +379,8 @@ test_conflicting(struct xkb_context *ctx)
         "<A> <B> <C>  :  \"foo\"  A \n"
         "<A> <B>      :  \"bar\"  B \n",
         XKB_KEY_A,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSING,  "",     XKB_KEY_NoSymbol,
-        XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSING,  "",     XKB_KEY_NoSymbol,
-        XKB_KEY_C,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "foo",  XKB_KEY_A,
+        XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "bar",  XKB_KEY_B,
+        XKB_KEY_C,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_NOTHING,    "",     XKB_KEY_NoSymbol,
         XKB_KEY_NoSymbol));
 
     // old is a prefix of new
@@ -413,12 +417,36 @@ test_conflicting(struct xkb_context *ctx)
         XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "foo",  XKB_KEY_B,
         XKB_KEY_NoSymbol));
 
-    // new same length as old #3
+    // new same length as old #3: overwritable string: do not allocate
     assert(test_compose_seq_buffer(ctx,
         "<A> <B>      :  \"foo\"  A \n"
-        "<A> <B>      :  \"bar\"  A \n",
+        "<A> <B>      :  \"qu\"   A \n",
         XKB_KEY_A,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSING,  "",     XKB_KEY_NoSymbol,
-        XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "bar",  XKB_KEY_A,
+        XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "qu",   XKB_KEY_A,
+        XKB_KEY_NoSymbol));
+
+    // new same length as old #4: no-overwritable string: allocate
+    assert(test_compose_seq_buffer(ctx,
+        "<A> <B>      :  \"foo\"  A \n"
+        "<A> <B>      :  \"quux\" A \n",
+        XKB_KEY_A,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSING,  "",     XKB_KEY_NoSymbol,
+        XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "quux", XKB_KEY_A,
+        XKB_KEY_NoSymbol));
+
+    // new same length as old #5: ensure string is reset
+    assert(test_compose_seq_buffer(ctx,
+        "<A> <B>      :  \"foo\"  A \n"
+        "<A> <B>      :           B \n",
+        XKB_KEY_A,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSING,  "",     XKB_KEY_NoSymbol,
+        XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "B",    XKB_KEY_B,
+        XKB_KEY_NoSymbol));
+
+    // new same length as old #6: ensure keysym is reset
+    assert(test_compose_seq_buffer(ctx,
+        "<A> <B>      :  \"foo\"  A \n"
+        "<A> <B>      :  \"bar\"    \n",
+        XKB_KEY_A,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSING,  "",     XKB_KEY_NoSymbol,
+        XKB_KEY_B,              XKB_COMPOSE_FEED_ACCEPTED,  XKB_COMPOSE_COMPOSED,   "bar",  XKB_KEY_NoSymbol,
         XKB_KEY_NoSymbol));
 }
 
@@ -550,6 +578,24 @@ test_from_locale(struct xkb_context *ctx)
                                               XKB_COMPOSE_COMPILE_NO_FLAGS);
     assert(table);
     xkb_compose_table_unref(table);
+
+#ifdef HAVE_NEWLOCALE
+    /* Test custom locale. Require installing it system-wide */
+    /* NOTE: Keep the locale name in sync with the localedef call in our CI */
+    static const char * const custom_locale = "xx_YY.UTF-8";
+    locale_t loc = newlocale(LC_ALL, custom_locale, (locale_t) 0);
+    table = xkb_compose_table_new_from_locale(ctx, custom_locale,
+                                              XKB_COMPOSE_COMPILE_NO_FLAGS);
+    if (loc == (locale_t) 0) {
+        /* Locale is not installed: no fallback */
+        assert(!table);
+    } else {
+        /* Locale is installed */
+        freelocale(loc);
+        assert(table);
+        xkb_compose_table_unref(table);
+    }
+#endif
 
     /* Bogus - not found. */
     table = xkb_compose_table_new_from_locale(ctx, "blabla",
@@ -683,7 +729,7 @@ test_eq_entry_va(struct xkb_compose_table_entry *entry, xkb_keysym_t keysym_ref,
     const xkb_keysym_t *sequence = xkb_compose_table_entry_sequence(entry, &nsyms);
 
     xkb_keysym_t keysym;
-    for (unsigned k = 0; ; k++) {
+    for (unsigned int k = 0; ; k++) {
         keysym = va_arg(ap, xkb_keysym_t);
         if (keysym == XKB_KEY_NoSymbol) {
             return (k == nsyms - 1);

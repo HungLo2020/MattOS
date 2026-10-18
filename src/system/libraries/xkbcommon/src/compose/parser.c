@@ -15,9 +15,13 @@
 #include "config.h"
 
 #include <errno.h>
+#include <string.h>
 
+#include "xkbcommon/xkbcommon-keysyms.h"
+#include "darray.h"
 #include "messages-codes.h"
 #include "utils.h"
+#include "constants.h"
 #include "table.h"
 #include "scanner-utils.h"
 #include "paths.h"
@@ -259,7 +263,7 @@ lex_include_string(struct scanner *s, struct xkb_compose_table *table,
             else if (scanner_chr(s, 'L')) {
                 char *path = get_locale_compose_file_path(table->ctx, table->locale);
                 if (!path) {
-                    scanner_err(s, XKB_LOG_MESSAGE_NO_ID,
+                    scanner_err(s, XKB_ERROR_INVALID_COMPOSE_LOCALE,
                                 "failed to expand %%L to the locale Compose file");
                     return TOK_ERROR;
                 }
@@ -304,7 +308,7 @@ lex_include_string(struct scanner *s, struct xkb_compose_table *table,
 }
 
 struct production {
-    xkb_keysym_t lhs[MAX_LHS_LEN];
+    xkb_keysym_t lhs[COMPOSE_MAX_LHS_LEN];
     unsigned int len;
     xkb_keysym_t keysym;
     char string[XKB_COMPOSE_MAX_STRING_SIZE];
@@ -321,13 +325,14 @@ static void
 add_production(struct xkb_compose_table *table, struct scanner *s,
                const struct production *production)
 {
-    unsigned lhs_pos = 0;
+    unsigned int lhs_pos = 0;
     uint32_t curr = darray_size(table->nodes) == 1 ? 0 : 1;
     uint32_t *pptr = NULL;
     struct compose_node *node = NULL;
 
     /* Warn before potentially going over the limit, discard silently after. */
-    if (darray_size(table->nodes) + production->len + MAX_LHS_LEN > MAX_COMPOSE_NODES)
+    if (darray_size(table->nodes) + production->len + COMPOSE_MAX_LHS_LEN >
+        MAX_COMPOSE_NODES)
         scanner_warn(s, XKB_LOG_MESSAGE_NO_ID,
                      "too many sequences for one Compose file; "
                      "will ignore further lines");
@@ -414,18 +419,39 @@ add_production(struct xkb_compose_table *table, struct scanner *s,
             } else if (node->internal.eqkid != 0) {
                 scanner_warn(s, XKB_LOG_MESSAGE_NO_ID,
                              "this compose sequence is a prefix of another; "
-                             "skipping line");
-                return;
+                             "overriding");
+                node->internal.eqkid = 0;
             }
-            node->is_leaf = true;
+
+            /* NOTE: If there was a previous entry, its string may *not* be
+             * reused in the UTF8 table and the corresponding memory is then
+             * wasted! */
             if (production->has_string) {
-                node->leaf.utf8 = darray_size(table->utf8);
-                darray_append_items(table->utf8, production->string,
-                                    (unsigned)strlen(production->string) + 1);
+                const size_t len = strlen(production->string);
+                if (node->is_leaf && node->leaf.utf8 &&
+                    len <= strlen(&darray_item(table->utf8, node->leaf.utf8))) {
+                    /* There is a previous entry with an overwritable string */
+                    memcpy(&darray_item(table->utf8, node->leaf.utf8),
+                           production->string, len + 1);
+                } else {
+                    /* Cannot reuse string: allocate new one */
+                    node->leaf.utf8 = darray_size(table->utf8);
+                    darray_append_items(table->utf8, production->string,
+                                        (darray_size_t)strlen(production->string) + 1);
+                }
+            } else {
+                /* Ensure we reset possible previous entry */
+                node->leaf.utf8 = 0;
             }
+
             if (production->has_keysym) {
                 node->leaf.keysym = production->keysym;
+            } else {
+                /* Ensure we reset possible previous entry */
+                node->leaf.keysym = XKB_KEY_NoSymbol;
             }
+
+            node->is_leaf = true;
             return;
         }
     }
@@ -449,7 +475,7 @@ resolve_modifier(const char *name)
         { "Caps", 1 },
     };
 
-    for (unsigned i = 0; i < ARRAY_SIZE(mods); i++)
+    for (unsigned int i = 0; i < ARRAY_SIZE(mods); i++)
         if (streq(name, mods[i].name))
             return mods[i].mod;
 
@@ -476,11 +502,11 @@ parse_string_literal(struct xkb_context *ctx, const char *string)
 
 static bool
 parse(struct xkb_compose_table *table, struct scanner *s,
-      unsigned include_depth);
+      unsigned int include_depth);
 
 static bool
 do_include(struct xkb_compose_table *table, struct scanner *s,
-           const char *path, unsigned include_depth)
+           const char *path, unsigned int include_depth)
 {
     FILE *file;
     bool ok;
@@ -488,10 +514,10 @@ do_include(struct xkb_compose_table *table, struct scanner *s,
     size_t size;
     struct scanner new_s;
 
-    if (include_depth >= MAX_INCLUDE_DEPTH) {
+    if (include_depth >= COMPOSE_MAX_INCLUDE_DEPTH) {
         scanner_err(s, XKB_LOG_MESSAGE_NO_ID,
-                    "maximum include depth (%d) exceeded; maybe there is an include loop?",
-                    MAX_INCLUDE_DEPTH);
+                    "maximum include depth (%u) exceeded; maybe there is an include loop?",
+                    COMPOSE_MAX_INCLUDE_DEPTH);
         return false;
     }
 
@@ -526,7 +552,7 @@ err_file:
 
 static bool
 parse(struct xkb_compose_table *table, struct scanner *s,
-      unsigned include_depth)
+      unsigned int include_depth)
 {
     enum rules_token tok;
     union lvalue val;
@@ -626,10 +652,10 @@ lhs_keysym_tok:
         }
         check_deprecated_keysyms(scanner_warn, s, s->ctx,
                                  keysym, val.string.str, val.string.str, "%s", "");
-        if (production.len + 1 > MAX_LHS_LEN) {
+        if (production.len + 1 > COMPOSE_MAX_LHS_LEN) {
             scanner_warn(s, XKB_ERROR_INVALID_COMPOSE_SYNTAX,
-                         "too many keysyms (%d) on left-hand side; skipping line",
-                         MAX_LHS_LEN + 1);
+                         "too many keysyms (%u) on left-hand side; skipping line",
+                         COMPOSE_MAX_LHS_LEN + 1);
             goto skip;
         }
         production.lhs[production.len++] = keysym;
@@ -692,9 +718,9 @@ rhs:
         if (val.string.len > sizeof(production.string)) {
             scanner_warn(s, XKB_LOG_MESSAGE_NO_ID,
                          "right-hand side string is too long: "
-                         "expected max: %d, got: %d; skipping line",
-                         (int)sizeof(production.string) - 1,
-                         (int)val.string.len - 1);
+                         "expected max: %zu, got: %zu; skipping line",
+                         sizeof(production.string) - 1,
+                         val.string.len - 1);
             goto skip;
         }
         memcpy(production.string, val.string.str, val.string.len);

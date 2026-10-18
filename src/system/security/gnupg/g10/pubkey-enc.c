@@ -38,8 +38,9 @@
 #include "../common/compliance.h"
 
 
-static gpg_error_t get_it (ctrl_t ctrl, struct pubkey_enc_list *k,
-                           DEK *dek, PKT_public_key *sk, u32 *keyid);
+static gpg_error_t get_it (ctrl_t ctrl, struct seskey_enc_list *k,
+                           DEK *dek, PKT_public_key *sk, u32 *keyid,
+                           int seipdv2_cipher_algo);
 
 
 /* Check that the given algo is mentioned in one of the valid user-ids. */
@@ -47,21 +48,31 @@ static int
 is_algo_in_prefs (kbnode_t keyblock, preftype_t type, int algo)
 {
   kbnode_t k;
+  prefitem_t *prefs;
 
   for (k = keyblock; k; k = k->next)
     {
       if (k->pkt->pkttype == PKT_USER_ID)
         {
           PKT_user_id *uid = k->pkt->pkt.user_id;
-          prefitem_t *prefs = uid->prefs;
 
-          if (uid->created && prefs && !uid->flags.revoked && !uid->flags.expired)
+          prefs = uid->prefs;
+          if (uid->created && prefs
+              && !uid->flags.revoked && !uid->flags.expired)
             {
               for (; prefs->type; prefs++)
                 if (prefs->type == type && prefs->value == algo)
                   return 1;
             }
         }
+    }
+  /* In rfc-9980 mode also check direct key signature prefs.  */
+  if (RFC9980 && (k = keyblock) && k->pkt->pkttype == PKT_PUBLIC_KEY
+      && (prefs = k->pkt->pkt.public_key->dks_prefs))
+    {
+      for (; prefs->type; prefs++)
+        if (prefs->type == type && prefs->value == algo)
+          return 1;
     }
   return 0;
 }
@@ -70,16 +81,19 @@ is_algo_in_prefs (kbnode_t keyblock, preftype_t type, int algo)
 /*
  * Get the session key from a pubkey enc packet and return it in DEK,
  * which should have been allocated in secure memory by the caller.
+ * SEIPDV2_CIPHER_ALGO may be passed from the encrypted packet in case
+ * of a SEIPDv2 packet.
  */
 gpg_error_t
-get_session_key (ctrl_t ctrl, struct pubkey_enc_list *list, DEK *dek)
+get_session_key (ctrl_t ctrl, struct seskey_enc_list *list, DEK *dek,
+                 int seipdv2_cipher_algo)
 {
   PKT_public_key *sk = NULL;
   gpg_error_t err;
   void *enum_context = NULL;
   u32 keyid[2];
   int search_for_secret_keys = 1;
-  struct pubkey_enc_list *k;
+  struct seskey_enc_list *k;
 
   if (DBG_CLOCK)
     log_clock ("get_session_key enter");
@@ -115,22 +129,27 @@ get_session_key (ctrl_t ctrl, struct pubkey_enc_list *list, DEK *dek)
        */
       for (k = list; k; k = k->next)
         {
-          if (!(k->pubkey_algo == PUBKEY_ALGO_ELGAMAL_E
-                || k->pubkey_algo == PUBKEY_ALGO_ECDH
-                || k->pubkey_algo == PUBKEY_ALGO_RSA
-                || k->pubkey_algo == PUBKEY_ALGO_RSA_E
-                || k->pubkey_algo == PUBKEY_ALGO_ELGAMAL))
+          if (k->u_sym)
+            continue;
+          if (!(k->u.pub.pubkey_algo == PUBKEY_ALGO_ELGAMAL_E
+                || k->u.pub.pubkey_algo == PUBKEY_ALGO_ECDH
+                || k->u.pub.pubkey_algo == PUBKEY_ALGO_KYBER
+                || k->u.pub.pubkey_algo == PUBKEY_ALGO_RSA
+                || k->u.pub.pubkey_algo == PUBKEY_ALGO_RSA_E
+                || k->u.pub.pubkey_algo == PUBKEY_ALGO_ELGAMAL
+                || k->u.pub.pubkey_algo == PUBKEY_ALGO_X25519
+                || IS_PUBKEY_ALGO_MLK (k->u.pub.pubkey_algo)))
             continue;
 
-          if (openpgp_pk_test_algo2 (k->pubkey_algo, PUBKEY_USAGE_ENC))
+          if (openpgp_pk_test_algo2 (k->u.pub.pubkey_algo, PUBKEY_USAGE_ENC))
             continue;
 
-          if (sk->pubkey_algo != k->pubkey_algo)
+          if (sk->pubkey_algo != k->u.pub.pubkey_algo)
             continue;
 
           keyid_from_pk (sk, keyid);
 
-          if (!k->keyid[0] && !k->keyid[1])
+          if (!k->u.pub.keyid[0] && !k->u.pub.keyid[1])
             {
               if (opt.skip_hidden_recipients)
                 continue;
@@ -140,7 +159,8 @@ get_session_key (ctrl_t ctrl, struct pubkey_enc_list *list, DEK *dek)
                           keystr (keyid));
             }
           else if (opt.try_all_secrets
-                   || (k->keyid[0] == keyid[0] && k->keyid[1] == keyid[1]))
+                   || (k->u.pub.keyid[0] == keyid[0]
+                       && k->u.pub.keyid[1] == keyid[1]))
             {
               if (!opt.quiet && !(sk->pubkey_usage & PUBKEY_USAGE_XENC_MASK))
                 log_info (_("used key is not marked for encryption use.\n"));
@@ -148,11 +168,11 @@ get_session_key (ctrl_t ctrl, struct pubkey_enc_list *list, DEK *dek)
           else
             continue;
 
-          err = get_it (ctrl, k, dek, sk, keyid);
+          err = get_it (ctrl, k, dek, sk, keyid, seipdv2_cipher_algo);
           k->result = err;
           if (!err)
             {
-              if (!opt.quiet && !k->keyid[0] && !k->keyid[1])
+              if (!opt.quiet && !k->u.pub.keyid[0] && !k->u.pub.keyid[1])
                 {
                   log_info (_("okay, we are the anonymous recipient.\n"));
                   if (!(sk->pubkey_usage & PUBKEY_USAGE_XENC_MASK))
@@ -187,64 +207,168 @@ get_session_key (ctrl_t ctrl, struct pubkey_enc_list *list, DEK *dek)
 }
 
 
+/* Build an SEXP to gpg-agent, for PKDECRYPT command.  */
 static gpg_error_t
-get_it (ctrl_t ctrl,
-        struct pubkey_enc_list *enc, DEK *dek, PKT_public_key *sk, u32 *keyid)
+ecdh_sexp_build (gcry_sexp_t *r_s_data, struct seskey_enc_list *enc,
+                 PKT_public_key *sk)
+{
+  gpg_error_t err;
+  const unsigned char *kdf_params_spec;
+  byte fp[MAX_FINGERPRINT_LEN];
+  int keywrap_cipher_algo;
+  int kdf_hash_algo;
+  unsigned char *kdf_params = NULL;
+  size_t kdf_params_len = 0;
+
+  fingerprint_from_pk (sk, fp, NULL);
+
+  err = ecc_build_kdf_params (&kdf_params, &kdf_params_len,
+                              &kdf_params_spec, sk->pkey, fp);
+  if (err)
+    return err;
+
+  keywrap_cipher_algo = kdf_params_spec[3];
+  kdf_hash_algo = kdf_params_spec[2];
+
+  if (!enc->u.pub.data[0] || !enc->u.pub.data[1])
+    {
+      xfree (kdf_params);
+      return gpg_error (GPG_ERR_BAD_MPI);
+    }
+
+  err = gcry_sexp_build (r_s_data, NULL,
+                         "(enc-val(ecc(c%d)(h%d)(e%m)(s%m)(kdf-params%b)))",
+                         keywrap_cipher_algo, kdf_hash_algo,
+                         enc->u.pub.data[0], enc->u.pub.data[1],
+                         (int)kdf_params_len, kdf_params);
+  xfree (kdf_params);
+  return err;
+}
+
+
+static gpg_error_t
+get_it (ctrl_t ctrl, struct seskey_enc_list *enc, DEK *dek,
+        PKT_public_key *sk, u32 *keyid, int seipdv2_cipher_algo)
 {
   gpg_error_t err;
   byte *frame = NULL;
-  unsigned int n;
+  unsigned int frameidx;
   size_t nframe;
   u16 csum, csum2;
   int padding;
   gcry_sexp_t s_data;
   char *desc;
   char *keygrip;
-  byte fp[MAX_FINGERPRINT_LEN];
 
   if (DBG_CLOCK)
     log_clock ("decryption start");
+
+  log_assert (!enc->u_sym);
 
   /* Get the keygrip.  */
   err = hexkeygrip_from_pk (sk, &keygrip);
   if (err)
     goto leave;
 
+  if (enc->u.pub.version == 6 && !enc->u.pub.seskey_algo && RFC9980
+      && (sk->pubkey_algo == PUBKEY_ALGO_X25519
+          || IS_PUBKEY_ALGO_MLK (sk->pubkey_algo)))
+    {
+      if (seipdv2_cipher_algo)
+        dek->algo = seipdv2_cipher_algo;
+      else
+        {
+          log_info ("Warning: No symmetric algo yet known - assuming AES256\n");
+          dek->algo = CIPHER_ALGO_AES256;
+        }
+    }
+
   /* Convert the data to an S-expression.  */
   if (sk->pubkey_algo == PUBKEY_ALGO_ELGAMAL
       || sk->pubkey_algo == PUBKEY_ALGO_ELGAMAL_E)
     {
-      if (!enc->data[0] || !enc->data[1])
+      if (!enc->u.pub.data[0] || !enc->u.pub.data[1])
         err = gpg_error (GPG_ERR_BAD_MPI);
       else
         err = gcry_sexp_build (&s_data, NULL, "(enc-val(elg(a%m)(b%m)))",
-                               enc->data[0], enc->data[1]);
+                               enc->u.pub.data[0], enc->u.pub.data[1]);
     }
   else if (sk->pubkey_algo == PUBKEY_ALGO_RSA
            || sk->pubkey_algo == PUBKEY_ALGO_RSA_E)
     {
-      if (!enc->data[0])
+      if (!enc->u.pub.data[0])
         err = gpg_error (GPG_ERR_BAD_MPI);
       else
         err = gcry_sexp_build (&s_data, NULL, "(enc-val(rsa(a%m)))",
-                               enc->data[0]);
+                               enc->u.pub.data[0]);
     }
-  else if (sk->pubkey_algo == PUBKEY_ALGO_ECDH)
-    {
-      if (!enc->data[0] || !enc->data[1])
+   else if (sk->pubkey_algo == PUBKEY_ALGO_ECDH)
+    err = ecdh_sexp_build (&s_data, enc, sk);
+   else if (sk->pubkey_algo == PUBKEY_ALGO_X25519)
+     {
+      if (!enc->u.pub.data[0] || !enc->u.pub.data[1])
         err = gpg_error (GPG_ERR_BAD_MPI);
       else
-        err = gcry_sexp_build (&s_data, NULL, "(enc-val(ecdh(s%m)(e%m)))",
-                               enc->data[1], enc->data[0]);
+        err = gcry_sexp_build (&s_data, NULL,
+                               "(enc-val(ecc(t%d)(c%d)(h%d)(e%m)(s%m)"
+                               "(kdf-params%s)))",
+                               9580, dek->algo,
+                               GCRY_MAC_HMAC_SHA256,
+                               enc->u.pub.data[0], enc->u.pub.data[1],
+                               "OpenPGP X25519");
+     }
+  else if (sk->pubkey_algo == PUBKEY_ALGO_KYBER)
+    {
+      char fixedinfo[1+MAX_FINGERPRINT_LEN];
+      int fixedlen;
+
+      if ((opt.compat_flags & COMPAT_T7014_OLD))
+        {
+          /* Temporary use for tests with original test vectors.  */
+          fixedinfo[0] = 0x69;
+          fixedlen = 1;
+        }
+      else
+        {
+          fixedinfo[0] = enc->u.pub.seskey_algo;
+          v5_fingerprint_from_pk (sk, fixedinfo+1, NULL);
+          fixedlen = 33;
+        }
+
+      if (!enc->u.pub.data[0] || !enc->u.pub.data[1] || !enc->u.pub.data[2])
+        err = gpg_error (GPG_ERR_BAD_MPI);
+      else
+        err = gcry_sexp_build (&s_data, NULL,
+                           "(enc-val(pqc(e%m)(k%m)(s%m)(c%d)(fixed-info%b)))",
+                               enc->u.pub.data[0],
+                               enc->u.pub.data[1],
+                               enc->u.pub.data[2],
+                               enc->u.pub.seskey_algo, fixedlen, fixedinfo);
+    }
+  else if (IS_PUBKEY_ALGO_MLK (sk->pubkey_algo))
+    {
+      char fixedinfo[1+22]; /* algid || domSep || len(domSep) */
+
+      fixedinfo[0] = sk->pubkey_algo;
+      memcpy (fixedinfo+1, "OpenPGPCompositeKDFv1\x15", 22);
+
+      if (!enc->u.pub.data[0] || !enc->u.pub.data[1] || !enc->u.pub.data[2])
+        err = gpg_error (GPG_ERR_BAD_MPI);
+      else
+        err = gcry_sexp_build (&s_data, NULL,
+                      "(enc-val(pqc(t%d)(e%m)(k%m)(s%m)(c%d)(fixed-info%b)))",
+                               2,  /* Use key combiner sha3-256 */
+                               enc->u.pub.data[0],
+                               enc->u.pub.data[1],
+                               enc->u.pub.data[2],
+                               enc->u.pub.seskey_algo,
+                               (int)sizeof fixedinfo, fixedinfo);
     }
   else
     err = gpg_error (GPG_ERR_BUG);
 
   if (err)
     goto leave;
-
-  if (sk->pubkey_algo == PUBKEY_ALGO_ECDH)
-    fingerprint_from_pk (sk, fp, NULL);
 
   /* Decrypt. */
   desc = gpg_format_keydesc (ctrl, sk, FORMAT_KEYDESC_NORMAL, 1);
@@ -275,24 +399,25 @@ get_it (ctrl_t ctrl,
    */
   if (DBG_CRYPTO)
     log_printhex (frame, nframe, "DEK frame:");
-  n = 0;
+  frameidx = 0;
 
-  if (sk->pubkey_algo == PUBKEY_ALGO_ECDH)
+  if (sk->pubkey_algo == PUBKEY_ALGO_KYBER
+      || IS_PUBKEY_ALGO_MLK (sk->pubkey_algo))
     {
-      gcry_mpi_t decoded;
-
-      /* At the beginning the frame are the bytes of shared point MPI.  */
-      err = pk_ecdh_decrypt (&decoded, fp, enc->data[1]/*encr data as an MPI*/,
-                             frame, nframe, sk->pkey);
-      if(err)
-        goto leave;
-
-      xfree (frame);
-      err = gcry_mpi_aprint (GCRYMPI_FMT_USG, &frame, &nframe, decoded);
-      mpi_release (decoded);
-      if (err)
-        goto leave;
-
+      if (nframe != 32 && opt.flags.require_pqc_encryption)
+        {
+          log_info (_("WARNING: session key is not quantum-resistant\n"));
+        }
+      dek->keylen = nframe;
+      if (!dek->algo)
+        dek->algo = enc->u.pub.seskey_algo;
+    }
+  else if (sk->pubkey_algo == PUBKEY_ALGO_X25519)
+    {
+      dek->keylen = nframe;
+    }
+  else if (sk->pubkey_algo == PUBKEY_ALGO_ECDH)
+    {
       /* Now the frame are the bytes decrypted but padded session key.  */
       if (!nframe || nframe <= 8
           || frame[nframe-1] > nframe)
@@ -301,13 +426,21 @@ get_it (ctrl_t ctrl,
           goto leave;
         }
       nframe -= frame[nframe-1]; /* Remove padding.  */
-      log_assert (!n); /* (used just below) */
+      if (4 > nframe)
+        {
+          err = gpg_error (GPG_ERR_WRONG_SECKEY);
+          goto leave;
+        }
+
+      dek->keylen = nframe - 3;
+      dek->algo = frame[0];
+      frameidx = 1;
     }
   else
     {
       if (padding)
         {
-          if (n + 7 > nframe)
+          if (7 > nframe)
             {
               err = gpg_error (GPG_ERR_WRONG_SECKEY);
               goto leave;
@@ -319,34 +452,38 @@ get_it (ctrl_t ctrl,
            * using a Smartcard we are doing it the right way and
            * therefore we have to skip the zero.  This should be fixed
            * in gpg-agent of course. */
-          if (!frame[n])
-            n++;
+          frameidx = 0;
+          if (!frame[frameidx])
+            frameidx++;
 
-          if (frame[n] == 1 && frame[nframe - 1] == 2)
+          if (frame[frameidx] == 1 && frame[nframe - 1] == 2)
             {
               log_info (_("old encoding of the DEK is not supported\n"));
               err = gpg_error (GPG_ERR_CIPHER_ALGO);
               goto leave;
             }
-          if (frame[n] != 2) /* Something went wrong.  */
+          if (frame[frameidx] != 2) /* Something went wrong.  */
             {
               err = gpg_error (GPG_ERR_WRONG_SECKEY);
               goto leave;
             }
-          for (n++; n < nframe && frame[n]; n++) /* Skip the random bytes.  */
+          /* Skip the random bytes.  */
+          for (frameidx++; frameidx < nframe && frame[frameidx]; frameidx++)
             ;
-          n++; /* Skip the zero byte.  */
+          frameidx++; /* Skip the zero byte.  */
         }
+
+      if (frameidx + 4 > nframe)
+        {
+          err = gpg_error (GPG_ERR_WRONG_SECKEY);
+          goto leave;
+        }
+
+      dek->keylen = nframe - (frameidx + 1) - 2;
+      dek->algo = frame[frameidx++];
     }
 
-  if (n + 4 > nframe)
-    {
-      err = gpg_error (GPG_ERR_WRONG_SECKEY);
-      goto leave;
-    }
-
-  dek->keylen = nframe - (n + 1) - 2;
-  dek->algo = frame[n++];
+  /* Check whether we support the ago.  */
   err = openpgp_cipher_test_algo (dek->algo);
   if (err)
     {
@@ -365,16 +502,21 @@ get_it (ctrl_t ctrl,
       goto leave;
     }
 
-  /* Copy the key to DEK and compare the checksum.  */
-  csum = buf16_to_u16 (frame+nframe-2);
-  memcpy (dek->key, frame + n, dek->keylen);
-  for (csum2 = 0, n = 0; n < dek->keylen; n++)
-    csum2 += dek->key[n];
-  if (csum != csum2)
+  /* Copy the key to DEK and compare the checksum if needed.  */
+  /* We use the frameidx as flag for the need of a checksum.  */
+  memcpy (dek->key, frame + frameidx, dek->keylen);
+  if (frameidx)
     {
-      err = gpg_error (GPG_ERR_WRONG_SECKEY);
-      goto leave;
+      csum = buf16_to_u16 (frame+nframe-2);
+      for (csum2 = 0, frameidx = 0; frameidx < dek->keylen; frameidx++)
+        csum2 += dek->key[frameidx];
+      if (csum != csum2)
+        {
+          err = gpg_error (GPG_ERR_WRONG_SECKEY);
+          goto leave;
+        }
     }
+
   if (DBG_CLOCK)
     log_clock ("decryption ready");
   if (DBG_CRYPTO)
@@ -385,7 +527,7 @@ get_it (ctrl_t ctrl,
   {
     PKT_public_key *pk = NULL;
     PKT_public_key *mainpk = NULL;
-    KBNODE pkb = get_pubkeyblock_ext (ctrl, keyid, GET_PUBKEYBLOCK_FLAG_ADSK);
+    kbnode_t pkb = get_pubkeyblock_ext (ctrl, keyid, GETKEY_ALLOW_ADSK);
 
     if (!pkb)
       {
@@ -398,6 +540,9 @@ get_it (ctrl_t ctrl,
              && !is_algo_in_prefs (pkb, PREFTYPE_SYM, dek->algo))
       log_info (_("WARNING: cipher algorithm %s not found in recipient"
                   " preferences\n"), openpgp_cipher_algo_name (dek->algo));
+
+    /* if (!err && 25519 && openpgp_oidbuf_is_ed25519 (curve, len)) */
+    /*   log_info ("Note: legacy OID was used for cv25519\n"); */
 
     if (!err)
       {

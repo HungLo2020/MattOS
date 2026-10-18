@@ -1,8 +1,7 @@
 Toolchain/Compiler requirements
 ===
 
-GLib strongly recommends a toolchain that supports C11, and requires a toolchain
-that supports C99.
+GLib requires a toolchain that supports C11.
 
 GLib contains some fall back code that allows supporting toolchains that are not
 fully C11-compatible.
@@ -19,7 +18,7 @@ In general, we are primarily interested in supporting these four compilers:
  * MSVC
  * mingw32-w64
 
-This is in keeping with our goal of primarily targetting GNU/Linux, Windows and
+This is in keeping with our goal of primarily targeting GNU/Linux, Windows and
 Mac OS, along with Free Software POSIX-compliant operating systems.  See
 [Supported platforms](./supported-platforms.md) for a bit more information and
 rationale about that.

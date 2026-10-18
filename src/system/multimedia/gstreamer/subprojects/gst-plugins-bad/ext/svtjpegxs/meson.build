@@ -18,7 +18,10 @@ plugin_sources += {
   'svtjpegxs': pathsep.join(doc_sources)
 }
 
-svtjpegxs_dep = dependency('SvtJpegxs', version: '>= 0.9', required: get_option('svtjpegxs'))
+svtjpegxs_dep = dependency('SvtJpegxs',
+  version: '>= 0.9',
+  required: get_option('svtjpegxs'),
+)
 
 if svtjpegxs_dep.found()
   gstsvtjpegxs = library('gstsvtjpegxs',

@@ -734,7 +734,7 @@ read_all_callback (GObject      *stream,
           return;
         }
 
-      g_assert_cmpint (nread, <=, data->to_read);
+      g_assert ((size_t) nread <= data->to_read);
       data->to_read -= nread;
       data->bytes_read += nread;
       got_eof = (nread == 0);
@@ -1195,9 +1195,15 @@ g_input_stream_close_finish (GInputStream  *stream,
  * g_input_stream_is_closed:
  * @stream: input stream.
  * 
- * Checks if an input stream is closed.
+ * Checks if an input stream has been closed.
  * 
- * Returns: %TRUE if the stream is closed.
+ * This only indicates whether the stream has been closed from this end by
+ * calling [method@Gio.InputStream.close]. If the stream is a pipe or socket,
+ * for example, and the process on the other end has closed its end, this method
+ * will still return false. Methods which try to read from the input stream will
+ * return any remaining data, end-of-file or an error, however.
+ *
+ * Returns: true if the stream has been closed; false otherwise
  **/
 gboolean
 g_input_stream_is_closed (GInputStream *stream)

@@ -560,7 +560,7 @@
 0x00df:
   name: ssharp
   code point: 0x00DF
-  upper: 0x1001e9e # U1E9E
+  upper: 0x1001e9e # SSHARP
 0x00e0:
   name: agrave
   code point: 0x00E0
@@ -3526,6 +3526,8 @@
   name: dead_greek
 0xfe8d:
   name: dead_hamza
+0xfe8e:
+  name: dead_apostrophe
 0xfe90:
   name: dead_lowline
 0xfe91:
@@ -3745,7 +3747,7 @@
 0xff6b:
   name: Break
 0xff7e:
-  name: Mode_switch
+  name: ISO_Group_Shift
 0xff7f:
   name: Num_Lock
 0xff80:
@@ -5124,6 +5126,10 @@
   name: xabovedot
   code point: 0x1E8B
   upper: 0x1001e8a # Xabovedot
+0x1001e9e:
+  name: SSHARP
+  code point: 0x1E9E
+  lower: 0x00df # ssharp
 0x1001ea0:
   name: Abelowdot
   code point: 0x1EA0
@@ -5484,6 +5490,12 @@
   name: ytilde
   code point: 0x1EF9
   upper: 0x1001ef8 # Ytilde
+0x1002039:
+  name: leftsingleanglequotemark
+  code point: 0x2039
+0x100203a:
+  name: rightsingleanglequotemark
+  code point: 0x203A
 0x1002070:
   name: zerosuperior
   code point: 0x2070
@@ -6574,24 +6586,76 @@
   name: SunVideoRaiseBrightness
 0x1005ff7d:
   name: SunPowerSwitchShift
+0x100810a4:
+  name: XF86MediaPlayPause
+0x100810ae:
+  name: XF86Exit
+0x100810d1:
+  name: XF86AudioBassBoost
+0x100810dc:
+  name: XF86Sport
 0x100810f4:
   name: XF86BrightnessAuto
 0x100810f5:
   name: XF86DisplayOff
+0x10081160:
+  name: XF86OK
+0x10081162:
+  name: XF86GoTo
 0x10081166:
   name: XF86Info
+0x10081168:
+  name: XF86VendorLogo
+0x1008116a:
+  name: XF86MediaSelectProgramGuide
+0x1008116e:
+  name: XF86MediaSelectHome
+0x10081170:
+  name: XF86MediaLanguageMenu
+0x10081171:
+  name: XF86MediaTitleMenu
+0x10081175:
+  name: XF86AudioChannelMode
 0x10081177:
   name: XF86AspectRatio
+0x10081178:
+  name: XF86MediaSelectPC
+0x10081179:
+  name: XF86MediaSelectTV
+0x1008117a:
+  name: XF86MediaSelectCable
+0x1008117b:
+  name: XF86MediaSelectVCR
+0x1008117c:
+  name: XF86MediaSelectVCRPlus
+0x1008117d:
+  name: XF86MediaSelectSatellite
+0x10081180:
+  name: XF86MediaSelectTape
+0x10081181:
+  name: XF86MediaSelectRadio
+0x10081182:
+  name: XF86MediaSelectTuner
+0x10081183:
+  name: XF86MediaPlayer
+0x10081184:
+  name: XF86MediaSelectTeletext
 0x10081185:
   name: XF86DVD
+0x10081186:
+  name: XF86MediaSelectAuxiliary
 0x10081188:
   name: XF86Audio
 0x10081192:
   name: XF86ChannelUp
 0x10081193:
   name: XF86ChannelDown
+0x10081199:
+  name: XF86MediaPlaySlow
 0x1008119b:
   name: XF86Break
+0x1008119d:
+  name: XF86NumberEntryMode
 0x100811a0:
   name: XF86VideoPhone
 0x100811a4:
@@ -6628,36 +6692,88 @@
   name: XF86PickupPhone
 0x100811be:
   name: XF86HangupPhone
+0x100811bf:
+  name: XF86LinkPhone
 0x100811d0:
   name: XF86Fn
 0x100811d1:
   name: XF86Fn_Esc
+0x100811d2:
+  name: XF86Fn_F1
+0x100811d3:
+  name: XF86Fn_F2
+0x100811d4:
+  name: XF86Fn_F3
+0x100811d5:
+  name: XF86Fn_F4
+0x100811d6:
+  name: XF86Fn_F5
+0x100811d7:
+  name: XF86Fn_F6
+0x100811d8:
+  name: XF86Fn_F7
+0x100811d9:
+  name: XF86Fn_F8
+0x100811da:
+  name: XF86Fn_F9
+0x100811db:
+  name: XF86Fn_F10
+0x100811dc:
+  name: XF86Fn_F11
+0x100811dd:
+  name: XF86Fn_F12
+0x100811de:
+  name: XF86Fn_1
+0x100811df:
+  name: XF86Fn_2
+0x100811e0:
+  name: XF86Fn_D
+0x100811e1:
+  name: XF86Fn_E
+0x100811e2:
+  name: XF86Fn_F
+0x100811e3:
+  name: XF86Fn_S
+0x100811e4:
+  name: XF86Fn_B
 0x100811e5:
   name: XF86FnRightShift
 0x10081200:
   name: XF86Numeric0
+  code point: 0x0030
 0x10081201:
   name: XF86Numeric1
+  code point: 0x0031
 0x10081202:
   name: XF86Numeric2
+  code point: 0x0032
 0x10081203:
   name: XF86Numeric3
+  code point: 0x0033
 0x10081204:
   name: XF86Numeric4
+  code point: 0x0034
 0x10081205:
   name: XF86Numeric5
+  code point: 0x0035
 0x10081206:
   name: XF86Numeric6
+  code point: 0x0036
 0x10081207:
   name: XF86Numeric7
+  code point: 0x0037
 0x10081208:
   name: XF86Numeric8
+  code point: 0x0038
 0x10081209:
   name: XF86Numeric9
+  code point: 0x0039
 0x1008120a:
   name: XF86NumericStar
+  code point: 0x002A
 0x1008120b:
   name: XF86NumericPound
+  code point: 0x0023
 0x1008120c:
   name: XF86NumericA
 0x1008120d:
@@ -6728,6 +6844,16 @@
   name: XF86BrightnessMin
 0x10081251:
   name: XF86BrightnessMax
+0x10081252:
+  name: XF86ElectronicPrivacyScreenOn
+0x10081253:
+  name: XF86ElectronicPrivacyScreenOff
+0x10081254:
+  name: XF86ActionOnSelection
+0x10081255:
+  name: XF86ContextualInsert
+0x10081256:
+  name: XF86ContextualQuery
 0x10081260:
   name: XF86KbdInputAssistPrev
 0x10081261:
@@ -6892,6 +7018,8 @@
   name: XF86KbdLcdMenu4
 0x100812bc:
   name: XF86KbdLcdMenu5
+0x100812bd:
+  name: XF86PerformanceMode
 0x1008fe01:
   name: XF86Switch_VT_1
 0x1008fe02:

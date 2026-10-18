@@ -51,6 +51,18 @@ GstStaticPadTemplate srctemplate = GST_STATIC_PAD_TEMPLATE ("src",
  *
  */
 
+static const guint8 h265_hvcc_codec_data[] = {
+  0x01, 0x04, 0x08, 0x00, 0x00, 0x00, 0x98, 0x08, 0x00, 0x00, 0x00, 0x00, 0x3f,
+  0xf0, 0x00, 0xfc, 0xff, 0xfc, 0xfc, 0x00, 0x00, 0x0f, 0x03, 0x20, 0x00, 0x01,
+  0x00, 0x17, 0x40, 0x01, 0x0c, 0x01, 0xff, 0xff, 0x04, 0x08, 0x00, 0x00, 0x03,
+  0x00, 0x98, 0x08, 0x00, 0x00, 0x03, 0x00, 0x00, 0x3f, 0x95, 0x98, 0x09, 0x21,
+  0x00, 0x01, 0x00, 0x2f, 0x42, 0x01, 0x01, 0x04, 0x08, 0x00, 0x00, 0x03, 0x00,
+  0x98, 0x08, 0x00, 0x00, 0x03, 0x00, 0x00, 0x3f, 0x90, 0x11, 0x08, 0x8a, 0x52,
+  0xca, 0xcd, 0x57, 0x95, 0xff, 0xe0, 0x00, 0x20, 0x00, 0x2d, 0x41, 0x81, 0x81,
+  0x81, 0x00, 0x00, 0x03, 0x00, 0x01, 0x00, 0x00, 0x03, 0x00, 0x1e, 0x08, 0x22,
+  0x00, 0x01, 0x00, 0x06, 0x44, 0x01, 0xc1, 0x73, 0xd0, 0x89
+};
+
 static const guint8 h265_vps[] = {
   0x00, 0x00, 0x00, 0x01, 0x40, 0x01, 0x0c, 0x01, 0xff, 0xff, 0x01, 0x60, 0x00,
   0x00, 0x03, 0x00, 0x90, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x3f, 0x95,
@@ -137,7 +149,20 @@ static const guint8 h265_128x128_pps[] = {
   0xb4, 0x22, 0x40
 };
 
+static const guint8 h265_aud[] = {
+  0x00, 0x00, 0x00, 0x01, 0x46, 0x01, 0x50
+};
+
 static const guint8 h265_128x128_slice_idr_n_lp[] = {
+  0x00, 0x00, 0x00, 0x01, 0x28, 0x01, 0xaf, 0x0e,
+  0xe0, 0x34, 0x82, 0x15, 0x84, 0xf4, 0x70, 0x4f,
+  0xff, 0xed, 0x41, 0x3f, 0xff, 0xe4, 0xcd, 0xc4,
+  0x7c, 0x03, 0x0c, 0xc2, 0xbb, 0xb0, 0x74, 0xe5,
+  0xef, 0x4f, 0xe1, 0xa3, 0xd4, 0x00, 0x02, 0xc2
+};
+
+static const guint8 h265_128x128_slice_idr_n_lp_with_aud[] = {
+  0x00, 0x00, 0x00, 0x01, 0x46, 0x01, 0x50,
   0x00, 0x00, 0x00, 0x01, 0x28, 0x01, 0xaf, 0x0e,
   0xe0, 0x34, 0x82, 0x15, 0x84, 0xf4, 0x70, 0x4f,
   0xff, 0xed, 0x41, 0x3f, 0xff, 0xe4, 0xcd, 0xc4,
@@ -207,9 +232,11 @@ verify_buffer_bs_au (buffer_verify_data_s * vdata, GstBuffer * buffer)
     guint8 *data = map.data;
 
     /* VPS, SPS, PPS */
-    fail_unless (map.size == vdata->data_to_verify_size +
+    fail_unless (map.size == vdata->data_to_verify_size + sizeof (h265_aud) +
         ctx_headers[0].size + ctx_headers[1].size + ctx_headers[2].size);
 
+    fail_unless (memcmp (data, h265_aud, sizeof (h265_aud)) == 0);
+    data += sizeof (h265_aud);
     fail_unless (memcmp (data, ctx_headers[0].data, ctx_headers[0].size) == 0);
     data += ctx_headers[0].size;
     fail_unless (memcmp (data, ctx_headers[1].data, ctx_headers[1].size) == 0);
@@ -222,9 +249,11 @@ verify_buffer_bs_au (buffer_verify_data_s * vdata, GstBuffer * buffer)
             vdata->data_to_verify_size) == 0);
   } else {
     /* IDR frame */
-    fail_unless (map.size == vdata->data_to_verify_size);
-
-    fail_unless (memcmp (map.data, vdata->data_to_verify, map.size) == 0);
+    guint aud_size = sizeof (h265_aud);
+    fail_unless (map.size == vdata->data_to_verify_size + aud_size);
+    fail_unless (memcmp (map.data, h265_aud, aud_size) == 0);
+    fail_unless (memcmp (map.data + aud_size, vdata->data_to_verify,
+            map.size - aud_size) == 0);
   }
 
   gst_buffer_unmap (buffer, &map);
@@ -333,70 +362,6 @@ GST_START_TEST (test_parse_detect_stream_with_hdr_sei)
 
 GST_END_TEST;
 
-/* 8bits 4:4:4 encoded stream, and profile-level-tier is not spec compliant.
- * extracted from the file reported at
- * https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1009
- */
-static const guint8 broken_profile_codec_data[] = {
-  0x01, 0x24, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x99, 0xf0, 0x00, 0xfc, 0xff, 0xf8, 0xf8, 0x00, 0x00, 0x0f, 0x03, 0x20,
-  0x00, 0x01, 0x00, 0x18, 0x40, 0x01, 0x0c, 0x01, 0xff, 0xff, 0x24, 0x08,
-  0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
-  0x00, 0x99, 0xac, 0x09, 0x21, 0x00, 0x01, 0x00, 0x2c, 0x42, 0x01, 0x01,
-  0x24, 0x08, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
-  0x00, 0x03, 0x00, 0x99, 0x90, 0x00, 0x3c, 0x04, 0x00, 0x44, 0x0f, 0x84,
-  0x72, 0xd6, 0x94, 0x84, 0xb2, 0x5c, 0x40, 0x20, 0x00, 0x00, 0x03, 0x00,
-  0x20, 0x00, 0x00, 0x07, 0x81, 0x22, 0x00, 0x01, 0x00, 0x08, 0x44, 0x01,
-  0xc0, 0xf7, 0x18, 0x30, 0x0c, 0xc9
-};
-
-GST_START_TEST (test_parse_fallback_profile)
-{
-  GstHarness *h = gst_harness_new ("h265parse");
-  GstCaps *caps;
-  GstBuffer *codec_data;
-  GstEvent *event;
-
-  codec_data = gst_buffer_new_memdup (broken_profile_codec_data,
-      sizeof (broken_profile_codec_data));
-
-  caps = gst_caps_from_string ("video/x-h265, stream-format=(string)hvc1, "
-      "alignment=(string)au");
-  gst_caps_set_simple (caps, "codec_data", GST_TYPE_BUFFER, codec_data, NULL);
-  gst_buffer_unref (codec_data);
-
-  gst_harness_set_src_caps (h, caps);
-  while ((event = gst_harness_pull_event (h)) != NULL) {
-    GstStructure *s;
-    const gchar *profile;
-
-    if (GST_EVENT_TYPE (event) != GST_EVENT_CAPS) {
-      gst_event_unref (event);
-      continue;
-    }
-
-    gst_event_parse_caps (event, &caps);
-    s = gst_caps_get_structure (caps, 0);
-    profile = gst_structure_get_string (s, "profile");
-
-    /* h265parse must provide profile */
-    fail_unless (profile);
-
-    /* must not be main profile at least.
-     * main-444 is expected but we might update the profile parsing
-     * logic later. At least it should not be main profile
-     */
-    fail_if (g_strcmp0 (profile, "main") == 0);
-
-    gst_event_unref (event);
-    break;
-  }
-
-  gst_harness_teardown (h);
-}
-
-GST_END_TEST;
-
 static Suite *
 h265parse_suite (void)
 {
@@ -409,7 +374,6 @@ h265parse_suite (void)
   tcase_add_test (tc_chain, test_parse_split);
   tcase_add_test (tc_chain, test_parse_detect_stream);
   tcase_add_test (tc_chain, test_parse_detect_stream_with_hdr_sei);
-  tcase_add_test (tc_chain, test_parse_fallback_profile);
 
   return s;
 }
@@ -587,13 +551,13 @@ test_flow_outalign_au (GstHarness * h)
       sizeof (h265_128x128_slice_idr_n_lp), 100, 0);
   fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check (h, h265_128x128_slice_idr_n_lp, 100, 0);
+  pull_and_check (h, h265_128x128_slice_idr_n_lp_with_aud, 100, 0);
 
   buf = wrap_buffer (h265_128x128_slice_idr_n_lp,
       sizeof (h265_128x128_slice_idr_n_lp), 200, 0);
   fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check (h, h265_128x128_slice_idr_n_lp, 200, 0);
+  pull_and_check (h, h265_128x128_slice_idr_n_lp_with_aud, 200, 0);
 }
 
 GST_START_TEST (test_flow_nal_nal)
@@ -647,7 +611,9 @@ GST_START_TEST (test_flow_nal_au)
   fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
 
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check (h, h265_128x128_slice_idr_n_lp, 100, 0);
+
+  /* h265parse will insert AUD for byte-stream + AU output */
+  pull_and_check (h, h265_128x128_slice_idr_n_lp_with_aud, 100, 0);
 
   gst_harness_teardown (h);
 }
@@ -691,7 +657,8 @@ static void
 test_headers_outalign_au (GstHarness * h)
 {
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check_composite (h, 10, 0, 4,
+  pull_and_check_composite (h, 10, 0, 5,
+      h265_aud, sizeof (h265_aud),
       h265_128x128_vps, sizeof (h265_128x128_vps),
       h265_128x128_sps, sizeof (h265_128x128_sps),
       h265_128x128_pps, sizeof (h265_128x128_pps),
@@ -836,7 +803,7 @@ test_discont_outalign_au (GstHarness * h)
       sizeof (h265_128x128_slice_idr_n_lp), 1000, GST_BUFFER_FLAG_DISCONT);
   fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check (h, h265_128x128_slice_idr_n_lp, 1000,
+  pull_and_check (h, h265_128x128_slice_idr_n_lp_with_aud, 1000,
       GST_BUFFER_FLAG_DISCONT);
 }
 
@@ -964,7 +931,8 @@ GST_START_TEST (test_sliced_nal_au)
 
   /* now we can see the initial AU on the output */
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check_composite (h, 10, 0, 5,
+  pull_and_check_composite (h, 10, 0, 6,
+      h265_aud, sizeof (h265_aud),
       h265_128x128_sliced_vps, sizeof (h265_128x128_sliced_vps),
       h265_128x128_sliced_sps, sizeof (h265_128x128_sliced_sps),
       h265_128x128_sliced_pps, sizeof (h265_128x128_sliced_pps),
@@ -981,7 +949,8 @@ GST_START_TEST (test_sliced_nal_au)
   fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
 
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check_composite (h, 100, 0, 2,
+  pull_and_check_composite (h, 100, 0, 3,
+      h265_aud, sizeof (h265_aud),
       h265_128x128_slice_1_idr_n_lp, sizeof (h265_128x128_slice_1_idr_n_lp),
       h265_128x128_slice_2_idr_n_lp, sizeof (h265_128x128_slice_2_idr_n_lp));
 
@@ -999,7 +968,8 @@ GST_START_TEST (test_sliced_au_au)
   bytestream_push_first_au_inalign_au (h, TRUE);
 
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check_composite (h, 10, 0, 5,
+  pull_and_check_composite (h, 10, 0, 6,
+      h265_aud, sizeof (h265_aud),
       h265_128x128_sliced_vps, sizeof (h265_128x128_sliced_vps),
       h265_128x128_sliced_sps, sizeof (h265_128x128_sliced_sps),
       h265_128x128_sliced_pps, sizeof (h265_128x128_sliced_pps),
@@ -1012,7 +982,8 @@ GST_START_TEST (test_sliced_au_au)
       h265_128x128_slice_2_idr_n_lp, sizeof (h265_128x128_slice_2_idr_n_lp));
   fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
   fail_unless_equals_int (gst_harness_buffers_in_queue (h), 1);
-  pull_and_check_composite (h, 100, 0, 2,
+  pull_and_check_composite (h, 100, 0, 3,
+      h265_aud, sizeof (h265_aud),
       h265_128x128_slice_1_idr_n_lp, sizeof (h265_128x128_slice_1_idr_n_lp),
       h265_128x128_slice_2_idr_n_lp, sizeof (h265_128x128_slice_2_idr_n_lp));
 
@@ -1175,6 +1146,9 @@ GST_START_TEST (test_invalid_sei_in_hvcc)
   GstHarness *h;
   GstCaps *caps;
   GstBuffer *codec_data;
+  GstBuffer *buf, *bufout;
+  GstMapInfo mapout;
+
   /* Consists of 4 arrays (VPS, SPS, PPS, SEI -> broken) and each array contains
    * single nalu
    * Captured from the log at
@@ -1203,7 +1177,18 @@ GST_START_TEST (test_invalid_sei_in_hvcc)
 
   h = gst_harness_new ("h265parse");
   gst_harness_set_src_caps (h, caps);
-  gst_harness_push_event (h, gst_event_new_eos ());
+
+  /* hvcc idr frame nal */
+  static guint8 *h265_idr_hvcc;
+
+  /* make hvcc frame NAL */
+  h265_idr_hvcc = g_malloc (sizeof (h265_idr));
+  GST_WRITE_UINT32_BE (h265_idr_hvcc, sizeof (h265_idr) - 4);
+  memcpy (h265_idr_hvcc + 4, h265_idr + 4, sizeof (h265_idr) - 4);
+
+  /* Send idr to trigger caps event */
+  buf = composite_buffer (100, 0, 1, h265_idr_hvcc, sizeof (h265_idr));
+  fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
 
   while (TRUE) {
     GstEvent *event = gst_harness_pull_event (h);
@@ -1228,6 +1213,206 @@ GST_START_TEST (test_invalid_sei_in_hvcc)
     gst_event_unref (event);
   }
 
+  /* Verify IDR */
+  bufout = gst_harness_pull (h);
+  fail_unless (bufout != NULL);
+  gst_buffer_map (bufout, &mapout, GST_MAP_READ);
+  fail_unless_equals_int (mapout.size, sizeof (h265_idr));
+  fail_unless (memcmp (mapout.data, h265_idr_hvcc, sizeof (h265_idr)) == 0);
+  gst_buffer_unmap (bufout, &mapout);
+  gst_buffer_unref (bufout);
+
+  gst_harness_teardown (h);
+}
+
+GST_END_TEST;
+
+/* 8bits 4:4:4 encoded stream, and profile-level-tier is not spec compliant.
+ * extracted from the file reported at
+ * https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/1009
+ */
+static const guint8 broken_profile_codec_data[] = {
+  0x01, 0x24, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x99, 0xf0, 0x00, 0xfc, 0xff, 0xf8, 0xf8, 0x00, 0x00, 0x0f, 0x03, 0x20,
+  0x00, 0x01, 0x00, 0x18, 0x40, 0x01, 0x0c, 0x01, 0xff, 0xff, 0x24, 0x08,
+  0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03,
+  0x00, 0x99, 0xac, 0x09, 0x21, 0x00, 0x01, 0x00, 0x2c, 0x42, 0x01, 0x01,
+  0x24, 0x08, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00, 0x00, 0x03, 0x00,
+  0x00, 0x03, 0x00, 0x99, 0x90, 0x00, 0x3c, 0x04, 0x00, 0x44, 0x0f, 0x84,
+  0x72, 0xd6, 0x94, 0x84, 0xb2, 0x5c, 0x40, 0x20, 0x00, 0x00, 0x03, 0x00,
+  0x20, 0x00, 0x00, 0x07, 0x81, 0x22, 0x00, 0x01, 0x00, 0x08, 0x44, 0x01,
+  0xc0, 0xf7, 0x18, 0x30, 0x0c, 0xc9
+};
+
+GST_START_TEST (test_parse_fallback_profile)
+{
+  GstHarness *h = gst_harness_new ("h265parse");
+  GstCaps *caps;
+  GstBuffer *codec_data;
+  GstEvent *event;
+  GstBuffer *buf, *bufout;
+  GstMapInfo mapout;
+
+  codec_data = gst_buffer_new_memdup (broken_profile_codec_data,
+      sizeof (broken_profile_codec_data));
+
+  caps = gst_caps_from_string ("video/x-h265, stream-format=(string)hvc1, "
+      "alignment=(string)au");
+  gst_caps_set_simple (caps, "codec_data", GST_TYPE_BUFFER, codec_data, NULL);
+  gst_buffer_unref (codec_data);
+
+  gst_harness_set_src_caps (h, caps);
+
+  /* hvcc idr frame nal */
+  static guint8 *h265_idr_hvcc;
+
+  /* make hvcc frame NAL */
+  h265_idr_hvcc = g_malloc (sizeof (h265_idr));
+  GST_WRITE_UINT32_BE (h265_idr_hvcc, sizeof (h265_idr) - 4);
+  memcpy (h265_idr_hvcc + 4, h265_idr + 4, sizeof (h265_idr) - 4);
+
+  /* Send idr to trigger caps event */
+  buf = composite_buffer (100, 0, 1, h265_idr_hvcc, sizeof (h265_idr));
+  fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
+
+  while ((event = gst_harness_pull_event (h)) != NULL) {
+    GstStructure *s;
+    const gchar *profile;
+
+    if (GST_EVENT_TYPE (event) != GST_EVENT_CAPS) {
+      gst_event_unref (event);
+      continue;
+    }
+
+    gst_event_parse_caps (event, &caps);
+    s = gst_caps_get_structure (caps, 0);
+    profile = gst_structure_get_string (s, "profile");
+
+    /* h265parse must provide profile */
+    fail_unless (profile);
+
+    /* must not be main profile at least.
+     * main-444 is expected but we might update the profile parsing
+     * logic later. At least it should not be main profile
+     */
+    fail_if (g_strcmp0 (profile, "main") == 0);
+
+    gst_event_unref (event);
+    break;
+  }
+
+  /* Verify IDR */
+  bufout = gst_harness_pull (h);
+  fail_unless (bufout != NULL);
+  gst_buffer_map (bufout, &mapout, GST_MAP_READ);
+  fail_unless_equals_int (mapout.size, sizeof (h265_idr));
+  fail_unless (memcmp (mapout.data, h265_idr_hvcc, sizeof (h265_idr)) == 0);
+  gst_buffer_unmap (bufout, &mapout);
+  gst_buffer_unref (bufout);
+
+  gst_harness_teardown (h);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_packetized_hvcc_drop_corrupt)
+{
+  GstBuffer *cdata;
+  GstCaps *in_caps, *out_caps;
+  GstHarness *h = gst_harness_new ("h265parse");
+  GstBuffer *buf, *bufout;
+  GstMapInfo mapout;
+  const gchar *in_caps_str =
+      "video/x-h265, stream-format=(string)hvc1, alignment=(string)au";
+  const gchar *out_caps_str =
+      "video/x-h265, stream-format=(string)hvc1, alignment=(string)au";
+
+  in_caps = gst_caps_from_string (in_caps_str);
+  cdata = gst_buffer_new_memdup (h265_hvcc_codec_data,
+      sizeof (h265_hvcc_codec_data));
+  gst_caps_set_simple (in_caps, "codec_data", GST_TYPE_BUFFER, cdata, NULL);
+  gst_buffer_unref (cdata);
+  out_caps = gst_caps_from_string (out_caps_str);
+  gst_harness_set_caps (h, in_caps, out_caps);
+
+  /* hvcc idr frame nal */
+  static guint8 *h265_idr_hvcc;
+
+  /* make hvcc frame NAL */
+  h265_idr_hvcc = g_malloc (sizeof (h265_idr));
+  GST_WRITE_UINT32_BE (h265_idr_hvcc, sizeof (h265_idr) - 4);
+  memcpy (h265_idr_hvcc + 4, h265_idr + 4, sizeof (h265_idr) - 4);
+
+  static guint8 h265_garbage_hvcc[] = {
+    0x00, 0x00, 0x00, 0x00, 0x05
+  };
+
+  /* Send all => drop garbage end but keep correct frame. */
+  buf = composite_buffer (100, 0, 2, h265_idr_hvcc, sizeof (h265_idr),
+      h265_garbage_hvcc, sizeof (h265_garbage_hvcc));
+  fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
+
+  /* Send 3 IDR frames => all should be kept. */
+  buf = composite_buffer (200, 0, 3, h265_idr_hvcc, sizeof (h265_idr),
+      h265_idr_hvcc, sizeof (h265_idr), h265_idr_hvcc, sizeof (h265_idr));
+  fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
+
+  /* Send 2 IDR and one garbage => keep the first two and drop garabage. */
+  buf = composite_buffer (300, 0, 3, h265_idr_hvcc, sizeof (h265_idr),
+      h265_idr_hvcc, sizeof (h265_idr), h265_garbage_hvcc,
+      sizeof (h265_garbage_hvcc));
+  fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
+
+  /* Only send part of correct frame => drop everything */
+  buf = wrap_buffer (h265_idr_hvcc, sizeof (h265_idr) - 10, 400, 0);
+  fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
+
+  /* Send garbage frame => drop everything */
+  buf = wrap_buffer (h265_garbage_hvcc, sizeof (h265_garbage_hvcc), 500, 0);
+  fail_unless_equals_int (gst_harness_push (h, buf), GST_FLOW_OK);
+
+  /* EOS for pending buffers to be drained if any */
+  gst_harness_push_event (h, gst_event_new_eos ());
+
+  fail_unless_equals_int (gst_harness_buffers_received (h), 3);
+
+  bufout = gst_harness_pull (h);
+  fail_unless (bufout != NULL);
+
+  /* Verify IDR + garbage. */
+  gst_buffer_map (bufout, &mapout, GST_MAP_READ);
+  fail_unless_equals_int (mapout.size, sizeof (h265_idr));
+  fail_unless (memcmp (mapout.data, h265_idr_hvcc, sizeof (h265_idr)) == 0);
+  gst_buffer_unmap (bufout, &mapout);
+  gst_buffer_unref (bufout);
+
+  /* Verify 3 * IDR.  */
+  bufout = gst_harness_pull (h);
+  fail_unless (bufout != NULL);
+
+  gst_buffer_map (bufout, &mapout, GST_MAP_READ);
+  fail_unless_equals_int (mapout.size, 3 * sizeof (h265_idr));
+  fail_unless (memcmp (mapout.data, h265_idr_hvcc, sizeof (h265_idr)) == 0);
+  fail_unless (memcmp (mapout.data + sizeof (h265_idr), h265_idr_hvcc,
+          sizeof (h265_idr)) == 0);
+  fail_unless (memcmp (mapout.data + 2 * sizeof (h265_idr), h265_idr_hvcc,
+          sizeof (h265_idr)) == 0);
+  gst_buffer_unmap (bufout, &mapout);
+  gst_buffer_unref (bufout);
+
+  /* Verify 2 * IDR + garbage. */
+  bufout = gst_harness_pull (h);
+  fail_unless (bufout != NULL);
+
+  gst_buffer_map (bufout, &mapout, GST_MAP_READ);
+  fail_unless_equals_int (mapout.size, 2 * sizeof (h265_idr));
+  fail_unless (memcmp (mapout.data, h265_idr_hvcc, sizeof (h265_idr)) == 0);
+  fail_unless (memcmp (mapout.data + sizeof (h265_idr), h265_idr_hvcc,
+          sizeof (h265_idr)) == 0);
+  gst_buffer_unmap (bufout, &mapout);
+  gst_buffer_unref (bufout);
+
+  g_free (h265_idr_hvcc);
   gst_harness_teardown (h);
 }
 
@@ -1271,6 +1456,8 @@ h265parse_harnessed_suite (void)
   tcase_add_test (tc_chain, test_parse_sei_userdefinedunregistered);
   tcase_add_test (tc_chain, test_invalid_sei_in_hvcc);
 
+  tcase_add_test (tc_chain, test_parse_fallback_profile);
+  tcase_add_test (tc_chain, test_packetized_hvcc_drop_corrupt);
   return s;
 }
 

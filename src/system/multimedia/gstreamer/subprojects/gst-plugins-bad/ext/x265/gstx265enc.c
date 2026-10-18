@@ -199,6 +199,8 @@ static void gst_x265_enc_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 static gboolean x265enc_element_init (GstPlugin * plugin);
 
+static GstBuffer *gst_x265_enc_get_header_buffer (GstX265Enc * encoder);
+
 #define gst_x265_enc_parent_class parent_class
 G_DEFINE_TYPE_WITH_CODE (GstX265Enc, gst_x265_enc, GST_TYPE_VIDEO_ENCODER,
     G_IMPLEMENT_INTERFACE (GST_TYPE_PRESET, NULL));
@@ -561,6 +563,7 @@ static void
 gst_x265_enc_init (GstX265Enc * encoder)
 {
   encoder->push_header = TRUE;
+  encoder->header_buffer = NULL;
 
   encoder->bitrate = PROP_BITRATE_DEFAULT;
   encoder->qp = PROP_QP_DEFAULT;
@@ -658,6 +661,7 @@ gst_x265_enc_stop (GstVideoEncoder * encoder)
 
   GST_DEBUG_OBJECT (encoder, "stop encoder");
 
+  gst_clear_buffer (&x265enc->header_buffer);
   gst_x265_enc_flush_frames (x265enc, FALSE);
   gst_x265_enc_close_encoder (x265enc);
   gst_x265_enc_dequeue_all_frames (x265enc);
@@ -692,6 +696,8 @@ static void
 gst_x265_enc_finalize (GObject * object)
 {
   GstX265Enc *encoder = GST_X265_ENC (object);
+
+  gst_clear_buffer (&encoder->header_buffer);
 
   if (encoder->input_state)
     gst_video_codec_state_unref (encoder->input_state);
@@ -1000,6 +1006,7 @@ gst_x265_enc_init_encoder_locked (GstX265Enc * encoder)
   encoder->api->encoder_parameters (encoder->x265enc, &encoder->x265param);
 
   encoder->push_header = TRUE;
+  encoder->header_buffer = gst_x265_enc_get_header_buffer (encoder);
 
   return TRUE;
 }
@@ -1251,7 +1258,9 @@ gst_x265_enc_set_src_caps (GstX265Enc * encoder, GstCaps * caps)
 
   tags = gst_tag_list_new_empty ();
   gst_tag_list_add (tags, GST_TAG_MERGE_REPLACE, GST_TAG_ENCODER, "x265",
-      GST_TAG_ENCODER_VERSION, x265_version_str, NULL);
+      GST_TAG_ENCODER_VERSION, x265_version_str,
+      GST_TAG_MAXIMUM_BITRATE, encoder->bitrate * 1024,
+      GST_TAG_NOMINAL_BITRATE, encoder->bitrate * 1024, NULL);
   gst_video_encoder_merge_tags (GST_VIDEO_ENCODER (encoder), tags,
       GST_TAG_MERGE_REPLACE);
   gst_tag_list_unref (tags);
@@ -1615,12 +1624,11 @@ gst_x265_enc_encode_frame (GstX265Enc * encoder, x265_picture * pic_in,
 
   frame->output_buffer = out_buf;
 
-  if (encoder->push_header) {
-    GstBuffer *header;
-
-    header = gst_x265_enc_get_header_buffer (encoder);
-    frame->output_buffer = gst_buffer_append (header, frame->output_buffer);
+  if (encoder->push_header && encoder->header_buffer) {
+    frame->output_buffer =
+        gst_buffer_append (encoder->header_buffer, frame->output_buffer);
     encoder->push_header = FALSE;
+    encoder->header_buffer = NULL;
   }
 
   GST_LOG_OBJECT (encoder,

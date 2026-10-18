@@ -77,7 +77,8 @@ typedef enum
     CARD_TYPE_CARDOS_54,
     CARD_TYPE_AET,     /* A.E.T. Europe JCOP card.  */
     CARD_TYPE_BELPIC,  /* Belgian eID card specs. */
-    CARD_TYPE_STARCOS_32
+    CARD_TYPE_STARCOS_32,
+    CARD_TYPE_STARCOS_37
   }
 card_type_t;
 
@@ -90,6 +91,7 @@ typedef enum
     CARD_PRODUCT_RSCS,     /* Rohde&Schwarz Cybersecurity       */
     CARD_PRODUCT_DTRUST3,  /* D-Trust GmbH (bundesdruckerei.de) */
     CARD_PRODUCT_DTRUST4,
+    CARD_PRODUCT_DTRUST6,
     CARD_PRODUCT_GENUA,    /* GeNUA mbH                         */
     CARD_PRODUCT_NEXUS,    /* Technology Nexus                  */
     CARD_PRODUCT_CVISION   /* Cryptovision GmbH                 */
@@ -135,6 +137,9 @@ static struct
   { 25, X("\x3b\x9f\x96\x81\xb1\xfe\x45\x1f\x07\x00\x64\x05"
           "\x1e\xb2\x00\x31\xb0\x73\x96\x21\xdb\x05\x90\x00\x5c"),
     CARD_TYPE_STARCOS_32 },
+  { 21, X("\x3b\xda\x96\xff\x81\xb1\xfe\x45\x1f\x07\x80\x58"
+          "\x44\x54\x52\x20\x56\x31\x2e\x31\xe2"),
+    CARD_TYPE_STARCOS_37 },
   { 0 }
 };
 #undef X
@@ -144,7 +149,8 @@ static struct
 #define IS_CARDOS_5(a) ((a)->app_local->card_type == CARD_TYPE_CARDOS_50 \
                         || (a)->app_local->card_type == CARD_TYPE_CARDOS_53 \
                         || (a)->app_local->card_type == CARD_TYPE_CARDOS_54)
-#define IS_STARCOS_3(a) ((a)->app_local->card_type == CARD_TYPE_STARCOS_32)
+#define IS_STARCOS_3(a) ((a)->app_local->card_type == CARD_TYPE_STARCOS_32 \
+                         || (a)->app_local->card_type == CARD_TYPE_STARCOS_37)
 
 
 /* The default PKCS-15 home DF */
@@ -295,7 +301,7 @@ struct prkdf_object_s
 
   /* PKCS#15 info whether this is an EC key.  Default is RSA.  Note
    * that there is also a KEYALGO field which is derived from the
-   * publick key via Libgcrypt.  */
+   * public key via Libgcrypt.  */
   unsigned int is_ecc:1;
 
   /* The key's usage flags. */
@@ -560,6 +566,7 @@ cardtype2str (card_type_t cardtype)
     case CARD_TYPE_BELPIC:    return "Belgian eID";
     case CARD_TYPE_AET:       return "AET";
     case CARD_TYPE_STARCOS_32:return "STARCOS 3.2";
+    case CARD_TYPE_STARCOS_37:return "STARCOS 3.7";
     }
   return "";
 }
@@ -573,6 +580,7 @@ cardproduct2str (card_product_t cardproduct)
     case CARD_PRODUCT_RSCS:    return "R&S";
     case CARD_PRODUCT_DTRUST3: return "D-Trust 3";
     case CARD_PRODUCT_DTRUST4: return "D-Trust 4.1/4.4";
+    case CARD_PRODUCT_DTRUST6: return "D-Trust 6.1/6.4";
     case CARD_PRODUCT_GENUA:   return "GeNUA";
     case CARD_PRODUCT_NEXUS:   return "Nexus";
     case CARD_PRODUCT_CVISION: return "Cryptovison";
@@ -872,13 +880,11 @@ select_ef_by_path (app_t app, const unsigned short *path, size_t pathlen)
 }
 
 
-#if 0 /* Currently not used.  */
 static gpg_error_t
 select_df_by_path (app_t app, const unsigned short *path, size_t pathlen)
 {
   return select_by_path (app, path, pathlen, 1);
 }
-#endif
 
 
 /* Parse a cert Id string (or a key Id string) and return the binary
@@ -1571,7 +1577,7 @@ parse_common_obj_attr (unsigned char const **buffer, size_t *size,
 
 /* Parse the commonKeyAttributes.  On success store the objid at
  * (R_OBJID/R_OBJIDLEN), sets the key usage flags at USAGEFLAGS and
- * the optiona key refrence at R_KEY_REFERENCE.  The latter is only
+ * the optional key reference at R_KEY_REFERENCE.  The latter is only
  * valid if true is also stored at R_KEY_REFERENCE_VALID.
  *
  * Example data:
@@ -3760,7 +3766,7 @@ read_p15_info (app_t app)
   /* See whether we can extend the private key information using
    * information from certificates.  We use only the first matching
    * certificate; if we want to change this strategy we should walk
-   * over the certificates and then find the corresponsing private key
+   * over the certificates and then find the corresponding private key
    * objects.  */
   app->app_local->any_gpgusage = 0;
   for (prkdf = app->app_local->private_key_info; prkdf; prkdf = prkdf->next)
@@ -3920,6 +3926,37 @@ read_p15_info (app_t app)
       && app->app_local->card_type == CARD_TYPE_CARDOS_54)
     {
       app->app_local->card_product = CARD_PRODUCT_DTRUST4;
+    }
+  if (!app->app_local->card_product
+      && app->app_local->token_label
+      && !strncmp (app->app_local->token_label, "D-TRUST Card 6.", 15)
+      && app->app_local->card_type == CARD_TYPE_STARCOS_37)
+    {
+      aodf_object_t aodf;
+
+      app->app_local->card_product = CARD_PRODUCT_DTRUST6;
+
+      for (prkdf = app->app_local->private_key_info; prkdf; prkdf = prkdf->next)
+        {
+          /* The card supports only OAEP and ECIES decryption, which are not
+           * supported by GnuPG right now. Thus we mask the respectiv usage
+           * flags. */
+          prkdf->usageflags.decrypt = 0;
+          prkdf->usageflags.unwrap = 0;
+          prkdf->usageflags.derive = 0;
+        }
+
+      for (aodf = app->app_local->auth_object_info; aodf; aodf = aodf->next)
+        if (aodf->auth_type == AUTH_TYPE_PIN
+            && aodf->pin_reference_valid
+            && aodf->label != NULL
+            && !strcmp(aodf->label, "Authentication-PIN"))
+          {
+            /* D-Trust encoded the wrong PIN reference in EF.AOD so we have to
+             * workaround it. */
+            aodf->pin_reference = 0x82;
+            break;
+          }
     }
 
 
@@ -4849,7 +4886,7 @@ do_getattr (app_t app, ctrl_t ctrl, const char *name)
       int i;
 
       /* Put the AODFs into an array for easier sorting.  Note that we
-       * handle onl the first 16 encountrer which should be more than
+       * handle only the first 16 encountrer which should be more than
        * enough.  */
       for (aodf = app->app_local->auth_object_info;
            aodf && naodf < DIM(aodfarray); aodf = aodf->next)
@@ -5001,7 +5038,7 @@ micardo_mse (app_t app, unsigned short fid)
         }
       if (opt.verbose)
         {
-          log_info (buffer, buflen, "p15: keyD record: ");
+          log_info ("p15: keyD record: ");
           log_printhex (buffer, buflen, "");
         }
       p = find_tlv (buffer, buflen, 0x83, &n);
@@ -5128,6 +5165,16 @@ prepare_verify_pin (app_t app, const char *keyref,
                                           pkcs15_aid, sizeof pkcs15_aid, 0);
       if (err)
         log_error ("p15: error selecting PKCS#15 AID for key %s: %s\n",
+                   keyref, gpg_strerror (err));
+    }
+  else if (prkdf && app->app_local->card_product == CARD_PRODUCT_DTRUST6)
+    {
+      /* The card operating system does not support selecting the application
+       * by direct path selection. We need to select all file ids as a
+       * directory file. */
+      err = select_df_by_path (app, prkdf->path, prkdf->pathlen);
+      if (err)
+        log_error ("p15: error selecting directory file for key %s: %s\n",
                    keyref, gpg_strerror (err));
     }
   else if (prkdf)
@@ -5731,7 +5778,8 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
         }
       if (app->app_local->card_type == CARD_TYPE_BELPIC
           || app->app_local->card_product == CARD_PRODUCT_NEXUS
-          || app->app_local->card_product == CARD_PRODUCT_DTRUST4)
+          || app->app_local->card_product == CARD_PRODUCT_DTRUST4
+          || app->app_local->card_product == CARD_PRODUCT_DTRUST6)
         {
           /* The default for these cards is to use a plain hash.  We
            * assume that due to the used certificate the correct hash
@@ -5751,6 +5799,7 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
               log_error ("p15: non-matching input data for Starcos:"
                          " hash=%d len=%zu\n", hashalgo, indatalen);
               err = gpg_error (GPG_ERR_INV_VALUE);
+              xfree (frame);
               goto leave;
             }
           framelen = indatalen - oidbuflen;
@@ -5857,6 +5906,50 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
             err = iso7816_manage_security_env (app_get_slot (app),
                                                0xf3, 0x25, NULL, 0);
         }
+    }
+  else if (app->app_local->card_product == CARD_PRODUCT_DTRUST6)
+    {
+      unsigned char mse[10];
+
+      i = 0;
+      err = 0;
+
+      /* D-Trust-Card uses 3 byte long (negative) key reference IDs */
+      mse[i++] = 0x84; /* Key reference. */
+      mse[i++] = 3;
+      mse[i++] = (prkdf->key_reference >> 16) & 0xff;
+      mse[i++] = (prkdf->key_reference >>  8) & 0xff;
+      mse[i++] =  prkdf->key_reference        & 0xff;
+
+      if (prkdf->is_ecc)
+        {
+          mse[i++] = 0x89;
+          mse[i++] = 2;
+          mse[i++] = 0x13;
+          mse[i++] = 0x35;
+        }
+      else
+        {
+          mse[i++] = 0x89; /* Algorithm reference (BCD encoded).  */
+          mse[i++] = 3;
+          mse[i++] = 0x13; /* RSA PKCS#1 (standard) (1 3 2 3).  */
+          mse[i++] = 0x23;
+          switch (hashalgo)
+            {
+            case GCRY_MD_SHA1:   mse[i++] = 0x10; break;
+            case GCRY_MD_RMD160: mse[i++] = 0x20; break;
+            case GCRY_MD_SHA256: mse[i++] = 0x30; break;
+            case GCRY_MD_SHA384: mse[i++] = 0x40; break;
+            case GCRY_MD_SHA512: mse[i++] = 0x50; break;
+            case GCRY_MD_SHA224: mse[i++] = 0x60; break;
+            default: err = gpg_error (GPG_ERR_DIGEST_ALGO); break;
+            }
+        }
+
+      log_assert (i <= DIM(mse));
+      if (!err)
+        err = iso7816_manage_security_env (app_get_slot (app), 0x41, 0xB6,
+                                               mse, i);
     }
   else if (app->app_local->card_product == CARD_PRODUCT_CVISION)
     {
@@ -6235,7 +6328,7 @@ do_check_pin (app_t app, ctrl_t ctrl, const char *keyidstr,
         if (aodf->label && !ascii_strcasecmp (aodf->label, keyidstr))
           break;
       if (!aodf)
-        return err;  /* Re-use the original error code.  */
+        return err;  /* Reuse the original error code.  */
     }
   else /* Find the authentication object to this private key object. */
     {
@@ -6430,6 +6523,8 @@ app_select_p15 (app_t app)
 {
   int slot = app_get_slot (app);
   int rc;
+  const char *aid;
+  size_t aidlen;
   unsigned short def_home_df = 0;
   card_type_t card_type = CARD_TYPE_UNKNOWN;
   int direct = 0;
@@ -6437,14 +6532,17 @@ app_select_p15 (app_t app)
   unsigned char *fci = NULL;
   size_t fcilen;
 
-  rc = iso7816_select_application_ext (slot, pkcs15_aid, sizeof pkcs15_aid, 1,
-                                       &fci, &fcilen);
+  aid = pkcs15_aid;
+  aidlen = sizeof pkcs15_aid;
+  rc = iso7816_select_application_ext (slot, aid, aidlen,
+                                       ISO7816_SELECT_FCI, &fci, &fcilen);
   if (rc)
     {
       /* D-TRUST Card 4.x uses a different AID. */
-      rc = iso7816_select_application_ext (slot, pkcs15dtrust4_aid,
-                                           sizeof pkcs15dtrust4_aid, 1,
-                                           &fci, &fcilen);
+      aid = pkcs15dtrust4_aid;
+      aidlen = sizeof pkcs15dtrust4_aid;
+      rc = iso7816_select_application_ext (slot, aid, aidlen,
+                                           ISO7816_SELECT_FCI, &fci, &fcilen);
     }
   if (rc)
     { /* Not found: Try to locate it from 2F00.  We use direct path
@@ -6524,14 +6622,42 @@ app_select_p15 (app_t app)
           s = find_tlv (fci, fcilen, 0x83, &n);
           if (s && n == 2)
             def_home_df = buf16_to_ushort (s);
+          else if (fcilen)
+            {
+              log_printhex (fci, fcilen, "fci:");
+              log_info ("p15: select did not return the DF - querying FCP\n");
+            }
+        }
+
+      /* Set the home DF from the FCP returned by the select, when not already
+       * contained in the FCI. STARCOS 3.7 (at least the D-Trust Card 6.1/6.4
+       * requires to request FCP instead of FCI. */
+      if (!def_home_df)
+        {
+          const unsigned char *s;
+          size_t n;
+
+          xfree (fci);
+          fci = NULL;
+          fcilen = 0;
+          rc = iso7816_select_application_ext (slot, aid, aidlen,
+                                               ISO7816_SELECT_FCP,
+                                               &fci, &fcilen);
+          if (!rc && fci)
+            {
+              s = find_tlv (fci, fcilen, 0x83, &n);
+              if (s && n == 2)
+                def_home_df = buf16_to_ushort (s);
+            }
           else
             {
               if (fcilen)
-                log_printhex (fci, fcilen, "fci:");
+                log_printhex (fci, fcilen, "fcp:");
               log_info ("p15: select did not return the DF - using default\n");
               def_home_df = DEFAULT_HOME_DF;
             }
         }
+
       app->app_local->home_df = def_home_df;
 
       /* Store the card type.  FIXME: We might want to put this into

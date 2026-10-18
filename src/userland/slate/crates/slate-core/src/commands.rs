@@ -115,6 +115,20 @@ const ACTIONS: &[(&str, &str, &str, &str, &str)] = &[
         "files",
     ),
     (
+        "collapse-all-folders",
+        "Collapse all folders",
+        "Collapse every expanded explorer folder",
+        "",
+        "files",
+    ),
+    (
+        "terminal-here",
+        "Open terminal here",
+        "Start a terminal in the selected folder, or the selected file's folder",
+        "",
+        "file-entry",
+    ),
+    (
         "open",
         "Open file…",
         "Open a file or browse a directory",
@@ -124,7 +138,7 @@ const ACTIONS: &[(&str, &str, &str, &str, &str)] = &[
     (
         "open-folder",
         "Open folder…",
-        "Browse a directory in the file pane",
+        "Open a folder as the workspace, in this window or a new one",
         "Path",
         "any",
     ),
@@ -570,6 +584,76 @@ const ACTIONS: &[(&str, &str, &str, &str, &str)] = &[
         "Create a commit from staged changes",
         "Commit message",
         "repository",
+    ),
+    (
+        "git-fetch",
+        "Fetch",
+        "Download new commits from the branch's remote",
+        "",
+        "git-ready",
+    ),
+    (
+        "git-pull",
+        "Pull",
+        "Fast-forward the branch to its upstream",
+        "",
+        "git-ready",
+    ),
+    (
+        "git-push",
+        "Push",
+        "Upload the branch's commits, setting its upstream when it has none",
+        "",
+        "git-ready",
+    ),
+    (
+        "git-switch",
+        "Switch branch…",
+        "Check out another branch",
+        "Branch name",
+        "git-ready",
+    ),
+    (
+        "git-branch",
+        "Create branch…",
+        "Create a branch at the current commit and switch to it",
+        "New branch name",
+        "git-ready",
+    ),
+    (
+        "git-open",
+        "Open changed file",
+        "Open the selected change's file",
+        "",
+        "git-file",
+    ),
+    (
+        "discard-changes",
+        "Discard changes…",
+        "Undo the selected file's working changes; untracked files go to Trash",
+        "",
+        "git-working",
+    ),
+    (
+        "reveal-in-files",
+        "Reveal in file browser",
+        "Select the file in the file browser",
+        "",
+        "reveal",
+    ),
+    (
+        "git-show",
+        "Show commit",
+        "Open the selected commit's message and changes read-only",
+        "",
+        "history",
+    ),
+    (
+        "git-history-more",
+        "Load more commits",
+        "Read another page of commit history",
+        "",
+        "history-more",
     ),
     (
         "toggle-soft-wrap",
@@ -1131,6 +1215,22 @@ impl App {
         pane: u64,
         selection: Option<usize>,
     ) -> Vec<CommandInfo> {
+        self.catalog(query, pane, selection, None)
+    }
+    /// One action of the focused pane's catalog, without describing the
+    /// others.
+    pub fn command_info(&self, id: &str) -> Option<CommandInfo> {
+        self.catalog("", self.focus, None, Some(id))
+            .into_iter()
+            .next()
+    }
+    fn catalog(
+        &self,
+        query: &str,
+        pane: u64,
+        selection: Option<usize>,
+        only: Option<&str>,
+    ) -> Vec<CommandInfo> {
         let query = query.trim().to_lowercase();
         let view = self.layout.view(pane);
         let kind = match view {
@@ -1147,8 +1247,12 @@ impl App {
             _ => None,
         };
         let selected = self.git.entries.get(selection.unwrap_or(self.git.selected));
+        let git_ready = self.git.repository && !self.git.restricted && self.git.jobs == 0;
         let mut results = Vec::new();
         for &(id, name, description, argument, scope) in ACTIONS {
+            if only.is_some_and(|only| only != id) {
+                continue;
+            }
             let haystack = format!("{id} {name} {description}").to_lowercase();
             if !query.split_whitespace().all(|term| haystack.contains(term)) {
                 continue;
@@ -1180,6 +1284,19 @@ impl App {
                 "diff-working" => self.can_stage_diff_hunk(false),
                 "diff-staged" => self.can_stage_diff_hunk(true),
                 "files" => kind == "files",
+                "git-ready" => git_ready,
+                "git-file" => kind == "git" && selected.is_some(),
+                "git-working" => {
+                    kind == "git"
+                        && self.git.jobs == 0
+                        && selected.is_some_and(|e| !e.staged && e.group != "Conflicts")
+                }
+                "reveal" => {
+                    (kind == "git" && selected.is_some())
+                        || editor.is_some_and(|d| d.path.is_some() && d.label.is_none())
+                }
+                "history" => !self.git.history.is_empty(),
+                "history-more" => self.history_has_more(),
                 "file-entry" => {
                     kind == "files"
                         && self
@@ -1271,6 +1388,16 @@ impl App {
                     "running" => "The program is not running",
                     "tasks" => "No task is running",
                     "untrusted" => "The workspace is already trusted",
+                    "files" => "Focus the file browser",
+                    "file-entry" => "Select a file or folder in the file browser",
+                    "git-ready" => "Open a trusted Git repository; wait for running operations",
+                    "git-file" => "Select a changed file in the Git pane",
+                    "git-working" => {
+                        "Select an unstaged, non-conflicted change; wait for running operations"
+                    }
+                    "reveal" => "Select a changed file, or focus a document that has a file",
+                    "history" => "No commits are listed",
+                    "history-more" => "All commits are shown",
                     _ => "Focus an editor or terminal",
                 }
             };
@@ -1285,6 +1412,9 @@ impl App {
             });
         }
         for tool in self.tool_catalog() {
+            if only.is_some_and(|only| only != tool.id) {
+                continue;
+            }
             let haystack = format!("{} {} {}", tool.id, tool.name, tool.description).to_lowercase();
             if query.split_whitespace().all(|term| haystack.contains(term)) {
                 results.push(tool);
@@ -1301,15 +1431,17 @@ impl App {
         results
     }
     pub(super) fn invoke_action(&mut self, id: &str, argument: &str) -> anyhow::Result<()> {
-        let command = self.resolve_action(id, argument)?;
+        let command = self.resolve_action(id, argument)?.confirming_discard();
         self.execute(command)
     }
     pub fn resolve_action(&self, id: &str, argument: &str) -> anyhow::Result<Command> {
         let action = self
-            .command_catalog("")
-            .into_iter()
-            .find(|c| c.id == id)
+            .command_info(id)
             .ok_or_else(|| anyhow::anyhow!("Unknown action: {id}"))?;
+        self.resolve_info(action, argument)
+    }
+    fn resolve_info(&self, action: CommandInfo, argument: &str) -> anyhow::Result<Command> {
+        let id = action.id.as_str();
         if !action.enabled {
             anyhow::bail!("{}", action.reason);
         }
@@ -1328,12 +1460,8 @@ impl App {
     /// Commands with supplied arguments retain the shared command-line syntax.
     pub fn resolve_command_input(&self, input: &str) -> anyhow::Result<Command> {
         let input = input.trim();
-        if self
-            .command_catalog("")
-            .iter()
-            .any(|action| action.id == input)
-        {
-            return self.resolve_action(input, "");
+        if let Some(action) = self.command_info(input) {
+            return self.resolve_info(action, "");
         }
         self.resolve_command_line(input).ok_or_else(|| {
             anyhow::anyhow!(
@@ -1344,6 +1472,17 @@ impl App {
 }
 
 impl Command {
+    /// Discarding commands picked, typed or bound in the shared input routes
+    /// ask first: the unforced form opens the unsaved-changes prompt when
+    /// there is something to lose, and only its acceptance discards. Frontends
+    /// with their own dialogs dispatch the forced command once confirmed.
+    pub(crate) fn confirming_discard(self) -> Self {
+        match self {
+            Command::Quit { force: true } => Command::Quit { force: false },
+            Command::CloseDocument { force: true } => Command::CloseDocument { force: false },
+            command => command,
+        }
+    }
     /// The shared catalog identity of a resolved command, when it has one.
     pub fn action_id(&self) -> Option<String> {
         let id = match self {

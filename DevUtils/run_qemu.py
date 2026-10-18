@@ -22,6 +22,8 @@ from pathlib import Path
 from collections.abc import Callable
 from typing import List
 
+from upstream_validation import installed_upstream_probes
+
 from qemu_test_control import (
     QmpClient,
     QmpError,
@@ -1603,6 +1605,7 @@ def _verify_installed_disk_boot_with(
             "exit 1)",
         ),
         ("hardware-audio", "python3 /usr/share/doc/pipewire/examples/audio-smoke.py"),
+        *installed_upstream_probes(),
         *installed_plasma_applet_runtime_probes(),
         ("xdg-user-directories-service", "systemctl --user show graphical-session-pre.target -p Wants --value | tr ' ' '\\n' | grep -Fx xdg-user-dirs.service && "
          "test \"$(systemctl --user show xdg-user-dirs.service -p ExecMainStartTimestampMonotonic --value)\" -gt 0 && "

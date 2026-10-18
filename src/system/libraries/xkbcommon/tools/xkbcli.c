@@ -24,9 +24,20 @@ usage(void)
             *          Any change to the format (in particular to the indentation)
             *          should kept in the script in sync. */
            "Commands:\n"
+#if HAVE_XKBCLI_INFO
+           "  info\n"
+           "    Print information about libxkbcommon configuration\n"
+           "\n"
+#endif
 #if HAVE_XKBCLI_LIST
            "  list\n"
            "    List available rules, models, layouts, variants and options\n"
+           "\n"
+#endif
+#if HAVE_XKBCLI_INTERACTIVE_WAYLAND || HAVE_XKBCLI_INTERACTIVE_X11
+           "  interactive\n"
+           "    Interactive debugger for XKB keymaps; automatically select from"
+           "    the following backends, if available: Wayland, X11 and evdev.\n"
            "\n"
 #endif
 #if HAVE_XKBCLI_INTERACTIVE_WAYLAND
@@ -44,14 +55,19 @@ usage(void)
            "    Interactive debugger for XKB keymaps for evdev\n"
            "\n"
 #endif
+#if HAVE_XKBCLI_DUMP_KEYMAP_WAYLAND || HAVE_XKBCLI_DUMP_KEYMAP_X11
+           "  dump-keymap\n"
+           "    Dump an XKB keymap from a Wayland or X11 compositor\n"
+           "\n"
+#endif
 #if HAVE_XKBCLI_DUMP_KEYMAP_WAYLAND
            "  dump-keymap-wayland\n"
-           "    Dump a XKB keymap from a Wayland compositor\n"
+           "    Dump an XKB keymap from a Wayland compositor\n"
            "\n"
 #endif
 #if HAVE_XKBCLI_DUMP_KEYMAP_X11
            "  dump-keymap-x11\n"
-           "    Dump a XKB keymap from an X server\n"
+           "    Dump an XKB keymap from an X server\n"
            "\n"
 #endif
 #if HAVE_XKBCLI_COMPILE_KEYMAP
@@ -118,5 +134,5 @@ main(int argc, char **argv)
     argv += optind;
     argc -= optind;
 
-    return tools_exec_command("xkbcli", argc, argv);
+    return tools_exec_command("xkbcli", argc, (const char **) argv);
 }

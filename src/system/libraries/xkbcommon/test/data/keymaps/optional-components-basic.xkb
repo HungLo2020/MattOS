@@ -6,7 +6,7 @@ xkb_keycodes {
 };
 
 xkb_types {
-	type "default" {
+	type "ONE_LEVEL" {
 		modifiers= none;
 	};
 };
@@ -21,8 +21,8 @@ xkb_compatibility {
 
 xkb_symbols {
 	key <>                   {
-		type= "default",
-		symbols[Group1]= [               a ]
+		type= "ONE_LEVEL",
+		symbols[1]= [               a ]
 	};
 };
 

@@ -204,7 +204,7 @@ struct iobuf_struct
     byte *buf;
   } d;
 
-  /* A external drain buffer for reading/writting data skipping internal
+  /* A external drain buffer for reading/writing data skipping internal
      draint buffer D.BUF.  This allows zerocopy operation reducing
      processing overhead across filter stack.
 
@@ -333,11 +333,11 @@ iobuf_t iobuf_openrw (const char *fname);
    creates an input filter.  Note: MODE must reflect the file
    descriptors actual mode!  When the filter is destroyed, the file
    descriptor is closed.  */
-iobuf_t iobuf_fdopen (int fd, const char *mode);
+iobuf_t iobuf_fdopen (gnupg_fd_t fd, const char *mode);
 
 /* Like iobuf_fdopen, but doesn't close the file descriptor when the
    filter is destroyed.  */
-iobuf_t iobuf_fdopen_nc (int fd, const char *mode);
+iobuf_t iobuf_fdopen_nc (gnupg_fd_t fd, const char *mode);
 
 /* Create a filter using an existing estream.  If MODE contains the
    letter 'w', creates an output filter.  Otherwise, creates an input
@@ -590,7 +590,7 @@ uint64_t iobuf_get_filelength (iobuf_t a);
 
 /* Return the file descriptor designating the underlying file.  This
    only works with file_filter based pipelines.  */
-int  iobuf_get_fd (iobuf_t a);
+gnupg_fd_t iobuf_get_fd (iobuf_t a);
 
 /* Return the real filename, if available.  This only supports
    pipelines that end in file filters.  Returns NULL if not

@@ -81,40 +81,8 @@ const LookupEntry groupComponentMaskNames[] = {
 };
 
 const LookupEntry groupMaskNames[] = {
-    { "Group1", 0x01 },
-    { "Group2", 0x02 },
-    { "Group3", 0x04 },
-    { "Group4", 0x08 },
-    { "Group5", 0x10 },
-    { "Group6", 0x20 },
-    { "Group7", 0x40 },
-    { "Group8", 0x80 },
     { "none", 0x00 },
-    { "all", 0xff },
-    { NULL, 0 }
-};
-
-const LookupEntry groupNames[] = {
-    { "Group1", 1 },
-    { "Group2", 2 },
-    { "Group3", 3 },
-    { "Group4", 4 },
-    { "Group5", 5 },
-    { "Group6", 6 },
-    { "Group7", 7 },
-    { "Group8", 8 },
-    { NULL, 0 }
-};
-
-const LookupEntry levelNames[] = {
-    { "Level1", 1 },
-    { "Level2", 2 },
-    { "Level3", 3 },
-    { "Level4", 4 },
-    { "Level5", 5 },
-    { "Level6", 6 },
-    { "Level7", 7 },
-    { "Level8", 8 },
+    { "all", XKB_ALL_GROUPS },
     { NULL, 0 }
 };
 
@@ -138,6 +106,7 @@ const LookupEntry useModMapValueNames[] = {
 
 const LookupEntry actionTypeNames[] = {
     { "NoAction", ACTION_TYPE_NONE },
+    { "VoidAction", ACTION_TYPE_VOID },
     { "SetMods", ACTION_TYPE_MOD_SET },
     { "LatchMods", ACTION_TYPE_MOD_LATCH },
     { "LockMods", ACTION_TYPE_MOD_LOCK },
@@ -161,24 +130,24 @@ const LookupEntry actionTypeNames[] = {
     { "LockControls", ACTION_TYPE_CTRL_LOCK },
     { "Private", ACTION_TYPE_PRIVATE },
     /* deprecated actions below here - unused */
-    { "RedirectKey", ACTION_TYPE_NONE },
-    { "Redirect", ACTION_TYPE_NONE },
-    { "ISOLock", ACTION_TYPE_NONE },
-    { "ActionMessage", ACTION_TYPE_NONE },
-    { "MessageAction", ACTION_TYPE_NONE },
-    { "Message", ACTION_TYPE_NONE },
-    { "DeviceBtn", ACTION_TYPE_NONE },
-    { "DevBtn", ACTION_TYPE_NONE },
-    { "DevButton", ACTION_TYPE_NONE },
-    { "DeviceButton", ACTION_TYPE_NONE },
-    { "LockDeviceBtn", ACTION_TYPE_NONE },
-    { "LockDevBtn", ACTION_TYPE_NONE },
-    { "LockDevButton", ACTION_TYPE_NONE },
-    { "LockDeviceButton", ACTION_TYPE_NONE },
-    { "DeviceValuator", ACTION_TYPE_NONE },
-    { "DevVal", ACTION_TYPE_NONE },
-    { "DeviceVal", ACTION_TYPE_NONE },
-    { "DevValuator", ACTION_TYPE_NONE },
+    { "RedirectKey", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "Redirect", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "ISOLock", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "ActionMessage", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "MessageAction", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "Message", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DeviceBtn", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DevBtn", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DevButton", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DeviceButton", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "LockDeviceBtn", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "LockDevBtn", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "LockDevButton", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "LockDeviceButton", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DeviceValuator", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DevVal", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DeviceVal", ACTION_TYPE_UNSUPPORTED_LEGACY },
+    { "DevValuator", ACTION_TYPE_UNSUPPORTED_LEGACY },
     { NULL, 0 },
 };
 
@@ -291,7 +260,7 @@ LedStateMaskText(struct xkb_context *ctx, const LookupEntry *lookup,
     if (mask == 0)
         return "0";
 
-    for (unsigned i = 0; mask; i++) {
+    for (unsigned int i = 0; mask; i++) {
         int ret;
 
         if (!(mask & (1u << i)))
@@ -325,7 +294,7 @@ ControlMaskText(struct xkb_context *ctx, enum xkb_action_controls mask)
     if (mask == CONTROL_ALL)
         return "all";
 
-    for (unsigned i = 0; mask; i++) {
+    for (unsigned int i = 0; mask; i++) {
         int ret;
 
         if (!(mask & (1u << i)))

@@ -201,7 +201,7 @@ or %%H seems to do the job though.
 -->
 @note
 - Include processes the rules in the file path specified in the `ident`,
-  in order. **%-expansion** is performed, as follows:
+  in order. **%-expansion** is performed, as follows: @anchor rules-include-expansion
   <dl>
     <dt>`%%`</dt>
     <dd>A literal %.</dd>
@@ -221,10 +221,10 @@ or %%H seems to do the job though.
   **Note:** This feature is supported by libxkbcommon but not by the legacy X11
   tools.
 
-- @anchor rules-special-indexes
+- @anchor rules-extended-layout-indices
   (Since version `1.8.0`)
-  The following *special indexes* can be used to avoid repetition and clarify
-  the semantics:
+  The following *extended layout indices* can be used to avoid repetition and
+  clarify the semantics:
 
   <dl>
     <dt>`single`</dt>
@@ -300,9 +300,13 @@ or %%H seems to do the job though.
         etc.
     </dt>
     <dd>
-        (Since version `1.8.0`)
-        In case the mapping uses a @ref rules-special-indexes "special index",
+        In case the mapping uses an @ref rules-extended-layout-indices "extended layout index",
         `%%i` corresponds to the index of the matched layout.
+
+        ℹ️ Notes:
+        - Added in version `1.8.0`
+        - Since `1.11.0`: This feature can only be used if the rule header has
+          a `layout` or `variant` [MLVO] field.
     </dd>
   </dl>
 
@@ -371,12 +375,51 @@ or %%H seems to do the job though.
 
 ## Process
 
-First of all, the rules *file* is extracted from the provided
-[<em>R</em>MLVO][RMLVO] configuration (usually `evdev`). Then its path
-is resolved and the file is parsed to get the [rule sets].
+First of all, the main rules *file* `<ruleset>` is extracted from the provided
+[<em>R</em>MLVO][RMLVO] configuration (usually `evdev`). Then the following
+files are parsed and their results are collected sequentially to form the final
+[rule sets][]:
+
+<dl>
+<dt>Partial `<ruleset>.pre` files</dt>
+<dd>
+*Optional:* for each include path `<ipath>`, parse and append the [rule sets]
+of the file `<ipath>/rules/<ruleset>.pre`, if it exists. Multiple such files may
+be parsed enabling lightweight composition fo rules files.
+
+@since 1.13.0
+</dd>
+<dt>Main `<ruleset>` file</dt>
+<dd>
+Parse and append the [rule sets] of the *canonical* `<ruleset>` file, e.g. the
+*first* file in the included paths matching `rules/<ruleset>`.
+</dd>
+<dt>Partial `<ruleset>.post` files</dt>
+<dd>
+*Optional:* for each include path `<ipath>`, parse and append the [rule sets]
+of the file `<ipath>/rules/<ruleset>.post`, if it exists. Multiple such files
+may be parsed enabling lightweight composition fo rules files.
+
+@since 1.13.0
+</dd>
+</dl>
+
+The resulting rule sets are equivalent to:
+
+```
+! include <include path 1>/rules/<ruleset>.pre  // only if defined
+…
+! include <include path n>/rules/<ruleset>.pre  // only if defined
+
+! include <ruleset>                             // main rules file
+
+! include <include path 1>/rules/<ruleset>.post // only if defined
+…
+! include <include path n>/rules/<ruleset>.post // only if defined
+```
 
 Then *each rule set* is checked against the provided [MLVO] configuration,
-following their *order* in the rules file.
+following their *order* in the rules files.
 
 @important @anchor irrelevant-options-order Contrary to layouts and variants,
 the *options order* in a [MLVO] configuration (e.g. via `xkbcli`) is irrelevant
@@ -506,7 +549,7 @@ Using the following example:
 
 ! layout[2] = symbols
   *         = +%l[2]%(v[2])
-// Repeat the previous rules set with indexes 3 and 4
+// Repeat the previous rules set with indices 3 and 4
 
 ! layout     option          = symbols
  $azerty     caps:digits_row = +capslock(digits_row)
@@ -517,7 +560,7 @@ Using the following example:
  $azerty     caps:digits_row = +capslock(digits_row):1
   *          misc:typo       = +typo(base):1
   *          lv3:ralt_alt    = +level3(ralt_alt):1
-// Repeat the previous rules set for indexes 2 to 4
+// Repeat the previous rules set for indices 2 to 4
 ```
 
 we would have the following resolutions of <em>[symbols]</em>:
@@ -559,3 +602,38 @@ Since version `1.8.0`, the previous code can be replaced with simply:
   *            misc:typo    = +typo(base):%i
   *            lv3:ralt_alt = +level3(ralt_alt):%i
 ```
+
+### Example: layout-specific options {#rules-layout-specific-options-example}
+
+Using the following example:
+
+```c
+! layout[first] = symbols
+  *             = pc
+
+! layout[any] = symbols
+  *           = %l[%i]%(v[%i])
+
+// Not layout-specific
+! option      = symbols
+  opt1        = +opt1
+
+// Layout-specific: note the range `[any]` and the `:%i` specifier
+! layout[any]   option     = symbols
+  *             opt2       = +opt2:%i
+```
+
+we would have the following resolutions of <em>[symbols]</em>:
+
+| Layout  | Option    | Symbols                    | Comment                                |
+| ------- | --------- | -------------------------- | -------------------------------------- |
+| `be,gb` | `opt1`    | `pc+be+gb:2+opt1`          | Matched: no layout index               |
+| `be,gb` | `opt1!1`  | `pc+be+gb:2`               | No match: not a layout-specific option |
+| `be,gb` | `opt1!2`  | `pc+be+gb:2`               | No match: not a layout-specific option |
+| `be,gb` | `opt2`    | `pc+be+gb:2+opt2:1+opt2:2` | Matched: all layouts                   |
+| `be,gb` | `opt2!1`  | `pc+be+gb:2+opt2:1`        | Matched: only specified layout         |
+| `be,gb` | `opt2!2`  | `pc+be+gb:2+opt2:2`        | Matched: only specified layout         |
+
+@note Such option should use the attribute `layout-specific="true"` in the
+corresponding `configItem` tag of the XML registry file, so that keyboard
+configuration can expose this feature in their user interface.

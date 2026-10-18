@@ -1,12 +1,12 @@
 project('gdk-pixbuf', 'c',
-  version: '2.42.12',
+  version: '2.44.8',
   license: 'LGPL-2.1-or-later',
   default_options: [
     'buildtype=debugoptimized',
     'warning_level=1',
     'c_std=gnu99',
   ],
-  meson_version: '>= 0.55.3',
+  meson_version: '>= 1.5',
 )
 
 add_project_arguments([ '-D_POSIX_C_SOURCE=200809L', '-D_DEFAULT_SOURCE', '-D_XOPEN_SOURCE=700' ], language: 'c')
@@ -47,14 +47,15 @@ darwin_versions = ['@0@'.format(current + 1), '@0@.@1@'.format(current + 1, gdk_
 
 # Paths
 gdk_pixbuf_prefix = get_option('prefix')
-gdk_pixbuf_libdir = join_paths(gdk_pixbuf_prefix, get_option('libdir'))
-gdk_pixbuf_bindir = join_paths(gdk_pixbuf_prefix, get_option('bindir'))
-gdk_pixbuf_includedir = join_paths(gdk_pixbuf_prefix, get_option('includedir'))
-gdk_pixbuf_datadir = join_paths(gdk_pixbuf_prefix, get_option('datadir'))
-gdk_pixbuf_mandir = join_paths(gdk_pixbuf_prefix, get_option('mandir'))
-gdk_pixbuf_localedir = join_paths(gdk_pixbuf_prefix, get_option('localedir'))
-gdk_pixbuf_libexecdir = join_paths(gdk_pixbuf_prefix, get_option('libexecdir'))
-gdk_pixbuf_loaderdir = join_paths(gdk_pixbuf_libdir, 'gdk-pixbuf-@0@/@1@/loaders'.format(gdk_pixbuf_api_version, gdk_pixbuf_binary_version))
+gdk_pixbuf_libdir = gdk_pixbuf_prefix / get_option('libdir')
+gdk_pixbuf_bindir = gdk_pixbuf_prefix / get_option('bindir')
+gdk_pixbuf_includedir = gdk_pixbuf_prefix / get_option('includedir')
+gdk_pixbuf_datadir = gdk_pixbuf_prefix / get_option('datadir')
+gdk_pixbuf_mandir = gdk_pixbuf_prefix / get_option('mandir')
+gdk_pixbuf_localedir = gdk_pixbuf_prefix / get_option('localedir')
+gdk_pixbuf_libexecdir = gdk_pixbuf_prefix / get_option('libexecdir')
+gdk_pixbuf_loaderdir = gdk_pixbuf_libdir / 'gdk-pixbuf-@0@/@1@/loaders'.format(gdk_pixbuf_api_version, gdk_pixbuf_binary_version)
+gdk_pixbuf_docsdir = gdk_pixbuf_datadir / 'doc'
 
 # Dependencies
 glib_req_version = '>= 2.56.0'
@@ -103,6 +104,10 @@ if cc.has_function('setrlimit', prefix: '#include <sys/time.h>\n#include <sys/re
   gdk_pixbuf_conf.set('HAVE_SETRLIMIT', 1)
 endif
 
+if cc.has_function('readlink', prefix: '#include <unistd.h>')
+  gdk_pixbuf_conf.set('HAVE_READLINK', 1)
+endif
+
 # We use links() because sigsetjmp() is often a macro hidden behind other macros
 gdk_pixbuf_conf.set('HAVE_SIGSETJMP',
   cc.links('''#define _POSIX_SOURCE
@@ -140,6 +145,7 @@ elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     '-Wno-int-conversion',
     '-Wno-uninitialized',
     '-Wno-discarded-qualifiers',
+    '-Werror=undef',
     '-Werror=implicit',
     '-Werror=nonnull',
     '-Werror=init-self',
@@ -154,6 +160,7 @@ elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     '-Werror=int-to-pointer-cast',
     '-Werror=pointer-to-int-cast',
     '-Werror=empty-body',
+    '-Werror=tautological-unsigned-zero-compare',
   ]
 
   # Ensure we have the correct bit packing on Windows
@@ -190,6 +197,9 @@ endif
 if host_machine.system() == 'darwin'
   gdk_pixbuf_conf.set('OS_DARWIN', 1)
 endif
+
+android_opt = get_option('android').disable_auto_if(host_system != 'android')
+jnigraphics_dep = cc.find_library('jnigraphics', required: android_opt)
 
 # On non-Windows/macOS/android systems we always required shared-mime-info and GIO
 # shared_mime_dep = []
@@ -237,8 +247,33 @@ else
 endif
 gdk_pixbuf_conf.set('USE_GMODULE', build_modules)
 
+# Loader dependencies
+enabled_loaders = []
+loaders_deps = []
+
+if jnigraphics_dep.found()
+  loaders_deps += jnigraphics_dep
+  enabled_loaders += 'android'
+endif
+
+glycin_opt = get_option('glycin').enable_auto_if(host_machine.system() == 'linux')
+if glycin_opt.disabled()
+  glycin_dep = disabler()
+else
+  glycin_dep = dependency('glycin-2', version: '>= 2.2.alpha.7', required: glycin_opt)
+endif
+
 # Check which loaders should be built into gdk-pixbuf
 builtin_loaders = get_option('builtin_loaders')
+if builtin_loaders.contains('default')
+  if glycin_dep.found()
+    builtin_loaders = ['glycin']
+  elif enabled_loaders.contains('android')
+    # android loaders are always builtin
+  else
+    builtin_loaders = ['png','jpeg']
+  endif
+endif
 
 # If 'all' is specified for builtin_loaders, build all
 # buildable loaders into gdk-pixbuf
@@ -250,11 +285,9 @@ elif builtin_loaders.contains('none')
 endif
 
 is_msvc_like = cc.get_argument_syntax() == 'msvc'
-# Loader dependencies
-enabled_loaders = []
-loaders_deps = []
 
-png_opt = get_option('png')
+png_opt = get_option('png').disable_auto_if(glycin_dep.found() or enabled_loaders.contains('android'))
+
 if not png_opt.disabled()
   png_dep = dependency(is_msvc_like ? 'png' : 'libpng', required: false)
 
@@ -275,7 +308,12 @@ if not png_opt.disabled()
   endif
 endif
 
-gif_opt = get_option('gif')
+if glycin_dep.found()
+  enabled_loaders += 'glycin'
+  loaders_deps += [ glycin_dep ]
+endif
+
+gif_opt = get_option('gif').disable_auto_if(glycin_dep.found() or enabled_loaders.contains('android'))
 if not gif_opt.disabled()
   enabled_loaders += 'gif'
 endif
@@ -292,6 +330,12 @@ if not others_opt.disabled()
     'qtif',
     'tga',
     'xbm',
+    'xpm',
+  ]
+endif
+
+if not get_option('legacy_xpm').disabled()
+  enabled_loaders += [
     'xpm',
   ]
 endif
@@ -313,7 +357,7 @@ if native_windows_loaders
 endif
 
 # Don't check and build the jpeg loader if native_windows_loaders is true
-jpeg_opt = get_option('jpeg')
+jpeg_opt = get_option('jpeg').disable_auto_if(glycin_dep.found() or enabled_loaders.contains('android'))
 if not jpeg_opt.disabled() and not native_windows_loaders
   jpeg_dep = dependency(is_msvc_like ? 'jpeg' : 'libjpeg', required: false)
 
@@ -344,7 +388,7 @@ if not jpeg_opt.disabled() and not native_windows_loaders
 endif
 
 # Don't check and build the tiff loader if native_windows_loaders is true
-tiff_opt = get_option('tiff')
+tiff_opt = get_option('tiff').disable_auto_if(glycin_dep.found())
 if not tiff_opt.disabled() and not native_windows_loaders
   # We currently don't have a fallback subproject, but this handles error
   # reporting if tiff_opt is enabled.
@@ -394,11 +438,15 @@ if not meson.is_cross_build()
   if get_option('tests')
     subdir('tests')
   endif
-  subdir('thumbnailer')
+  thumbnailer_opt = get_option('thumbnailer').disable_auto_if(glycin_dep.found())
+  if not thumbnailer_opt.disabled()
+    subdir('thumbnailer')
+  endif
+else
+  thumbnailer_opt = disabler()
 endif
 
 # Documentation
-build_docs = get_option('gtk_doc') or get_option('docs')
 subdir('docs')
 
 if not meson.is_cross_build()
@@ -413,22 +461,38 @@ if not meson.is_subproject()
   meson.add_dist_script('build-aux/dist.py')
 endif
 
-summary('Shared modules', build_modules, section: 'Loaders')
-summary('Enabled loaders', enabled_loaders, section: 'Loaders')
-summary('Builtin loaders', builtin_loaders, section: 'Loaders')
+summary({
+    'prefix': gdk_pixbuf_prefix,
+    'libdir': gdk_pixbuf_libdir,
+    'datadir': gdk_pixbuf_datadir,
+    'libexecdir': gdk_pixbuf_libdir,
+    'docdir': gdk_pixbuf_docsdir,
+  },
+  section: 'Directories',
+)
 
-summary('Debugging', get_option('debug'), section: 'Build')
-summary('Optimization', get_option('optimization'), section: 'Build')
-summary('GIO MIME sniffing', use_gio_mime, section: 'Build')
-summary('MediaLib', use_medialib, section: 'Build')
-summary('Introspection', build_gir, section: 'Build')
-summary('Documentation', build_docs, section: 'Build')
-summary('Manual pages', get_option('man'), section: 'Build')
-summary('Relocatable', relocatable, section: 'Build')
-summary('Build tests', get_option('tests'), section: 'Build')
-summary('Installed tests', get_option('installed_tests'), section: 'Build')
+summary({
+    'Shared modules': build_modules,
+    'Enabled loaders': enabled_loaders,
+    'Builtin loaders': builtin_loaders,
+    'Thumbnailer': not thumbnailer_opt.disabled(),
+  },
+  section: 'Loaders',
+  bool_yn: true,
+)
 
-summary('prefix', gdk_pixbuf_prefix, section: 'Directories')
-summary('libdir', gdk_pixbuf_libdir, section: 'Directories')
-summary('datadir', gdk_pixbuf_datadir, section: 'Directories')
-summary('libexecdir', gdk_pixbuf_libdir, section: 'Directories')
+summary({
+    'Debugging': get_option('debug'),
+    'Optimization': get_option('optimization'),
+    'GIO MIME sniffing': use_gio_mime,
+    'MediaLib': use_medialib,
+    'Introspection': build_gir,
+    'Documentation': build_docs,
+    'Manual pages': get_option('man'),
+    'Relocatable': relocatable,
+    'Build tests': get_option('tests'),
+    'Installed tests': get_option('installed_tests'),
+  },
+  section: 'Build',
+  bool_yn: true,
+)

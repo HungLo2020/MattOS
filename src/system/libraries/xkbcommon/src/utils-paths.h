@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include "config.h"
+
 #include <stdbool.h>
 
 #include "utils.h"
@@ -19,4 +21,4 @@
 #endif
 
 XKB_EXPORT_PRIVATE bool
-is_absolute(const char *path);
+is_absolute_path(const char *path);

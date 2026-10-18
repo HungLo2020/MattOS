@@ -50,8 +50,7 @@ GST_DEBUG_CATEGORY_STATIC (gst_nv_h264_encoder_debug);
 
 #define DOC_SINK_CAPS_COMM \
     "format = (string) { NV12, Y444, VUYA, RGBA, RGBx, BGRA, BGRx }, " \
-    "width = (int) [ 160, 4096 ], height = (int) [ 64, 4096 ], " \
-    "interlace-mode = (string) progressive"
+    "width = (int) [ 160, 4096 ], height = (int) [ 64, 4096 ]"
 
 #define DOC_SINK_CAPS \
     "video/x-raw(memory:CUDAMemory), " DOC_SINK_CAPS_COMM "; " \
@@ -130,6 +129,7 @@ enum
   PROP_AUD,
   PROP_CABAC,
   PROP_REPEAT_SEQUENCE_HEADER,
+  PROP_NUM_SLICES,
 };
 
 #define DEFAULT_PRESET            GST_NV_ENCODER_PRESET_DEFAULT
@@ -155,6 +155,7 @@ enum
 #define DEFAULT_CONST_QUALITY     0
 #define DEFAULT_AUD               TRUE
 #define DEFAULT_REPEAT_SEQUENCE_HEADER FALSE
+#define DEFAULT_NUM_SLICES        0
 
 typedef struct _GstNvH264Encoder
 {
@@ -214,6 +215,7 @@ typedef struct _GstNvH264Encoder
   gboolean aud;
   gboolean cabac;
   gboolean repeat_sequence_header;
+  guint num_slices;
 } GstNvH264Encoder;
 
 typedef struct _GstNvH264EncoderClass
@@ -262,6 +264,9 @@ static gboolean gst_nv_h264_encoder_select_device (GstNvEncoder * encoder,
     const GstVideoInfo * info, GstBuffer * buffer,
     GstNvEncoderDeviceData * data);
 static guint gst_nv_h264_encoder_calculate_min_buffers (GstNvEncoder * encoder);
+static NV_ENC_PIC_STRUCT
+gst_nv_h264_encoder_get_pic_struct (GstNvEncoder * encoder,
+    const GstVideoInfo * info, GstBuffer * buffer);
 
 static void
 gst_nv_h264_encoder_class_init (GstNvH264EncoderClass * klass, gpointer data)
@@ -601,6 +606,12 @@ gst_nv_h264_encoder_class_init (GstNvH264EncoderClass * klass, gpointer data)
       g_param_spec_boolean ("repeat-sequence-header", "Repeat Sequence Header",
           "Insert sequence headers (SPS/PPS) per IDR",
           DEFAULT_REPEAT_SEQUENCE_HEADER, param_flags));
+  if (dev_caps->dynamic_slice_mode) {
+    g_object_class_install_property (object_class, PROP_NUM_SLICES,
+        g_param_spec_uint ("num-slices", "Number of Slices",
+            "Number of slices per frame (0 = default, 1-32 = specific count)",
+            0, 32, DEFAULT_NUM_SLICES, conditional_param_flags));
+  }
 
   GstPadTemplate *pad_templ = gst_pad_template_new ("sink",
       GST_PAD_SINK, GST_PAD_ALWAYS, cdata->sink_caps);
@@ -660,6 +671,8 @@ gst_nv_h264_encoder_class_init (GstNvH264EncoderClass * klass, gpointer data)
       GST_DEBUG_FUNCPTR (gst_nv_h264_encoder_select_device);
   nvenc_class->calculate_min_buffers =
       GST_DEBUG_FUNCPTR (gst_nv_h264_encoder_calculate_min_buffers);
+  nvenc_class->get_pic_struct =
+      GST_DEBUG_FUNCPTR (gst_nv_h264_encoder_get_pic_struct);
 
   klass->device_caps = cdata->device_caps;
   klass->cuda_device_id = cdata->cuda_device_id;
@@ -721,6 +734,7 @@ gst_nv_h264_encoder_init (GstNvH264Encoder * self)
   if (klass->device_caps.cabac)
     self->cabac = TRUE;
   self->repeat_sequence_header = DEFAULT_REPEAT_SEQUENCE_HEADER;
+  self->num_slices = DEFAULT_NUM_SLICES;
 
   self->parser = gst_h264_nal_parser_new ();
   self->sei_array = g_array_new (FALSE, FALSE, sizeof (GstH264SEIMessage));
@@ -1010,6 +1024,9 @@ gst_nv_h264_encoder_set_property (GObject * object, guint prop_id,
       update_boolean (self,
           &self->repeat_sequence_header, value, UPDATE_INIT_PARAM);
       break;
+    case PROP_NUM_SLICES:
+      update_uint (self, &self->num_slices, value, UPDATE_INIT_PARAM);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1136,6 +1153,9 @@ gst_nv_h264_encoder_get_property (GObject * object, guint prop_id,
     case PROP_REPEAT_SEQUENCE_HEADER:
       g_value_set_boolean (value, self->repeat_sequence_header);
       break;
+    case PROP_NUM_SLICES:
+      g_value_set_uint (value, self->num_slices);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1203,14 +1223,12 @@ static GstCaps *
 gst_nv_h264_encoder_getcaps (GstVideoEncoder * encoder, GstCaps * filter)
 {
   GstNvH264Encoder *self = GST_NV_H264_ENCODER (encoder);
-  GstNvH264EncoderClass *klass = GST_NV_H264_ENCODER_GET_CLASS (self);
   GstCaps *allowed_caps;
   GstCaps *template_caps;
   GstCaps *filtered_caps;
   GstCaps *supported_caps;
   std::set < std::string > downstream_profiles;
   std::set < std::string > allowed_formats;
-  gboolean profile_support_interlaced = FALSE;
 
   gst_nv_h264_encoder_get_downstream_profiles_and_format (self,
       downstream_profiles, nullptr);
@@ -1223,11 +1241,7 @@ gst_nv_h264_encoder_getcaps (GstVideoEncoder * encoder, GstCaps * filter)
 
   /* *INDENT-OFF* */
   for (const auto &iter: downstream_profiles) {
-    if (iter == "high" || iter == "main")
-      profile_support_interlaced = TRUE;
-
     if (iter == "high-4:4:4") {
-      profile_support_interlaced = TRUE;
       allowed_formats.insert("Y444");
     } else {
       allowed_formats.insert("NV12");
@@ -1240,16 +1254,8 @@ gst_nv_h264_encoder_getcaps (GstVideoEncoder * encoder, GstCaps * filter)
   }
   /* *INDENT-ON* */
 
-  GST_DEBUG_OBJECT (self, "Downstream %s support interlaced format",
-      profile_support_interlaced ? "can" : "cannot");
-
   template_caps = gst_pad_get_pad_template_caps (encoder->sinkpad);
   allowed_caps = gst_caps_copy (template_caps);
-
-  if (klass->device_caps.field_encoding == 0 || !profile_support_interlaced) {
-    gst_caps_set_simple (allowed_caps, "interlace-mode", G_TYPE_STRING,
-        "progressive", nullptr);
-  }
 
   GValue formats = G_VALUE_INIT;
 
@@ -1328,19 +1334,6 @@ gst_nv_h264_encoder_set_format (GstNvEncoder * encoder,
   if (downstream_profiles.empty ()) {
     GST_ERROR_OBJECT (self, "Unable to get downstream profile");
     return FALSE;
-  }
-
-  if (GST_VIDEO_INFO_IS_INTERLACED (info)) {
-    downstream_profiles.erase ("progressive-high");
-    downstream_profiles.erase ("constrained-high");
-    downstream_profiles.erase ("constrained-baseline");
-    downstream_profiles.erase ("baseline");
-
-    if (downstream_profiles.empty ()) {
-      GST_ERROR_OBJECT (self,
-          "None of downstream profile supports interlaced encoding");
-      return FALSE;
-    }
   }
 
   if (GST_VIDEO_INFO_FORMAT (info) == GST_VIDEO_FORMAT_Y444) {
@@ -1654,6 +1647,11 @@ gst_nv_h264_encoder_set_format (GstNvEncoder * encoder,
       h264_config->entropyCodingMode = NV_ENC_H264_ENTROPY_CODING_MODE_CAVLC;
   } else {
     h264_config->entropyCodingMode = NV_ENC_H264_ENTROPY_CODING_MODE_AUTOSELECT;
+  }
+
+  if (dev_caps->dynamic_slice_mode && self->num_slices > 0) {
+    h264_config->sliceMode = 3;
+    h264_config->sliceModeData = self->num_slices;
   }
 
   GstVideoColorimetry cinfo;
@@ -2156,6 +2154,53 @@ gst_nv_h264_encoder_calculate_min_buffers (GstNvEncoder * encoder)
   return num_buffers;
 }
 
+static NV_ENC_PIC_STRUCT
+gst_nv_h264_encoder_get_pic_struct (GstNvEncoder * encoder,
+    const GstVideoInfo * info, GstBuffer * buffer)
+{
+  auto klass = GST_NV_H264_ENCODER_GET_CLASS (encoder);
+
+  /* Only use interlaced picture structures if field encoding is supported
+   * and the input is actually interlaced */
+  if (klass->device_caps.field_encoding == 0
+      || !GST_VIDEO_INFO_IS_INTERLACED (info)) {
+    GST_TRACE_OBJECT (encoder,
+        "Using progressive frame structure (field_encoding=%d, interlaced=%d)",
+        klass->device_caps.field_encoding, GST_VIDEO_INFO_IS_INTERLACED (info));
+    return NV_ENC_PIC_STRUCT_FRAME;
+  }
+
+  if (GST_VIDEO_INFO_INTERLACE_MODE (info) == GST_VIDEO_INTERLACE_MODE_MIXED) {
+    if (!GST_BUFFER_FLAG_IS_SET (buffer, GST_VIDEO_BUFFER_FLAG_INTERLACED)) {
+      return NV_ENC_PIC_STRUCT_FRAME;
+    }
+
+    if (GST_BUFFER_FLAG_IS_SET (buffer, GST_VIDEO_BUFFER_FLAG_TFF)) {
+      GST_TRACE_OBJECT (encoder, "Using interlaced TFF structure");
+      return NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM;
+    }
+
+    GST_TRACE_OBJECT (encoder, "Using interlaced BFF structure");
+    return NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP;
+  }
+
+  switch (GST_VIDEO_INFO_FIELD_ORDER (info)) {
+    case GST_VIDEO_FIELD_ORDER_TOP_FIELD_FIRST:
+      return NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM;
+      break;
+    case GST_VIDEO_FIELD_ORDER_BOTTOM_FIELD_FIRST:
+      return NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP;
+      break;
+    default:
+      break;
+  }
+
+  if (GST_BUFFER_FLAG_IS_SET (buffer, GST_VIDEO_BUFFER_FLAG_TFF))
+    return NV_ENC_PIC_STRUCT_FIELD_TOP_BOTTOM;
+
+  return NV_ENC_PIC_STRUCT_FIELD_BOTTOM_TOP;
+}
+
 static GstNvEncoderClassData *
 gst_nv_h264_encoder_create_class_data (GstObject * device, gpointer session,
     GstNvEncoderDeviceMode device_mode)
@@ -2306,13 +2351,6 @@ gst_nv_h264_encoder_create_class_data (GstObject * device, gpointer session,
 
   sink_caps_str = "video/x-raw, " + format_str + ", " + resolution_str;
 
-  if (dev_caps.field_encoding > 0) {
-    sink_caps_str +=
-        ", interlace-mode = (string) { progressive, interleaved, mixed }";
-  } else {
-    sink_caps_str += ", interlace-mode = (string) progressive";
-  }
-
   src_caps_str = "video/x-h264, " + resolution_str + ", " + profile_str +
       ", stream-format = (string) { byte-stream, avc }, alignment = (string) au";
 
@@ -2360,6 +2398,7 @@ gst_nv_h264_encoder_create_class_data (GstObject * device, gpointer session,
   cdata->src_caps = gst_caps_from_string (src_caps_str.c_str ());
   cdata->device_caps = dev_caps;
   cdata->device_mode = device_mode;
+  cdata->codec = cudaVideoCodec_H264;
 
   /* *INDENT-OFF* */
   for (const auto &iter: formats)
@@ -2389,8 +2428,7 @@ gst_nv_h264_encoder_create_class_data (GstObject * device, gpointer session,
 }
 
 GstNvEncoderClassData *
-gst_nv_h264_encoder_register_cuda (GstPlugin * plugin, GstCudaContext * context,
-    guint rank)
+gst_nv_h264_encoder_inspect (GstPlugin * plugin, GstCudaContext * context)
 {
   NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS session_params = { 0, };
   gpointer session;
@@ -2416,10 +2454,13 @@ gst_nv_h264_encoder_register_cuda (GstPlugin * plugin, GstCudaContext * context,
       GST_NV_ENCODER_DEVICE_CUDA);
   NvEncDestroyEncoder (session);
 
-  if (!cdata)
-    return nullptr;
+  return cdata;
+}
 
-  gst_nv_encoder_class_data_ref (cdata);
+GstNvEncoderClassData *
+gst_nv_h264_encoder_register (GstPlugin * plugin,
+    GstNvEncoderClassData * cdata, guint rank)
+{
 
   GType type;
   gchar *type_name;
@@ -2656,13 +2697,6 @@ gst_nv_h264_encoder_register_auto_select (GstPlugin * plugin,
 
   sink_caps_str = "video/x-raw, " + format_str + ", " + resolution_str;
 
-  if (dev_caps.field_encoding > 0) {
-    sink_caps_str +=
-        ", interlace-mode = (string) { progressive, interleaved, mixed }";
-  } else {
-    sink_caps_str += ", interlace-mode = (string) progressive";
-  }
-
   src_caps_str = "video/x-h264, " + resolution_str + ", " + profile_str +
       ", stream-format = (string) { byte-stream, avc }, alignment = (string) au";
 
@@ -2701,6 +2735,7 @@ gst_nv_h264_encoder_register_auto_select (GstPlugin * plugin,
   cdata->src_caps = gst_caps_from_string (src_caps_str.c_str ());
   cdata->device_caps = dev_caps;
   cdata->device_mode = GST_NV_ENCODER_DEVICE_AUTO_SELECT;
+  cdata->codec = cudaVideoCodec_H264;
   cdata->adapter_luid = adapter_luid_list[0];
   cdata->adapter_luid_size = adapter_luid_size;
   memcpy (&cdata->adapter_luid_list,

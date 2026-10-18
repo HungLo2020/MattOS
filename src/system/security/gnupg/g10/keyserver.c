@@ -99,6 +99,8 @@ static struct parse_options keyserver_opts[]=
      N_("automatically retrieve keys when verifying signatures")},
     {"honor-keyserver-url",KEYSERVER_HONOR_KEYSERVER_URL,NULL,
      N_("honor the preferred keyserver URL set on the key")},
+    {"update-before-send", KEYSERVER_UPDATE_BEFORE_SEND,NULL,
+     N_("update a key before sending it")},
     {NULL,0,NULL,NULL}
   };
 
@@ -107,7 +109,8 @@ static gpg_error_t keyserver_get (ctrl_t ctrl,
                                   struct keyserver_spec *override_keyserver,
                                   unsigned int flags,
                                   unsigned char **r_fpr, size_t *r_fprlen);
-static gpg_error_t keyserver_put (ctrl_t ctrl, strlist_t keyspecs);
+static gpg_error_t keyserver_put (ctrl_t ctrl, strlist_t keyspecs,
+                                  int assume_new_key);
 
 
 /* Reasonable guess.  The commonly used test key simon.josefsson.org
@@ -790,8 +793,11 @@ search_line_handler (void *opaque, int special, char *line)
 
 
 
-int
-keyserver_export (ctrl_t ctrl, strlist_t users)
+/* Send all keys specified by USERS to the configured keyserver.  If
+ * ASSUME_NEW_KEY is true the KEYSERVER_UPDATE_BEFORE_SEND option will
+ * be ignored. */
+gpg_error_t
+keyserver_export (ctrl_t ctrl, strlist_t users, int assume_new_key)
 {
   gpg_error_t err;
   strlist_t sl=NULL;
@@ -815,12 +821,33 @@ keyserver_export (ctrl_t ctrl, strlist_t users)
 
   if(sl)
     {
-      rc = keyserver_put (ctrl, sl);
+      rc = keyserver_put (ctrl, sl, assume_new_key);
       free_strlist(sl);
     }
 
   return rc;
 }
+
+
+/* Send the public key specified by PK to the configured keyserver.
+ * If ASSUME_NEW_KEY is true the KEYSERVER_UPDATE_BEFORE_SEND option
+ * will be ignored. */
+gpg_error_t
+keyserver_export_pubkey (ctrl_t ctrl, PKT_public_key *pk, int assume_new_key)
+{
+  gpg_error_t err;
+  strlist_t keyspec = NULL;
+  char fpr[2*MAX_FINGERPRINT_LEN+1];
+
+  hexfingerprint (pk, fpr, sizeof fpr);
+  add_to_strlist (&keyspec, fpr);
+  err = keyserver_put (ctrl, keyspec, assume_new_key);
+  free_strlist (keyspec);
+
+  return err;
+}
+
+
 
 
 /* Structure to convey the arg to keyserver_retrieval_screener.  */
@@ -898,23 +925,31 @@ keyserver_retrieval_screener (kbnode_t keyblock, void *opaque)
 }
 
 
-int
-keyserver_import (ctrl_t ctrl, strlist_t users)
+/* Given a list of patterns in USERS, try to import those keys from
+ * the configured keyserver.  */
+gpg_error_t
+keyserver_import (ctrl_t ctrl, strlist_t users, unsigned int flags)
 {
-  gpg_error_t err;
+  gpg_error_t tmperr;
+  gpg_error_t err = 0;
   KEYDB_SEARCH_DESC *desc;
   int num=100,count=0;
-  int rc=0;
 
   /* Build a list of key ids */
-  desc=xmalloc(sizeof(KEYDB_SEARCH_DESC)*num);
+  desc = xmalloc (sizeof(KEYDB_SEARCH_DESC)*num);
 
   for(;users;users=users->next)
     {
-      err = classify_user_id (users->d, &desc[count], 1);
-      if (err || (desc[count].mode    != KEYDB_SEARCH_MODE_SHORT_KID
-                  && desc[count].mode != KEYDB_SEARCH_MODE_LONG_KID
-                  && desc[count].mode != KEYDB_SEARCH_MODE_FPR))
+      tmperr = classify_user_id (users->d, &desc[count], 1);
+      if (!tmperr && (flags & KEYSERVER_IMPORT_FLAG_ONLYFPR)
+          && desc[count].mode != KEYDB_SEARCH_MODE_FPR)
+        {
+	  log_info (_("\"%s\" not a fingerprint: skipping\n"), users->d);
+          continue;
+        }
+      if (tmperr || (desc[count].mode    != KEYDB_SEARCH_MODE_SHORT_KID
+                     && desc[count].mode != KEYDB_SEARCH_MODE_LONG_KID
+                     && desc[count].mode != KEYDB_SEARCH_MODE_FPR))
 	{
 	  log_error (_("\"%s\" not a key ID: skipping\n"), users->d);
 	  continue;
@@ -928,12 +963,12 @@ keyserver_import (ctrl_t ctrl, strlist_t users)
 	}
     }
 
-  if(count>0)
-    rc = keyserver_get (ctrl, desc, count, NULL, 0, NULL, NULL);
+  if (count > 0)
+    err = keyserver_get (ctrl, desc, count, NULL, flags, NULL, NULL);
 
-  xfree(desc);
+  xfree (desc);
 
-  return rc;
+  return err;
 }
 
 
@@ -976,34 +1011,32 @@ keyserver_import_ntds (ctrl_t ctrl, const char *mbox,
 
 
 int
-keyserver_import_fprint (ctrl_t ctrl, const byte *fprint, size_t fprint_len,
-			 struct keyserver_spec *keyserver,
-                         unsigned int flags)
+keyserver_import_fpr (ctrl_t ctrl, const byte *fpr, size_t fprlen,
+		      struct keyserver_spec *keyserver, unsigned int flags)
 {
   KEYDB_SEARCH_DESC desc;
 
   memset (&desc, 0, sizeof(desc));
 
-  if (fprint_len == 16 || fprint_len == 20 || fprint_len == 32)
+  if (fprlen == 16 || fprlen == 20 || fprlen == 32)
     desc.mode = KEYDB_SEARCH_MODE_FPR;
   else
     return gpg_error (GPG_ERR_INV_ARG);
 
-  memcpy (desc.u.fpr, fprint, fprint_len);
-  desc.fprlen = fprint_len;
+  memcpy (desc.u.fpr, fpr, fprlen);
+  desc.fprlen = fprlen;
 
   return keyserver_get (ctrl, &desc, 1, keyserver, flags, NULL, NULL);
 }
 
 
 int
-keyserver_import_fprint_ntds (ctrl_t ctrl,
-                              const byte *fprint, size_t fprint_len)
+keyserver_import_fpr_ntds (ctrl_t ctrl, const byte *fpr, size_t fprlen)
 {
   struct keyserver_spec keyserver = { NULL, "ldap:///" };
 
-  return keyserver_import_fprint (ctrl, fprint, fprint_len,
-                                  &keyserver, KEYSERVER_IMPORT_FLAG_LDAP);
+  return keyserver_import_fpr (ctrl, fpr, fprlen,
+                               &keyserver, KEYSERVER_IMPORT_FLAG_LDAP);
 }
 
 
@@ -1519,7 +1552,11 @@ keyserver_get_chunk (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
          keyservers. */
 
       /* For LDAP servers we reset IMPORT_SELF_SIGS_ONLY and
-       * IMPORT_CLEAN unless they have been set explicitly.  */
+       * IMPORT_CLEAN unless they have been set explicitly.  We
+       * forcible clear them if that has been requested and also set
+       * the MERGE_ONLY option so that a --send-key can't be tricked
+       * into importing a key by means of the update-before-send
+       * keyserver option.  */
       options = (opt.keyserver_options.import_options | IMPORT_ONLY_PUBKEYS);
       if (source && (!strncmp (source, "ldap:", 5)
                      || !strncmp (source, "ldaps:", 6)))
@@ -1528,6 +1565,11 @@ keyserver_get_chunk (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
             options &= ~IMPORT_SELF_SIGS_ONLY;
           if (!opt.flags.expl_import_clean)
             options &= ~IMPORT_CLEAN;
+        }
+      if ((flags & KEYSERVER_IMPORT_FLAG_UPDSEND))
+        {
+          options &= ~(IMPORT_SELF_SIGS_ONLY | IMPORT_CLEAN);
+          options |= IMPORT_MERGE_ONLY;
         }
 
       screenerarg.desc = desc;
@@ -1570,6 +1612,15 @@ keyserver_get (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
                                  override_keyserver, flags, r_fpr, r_fprlen);
       if (!err)
         any_good = 1;
+      if (gpg_err_code (err) == GPG_ERR_NO_DATA)
+        {
+          /* That error is returned by dirmngr from its own loop.  We
+           * clear the error if more descriptions are available so
+           * that the next chunk gets retrieved.  In the other case
+           * the error will cause the termination of the loop.  */
+          if (ndesc_used < ndesc)
+            err = 0;
+        }
       if (err || ndesc_used >= ndesc)
         break; /* Error or all processed.  */
       /* Prepare for the next chunk.  */
@@ -1577,7 +1628,7 @@ keyserver_get (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
       ndesc -= ndesc_used;
     }
 
-  if (any_good)
+  if (any_good && !(flags & KEYSERVER_IMPORT_FLAG_SILENT))
     import_print_stats (stats_handle);
 
   import_release_stats_handle (stats_handle);
@@ -1585,24 +1636,62 @@ keyserver_get (ctrl_t ctrl, KEYDB_SEARCH_DESC *desc, int ndesc,
 }
 
 
-/* Send all keys specified by KEYSPECS to the configured keyserver.  */
+/* Send all keys specified by KEYSPECS to the configured keyserver.
+ * If ASSUME_NEW_KEY is true the KEYSERVER_UPDATE_BEFORE_SEND option
+ * will be ignored.  */
 static gpg_error_t
-keyserver_put (ctrl_t ctrl, strlist_t keyspecs)
-
+keyserver_put (ctrl_t ctrl, strlist_t keyspecs, int assume_new_key)
 {
   gpg_error_t err;
   strlist_t kspec;
   char *ksurl;
+  int warn_only = !!(opt.keyserver_options.options & KEYSERVER_WARN_ONLY);
+  int loglvl = warn_only? GPGRT_LOGLVL_INFO : GPGRT_LOGLVL_ERROR;
 
   if (!keyspecs)
     return 0;  /* Return success if the list is empty.  */
 
+  /* Get the name of the used keyservers.  */
   if (gpg_dirmngr_ks_list (ctrl, &ksurl))
     {
-      log_error (_("no keyserver known\n"));
+      gpgrt_log (loglvl, _("no keyserver known\n"));
       return gpg_error (GPG_ERR_NO_KEYSERVER);
     }
 
+  /* Check the LDAP only flag  */
+  if ((opt.keyserver_options.options & KEYSERVER_LDAP_ONLY)
+      && !(ksurl && (!strncmp (ksurl, "ldap:", 5)
+                     || !strncmp (ksurl, "ldaps:", 6))))
+    {
+      if (opt.verbose)
+        log_info (_("upload skipped due to non-LDAP keyserver\n"));
+      err = 0;
+      goto leave;
+    }
+
+  /* If the option is active, we first try to import the keys given by
+   * fingerprint from the keyserver.  For example, if some PKI server
+   * has signed a key and the user has not yet imported that updated
+   * key, an upload would overwrite that key signature.  This is only
+   * relevant for LDAP servers but not for the legacy HKP servers.  */
+  if ((opt.keyserver_options.options & KEYSERVER_UPDATE_BEFORE_SEND)
+      && !assume_new_key
+      && ksurl && (!strncmp (ksurl, "ldap:", 5)
+                   || !strncmp (ksurl, "ldaps:", 6)))
+    {
+      err = keyserver_import (ctrl, keyspecs, (KEYSERVER_IMPORT_FLAG_UPDSEND
+                                               | KEYSERVER_IMPORT_FLAG_ONLYFPR
+                                               | KEYSERVER_IMPORT_FLAG_SILENT));
+      if (err)
+        {
+          if (opt.verbose && gpg_err_code (err) != GPG_ERR_NO_DATA)
+            log_info (_("keyserver receive failed: %s\n"),
+                      gpg_strerror (err));
+          err = 0;
+        }
+    }
+
+  /* Send key after key to the keyserver.  */
   for (kspec = keyspecs; kspec; kspec = kspec->next)
     {
       void *data;
@@ -1610,11 +1699,13 @@ keyserver_put (ctrl_t ctrl, strlist_t keyspecs)
       kbnode_t keyblock;
 
       err = export_pubkey_buffer (ctrl, kspec->d,
-                                  opt.keyserver_options.export_options,
+                                  (opt.keyserver_options.export_options
+                                   | EXPORT_NO_STATUS),
                                   NULL, 0, NULL,
                                   &keyblock, &data, &datalen);
       if (err)
-        log_error (_("skipped \"%s\": %s\n"), kspec->d, gpg_strerror (err));
+        gpgrt_log (loglvl, _("skipped \"%s\": %s\n"),
+                   kspec->d, gpg_strerror (err));
       else
         {
           if (!opt.quiet)
@@ -1623,18 +1714,24 @@ keyserver_put (ctrl_t ctrl, strlist_t keyspecs)
                       ksurl?ksurl:"[?]");
 
           err = gpg_dirmngr_ks_put (ctrl, data, datalen, keyblock);
-          release_kbnode (keyblock);
           xfree (data);
           if (err)
             {
-              write_status_error ("keyserver_send", err);
-              log_error (_("keyserver send failed: %s\n"), gpg_strerror (err));
+              if (warn_only)
+                write_status_warning ("keyserver_send", err);
+              else
+                write_status_error ("keyserver_send", err);
+              gpgrt_log (loglvl, _("keyserver send failed: %s\n"),
+                         gpg_strerror (err));
             }
+          else /* On success print a status line.  */
+            print_status_exported (keyblock->pkt->pkt.public_key);
+          release_kbnode (keyblock);
         }
     }
 
+ leave:
   xfree (ksurl);
-
   return err;
 
 }
@@ -1779,7 +1876,7 @@ keyserver_import_cert (ctrl_t ctrl, const char *name, int dane_mode,
 	  spec = parse_keyserver_uri (url, 1);
 	  if(spec)
 	    {
-	      err = keyserver_import_fprint (ctrl, *fpr, *fpr_len, spec, 0);
+	      err = keyserver_import_fpr (ctrl, *fpr, *fpr_len, spec, 0);
 	      free_keyserver_spec(spec);
 	    }
 	}
@@ -1788,8 +1885,7 @@ keyserver_import_cert (ctrl_t ctrl, const char *name, int dane_mode,
 	  /* If only a fingerprint is provided, try and fetch it from
 	     the configured keyserver. */
 
-	  err = keyserver_import_fprint (ctrl,
-                                         *fpr, *fpr_len, opt.keyserver, 0);
+	  err = keyserver_import_fpr (ctrl, *fpr, *fpr_len, opt.keyserver, 0);
 	}
       else
 	log_info(_("no keyserver known\n"));

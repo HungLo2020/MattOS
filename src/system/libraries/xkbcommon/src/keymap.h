@@ -20,27 +20,33 @@
  /* Don't use compat names in internal code. */
 #define _XKBCOMMON_COMPAT_H
 
+#include "config.h"
+
+#include <limits.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "xkbcommon/xkbcommon.h"
 
-#include "utils.h"
+#include "darray.h"
+#include "rmlvo.h"
 #include "context.h"
+#include "utils.h"
 
-/* This limit is artificially enforced, we do not depend on it any where.
- * The reason it's still here is that the rules file format does not
- * support multiple groups very well, and the rules shipped with
- * xkeyboard-config (see rules/evdev) depend on this limit extensively.
- * So just lifting this limit would cause problems for people who will use
- * more than 4 layouts.
- * TODO: Fix the group index syntax in the rules format, preferably in a
- *       backwards compatible way.
- *       See e.g. https://bugs.freedesktop.org/show_bug.cgi?id=14372
- * Note: A limit on the number of groups we *do* depend on is imposed by
- * the size of the xkb_layout_mask_t type (32). This is more than enough
- * though.
- */
-#define XKB_MAX_GROUPS 4
+/* Note: imposed by the size of the xkb_layout_mask_t type (32).
+ * This is more than enough though. */
+#define XKB_MAX_GROUPS 32
+#define XKB_ALL_GROUPS ((UINT64_C(1) << XKB_MAX_GROUPS) - UINT64_C(1))
+/* Limit imposed by X11 */
+#define XKB_MAX_GROUPS_X11 4
+
+static inline xkb_layout_index_t
+format_max_groups(enum xkb_keymap_format format)
+{
+    return (format == XKB_KEYMAP_FORMAT_TEXT_V1)
+        ? XKB_MAX_GROUPS_X11
+        : XKB_MAX_GROUPS;
+}
 
 /* Don't allow more modifiers than we can hold in xkb_mod_mask_t. */
 #define XKB_MAX_MODS ((xkb_mod_index_t) (sizeof(xkb_mod_mask_t) * CHAR_BIT))
@@ -77,6 +83,7 @@ static_assert(_XKB_MOD_INDEX_NUM_ENTRIES == 8, "Invalid X11 core modifiers");
 
 enum xkb_action_type {
     ACTION_TYPE_NONE = 0,
+    ACTION_TYPE_VOID, /* libxkbcommon extension */
     ACTION_TYPE_MOD_SET,
     ACTION_TYPE_MOD_LATCH,
     ACTION_TYPE_MOD_LOCK,
@@ -91,7 +98,9 @@ enum xkb_action_type {
     ACTION_TYPE_SWITCH_VT,
     ACTION_TYPE_CTRL_SET,
     ACTION_TYPE_CTRL_LOCK,
+    ACTION_TYPE_UNSUPPORTED_LEGACY,
     ACTION_TYPE_PRIVATE,
+    ACTION_TYPE_INTERNAL, /* Action specific and internal to xkbcommon */
     _ACTION_TYPE_NUM_ENTRIES
 };
 
@@ -106,6 +115,9 @@ enum xkb_action_flags {
     ACTION_ABSOLUTE_Y = (1 << 7),
     ACTION_ACCEL = (1 << 8),
     ACTION_SAME_SCREEN = (1 << 9),
+    ACTION_LOCK_ON_RELEASE = (1 << 10),
+    ACTION_UNLOCK_ON_PRESS = (1 << 11),
+    ACTION_LATCH_ON_PRESS = (1 << 12),
 };
 
 enum xkb_action_controls {
@@ -189,6 +201,21 @@ struct xkb_private_action {
     uint8_t data[7];
 };
 
+enum xkb_internal_action_flags {
+    INTERNAL_BREAKS_GROUP_LATCH = (1 << 0),
+    INTERNAL_BREAKS_MOD_LATCH = (1 << 1),
+};
+
+/* Action specific and internal to xkbcommon */
+struct xkb_internal_action {
+    enum xkb_action_type type;
+    enum xkb_internal_action_flags flags;
+    union {
+        /* flag == INTERNAL_BREAKS_MOD_LATCH */
+        xkb_mod_mask_t clear_latched_mods;
+    };
+};
+
 union xkb_action {
     enum xkb_action_type type;
     struct xkb_mod_action mods;
@@ -199,6 +226,7 @@ union xkb_action {
     struct xkb_pointer_action ptr;
     struct xkb_pointer_button_action btn;
     struct xkb_private_action priv;
+    struct xkb_internal_action internal;
 };
 
 struct xkb_key_type_entry {
@@ -210,10 +238,11 @@ struct xkb_key_type_entry {
 struct xkb_key_type {
     xkb_atom_t name;
     struct xkb_mods mods;
+    bool required;
     xkb_level_index_t num_levels;
-    unsigned int num_level_names;
+    xkb_level_index_t num_level_names;
     xkb_atom_t *level_names;
-    unsigned int num_entries;
+    darray_size_t num_entries;
     struct xkb_key_type_entry *entries;
 };
 
@@ -226,7 +255,8 @@ struct xkb_sym_interpret {
     xkb_mod_mask_t mods;
     xkb_mod_index_t virtual_mod;
     bool level_one_only;
-    bool repeat;
+    bool repeat:1;
+    bool required:1;
     xkb_action_count_t num_actions;
     union {
         /* num_actions <= 1 */
@@ -361,23 +391,27 @@ struct xkb_mod {
 
 struct xkb_mod_set {
     struct xkb_mod mods[XKB_MAX_MODS];
-    unsigned int num_mods;
+    xkb_mod_index_t num_mods;
     xkb_mod_mask_t explicit_vmods;
 };
 
 /*
- * Our current implementation with continuous arrays does not allow efficient
- * mapping of keycodes. Allowing the API max valid keycode XKB_KEYCODE_MAX could
- * result in memory exhaustion or memory waste (sparse arrays) with huge enough
- * valid values. Let’s be more conservative for now, based on the existing Linux
- * keycodes.
+ * Implementation with continuous arrays does not allow efficient mapping of
+ * sparse keycodes. Indeed, allowing the API max valid keycode XKB_KEYCODE_MAX
+ * could result in memory exhaustion or memory waste (sparse arrays) with huge
+ * enough valid values. However usual keycodes form a contiguous range with a
+ * that maximum that rarely exceeds 1000. In order to handle the whole keycode
+ * range, we define a threshold for the continuous array storage, above which we
+ * use a more space-efficient storage for sparse arrays.
+ *
+ * The current limit is arbitrary and serves as a minimal security.
  */
-#define XKB_KEYCODE_MAX_IMPL 0xfff
-static_assert(XKB_KEYCODE_MAX_IMPL < XKB_KEYCODE_MAX,
+#define XKB_KEYCODE_MAX_CONTIGUOUS 0xfff
+static_assert(XKB_KEYCODE_MAX_CONTIGUOUS < XKB_KEYCODE_MAX,
               "Valid keycodes");
-static_assert(XKB_KEYCODE_MAX_IMPL < darray_max_alloc(sizeof(xkb_atom_t)),
+static_assert(XKB_KEYCODE_MAX_CONTIGUOUS < darray_max_alloc(sizeof(xkb_atom_t)),
               "Max keycodes names");
-static_assert(XKB_KEYCODE_MAX_IMPL < darray_max_alloc(sizeof(struct xkb_key)),
+static_assert(XKB_KEYCODE_MAX_CONTIGUOUS < darray_max_alloc(sizeof(struct xkb_key)),
               "Max keymap keys");
 
 /*
@@ -395,6 +429,45 @@ static_assert(XKB_LEVEL_MAX_IMPL < darray_max_alloc(sizeof(xkb_atom_t)),
 static_assert(XKB_LEVEL_MAX_IMPL < darray_max_alloc(sizeof(struct xkb_level)),
               "Max keys levels");
 
+static_assert((1LLU << (DARRAY_SIZE_T_WIDTH - 3)) - 1 >=
+              XKB_KEYCODE_MAX_CONTIGUOUS,
+              "Cannot store low keycodes");
+
+/** Keycode store lookup result */
+typedef union {
+    struct {
+        /** If true, the index is valid */
+        bool found:1;
+        bool:1;
+        /** Whether the corresponding entry is an alias */
+        bool is_alias:1;
+        darray_size_t:(DARRAY_SIZE_T_WIDTH - 3);
+    };
+    /* Only if is_alias = false, for better semantics */
+    struct {
+        bool found:1;
+        /**
+         * Whether the corresponding entry is stored in the low or high table
+         * of the keycode store
+         */
+        bool low:1;
+        bool is_alias:1;
+        /**
+         * - xkb_keycodes: index of the entry in the keycode store
+         * - xkb_symbols: index of the entry in xkb_keymap::keys array
+         */
+        darray_size_t index:(DARRAY_SIZE_T_WIDTH - 3);
+    } key;
+    /* Only if is_alias = true, for better semantics */
+    struct {
+        bool found:1;
+        bool:1;
+        bool is_alias:1;
+        /** Real name of the target key */
+        xkb_atom_t real:(DARRAY_SIZE_T_WIDTH - 3);
+    } alias;
+} KeycodeMatch;
+
 /* Common keyboard description structure */
 struct xkb_keymap {
     struct xkb_context *ctx;
@@ -407,19 +480,84 @@ struct xkb_keymap {
 
     xkb_keycode_t min_key_code;
     xkb_keycode_t max_key_code;
+    xkb_keycode_t num_keys;
+    /*
+     * Keys are divided into 2 ordered (possibly empty) lists:
+     *
+     *   Low keycodes (≤ XKB_KEYCODE_MAX_CONTIGUOUS)
+     *     Stored contiguously at indexes [0..num_keys_low).
+     *     Fast O(1) access.
+     *   High keycodes (> XKB_KEYCODE_MAX_CONTIGUOUS)
+     *     Stored noncontiguously at indexes [num_keys_low..num_keys).
+     *     Slow access via a binary search.
+     */
+    xkb_keycode_t num_keys_low;
     struct xkb_key *keys;
 
-    /* aliases in no particular order */
-    unsigned int num_key_aliases;
-    struct xkb_key_alias *key_aliases;
+    union {
+        /**
+         * Keycode name atom -> key index lookup table
+         *
+         * ⚠️ Used only *during* compilation
+         *
+         * Given that:
+         * - the number of atoms is usually < 1k;
+         * - the keycode section usually appears first;
+         * then the first atoms will be mostly the keycodes and their aliases,
+         * so we can achieve O(1) lookup of the key names by using a simple array.
+         */
+        struct {
+            darray_size_t num_key_names;
+            KeycodeMatch *key_names;
+        };
+        /**
+         * Aliases in no particular order
+         *
+         * ⚠️ Used only *after* compilation
+         */
+        struct {
+            darray_size_t num_key_aliases;
+            struct xkb_key_alias *key_aliases;
+        };
+    };
 
     struct xkb_key_type *types;
-    unsigned int num_types;
+    darray_size_t num_types;
 
-    unsigned int num_sym_interprets;
+    darray_size_t num_sym_interprets;
     struct xkb_sym_interpret *sym_interprets;
 
+    /**
+     * Modifiers configuration.
+     * This is *internal* to the keymap; other implementations may use different
+     * virtual modifiers indices. Ours depends on:
+     *   1. the order of the parsing of the keymap components;
+     *   2. the order of the virtual modifiers declarations;
+     */
     struct xkb_mod_set mods;
+    /**
+     * Modifier mask of the *canonical* state, i.e. the mask with the *smallest*
+     * population count that denotes all bits used to encode the modifiers in
+     * the keyboard state. It is equal to the bitwise OR of *real* modifiers and
+     * all *virtual* modifiers mappings.
+     *
+     * [WARNING] The bits that do not correspond to *real* modifiers should
+     * *not* be interpreted as corresponding to indices of virtual modifiers of
+     * the keymap. Indeed, one may use explicit vmod mapping with an arbitrary
+     * value.
+     *
+     * E.g. if M1 is the only vmod and it is defined by:
+     *
+     *     virtual_modifiers M1=0x80000000; // 1 << (32 - 1)
+     *
+     * then the 32th bit of a modifier mask input does *not* denote the 32th
+     * virtual modifier of the keymap, but merely the encoding of the mapping of
+     * M1.
+     *
+     * In the API, any input mask should be preprocessed to resolve the bits
+     * that do not match the canonical mask.
+     */
+    xkb_mod_mask_t canonical_state_mask;
 
     /* This field has 2 uses:
      * • During parsing: Expected layouts count after RMLVO resolution, if any;
@@ -430,7 +568,7 @@ struct xkb_keymap {
     xkb_atom_t *group_names;
 
     struct xkb_led leds[XKB_MAX_LEDS];
-    unsigned int num_leds;
+    xkb_led_index_t num_leds;
 
     char *keycodes_section_name;
     char *symbols_section_name;
@@ -439,8 +577,15 @@ struct xkb_keymap {
 };
 
 #define xkb_keys_foreach(iter, keymap) \
-    for ((iter) = (keymap)->keys + (keymap)->min_key_code; \
-         (iter) <= (keymap)->keys + (keymap)->max_key_code; \
+    /*
+     * Start at the first defined low or high keycode:
+     * - if there are some low keycodes, the index is min_key_code, because we
+     *   skip the previous undefined keycodes;
+     * - else the first item is the first high keycode.
+     */ \
+    for ((iter) = (keymap)->keys + \
+                  ((keymap)->num_keys_low == 0 ? 0 : (keymap)->min_key_code); \
+         (iter) < (keymap)->keys + (keymap)->num_keys; \
          (iter)++)
 
 #define xkb_mods_foreach(iter, mods_) \
@@ -489,9 +634,29 @@ clear_level(struct xkb_level *leveli);
 static inline const struct xkb_key *
 XkbKey(struct xkb_keymap *keymap, xkb_keycode_t kc)
 {
-    if (kc < keymap->min_key_code || kc > keymap->max_key_code)
+    if (kc < keymap->min_key_code || kc > keymap->max_key_code) {
+        /* Unsupported keycode */
         return NULL;
-    return &keymap->keys[kc];
+    } else if (kc < keymap->num_keys_low) {
+        /* Low keycodes */
+        return &keymap->keys[kc];
+    } else {
+        /* High keycodes: use binary search */
+        xkb_keycode_t lower = keymap->num_keys_low;
+        xkb_keycode_t upper = keymap->num_keys;
+        while (lower < upper) {
+            const xkb_keycode_t mid = lower + (upper - 1 - lower) / 2;
+            const struct xkb_key * const key = &keymap->keys[mid];
+            if (key->keycode < kc) {
+                lower = mid + 1;
+            } else if (key->keycode > kc) {
+                upper = mid;
+            } else {
+                return key;
+            }
+        }
+        return NULL;
+    }
 }
 
 static inline xkb_level_index_t
@@ -518,12 +683,6 @@ xkb_keymap_new(struct xkb_context *ctx,
                enum xkb_keymap_format format,
                enum xkb_keymap_compile_flags flags);
 
-struct xkb_key *
-XkbKeyByName(struct xkb_keymap *keymap, xkb_atom_t name, bool use_aliases);
-
-xkb_atom_t
-XkbResolveKeyAlias(const struct xkb_keymap *keymap, xkb_atom_t name);
-
 void
 XkbEscapeMapName(char *name);
 
@@ -546,27 +705,31 @@ XkbWrapGroupIntoRange(int32_t group,
                       enum xkb_range_exceed_type out_of_range_group_action,
                       xkb_layout_index_t out_of_range_group_number);
 
-xkb_mod_mask_t
+XKB_EXPORT_PRIVATE xkb_mod_mask_t
 mod_mask_get_effective(struct xkb_keymap *keymap, xkb_mod_mask_t mods);
 
 struct xkb_level *
 xkb_keymap_key_get_level(struct xkb_keymap *keymap, const struct xkb_key *key,
                          xkb_layout_index_t layout, xkb_level_index_t level);
 
-unsigned int
+xkb_action_count_t
 xkb_keymap_key_get_actions_by_level(struct xkb_keymap *keymap,
-                                    xkb_keycode_t kc,
+                                    const struct xkb_key *key,
                                     xkb_layout_index_t layout,
                                     xkb_level_index_t level,
                                     const union xkb_action **actions);
 
 struct xkb_keymap_format_ops {
+    bool (*keymap_new_from_rmlvo)(struct xkb_keymap *keymap,
+                                  const struct xkb_rmlvo_builder *rmlvo);
     bool (*keymap_new_from_names)(struct xkb_keymap *keymap,
                                   const struct xkb_rule_names *names);
     bool (*keymap_new_from_string)(struct xkb_keymap *keymap,
                                    const char *string, size_t length);
     bool (*keymap_new_from_file)(struct xkb_keymap *keymap, FILE *file);
-    char *(*keymap_get_as_string)(struct xkb_keymap *keymap);
+    char *(*keymap_get_as_string)(struct xkb_keymap *keymap,
+                                  enum xkb_keymap_format format,
+                                  enum xkb_keymap_serialize_flags flags);
 };
 
 extern const struct xkb_keymap_format_ops text_v1_keymap_format_ops;

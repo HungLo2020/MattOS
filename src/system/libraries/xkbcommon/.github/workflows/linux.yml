@@ -2,9 +2,13 @@ name: linux
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
+      - 'releases/**'
   pull_request:
-    branches: [ master ]
+    branches:
+      - master
+      - 'releases/**'
 
 # Set permissions at the job level.
 permissions: {}
@@ -22,7 +26,7 @@ jobs:
           - compiler: clang
             sanitizers: sanitizers
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -50,10 +54,18 @@ jobs:
           git clone --depth=1 https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config.git
           pushd "xkeyboard-config"
           BUILDDIR=build
+          # xkeyboard-config 2.45+ uses symlinks for legacy unversioned files,
+          # but meson cannot overwrite < 2.45 which used regular files and directories.
+          rm /usr/share/pkgconfig/xkeyboard-config.pc
+          rm -r /usr/share/X11/xkb
           meson setup $BUILDDIR -Dprefix=/usr
           meson install -C $BUILDDIR
           popd
           popd
+      - name: Create custom locale for testing
+        run: |
+          # The locale name must be kept in sync with the Compose test
+          sudo localedef -i en_US -f UTF-8 xx_YY.UTF-8
       - name: Setup
         run: |
           # -gdwarf-4 - see https://github.com/llvm/llvm-project/issues/56550.

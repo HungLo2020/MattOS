@@ -1052,7 +1052,7 @@ _validate_sink_information (GstValidateScenario * scenario)
       all_sinks_ready = FALSE;
     else if (sink_info->segment.format == GST_FORMAT_TIME) {
       /* Are we in the middle of switching segments (from the current
-       * one, or to the next week) ? */
+       * one, or to the next seek) ? */
       if (sink_info->segment_seqnum == scenario->priv->current_seqnum ||
           sink_info->segment_seqnum == next_seqnum)
         transitioning = TRUE;
@@ -2436,7 +2436,7 @@ _execute_set_rank_or_disable_feature (GstValidateScenario * scenario,
   GstPluginFeature *feature;
   const gchar *name;
   gboolean removing_feature =
-      gst_structure_has_name (action->structure, "remove-plugin-feature");
+      gst_structure_has_name (action->structure, "remove-feature");
   GstRegistry *registry = gst_registry_get ();
 
   REPORT_UNLESS (
@@ -2444,7 +2444,7 @@ _execute_set_rank_or_disable_feature (GstValidateScenario * scenario,
       (name = gst_structure_get_string (action->structure, "name")), done,
       "Could not find the name of the plugin/feature(s) to tweak");
 
-  if (removing_feature)
+  if (!removing_feature)
     REPORT_UNLESS (
         (gst_structure_get_uint (action->structure, "rank", &rank)) ||
         (gst_structure_get_int (action->structure, "rank", (gint *) & rank)),
@@ -2452,10 +2452,17 @@ _execute_set_rank_or_disable_feature (GstValidateScenario * scenario,
 
   feature = gst_registry_lookup_feature (registry, name);
   if (feature) {
-    if (removing_feature)
+    if (!removing_feature) {
       gst_plugin_feature_set_rank (feature, rank);
-    else
+    } else {
+      /* Load the feature first to ensure the plugin is initialized before removal
+       * as otherwise the feature will be re added when loading the plugin
+       * again. */
+      GstPluginFeature *loaded_feature = gst_plugin_feature_load (feature);
+      if (loaded_feature)
+        gst_object_unref (loaded_feature);
       gst_registry_remove_feature (registry, feature);
+    }
     gst_object_unref (feature);
 
     goto done;
@@ -2657,7 +2664,7 @@ _should_execute_action (GstValidateScenario * scenario, GstValidateAction * act,
   pipeline = gst_validate_scenario_get_pipeline (scenario);
   if (pipeline == NULL) {
 
-    if (!(GST_VALIDATE_ACTION_GET_TYPE (act)->flags &
+    if (!(_find_action_type (act->type)->flags &
             GST_VALIDATE_ACTION_TYPE_DOESNT_NEED_PIPELINE)) {
       GST_VALIDATE_REPORT_ACTION (scenario, act,
           SCENARIO_ACTION_EXECUTION_ERROR,
@@ -5054,7 +5061,11 @@ _check_waiting_for_message (GstValidateScenario * scenario,
     }
   }
 
-  gst_validate_action_set_done (priv->wait_message_action);
+  GstValidateAction *action =
+      gst_validate_action_ref (priv->wait_message_action);
+  gst_validate_action_set_done (action);
+  gst_validate_action_unref (action);
+
   _add_execute_actions_gsource (scenario);
 }
 
@@ -5994,7 +6005,7 @@ gst_validate_scenario_finalize (GObject * object)
 {
   GstValidateScenario *self = GST_VALIDATE_SCENARIO (object);
   GstValidateScenarioPrivate *priv = self->priv;
-  gboolean acquired G_GNUC_UNUSED;      /* G_DISABLE_ASSERT */
+  gboolean acquired GST_UNUSED_ASSERT;
 
   /* Because g_object_add_weak_pointer() is used, this MUST be on the
    * main thread. */
@@ -6028,7 +6039,8 @@ gst_validate_scenario_finalize (GObject * object)
 static void _element_added_cb (GstBin * bin, GstElement * element,
     GstValidateScenario * scenario);
 static void _element_removed_cb (GstBin * bin, GstElement * element,
-    GstValidateScenario * scenario);
+    GWeakRef * data);
+static void _element_removed_destroyer (gpointer data, GClosure * closure);
 
 static void
 iterate_children (GstValidateScenario * scenario, GstBin * bin)
@@ -6088,9 +6100,19 @@ _all_parents_are_sink (GstElement * element)
 }
 
 static void
-_element_removed_cb (GstBin * bin, GstElement * element,
-    GstValidateScenario * scenario)
+_element_removed_destroyer (gpointer data, GClosure * closure)
 {
+  g_weak_ref_clear ((GWeakRef *) data);
+  g_free (data);
+}
+
+static void
+_element_removed_cb (GstBin * bin, GstElement * element, GWeakRef * data)
+{
+  GstValidateScenario *scenario = g_weak_ref_get (data);
+  if (!scenario)
+    return;
+
   GstValidateScenarioPrivate *priv = scenario->priv;
 
   if (GST_IS_BASE_SINK (element)) {
@@ -6105,6 +6127,7 @@ _element_removed_cb (GstBin * bin, GstElement * element,
     }
     SCENARIO_UNLOCK (scenario);
   }
+  g_object_unref (scenario);
 }
 
 static void
@@ -6165,8 +6188,12 @@ _element_added_cb (GstBin * bin, GstElement * element,
   if (GST_IS_BIN (element)) {
     g_signal_connect (element, "element-added", (GCallback) _element_added_cb,
         scenario);
-    g_signal_connect (element, "element-removed",
-        (GCallback) _element_removed_cb, scenario);
+
+    GWeakRef *ref = g_new (GWeakRef, 1);
+    g_weak_ref_init (ref, scenario);
+    g_signal_connect_data (element, "element-removed",
+        (GCallback) _element_removed_cb, ref, _element_removed_destroyer, 0);
+
     iterate_children (scenario, GST_BIN (element));
   }
 }
@@ -6265,9 +6292,12 @@ gst_validate_scenario_new (GstValidateRunner *
 
   g_signal_connect (pipeline, "element-added", (GCallback) _element_added_cb,
       scenario);
-  g_signal_connect (pipeline, "element-removed",
-      (GCallback) _element_removed_cb, scenario);
-
+  {
+    GWeakRef *ref = g_new (GWeakRef, 1);
+    g_weak_ref_init (ref, scenario);
+    g_signal_connect_data (pipeline, "element-removed",
+        (GCallback) _element_removed_cb, ref, _element_removed_destroyer, 0);
+  }
   iterate_children (scenario, GST_BIN (pipeline));
 
   scenario->priv->bus = gst_element_get_bus (pipeline);
@@ -6753,6 +6783,7 @@ _execute_check_last_sample (GstValidateScenario * scenario,
   gboolean done = FALSE;
   GstCaps *caps = NULL;
   GstElement *sink = NULL, *tmpelement;
+  GstValidateExecuteActionReturn ret;
   const gchar *name = gst_structure_get_string (action->structure, "sink-name"),
       *factory_name =
       gst_structure_get_string (action->structure, "sink-factory-name"),
@@ -6818,7 +6849,9 @@ _execute_check_last_sample (GstValidateScenario * scenario,
   }
 
   g_clear_object (&pipeline);
-  return _check_last_sample_value (scenario, action, sink);
+  ret = _check_last_sample_value (scenario, action, sink);
+  g_clear_object (&sink);
+  return ret;
 
 error:
   g_clear_object (&sink);
@@ -7135,6 +7168,12 @@ _execute_stop (GstValidateScenario * scenario, GstValidateAction * action)
   }
   scenario->priv->has_stopped = TRUE;
 
+  if (scenario->priv->wait_message_action) {
+    // Clear the wait action so that it is not executed
+    gst_validate_action_unref (scenario->priv->wait_message_action);
+    scenario->priv->wait_message_action = NULL;
+  }
+
   if (scenario->priv->actions || scenario->priv->non_blocking_running_actions ||
       scenario->priv->on_addition_actions) {
     guint nb_actions = 0;
@@ -7331,7 +7370,7 @@ gst_validate_action_set_done (GstValidateAction * action)
   }
   gst_clear_object (&scenario);
 
-  g_main_context_invoke_full (action->priv->context,
+  g_main_context_invoke_full (context,
       G_PRIORITY_DEFAULT_IDLE,
       (GSourceFunc) _action_set_done,
       gst_validate_action_ref (action),
@@ -7990,6 +8029,9 @@ register_action_types (void)
   GBytes *meta_features_rank_doc =
       g_resource_lookup_data (resource, "/validate/doc/meta-features-rank.md",
       G_RESOURCE_LOOKUP_FLAGS_NONE, NULL);
+  GBytes *meta_overrides_doc =
+      g_resource_lookup_data (resource, "/validate/doc/meta-overrides.md",
+      G_RESOURCE_LOOKUP_FLAGS_NONE, NULL);
 
   /*  *INDENT-OFF* */
   REGISTER_ACTION_TYPE ("meta", NULL,
@@ -8167,6 +8209,14 @@ register_action_types (void)
         .def = "{}"
       },
       {
+        .name="overrides",
+        .description=g_bytes_get_data (meta_overrides_doc, NULL),
+        .mandatory = FALSE,
+        .types = "{GstStructure as string}",
+        .possible_variables = NULL,
+        .def = "{}"
+      },
+      {
         .name="features-rank",
         .description=g_bytes_get_data (meta_features_rank_doc, NULL),
         .mandatory = FALSE,
@@ -8191,6 +8241,7 @@ register_action_types (void)
   g_bytes_unref (meta_config_doc);
   g_bytes_unref (meta_expected_issues_doc);
   g_bytes_unref (meta_features_rank_doc);
+  g_bytes_unref (meta_overrides_doc);
 
   REGISTER_ACTION_TYPE ("seek", _execute_seek,
       ((GstValidateActionParameter [])  {

@@ -446,46 +446,55 @@ static int
 sexp_to_tpm2_public_ecc (TPMT_PUBLIC *p, gcry_sexp_t key)
 {
   const char *q;
-  gcry_sexp_t l;
-  int rc = GPG_ERR_BAD_PUBKEY;
+  gcry_sexp_t l = NULL;
+  int rc;
   size_t len;
   TPMI_ECC_CURVE curve;
-  char *curve_name;
+  char *curve_name = NULL;
 
   l = gcry_sexp_find_token (key, "curve", 0);
   if (!l)
-    return rc;
+    {
+      rc = GPG_ERR_NO_PUBKEY;
+      goto leave;
+    }
   curve_name = gcry_sexp_nth_string (l, 1);
   if (!curve_name)
-    goto out;
+    {
+      rc = GPG_ERR_INV_CURVE;
+      goto leave;
+    }
   rc = tpm2_ecc_curve (curve_name, &curve);
-  gcry_free (curve_name);
   if (rc)
-    goto out;
-  gcry_sexp_release (l);
+    goto leave;
 
+  gcry_sexp_release (l);
   l = gcry_sexp_find_token (key, "q", 0);
   if (!l)
-    return rc;
+    {
+      rc = GPG_ERR_NO_PUBKEY;
+      goto leave;
+    }
   q = gcry_sexp_nth_data (l, 1, &len);
   /* This is a point representation, the first byte tells you what
    * type.  The only format we understand is uncompressed (0x04)
    * which has layout 0x04 | x | y */
-  if (q[0] != 0x04)
+  if (!q || len < 2 || q[0] != 0x04)
     {
-      log_error ("Point format for q is not uncompressed\n");
-      goto out;
+      log_error ("tss: point format for q is not uncompressed\n");
+      rc = GPG_ERR_BAD_PUBKEY;
+      goto leave;
     }
   q++;
   len--;
   /* now should have to equal sized big endian point numbers */
   if ((len & 0x01) == 1)
     {
-      log_error ("Point format for q has incorrect length\n");
-      goto out;
+      log_error ("tss: point format for q has incorrect length\n");
+      rc = GPG_ERR_BAD_PUBKEY;
+      goto leave;
     }
-
-  len >>= 1;
+  len >>= 1; /* Compute length of one coordinate.  */
 
   p->type = TPM_ALG_ECC;
   p->nameAlg = TPM_ALG_SHA256;
@@ -502,7 +511,9 @@ sexp_to_tpm2_public_ecc (TPMT_PUBLIC *p, gcry_sexp_t key)
   VAL_2B (p->unique.ecc.x, size) = len;
   memcpy (VAL_2B (p->unique.ecc.y, buffer), q + len, len);
   VAL_2B (p->unique.ecc.y, size) = len;
- out:
+
+ leave:
+  gcry_free (curve_name);
   gcry_sexp_release (l);
   return rc;
 }
@@ -637,36 +648,42 @@ tpm2_ObjectPublic_GetName (NAME_2B *name,
   uint16_t written = 0;
   TPMT_HA digest;
   uint32_t sizeInBytes;
+  INT32 size = MAX_RESPONSE_SIZE;
   uint8_t buffer[MAX_RESPONSE_SIZE];
+  uint8_t *buffer1 = buffer;
+  TPMI_ALG_HASH nameAlgNbo;
+  int length;
 
   /* marshal the TPMT_PUBLIC */
-  if (rc == 0)
-    {
-      INT32 size = MAX_RESPONSE_SIZE;
-      uint8_t *buffer1 = buffer;
-      rc = TSS_TPMT_PUBLIC_Marshal (tpmtPublic, &written, &buffer1, &size);
-    }
-  /* hash the public area */
-  if (rc == 0)
-    {
-      sizeInBytes = TSS_GetDigestSize (tpmtPublic->nameAlg);
-      digest.hashAlg = tpmtPublic->nameAlg;       /* Name digest algorithm */
-      /* generate the TPMT_HA */
-      rc = TSS_Hash_Generate (&digest, written, buffer, 0, NULL);
-    }
-  if (rc == 0)
-    {
-      TPMI_ALG_HASH nameAlgNbo;
+  rc = TSS_TPMT_PUBLIC_Marshal (tpmtPublic, &written, &buffer1, &size);
+  if (rc)
+    goto leave;
 
-      /* copy the digest */
-      memcpy (name->name + sizeof (TPMI_ALG_HASH),
-	      (uint8_t *)&digest.digest, sizeInBytes);
-      /* copy the hash algorithm */
-      nameAlgNbo = htons (tpmtPublic->nameAlg);
-      memcpy (name->name, (uint8_t *)&nameAlgNbo, sizeof (TPMI_ALG_HASH));
-      /* set the size */
-      name->size = sizeInBytes + sizeof (TPMI_ALG_HASH);
+  /* hash the public area */
+  length = TSS_GetDigestSize (tpmtPublic->nameAlg);
+  if (length < 0)
+    {
+      rc = TPM_RC_VALUE;
+      goto leave;
     }
+  sizeInBytes = length;
+  digest.hashAlg = tpmtPublic->nameAlg;       /* Name digest algorithm */
+
+  /* generate the TPMT_HA */
+  rc = TSS_Hash_Generate (&digest, written, buffer, 0, NULL);
+  if (rc)
+    goto leave;
+
+  /* copy the digest */
+  memcpy (name->name + sizeof (TPMI_ALG_HASH),
+          (uint8_t *)&digest.digest, sizeInBytes);
+  /* copy the hash algorithm */
+  nameAlgNbo = htons (tpmtPublic->nameAlg);
+  memcpy (name->name, (uint8_t *)&nameAlgNbo, sizeof (TPMI_ALG_HASH));
+  /* set the size */
+  name->size = sizeInBytes + sizeof (TPMI_ALG_HASH);
+
+ leave:
   return rc;
 }
 
@@ -694,9 +711,9 @@ TPM_RC tpm2_SensitiveToDuplicate (TPMT_SENSITIVE *s,
       && symdef->mode.aes == TPM_ALG_CFB)
     {
       TPMT_HA hash;
-      const int hlen = TSS_GetDigestSize (nalg);
-      TPM2B *digest = (TPM2B *)buf;
-      TPM2B *s2b;
+      int hlen;
+      BYTE *digest;
+      BYTE *s2b;
       int32_t size;
       unsigned char null_iv[AES_128_BLOCK_SIZE_BYTES];
       UINT16 bsize, written = 0;
@@ -706,14 +723,21 @@ TPM_RC tpm2_SensitiveToDuplicate (TPMT_SENSITIVE *s,
        * the AES routines alter the passed in iv */
       memset (null_iv, 0, sizeof (null_iv));
 
+      hlen = TSS_GetDigestSize (nalg);
+      if (hlen < 0)
+        {
+          log_error ("%s: unknown symmetric algo id %d\n",
+                     "TSS_GetDigestSize", (int)nalg);
+          return TPM_RC_SYMMETRIC;
+        }
+
       /* reserve space for hash before the encrypted sensitive */
-      bsize = sizeof (digest->size) + hlen;
-      buf += bsize;
+      digest = buf;
+      bsize = sizeof (uint16_t /* TPM2B.size */) + hlen;
       p->size += bsize;
-      s2b = (TPM2B *)buf;
+      s2b = digest + bsize;
 
       /* marshal the digest size */
-      buf = (BYTE *)&digest->size;
       bsize = hlen;
       size = 2;
       TSS_UINT16_Marshal (&bsize, &written, &buf, &size);
@@ -721,13 +745,13 @@ TPM_RC tpm2_SensitiveToDuplicate (TPMT_SENSITIVE *s,
       /* marshal the unencrypted sensitive in place */
       size = sizeof (*s);
       bsize = 0;
-      buf = s2b->buffer;
+      buf = s2b + offsetof (TPM2B, buffer);
       TSS_TPMT_SENSITIVE_Marshal (s, &bsize, &buf, &size);
-      buf = (BYTE *)&s2b->size;
+      buf = s2b;
       size = 2;
       TSS_UINT16_Marshal (&bsize, &written, &buf, &size);
 
-      bsize = bsize + sizeof (s2b->size);
+      bsize = bsize + sizeof (uint16_t /* TPM2B.size */);
       p->size += bsize;
 
       /* compute hash of unencrypted marshalled sensitive and
@@ -736,7 +760,7 @@ TPM_RC tpm2_SensitiveToDuplicate (TPMT_SENSITIVE *s,
       TSS_Hash_Generate (&hash, bsize, s2b,
 			 name->size, name->name,
 			 0, NULL);
-      memcpy (digest->buffer, &hash.digest, hlen);
+      memcpy (digest + offsetof (TPM2B, buffer), &hash.digest, hlen);
       gcry_cipher_open (&hd, GCRY_CIPHER_AES128,
 			GCRY_CIPHER_MODE_CFB, GCRY_CIPHER_SECURE);
       gcry_cipher_setiv (hd, null_iv, sizeof (null_iv));
@@ -749,24 +773,24 @@ TPM_RC tpm2_SensitiveToDuplicate (TPMT_SENSITIVE *s,
   else if (symdef->algorithm == TPM_ALG_NULL)
     {
       /* Code is for debugging only, should never be used in production */
-      TPM2B *s2b = (TPM2B *)buf;
+      BYTE *s2b = buf;
       int32_t size = sizeof (*s);
       UINT16 bsize = 0, written = 0;
 
       log_error ("Secret key sent to TPM unencrypted\n");
-      buf = s2b->buffer;
+      buf = s2b + offsetof (TPM2B, buffer);
 
       /* marshal the unencrypted sensitive in place */
       TSS_TPMT_SENSITIVE_Marshal (s, &bsize, &buf, &size);
-      buf = (BYTE *)&s2b->size;
+      buf = s2b;
       size = 2;
       TSS_UINT16_Marshal (&bsize, &written, &buf, &size);
 
-      p->size += bsize + sizeof (s2b->size);
+      p->size += bsize + sizeof (uint16_t /* TPM2B.size */);
     }
   else
     {
-      log_error ("Unknown symmetric algorithm\n");
+      log_error ("tss: Unknown symmetric algorithm\n");
       return TPM_RC_SYMMETRIC;
     }
 
@@ -796,7 +820,9 @@ tpm2_import_key (ctrl_t ctrl, TSS_CONTEXT *tssc,
   TPM_RC rc;
 
   uint32_t size;
-  uint16_t len;
+  uint16_t u16len;
+  size_t len;
+  int dlen;
   BYTE *buffer;
   int ret;
   char *passphrase;
@@ -818,14 +844,22 @@ tpm2_import_key (ctrl_t ctrl, TSS_CONTEXT *tssc,
 
   /* add an authorization password to the key which the TPM will check */
 
-  ret = pin_cb (ctrl,  _("Please enter the TPM Authorization passphrase for the key."), &passphrase);
+  ret = pin_cb (ctrl,
+           _("Please enter the TPM Authorization passphrase for the key."),
+                &passphrase);
   if (ret)
     return ret;
   len = strlen(passphrase);
-  if (len > TSS_GetDigestSize(objectPublic.publicArea.nameAlg))
+  dlen = TSS_GetDigestSize(objectPublic.publicArea.nameAlg);
+  if (dlen < 0)
     {
-      len = TSS_GetDigestSize(objectPublic.publicArea.nameAlg);
-      log_error ("Truncating Passphrase to TPM allowed %d\n", len);
+      log_error ("%s: error getting digest size\n", "TSS_GetDigestSize");
+      return GPG_ERR_DIGEST_ALGO;
+    }
+  if (len > dlen)
+    {
+      len = dlen;
+      log_info ("tss: truncating Passphrase to TPM allowed size of %zu\n", len);
     }
   VAL_2B (s.authValue, size) = len;
   memcpy (VAL_2B (s.authValue, buffer), passphrase, len);
@@ -886,17 +920,17 @@ tpm2_import_key (ctrl_t ctrl, TSS_CONTEXT *tssc,
 
   size = sizeof (pub);
   buffer = pub;
-  len = 0;
+  u16len = 0;
   TSS_TPM2B_PUBLIC_Marshal (&objectPublic,
-                            &len, &buffer, &size);
-  pub_len = len;
+                            &u16len, &buffer, &size);
+  pub_len = u16len;
 
   size = sizeof (priv);
   buffer = priv;
-  len = 0;
+  u16len = 0;
   TSS_TPM2B_PRIVATE_Marshal ((TPM2B_PRIVATE *)&outPrivate,
-			     &len, &buffer, &size);
-  priv_len = len;
+			     &u16len, &buffer, &size);
+  priv_len = u16len;
 
   *shadow_info = make_tpm2_shadow_info (parent, pub, pub_len,
 					priv, priv_len, shadow_len);
@@ -917,10 +951,20 @@ tpm2_ecc_decrypt (ctrl_t ctrl, TSS_CONTEXT *tssc, TPM_HANDLE key,
   size_t len;
   int ret;
 
+#if defined(TPM2_MAX_ECC_KEY_BYTES) /* Intel stack */
+  if (ciphertext_len > 2*TPM2_MAX_ECC_KEY_BYTES + 1)
+    return GPG_ERR_TOO_LARGE;
+#elif defined(MAX_ECC_KEY_BYTES)    /* IBM stack */
+  if (ciphertext_len > 2*MAX_ECC_KEY_BYTES + 1)
+    return GPG_ERR_TOO_LARGE;
+#else
+# error TMP2 header are not correctly installed
+#endif
+
   /* This isn't really a decryption per se.  The ciphertext actually
    * contains an EC Point which we must multiply by the private key number.
    *
-   * The reason is to generate a diffe helman agreement on a shared
+   * The reason is to generate a diffie-hellman agreement on a shared
    * point.  This shared point is then used to generate the per
    * session encryption key.
    */
@@ -975,6 +1019,16 @@ tpm2_rsa_decrypt (ctrl_t ctrl, TSS_CONTEXT *tssc, TPM_HANDLE key,
   PUBLIC_KEY_RSA_2B message;
   TPM_HANDLE ah;
   char *auth;
+
+#if defined(TPM2_MAX_RSA_KEY_BYTES)  /* Intel stack */
+  if (ciphertext_len > TPM2_MAX_RSA_KEY_BYTES)
+    return GPG_ERR_TOO_LARGE;
+#elif defined(MAX_RSA_KEY_BYTES)     /* IBM stack */
+  if (ciphertext_len > MAX_RSA_KEY_BYTES)
+    return GPG_ERR_TOO_LARGE;
+#else
+# error TMP2 header are not correctly installed
+#endif
 
   inScheme.scheme = TPM_ALG_RSAES;
   /*

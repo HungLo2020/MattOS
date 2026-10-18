@@ -71,6 +71,10 @@ struct _GstVulkanPhysicalDevicePrivate
   VkPhysicalDeviceVulkan13Features features13;
   VkPhysicalDeviceVulkan13Properties properties13;
 #endif
+#if defined (VK_API_VERSION_1_4)
+  VkPhysicalDeviceVulkan14Features features14;
+  VkPhysicalDeviceVulkan14Properties properties14;
+#endif
 #if defined (VK_KHR_synchronization2)
   VkPhysicalDeviceSynchronization2FeaturesKHR synchronization2;
 #endif
@@ -79,6 +83,22 @@ struct _GstVulkanPhysicalDevicePrivate
 #endif
 #if defined (VK_KHR_video_maintenance1)
   VkPhysicalDeviceVideoMaintenance1FeaturesKHR videomaintenance1;
+#endif
+#if defined (VK_KHR_video_maintenance2)
+  VkPhysicalDeviceVideoMaintenance2FeaturesKHR videomaintenance2;
+#endif
+#if defined (VK_KHR_video_encode_av1)
+  VkPhysicalDeviceVideoEncodeAV1FeaturesKHR video_encoder_av1;
+#endif
+#if defined (VK_KHR_video_decode_vp9)
+  VkPhysicalDeviceVideoDecodeVP9FeaturesKHR video_decoder_vp9;
+#endif
+#if defined (VK_KHR_get_physical_device_properties2)
+  PFN_vkGetPhysicalDeviceFormatProperties2KHR get_format_props_fn;
+#endif
+#if defined (VK_KHR_video_queue)
+  PFN_vkGetPhysicalDeviceVideoFormatPropertiesKHR get_video_format_props_fn;
+  PFN_vkGetPhysicalDeviceVideoCapabilitiesKHR get_video_capabilties_fn;
 #endif
 };
 
@@ -210,6 +230,15 @@ gst_vulkan_physical_device_init (GstVulkanPhysicalDevice * device)
   priv->features13.sType =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
   priv->features12.pNext = &priv->features13;
+#endif
+#if defined (VK_API_VERSION_1_4)
+  priv->properties14.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_PROPERTIES;
+  priv->properties13.pNext = &priv->properties14;
+
+  priv->features14.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES;
+  priv->features13.pNext = &priv->features14;
 #endif
 }
 
@@ -490,6 +519,37 @@ dump_features13 (GstVulkanPhysicalDevice * device,
 }
 #endif /* defined (VK_API_VERSION_1_3) */
 
+#if defined (VK_API_VERSION_1_4)
+static void
+dump_features14 (GstVulkanPhysicalDevice * device,
+    VkPhysicalDeviceVulkan14Features * features)
+{
+  /* *INDENT-OFF* */
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, globalPriorityQuery);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, shaderSubgroupRotate);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, shaderSubgroupRotateClustered);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, shaderFloatControls2);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, shaderExpectAssume);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, rectangularLines);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, bresenhamLines);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, smoothLines);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, stippledRectangularLines);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, stippledBresenhamLines);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, stippledSmoothLines);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, vertexAttributeInstanceRateDivisor);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, vertexAttributeInstanceRateZeroDivisor);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, indexTypeUint8);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, dynamicRenderingLocalRead);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, maintenance5);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, maintenance6);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, pipelineProtectedAccess);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, pipelineRobustness);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, hostImageCopy);
+  DEBUG_BOOL_STRUCT ("support for (1.4)", features, pushDescriptor);
+  /* *INDENT-ON* */
+}
+#endif /* defined (VK_API_VERSION_1_4) */
+
 static void
 dump_features_extras (GstVulkanPhysicalDevice * device,
     VkBaseOutStructure * chain)
@@ -515,6 +575,25 @@ dump_features_extras (GstVulkanPhysicalDevice * device,
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_1_FEATURES_KHR) {
     DEBUG_BOOL_STRUCT ("support for", &priv->videomaintenance1,
         videoMaintenance1);
+  }
+#endif
+#if defined (VK_KHR_video_maintenance2)
+  if (chain->sType ==
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_2_FEATURES_KHR) {
+    DEBUG_BOOL_STRUCT ("support for", &priv->videomaintenance2,
+        videoMaintenance2);
+  }
+#endif
+#if defined (VK_KHR_video_decode_vp9)
+  if (chain->sType ==
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_DECODE_VP9_FEATURES_KHR) {
+    DEBUG_BOOL_STRUCT ("support for", &priv->video_decoder_vp9, videoDecodeVP9);
+  }
+#endif
+#if defined (VK_KHR_video_encode_av1)
+  if (chain->sType ==
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_AV1_FEATURES_KHR) {
+    DEBUG_BOOL_STRUCT ("support for", &priv->video_encoder_av1, videoEncodeAV1);
   }
 #endif
 }
@@ -544,11 +623,17 @@ dump_features (GstVulkanPhysicalDevice * device, GError ** error)
           VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES)
         dump_features13 (device, (VkPhysicalDeviceVulkan13Features *) iter);
 #endif
+#if defined (VK_API_VERSION_1_4)
+      else if (gst_vulkan_physical_device_check_api_version (device, 1, 4, 0)
+          && iter->sType ==
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES)
+        dump_features14 (device, (VkPhysicalDeviceVulkan14Features *) iter);
+#endif
       else
         dump_features_extras (device, iter);
     }
   } else
-#endif
+#endif /* VK_API_VERSION_1_2 */
   {
     dump_features10 (device, &device->features);
   }
@@ -894,6 +979,41 @@ dump_properties13 (GstVulkanPhysicalDevice * device,
 }
 #endif
 
+#if defined (VK_API_VERSION_1_4)
+static void
+dump_properties14 (GstVulkanPhysicalDevice * device,
+    VkPhysicalDeviceVulkan14Properties * properties)
+{
+  /* *INDENT-OFF* */
+  DEBUG_UINT32 ("properties (1.4)", properties, lineSubPixelPrecisionBits);
+  DEBUG_UINT32 ("properties (1.4)", properties, maxVertexAttribDivisor);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, supportsNonZeroFirstInstance);
+  DEBUG_UINT32 ("properties (1.4)", properties, maxPushDescriptors);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, dynamicRenderingLocalReadDepthStencilAttachments);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, dynamicRenderingLocalReadMultisampledAttachments);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, earlyFragmentMultisampleCoverageAfterSampleCounting);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, earlyFragmentSampleMaskTestBeforeSampleCounting);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, depthStencilSwizzleOneSupport);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, polygonModePointSize);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, nonStrictSinglePixelWideLinesUseParallelogram);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, nonStrictWideLinesUseParallelogram);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, blockTexelViewCompatibleMultipleLayers);
+  DEBUG_UINT32 ("properties (1.4)", properties, maxCombinedImageSamplerDescriptorCount);
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, fragmentShadingRateClampCombinerInputs);
+  /* VkPipelineRobustnessBufferBehavior    defaultRobustnessStorageBuffers; */
+  /* VkPipelineRobustnessBufferBehavior    defaultRobustnessUniformBuffers; */
+  /* VkPipelineRobustnessBufferBehavior    defaultRobustnessVertexInputs; */
+  /* VkPipelineRobustnessImageBehavior     defaultRobustnessImages; */
+  DEBUG_UINT32 ("properties (1.4)", properties, copySrcLayoutCount);
+  /* VkImageLayout*                        pCopySrcLayouts); */
+  DEBUG_UINT32 ("properties (1.4)", properties, copyDstLayoutCount);
+  /* VkImageLayout*                        pCopyDstLayouts); */
+  /* uint8_t                               optimalTilingLayoutUUID[VK_UUID_SIZE]); */
+  DEBUG_BOOL_STRUCT ("properties (1.4)", properties, identicalMemoryTypeRequirements);
+  /* *INDENT-ON* */
+}
+#endif
+
 static gboolean
 physical_device_info (GstVulkanPhysicalDevice * device, GError ** error)
 {
@@ -941,9 +1061,15 @@ physical_device_info (GstVulkanPhysicalDevice * device, GError ** error)
           VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_PROPERTIES)
         dump_properties13 (device, (VkPhysicalDeviceVulkan13Properties *) iter);
 #endif
+#if defined (VK_API_VERSION_1_4)
+      else if (gst_vulkan_physical_device_check_api_version (device, 1, 4, 0)
+          && iter->sType ==
+          VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_PROPERTIES)
+        dump_properties14 (device, (VkPhysicalDeviceVulkan14Properties *) iter);
+#endif
     }
   }
-#endif
+#endif /* VK_API_VERSION_1_2 */
 
   return TRUE;
 }
@@ -973,7 +1099,22 @@ add_extra_features (GstVulkanPhysicalDevice * device)
 #if defined (VK_KHR_video_maintenance1)
   priv->videomaintenance1.sType =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_1_FEATURES_KHR;
-  vk_link_struct (&priv->features13, &priv->videomaintenance1);
+  vk_link_struct (&priv->features12, &priv->videomaintenance1);
+#endif
+#if defined (VK_KHR_video_maintenance2)
+  priv->videomaintenance2.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_2_FEATURES_KHR;
+  vk_link_struct (&priv->features12, &priv->videomaintenance2);
+#endif
+#if defined (VK_KHR_video_encode_av1)
+  priv->video_encoder_av1.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_ENCODE_AV1_FEATURES_KHR;
+  vk_link_struct (&priv->features12, &priv->video_encoder_av1);
+#endif
+#if defined(VK_KHR_video_decode_vp9)
+  priv->video_decoder_vp9.sType =
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_DECODE_VP9_FEATURES_KHR;
+  vk_link_struct (&priv->features12, &priv->video_decoder_vp9);
 #endif
 }
 #endif /* VK_API_VERSION_1_2 */
@@ -1081,7 +1222,7 @@ gst_vulkan_physical_device_fill_info (GstVulkanPhysicalDevice * device,
       VkQueueFamilyProperties2 *props;
       int i;
       void *next = NULL;
-#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
+#if defined(VK_KHR_video_queue)
       VkQueueFamilyVideoPropertiesKHR *queue_family_video_props;
       VkQueueFamilyQueryResultStatusPropertiesKHR *queue_family_query_props;
 
@@ -1093,7 +1234,7 @@ gst_vulkan_physical_device_fill_info (GstVulkanPhysicalDevice * device,
 #endif
       props = g_new0 (VkQueueFamilyProperties2, device->n_queue_families);
       for (i = 0; i < device->n_queue_families; i++) {
-#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
+#if defined(VK_KHR_video_queue)
         queue_family_query_props[i].sType =
             VK_STRUCTURE_TYPE_QUEUE_FAMILY_QUERY_RESULT_STATUS_PROPERTIES_KHR;
 
@@ -1117,7 +1258,7 @@ gst_vulkan_physical_device_fill_info (GstVulkanPhysicalDevice * device,
         memcpy (&device->queue_family_props[i], &props[i].queueFamilyProperties,
             sizeof (device->queue_family_props[i]));
 
-#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
+#if defined(VK_KHR_video_queue)
         device->queue_family_ops[i].video =
             queue_family_video_props[i].videoCodecOperations;
         device->queue_family_ops[i].query_result_status =
@@ -1125,7 +1266,7 @@ gst_vulkan_physical_device_fill_info (GstVulkanPhysicalDevice * device,
 #endif
       }
       g_free (props);
-#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
+#if defined(VK_KHR_video_queue)
       g_free (queue_family_video_props);
       g_free (queue_family_query_props);
 #endif
@@ -1316,6 +1457,116 @@ gst_vulkan_physical_device_get_features (GstVulkanPhysicalDevice * device)
   return NULL;
 }
 
+gboolean
+    gst_vulkan_physical_device_has_feature_sampler_ycbrc_conversion
+    (GstVulkanPhysicalDevice * device) {
+#if defined (VK_API_VERSION_1_2)
+  GstVulkanPhysicalDevicePrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+
+  priv = GET_PRIV (device);
+  if (gst_vulkan_physical_device_check_api_version (device, 1, 1, 0))
+    return priv->features11.samplerYcbcrConversion;
+#endif
+  return FALSE;
+}
+
+gboolean
+gst_vulkan_physical_device_has_feature_synchronization2 (GstVulkanPhysicalDevice
+    * device)
+{
+#if defined (VK_KHR_synchronization2)
+  GstVulkanPhysicalDevicePrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+
+  priv = GET_PRIV (device);
+# if defined (VK_API_VERSION_1_3)
+  if (gst_vulkan_physical_device_check_api_version (device, 1, 3, 0))
+    return priv->features13.synchronization2;
+# endif
+  return priv->synchronization2.synchronization2;
+#endif
+  return FALSE;
+}
+
+gboolean
+    gst_vulkan_physical_device_has_feature_timeline_sempahore
+    (GstVulkanPhysicalDevice * device) {
+#if defined (VK_KHR_timeline_semaphore)
+  GstVulkanPhysicalDevicePrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+
+  priv = GET_PRIV (device);
+# if defined (VK_API_VERSION_1_2)
+  if (gst_vulkan_physical_device_check_api_version (device, 1, 2, 0))
+    return priv->features12.timelineSemaphore;
+# endif
+  return priv->timeline_semaphore.timelineSemaphore;
+#endif
+  return FALSE;
+}
+
+gboolean
+    gst_vulkan_physical_device_has_feature_video_maintenance1
+    (GstVulkanPhysicalDevice * device) {
+#if defined (VK_KHR_video_maintenance1)
+  GstVulkanPhysicalDevicePrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+
+  priv = GET_PRIV (device);
+  return priv->videomaintenance1.videoMaintenance1;
+#endif
+  return FALSE;
+}
+
+gboolean
+    gst_vulkan_physical_device_has_feature_video_maintenance2
+    (GstVulkanPhysicalDevice * device) {
+#if defined (VK_KHR_video_maintenance2)
+  GstVulkanPhysicalDevicePrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+
+  priv = GET_PRIV (device);
+  return priv->videomaintenance2.videoMaintenance2;
+#endif
+  return FALSE;
+}
+
+gboolean
+gst_vulkan_physical_device_has_feature_video_decode_vp9 (GstVulkanPhysicalDevice
+    * device)
+{
+#if defined (VK_KHR_video_decode_vp9)
+  GstVulkanPhysicalDevicePrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+
+  priv = GET_PRIV (device);
+  return priv->video_decoder_vp9.videoDecodeVP9;
+#endif
+  return FALSE;
+}
+
+gboolean
+gst_vulkan_physical_device_has_feature_video_encode_av1 (GstVulkanPhysicalDevice
+    * device)
+{
+#if defined (VK_KHR_video_encode_av1)
+  GstVulkanPhysicalDevicePrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+
+  priv = GET_PRIV (device);
+  return priv->video_encoder_av1.videoEncodeAV1;
+#endif
+  return FALSE;
+}
+
 /**
  * gst_vulkan_physical_device_get_api_version:
  * @device: a #GstVulkanPhysicalDevice
@@ -1364,4 +1615,248 @@ gst_vulkan_physical_device_check_api_version (GstVulkanPhysicalDevice * device,
   return VK_MAKE_VERSION (major, minor, patch) <= device->properties.apiVersion
       && gst_vulkan_instance_check_api_version (device->instance, major, minor,
       patch);
+}
+
+static inline void
+_copy_format_properties (GstVulkanFormatProperties * props,
+    VkFormatProperties * props1)
+{
+  props->optimal_tiling_feat = props1->optimalTilingFeatures;
+  props->linear_tiling_feat = props1->linearTilingFeatures;
+  props->buffer_feat = props1->bufferFeatures;
+}
+
+/**
+ * gst_vulkan_physical_device_get_format_properties: (skip):
+ * @device: a #GstVulkanPhysicalDevice
+ * @vk_format: Vulkan color format to get it's properties
+ * @props: (out caller-allocates): a #GstVulkanFormatProperties
+ *
+ * This method will query for @vk_format's properties depending on the supported
+ * extensions by the driver.
+ */
+void
+gst_vulkan_physical_device_get_format_properties (GstVulkanPhysicalDevice *
+    device, guint vk_format, GstVulkanFormatProperties * props)
+{
+#if defined (VK_KHR_get_physical_device_properties2)
+  GstVulkanPhysicalDevicePrivate *priv;
+  VkFormatProperties2KHR prop2 = {
+    .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2_KHR,
+    .pNext = NULL,
+  };
+# if defined (VK_KHR_format_feature_flags2)
+  VkFormatProperties3KHR prop3 = {
+    .sType = VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_3_KHR,
+  };
+# endif
+  gboolean has_flags2 = FALSE;
+
+  g_return_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device));
+
+  priv = GET_PRIV (device);
+
+  if (!priv->get_format_props_fn) {
+    if (gst_vulkan_physical_device_check_api_version (device, 1, 3, 0)) {
+      priv->get_format_props_fn =
+          gst_vulkan_instance_get_proc_address (device->instance,
+          "vkGetPhysicalDeviceFormatProperties2");
+    } else {
+      priv->get_format_props_fn =
+          gst_vulkan_instance_get_proc_address (device->instance,
+          "vkGetPhysicalDeviceFormatProperties2KHR");
+    }
+
+    if (!priv->get_format_props_fn)
+      goto fallback;
+  }
+
+# if defined (VK_KHR_format_feature_flags2)
+  if (gst_vulkan_physical_device_check_api_version (device, 1, 3, 0)
+      || gst_vulkan_physical_device_get_extension_info (device,
+          VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME, NULL)) {
+    prop2.pNext = &prop3;
+    has_flags2 = TRUE;
+  }
+# endif
+
+  priv->get_format_props_fn (device->device, vk_format, &prop2);
+
+  if (!props)
+    return;
+
+# if defined (VK_KHR_format_feature_flags2)
+  if (has_flags2) {
+    props->optimal_tiling_feat = prop3.optimalTilingFeatures;
+    props->linear_tiling_feat = prop3.linearTilingFeatures;
+    props->buffer_feat = prop3.bufferFeatures;
+  } else
+# endif
+  {
+    _copy_format_properties (props, &prop2.formatProperties);
+  }
+
+  return;
+#endif
+
+fallback:
+  {
+    VkFormatProperties prop1 = { 0, };
+
+    vkGetPhysicalDeviceFormatProperties (device->device, vk_format, &prop1);
+    if (props)
+      _copy_format_properties (props, &prop1);
+  }
+}
+
+/**
+ * gst_vulkan_physical_device_get_video_formats: (skip):
+ * @device: a #GstVulkanPhysicalDevice
+ * @image_usage: Vulkan format's usage (VkImageUsageFlags)
+ * @pprofile: a pointer to Vulkan video profile (VkVideoProfileInfoKHR)
+ * @error: a #GError pointer
+ *
+ * It will load once vkGetPhysicalDeviceVideoFormatPropertiesKHR() and it ill
+ * query the format properties defined by @pprofile and @image_usage.
+ *
+ * Returns: (transfer full): a #GArray storing the format properties
+ *   (VkVideoFormatPropertiesKHR) or %NULL if @error
+ */
+GArray *
+gst_vulkan_physical_device_get_video_formats (GstVulkanPhysicalDevice * device,
+    guint64 image_usage, gpointer pprofile, GError ** error)
+{
+#if defined(VK_KHR_video_queue)
+  GstVulkanPhysicalDevicePrivate *priv;
+  VkResult res;
+  VkVideoProfileInfoKHR *profile = pprofile;
+  VkVideoProfileListInfoKHR profiles = {
+    .sType = VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR,
+    .profileCount = 1,
+    .pProfiles = profile,
+  };
+  VkPhysicalDeviceVideoFormatInfoKHR fmt_info = {
+    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR,
+    .pNext = &profiles,
+    .imageUsage = image_usage,
+  };
+  guint32 n_fmts;
+  GArray *ret;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), NULL);
+  g_return_val_if_fail (profile && profile->sType ==
+      VK_STRUCTURE_TYPE_VIDEO_PROFILE_INFO_KHR, NULL);
+
+  priv = GET_PRIV (device);
+
+  if (!priv->get_video_format_props_fn) {
+    if (!gst_vulkan_physical_device_get_extension_info (device,
+            VK_KHR_VIDEO_QUEUE_EXTENSION_NAME, NULL))
+      goto bail;
+
+    priv->get_video_format_props_fn =
+        gst_vulkan_instance_get_proc_address (device->instance,
+        "vkGetPhysicalDeviceVideoFormatPropertiesKHR");
+
+    g_assert (priv->get_video_format_props_fn);
+  }
+
+  res =
+      priv->get_video_format_props_fn (device->device, &fmt_info, &n_fmts,
+      NULL);
+  if (gst_vulkan_error_to_g_error (res, error,
+          "vkGetPhysicalDeviceVideoFormatPropertiesKHR") != VK_SUCCESS)
+    return NULL;
+  if (n_fmts == 0) {
+    gst_vulkan_error_to_g_error
+        (VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR, error,
+        "vkGetPhysicalDeviceVideoFormatPropertiesKHR");
+    return NULL;
+  }
+
+  ret =
+      g_array_sized_new (FALSE, TRUE, sizeof (VkVideoFormatPropertiesKHR),
+      n_fmts);
+  ret = g_array_set_size (ret, n_fmts);
+  for (int i = 0; i < n_fmts; i++) {
+    VkVideoFormatPropertiesKHR *props =
+        &g_array_index (ret, VkVideoFormatPropertiesKHR, i);
+    props->sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR;
+  }
+  res =
+      priv->get_video_format_props_fn (device->device, &fmt_info, &n_fmts,
+      (VkVideoFormatPropertiesKHR *) ret->data);
+  if (gst_vulkan_error_to_g_error (res, error,
+          "vkGetPhysicalDeviceVideoFormatPropertiesKHR") != VK_SUCCESS) {
+    g_array_unref (ret);
+    return NULL;
+  }
+
+  return ret;
+
+bail:
+#endif
+
+  gst_vulkan_error_to_g_error (VK_ERROR_EXTENSION_NOT_PRESENT, error,
+      "VK_KHR_video_queue");
+  return NULL;
+}
+
+/**
+ * gst_vulkan_physical_device_get_video_capabilities: (skip):
+ * @device: a #GstVulkanPhysicalDevice
+ * @pprofile: a pointer to Vulkan video profile (VkVideoProfileInfoKHR)
+ * @pcaps_out: (out caller-allocates): Where the Vulkan video capabilities will
+ *     be stored (VkVideoCapabilitiesKHR)
+ * @error: a #GError pointer
+ *
+ * It will query @device for its video capabilities, stored in @pcaps_out given
+ * the @pprofile.
+ *
+ * Returns: %TRUE if no @error; otherwise %FALSE
+ */
+gboolean
+gst_vulkan_physical_device_get_video_capabilities (GstVulkanPhysicalDevice *
+    device, gpointer pprofile, gpointer pcaps_out, GError ** error)
+{
+#if defined(VK_KHR_video_queue)
+  GstVulkanPhysicalDevicePrivate *priv;
+  VkResult res;
+  VkVideoProfileInfoKHR *profile = pprofile;
+  VkVideoCapabilitiesKHR *caps = pcaps_out;
+
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+  g_return_val_if_fail (profile && profile->sType ==
+      VK_STRUCTURE_TYPE_VIDEO_PROFILE_INFO_KHR, FALSE);
+  g_return_val_if_fail (caps && caps->sType ==
+      VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR, FALSE);
+  g_return_val_if_fail (caps && caps->pNext != NULL, FALSE);
+
+  priv = GET_PRIV (device);
+
+  if (!priv->get_video_capabilties_fn) {
+    if (!gst_vulkan_physical_device_get_extension_info (device,
+            VK_KHR_VIDEO_QUEUE_EXTENSION_NAME, NULL))
+      goto bail;
+
+    priv->get_video_capabilties_fn =
+        gst_vulkan_instance_get_proc_address (device->instance,
+        "vkGetPhysicalDeviceVideoCapabilitiesKHR");
+
+    g_assert (priv->get_video_capabilties_fn);
+  }
+
+  res = priv->get_video_capabilties_fn (device->device, profile, caps);
+  if (gst_vulkan_error_to_g_error (res, error,
+          "vkGetPhysicalDeviceVideoCapabilitiesKHR") != VK_SUCCESS)
+    return FALSE;
+
+  return TRUE;
+
+bail:
+#endif
+
+  gst_vulkan_error_to_g_error (VK_ERROR_EXTENSION_NOT_PRESENT, error,
+      "VK_KHR_video_queue");
+  return FALSE;
 }

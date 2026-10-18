@@ -5,12 +5,17 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 #include "messages-codes.h"
 #include "xkbcomp-priv.h"
 #include "text.h"
 #include "expr.h"
 #include "keysym.h"
 #include "xkbcomp/ast.h"
+#include "utils.h"
+#include "utils-numbers.h"
+#include "utils-checked-arithmetic.h"
 
 typedef bool (*IdentLookupFunc)(struct xkb_context *ctx, const void *priv,
                                 xkb_atom_t field, uint32_t *val_rtrn);
@@ -65,6 +70,52 @@ SimpleLookup(struct xkb_context *ctx, const void *priv, xkb_atom_t field,
     }
 
     return false;
+}
+
+struct named_integer_pattern {
+    const char *prefix;
+    size_t prefix_length;
+    uint32_t min;
+    uint32_t max;
+    const LookupEntry *entries;
+    bool is_mask;
+    enum xkb_message_code error_id;
+};
+
+/* Parse a number expressed with the pattern `<prefix><decimal number>` */
+static bool
+NamedIntegerPatternLookup(struct xkb_context *ctx, const void *priv,
+                          xkb_atom_t field, uint32_t *val_rtrn)
+{
+    if (!priv || field == XKB_ATOM_NONE)
+        return false;
+
+    const char * const str = xkb_atom_text(ctx, field);
+    const struct named_integer_pattern * const pattern = priv;
+
+    const int count = (istrneq(str, pattern->prefix, pattern->prefix_length))
+        ? parse_dec_to_uint32_t(str + pattern->prefix_length, SIZE_MAX, val_rtrn)
+        : 0;
+
+    if (count > 0 && *(str + pattern->prefix_length + count) == '\0') {
+        if (*val_rtrn < pattern->min || *val_rtrn > pattern->max) {
+            log_err(ctx, pattern->error_id,
+                    "%s index %"PRIu32" is out of range (%"PRIu32"..%"PRIu32")\n",
+                    pattern->prefix, *val_rtrn, pattern->min, pattern->max);
+            return false;
+        }
+        if (pattern->is_mask) {
+            /* Compute mask (bit 0 = min index) */
+            assert(*val_rtrn - pattern->min < 32);
+            *val_rtrn = UINT32_C(1) << (*val_rtrn - pattern->min);
+        }
+        return true;
+    } else {
+        return (
+            pattern->entries &&
+            SimpleLookup(ctx, pattern->entries, field, val_rtrn)
+        );
+    }
 }
 
 /* Data passed in the *priv argument for LookupModMask. */
@@ -240,13 +291,31 @@ ExprResolveIntegerLookup(struct xkb_context *ctx, const ExprDef *expr,
 
         switch (expr->common.type) {
         case STMT_EXPR_ADD:
-            *val_rtrn = l + r;
+            if (ckd_add(val_rtrn, l, r)) {
+                log_err(ctx, XKB_ERROR_INTEGER_OVERFLOW,
+                        "Addition %"PRId64" + %"PRId64" has an invalid "
+                        "mathematical result: %"PRId64"\n",
+                        l, r, *val_rtrn);
+                return false;
+            }
             break;
         case STMT_EXPR_SUBTRACT:
-            *val_rtrn = l - r;
+            if (ckd_sub(val_rtrn, l, r)) {
+                log_err(ctx, XKB_ERROR_INTEGER_OVERFLOW,
+                        "Substraction %"PRId64" - %"PRId64" has an invalid "
+                        "mathematical result: %"PRId64"\n",
+                        l, r, *val_rtrn);
+                return false;
+            }
             break;
         case STMT_EXPR_MULTIPLY:
-            *val_rtrn = l * r;
+            if (ckd_mul(val_rtrn, l, r)) {
+                log_err(ctx, XKB_ERROR_INTEGER_OVERFLOW,
+                        "Multiplication %"PRId64" * %"PRId64" has an invalid "
+                        "mathematical result: %"PRId64"\n",
+                        l, r, *val_rtrn);
+                return false;
+            }
             break;
         case STMT_EXPR_DIVIDE:
             if (r == 0) {
@@ -308,19 +377,28 @@ ExprResolveInteger(struct xkb_context *ctx, const ExprDef *expr,
 }
 
 bool
-ExprResolveGroup(struct xkb_context *ctx, const ExprDef *expr,
-                 xkb_layout_index_t *group_rtrn)
+ExprResolveGroup(struct xkb_context *ctx, xkb_layout_index_t max_groups,
+                 const ExprDef *expr, xkb_layout_index_t *group_rtrn)
 {
+    const struct named_integer_pattern group_name_pattern = {
+        /* Prefix is title-cased, because it is also used in error messages */
+        .prefix = "Group",
+        .prefix_length = sizeof("Group") - 1,
+        .min = 1,
+        .max = max_groups,
+        .is_mask = false,
+        .entries = NULL,
+        .error_id = XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
+    };
     int64_t result = 0;
-    bool ok = ExprResolveIntegerLookup(ctx, expr, &result, SimpleLookup,
-                                       groupNames);
-    if (!ok)
+    if (!ExprResolveIntegerLookup(ctx, expr, &result, NamedIntegerPatternLookup,
+                                  &group_name_pattern))
         return false;
 
-    if (result <= 0 || result > XKB_MAX_GROUPS) {
+    if (result < 1 || result > max_groups) {
         log_err(ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX,
-                "Group index %"PRId64" is out of range (1..%u)\n",
-                result, XKB_MAX_GROUPS);
+                "Group index %"PRId64" is out of range (1..%"PRIu32")\n",
+                result, max_groups);
         return false;
     }
 
@@ -332,10 +410,19 @@ bool
 ExprResolveLevel(struct xkb_context *ctx, const ExprDef *expr,
                  xkb_level_index_t *level_rtrn)
 {
+    static const struct named_integer_pattern level_name_pattern = {
+        /* Prefix is title-cased, because it is also used in error messages */
+        .prefix = "Level",
+        .prefix_length = sizeof("Level") - 1,
+        .min = 1,
+        .max = XKB_LEVEL_MAX_IMPL,
+        .is_mask = false,
+        .entries = NULL,
+        .error_id = XKB_ERROR_UNSUPPORTED_SHIFT_LEVEL,
+    };
     int64_t result = 0;
-    bool ok = ExprResolveIntegerLookup(ctx, expr, &result, SimpleLookup,
-                                       levelNames);
-    if (!ok)
+    if (!ExprResolveIntegerLookup(ctx, expr, &result, NamedIntegerPatternLookup,
+                                  &level_name_pattern))
         return false;
 
     if (result < 1 || result > XKB_LEVEL_MAX_IMPL) {
@@ -457,7 +544,7 @@ ExprResolveMaskLookup(struct xkb_context *ctx, const ExprDef *expr,
     case STMT_EXPR_INTEGER_LITERAL:
         if (expr->integer.ival < 0 || expr->integer.ival > UINT32_MAX) {
             log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
-                    "Mask %s%#"PRIx64" is out of range (0..%#"PRIx32")\n",
+                    "Mask %s%#"PRIxMAX" is out of range (0..%#"PRIx32")\n",
                     expr->integer.ival < 0 ? "-" : "",
                     imaxabs(expr->integer.ival),
                     UINT32_MAX);
@@ -542,7 +629,7 @@ ExprResolveMaskLookup(struct xkb_context *ctx, const ExprDef *expr,
             return false;
         if (v < 0 || v > UINT32_MAX) {
             log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
-                    "Mask %s%#"PRIx64" is out of range (0..%#"PRIx32")\n",
+                    "Mask %s%#"PRIxMAX" is out of range (0..%#"PRIx32")\n",
                     v < 0 ? "-" : "", imaxabs(v), UINT32_MAX);
             return false;
         }
@@ -611,4 +698,22 @@ ExprResolveMod(struct xkb_context *ctx, const ExprDef *def,
 
     *ndx_rtrn = ndx;
     return true;
+}
+
+bool
+ExprResolveGroupMask(struct xkb_context *ctx, xkb_layout_index_t max_groups,
+                     const ExprDef *expr, xkb_layout_index_t *group_rtrn)
+{
+    const struct named_integer_pattern group_name_pattern = {
+        /* Prefix is title-cased, because it is also used in error messages */
+        .prefix = "Group",
+        .prefix_length = sizeof("Group") - 1,
+        .min = 1,
+        .max = max_groups,
+        .is_mask = true,
+        .entries = groupMaskNames,
+        .error_id = XKB_ERROR_UNSUPPORTED_GROUP_INDEX
+    };
+    return ExprResolveMaskLookup(ctx, expr, group_rtrn,
+                                 NamedIntegerPatternLookup, &group_name_pattern);
 }

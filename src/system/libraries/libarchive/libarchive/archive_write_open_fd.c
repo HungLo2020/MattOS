@@ -48,6 +48,7 @@
 #endif
 
 #include "archive.h"
+#include "archive_private.h"
 
 struct write_fd_data {
 	int		fd;
@@ -61,6 +62,9 @@ int
 archive_write_open_fd(struct archive *a, int fd)
 {
 	struct write_fd_data *mine;
+
+	archive_check_magic(a, ARCHIVE_WRITE_MAGIC,
+	    ARCHIVE_STATE_NEW, "archive_write_open_fd");
 
 	mine = malloc(sizeof(*mine));
 	if (mine == NULL) {
@@ -135,11 +139,7 @@ file_write(struct archive *a, void *client_data, const void *buff, size_t length
 static int
 file_free(struct archive *a, void *client_data)
 {
-	struct write_fd_data	*mine = (struct write_fd_data *)client_data;
-
 	(void)a; /* UNUSED */
-	if (mine == NULL)
-		return (ARCHIVE_OK);
-	free(mine);
+	free(client_data);
 	return (ARCHIVE_OK);
 }

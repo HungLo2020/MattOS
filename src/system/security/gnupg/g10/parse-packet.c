@@ -38,6 +38,11 @@
 #include "../common/mbox-util.h"
 
 
+/* It is better to always allow parsing the 9980 packets but we keep
+ * the macro for documentaion reasons.  */
+#undef RFC9980
+#define RFC9980 1
+
 static int mpi_print_mode;
 static int list_mode;
 static estream_t listfp;
@@ -81,9 +86,9 @@ static int parse_compressed (IOBUF inp, int pkttype, unsigned long pktlen,
 			     PACKET * packet, int new_ctb);
 static int parse_encrypted (IOBUF inp, int pkttype, unsigned long pktlen,
 			    PACKET * packet, int new_ctb, int partial);
-static gpg_error_t parse_encrypted_aead (IOBUF inp, int pkttype,
-                                         unsigned long pktlen, PACKET *packet,
-                                         int partial);
+static gpg_error_t parse_encrypted_ocb (iobuf_t inp, int pkttype,
+                                        unsigned long pktlen, PACKET *packet,
+                                        int partial);
 static int parse_mdc (IOBUF inp, int pkttype, unsigned long pktlen,
 		      PACKET * packet, int new_ctb);
 static int parse_gpg_control (IOBUF inp, int pkttype, unsigned long pktlen,
@@ -185,6 +190,124 @@ mpi_read (iobuf_t inp, unsigned int *ret_nread, int secure)
   *ret_nread = nread;
   gcry_free(buf);
   return a;
+}
+
+
+/* If NLENGTH is zero read an octet string of length NBYTES from INP
+ * and return it at R_DATA.
+ *
+ * If NLENGTH is either 1, 2, or 4 and NLENGTH is zero read an
+ * NLENGTH-octet count and use this count number octets from INP and
+ * return it at R_DATA.
+ *
+ * On error return an error code and store NULL at R_DATA.  PKTLEN
+ * shall give the current length of the packet and is updated with
+ * each read. If SECURE is true, the integer is stored in secure
+ * memory (allocated using gcry_xmalloc_secure).
+ */
+static gpg_error_t
+read_raw_octet_string (iobuf_t inp, unsigned long *pktlen,
+                       unsigned int nlength, unsigned int nbytes,
+                       int secure, gcry_mpi_t *r_data)
+{
+  gpg_error_t err;
+  int c, i;
+  byte *buf = NULL;
+  byte *p;
+
+  *r_data = NULL;
+
+  if ((nbytes && nlength)
+      || (!nbytes && !(nlength == 1 || nlength == 2 || nlength == 4)))
+    {
+      err = gpg_error (GPG_ERR_INV_ARG);
+      goto leave;
+    }
+
+  if (nlength)
+    {
+      for (i = 0; i < nlength; i++)
+        {
+          if (!*pktlen)
+            {
+              err = gpg_error (GPG_ERR_INV_PACKET);
+              goto leave;
+            }
+          c = iobuf_readbyte (inp);
+          if (c < 0)
+            {
+              err =  gpg_error (GPG_ERR_INV_PACKET);
+              goto leave;
+            }
+          --*pktlen;
+          nbytes <<= 8;
+          nbytes |= c;
+        }
+
+      if (!nbytes)
+        {
+          err =  gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+    }
+
+  if (nbytes*8 > (nbytes==4? MAX_EXTERN_KEYPARM_BITS:MAX_EXTERN_MPI_BITS)
+      || (nbytes*8 < nbytes))
+    {
+      log_error ("octet string too large (%u octets)\n", nbytes);
+      err = gpg_error (GPG_ERR_TOO_LARGE);
+      goto leave;
+    }
+
+  if (nbytes > *pktlen)
+    {
+      log_error ("octet string larger than packet (%u/%lu)\n", nbytes, *pktlen);
+      err = gpg_error (GPG_ERR_INV_PACKET);
+      goto leave;
+    }
+
+  buf = secure ? gcry_malloc_secure (nbytes) : gcry_malloc (nbytes);
+  if (!buf)
+    {
+      err = gpg_error_from_syserror ();
+      goto leave;
+    }
+  p = buf;
+  for (i = 0; i < nbytes; i++)
+    {
+      c = iobuf_get (inp);
+      if (c == -1)
+        {
+          err = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+
+      p[i] = c;
+      --*pktlen;
+    }
+
+  *r_data = gcry_mpi_set_opaque (NULL, buf, nbytes*8);
+  return 0;
+
+ leave:
+  gcry_free (buf);
+  return err;
+}
+
+
+/* Read a simple octet string (SOS) and mark the result as such a
+ * value.  For details see read_raw_octet_string.  */
+static gpg_error_t
+read_sos_octet_string (iobuf_t inp, unsigned long *pktlen,
+                       unsigned int nlength, unsigned int nbytes,
+                       int secure, gcry_mpi_t *r_data)
+{
+  gpg_error_t err;
+
+  err = read_raw_octet_string (inp, pktlen, nlength, nbytes, secure, r_data);
+  if (!err)
+    gcry_mpi_set_flag (*r_data, GCRYMPI_FLAG_USER2);
+  return err;
 }
 
 
@@ -644,7 +767,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
 
  again:
   log_assert (!pkt->pkt.generic);
-  if (retpos || list_mode)
+  if (retpos || list_mode || opt.verbose > 1)
     {
       pos = iobuf_tell (inp);
       if (retpos)
@@ -660,6 +783,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
       rc = -1;
       goto leave;
     }
+  ctx->last_ctb = ctb;
   hdrlen = 0;
   hdr[hdrlen++] = ctb;
 
@@ -671,18 +795,28 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
     }
 
   /* Immediately following the header is the length.  There are two
-     formats: the old format and the new format.  If bit 6 (where the
-     least significant bit is bit 0) is set in the tag, then we are
-     dealing with a new format packet.  Otherwise, it is an old format
-     packet.  */
+   * formats: the old format and the new format.  If bit 6 (where the
+   * least significant bit is bit 0) is set in the tag, then we are
+   * dealing with a new format packet.  Otherwise, it is an old format
+   * packet.  In the new format the packet's type is encoded in the 6
+   * least significant bits of the tag; in the old format it is
+   * encoded in bits 2-5.  */
   pktlen = 0;
   new_ctb = !!(ctb & 0x40);
   if (new_ctb)
-    {
-      /* Get the packet's type.  This is encoded in the 6 least
-	 significant bits of the tag.  */
-      pkttype = ctb & 0x3f;
+    pkttype = ctb & 0x3f;
+  else
+    pkttype = (ctb >> 2) & 0xf;
 
+  if (ctx->only_fookey_enc
+      && !(pkttype == PKT_SYMKEY_ENC || pkttype == PKT_PUBKEY_ENC))
+    {
+      rc = gpg_error (GPG_ERR_TRUE);
+      goto leave;
+    }
+
+  if (new_ctb)
+    {
       /* Extract the packet's length.  New format packets have 4 ways
 	 to encode the packet length.  The value of the first byte
 	 determines the encoding and partially determines the length.
@@ -736,7 +870,7 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
             case PKT_PLAINTEXT:
             case PKT_ENCRYPTED:
             case PKT_ENCRYPTED_MDC:
-            case PKT_ENCRYPTED_AEAD:
+            case PKT_ENCRYPTED_OCB:
             case PKT_COMPRESSED:
               iobuf_set_partial_body_length_mode (inp, c & 0xff);
               pktlen = 0;	/* To indicate partial length.  */
@@ -752,12 +886,8 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
         }
 
     }
-  else
-    /* This is an old format packet.  */
+  else /* This is an old format packet.  */
     {
-      /* Extract the packet's type.  This is encoded in bits 2-5.  */
-      pkttype = (ctb >> 2) & 0xf;
-
       /* The type of length encoding is encoded in bits 0-1 of the
 	 tag.  */
       lenbytes = ((ctb & 3) == 3) ? 0 : (1 << (ctb & 3));
@@ -924,8 +1054,8 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
     case PKT_MDC:
       rc = parse_mdc (inp, pkttype, pktlen, pkt, new_ctb);
       break;
-    case PKT_ENCRYPTED_AEAD:
-      rc = parse_encrypted_aead (inp, pkttype, pktlen, pkt, partial);
+    case PKT_ENCRYPTED_OCB:
+      rc = parse_encrypted_ocb (inp, pkttype, pktlen, pkt, partial);
       break;
     case PKT_GPG_CONTROL:
       rc = parse_gpg_control (inp, pkttype, pktlen, pkt, partial);
@@ -937,6 +1067,17 @@ parse (parse_packet_ctx_t ctx, PACKET *pkt, int onlykeypkts, off_t * retpos,
       /* Unknown packet.  Skip it.  */
       skip_packet (inp, pkttype, pktlen, partial);
       break;
+    }
+
+  if (gpg_err_code (rc) == GPG_ERR_INV_PACKET && opt.verbose > 1)
+    {
+      log_error ("parse_packet: read error: %s\n", gpg_strerror (rc));
+      print_further_info
+        ("packet %u off=%lu ctb=%02x tag=%d hlen=%d plen=%lu%s%s",
+         ctx->n_parsed_packets,
+         (unsigned long)pos, ctb, pkttype, hdrlen, pktlen,
+         partial? (new_ctb ? " partial" : " indeterminate") :"",
+         new_ctb? " new-ctb":"");
     }
 
   /* Store a shallow copy of certain packets in the context.  */
@@ -1102,32 +1243,29 @@ read_rest (IOBUF inp, size_t pktlen)
 
 
 /* Read a special size+body from INP.  On success store an opaque MPI
-   with it at R_DATA.  On error return an error code and store NULL at
-   R_DATA.  Even in the error case store the number of read bytes at
-   R_NREAD.  The caller shall pass the remaining size of the packet in
-   PKTLEN.  */
+ * with it at R_DATA.  The caller shall store the remaining size of
+ * the packet at PKTLEN.  On error return an error code and store NULL
+ * at R_DATA.  Even in the error case store the number of read bytes
+ * at PKTLEN is updated.  */
 static gpg_error_t
-read_size_body (iobuf_t inp, int pktlen, size_t *r_nread,
-                gcry_mpi_t *r_data)
+read_sized_octet_string (iobuf_t inp, unsigned long *pktlen, gcry_mpi_t *r_data)
 {
   char buffer[256];
   char *tmpbuf;
   int i, c, nbytes;
 
-  *r_nread = 0;
   *r_data = NULL;
 
-  if (!pktlen)
+  if (!*pktlen)
     return gpg_error (GPG_ERR_INV_PACKET);
   c = iobuf_readbyte (inp);
   if (c < 0)
     return gpg_error (GPG_ERR_INV_PACKET);
-  pktlen--;
-  ++*r_nread;
+  --*pktlen;
   nbytes = c;
   if (nbytes < 2 || nbytes > 254)
     return gpg_error (GPG_ERR_INV_PACKET);
-  if (nbytes > pktlen)
+  if (nbytes > *pktlen)
     return gpg_error (GPG_ERR_INV_PACKET);
 
   buffer[0] = nbytes;
@@ -1137,7 +1275,7 @@ read_size_body (iobuf_t inp, int pktlen, size_t *r_nread,
       c = iobuf_get (inp);
       if (c < 0)
         return gpg_error (GPG_ERR_INV_PACKET);
-      ++*r_nread;
+      --*pktlen;
       buffer[1+i] = c;
     }
 
@@ -1269,8 +1407,7 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       goto leave;
     }
   seskeylen = pktlen - minlen;
-  k = packet->pkt.symkey_enc = xmalloc_clear (sizeof *packet->pkt.symkey_enc
-					      + seskeylen - 1);
+  k = packet->pkt.symkey_enc = xmalloc_clear (sizeof *packet->pkt.symkey_enc);
   k->version = version;
   k->cipher_algo = cipher_algo;
   k->aead_algo = aead_algo;
@@ -1289,6 +1426,7 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
   k->seskeylen = seskeylen;
   if (k->seskeylen)
     {
+      k->seskey = xcalloc (1, seskeylen);
       for (i = 0; i < seskeylen && pktlen; i++, pktlen--)
 	k->seskey[i] = iobuf_get_noeof (inp);
 
@@ -1344,12 +1482,15 @@ parse_symkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
 }
 
 
+/* Parse a public key encrypted packet (Tag 1).  */
 static int
 parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
 		 PACKET * packet)
 {
   int rc = 0;
+  int is_v6 = 0;
   int i, ndata;
+  unsigned int n;
   PKT_pubkey_enc *k;
 
   k = packet->pkt.pubkey_enc = xmalloc_clear (sizeof *packet->pkt.pubkey_enc);
@@ -1363,7 +1504,11 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
     }
   k->version = iobuf_get_noeof (inp);
   pktlen--;
-  if (k->version != 2 && k->version != 3)
+  if (k->version == 2 || k->version == 3)
+    ;
+  else if (RFC9980 && k->version == 6)
+    is_v6 = 1;
+  else
     {
       log_error ("packet(%d) with unknown version %d\n", pkttype, k->version);
       if (list_mode)
@@ -1371,10 +1516,66 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       rc = gpg_error (GPG_ERR_INV_PACKET);
       goto leave;
     }
-  k->keyid[0] = read_32 (inp);
-  pktlen -= 4;
-  k->keyid[1] = read_32 (inp);
-  pktlen -= 4;
+
+  if (is_v6)
+    {
+      int keyver;
+
+      k->fprlen = iobuf_get_noeof (inp);  /* Actually the 1 + fprlen.  */
+      pktlen--;
+      if (k->fprlen)
+        {
+          keyver = iobuf_get_noeof (inp);
+          pktlen--; k->fprlen--;
+          /* fprlen has now the correct value.  */
+          if (pktlen < k->fprlen || k->fprlen > MAX_FINGERPRINT_LEN)
+            {
+              log_error ("packet(%d) too short for fingerprint (%d)\n",
+                         pkttype, k->fprlen);
+              rc = gpg_error (GPG_ERR_INV_PACKET);
+              goto leave;
+            }
+	  if (iobuf_read (inp, k->fpr, k->fprlen) != k->fprlen)
+	    {
+	      log_error ("premature eof while reading "
+			 "fingerprint from packet(%d)\n", pkttype);
+              rc = gpg_error (GPG_ERR_INV_PACKET);
+	      goto leave;
+            }
+          pktlen -= k->fprlen;
+          if (k->fprlen == 20 && keyver == 4)
+            {
+              k->keyid[0] = buf32_to_u32 (k->fpr+12);
+              k->keyid[1] = buf32_to_u32 (k->fpr+16);
+            }
+          else if (k->fprlen == 32 && keyver >= 5)
+            {
+              k->keyid[0] = buf32_to_u32 (k->fpr);
+              k->keyid[1] = buf32_to_u32 (k->fpr+4);
+            }
+          else
+            {
+	      log_error ("packet(%d) inconsistent fingerprint (v=%d,n=%d)\n",
+                         pkttype, keyver, k->fprlen);
+              rc = gpg_error (GPG_ERR_INV_PACKET);
+	      goto leave;
+            }
+        }
+    }
+  else
+    {
+      k->keyid[0] = read_32 (inp);
+      pktlen -= 4;
+      k->keyid[1] = read_32 (inp);
+      pktlen -= 4;
+    }
+
+  if (!pktlen)
+    {
+      log_error ("packet(%d) too short for public-key algo\n", pkttype);
+      rc = gpg_error (GPG_ERR_INV_PACKET);
+      goto leave;
+    }
   k->pubkey_algo = iobuf_get_noeof (inp);
   pktlen--;
   k->throw_keyid = 0;  /* Only used as flag for build_packet.  */
@@ -1392,45 +1593,158 @@ parse_pubkeyenc (IOBUF inp, int pkttype, unsigned long pktlen,
       unknown_pubkey_warning (k->pubkey_algo);
       k->data[0] = NULL; /* No need to store the encrypted data.  */
     }
+  else if (k->pubkey_algo == PUBKEY_ALGO_ECDH)
+    {
+      log_assert (ndata == 2);
+      /* Get the ephemeral public key.  */
+      n = pktlen;
+      k->data[0] = sos_read (inp, &n, 0);
+      pktlen -= n;
+      if (!k->data[0])
+        {
+          rc = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+      /* Get the wrapped symmetric key.  */
+      rc = read_sized_octet_string (inp, &pktlen, k->data + 1);
+      if (rc)
+        goto leave;
+    }
+  else if (k->pubkey_algo == PUBKEY_ALGO_X25519 && RFC9980)
+    {
+      log_assert (ndata == 2);
+      /* Get the ephemeral public key.  */
+      rc = read_raw_octet_string (inp, &pktlen, 0, 32, 0, k->data + 0);
+      if (rc)
+        goto leave;
+      if (pktlen < 2)
+        {
+          rc = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+      n = iobuf_get_noeof (inp);
+      pktlen--;
+      if (list_mode)
+        es_fprintf (listfp, "\tlength octet: %u\n", n);
+      if (!is_v6)
+        {
+          k->seskey_algo = iobuf_get_noeof (inp);
+          if (!n || !pktlen)
+            {
+              rc = gpg_error (GPG_ERR_INV_PACKET);
+              goto leave;
+            }
+          pktlen--;
+          n--;
+        }
+      /* Get the encrypted symmetric key (keylen+8 due to AESWRAP).  */
+      rc = read_raw_octet_string (inp, &pktlen, 0, n, 0, k->data + 1);
+      if (rc)
+        goto leave;
+    }
+  else if (k->pubkey_algo == PUBKEY_ALGO_KYBER)
+    {
+      log_assert (ndata == 3);
+      /* Get the ephemeral public key.  */
+      n = pktlen;
+      k->data[0] = sos_read (inp, &n, 0);
+      pktlen -= n;
+      if (!k->data[0])
+        {
+          rc = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+      /* Get the Kyber ciphertext.  */
+      rc = read_sos_octet_string (inp, &pktlen, 4, 0, 0, k->data + 1);
+      if (rc)
+        goto leave;
+      /* Get the algorithm id for the session key.  */
+      if (!pktlen)
+        {
+          rc = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+      k->seskey_algo = iobuf_get_noeof (inp);
+      pktlen--;
+      /* Get the encrypted symmetric key.  */
+      rc = read_sos_octet_string (inp, &pktlen, 1, 0, 0, k->data + 2);
+      if (rc)
+        goto leave;
+    }
+  else if (IS_PUBKEY_ALGO_MLK (k->pubkey_algo))
+    {
+      log_assert (ndata == 3);
+      /* Get the ephemeral public key.  */
+      rc = read_raw_octet_string
+        (inp, &pktlen, 0,
+         (k->pubkey_algo == PUBKEY_ALGO_MLK768_25519? 32 :
+          k->pubkey_algo == PUBKEY_ALGO_MLK768_NP384? 97 :
+          k->pubkey_algo == PUBKEY_ALGO_MLK768_BP384? 97 :
+          k->pubkey_algo == PUBKEY_ALGO_MLK1024_448?  56 :
+          k->pubkey_algo == PUBKEY_ALGO_MLK1024_NP521?  133 :
+          k->pubkey_algo == PUBKEY_ALGO_MLK1024_BP512?  129 : 0),
+         0, k->data + 0);
+      if (rc)
+        goto leave;
+
+      /* Get the Kyber ciphertext.  */
+      rc = read_raw_octet_string (inp, &pktlen, 0,
+                                  (IS_PUBKEY_ALGO_MLK768 (k->pubkey_algo)?
+                                   1088 : 1568),
+                                  0, k->data + 1);
+      if (rc)
+        goto leave;
+      /* Get the size octet and algo id for the session key.  */
+      if (pktlen < 2)
+        {
+          rc = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+      n = iobuf_get_noeof (inp);
+      pktlen--;
+      if (list_mode)
+        es_fprintf (listfp, "\tlength octet: %u\n", n);
+      if (!is_v6)
+        {
+          k->seskey_algo = iobuf_get_noeof (inp);
+          if (!n || !pktlen)
+            {
+              rc = gpg_error (GPG_ERR_INV_PACKET);
+              goto leave;
+            }
+          pktlen--;
+          n--;
+        }
+      /* Get the encrypted symmetric key (keylen+8 due to AESWRAP).  */
+      rc = read_raw_octet_string (inp, &pktlen, 0, n, 0, k->data + 2);
+      if (rc)
+        goto leave;
+    }
   else
     {
       for (i = 0; i < ndata; i++)
         {
-          if (k->pubkey_algo == PUBKEY_ALGO_ECDH)
-            {
-              if (i == 1)
-                {
-                  size_t n;
-                  rc = read_size_body (inp, pktlen, &n, k->data+i);
-                  pktlen -= n;
-                }
-              else
-                {
-                  int n = pktlen;
-                  k->data[i] = sos_read (inp, &n, 0);
-                  pktlen -= n;
-                  if (!k->data[i])
-                    rc = gpg_error (GPG_ERR_INV_PACKET);
-                }
-            }
-          else
-            {
-	      int n = pktlen;
-              k->data[i] = mpi_read (inp, &n, 0);
-              pktlen -= n;
-              if (!k->data[i])
-                rc = gpg_error (GPG_ERR_INV_PACKET);
-            }
-          if (rc)
-            goto leave;
-          if (list_mode)
-            {
-              es_fprintf (listfp, "\tdata: ");
-              mpi_print (listfp, k->data[i], mpi_print_mode);
-              es_putc ('\n', listfp);
-            }
+          n = pktlen;
+          k->data[i] = mpi_read (inp, &n, 0);
+          pktlen -= n;
+          if (!k->data[i])
+            rc = gpg_error (GPG_ERR_INV_PACKET);
+        }
+      if (rc)
+        goto leave;
+    }
+  if (list_mode)
+    {
+      if (k->seskey_algo)
+        es_fprintf (listfp, "\tsession key algo: %d\n", k->seskey_algo);
+      for (i = 0; i < ndata; i++)
+        {
+          es_fprintf (listfp, "\tdata: ");
+          mpi_print (listfp, k->data[i], mpi_print_mode);
+          es_putc ('\n', listfp);
         }
     }
+
 
  leave:
   iobuf_skip_rest (inp, pktlen, 0);
@@ -1565,6 +1879,20 @@ dump_sig_subpkt (int hashed, int type, int critical,
           char *tmp;
           es_fprintf (listfp, "issuer fpr v%d ", buffer[0]);
           tmp = bin2hex (buffer+1, length-1, NULL);
+          if (tmp)
+            {
+              es_fputs (tmp, listfp);
+              xfree (tmp);
+            }
+        }
+      break;
+    case SIGSUBPKT_INT_RCP_FPR:
+      if (length >= 21)
+        {
+          char *tmp;
+          es_fprintf (listfp, "intended recipient (revocation subject) fpr v%d ",
+                      buffer[0]);
+          tmp = bin2hex (buffer+1, length -1, NULL);
           if (tmp)
             {
               es_fputs (tmp, listfp);
@@ -2071,13 +2399,17 @@ parse_revkeys (PKT_signature * sig)
 }
 
 
+/* Note that the function returns -1 to indicate an EOF (which also
+ * indicates a broken packet in this case.  In most other cases
+ * GPG_ERR_INV_PACKET is returned and callers of parse_packet will
+ * usually skipt this packet then.  */
 int
 parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
 		 PKT_signature * sig)
 {
   int md5_len = 0;
-  unsigned n;
-  int is_v4or5 = 0;
+  unsigned int n;
+  int is_v4plus = 0;
   int rc = 0;
   int i, ndata;
 
@@ -2090,8 +2422,9 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
     }
   sig->version = iobuf_get_noeof (inp);
   pktlen--;
-  if (sig->version == 4 || sig->version == 5)
-    is_v4or5 = 1;
+  if (sig->version == 4 || sig->version == 5
+      || (sig->version == 6 && RFC9980))
+    is_v4plus = 1;
   else if (sig->version != 2 && sig->version != 3)
     {
       log_error ("packet(%d) with unknown version %d\n",
@@ -2102,7 +2435,7 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
       goto leave;
     }
 
-  if (!is_v4or5)
+  if (!is_v4plus)
     {
       if (pktlen == 0)
 	goto underflow;
@@ -2113,7 +2446,7 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
     goto underflow;
   sig->sig_class = iobuf_get_noeof (inp);
   pktlen--;
-  if (!is_v4or5)
+  if (!is_v4plus)
     {
       if (pktlen < 12)
 	goto underflow;
@@ -2132,20 +2465,31 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
   pktlen--;
   sig->flags.exportable = 1;
   sig->flags.revocable = 1;
-  if (is_v4or5) /* Read subpackets.  */
+  if (is_v4plus) /* Read subpackets.  */
     {
-      if (pktlen < 2)
-	goto underflow;
-      n = read_16 (inp);
-      pktlen -= 2;  /* Length of hashed data. */
+      if (sig->version == 6)
+        {
+          if (pktlen < 4)
+            goto underflow;
+          n = read_32 (inp);
+          pktlen -= 4;  /* Length of hashed data. */
+        }
+      else
+        {
+          if (pktlen < 2)
+            goto underflow;
+          n = read_16 (inp);
+          pktlen -= 2;  /* Length of hashed data. */
+        }
       if (pktlen < n)
 	goto underflow;
-      if (n > 10000)
+      if (n > 30000)
 	{
-	  log_error ("signature packet: hashed data too long\n");
+	  log_error ("signature packet: hashed data too long (%u)\n", n);
           if (list_mode)
-            es_fputs (":signature packet: [hashed data too long]\n", listfp);
-	  rc = GPG_ERR_INV_PACKET;
+            es_fprintf (listfp,
+                        ":signature packet: [hashed data too long (%u)]\n", n);
+          rc = GPG_ERR_INV_PACKET;
 	  goto leave;
 	}
       if (n)
@@ -2164,18 +2508,30 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
 	    }
 	  pktlen -= n;
 	}
-      if (pktlen < 2)
-	goto underflow;
-      n = read_16 (inp);
-      pktlen -= 2;  /* Length of unhashed data.  */
+      if (sig->version == 6)
+        {
+          if (pktlen < 4)
+            goto underflow;
+          n = read_32 (inp);
+          pktlen -= 4;  /* Length of unhashed data.  */
+        }
+      else
+        {
+          if (pktlen < 2)
+            goto underflow;
+          n = read_16 (inp);
+          pktlen -= 2;  /* Length of unhashed data.  */
+        }
       if (pktlen < n)
 	goto underflow;
       if (n > 10000)
 	{
-	  log_error ("signature packet: unhashed data too long\n");
+	  log_error ("signature packet: unhashed data too long (%u)\n", n);
           if (list_mode)
-            es_fputs (":signature packet: [unhashed data too long]\n", listfp);
-	  rc = GPG_ERR_INV_PACKET;
+            es_fprintf (listfp,
+                        ":signature packet: [unhashed data too long (%u)]\n",
+                        n);
+          rc = GPG_ERR_INV_PACKET;
 	  goto leave;
 	}
       if (n)
@@ -2203,7 +2559,23 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
   sig->digest_start[1] = iobuf_get_noeof (inp);
   pktlen--;
 
-  if (is_v4or5 && sig->pubkey_algo)  /* Extract required information.  */
+  if (sig->version == 6)
+    {
+      int saltlen;
+
+      /* Note that we allow for a zero length salt.  */
+      saltlen = iobuf_get (inp);
+      if (saltlen < 0 || !pktlen)
+        rc = gpg_error (GPG_ERR_INV_PACKET);
+      else if (saltlen)
+        rc = read_raw_octet_string (inp, &pktlen, 0, saltlen, 0, &sig->salt);
+      pktlen--; /* Adjust for saltlen octet read above.  */
+
+      if (rc)
+        goto leave;
+    }
+
+  if (is_v4plus && sig->pubkey_algo)  /* Extract required information.  */
     {
       const byte *p;
       size_t len;
@@ -2230,7 +2602,7 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
           sig->keyid[0] = buf32_to_u32 (p + 1 + 12);
 	  sig->keyid[1] = buf32_to_u32 (p + 1 + 16);
 	}
-      else if (p && len == 33 && p[0] == 5)
+      else if (p && len == 33 && (p[0] == 5 || p[0] == 6))
         {
           sig->keyid[0] = buf32_to_u32 (p + 1 );
 	  sig->keyid[1] = buf32_to_u32 (p + 1 + 4);
@@ -2243,6 +2615,27 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
       else if (!(sig->pubkey_algo >= 100 && sig->pubkey_algo <= 110)
 	       && opt.verbose > 1 && !glo_ctrl.silence_parse_warnings)
 	log_info ("signature packet without keyid\n");
+
+      /* Get the intended recipient (revocation subject) fpr. */
+      p = parse_sig_subpkt (sig, 1, SIGSUBPKT_INT_RCP_FPR, &len);
+      if (p && len == 21 && p[0] == 4)
+        {
+          sig->rev_subject_info = xmalloc_clear (sizeof *sig->rev_subject_info);
+
+          sig->rev_subject_info->fprlen = 20;
+          memcpy (sig->rev_subject_info->fpr, p + 1, 20);
+	}
+      else if (p && len == 33 && p[0] == 5)
+        {
+          sig->rev_subject_info = xmalloc_clear (sizeof *sig->rev_subject_info);
+
+          sig->rev_subject_info->fprlen = 32;
+          memcpy (sig->rev_subject_info->fpr, p + 1, 32);
+	}
+      else
+        {
+         sig->rev_subject_info = NULL;
+        }
 
       p = parse_sig_subpkt (sig, 1, SIGSUBPKT_SIG_EXPIRE, NULL);
       if (p && buf32_to_u32 (p))
@@ -2329,7 +2722,14 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
                   (ulong) sig->keyid[0], (ulong) sig->keyid[1],
                   sig->version, (ulong) sig->timestamp, md5_len, sig->sig_class,
                   sig->digest_algo, sig->digest_start[0], sig->digest_start[1]);
-      if (is_v4or5)
+      if (sig->version == 6 && sig->salt)
+        {
+          es_fprintf (listfp, "\tsalt: ");
+          mpi_print (listfp, sig->salt, 1 /* Always print the salt.  */);
+          es_putc ('\n', listfp);
+        }
+
+      if (is_v4plus)
 	{
 	  parse_sig_subpkt (sig, 1, SIGSUBPKT_LIST_HASHED, NULL);
 	  parse_sig_subpkt (sig, 0, SIGSUBPKT_LIST_UNHASHED, NULL);
@@ -2365,13 +2765,22 @@ parse_signature (IOBUF inp, int pkttype, unsigned long pktlen,
     {
       for (i = 0; i < ndata; i++)
 	{
-	  n = pktlen;
-          if (sig->pubkey_algo == PUBKEY_ALGO_ECDSA
-              || sig->pubkey_algo == PUBKEY_ALGO_EDDSA)
-            sig->data[i] = sos_read (inp, &n, 0);
+          if (sig->pubkey_algo == PUBKEY_ALGO_ED25519 && RFC9980)
+            {
+              rc = read_raw_octet_string (inp, &pktlen, 0, 64, 0, sig->data+i);
+              if (rc)
+                goto leave;
+            }
           else
-            sig->data[i] = mpi_read (inp, &n, 0);
-	  pktlen -= n;
+            {
+              n = pktlen;
+              if (sig->pubkey_algo == PUBKEY_ALGO_ECDSA
+                  || sig->pubkey_algo == PUBKEY_ALGO_EDDSA)
+                sig->data[i] = sos_read (inp, &n, 0);
+              else
+                sig->data[i] = mpi_read (inp, &n, 0);
+              pktlen -= n;
+            }
 	  if (list_mode)
 	    {
 	      es_fprintf (listfp, "\tdata: ");
@@ -2402,7 +2811,6 @@ static int
 parse_onepass_sig (IOBUF inp, int pkttype, unsigned long pktlen,
 		   PKT_onepass_sig * ops)
 {
-  int version;
   int rc = 0;
 
   if (pktlen < 13)
@@ -2413,11 +2821,11 @@ parse_onepass_sig (IOBUF inp, int pkttype, unsigned long pktlen,
       rc = gpg_error (GPG_ERR_INV_PACKET);
       goto leave;
     }
-  version = iobuf_get_noeof (inp);
+  ops->version = iobuf_get_noeof (inp);
   pktlen--;
-  if (version != 3)
+  if (!(ops->version == 3 || (RFC9980 && ops->version == 6)))
     {
-      log_error ("onepass_sig with unknown version %d\n", version);
+      log_error ("onepass_sig with unknown version %d\n", ops->version);
       if (list_mode)
         es_fputs (":onepass_sig packet: [unknown version]\n", listfp);
       rc = gpg_error (GPG_ERR_INV_PACKET);
@@ -2429,21 +2837,63 @@ parse_onepass_sig (IOBUF inp, int pkttype, unsigned long pktlen,
   pktlen--;
   ops->pubkey_algo = iobuf_get_noeof (inp);
   pktlen--;
-  ops->keyid[0] = read_32 (inp);
-  pktlen -= 4;
-  ops->keyid[1] = read_32 (inp);
-  pktlen -= 4;
+
+  if (ops->version == 6)
+    {
+      /* FIXME: We should save the fingerprint and check it against
+       * the regular packet.  Howeever, we have not done that for
+       * keyid either.  */
+      unsigned char fpr[32];
+
+      rc = read_raw_octet_string (inp, &pktlen, 1, 0, 0, &ops->salt);
+      if (rc)
+        goto leave;
+
+      if (pktlen < sizeof fpr)
+        {
+          log_error ("packet(%d) too short for fingerprint (%lu/%zu)\n",
+                     pkttype, pktlen, sizeof fpr);
+          rc = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+      if (iobuf_read (inp, fpr, sizeof fpr) != sizeof fpr)
+        {
+          log_error ("premature eof while reading "
+                     "fingerprint from packet(%d)\n", pkttype);
+          rc = gpg_error (GPG_ERR_INV_PACKET);
+          goto leave;
+        }
+      pktlen -= sizeof fpr;
+
+      ops->keyid[0] = buf32_to_u32 (fpr);
+      ops->keyid[1] = buf32_to_u32 (fpr+4);
+    }
+  else
+    {
+      ops->keyid[0] = read_32 (inp);
+      pktlen -= 4;
+      ops->keyid[1] = read_32 (inp);
+      pktlen -= 4;
+    }
+
   ops->last = iobuf_get_noeof (inp);
   pktlen--;
   if (list_mode)
-    es_fprintf (listfp,
-                ":onepass_sig packet: keyid %08lX%08lX\n"
-                "\tversion %d, sigclass 0x%02x, digest %d, pubkey %d, "
-                "last=%d\n",
-                (ulong) ops->keyid[0], (ulong) ops->keyid[1],
-                version, ops->sig_class,
-                ops->digest_algo, ops->pubkey_algo, ops->last);
-
+    {
+      es_fprintf (listfp,
+                  ":onepass_sig packet: keyid %08lX%08lX\n"
+                  "\tversion %d, sigclass 0x%02x, digest %d, pubkey %d, "
+                  "last=%d\n",
+                  (ulong) ops->keyid[0], (ulong) ops->keyid[1],
+                  ops->version, ops->sig_class,
+                  ops->digest_algo, ops->pubkey_algo, ops->last);
+      if (ops->version == 6 && ops->salt)
+        {
+          es_fprintf (listfp, "\tsalt: ");
+          mpi_print (listfp, ops->salt, 1);
+          es_putc ('\n', listfp);
+        }
+    }
 
  leave:
   iobuf_skip_rest (inp, pktlen, 0);
@@ -2461,7 +2911,8 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
   int npkey, nskey;
   u32 keyid[2];
   PKT_public_key *pk;
-  int is_v5;
+  int is_v5 = 0;
+  int is_v6 = 0;
   unsigned int pkbytes; /* For v5 keys: Number of bytes in the public
                          * key material.  For v4 keys: 0.  */
 
@@ -2495,9 +2946,11 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
       return 0;
     }
   else if (version == 4)
-    is_v5 = 0;
+    ;
   else if (version == 5)
     is_v5 = 1;
+  else if (version == 6 && RFC9980)
+    is_v6 = 1;
   else if (version == 2 || version == 3)
     {
       /* Not anymore supported since 2.1.  Use an older gpg version
@@ -2542,7 +2995,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
   max_expiredate = 0;
   algorithm = iobuf_get_noeof (inp);
   pktlen--;
-  if (is_v5)
+  if (is_v5 || is_v6)
     {
       pkbytes = read_32 (inp);
       pktlen -= 4;
@@ -2559,7 +3012,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
                   pkttype == PKT_PUBLIC_SUBKEY ? "public sub" :
                   pkttype == PKT_SECRET_SUBKEY ? "secret sub" : "??",
                   version, algorithm, timestamp, expiredate);
-      if (is_v5)
+      if (is_v5 || is_v6)
         es_fprintf (listfp, ", pkbytes %u\n", pkbytes);
       else
         es_fprintf (listfp, "\n");
@@ -2598,19 +3051,73 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
         {
           if (    (algorithm == PUBKEY_ALGO_ECDSA && (i == 0))
                || (algorithm == PUBKEY_ALGO_EDDSA && (i == 0))
-               || (algorithm == PUBKEY_ALGO_ECDH  && (i == 0 || i == 2)))
+               || (algorithm == PUBKEY_ALGO_ECDH  && (i == 0 || i == 2))
+               || (algorithm == PUBKEY_ALGO_KYBER && (i == 0)))
             {
               /* Read the OID (i==0) or the KDF params (i==2).  */
-              size_t n;
-	      err = read_size_body (inp, pktlen, &n, pk->pkey+i);
-              pktlen -= n;
+	      err = read_sized_octet_string (inp, &pktlen, pk->pkey+i);
+            }
+          else if (algorithm == PUBKEY_ALGO_KYBER && i == 2)
+            {
+              /* Read the four-octet count prefixed Kyber public key.  */
+	      err = read_sos_octet_string (inp, &pktlen, 4, 0, 0, pk->pkey+i);
+            }
+          else if (algorithm == PUBKEY_ALGO_X25519 && RFC9980)
+            {
+	      err = read_raw_octet_string (inp, &pktlen, 0, 32,
+                                           0, pk->pkey+i);
+            }
+          else if (algorithm == PUBKEY_ALGO_MLK768_25519 && RFC9980)
+            {
+	      err = read_raw_octet_string (inp, &pktlen, 0, i==0? 32 : 1184,
+                                           0, pk->pkey+i);
+            }
+          else if ((algorithm == PUBKEY_ALGO_MLK768_NP384
+                    || algorithm == PUBKEY_ALGO_MLK768_BP384) && RFC9980)
+            {
+	      err = read_raw_octet_string (inp, &pktlen, 0, i==0? 97 : 1184,
+                                           0, pk->pkey+i);
+            }
+          else if (algorithm == PUBKEY_ALGO_MLK1024_448 && RFC9980)
+            {
+              if (is_v6)
+                err = read_raw_octet_string (inp, &pktlen, 0, i==0? 56 : 1568,
+                                             0, pk->pkey+i);
+              else
+                err = gpg_error (GPG_ERR_INV_PACKET);
+            }
+          else if (algorithm == PUBKEY_ALGO_MLK1024_NP521 && RFC9980)
+            {
+              if (is_v6)
+                err = read_raw_octet_string (inp, &pktlen, 0, i==0? 133 : 1568,
+                                             0, pk->pkey+i);
+              else
+                err = gpg_error (GPG_ERR_INV_PACKET);
+            }
+          else if (algorithm == PUBKEY_ALGO_MLK1024_BP512 && RFC9980)
+            {
+              if (is_v6)
+                err = read_raw_octet_string (inp, &pktlen, 0, i==0? 129 : 1568,
+                                             0, pk->pkey+i);
+              else
+                err = gpg_error (GPG_ERR_INV_PACKET);
+            }
+          else if (algorithm == PUBKEY_ALGO_X25519 && RFC9980)
+            {
+	      err = read_raw_octet_string (inp, &pktlen, 0, 32, 0, pk->pkey+i);
+            }
+          else if (algorithm == PUBKEY_ALGO_ED25519 && RFC9980)
+            {
+	      err = read_raw_octet_string (inp, &pktlen, 0, 32, 0, pk->pkey+i);
             }
           else
             {
+              /* Read MPI or SOS.  */
               unsigned int n = pktlen;
               if (algorithm == PUBKEY_ALGO_ECDSA
                   || algorithm == PUBKEY_ALGO_EDDSA
-                  || algorithm == PUBKEY_ALGO_ECDH)
+                  || algorithm == PUBKEY_ALGO_ECDH
+                  || algorithm == PUBKEY_ALGO_KYBER)
                 pk->pkey[i] = sos_read (inp, &n, 0);
               else
                 pk->pkey[i] = mpi_read (inp, &n, 0);
@@ -2620,17 +3127,30 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
             }
           if (err)
             goto leave;
-          if (list_mode)
+        }
+      if (list_mode)
+        {  /* Again so that we have all parameters in pkey[] and can
+            * do a look forward.  We use a hack for Kyber because the
+            * commonly used function pubkey_string requires an extra
+            * buffer and, more important, its result depends on an
+            * configure option.  */
+          for (i = 0; i < npkey; i++)
             {
               es_fprintf (listfp, "\tpkey[%d]: ", i);
               mpi_print (listfp, pk->pkey[i], mpi_print_mode);
               if ((algorithm == PUBKEY_ALGO_ECDSA
                    || algorithm == PUBKEY_ALGO_EDDSA
-                   || algorithm == PUBKEY_ALGO_ECDH) && i==0)
+                   || algorithm == PUBKEY_ALGO_ECDH
+                   || algorithm == PUBKEY_ALGO_KYBER) && i==0)
                 {
                   char *curve = openpgp_oid_to_str (pk->pkey[0]);
-                  const char *name = openpgp_oid_to_curve (curve, 0);
-                  es_fprintf (listfp, " %s (%s)", name?name:"", curve);
+                  const char *name = openpgp_oid_to_curve (curve, 2);
+
+                  if (algorithm == PUBKEY_ALGO_KYBER)
+                    es_fprintf (listfp, " ky%u_%s (%s)",
+                                nbits_from_pk (pk), name?name:"", curve);
+                  else
+                    es_fprintf (listfp, " %s (%s)", name?name:"", curve);
                   xfree (curve);
                 }
               es_putc ('\n', listfp);
@@ -2663,7 +3183,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
       ski->algo = iobuf_get_noeof (inp);
       pktlen--;
 
-      if (is_v5)
+      if (is_v5 || (is_v6 && ski->algo))
         {
           unsigned int protcount = 0;
 
@@ -2918,6 +3438,7 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
               if (mpi_print_mode)
                 {
                   char *tmpsxp = canon_sexp_to_string (tmpp, pktlen);
+
                   es_fprintf (listfp, "\tskey[%d]: %s\n", npkey,
                               tmpsxp? trim_trailing_spaces (tmpsxp)
                               /*  */: "[invalid S-expression]");
@@ -2963,21 +3484,87 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
           /* Not encrypted.  */
 	  for (i = npkey; i < nskey; i++)
 	    {
-              unsigned int n;
-
               if (pktlen < 2) /* At least two bytes for the length.  */
                 {
                   err = gpg_error (GPG_ERR_INV_PACKET);
                   goto leave;
                 }
-              n = pktlen;
-              if (algorithm == PUBKEY_ALGO_ECDSA
-                  || algorithm == PUBKEY_ALGO_EDDSA
-                  || algorithm == PUBKEY_ALGO_ECDH)
-                pk->pkey[i] = sos_read (inp, &n, 0);
+              if (algorithm == PUBKEY_ALGO_KYBER && i == npkey+1)
+                {
+                  err = read_sos_octet_string (inp, &pktlen, 4, 0,
+                                               1, pk->pkey+i);
+                  if (err)
+                    goto leave;
+                }
+              else if (algorithm == PUBKEY_ALGO_X25519 && RFC9980)
+                {
+                  err = read_raw_octet_string (inp, &pktlen, 0, 32,
+                                               0, pk->pkey+i);
+                }
+              else if (algorithm == PUBKEY_ALGO_MLK768_25519 && RFC9980)
+                {
+                  err = read_raw_octet_string (inp, &pktlen, 0,
+                                               i == npkey? 32 : 64,
+                                               0, pk->pkey+i);
+                }
+              else if ((algorithm == PUBKEY_ALGO_MLK768_NP384
+                        || algorithm == PUBKEY_ALGO_MLK768_BP384) && RFC9980)
+                {
+                  err = read_raw_octet_string (inp, &pktlen, 0,
+                                               i == npkey? 48 : 64,
+                                               0, pk->pkey+i);
+                }
+              else if (algorithm == PUBKEY_ALGO_MLK1024_448 && RFC9980)
+                {
+                  if (is_v6)
+                    err = read_raw_octet_string (inp, &pktlen, 0,
+                                                 i == npkey? 56 : 64,
+                                                 0, pk->pkey+i);
+                  else
+                    err = gpg_error (GPG_ERR_INV_PACKET);
+                }
+              else if (algorithm == PUBKEY_ALGO_MLK1024_NP521 && RFC9980)
+                {
+                  if (is_v6)
+                    err = read_raw_octet_string (inp, &pktlen, 0,
+                                                 i == npkey? 66 : 64,
+                                                 0, pk->pkey+i);
+                  else
+                    err = gpg_error (GPG_ERR_INV_PACKET);
+                }
+              else if (algorithm == PUBKEY_ALGO_MLK1024_BP512 && RFC9980)
+                {
+                  if (is_v6)
+                    err = read_raw_octet_string (inp, &pktlen, 0,
+                                                 i == npkey? 64 : 64,
+                                                 0, pk->pkey+i);
+                  else
+                    err = gpg_error (GPG_ERR_INV_PACKET);
+                }
+              else if (algorithm == PUBKEY_ALGO_X25519 && RFC9980)
+                {
+                  err = read_raw_octet_string (inp, &pktlen, 0, 32,
+                                               0, pk->pkey+i);
+                }
+              else if (algorithm == PUBKEY_ALGO_ED25519 && RFC9980)
+                {
+                  err = read_raw_octet_string (inp, &pktlen, 0, 32,
+                                               0, pk->pkey+i);
+                }
               else
-                pk->pkey[i] = mpi_read (inp, &n, 0);
-              pktlen -= n;
+                {
+                  unsigned int n = pktlen;
+
+                  if (algorithm == PUBKEY_ALGO_ECDSA
+                      || algorithm == PUBKEY_ALGO_EDDSA
+                      || algorithm == PUBKEY_ALGO_ECDH
+                      || algorithm == PUBKEY_ALGO_KYBER)
+                    pk->pkey[i] = sos_read (inp, &n, 0);
+                  else
+                    pk->pkey[i] = mpi_read (inp, &n, 0);
+                  pktlen -= n;
+                }
+
               if (list_mode)
                 {
                   es_fprintf (listfp, "\tskey[%d]: ", i);
@@ -2991,15 +3578,21 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
 	  if (err)
 	    goto leave;
 
-	  if (pktlen < 2)
-	    {
-              err = gpg_error (GPG_ERR_INV_PACKET);
-	      goto leave;
-	    }
-	  ski->csum = read_16 (inp);
-	  pktlen -= 2;
-	  if (list_mode)
-            es_fprintf (listfp, "\tchecksum: %04hx\n", ski->csum);
+          if (!is_v6)
+            {
+              if (pktlen < 2)
+                {
+                  if (opt.verbose)
+                    log_info ("checksum is missing (remaining bytes: %lu)\n",
+                              pktlen);
+                  err = gpg_error (GPG_ERR_INV_PACKET);
+                  goto leave;
+                }
+              ski->csum = read_16 (inp);
+              pktlen -= 2;
+              if (list_mode)
+                es_fprintf (listfp, "\tchecksum: %04hx\n", ski->csum);
+            }
 	}
     }
 
@@ -3007,6 +3600,21 @@ parse_key (IOBUF inp, int pkttype, unsigned long pktlen,
   if (list_mode)
     es_fprintf (listfp, "\tkeyid: %08lX%08lX\n",
                 (ulong) keyid[0], (ulong) keyid[1]);
+  if (list_mode && (pkttype == PKT_SECRET_KEY || pkttype == PKT_SECRET_SUBKEY)
+      && (opt.list_options & LIST_DEBUG_SHOW_SEXP))
+    {
+      nvc_t nvc = seckey_packet_to_nvc (pk);
+
+      es_fputs ("\ts-exp: ", listfp);
+      if (!nvc)
+        es_fputs ("[error getting key]\n", listfp);
+      else
+        {
+          nvc_write (nvc, listfp);
+          nvc_release (nvc);
+        }
+    }
+
 
  leave:
   iobuf_skip_rest (inp, pktlen, 0);
@@ -3539,31 +4147,43 @@ parse_encrypted (IOBUF inp, int pkttype, unsigned long pktlen,
   ed->buf = NULL;
   ed->new_ctb = new_ctb;
   ed->is_partial = partial;
+  ed->seipd = 0;
+  ed->version = 0;
   ed->aead_algo = 0;
+  ed->mdc_method = 0;
   ed->cipher_algo = 0; /* Only used with AEAD.  */
   ed->chunkbyte = 0;   /* Only used with AEAD.  */
   if (pkttype == PKT_ENCRYPTED_MDC)
     {
-      /* Fixme: add some pktlen sanity checks.  */
-      int version;
-
-      version = iobuf_get_noeof (inp);
+      ed->seipd = 1;
+      ed->version = iobuf_get_noeof (inp);
       if (orig_pktlen)
 	pktlen--;
-      if (version != 1)
+      if (ed->version == 1)
+        ed->mdc_method = DIGEST_ALGO_SHA1;
+      else if (ed->version == 2 && RFC9980)
+        {
+          ed->cipher_algo = iobuf_get_noeof (inp);
+          if (orig_pktlen)
+            pktlen--;
+          ed->aead_algo = iobuf_get_noeof (inp);
+          if (orig_pktlen)
+            pktlen--;
+          ed->chunkbyte = iobuf_get_noeof (inp);
+          if (orig_pktlen)
+            pktlen--;
+        }
+      else
 	{
 	  log_error ("encrypted_mdc packet with unknown version %d\n",
-		     version);
+		     ed->version);
           if (list_mode)
             es_fputs (":encrypted data packet: [unknown version]\n", listfp);
 	  /*skip_rest(inp, pktlen); should we really do this? */
 	  rc = gpg_error (GPG_ERR_INV_PACKET);
 	  goto leave;
 	}
-      ed->mdc_method = DIGEST_ALGO_SHA1;
     }
-  else
-    ed->mdc_method = 0;
 
   /* A basic sanity check.  We need at least an 8 byte IV plus the 2
      detection bytes.  Note that we don't known the algorithm and thus
@@ -3586,13 +4206,17 @@ parse_encrypted (IOBUF inp, int pkttype, unsigned long pktlen,
 
   if (list_mode)
     {
-      if (orig_pktlen)
-	es_fprintf (listfp, ":encrypted data packet:\n\tlength: %lu\n",
-                    orig_pktlen);
-      else
-	es_fprintf (listfp, ":encrypted data packet:\n\tlength: unknown\n");
+      es_fprintf (listfp, ":encrypted data packet:\n\tversion: %d\n",
+                  ed->version);
       if (ed->mdc_method)
-	es_fprintf (listfp, "\tmdc_method: %d\n", ed->mdc_method);
+	es_fprintf (listfp, "\t    mdc: %d\n", ed->mdc_method);
+      if (ed->version == 2)
+        es_fprintf (listfp, "\t cipher: %u\n\t   aead: %u\n\t  cbyte: %u\n",
+                    ed->cipher_algo, ed->aead_algo, ed->chunkbyte);
+      if (orig_pktlen)
+        es_fprintf (listfp, "\t length: %lu\n", orig_pktlen);
+      else
+	es_fprintf (listfp, "\t length: unknown\n");
     }
 
   ed->buf = inp;
@@ -3633,14 +4257,14 @@ parse_mdc (IOBUF inp, int pkttype, unsigned long pktlen,
 }
 
 
+/* Note that PKTLEN  may be 0 to indicate partial length encoding.  */
 static gpg_error_t
-parse_encrypted_aead (iobuf_t inp, int pkttype, unsigned long pktlen,
-                      PACKET *pkt, int partial)
+parse_encrypted_ocb (iobuf_t inp, int pkttype, unsigned long pktlen,
+                     PACKET *pkt, int partial)
 {
   int rc = 0;
   PKT_encrypted *ed;
   unsigned long orig_pktlen = pktlen;
-  int version;
 
   ed = pkt->pkt.encrypted = xtrymalloc (sizeof *pkt->pkt.encrypted);
   if (!ed)
@@ -3650,6 +4274,8 @@ parse_encrypted_aead (iobuf_t inp, int pkttype, unsigned long pktlen,
   ed->buf = NULL;
   ed->new_ctb = 1;   /* (packet number requires a new CTB anyway.)  */
   ed->is_partial = partial;
+  ed->seipd = 0;
+  ed->version = 0;
   ed->mdc_method = 0;
   /* A basic sanity check.  We need one version byte, one algo byte,
    * one aead algo byte, one chunkbyte, at least 15 byte IV.  */
@@ -3657,21 +4283,21 @@ parse_encrypted_aead (iobuf_t inp, int pkttype, unsigned long pktlen,
     {
       log_error ("packet(%d) too short\n", pkttype);
       if (list_mode)
-        es_fputs (":aead encrypted packet: [too short]\n", listfp);
+        es_fputs (":ocb encrypted packet: [too short]\n", listfp);
       rc = gpg_error (GPG_ERR_INV_PACKET);
       iobuf_skip_rest (inp, pktlen, partial);
       goto leave;
     }
 
-  version = iobuf_get_noeof (inp);
+  ed->version = iobuf_get_noeof (inp);
   if (orig_pktlen)
     pktlen--;
-  if (version != 1)
+  if (ed->version != 1)
     {
-      log_error ("aead encrypted packet with unknown version %d\n",
-                 version);
+      log_error ("ocb encrypted packet with unknown version %d\n",
+                 ed->version);
       if (list_mode)
-        es_fputs (":aead encrypted packet: [unknown version]\n", listfp);
+        es_fputs (":ocb encrypted packet: [unknown version]\n", listfp);
       /*skip_rest(inp, pktlen); should we really do this? */
       rc = gpg_error (GPG_ERR_INV_PACKET);
       goto leave;
@@ -3693,7 +4319,7 @@ parse_encrypted_aead (iobuf_t inp, int pkttype, unsigned long pktlen,
 
   if (list_mode)
     {
-      es_fprintf (listfp, ":aead encrypted packet: cipher=%u aead=%u cb=%u\n",
+      es_fprintf (listfp, ":ocb encrypted packet: cipher=%u aead=%u cb=%u\n",
                   ed->cipher_algo, ed->aead_algo, ed->chunkbyte);
       if (orig_pktlen)
 	es_fprintf (listfp, "\tlength: %lu\n", orig_pktlen);

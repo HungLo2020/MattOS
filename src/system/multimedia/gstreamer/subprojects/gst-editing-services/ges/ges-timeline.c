@@ -574,6 +574,7 @@ ges_timeline_send_event (GstElement * element, GstEvent * event)
 
     g_list_free_full (stream_ids, g_free);
     g_list_free (to_remove);
+    gst_event_unref (event);
 
     return TRUE;
   }
@@ -1927,8 +1928,8 @@ ges_timeline_add_clip (GESTimeline * timeline, GESClip * clip, GError ** error)
   ges_project_add_asset (project,
       ges_extractable_get_asset (GES_EXTRACTABLE (clip)));
 
-  if (ges_clip_is_moving_from_layer (clip)) {
-    GST_DEBUG ("Clip %p moving from one layer to another, not creating "
+  if (ELEMENT_FLAG_IS_SET (clip, GES_CLIP_FREEZE_TRACK_ELEMENTS)) {
+    GST_DEBUG ("Clip %p has frozen track elements, not creating "
         "TrackElement", clip);
     /* timeline-tree handles creation of auto-transitions */
     ret = TRUE;
@@ -1957,8 +1958,8 @@ ges_timeline_remove_clip (GESTimeline * timeline, GESClip * clip)
 {
   GList *tmp;
 
-  if (ges_clip_is_moving_from_layer (clip)) {
-    GST_DEBUG ("Clip %p is moving from a layer to another, not doing"
+  if (ELEMENT_FLAG_IS_SET (clip, GES_CLIP_FREEZE_TRACK_ELEMENTS)) {
+    GST_DEBUG ("Clip %p has frozen track elements, not doing"
         " anything on it", clip);
     return;
   }

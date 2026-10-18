@@ -65,7 +65,7 @@ common_sources = \
 	homedir.c \
 	gettime.c gettime.h \
 	yesno.c \
-	b64enc.c b64dec.c zb32.c zb32.h \
+	zb32.c zb32.h \
 	convert.c \
 	percent.c \
 	mbox-util.c mbox-util.h \
@@ -97,8 +97,8 @@ common_sources = \
 	openpgp-fpr.c \
 	comopt.c comopt.h \
 	compliance.c compliance.h \
-	pkscreening.c pkscreening.h
-
+	pkscreening.c pkscreening.h \
+	kem.c
 
 if HAVE_W32_SYSTEM
 common_sources += w32-reg.c w32-cmdline.c
@@ -161,11 +161,12 @@ module_tests = t-stringhelp t-timestuff \
                t-convert t-percent t-gettime t-sysutils t-sexputil \
 	       t-session-env t-openpgp-oid t-ssh-utils \
 	       t-mapstrings t-zb32 t-mbox-util t-iobuf t-strlist \
-	       t-name-value t-ccparray t-recsel t-w32-cmdline t-b64
+	       t-name-value t-ccparray t-recsel t-w32-cmdline t-exechelp
+
 if HAVE_W32_SYSTEM
 module_tests += t-w32-reg
 else
-module_tests += t-exechelp t-exectool
+module_tests += t-exectool
 endif
 
 if MAINTAINER_MODE
@@ -196,7 +197,6 @@ t_gettime_LDADD = $(t_common_ldadd)
 t_sysutils_LDADD = $(t_common_ldadd)
 t_helpfile_LDADD = $(t_common_ldadd)
 t_sexputil_LDADD = $(t_common_ldadd)
-t_b64_LDADD = $(t_common_ldadd)
 t_exechelp_LDADD = $(t_common_ldadd)
 t_exectool_LDADD = $(t_common_ldadd)
 t_session_env_LDADD = $(t_common_ldadd)

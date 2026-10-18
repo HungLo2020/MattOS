@@ -333,7 +333,7 @@ _parse_test_file (const gchar * option_name, const gchar * value,
 {
   opts->testfile = g_strdup (value);
   gst_validate_init_debug ();
-  gst_validate_setup_test_file (opts->testfile, FALSE);
+  gst_validate_setup_test_file (opts->testfile, opts->mute);
   return TRUE;
 }
 #endif
@@ -1080,7 +1080,7 @@ bus_message_cb (GstBus * bus, GstMessage * message, GESLauncher * self)
 
         gst_message_parse_state_changed (message, &old, &new, &pending);
         state_transition_name = g_strdup_printf ("%s_%s",
-            gst_element_state_get_name (old), gst_element_state_get_name (new));
+            gst_state_get_name (old), gst_state_get_name (new));
         dump_name = g_strconcat ("ges-launch.", state_transition_name, NULL);
 
 

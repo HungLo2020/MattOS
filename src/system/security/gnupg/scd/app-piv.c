@@ -18,7 +18,7 @@
  */
 
 /* Some notes:
- * - Specs for PIV are at http://dx.doi.org/10.6028/NIST.SP.800-73-4
+ * - Specs for PIV are at https://doi.org/10.6028/NIST.SP.800-73pt1-5
  * - https://developers.yubico.com/PIV/Introduction/PIV_attestation.html
  *
  * - Access control matrix:
@@ -70,7 +70,9 @@
 #define PIV_ALGORITHM_2DES_CBC   0x02
 #define PIV_ALGORITHM_3DES_ECB   0x03
 #define PIV_ALGORITHM_3DES_CBC   0x04
-#define PIV_ALGORITHM_RSA        0x07
+#define PIV_ALGORITHM_RSA_3072   0x05
+/*#define PIV_ALGORITHM_RSA_1024   0x06*/
+#define PIV_ALGORITHM_RSA_2048   0x07
 #define PIV_ALGORITHM_AES128_ECB 0x08
 #define PIV_ALGORITHM_AES128_CBC 0x09
 #define PIV_ALGORITHM_AES192_ECB 0x0A
@@ -128,45 +130,45 @@ static struct data_object_s data_objects[] = {
     "Discovery Object" },
   { 0x5FC10C, 0, 0,1, 0,0, 0, "",   "2.96.96", NULL,
     "Key History Object" },
-  { 0x5FC10D, 0, 0,1, 0,0, 0, "82", "2.16.1",  "e",
+  { 0x5FC10D, 0, 0,1, 0,0, 1, "82", "2.16.1",  "e",
     "Retired Cert Key Mgm 1" },
-  { 0x5FC10E, 0, 0,1, 0,0, 0, "83", "2.16.2",  "e",
+  { 0x5FC10E, 0, 0,1, 0,0, 1, "83", "2.16.2",  "e",
     "Retired Cert Key Mgm 2" },
-  { 0x5FC10F, 0, 0,1, 0,0, 0, "84", "2.16.3",  "e",
+  { 0x5FC10F, 0, 0,1, 0,0, 1, "84", "2.16.3",  "e",
     "Retired Cert Key Mgm 3" },
-  { 0x5FC110, 0, 0,1, 0,0, 0, "85", "2.16.4",  "e",
+  { 0x5FC110, 0, 0,1, 0,0, 1, "85", "2.16.4",  "e",
     "Retired Cert Key Mgm 4" },
-  { 0x5FC111, 0, 0,1, 0,0, 0, "86", "2.16.5",  "e",
+  { 0x5FC111, 0, 0,1, 0,0, 1, "86", "2.16.5",  "e",
     "Retired Cert Key Mgm 5" },
-  { 0x5FC112, 0, 0,1, 0,0, 0, "87", "2.16.6",  "e",
+  { 0x5FC112, 0, 0,1, 0,0, 1, "87", "2.16.6",  "e",
     "Retired Cert Key Mgm 6" },
-  { 0x5FC113, 0, 0,1, 0,0, 0, "88", "2.16.7",  "e",
+  { 0x5FC113, 0, 0,1, 0,0, 1, "88", "2.16.7",  "e",
     "Retired Cert Key Mgm 7" },
-  { 0x5FC114, 0, 0,1, 0,0, 0, "89", "2.16.8",  "e",
+  { 0x5FC114, 0, 0,1, 0,0, 1, "89", "2.16.8",  "e",
     "Retired Cert Key Mgm 8" },
-  { 0x5FC115, 0, 0,1, 0,0, 0, "8A", "2.16.9",  "e",
+  { 0x5FC115, 0, 0,1, 0,0, 1, "8A", "2.16.9",  "e",
     "Retired Cert Key Mgm 9" },
-  { 0x5FC116, 0, 0,1, 0,0, 0, "8B", "2.16.10", "e",
+  { 0x5FC116, 0, 0,1, 0,0, 1, "8B", "2.16.10", "e",
     "Retired Cert Key Mgm 10" },
-  { 0x5FC117, 0, 0,1, 0,0, 0, "8C", "2.16.11", "e",
+  { 0x5FC117, 0, 0,1, 0,0, 1, "8C", "2.16.11", "e",
     "Retired Cert Key Mgm 11" },
-  { 0x5FC118, 0, 0,1, 0,0, 0, "8D", "2.16.12", "e",
+  { 0x5FC118, 0, 0,1, 0,0, 1, "8D", "2.16.12", "e",
     "Retired Cert Key Mgm 12" },
-  { 0x5FC119, 0, 0,1, 0,0, 0, "8E", "2.16.13", "e",
+  { 0x5FC119, 0, 0,1, 0,0, 1, "8E", "2.16.13", "e",
     "Retired Cert Key Mgm 13" },
-  { 0x5FC11A, 0, 0,1, 0,0, 0, "8F", "2.16.14", "e",
+  { 0x5FC11A, 0, 0,1, 0,0, 1, "8F", "2.16.14", "e",
     "Retired Cert Key Mgm 14" },
-  { 0x5FC11B, 0, 0,1, 0,0, 0, "90", "2.16.15", "e",
+  { 0x5FC11B, 0, 0,1, 0,0, 1, "90", "2.16.15", "e",
     "Retired Cert Key Mgm 15" },
-  { 0x5FC11C, 0, 0,1, 0,0, 0, "91", "2.16.16", "e",
+  { 0x5FC11C, 0, 0,1, 0,0, 1, "91", "2.16.16", "e",
     "Retired Cert Key Mgm 16" },
-  { 0x5FC11D, 0, 0,1, 0,0, 0, "92", "2.16.17", "e",
+  { 0x5FC11D, 0, 0,1, 0,0, 1, "92", "2.16.17", "e",
     "Retired Cert Key Mgm 17" },
-  { 0x5FC11E, 0, 0,1, 0,0, 0, "93", "2.16.18", "e",
+  { 0x5FC11E, 0, 0,1, 0,0, 1, "93", "2.16.18", "e",
     "Retired Cert Key Mgm 18" },
-  { 0x5FC11F, 0, 0,1, 0,0, 0, "94", "2.16.19", "e",
+  { 0x5FC11F, 0, 0,1, 0,0, 1, "94", "2.16.19", "e",
     "Retired Cert Key Mgm 19" },
-  { 0x5FC120, 0, 0,1, 0,0, 0, "95", "2.16.20", "e",
+  { 0x5FC120, 0, 0,1, 0,0, 1, "95", "2.16.20", "e",
     "Retired Cert Key Mgm 20" },
   { 0x5FC121, 0, 2,2, 0,0, 0, "",   "2.16.21", NULL,
     "Cardholder Iris Images" },
@@ -211,6 +213,7 @@ struct app_local_s {
   struct
   {
     unsigned int yubikey:1;  /* This is on a Yubikey.  */
+    unsigned int nitrokey:1;  /* This is on a nitrokey.  */
   } flags;
 
   /* Keep track on whether we cache a certain PIN so that we get it
@@ -307,7 +310,7 @@ get_cached_data (app_t app, int tag,
 
   /* Unless the Discovery Object or the BIT Group Template is
    * requested, remove the outer container.
-   * (SP800-73.4 Part 2, section 3.1.2)   */
+   * (SP 800-73-5 Part 2, section 3.1.2)   */
   if (tag == 0x7E || tag == 0x7F61)
     ;
   else if (len && *p == 0x53 && (s = find_tlv (p, len, 0x53, &n)))
@@ -354,7 +357,7 @@ get_cached_data (app_t app, int tag,
 
 
 /* Remove data object described by TAG from the cache.  If TAG is 0
- * all cache iterms are flushed.  */
+ * all cache items are flushed.  */
 static void
 flush_cached_data (app_t app, int tag)
 {
@@ -1271,7 +1274,7 @@ get_keygrip_by_tag (app_t app, unsigned int tag,
     goto leave;
   if (mechanism) /* Compute keygrip from public key.  */
     {
-      if (mechanism == PIV_ALGORITHM_RSA)
+      if (mechanism == PIV_ALGORITHM_RSA_2048)
         err = genkey_parse_rsa (certbuf, certbuflen, &s_pkey);
       else if (mechanism == PIV_ALGORITHM_ECC_P256
                || mechanism == PIV_ALGORITHM_ECC_P384)
@@ -1486,7 +1489,7 @@ do_readkey (app_t app, ctrl_t ctrl, const char *keyrefstr, unsigned int flags,
   else
     {
       /* Convert the public key into the expected s-expression.  */
-      if (mechanism == PIV_ALGORITHM_RSA)
+      if (mechanism == PIV_ALGORITHM_RSA_2048)
         err = genkey_parse_rsa (cert, certlen, &s_pkey);
       else if (mechanism == PIV_ALGORITHM_ECC_P256
                || mechanism == PIV_ALGORITHM_ECC_P384)
@@ -1573,7 +1576,8 @@ get_key_algorithm_by_dobj (app_t app, data_object_t dobj, int *r_mechanism)
       /* A public key was found.  That makes it easy.  */
       switch (mechanism)
         {
-        case PIV_ALGORITHM_RSA:
+        case PIV_ALGORITHM_RSA_2048:
+        case PIV_ALGORITHM_RSA_3072:
         case PIV_ALGORITHM_ECC_P256:
         case PIV_ALGORITHM_ECC_P384:
           *r_mechanism = mechanism;
@@ -1636,7 +1640,10 @@ get_key_algorithm_by_dobj (app_t app, data_object_t dobj, int *r_mechanism)
   switch (algo)
     {
     case GCRY_PK_RSA:
-      algo = PIV_ALGORITHM_RSA;
+      if (gcry_pk_get_nbits (s_pkey) > 3000)
+        algo = PIV_ALGORITHM_RSA_3072;
+      else
+        algo = PIV_ALGORITHM_RSA_2048;
       break;
 
     case GCRY_PK_ECC:
@@ -2199,8 +2206,12 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
       goto leave;
     }
 
-  /* According to table 4b of SP800-73-4 the signing key always
-   * requires a verify.  */
+  /* According to table 5 of SP 800-73-5 Part 1 the signing key always
+   * requires a verify. */
+  /* On the other hand, Yubikey has an extensions of PIN/touch policy
+   * for each key.  It's user's control.
+   * https://developers.yubico.com/PIV/Introduction/Yubico_extensions.html
+   */
   switch (keyref)
     {
     case 0x9c: force_verify = 1; break;
@@ -2260,7 +2271,7 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
           indatalen -= oidbuflen;
         }
     }
-  else if (mechanism == PIV_ALGORITHM_RSA
+  else if (mechanism == PIV_ALGORITHM_RSA_2048
            && indatalen == 2048/8 && indata[indatalen-1] == 0xBC)
     {
       /* If the provided data length matches the supported RSA
@@ -2268,12 +2279,26 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
        * this is PSS formatted data and we use it verbatim; PIV cards
        * accept PSS as well as PKCS#1.  */
     }
-  else if (mechanism == PIV_ALGORITHM_RSA)
+  else if (mechanism == PIV_ALGORITHM_RSA_3072
+           && indatalen == 3072/8 && indata[indatalen-1] == 0xBC)
     {
-      /* PIV requires 2048 bit RSA.  */
-      unsigned int framelen = 2048 / 8;
+      /* If the provided data length matches the supported RSA
+       * framelen and the last octet of the data is 0xBC, we assume
+       * this is PSS formatted data and we use it verbatim; PIV cards
+       * accept PSS as well as PKCS#1.  */
+    }
+  else if (mechanism == PIV_ALGORITHM_RSA_2048
+           || mechanism == PIV_ALGORITHM_RSA_3072)
+    {
+      /* PIV requires 2048 bit or 3072 bit RSA.  */
+      unsigned int framelen;
       unsigned char *frame;
       int i;
+
+      if (mechanism == PIV_ALGORITHM_RSA_2048)
+        framelen = 2048 / 8;
+      else
+        framelen = 3072 / 8;
 
       oidbuflen = sizeof oidbuf;
       if (!hashalgo)
@@ -2380,7 +2405,12 @@ do_sign (app_t app, ctrl_t ctrl, const char *keyidstr, int hashalgo,
   if (outdatalen && *outdata == 0x7c
       && (s = find_tlv (outdata, outdatalen, 0x82, &n)))
     {
-      if (mechanism == PIV_ALGORITHM_RSA)
+      if (mechanism == PIV_ALGORITHM_RSA_2048)
+        {
+          memmove (outdata, outdata + (s - outdata), n);
+          outdatalen = n;
+        }
+      else if (mechanism == PIV_ALGORITHM_RSA_3072)
         {
           memmove (outdata, outdata + (s - outdata), n);
           outdatalen = n;
@@ -2526,8 +2556,11 @@ do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
     case PIV_ALGORITHM_ECC_P384:
       framelen = 1+48+48;
       break;
-    case PIV_ALGORITHM_RSA:
+    case PIV_ALGORITHM_RSA_2048:
       framelen = 2048 / 8;
+      break;
+    case PIV_ALGORITHM_RSA_3072:
+      framelen = 3072 / 8;
       break;
     default:
       err = gpg_error (GPG_ERR_INTERNAL);
@@ -2545,7 +2578,8 @@ do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
    * uncompressed point.  */
   if (indatalen > framelen)
     {
-      if (mechanism == PIV_ALGORITHM_RSA
+      if ((mechanism == PIV_ALGORITHM_RSA_2048
+          || mechanism == PIV_ALGORITHM_RSA_3072)
           && indatalen == framelen + 1 && !*indata)
         {
           indata_buffer = xtrycalloc (1, framelen);
@@ -2588,7 +2622,8 @@ do_decipher (app_t app, ctrl_t ctrl, const char *keyidstr,
   err = concat_tlv_list (0, &apdudata, &apdudatalen,
                          (int)0x7c, (size_t)0, NULL, /* Constructed. */
                          (int)0x82, (size_t)0, "",
-                         mechanism == PIV_ALGORITHM_RSA?
+                         (mechanism == PIV_ALGORITHM_RSA_2048
+                          || mechanism == PIV_ALGORITHM_RSA_3072)?
                          (int)0x81 : (int)0x85, (size_t)indatalen, indata,
                          (int)0, (size_t)0, NULL);
   if (err)
@@ -2678,6 +2713,7 @@ writekey_rsa (app_t app, data_object_t dobj, int keyref,
   const unsigned char *tok;
   size_t toklen;
   int last_depth1, last_depth2;
+  int mechanism;
   const unsigned char *rsa_n = NULL;
   const unsigned char *rsa_e = NULL;
   const unsigned char *rsa_p = NULL;
@@ -2796,11 +2832,16 @@ writekey_rsa (app_t app, data_object_t dobj, int keyref,
   if (err)
     goto leave;
 
+  if (rsa_n_len > 3000/8)
+    mechanism = PIV_ALGORITHM_RSA_3072;
+  else
+    mechanism = PIV_ALGORITHM_RSA_2048;
+
   err = iso7816_send_apdu (app_get_slot (app),
                            -1,         /* Use command chaining.  */
                            0,          /* Class */
                            0xfe,       /* Ins: Yubikey Import Asym. Key.  */
-                           PIV_ALGORITHM_RSA, /* P1 */
+                           mechanism,  /* P1 */
                            keyref,     /* P2 */
                            apdudatalen,/* Lc */
                            apdudata,   /* data */
@@ -2817,7 +2858,7 @@ writekey_rsa (app_t app, data_object_t dobj, int keyref,
 
   if (err)
     goto leave;
-  tmpl[0] = PIV_ALGORITHM_RSA;
+  tmpl[0] = mechanism;
   err = put_data (app_get_slot (app), dobj->tag,
                   (int)0x80,   (size_t)1, tmpl,
                   (int)0x7f49, (size_t)apdudatalen, apdudata,
@@ -2882,8 +2923,7 @@ writekey_ecc (app_t app, data_object_t dobj, int keyref,
            * functions here because Libgcrypt has no generic curve
            * alias lookup feature and the PIV supported curves are
            * also supported by OpenPGP.  */
-          xname = openpgp_oid_to_curve (openpgp_curve_to_oid (name, NULL, NULL),
-                                        0);
+          xname = openpgp_oid_or_name_to_curve (name, 0);
           xfree (name);
 
           if (xname && !strcmp (xname, "nistp256"))
@@ -2983,7 +3023,7 @@ writekey_ecc (app_t app, data_object_t dobj, int keyref,
 
 
 /* Write a key to a slot.  This command requires proprietary
- * extensions of the PIV specification and is thus only implemnted for
+ * extensions of the PIV specification and is thus only implemented for
  * supported card types.  The input is a canonical encoded
  * S-expression with the secret key in KEYDATA and its length (for
  * assertion) in KEYDATALEN.  KEYREFSTR needs to be the usual 2
@@ -3209,7 +3249,7 @@ genkey_parse_ecc (const unsigned char *data, size_t datalen, int mechanism,
 
 /* Create a new keypair for KEYREF.  If KEYTYPE is NULL a default
  * keytype is selected, else it may be one of the strings:
- *  "rsa2048", "nistp256, or "nistp384".
+ *  "rsa2048", "rsa3072", "nistp256, or "nistp384".
  *
  * Supported FLAGS are:
  *   APP_GENKEY_FLAG_FORCE   Overwrite existing key.
@@ -3250,7 +3290,9 @@ do_genkey (app_t app, ctrl_t ctrl, const char *keyrefstr, const char *keytype,
     keytype = "rsa2048";
 
   if (!strcmp (keytype, "rsa2048"))
-    mechanism = PIV_ALGORITHM_RSA;
+    mechanism = PIV_ALGORITHM_RSA_2048;
+  else if (!strcmp (keytype, "rsa3072"))
+    mechanism = PIV_ALGORITHM_RSA_3072;
   else if (!strcmp (keytype, "nistp256"))
     mechanism = PIV_ALGORITHM_ECC_P256;
   else if (!strcmp (keytype, "nistp384"))
@@ -3543,7 +3585,7 @@ do_with_keygrip (app_t app, ctrl_t ctrl, int action,
             }
           if (capability == GCRY_PK_USAGE_ENCR)
             {
-              if (strcmp (data_objects[i].keyref, "9D"))
+              if (strcmp (data_objects[i].usage, "e"))
                 continue;
             }
           if (capability == GCRY_PK_USAGE_AUTH)
@@ -3607,7 +3649,7 @@ do_reselect (app_t app, ctrl_t ctrl)
   /* An extra check which should not be necessary because the caller
    * should have made sure that a re-select is only called for
    * appropriate cards.  */
-  if (!app->app_local->flags.yubikey)
+  if (!app->app_local->flags.yubikey && !app->app_local->flags.nitrokey)
     return gpg_error (GPG_ERR_NOT_SUPPORTED);
 
   err = iso7816_select_application (app_get_slot (app),
@@ -3647,8 +3689,8 @@ app_select_piv (app_t app)
   /* Note that we select using the AID without the 2 octet version
    * number.  This allows for better reporting of future specs.  We
    * need to use the use-zero-for-P2-flag.  */
-  err = iso7816_select_application_ext (slot, piv_aid, sizeof piv_aid, 0x0001,
-                                        &apt, &aptlen);
+  err = iso7816_select_application_ext (slot, piv_aid, sizeof piv_aid,
+                                        ISO7816_SELECT_FCI, &apt, &aptlen);
   if (err)
     goto leave;
 
@@ -3727,6 +3769,8 @@ app_select_piv (app_t app)
 
   if (app->card->cardtype == CARDTYPE_YUBIKEY)
     app->app_local->flags.yubikey = 1;
+  else if (app->card->cardtype == CARDTYPE_NITROKEY)
+    app->app_local->flags.nitrokey = 1;
 
   /* If we don't have a s/n construct it from the CHUID.  */
   if (!APP_CARD(app)->serialno)

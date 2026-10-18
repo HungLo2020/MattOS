@@ -26,7 +26,6 @@
  * @short_description: Initialize GstValidate
  */
 
-#include "gst/gstidstr.h"
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif /* HAVE_CONFIG_H */
@@ -501,6 +500,16 @@ gst_validate_init (void)
   /* Ensure we load overrides before any use of a monitor */
   gst_validate_override_registry_preload ();
 
+  /* Load overrides from test file meta if any */
+  GList *overrides = get_structures_from_array_in_meta ("overrides");
+  for (GList * tmp = overrides; tmp; tmp = tmp->next) {
+    if (!_priv_add_override_from_struct (tmp->data)) {
+      GST_ERROR ("Failed to add override from test file: %" GST_PTR_FORMAT,
+          tmp->data);
+    }
+  }
+  g_list_free (overrides);
+
   validate_initialized = TRUE;
 
   gst_validate_extra_checks_init ();
@@ -595,6 +604,21 @@ gst_validate_get_test_file_scenario (GList ** structs,
           NULL);
     res = g_list_append (res, structure);
   }
+
+  gchar **elements = gst_validate_utils_get_strv (meta, "tested-elements");
+  for (gint i = 0; elements && elements[i]; i++) {
+    GstElementFactory *element_factory = gst_element_factory_find (elements[i]);
+
+    if (!element_factory)
+      gst_validate_abort ("Element `%s` required but not found", elements[i]);
+
+    /* Ensure that the element class_init function is called */
+    g_type_class_unref (g_type_class_ref (gst_element_factory_get_element_type
+            (element_factory)));
+
+    gst_object_unref (element_factory);
+  }
+  g_strfreev (elements);
 
   *structs = res;
   *original_name = global_testfile;

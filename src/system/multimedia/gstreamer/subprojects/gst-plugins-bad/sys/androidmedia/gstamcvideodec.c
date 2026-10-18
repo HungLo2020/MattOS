@@ -327,6 +327,23 @@ caps_to_mime (GstCaps * caps)
     return "video/av01";
   } else if (strcmp (name, "video/x-divx") == 0) {
     return "video/mp4v-es";
+  } else if (strcmp (name, "video/x-wmv") == 0) {
+    const gchar *format;
+    gint wmvversion = -1;
+
+    gst_structure_get_int (s, "wmvversion", &wmvversion);
+    format = gst_structure_get_string (s, "format");
+    if (wmvversion == 1)
+      return "video/x-ms-wmv7";
+    else if (wmvversion == 2)
+      return "video/x-ms-wmv8";
+    else if (wmvversion == 3)
+      return "video/x-ms-wmv";
+
+    if (!format || strcmp (format, "WMV3") == 0)
+      return "video/x-ms-wmv";
+    else if (strcmp (format, "WVC1") == 0)
+      return "video/wvc1";
   }
 
   return NULL;
@@ -376,7 +393,8 @@ gst_amc_video_dec_base_init (gpointer g_class)
   longname = g_strdup_printf ("Android MediaCodec %s", codec_info->name);
   gst_element_class_set_metadata (element_class,
       codec_info->name,
-      "Codec/Decoder/Video/Hardware",
+      gst_amc_codec_info_is_hardware (codec_info) ?
+      "Codec/Decoder/Video/Hardware" : "Codec/Decoder/Video",
       longname, "Sebastian Dröge <sebastian.droege@collabora.co.uk>");
   g_free (longname);
 }
@@ -578,8 +596,8 @@ gst_amc_video_dec_change_state (GstElement * element, GstStateChange transition)
   self = GST_AMC_VIDEO_DEC (element);
 
   GST_DEBUG_OBJECT (element, "changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:
@@ -744,8 +762,8 @@ gst_amc_video_dec_set_src_caps (GstAmcVideoDec * self, GstAmcFormat * format)
   const gchar *mime;
   gint color_format, width, height;
   gint stride, slice_height;
-  gint crop_left, crop_right;
-  gint crop_top, crop_bottom;
+  gint crop_left = 0, crop_right = 0;
+  gint crop_top = 0, crop_bottom = 0;
   GstVideoFormat gst_format;
   GstAmcVideoDecClass *klass = GST_AMC_VIDEO_DEC_GET_CLASS (self);
   GError *err = NULL;
@@ -1776,7 +1794,7 @@ gst_amc_video_dec_stop (GstVideoDecoder * decoder)
   self->draining = FALSE;
   g_cond_broadcast (&self->drain_cond);
   g_mutex_unlock (&self->drain_lock);
-  g_free (self->codec_data);
+  g_clear_pointer (&self->codec_data, g_free);
   self->codec_data_size = 0;
   if (self->input_state)
     gst_video_codec_state_unref (self->input_state);
@@ -2242,8 +2260,14 @@ gst_amc_video_dec_handle_frame (GstVideoDecoder * decoder,
 
 downstream_error:
   {
-    GST_ERROR_OBJECT (self, "Downstream returned %s",
-        gst_flow_get_name (self->downstream_flow_ret));
+    if (self->downstream_flow_ret == GST_FLOW_NOT_LINKED
+        || self->downstream_flow_ret < GST_FLOW_EOS) {
+      GST_ERROR_OBJECT (self, "Downstream returned %s",
+          gst_flow_get_name (self->downstream_flow_ret));
+    } else {
+      GST_DEBUG_OBJECT (self, "Downstream returned %s",
+          gst_flow_get_name (self->downstream_flow_ret));
+    }
     if (minfo.data)
       gst_buffer_unmap (frame->input_buffer, &minfo);
     gst_video_codec_frame_unref (frame);

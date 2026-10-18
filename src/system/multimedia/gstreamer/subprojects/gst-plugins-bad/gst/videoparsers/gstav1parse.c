@@ -152,6 +152,18 @@ struct _GstAV1Parse
   GstClockTime buffer_pts;
   GstClockTime buffer_dts;
   GstClockTime buffer_duration;
+
+  GstVideoMasteringDisplayInfo mastering_display_info;
+  guint mastering_display_info_state;
+
+  GstVideoContentLightLevel content_light_level;
+  guint content_light_level_state;
+};
+
+enum
+{
+  GST_AV1_PARSE_OBU_EXPIRED = 0,
+  GST_AV1_PARSE_OBU_PARSED = 1,
 };
 
 static GstStaticPadTemplate sinktemplate = GST_STATIC_PAD_TEMPLATE ("sink",
@@ -218,7 +230,8 @@ _obu_name (GstAV1OBUType type)
 }
 
 static guint32
-_read_leb128 (guint8 * data, GstAV1ParserResult * retval, guint32 * comsumed)
+_read_leb128 (guint8 * data, gsize size, GstAV1ParserResult * retval,
+    guint32 * consumed)
 {
   guint8 leb128_byte = 0;
   guint64 value = 0;
@@ -227,7 +240,7 @@ _read_leb128 (guint8 * data, GstAV1ParserResult * retval, guint32 * comsumed)
   GstBitReader br;
   guint32 cur_pos;
 
-  gst_bit_reader_init (&br, data, 8);
+  gst_bit_reader_init (&br, data, size);
 
   cur_pos = gst_bit_reader_get_pos (&br);
   for (i = 0; i < 8; i++) {
@@ -238,14 +251,19 @@ _read_leb128 (guint8 * data, GstAV1ParserResult * retval, guint32 * comsumed)
       return 0;
     }
 
-    value |= (((gint) leb128_byte & 0x7f) << (i * 7));
+    value |= (((guint64) leb128_byte & 0x7f) << (i * 7));
     if (!(leb128_byte & 0x80))
       break;
+
+    if (i == 7 && leb128_byte & 0x80) {
+      *retval = GST_AV1_PARSER_BITSTREAM_ERROR;
+      return 0;
+    }
   }
 
-  *comsumed = (gst_bit_reader_get_pos (&br) - cur_pos) / 8;
+  *consumed = (gst_bit_reader_get_pos (&br) - cur_pos) / 8;
   /* check for bitstream conformance see chapter4.10.5 */
-  if (value < G_MAXUINT32) {
+  if (value <= G_MAXUINT32) {
     *retval = GST_AV1_PARSER_OK;
     return (guint32) value;
   } else {
@@ -351,6 +369,10 @@ gst_av1_parse_reset (GstAV1Parse * self)
   gst_adapter_clear (self->cache_out);
   gst_adapter_clear (self->frame_cache);
   gst_av1_parse_reset_tu_timestamp (self);
+  gst_video_mastering_display_info_init (&self->mastering_display_info);
+  self->mastering_display_info_state = GST_AV1_PARSE_OBU_EXPIRED;
+  gst_video_content_light_level_init (&self->content_light_level);
+  self->content_light_level_state = GST_AV1_PARSE_OBU_EXPIRED;
 }
 
 static void
@@ -671,6 +693,8 @@ gst_av1_parse_update_src_caps (GstAV1Parse * self, GstCaps * caps)
   const gchar *profile = NULL;
   const gchar *level = NULL;
   const gchar *tier = NULL;
+  const gchar *mdi_str = NULL;
+  const gchar *cll_str = NULL;
 
   if (G_UNLIKELY (!gst_pad_has_current_caps (GST_BASE_PARSE_SRC_PAD (self))))
     self->update_caps = TRUE;
@@ -790,6 +814,28 @@ gst_av1_parse_update_src_caps (GstAV1Parse * self, GstCaps * caps)
     }
   }
 
+  if (s)
+    mdi_str = gst_structure_get_string (s, "mastering-display-info");
+  if (mdi_str) {
+    gst_caps_set_simple (final_caps, "mastering-display-info", G_TYPE_STRING,
+        mdi_str, NULL);
+  } else if (self->mastering_display_info_state != GST_AV1_PARSE_OBU_EXPIRED &&
+      !gst_video_mastering_display_info_add_to_caps
+      (&self->mastering_display_info, final_caps)) {
+    GST_WARNING_OBJECT (self, "Couldn't set mastering display info to caps");
+  }
+
+  if (s)
+    cll_str = gst_structure_get_string (s, "content-light-level");
+  if (cll_str) {
+    gst_caps_set_simple (final_caps, "content-light-level", G_TYPE_STRING,
+        cll_str, NULL);
+  } else if (self->content_light_level_state != GST_AV1_PARSE_OBU_EXPIRED &&
+      !gst_video_content_light_level_add_to_caps
+      (&self->content_light_level, final_caps)) {
+    GST_WARNING_OBJECT (self, "Couldn't set content light level to caps");
+  }
+
   src_caps = gst_pad_get_current_caps (GST_BASE_PARSE_SRC_PAD (self));
 
   if (!(src_caps && gst_caps_is_strictly_equal (src_caps, final_caps))) {
@@ -853,7 +899,7 @@ gst_av1_parse_negotiate (GstAV1Parse * self, GstCaps * in_caps)
   }
 
   /* prefer TU alignment with obu-stream format as the default */
-  if (gst_av1_parse_caps_has_tu_alignment (self, caps)) {
+  if (caps && gst_av1_parse_caps_has_tu_alignment (self, caps)) {
     self->align = GST_AV1_PARSE_ALIGN_TEMPORAL_UNIT;
     self->stream_format = GST_AV1_PARSE_STREAM_FORMAT_OBU;
     goto done;
@@ -1494,6 +1540,27 @@ new_tu:
   return ret;
 }
 
+static guint64
+fixed_scale (guint in, guint fracbits, guint scale, guint max_bits)
+{
+  guint fracmax = 1 << fracbits;
+  guint fracmask = fracmax - 1;
+  guint whole;
+  guint64 out;
+
+  out = in & fracmask;
+  out = gst_util_uint64_scale_int (scale, out, fracmask);
+  whole = in >> fracbits;
+  out += scale * whole;
+
+  if (max_bits == 16)
+    out = MIN (out, G_MAXUINT16);
+  else if (max_bits == 32)
+    out = MIN (out, G_MAXUINT32);
+
+  return out;
+}
+
 /* frame_complete will be set true if it is the frame edge. */
 static GstAV1ParserResult
 gst_av1_parse_handle_one_obu (GstAV1Parse * self, GstAV1OBU * obu,
@@ -1652,6 +1719,67 @@ gst_av1_parse_handle_one_obu (GstAV1Parse * self, GstAV1OBU * obu,
     }
   }
 
+  if (obu->obu_type == GST_AV1_OBU_METADATA) {
+    switch (metadata.metadata_type) {
+      case GST_AV1_METADATA_TYPE_HDR_CLL:
+      {
+        GstVideoContentLightLevel new_cll;
+
+        new_cll.max_content_light_level = metadata.hdr_cll.max_cll;
+        new_cll.max_frame_average_light_level = metadata.hdr_cll.max_fall;
+
+        if (self->content_light_level_state == GST_AV1_PARSE_OBU_EXPIRED) {
+          self->update_caps = TRUE;
+        } else if (new_cll.max_content_light_level !=
+            self->content_light_level.max_content_light_level ||
+            new_cll.max_frame_average_light_level !=
+            self->content_light_level.max_frame_average_light_level) {
+          self->update_caps = TRUE;
+        }
+
+        self->content_light_level = new_cll;
+        self->content_light_level_state = GST_AV1_PARSE_OBU_PARSED;
+        break;
+      }
+      case GST_AV1_METADATA_TYPE_HDR_MDCV:
+      {
+        GstVideoMasteringDisplayInfo new_minfo;
+        GstAV1MetadataHdrMdcv *mdcv = &metadata.hdr_mdcv;
+        gint i;
+
+        for (i = 0; i < 3; i++) {
+          new_minfo.display_primaries[i].x =
+              fixed_scale (mdcv->primary_chromaticity_x[i], 16, 50000, 16);
+
+          new_minfo.display_primaries[i].y =
+              fixed_scale (mdcv->primary_chromaticity_y[i], 16, 50000, 16);
+        }
+
+        new_minfo.white_point.x =
+            fixed_scale (mdcv->white_point_chromaticity_x, 16, 50000, 16);
+        new_minfo.white_point.y =
+            fixed_scale (mdcv->white_point_chromaticity_y, 16, 50000, 16);
+        new_minfo.max_display_mastering_luminance =
+            fixed_scale (mdcv->luminance_max, 8, 10000, 32);
+        new_minfo.min_display_mastering_luminance =
+            fixed_scale (mdcv->luminance_min, 14, 10000, 32);
+
+        if (self->mastering_display_info_state == GST_AV1_PARSE_OBU_EXPIRED) {
+          self->update_caps = TRUE;
+        } else if (!gst_video_mastering_display_info_is_equal
+            (&self->mastering_display_info, &new_minfo)) {
+          self->update_caps = TRUE;
+        }
+
+        self->mastering_display_info = new_minfo;
+        self->mastering_display_info_state = GST_AV1_PARSE_OBU_PARSED;
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
 out:
   if (res != GST_AV1_PARSER_OK) {
     /* Some verbose OBU can be skip */
@@ -1788,7 +1916,6 @@ gst_av1_parse_handle_to_small_and_equal_align (GstBaseParse * parse,
   GstBuffer *buffer = gst_buffer_ref (frame->buffer);
   guint32 offset, consumed_before_push, consumed;
   gboolean frame_complete;
-  GstBaseParseFrame subframe;
 
   if (!gst_buffer_map (buffer, &map_info, GST_MAP_READ)) {
     GST_ERROR_OBJECT (parse, "Couldn't map incoming buffer");
@@ -1821,9 +1948,11 @@ again:
 
     if ((self->align == GST_AV1_PARSE_ALIGN_OBU) ||
         (self->align == GST_AV1_PARSE_ALIGN_FRAME && frame_complete)) {
+      GstBaseParseFrame subframe;
       gst_av1_parse_create_subframe (frame, &subframe, buffer);
       ret = gst_av1_parse_push_data (self, &subframe,
           consumed_before_push, frame_complete);
+      gst_base_parse_frame_free (&subframe);
       if (ret != GST_FLOW_OK)
         goto out;
 
@@ -2122,7 +2251,7 @@ again:
     goto out;
   }
 
-  tu_sz = _read_leb128 (map_info.data, &res, &consumed);
+  tu_sz = _read_leb128 (map_info.data, map_info.size, &res, &consumed);
   if (tu_sz == 0 || res != GST_AV1_PARSER_OK) {
     /* error to get the TU size, should not be annex b. */
     goto out;
@@ -2292,8 +2421,6 @@ static GstFlowReturn
 gst_av1_parse_pre_push_frame (GstBaseParse * parse, GstBaseParseFrame * frame)
 {
   GstAV1Parse *self = GST_AV1_PARSE (parse);
-
-  frame->flags |= GST_BASE_PARSE_FRAME_FLAG_CLIP;
 
   if (!frame->buffer)
     return GST_FLOW_OK;

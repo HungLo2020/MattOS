@@ -87,10 +87,9 @@ gstaudio_h = audio_enums[1]
 
 audio_gen_sources = [gstaudio_h]
 
-gstaudio_deps = [tag_dep, gst_base_dep, libm]
+gstaudio_deps = [tag_dep, gst_base_dep, orc_dep, libm]
 orcsrc = 'gstaudiopack'
 if have_orcc
-  gstaudio_deps += [orc_dep]
   orc_h = custom_target(orcsrc + '.h',
     input : orcsrc + '.orc',
     output : orcsrc + '.h',
@@ -162,7 +161,7 @@ gstaudio = library('gstaudio-@0@'.format(api_version),
   soversion : soversion,
   darwin_versions : osxversion,
   install : true,
-  dependencies : [ gstaudio_deps, base_platform_dep ],
+  dependencies : [ gst_dep, gstaudio_deps, base_platform_dep ],
 )
 pkg_name = 'gstreamer-audio-1.0'
 pkgconfig.generate(gstaudio,

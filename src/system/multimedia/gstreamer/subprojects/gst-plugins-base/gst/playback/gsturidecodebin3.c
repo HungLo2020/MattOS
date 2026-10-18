@@ -1626,48 +1626,48 @@ gst_uri_decode_bin3_get_property (GObject * object, guint prop_id,
   switch (prop_id) {
     case PROP_URI:
     {
-      GST_OBJECT_LOCK (dec);
+      PLAY_ITEMS_LOCK (dec);
       GstPlayItem *item = dec->play_items->data;
       /* Return from the head */
       if (item->main_item)
         g_value_set_string (value, item->main_item->uri);
       else
         g_value_set_string (value, NULL);
-      GST_OBJECT_UNLOCK (dec);
+      PLAY_ITEMS_UNLOCK (dec);
       break;
     }
     case PROP_CURRENT_URI:
     {
-      GST_OBJECT_LOCK (dec);
+      PLAY_ITEMS_LOCK (dec);
       if (dec->output_item && dec->output_item->main_item) {
         g_value_set_string (value, dec->output_item->main_item->uri);
       } else {
         g_value_set_string (value, NULL);
       }
-      GST_OBJECT_UNLOCK (dec);
+      PLAY_ITEMS_UNLOCK (dec);
       break;
     }
     case PROP_SUBURI:
     {
-      GST_OBJECT_LOCK (dec);
+      PLAY_ITEMS_LOCK (dec);
       GstPlayItem *item = dec->play_items->data;
       /* Return from the head */
       if (item->sub_item)
         g_value_set_string (value, item->sub_item->uri);
       else
         g_value_set_string (value, NULL);
-      GST_OBJECT_UNLOCK (dec);
+      PLAY_ITEMS_UNLOCK (dec);
       break;
     }
     case PROP_CURRENT_SUBURI:
     {
-      GST_OBJECT_LOCK (dec);
+      PLAY_ITEMS_LOCK (dec);
       if (dec->output_item && dec->output_item->sub_item) {
         g_value_set_string (value, dec->output_item->sub_item->uri);
       } else {
         g_value_set_string (value, NULL);
       }
-      GST_OBJECT_UNLOCK (dec);
+      PLAY_ITEMS_UNLOCK (dec);
       break;
     }
     case PROP_CONNECTION_SPEED:
@@ -2092,8 +2092,12 @@ gst_uri_decode_bin3_change_state (GstElement * element,
   /* ERRORS */
 failure:
   {
-    if (transition == GST_STATE_CHANGE_READY_TO_PAUSED)
+    if (transition == GST_STATE_CHANGE_READY_TO_PAUSED) {
       purge_play_items (uridecodebin);
+      if (uridecodebin->input_item) {
+        uridecodebin->input_item->active = FALSE;
+      }
+    }
     return ret;
   }
 }

@@ -49,20 +49,68 @@ my_mpi_copy (gcry_mpi_t a)
 void
 free_symkey_enc( PKT_symkey_enc *enc )
 {
-    xfree(enc);
+  if (enc)
+    xfree (enc->seskey);
+  xfree(enc);
+}
+
+
+/* This is the core of free_pubkey_enc but does only release the
+ * allocated members of ENC.  */
+void
+release_pubkey_enc_parts (PKT_pubkey_enc *enc)
+{
+  int n, i;
+  n = pubkey_get_nenc( enc->pubkey_algo );
+  if (!n)
+    mpi_release (enc->data[0]);
+  for (i=0; i < n; i++ )
+    mpi_release (enc->data[i]);
 }
 
 void
-free_pubkey_enc( PKT_pubkey_enc *enc )
+free_pubkey_enc (PKT_pubkey_enc *enc)
 {
-    int n, i;
-    n = pubkey_get_nenc( enc->pubkey_algo );
-    if( !n )
-	mpi_release(enc->data[0]);
-    for(i=0; i < n; i++ )
-	mpi_release( enc->data[i] );
-    xfree(enc);
+  release_pubkey_enc_parts (enc);
+  xfree (enc);
 }
+
+
+/* Copy everything from SRC to DST.  This assumes that DST has been
+ * malloced or statically allocated. */
+void
+copy_pubkey_enc_parts (PKT_pubkey_enc *dst, PKT_pubkey_enc *src)
+{
+  int n, i;
+
+  dst->keyid[0] = src->keyid[0];
+  dst->keyid[1] = src->keyid[1];
+  dst->version  = src->version;
+  dst->pubkey_algo = src->pubkey_algo;
+  dst->seskey_algo = src->seskey_algo;
+  dst->throw_keyid = src->throw_keyid;
+  dst->fprlen      = src->fprlen;
+  memcpy (dst->fpr, src->fpr, sizeof src->fpr);
+
+  if (!(n = pubkey_get_nenc (dst->pubkey_algo)))
+    n = 1;  /* All data is in the first item as an opaque MPI. */
+  for (i=0; i < n; i++)
+    dst->data[i] = my_mpi_copy (src->data[i]);
+  for (; i < PUBKEY_MAX_NENC; i++)
+    dst->data[i] = NULL;
+}
+
+
+static void
+free_onepass_sig (PKT_onepass_sig *ops)
+{
+  if (ops)
+    {
+      mpi_release (ops->salt);
+      xfree (ops);
+    }
+}
+
 
 void
 free_seckey_enc( PKT_signature *sig )
@@ -78,7 +126,10 @@ free_seckey_enc( PKT_signature *sig )
   xfree(sig->revkey);
   xfree(sig->hashed);
   xfree(sig->unhashed);
+  mpi_release (sig->salt);
 
+  /* Do not forget to update copy_signature() too. */
+  xfree(sig->rev_subject_info);
   xfree (sig->signers_uid);
 
   xfree(sig);
@@ -111,6 +162,11 @@ release_public_key_parts (PKT_public_key *pk)
       xfree (pk->prefs);
       pk->prefs = NULL;
     }
+  if (pk->dks_prefs)
+    {
+      xfree (pk->dks_prefs);
+      pk->dks_prefs = NULL;
+    }
   free_user_id (pk->user_id);
   pk->user_id = NULL;
   if (pk->revkey)
@@ -128,6 +184,11 @@ release_public_key_parts (PKT_public_key *pk)
     {
       xfree (pk->updateurl);
       pk->updateurl = NULL;
+    }
+  if (pk->revoked.reason_comment)
+    {
+      xfree (pk->revoked.reason_comment);
+      pk->revoked.reason_comment = NULL;
     }
 }
 
@@ -199,6 +260,11 @@ copy_public_key_basics (PKT_public_key *d, PKT_public_key *s)
   d->seckey_info = NULL;
   d->user_id = NULL;
   d->prefs = NULL;
+  d->dks_prefs = NULL;
+  d->revoked.got_reason = 0;
+  d->revoked.reason_code = 0;
+  d->revoked.reason_comment = NULL;
+  d->revoked.reason_comment_len = 0;
 
   n = pubkey_get_npkey (s->pubkey_algo);
   i = 0;
@@ -229,6 +295,7 @@ copy_public_key (PKT_public_key *d, PKT_public_key *s)
   d = copy_public_key_basics (d, s);
   d->user_id = scopy_user_id (s->user_id);
   d->prefs = copy_prefs (s->prefs);
+  d->dks_prefs = copy_prefs (s->dks_prefs);
 
   if (!s->revkey && s->numrevkeys)
     BUG();
@@ -242,12 +309,27 @@ copy_public_key (PKT_public_key *d, PKT_public_key *s)
     d->serialno = xstrdup (s->serialno);
   if (s->updateurl)
     d->updateurl = xstrdup (s->updateurl);
+  if (s->revoked.got_reason)
+    {
+      d->revoked.got_reason = s->revoked.got_reason;
+      d->revoked.reason_code = s->revoked.reason_code;
+      if (s->revoked.reason_comment_len)
+        {
+          d->revoked.reason_comment = xmalloc (s->revoked.reason_comment_len);
+          memcpy (d->revoked.reason_comment, s->revoked.reason_comment,
+                  s->revoked.reason_comment_len);
+          d->revoked.reason_comment_len = s->revoked.reason_comment_len;
+        }
+    }
 
   return d;
 }
 
 
 
+/* When modifying the signature struct adjust copy_signature()
+ * such that the changes are considered too (e.g. pointers are set to NULL
+ * if they are not copied. */
 PKT_signature *
 copy_signature( PKT_signature *d, PKT_signature *s )
 {
@@ -265,14 +347,27 @@ copy_signature( PKT_signature *d, PKT_signature *s )
     }
     d->hashed = cp_subpktarea (s->hashed);
     d->unhashed = cp_subpktarea (s->unhashed);
+    d->salt = s->salt? my_mpi_copy (s->salt) : NULL;
     if (s->signers_uid)
       d->signers_uid = xstrdup (s->signers_uid);
+    else
+      d->signers_uid = NULL;
+
     if(s->numrevkeys)
       {
 	d->revkey=NULL;
 	d->numrevkeys=0;
 	parse_revkeys(d);
       }
+
+    if (s->rev_subject_info)
+      {
+        d->rev_subject_info = xmalloc (sizeof *d->rev_subject_info);
+        memcpy (d->rev_subject_info, s->rev_subject_info, sizeof *d->rev_subject_info);
+      }
+    else
+      d->rev_subject_info = NULL;
+
     return d;
 }
 
@@ -447,6 +542,9 @@ free_packet (PACKET *pkt, parse_packet_ctx_t parsectx)
     case PKT_SIGNATURE:
       free_seckey_enc (pkt->pkt.signature);
       break;
+    case PKT_ONEPASS_SIG:
+      free_onepass_sig (pkt->pkt.onepass_sig);
+      break;
     case PKT_PUBKEY_ENC:
       free_pubkey_enc (pkt->pkt.pubkey_enc);
       break;
@@ -470,7 +568,7 @@ free_packet (PACKET *pkt, parse_packet_ctx_t parsectx)
       break;
     case PKT_ENCRYPTED:
     case PKT_ENCRYPTED_MDC:
-    case PKT_ENCRYPTED_AEAD:
+    case PKT_ENCRYPTED_OCB:
       free_encrypted (pkt->pkt.encrypted);
       break;
     case PKT_PLAINTEXT:
@@ -482,6 +580,22 @@ free_packet (PACKET *pkt, parse_packet_ctx_t parsectx)
     }
 
   pkt->pkt.generic = NULL;
+}
+
+
+/* Free an entire list of public or symmetric key encrypted data.  */
+void
+free_seskey_enc_list (struct seskey_enc_list *sesenc_list)
+{
+  while (sesenc_list)
+    {
+      struct seskey_enc_list *tmp = sesenc_list->next;
+
+      if (!sesenc_list->u_sym)
+        release_pubkey_enc_parts (&sesenc_list->u.pub);
+      xfree (sesenc_list);
+      sesenc_list = tmp;
+    }
 }
 
 

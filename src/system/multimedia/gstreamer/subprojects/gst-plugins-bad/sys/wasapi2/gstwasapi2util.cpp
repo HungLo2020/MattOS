@@ -29,9 +29,25 @@
 #include <winternl.h>
 #include <mutex>
 #include <string.h>
+#include <wrl.h>
+#include <vector>
+#include <math.h>
 
 GST_DEBUG_CATEGORY_EXTERN (gst_wasapi2_debug);
 #define GST_CAT_DEFAULT gst_wasapi2_debug
+
+static GstStaticCaps template_caps = GST_STATIC_CAPS (GST_WASAPI2_STATIC_CAPS);
+
+/* *INDENT-OFF* */
+using namespace Microsoft::WRL;
+/* *INDENT-ON* */
+
+/* Define GUIDs instead of linking ksuser.lib */
+DEFINE_GUID (GST_KSDATAFORMAT_SUBTYPE_PCM, 0x00000001, 0x0000, 0x0010,
+    0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
+DEFINE_GUID (GST_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, 0x00000003, 0x0000, 0x0010,
+    0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
 
 /* Desktop only defines */
 #ifndef KSAUDIO_SPEAKER_MONO
@@ -310,7 +326,7 @@ gst_wasapi2_util_waveformatex_to_channel_mask (WAVEFORMATEX * format,
     GST_WARNING ("Unknown channel mask value for %d channel stream", nChannels);
 
     if (nChannels >= G_N_ELEMENTS (default_ch_masks)) {
-      GST_ERROR ("To may channels %d", nChannels);
+      GST_ERROR ("Too many channels %d", nChannels);
       return 0;
     }
 
@@ -322,7 +338,7 @@ gst_wasapi2_util_waveformatex_to_channel_mask (WAVEFORMATEX * format,
 
   /* Too many channels, have to assume that they are all non-positional */
   if (nChannels > G_N_ELEMENTS (wasapi_to_gst_pos)) {
-    GST_LOG ("Got too many (%i) channels, assuming non-positional", nChannels);
+    GST_INFO ("Got too many (%i) channels, assuming non-positional", nChannels);
     goto out;
   }
 
@@ -379,10 +395,11 @@ gst_wasapi2_util_waveformatex_to_audio_format (WAVEFORMATEX * format)
     case WAVE_FORMAT_EXTENSIBLE:
     {
       WAVEFORMATEXTENSIBLE *ex = (WAVEFORMATEXTENSIBLE *) format;
-      if (IsEqualGUID (ex->SubFormat, KSDATAFORMAT_SUBTYPE_PCM)) {
+      if (IsEqualGUID (ex->SubFormat, GST_KSDATAFORMAT_SUBTYPE_PCM)) {
         fmt = gst_audio_format_build_integer (TRUE, G_LITTLE_ENDIAN,
             format->wBitsPerSample, ex->Samples.wValidBitsPerSample);
-      } else if (IsEqualGUID (ex->SubFormat, KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)) {
+      } else if (IsEqualGUID (ex->SubFormat,
+              GST_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)) {
         if (format->wBitsPerSample == 32
             && ex->Samples.wValidBitsPerSample == 32)
           fmt = GST_AUDIO_FORMAT_F32LE;
@@ -404,8 +421,7 @@ gst_wasapi2_util_waveformatex_to_audio_format (WAVEFORMATEX * format)
 
 gboolean
 gst_wasapi2_util_parse_waveformatex (WAVEFORMATEX * format,
-    GstCaps * template_caps, GstCaps ** out_caps,
-    GstAudioChannelPosition ** out_positions)
+    GstCaps ** out_caps, GstAudioChannelPosition ** out_positions)
 {
   const gchar *afmt;
   guint64 channel_mask;
@@ -429,20 +445,23 @@ gst_wasapi2_util_parse_waveformatex (WAVEFORMATEX * format,
   if (afmt == NULL)
     return FALSE;
 
-  *out_caps = gst_caps_copy (template_caps);
+  auto caps = gst_static_caps_get (&template_caps);
+  caps = gst_caps_make_writable (caps);
 
   channel_mask = gst_wasapi2_util_waveformatex_to_channel_mask (format,
       out_positions);
 
-  gst_caps_set_simple (*out_caps,
+  gst_caps_set_simple (caps,
       "format", G_TYPE_STRING, afmt,
       "channels", G_TYPE_INT, format->nChannels,
       "rate", G_TYPE_INT, format->nSamplesPerSec, NULL);
 
   if (channel_mask) {
-    gst_caps_set_simple (*out_caps,
+    gst_caps_set_simple (caps,
         "channel-mask", GST_TYPE_BITMASK, channel_mask, NULL);
   }
+
+  *out_caps = caps;
 
   return TRUE;
 }
@@ -542,10 +561,11 @@ gst_wasapi2_get_default_mix_format (void)
   format = (WAVEFORMATEX *) CoTaskMemAlloc (sizeof (WAVEFORMATEX));
   format->wFormatTag = WAVE_FORMAT_PCM;
   format->nChannels = 2;
-  format->nSamplesPerSec = 44100;
+  format->nSamplesPerSec = 48000;
   format->wBitsPerSample = 16;
   format->nBlockAlign = format->nChannels * format->wBitsPerSample / 8;
   format->nAvgBytesPerSec = format->nSamplesPerSec * format->nBlockAlign;
+  format->cbSize = 0;
 
   return format;
 }
@@ -591,4 +611,657 @@ gst_wasapi2_get_default_device_id (EDataFlow flow)
     return (const char *) capture;
 
   return (const char *) render;
+}
+
+const gchar *
+gst_wasapi2_data_flow_to_string (EDataFlow flow)
+{
+  switch (flow) {
+    case eRender:
+      return "eRender";
+    case eCapture:
+      return "eCapture";
+    case eAll:
+      return "eAll";
+    default:
+      break;
+  }
+
+  return "Unknown";
+}
+
+const gchar *
+gst_wasapi2_role_to_string (ERole role)
+{
+  switch (role) {
+    case eConsole:
+      return "eConsole";
+    case eMultimedia:
+      return "eMultimedia";
+    case eCommunications:
+      return "eCommunications";
+    default:
+      break;
+  }
+
+  return "Unknown";
+}
+
+void
+gst_wasapi2_free_wfx (WAVEFORMATEX * wfx)
+{
+  if (wfx)
+    CoTaskMemFree (wfx);
+}
+
+void
+gst_wasapi2_clear_wfx (WAVEFORMATEX ** wfx)
+{
+  if (*wfx) {
+    CoTaskMemFree (*wfx);
+    *wfx = nullptr;
+  }
+}
+
+WAVEFORMATEX *
+gst_wasapi2_copy_wfx (WAVEFORMATEX * src)
+{
+  guint total_size = sizeof (WAVEFORMATEX) + src->cbSize;
+  auto dst = (WAVEFORMATEX *) CoTaskMemAlloc (total_size);
+  memcpy (dst, src, total_size);
+
+  return dst;
+}
+
+static DWORD
+make_channel_mask (WORD nChannels)
+{
+  switch (nChannels) {
+    case 1:
+      return KSAUDIO_SPEAKER_MONO;
+    case 2:
+      return KSAUDIO_SPEAKER_STEREO;
+    case 3:
+      return KSAUDIO_SPEAKER_3POINT0;
+    case 4:
+      return KSAUDIO_SPEAKER_QUAD;
+    case 5:
+      return KSAUDIO_SPEAKER_5POINT0;
+    case 6:
+      return KSAUDIO_SPEAKER_5POINT1;
+    case 7:
+      return KSAUDIO_SPEAKER_7POINT0;
+    case 8:
+      return KSAUDIO_SPEAKER_7POINT1;
+    default:
+      return 0;
+  }
+}
+
+static WAVEFORMATEXTENSIBLE
+make_wfx_ext (DWORD nSamplesPerSec, WORD nChannels, WORD wBitsPerSample,
+    WORD wValidBitsPerSample, bool is_float, DWORD dwChannelMask)
+{
+  WAVEFORMATEXTENSIBLE w = { };
+  w.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+  w.Format.nChannels = nChannels;
+  w.Format.nSamplesPerSec = nSamplesPerSec;
+
+  w.Format.wBitsPerSample = wBitsPerSample;
+  w.Samples.wValidBitsPerSample = wValidBitsPerSample;
+
+  w.dwChannelMask = dwChannelMask ? dwChannelMask :
+      make_channel_mask (nChannels);
+  w.SubFormat = is_float ? GST_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+      : GST_KSDATAFORMAT_SUBTYPE_PCM;
+
+  w.Format.nBlockAlign = (wBitsPerSample / 8) * nChannels;
+  w.Format.nAvgBytesPerSec = w.Format.nSamplesPerSec * w.Format.nBlockAlign;
+  w.Format.cbSize = sizeof (WAVEFORMATEXTENSIBLE) - sizeof (WAVEFORMATEX);
+
+  return w;
+}
+
+static inline gboolean
+is_extensible_format (const WAVEFORMATEX * wfx)
+{
+  return wfx->wFormatTag == WAVE_FORMAT_EXTENSIBLE &&
+      wfx->cbSize >= (sizeof (WAVEFORMATEXTENSIBLE) - sizeof (WAVEFORMATEX));
+}
+
+static inline DWORD
+get_wfx_channel_mask (const WAVEFORMATEX * wfx)
+{
+  if (is_extensible_format (wfx))
+    return ((const WAVEFORMATEXTENSIBLE *) wfx)->dwChannelMask;
+
+  return 0;
+}
+
+/* *INDENT-OFF* */
+gboolean
+gst_wasapi2_get_exclusive_mode_formats (IAudioClient * client,
+    IPropertyStore * props, GPtrArray * list)
+{
+  PROPVARIANT var;
+  PropVariantInit (&var);
+  WAVEFORMATEX *device_format = nullptr;
+  WAVEFORMATEX *closest = nullptr;
+  WAVEFORMATEX *basis = nullptr;
+  DWORD basis_ch_mask = 0;
+  WORD  basis_channels = 0;
+
+  /* Prefer device format if supported */
+  auto hr = props->GetValue (PKEY_AudioEngine_DeviceFormat, &var);
+  if (gst_wasapi2_result (hr)) {
+    if (var.vt == VT_BLOB && var.blob.cbSize >= sizeof (WAVEFORMATEX)
+        && var.blob.pBlobData) {
+      device_format = (WAVEFORMATEX *) CoTaskMemAlloc (var.blob.cbSize);
+
+      memcpy (device_format, var.blob.pBlobData, var.blob.cbSize);
+    }
+    PropVariantClear (&var);
+  }
+
+  if (device_format) {
+    hr = client->IsFormatSupported (AUDCLNT_SHAREMODE_EXCLUSIVE, device_format,
+        &closest);
+
+    if (hr == S_OK) {
+      basis = gst_wasapi2_copy_wfx (device_format);
+      g_ptr_array_add (list, device_format);
+      device_format = nullptr;
+    } else if (hr == S_FALSE && closest) {
+      basis = gst_wasapi2_copy_wfx (closest);
+      g_ptr_array_add (list, closest);
+      closest = nullptr;
+    }
+  }
+
+  gst_wasapi2_clear_wfx (&device_format);
+
+  /* Checks using pre-defined format list */
+  struct DepthPair
+  {
+    WORD wBitsPerSample;
+    WORD wValidBitsPerSample;
+    bool is_float;
+  };
+
+  const DepthPair depth_pairs[] = {
+    {32, 32, true},  /* 32-float */
+    {32, 32, false}, /* 32-int */
+    {16, 16, false}, /* 16-int */
+    {24, 24, false}, /* 24-packed */
+    {32, 24, false}, /* 24-in-32 */
+  };
+
+  const DWORD rates[] = { 192000, 176400, 96000, 88200, 48000, 44100 };
+  const WORD chs[] = { 8, 6, 2, 1 };
+
+  if (basis) {
+    basis_ch_mask = get_wfx_channel_mask (basis);
+    basis_channels = basis->nChannels;
+  }
+
+  for (auto r : rates) {
+    for (auto c : chs) {
+      for (auto d : depth_pairs) {
+        DWORD dwChannelMask = 0;
+        if (basis_ch_mask && c == basis_channels)
+          dwChannelMask = basis_ch_mask;
+
+        auto wfx = make_wfx_ext (r, c, d.wBitsPerSample, d.wValidBitsPerSample,
+            d.is_float, dwChannelMask);
+        hr = client->IsFormatSupported (AUDCLNT_SHAREMODE_EXCLUSIVE,
+            (WAVEFORMATEX *) &wfx, &closest);
+        if (hr == S_OK) {
+          g_ptr_array_add (list, gst_wasapi2_copy_wfx ((WAVEFORMATEX *) &wfx));
+        } else if (hr == S_FALSE && closest) {
+          g_ptr_array_add (list, closest);
+          closest = nullptr;
+        }
+      }
+    }
+  }
+
+  if (!basis) {
+    if (list && list->len > 0) {
+      auto first = (WAVEFORMATEX *) g_ptr_array_index (list, 0);
+      basis = gst_wasapi2_copy_wfx (first);
+    } else {
+      basis = gst_wasapi2_get_default_mix_format ();
+    }
+  }
+
+  gst_wasapi2_sort_wfx (list, basis);
+  gst_wasapi2_free_wfx (basis);
+
+  return TRUE;
+}
+
+gboolean
+gst_wasapi2_get_shared_mode_formats (IAudioClient * client, GPtrArray * list)
+{
+  PROPVARIANT var;
+  PropVariantInit (&var);
+  WAVEFORMATEX *mix_format = nullptr;
+  WAVEFORMATEX *closest = nullptr;
+
+  auto hr = client->GetMixFormat (&mix_format);
+  if (!gst_wasapi2_result (hr))
+    return FALSE;
+
+  g_ptr_array_add (list, gst_wasapi2_copy_wfx (mix_format));
+
+  /* Checks using pre-defined format list */
+  struct DepthPair
+  {
+    WORD wBitsPerSample;
+    WORD wValidBitsPerSample;
+    bool is_float;
+  };
+
+  const DepthPair depth_pairs[] = {
+    {32, 32, true},  /* 32-float */
+    {32, 32, false}, /* 32-int */
+    {16, 16, false}, /* 16-int */
+    {24, 24, false}, /* 24-packed */
+  };
+
+  const DWORD rates[] = { 192000, 176400, 96000, 88200, 48000, 44100 };
+  DWORD dwChannelMask = get_wfx_channel_mask (mix_format);
+
+  if (dwChannelMask == 0)
+    dwChannelMask = make_channel_mask (mix_format->nChannels);
+
+  for (auto r : rates) {
+    for (auto d : depth_pairs) {
+      auto wfx = make_wfx_ext (r, mix_format->nChannels, d.wBitsPerSample,
+          d.wValidBitsPerSample, d.is_float, dwChannelMask);
+      hr = client->IsFormatSupported (AUDCLNT_SHAREMODE_SHARED,
+          (WAVEFORMATEX *) &wfx, &closest);
+      if (hr == S_OK) {
+        g_ptr_array_add (list, gst_wasapi2_copy_wfx ((WAVEFORMATEX *) &wfx));
+      } else if (hr == S_FALSE && closest) {
+        g_ptr_array_add (list, closest);
+        closest = nullptr;
+      }
+    }
+  }
+
+  gst_wasapi2_sort_wfx (list, mix_format);
+  gst_wasapi2_free_wfx (mix_format);
+
+  return TRUE;
+}
+
+GstCaps *
+gst_wasapi2_wfx_list_to_caps (GPtrArray * list)
+{
+  if (!list || list->len == 0)
+    return nullptr;
+
+  std::vector <GstCaps *> caps_list;
+
+  for (guint i = 0; i < list->len; i++) {
+    auto wfx = (WAVEFORMATEX *) g_ptr_array_index (list, i);
+    GstCaps *tmp;
+
+    if (gst_wasapi2_util_parse_waveformatex (wfx, &tmp, nullptr)) {
+      bool unique = true;
+      for (auto it : caps_list) {
+        if (gst_caps_is_equal (it, tmp)) {
+          unique = false;
+          break;
+        }
+      }
+
+      if (unique)
+        caps_list.push_back (tmp);
+      else
+        gst_caps_unref (tmp);
+    }
+  }
+
+  if (caps_list.empty ())
+    return nullptr;
+
+  auto caps = gst_caps_new_empty ();
+  for (auto it : caps_list)
+    gst_caps_append (caps, it);
+
+  return caps;
+}
+/* *INDENT-ON* */
+
+struct FormatView
+{
+  WORD channels;
+  DWORD sample_rate;
+  GUID subformat;
+  WORD bits_per_sample;
+  WORD valid_bits_per_sample;
+  WORD raw_valid_bits_per_sample;
+  DWORD channel_mask;
+  WORD format_tag;
+};
+
+static inline gboolean
+is_float_subformat (const FormatView * v)
+{
+  return IsEqualGUID (v->subformat, GST_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT);
+}
+
+static inline gboolean
+is_pcm_subformat (const FormatView * v)
+{
+  return IsEqualGUID (v->subformat, GST_KSDATAFORMAT_SUBTYPE_PCM);
+}
+
+static inline gint
+effective_bits (const FormatView * v)
+{
+  if (is_float_subformat (v))
+    return 32;
+
+  return v->valid_bits_per_sample ? v->
+      valid_bits_per_sample : v->bits_per_sample;
+}
+
+static inline gboolean
+is_s24_in_32 (const FormatView * v)
+{
+  return is_pcm_subformat (v) &&
+      v->bits_per_sample == 32 &&
+      (v->raw_valid_bits_per_sample == 24 || v->valid_bits_per_sample == 24);
+}
+
+static FormatView
+make_view (const WAVEFORMATEX * wfx)
+{
+  FormatView view = { };
+
+  view.channels = wfx->nChannels;
+  view.sample_rate = wfx->nSamplesPerSec;
+  view.bits_per_sample = wfx->wBitsPerSample;
+  view.format_tag = wfx->wFormatTag;
+
+  if (is_extensible_format (wfx)) {
+    auto wfe = (const WAVEFORMATEXTENSIBLE *) wfx;
+    view.subformat = wfe->SubFormat;
+    view.raw_valid_bits_per_sample = wfe->Samples.wValidBitsPerSample;
+    view.valid_bits_per_sample = view.raw_valid_bits_per_sample ?
+        view.raw_valid_bits_per_sample : view.bits_per_sample;
+    view.channel_mask = wfe->dwChannelMask;
+  } else {
+    if (wfx->wFormatTag == WAVE_FORMAT_PCM) {
+      view.subformat = GST_KSDATAFORMAT_SUBTYPE_PCM;
+    } else if (wfx->wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
+      view.subformat = GST_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+    }
+
+    view.raw_valid_bits_per_sample = view.bits_per_sample;
+    view.valid_bits_per_sample = view.bits_per_sample;
+    view.channel_mask = 0;
+  }
+
+  return view;
+}
+
+static gint
+compare_format_similarity (const FormatView * a, const FormatView * b,
+    const FormatView * basis)
+{
+  gboolean a_sub_eq = IsEqualGUID (a->subformat, basis->subformat);
+  gboolean b_sub_eq = IsEqualGUID (b->subformat, basis->subformat);
+
+  /* Check subformat (e.g., PCM vs FLOAT) */
+  if (a_sub_eq != b_sub_eq)
+    return a_sub_eq ? -1 : 1;
+
+  /* BPS diff */
+  gint da_bits =
+      abs ((gint) a->bits_per_sample - (gint) basis->bits_per_sample);
+  gint db_bits =
+      abs ((gint) b->bits_per_sample - (gint) basis->bits_per_sample);
+  if (da_bits != db_bits)
+    return (da_bits < db_bits) ? -1 : 1;
+
+  gint a_valid = a->valid_bits_per_sample ?
+      a->valid_bits_per_sample : a->bits_per_sample;
+  gint b_valid = b->valid_bits_per_sample ?
+      b->valid_bits_per_sample : b->bits_per_sample;
+  gint basis_valid = basis->valid_bits_per_sample ?
+      basis->valid_bits_per_sample : basis->bits_per_sample;
+
+  gint da_valid = abs (a_valid - basis_valid);
+  gint db_valid = abs (b_valid - basis_valid);
+  if (da_valid != db_valid)
+    return (da_valid < db_valid) ? -1 : 1;
+
+  /* Checks sample mask */
+  gboolean a_mask_eq = (a->channel_mask != 0 && basis->channel_mask != 0 &&
+      a->channel_mask == basis->channel_mask);
+  gboolean b_mask_eq = (b->channel_mask != 0 && basis->channel_mask != 0 &&
+      b->channel_mask == basis->channel_mask);
+  if (a_mask_eq != b_mask_eq)
+    return a_mask_eq ? -1 : 1;
+
+  /* Check format tag */
+  gint dtag_a = abs ((gint) a->format_tag - (gint) basis->format_tag);
+  gint dtag_b = abs ((gint) b->format_tag - (gint) basis->format_tag);
+  if (dtag_a != dtag_b)
+    return (dtag_a < dtag_b) ? -1 : 1;
+
+  return 0;
+}
+
+static gint
+compare_wfx_func (gconstpointer pa, gconstpointer pb, gpointer user_data)
+{
+  const WAVEFORMATEX *A = (const WAVEFORMATEX *) pa;
+  const WAVEFORMATEX *B = (const WAVEFORMATEX *) pb;
+  const WAVEFORMATEX *basis_wfx = (const WAVEFORMATEX *) user_data;
+
+  FormatView a = make_view (A);
+  FormatView b = make_view (B);
+  FormatView basis = make_view (basis_wfx);
+
+  /* S24_32LE is the lowest */
+  gboolean a_s2432 = is_s24_in_32 (&a);
+  gboolean b_s2432 = is_s24_in_32 (&b);
+  if (a_s2432 != b_s2432)
+    return a_s2432 ? 1 : -1;
+
+  /* Prefer same channel */
+  gint dch_a = abs ((gint) a.channels - (gint) basis.channels);
+  gint dch_b = abs ((gint) b.channels - (gint) basis.channels);
+  if (dch_a != dch_b)
+    return (dch_a < dch_b) ? -1 : 1;
+
+  /* Then sample rate */
+  gint64 dra = (gint64) a.sample_rate - (gint64) basis.sample_rate;
+  gint64 drb = (gint64) b.sample_rate - (gint64) basis.sample_rate;
+  dra = dra >= 0 ? dra : -dra;
+  drb = drb >= 0 ? drb : -drb;
+  if (dra != drb)
+    return (dra < drb) ? -1 : 1;
+
+  /* Prefere higher sample rate */
+  if (a.sample_rate != b.sample_rate)
+    return (a.sample_rate > b.sample_rate) ? -1 : +1;
+
+  /* High bit first */
+  gint a_bits = effective_bits (&a);
+  gint b_bits = effective_bits (&b);
+  if (a_bits != b_bits)
+    return (a_bits > b_bits) ? -1 : +1;
+
+  /* format compare */
+  gint fcmp = compare_format_similarity (&a, &b, &basis);
+  if (fcmp != 0)
+    return fcmp;
+
+  return 0;
+}
+
+/* *INDENT-OFF* */
+static void
+demote_s24_32le (GPtrArray *list)
+{
+  if (!list || list->len == 0)
+    return;
+
+  std::vector<gpointer> head;
+  std::vector<gpointer> tail;
+
+  head.reserve (list->len);
+  tail.reserve (list->len);
+
+  for (guint i = 0; i < list->len; i++) {
+    auto wfx = (WAVEFORMATEX *) g_ptr_array_index (list, i);
+    FormatView v = make_view (wfx);
+    if (is_s24_in_32 (&v))
+      tail.push_back ((gpointer) wfx);
+    else
+      head.push_back ((gpointer) wfx);
+  }
+
+  guint idx = 0;
+  for (gpointer p : head)
+    list->pdata[idx++] = p;
+
+  for (gpointer p : tail)
+    list->pdata[idx++] = p;
+}
+/* *INDENT-ON* */
+
+void
+gst_wasapi2_sort_wfx (GPtrArray * list, WAVEFORMATEX * wfx)
+{
+  if (!list || list->len == 0 || !wfx)
+    return;
+
+  g_ptr_array_sort_with_data (list, compare_wfx_func, wfx);
+  demote_s24_32le (list);
+}
+
+static DWORD
+gst_wasapi2_mask_from_gst_positions (const GstAudioInfo * info)
+{
+  DWORD mask = 0;
+
+  for (guint i = 0; i < (guint) GST_AUDIO_INFO_CHANNELS (info); i++) {
+    auto p = info->position[i];
+
+    if (p == GST_AUDIO_CHANNEL_POSITION_NONE ||
+        p == GST_AUDIO_CHANNEL_POSITION_INVALID) {
+      continue;
+    }
+
+    for (guint k = 0; k < G_N_ELEMENTS (wasapi_to_gst_pos); k++) {
+      if (wasapi_to_gst_pos[k].gst_pos == p) {
+        mask |= (DWORD) wasapi_to_gst_pos[k].wasapi_pos;
+        break;
+      }
+    }
+  }
+
+  if (mask == 0) {
+    guint ch = GST_AUDIO_INFO_CHANNELS (info);
+    if (ch < G_N_ELEMENTS (default_ch_masks))
+      mask = default_ch_masks[ch];
+  }
+
+  return mask;
+}
+
+WAVEFORMATEX *
+gst_wasapi2_audio_info_to_wfx (const GstAudioInfo * info)
+{
+  if (!info)
+    return nullptr;
+
+  auto channels = GST_AUDIO_INFO_CHANNELS (info);
+  auto rate = GST_AUDIO_INFO_RATE (info);
+  auto fmt = GST_AUDIO_INFO_FORMAT (info);
+
+  bool is_float = false;
+  WORD bits = 0;
+  WORD valid_bits = 0;
+
+  switch (fmt) {
+    case GST_AUDIO_FORMAT_S16LE:
+      bits = 16;
+      valid_bits = 16;
+      break;
+    case GST_AUDIO_FORMAT_S24LE:
+      bits = 24;
+      valid_bits = 24;
+      break;
+    case GST_AUDIO_FORMAT_S24_32LE:
+      bits = 32;
+      valid_bits = 24;
+      break;
+    case GST_AUDIO_FORMAT_S32LE:
+      bits = 32;
+      valid_bits = 32;
+      break;
+    case GST_AUDIO_FORMAT_F32LE:
+      is_float = true;
+      bits = 32;
+      valid_bits = 32;
+      break;
+    case GST_AUDIO_FORMAT_F64LE:
+      is_float = true;
+      bits = 64;
+      valid_bits = 64;
+      break;
+    default:
+      return nullptr;
+  }
+
+  DWORD ch_mask = gst_wasapi2_mask_from_gst_positions (info);
+  bool need_ext = false;
+  if ((!is_float && bits > 16) ||
+      (valid_bits != bits) || (channels > 2) || (is_float && channels > 2)) {
+    need_ext = true;
+  }
+
+  if (need_ext) {
+    auto w = (WAVEFORMATEXTENSIBLE *)
+        CoTaskMemAlloc (sizeof (WAVEFORMATEXTENSIBLE));
+
+    memset (w, 0, sizeof (WAVEFORMATEXTENSIBLE));
+    w->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+    w->Format.nChannels = (WORD) channels;
+    w->Format.nSamplesPerSec = rate;
+    w->Format.wBitsPerSample = bits;
+
+    w->Samples.wValidBitsPerSample = valid_bits;
+    w->dwChannelMask = ch_mask ? ch_mask : make_channel_mask ((WORD) channels);
+    w->SubFormat = is_float ? GST_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
+        : GST_KSDATAFORMAT_SUBTYPE_PCM;
+
+    w->Format.nBlockAlign = (WORD) ((bits / 8) * channels);
+    w->Format.nAvgBytesPerSec =
+        w->Format.nSamplesPerSec * w->Format.nBlockAlign;
+    w->Format.cbSize = sizeof (WAVEFORMATEXTENSIBLE) - sizeof (WAVEFORMATEX);
+
+    return (WAVEFORMATEX *) w;
+  }
+
+  auto w = (WAVEFORMATEX *) CoTaskMemAlloc (sizeof (WAVEFORMATEX));
+
+  memset (w, 0, sizeof (WAVEFORMATEX));
+  w->wFormatTag = is_float ? WAVE_FORMAT_IEEE_FLOAT : WAVE_FORMAT_PCM;
+  w->nChannels = (WORD) channels;
+  w->nSamplesPerSec = rate;
+  w->wBitsPerSample = bits;
+  w->nBlockAlign = (WORD) ((bits / 8) * channels);
+  w->nAvgBytesPerSec = w->nSamplesPerSec * w->nBlockAlign;
+  w->cbSize = 0;
+
+  return w;
 }

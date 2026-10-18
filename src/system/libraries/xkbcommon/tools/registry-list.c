@@ -6,9 +6,10 @@
 #include "config.h"
 
 #include <assert.h>
+#include <getopt.h>
 #include <locale.h>
 #include <stdio.h>
-#include <getopt.h>
+#include <stdlib.h>
 
 #include "xkbcommon/xkbregistry.h"
 
@@ -87,7 +88,11 @@ main(int argc, char **argv)
         flags |= RXKB_CONTEXT_NO_DEFAULT_INCLUDES;
 
     ctx = rxkb_context_new(flags);
-    assert(ctx);
+    if (!ctx) {
+        fprintf(stderr, "Failed to create a registry context\n");
+        rc = EXIT_FAILURE;
+        goto err;
+    }
 
     switch (verbosity) {
         case 0:
@@ -201,21 +206,22 @@ main(int argc, char **argv)
 
             printf("  - name: '%s'\n"
                    "    brief: '%s'\n"
-                   "    description: '%s'\n",
+                   "    description: '%s'\n"
+                   "    layout-specific: %s\n",
                    rxkb_option_get_name(o),
                    brief ? brief : "",
-                   rxkb_option_get_description(o));
+                   rxkb_option_get_description(o),
+                   rxkb_option_is_layout_specific(o) ? "true" : "false");
             o = rxkb_option_next(o);
         }
 
         g = rxkb_option_group_next(g);
     }
 
-    rc = 0;
+    rc = EXIT_SUCCESS;
 
 err:
-    if (ctx)
-        rxkb_context_unref(ctx);
+    rxkb_context_unref(ctx);
 
     return rc;
 }

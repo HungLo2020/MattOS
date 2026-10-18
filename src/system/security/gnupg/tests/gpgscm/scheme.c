@@ -34,6 +34,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdint.h>
+#include <time.h>
 #include <float.h>
 #include <ctype.h>
 
@@ -43,6 +44,16 @@
 #  define stricmp strcasecmp
 # endif
 #endif
+
+#if __GNUC__
+# define MY_GCC_VERSION (__GNUC__ * 10000 \
+                         + __GNUC_MINOR__ * 100 \
+                         + __GNUC_PATCHLEVEL__)
+#else
+# define MY_GCC_VERSION 0
+#endif
+
+
 
 /* Used for documentation purposes, to signal functions in 'interface' */
 #define INTERFACE
@@ -80,8 +91,8 @@ static int stricmp(const char *s1, const char *s2)
 {
   unsigned char c1, c2;
   do {
-    c1 = tolower(*s1);
-    c2 = tolower(*s2);
+    c1 = tolower((unsigned char)*s1);
+    c2 = tolower((unsigned char)*s2);
     if (c1 < c2)
       return -1;
     else if (c1 > c2)
@@ -96,7 +107,7 @@ static int stricmp(const char *s1, const char *s2)
 static const char *strlwr(char *s) {
   const char *p=s;
   while(*s) {
-    *s=tolower(*s);
+    *s=tolower((unsigned char)*s);
     s++;
   }
   return p;
@@ -169,7 +180,11 @@ type_to_string (enum scheme_types typ)
      case T_SINK: return "sink";
      case T_FRAME: return "frame";
      }
+#if MY_GCC_VERSION >= 40500  /* gcc >= 4.5.0 */
+     __builtin_unreachable ();
+#else
      assert (! "not reached");
+#endif
 }
 
 /* ADJ is enough slack to align cells in a TYPE_BITS-bit boundary */
@@ -346,7 +361,7 @@ static INLINE int Cislower(int c) { return isascii(c) && islower(c); }
 #endif
 
 #if USE_ASCII_NAMES
-static const char charnames[32][3]={
+static const char *charnames[32]={
  "nul",
  "soh",
  "stx",
@@ -1523,21 +1538,21 @@ static pointer mk_atom(scheme *sc, char *q) {
          has_dec_point=1;
          c = *p++;
        }
-       if (!isdigit(c)) {
+       if (!isdigit((unsigned char)c)) {
          return (mk_symbol(sc, strlwr(q)));
        }
      } else if (c == '.') {
        has_dec_point=1;
        c = *p++;
-       if (!isdigit(c)) {
+       if (!isdigit((unsigned char)c)) {
          return (mk_symbol(sc, strlwr(q)));
        }
-     } else if (!isdigit(c)) {
+     } else if (!isdigit((unsigned char)c)) {
        return (mk_symbol(sc, strlwr(q)));
      }
 
      for ( ; (c = *p) != 0; ++p) {
-          if (!isdigit(c)) {
+          if (!isdigit((unsigned char)c)) {
                if(c=='.') {
                     if(!has_dec_point) {
                          has_dec_point=1;
@@ -1549,7 +1564,7 @@ static pointer mk_atom(scheme *sc, char *q) {
                           has_dec_point = 1; /* decimal point illegal
                                                 from now on */
                           p++;
-                          if ((*p == '-') || (*p == '+') || isdigit(*p)) {
+                          if ((*p == '-') || (*p == '+') || isdigit((unsigned char)*p)) {
                              continue;
                           }
                        }
@@ -2047,7 +2062,7 @@ static int basic_inchar(port *pt) {
        pt->rep.string.curr == pt->rep.string.past_the_end) {
       return EOF;
     } else {
-      return *pt->rep.string.curr++;
+      return *(unsigned char *)pt->rep.string.curr++;
     }
   }
 }
@@ -2124,7 +2139,7 @@ INTERFACE void putcharacter(scheme *sc, int c) {
     if(pt->rep.string.curr!=pt->rep.string.past_the_end) {
       *pt->rep.string.curr++=c;
     } else if(pt->kind&port_srfi6&&realloc_port_string(sc,pt)) {
-        *pt->rep.string.curr++=c;
+      *pt->rep.string.curr++=c;
     }
   }
 }
@@ -2220,7 +2235,7 @@ static pointer readstrexp(scheme *sc) {
             break;
         case st_x1:
         case st_x2:
-            c=toupper(c);
+            c=toupper((unsigned char)c);
             if(c>='0' && c<='F') {
                 if(c<='9') {
                     c1=(c1<<4)+c-'0';
@@ -2399,14 +2414,14 @@ static void printslashstring(scheme *sc, char *p, int len) {
         putcharacter(sc,'\\');
         break;
       default: {
-          int d=*s/16;
+          int d=((unsigned char)*s)/16;
           putcharacter(sc,'x');
           if(d<10) {
             putcharacter(sc,d+'0');
           } else {
             putcharacter(sc,d-10+'A');
           }
-          d=*s%16;
+          d=((unsigned char)*s)%16;
           if(d<10) {
             putcharacter(sc,d+'0');
           } else {
@@ -2415,7 +2430,7 @@ static void printslashstring(scheme *sc, char *p, int len) {
         }
       }
     } else {
-      putcharacter(sc,*s);
+      putcharacter(sc,(unsigned char)*s);
     }
     s++;
   }
@@ -2687,7 +2702,7 @@ static int hash_fn(const char *key, int table_size)
   for (c = key; *c; c++) {
     /* letters have about 5 bits in them */
     hashed = (hashed<<5) | (hashed>>(bits_per_int-5));
-    hashed ^= *c;
+    hashed ^= (unsigned char)*c;
   }
   return hashed % table_size;
 }
@@ -5315,6 +5330,8 @@ Eval_Cycle(scheme *sc, enum scheme_opcodes op) {
           s_retbool(is_macro(car(sc->args)));
      CASE(OP_VM_HISTORY):          /* *vm-history* */
           s_return(sc, history_flatten(sc));
+     CASE(OP_LONG_TIME_T):
+          s_retbool (sizeof (time_t) > 4 || ((time_t)(-2) > 0));
      default:
           snprintf(sc->strbuff,STRBUFFSIZE,"%d: illegal operator", op);
           Error_0(sc,sc->strbuff);
@@ -5355,26 +5372,26 @@ static const struct {
   {is_nonneg, "non-negative integer"}
 };
 
-#define TST_NONE 0
-#define TST_ANY "\001"
-#define TST_STRING "\002"
-#define TST_SYMBOL "\003"
-#define TST_PORT "\004"
-#define TST_INPORT "\005"
-#define TST_OUTPORT "\006"
-#define TST_ENVIRONMENT "\007"
-#define TST_PAIR "\010"
-#define TST_LIST "\011"
-#define TST_CHAR "\012"
-#define TST_VECTOR "\013"
-#define TST_NUMBER "\014"
-#define TST_INTEGER "\015"
-#define TST_NATURAL "\016"
+#define TST_NONE        0
+#define TST_ANY         1
+#define TST_STRING      2
+#define TST_SYMBOL      3
+#define TST_PORT        4
+#define TST_INPORT      5
+#define TST_OUTPORT     6
+#define TST_ENVIRONMENT 7
+#define TST_PAIR        8
+#define TST_LIST        9
+#define TST_CHAR       10
+#define TST_VECTOR     11
+#define TST_NUMBER     12
+#define TST_INTEGER    13
+#define TST_NATURAL    14
 
 #define INF_ARG 0xff
 
 static const struct op_code_info dispatch_table[]= {
-#define _OP_DEF(A,B,C,D,OP) {{A},B,C,{D}},
+#define _OP_DEF(OP,A,B,C,...) {{A},B,C,{__VA_ARGS__}},
 #include "opdefines.h"
 #undef _OP_DEF
   {{0},0,0,{0}},
@@ -5420,7 +5437,7 @@ check_arguments (scheme *sc, const struct op_code_info *pcd, char *msg, size_t m
       do {
 	pointer arg = car(arglist);
 	j = (int)t[0];
-	if (j == TST_LIST[0]) {
+	if (j == TST_LIST) {
 	  if (arg != sc->NIL && !is_pair(arg)) break;
 	} else {
 	  if (!tests[j].fct(arg)) break;
@@ -5830,7 +5847,7 @@ void scheme_load_memory(scheme *sc, const char *buf, size_t len, const char *fil
 
 void scheme_define(scheme *sc, pointer envir, pointer symbol, pointer value) {
      pointer x;
-     pointer *sslot;
+     pointer *sslot = NULL;
      x = find_slot_spec_in_env(sc, envir, symbol, 0, &sslot);
      if (x != sc->NIL) {
           set_slot_in_env(sc, x, value);

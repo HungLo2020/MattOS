@@ -47,7 +47,7 @@
 #include <gst/gl/gstglmemory.h>
 
 #include "gst/gl/egl/gstegl.h"
-#include "gst/gl/egl/gstglcontext_egl.h"
+#include "gst/gl/egl/gstglcontext_egl_private.h"
 #include "gst/gl/egl/gstgldisplay_egl.h"
 
 #if GST_GL_HAVE_DMABUF
@@ -550,6 +550,7 @@ _drm_rgba_fourcc_from_format (GstVideoFormat format, int plane,
     case GST_VIDEO_FORMAT_NV61:
     case GST_VIDEO_FORMAT_NV12_16L32S:
     case GST_VIDEO_FORMAT_NV12_4L4:
+    case GST_VIDEO_FORMAT_NV24:
       *out_format = plane == 0 ? GST_GL_RED : GST_GL_RG;
       return plane == 0 ? DRM_FORMAT_R8 : rg_fourcc;
 
@@ -562,10 +563,12 @@ _drm_rgba_fourcc_from_format (GstVideoFormat format, int plane,
       return DRM_FORMAT_R8;
 
     case GST_VIDEO_FORMAT_BGR10A2_LE:
+    case GST_VIDEO_FORMAT_BGR10x2_LE:
       *out_format = GST_GL_RGB10_A2;
       return DRM_FORMAT_BGRA1010102;
 
     case GST_VIDEO_FORMAT_RGB10A2_LE:
+    case GST_VIDEO_FORMAT_RGB10x2_LE:
       *out_format = GST_GL_RGB10_A2;
       return DRM_FORMAT_RGBA1010102;
 
@@ -580,6 +583,16 @@ _drm_rgba_fourcc_from_format (GstVideoFormat format, int plane,
     case GST_VIDEO_FORMAT_P016_BE:
       *out_format = plane == 0 ? GST_GL_R16 : GST_GL_RG16;
       return plane == 0 ? DRM_FORMAT_R16 : DRM_FORMAT_RG1616;
+
+    case GST_VIDEO_FORMAT_I420_10LE:
+    case GST_VIDEO_FORMAT_I422_10LE:
+    case GST_VIDEO_FORMAT_Y444_10LE:
+    case GST_VIDEO_FORMAT_I420_12LE:
+    case GST_VIDEO_FORMAT_I422_12LE:
+    case GST_VIDEO_FORMAT_Y444_12LE:
+    case GST_VIDEO_FORMAT_Y444_16LE:
+      *out_format = GST_GL_R16;
+      return DRM_FORMAT_R16;
 
     case GST_VIDEO_FORMAT_AV12:
       *out_format = plane == 1 ? GST_GL_RED : GST_GL_RG;
@@ -1140,6 +1153,8 @@ gst_egl_image_can_emulate (GstGLContext * context, GstVideoFormat format)
     } else if (GST_VIDEO_FORMAT_INFO_IS_RGB (info)) {
       /* For RGB formats any DMA format that is not external-only will do. */
       const GArray *dma_modifiers;
+      GstGLDmaModifier *mods, linear_modifier = { 0, FALSE };
+      guint len;
       guint j;
 
       if (!gst_gl_context_egl_get_format_modifiers (context, fourcc,
@@ -1147,16 +1162,23 @@ gst_egl_image_can_emulate (GstGLContext * context, GstVideoFormat format)
         return FALSE;
       }
 
-      for (j = 0; j < dma_modifiers->len; ++j) {
-        GstGLDmaModifier *mod =
-            &g_array_index (dma_modifiers, GstGLDmaModifier, j);
+      if (dma_modifiers) {
+        mods = (GstGLDmaModifier *) dma_modifiers->data;
+        len = dma_modifiers->len;
+      } else {
+        mods = &linear_modifier;
+        len = 1;
+      }
+
+      for (j = 0; j < len; ++j) {
+        GstGLDmaModifier *mod = &mods[j];
 
         if (!mod->external_only) {
           break;
         }
       }
 
-      if (j == dma_modifiers->len) {
+      if (j == len) {
         return FALSE;
       }
     } else {

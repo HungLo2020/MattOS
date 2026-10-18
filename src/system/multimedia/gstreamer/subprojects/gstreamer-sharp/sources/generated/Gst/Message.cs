@@ -151,6 +151,26 @@ namespace Gst {
 		}
 
 		[DllImport("gstreamer-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
+		static extern bool gst_message_is_writable(IntPtr raw);
+
+		public new bool IsWritable { 
+			get {
+				bool raw_ret = gst_message_is_writable(Handle);
+				bool ret = raw_ret;
+				return ret;
+			}
+		}
+
+		[DllImport("gstreamer-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
+		static extern IntPtr gst_message_make_writable(IntPtr raw);
+
+		public Gst.Message MakeWritable() {
+			IntPtr raw_ret = gst_message_make_writable(Handle);
+			Gst.Message ret = raw_ret == IntPtr.Zero ? null : (Gst.Message) GLib.Opaque.GetOpaque (raw_ret, typeof (Gst.Message), true);
+			return ret;
+		}
+
+		[DllImport("gstreamer-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
 		static extern void gst_message_parse_async_done(IntPtr raw, out ulong running_time);
 
 		public ulong ParseAsyncDone() {
@@ -228,6 +248,15 @@ namespace Gst {
 			gst_message_parse_device_changed(Handle, out native_device, out native_changed_device);
 			device = GLib.Object.GetObject(native_device, true) as Gst.Device;
 			changed_device = GLib.Object.GetObject(native_changed_device, true) as Gst.Device;
+		}
+
+		[DllImport("gstreamer-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
+		static extern void gst_message_parse_device_monitor_started(IntPtr raw, out bool success);
+
+		public bool ParseDeviceMonitorStarted() {
+			bool success;
+			gst_message_parse_device_monitor_started(Handle, out success);
+			return success;
 		}
 
 		[DllImport("gstreamer-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -734,6 +763,15 @@ namespace Gst {
 		public static Message NewDeviceChanged(Gst.Object src, Gst.Device device, Gst.Device changed_device)
 		{
 			Message result = new Message (gst_message_new_device_changed(src == null ? IntPtr.Zero : src.Handle, device == null ? IntPtr.Zero : device.Handle, changed_device == null ? IntPtr.Zero : changed_device.Handle));
+			return result;
+		}
+
+		[DllImport("gstreamer-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
+		static extern IntPtr gst_message_new_device_monitor_started(IntPtr src, bool success);
+
+		public static Message NewDeviceMonitorStarted(Gst.Object src, bool success)
+		{
+			Message result = new Message (gst_message_new_device_monitor_started(src == null ? IntPtr.Zero : src.Handle, success));
 			return result;
 		}
 

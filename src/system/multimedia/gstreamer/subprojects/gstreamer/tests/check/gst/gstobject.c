@@ -616,6 +616,125 @@ GST_START_TEST (test_fake_object_has_as_ancestor)
 
 GST_END_TEST;
 
+GST_START_TEST (test_fake_object_get_toplevel)
+{
+  GstObject *object1, *object2, *object3, *object4;
+  GstObject *toplevel;
+  gboolean result;
+
+  object1 = g_object_new (gst_fake_object_get_type (), NULL);
+  fail_if (object1 == NULL, "Failed to create instance of GstFakeObject");
+
+  object2 = g_object_new (gst_fake_object_get_type (), NULL);
+  fail_if (object2 == NULL, "Failed to create instance of GstFakeObject");
+
+  object3 = g_object_new (gst_fake_object_get_type (), NULL);
+  fail_if (object3 == NULL, "Failed to create instance of GstFakeObject");
+
+  object4 = g_object_new (gst_fake_object_get_type (), NULL);
+  fail_if (object4 == NULL, "Failed to create instance of GstFakeObject");
+
+  /* try to set other object as parent */
+  result = gst_object_set_parent (object1, object3);
+  fail_unless (result, "GstFakeObject could not accept other object as parent");
+  result = gst_object_set_parent (object2, object3);
+  fail_unless (result, "GstFakeObject could not accept other object as parent");
+  result = gst_object_set_parent (object3, object4);
+  fail_unless (result, "GstFakeObject could not accept other object as parent");
+
+  /* Hierarchy:
+   *  object4
+   *   `- object3
+   *       |- object2
+   *       `- object1
+   */
+
+  /* The toplevel object is its own toplevel object */
+  toplevel = gst_object_get_toplevel (object4);
+  fail_unless_equals_pointer (toplevel, object4);
+  gst_object_unref (toplevel);
+
+  toplevel = gst_object_get_toplevel (object3);
+  fail_unless_equals_pointer (toplevel, object4);
+  gst_object_unref (toplevel);
+
+  toplevel = gst_object_get_toplevel (object2);
+  fail_unless_equals_pointer (toplevel, object4);
+  gst_object_unref (toplevel);
+
+  toplevel = gst_object_get_toplevel (object1);
+  fail_unless_equals_pointer (toplevel, object4);
+  gst_object_unref (toplevel);
+
+  /* unparent everything */
+  gst_object_unparent (object3);
+  gst_object_unparent (object2);
+  gst_object_unparent (object1);
+
+  /* now dispose objects */
+  gst_object_unref (object4);
+
+}
+
+GST_END_TEST;
+
+typedef struct
+{
+  GMutex lock;
+  GCond cond;
+  GThread *caller_thread;
+
+  gint called;
+} CallAsyncData;
+
+static void
+call_async_func (GstObject * object, gpointer user_data)
+{
+  CallAsyncData *data;
+
+  fail_unless (GST_IS_OBJECT (object));
+
+  data = (CallAsyncData *) user_data;
+
+  fail_unless (g_thread_self () != data->caller_thread);
+
+  g_mutex_lock (&data->lock);
+  assert_equals_int (data->called, 0);
+  data->called++;
+  g_cond_signal (&data->cond);
+  g_mutex_unlock (&data->lock);
+}
+
+GST_START_TEST (test_call_async)
+{
+  GstObject *object;
+  CallAsyncData *data;
+
+  object = g_object_new (gst_fake_object_get_type (), NULL);
+  fail_unless (object);
+
+  data = g_new0 (CallAsyncData, 1);
+  g_mutex_init (&data->lock);
+  g_cond_init (&data->cond);
+  data->caller_thread = g_thread_self ();
+
+  gst_object_call_async (object, call_async_func, data);
+  g_mutex_lock (&data->lock);
+  while (!data->called)
+    g_cond_wait (&data->cond, &data->lock);
+  g_mutex_unlock (&data->lock);
+
+  assert_equals_int (data->called, 1);
+
+  g_mutex_clear (&data->lock);
+  g_cond_clear (&data->cond);
+  g_free (data);
+
+  gst_object_unref (object);
+}
+
+GST_END_TEST;
+
 /* test: try renaming a parented object, make sure it fails */
 
 static Suite *
@@ -643,7 +762,10 @@ gst_object_suite (void)
   tcase_add_test (tc_chain, test_fake_object_parentage_dispose);
 
   tcase_add_test (tc_chain, test_fake_object_has_as_ancestor);
+  tcase_add_test (tc_chain, test_fake_object_get_toplevel);
   //tcase_add_checked_fixture (tc_chain, setup, teardown);
+
+  tcase_add_test (tc_chain, test_call_async);
 
   return s;
 }

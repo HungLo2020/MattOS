@@ -14,7 +14,12 @@
 
 #include "config.h"
 
+#include <assert.h>
+
+#include "xkbcommon/xkbcommon.h"
 #include "context.h"
+#include "keymap.h"
+#include "messages-codes.h"
 #include "xkbcomp-priv.h"
 #include "text.h"
 #include "expr.h"
@@ -55,6 +60,9 @@ enum action_field {
     ACTION_FIELD_DEVICE,
     ACTION_FIELD_KEYCODE,
     ACTION_FIELD_MODS_TO_CLEAR,
+    ACTION_FIELD_LOCK_ON_RELEASE,
+    ACTION_FIELD_UNLOCK_ON_PRESS,
+    ACTION_FIELD_LATCH_ON_PRESS,
 };
 
 void
@@ -73,40 +81,43 @@ InitActionsInfo(ActionsInfo *info)
 }
 
 static const LookupEntry fieldStrings[] = {
-    { "clearLocks",       ACTION_FIELD_CLEAR_LOCKS   },
-    { "latchToLock",      ACTION_FIELD_LATCH_TO_LOCK },
-    { "genKeyEvent",      ACTION_FIELD_GEN_KEY_EVENT },
-    { "generateKeyEvent", ACTION_FIELD_GEN_KEY_EVENT },
-    { "report",           ACTION_FIELD_REPORT        },
-    { "default",          ACTION_FIELD_DEFAULT       },
-    { "affect",           ACTION_FIELD_AFFECT        },
-    { "increment",        ACTION_FIELD_INCREMENT     },
-    { "modifiers",        ACTION_FIELD_MODIFIERS     },
-    { "mods",             ACTION_FIELD_MODIFIERS     },
-    { "group",            ACTION_FIELD_GROUP         },
-    { "x",                ACTION_FIELD_X             },
-    { "y",                ACTION_FIELD_Y             },
-    { "accel",            ACTION_FIELD_ACCEL         },
-    { "accelerate",       ACTION_FIELD_ACCEL         },
-    { "repeat",           ACTION_FIELD_ACCEL         },
-    { "button",           ACTION_FIELD_BUTTON        },
-    { "value",            ACTION_FIELD_VALUE         },
-    { "controls",         ACTION_FIELD_CONTROLS      },
-    { "ctrls",            ACTION_FIELD_CONTROLS      },
-    { "type",             ACTION_FIELD_TYPE          },
-    { "count",            ACTION_FIELD_COUNT         },
-    { "screen",           ACTION_FIELD_SCREEN        },
-    { "same",             ACTION_FIELD_SAME          },
-    { "sameServer",       ACTION_FIELD_SAME          },
-    { "data",             ACTION_FIELD_DATA          },
-    { "device",           ACTION_FIELD_DEVICE        },
-    { "dev",              ACTION_FIELD_DEVICE        },
-    { "key",              ACTION_FIELD_KEYCODE       },
-    { "keycode",          ACTION_FIELD_KEYCODE       },
-    { "kc",               ACTION_FIELD_KEYCODE       },
-    { "clearmods",        ACTION_FIELD_MODS_TO_CLEAR },
-    { "clearmodifiers",   ACTION_FIELD_MODS_TO_CLEAR },
-    { NULL,               0                          }
+    { "clearLocks",       ACTION_FIELD_CLEAR_LOCKS     },
+    { "latchToLock",      ACTION_FIELD_LATCH_TO_LOCK   },
+    { "genKeyEvent",      ACTION_FIELD_GEN_KEY_EVENT   },
+    { "generateKeyEvent", ACTION_FIELD_GEN_KEY_EVENT   },
+    { "report",           ACTION_FIELD_REPORT          },
+    { "default",          ACTION_FIELD_DEFAULT         },
+    { "affect",           ACTION_FIELD_AFFECT          },
+    { "increment",        ACTION_FIELD_INCREMENT       },
+    { "modifiers",        ACTION_FIELD_MODIFIERS       },
+    { "mods",             ACTION_FIELD_MODIFIERS       },
+    { "group",            ACTION_FIELD_GROUP           },
+    { "x",                ACTION_FIELD_X               },
+    { "y",                ACTION_FIELD_Y               },
+    { "accel",            ACTION_FIELD_ACCEL           },
+    { "accelerate",       ACTION_FIELD_ACCEL           },
+    { "repeat",           ACTION_FIELD_ACCEL           },
+    { "button",           ACTION_FIELD_BUTTON          },
+    { "value",            ACTION_FIELD_VALUE           },
+    { "controls",         ACTION_FIELD_CONTROLS        },
+    { "ctrls",            ACTION_FIELD_CONTROLS        },
+    { "type",             ACTION_FIELD_TYPE            },
+    { "count",            ACTION_FIELD_COUNT           },
+    { "screen",           ACTION_FIELD_SCREEN          },
+    { "same",             ACTION_FIELD_SAME            },
+    { "sameServer",       ACTION_FIELD_SAME            },
+    { "data",             ACTION_FIELD_DATA            },
+    { "device",           ACTION_FIELD_DEVICE          },
+    { "dev",              ACTION_FIELD_DEVICE          },
+    { "key",              ACTION_FIELD_KEYCODE         },
+    { "keycode",          ACTION_FIELD_KEYCODE         },
+    { "kc",               ACTION_FIELD_KEYCODE         },
+    { "clearmods",        ACTION_FIELD_MODS_TO_CLEAR   },
+    { "clearmodifiers",   ACTION_FIELD_MODS_TO_CLEAR   },
+    { "lockOnRelease",    ACTION_FIELD_LOCK_ON_RELEASE },
+    { "unlockOnPress",    ACTION_FIELD_UNLOCK_ON_PRESS },
+    { "latchOnPress",     ACTION_FIELD_LATCH_ON_PRESS  },
+    { NULL,               0                            }
 };
 
 static bool
@@ -148,10 +159,23 @@ ReportMismatch(struct xkb_context *ctx, xkb_message_code_t code,
 }
 
 static inline bool
+ReportFormatVersionMismatch(struct xkb_context *ctx,
+                            enum xkb_action_type action,
+                            enum action_field field,
+                            enum xkb_keymap_format format, const char *versions)
+{
+    log_err(ctx, XKB_ERROR_INCOMPATIBLE_KEYMAP_TEXT_FORMAT,
+            "Field %s for an action of type %s requires keymap text format %s, "
+            " but got: %d; Action definition ignored\n",
+            fieldText(field), ActionTypeText(action), versions, format);
+    return false;
+}
+
+static inline bool
 ReportIllegal(struct xkb_context *ctx, enum xkb_action_type action,
               enum action_field field)
 {
-    log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
+    log_err(ctx, XKB_ERROR_INVALID_ACTION_FIELD,
             "Field %s is not defined for an action of type %s; "
             "Action definition ignored\n",
             fieldText(field), ActionTypeText(action));
@@ -170,12 +194,17 @@ ReportActionNotArray(struct xkb_context *ctx, enum xkb_action_type action,
 }
 
 static bool
-HandleNoAction(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleNoAction(struct xkb_context *ctx, enum xkb_keymap_format format,
+               const struct xkb_mod_set *mods,
                union xkb_action *action, enum action_field field,
                const ExprDef *array_ndx, const ExprDef *value)
 
 {
-    return true;
+    log_err(ctx, XKB_ERROR_INVALID_ACTION_FIELD,
+            "The \"%s\" action takes no argument, but got \"%s\" field; "
+            "Action definition ignored\n",
+            ActionTypeText(action->type), fieldText(field));
+    return false;
 }
 
 static bool
@@ -257,7 +286,8 @@ CheckAffectField(struct xkb_context *ctx, enum xkb_action_type action,
 }
 
 static bool
-HandleSetLatchLockMods(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleSetLatchLockMods(struct xkb_context *ctx, enum xkb_keymap_format format,
+                       const struct xkb_mod_set *mods,
                        union xkb_action *action, enum action_field field,
                        const ExprDef *array_ndx, const ExprDef *value)
 {
@@ -267,18 +297,41 @@ HandleSetLatchLockMods(struct xkb_context *ctx, const struct xkb_mod_set *mods,
     if (field == ACTION_FIELD_MODIFIERS)
         return CheckModifierField(ctx, mods, action->type, array_ndx, value,
                                   &act->flags, &act->mods.mods);
+    if (field == ACTION_FIELD_UNLOCK_ON_PRESS) {
+        /* Ensure to update if a new modifier action is introduced. */
+        assert(type == ACTION_TYPE_MOD_SET || type == ACTION_TYPE_MOD_LATCH ||
+               type == ACTION_TYPE_MOD_LOCK);
+        if (isModsUnLockOnPressSupported(format)) {
+            return CheckBooleanFlag(ctx, action->type, field,
+                                    ACTION_UNLOCK_ON_PRESS, array_ndx,
+                                    value, &act->flags);
+        } else {
+            return ReportFormatVersionMismatch(ctx, action->type, field,
+                                                format, ">= 2");
+        }
+    }
     if ((type == ACTION_TYPE_MOD_SET || type == ACTION_TYPE_MOD_LATCH) &&
         field == ACTION_FIELD_CLEAR_LOCKS)
         return CheckBooleanFlag(ctx, action->type, field,
                                 ACTION_LOCK_CLEAR, array_ndx, value,
                                 &act->flags);
-    if (type == ACTION_TYPE_MOD_LATCH &&
-        field == ACTION_FIELD_LATCH_TO_LOCK)
-        return CheckBooleanFlag(ctx, action->type, field,
-                                ACTION_LATCH_TO_LOCK, array_ndx, value,
-                                &act->flags);
-    if (type == ACTION_TYPE_MOD_LOCK &&
-        field == ACTION_FIELD_AFFECT)
+    if (type == ACTION_TYPE_MOD_LATCH) {
+        if (field == ACTION_FIELD_LATCH_TO_LOCK)
+            return CheckBooleanFlag(ctx, action->type, field,
+                                    ACTION_LATCH_TO_LOCK, array_ndx, value,
+                                    &act->flags);
+        if (field == ACTION_FIELD_LATCH_ON_PRESS) {
+            if (isModsLatchOnPressSupported(format)) {
+                return CheckBooleanFlag(ctx, action->type, field,
+                                        ACTION_LATCH_ON_PRESS, array_ndx, value,
+                                        &act->flags);
+            } else {
+                return ReportFormatVersionMismatch(ctx, action->type, field,
+                                                   format, ">= 2");
+            }
+        }
+    }
+    if (type == ACTION_TYPE_MOD_LOCK && field == ACTION_FIELD_AFFECT)
         return CheckAffectField(ctx, action->type, array_ndx, value,
                                 &act->flags);
 
@@ -287,8 +340,9 @@ HandleSetLatchLockMods(struct xkb_context *ctx, const struct xkb_mod_set *mods,
 
 static bool
 CheckGroupField(struct xkb_context *ctx, enum xkb_action_type action,
-                const ExprDef *array_ndx, const ExprDef *value,
-                enum xkb_action_flags *flags_inout, int32_t *group_rtrn)
+                xkb_layout_index_t max_groups, const ExprDef *array_ndx,
+                const ExprDef *value, enum xkb_action_flags *flags_inout,
+                int32_t *group_rtrn)
 {
     const ExprDef *spec;
     xkb_layout_index_t idx = 0;
@@ -306,11 +360,11 @@ CheckGroupField(struct xkb_context *ctx, enum xkb_action_type action,
         spec = value;
     }
 
-    if (!ExprResolveGroup(ctx, spec, &idx))
+    if (!ExprResolveGroup(ctx, max_groups, spec, &idx))
         return ReportMismatch(ctx, XKB_ERROR_UNSUPPORTED_GROUP_INDEX, action,
-                              ACTION_FIELD_GROUP, "integer (range 1..8)");
+                              ACTION_FIELD_GROUP, "integer");
 
-    /* +n, -n are relative, n is absolute. */
+    /* `+n`, `-n` are relative, `n` is absolute. */
     if (value->common.type == STMT_EXPR_NEGATE || value->common.type == STMT_EXPR_UNARY_PLUS) {
         *group_rtrn = (int32_t) idx;
         if (value->common.type == STMT_EXPR_NEGATE)
@@ -324,16 +378,19 @@ CheckGroupField(struct xkb_context *ctx, enum xkb_action_type action,
 }
 
 static bool
-HandleSetLatchLockGroup(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleSetLatchLockGroup(struct xkb_context *ctx, enum xkb_keymap_format format,
+                        const struct xkb_mod_set *mods,
                         union xkb_action *action, enum action_field field,
                         const ExprDef *array_ndx, const ExprDef *value)
 {
     struct xkb_group_action *act = &action->group;
     const enum xkb_action_type type = action->type;
 
-    if (field == ACTION_FIELD_GROUP)
-        return CheckGroupField(ctx, action->type, array_ndx, value,
+    if (field == ACTION_FIELD_GROUP) {
+        const xkb_layout_index_t max_groups = format_max_groups(format);
+        return CheckGroupField(ctx, action->type, max_groups, array_ndx, value,
                                &act->flags, &act->group);
+    }
     if ((type == ACTION_TYPE_GROUP_SET || type == ACTION_TYPE_GROUP_LATCH) &&
         field == ACTION_FIELD_CLEAR_LOCKS)
         return CheckBooleanFlag(ctx, action->type, field,
@@ -344,12 +401,25 @@ HandleSetLatchLockGroup(struct xkb_context *ctx, const struct xkb_mod_set *mods,
         return CheckBooleanFlag(ctx, action->type, field,
                                 ACTION_LATCH_TO_LOCK, array_ndx, value,
                                 &act->flags);
+    if (type == ACTION_TYPE_GROUP_LOCK &&
+        field == ACTION_FIELD_LOCK_ON_RELEASE) {
+        /* TODO: support this for `ACTION_TYPE_MOD_LOCK` too? */
+        if (isGroupLockOnReleaseSupported(format)) {
+            return CheckBooleanFlag(ctx, action->type, field,
+                                    ACTION_LOCK_ON_RELEASE, array_ndx, value,
+                                    &act->flags);
+        } else {
+            return ReportFormatVersionMismatch(ctx, action->type, field, format,
+                                               ">= v2");
+        }
+    }
 
     return ReportIllegal(ctx, action->type, field);
 }
 
 static bool
-HandleMovePtr(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleMovePtr(struct xkb_context *ctx, enum xkb_keymap_format format,
+              const struct xkb_mod_set *mods,
               union xkb_action *action, enum action_field field,
               const ExprDef *array_ndx, const ExprDef *value)
 {
@@ -398,7 +468,8 @@ HandleMovePtr(struct xkb_context *ctx, const struct xkb_mod_set *mods,
 }
 
 static bool
-HandlePtrBtn(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandlePtrBtn(struct xkb_context *ctx, enum xkb_keymap_format format,
+             const struct xkb_mod_set *mods,
              union xkb_action *action, enum action_field field,
              const ExprDef *array_ndx, const ExprDef *value)
 {
@@ -461,7 +532,8 @@ static const LookupEntry ptrDflts[] = {
 };
 
 static bool
-HandleSetPtrDflt(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleSetPtrDflt(struct xkb_context *ctx, enum xkb_keymap_format format,
+                 const struct xkb_mod_set *mods,
                  union xkb_action *action, enum action_field field,
                  const ExprDef *array_ndx, const ExprDef *value)
 {
@@ -520,7 +592,8 @@ HandleSetPtrDflt(struct xkb_context *ctx, const struct xkb_mod_set *mods,
 }
 
 static bool
-HandleSwitchScreen(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleSwitchScreen(struct xkb_context *ctx, enum xkb_keymap_format format,
+                   const struct xkb_mod_set *mods,
                    union xkb_action *action, enum action_field field,
                    const ExprDef *array_ndx, const ExprDef *value)
 {
@@ -569,7 +642,8 @@ HandleSwitchScreen(struct xkb_context *ctx, const struct xkb_mod_set *mods,
 }
 
 static bool
-HandleSetLockControls(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleSetLockControls(struct xkb_context *ctx, enum xkb_keymap_format format,
+                      const struct xkb_mod_set *mods,
                       union xkb_action *action, enum action_field field,
                       const ExprDef *array_ndx, const ExprDef *value)
 {
@@ -587,7 +661,8 @@ HandleSetLockControls(struct xkb_context *ctx, const struct xkb_mod_set *mods,
         act->ctrls = (enum xkb_action_controls) mask;
         return true;
     }
-    else if (field == ACTION_FIELD_AFFECT) {
+    else if (field == ACTION_FIELD_AFFECT &&
+             action->type == ACTION_TYPE_CTRL_LOCK) {
         return CheckAffectField(ctx, action->type, array_ndx, value,
                                 &act->flags);
     }
@@ -596,7 +671,19 @@ HandleSetLockControls(struct xkb_context *ctx, const struct xkb_mod_set *mods,
 }
 
 static bool
-HandlePrivate(struct xkb_context *ctx, const struct xkb_mod_set *mods,
+HandleUnsupportedLegacy(struct xkb_context *ctx, enum xkb_keymap_format format,
+                        const struct xkb_mod_set *mods,
+                        union xkb_action *action, enum action_field field,
+                        const ExprDef *array_ndx, const ExprDef *value)
+
+{
+    /* Do not check any field */
+    return true;
+}
+
+static bool
+HandlePrivate(struct xkb_context *ctx, enum xkb_keymap_format format,
+              const struct xkb_mod_set *mods,
               union xkb_action *action, enum action_field field,
               const ExprDef *array_ndx, const ExprDef *value)
 {
@@ -653,7 +740,7 @@ HandlePrivate(struct xkb_context *ctx, const struct xkb_mod_set *mods,
             size_t len = strlen(str);
             if (len < 1 || len > sizeof(act->data)) {
                 log_warn(ctx, XKB_LOG_MESSAGE_NO_ID,
-                         "A private action has %ld data bytes; "
+                         "A private action has %zu data bytes; "
                          "Illegal data ignored\n", sizeof(act->data));
                 return false;
             }
@@ -701,6 +788,7 @@ HandlePrivate(struct xkb_context *ctx, const struct xkb_mod_set *mods,
 }
 
 typedef bool (*actionHandler)(struct xkb_context *ctx,
+                              enum xkb_keymap_format format,
                               const struct xkb_mod_set *mods,
                               union xkb_action *action,
                               enum action_field field,
@@ -709,6 +797,7 @@ typedef bool (*actionHandler)(struct xkb_context *ctx,
 
 static const actionHandler handleAction[_ACTION_TYPE_NUM_ENTRIES] = {
     [ACTION_TYPE_NONE] = HandleNoAction,
+    [ACTION_TYPE_VOID] = HandleNoAction,
     [ACTION_TYPE_MOD_SET] = HandleSetLatchLockMods,
     [ACTION_TYPE_MOD_LATCH] = HandleSetLatchLockMods,
     [ACTION_TYPE_MOD_LOCK] = HandleSetLatchLockMods,
@@ -723,14 +812,20 @@ static const actionHandler handleAction[_ACTION_TYPE_NUM_ENTRIES] = {
     [ACTION_TYPE_SWITCH_VT] = HandleSwitchScreen,
     [ACTION_TYPE_CTRL_SET] = HandleSetLockControls,
     [ACTION_TYPE_CTRL_LOCK] = HandleSetLockControls,
+    [ACTION_TYPE_UNSUPPORTED_LEGACY] = HandleUnsupportedLegacy,
     [ACTION_TYPE_PRIVATE] = HandlePrivate,
 };
+
+/* Ensure to not miss `xkb_action_type` updates */
+static_assert(ACTION_TYPE_INTERNAL == 18 &&
+              ACTION_TYPE_INTERNAL + 1 == _ACTION_TYPE_NUM_ENTRIES,
+              "Missing action type");
 
 /***====================================================================***/
 
 bool
-HandleActionDef(struct xkb_context *ctx, ActionsInfo *info,
-                const struct xkb_mod_set *mods, ExprDef *def,
+HandleActionDef(struct xkb_context *ctx, enum xkb_keymap_format format,
+                ActionsInfo *info, const struct xkb_mod_set *mods, ExprDef *def,
                 union xkb_action *action)
 {
     if (def->common.type != STMT_EXPR_ACTION_DECL) {
@@ -740,10 +835,11 @@ HandleActionDef(struct xkb_context *ctx, ActionsInfo *info,
         return false;
     }
 
-    const char *str = xkb_atom_text(ctx, def->action.name);
+    const char *action_name = xkb_atom_text(ctx, def->action.name);
     enum xkb_action_type handler_type;
-    if (!stringToActionType(str, &handler_type)) {
-        log_err(ctx, XKB_LOG_MESSAGE_NO_ID, "Unknown action %s\n", str);
+    if (!stringToActionType(action_name, &handler_type)) {
+        log_err(ctx, XKB_ERROR_UNKNOWN_ACTION_TYPE,
+                "Unknown action %s\n", action_name);
         return false;
     }
 
@@ -753,6 +849,19 @@ HandleActionDef(struct xkb_context *ctx, ActionsInfo *info,
      *     latchMods.clearLocks = True;
      */
     *action = info->actions[handler_type];
+
+    if (handler_type == ACTION_TYPE_UNSUPPORTED_LEGACY) {
+        log_warn(ctx, XKB_WARNING_UNSUPPORTED_LEGACY_ACTION,
+                 "Unsupported legacy action type \"%s\".\n", action_name);
+        /*
+         * Degrade to an uneffective supported action type.
+         * Fields will still be processed with the original action type.
+         */
+        action->type = ACTION_TYPE_NONE;
+        /* FIXME: Degrading to NoAction() has the following drawbacks:
+         * - It disables overwriting a previous action.
+         * - It enables interpretations. */
+    }
 
     /*
      * Now change the action properties as specified for this
@@ -791,12 +900,12 @@ HandleActionDef(struct xkb_context *ctx, ActionsInfo *info,
 
         enum action_field fieldNdx;
         if (!stringToField(fieldRtrn, &fieldNdx)) {
-            log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
+            log_err(ctx, XKB_ERROR_INVALID_ACTION_FIELD,
                     "Unknown field name %s\n", fieldRtrn);
             return false;
         }
 
-        if (!handleAction[handler_type](ctx, mods, action, fieldNdx,
+        if (!handleAction[handler_type](ctx, format, mods, action, fieldNdx,
                                         arrayRtrn, value))
             return false;
     }
@@ -805,18 +914,20 @@ HandleActionDef(struct xkb_context *ctx, ActionsInfo *info,
 }
 
 bool
-SetDefaultActionField(struct xkb_context *ctx, ActionsInfo *info,
-                      struct xkb_mod_set *mods, const char *elem,
-                      const char *field, ExprDef *array_ndx,
+SetDefaultActionField(struct xkb_context *ctx, enum xkb_keymap_format format,
+                      ActionsInfo *info, struct xkb_mod_set *mods,
+                      const char *elem, const char *field, ExprDef *array_ndx,
                       ExprDef *value, enum merge_mode merge)
 {
     enum xkb_action_type action;
-    if (!stringToActionType(elem, &action))
+    if (!stringToActionType(elem, &action)) {
+        log_err(ctx, XKB_ERROR_UNKNOWN_ACTION_TYPE, "Unknown action %s\n", elem);
         return false;
+    }
 
     enum action_field action_field;
     if (!stringToField(field, &action_field)) {
-        log_err(ctx, XKB_LOG_MESSAGE_NO_ID,
+        log_err(ctx, XKB_ERROR_INVALID_ACTION_FIELD,
                 "\"%s\" is not a legal field name\n", field);
         return false;
     }
@@ -826,7 +937,7 @@ SetDefaultActionField(struct xkb_context *ctx, ActionsInfo *info,
     union xkb_action from = *into;
 
     /* Parse action */
-    if (!handleAction[action](ctx, mods, &from, action_field, array_ndx, value))
+    if (!handleAction[action](ctx, format, mods, &from, action_field, array_ndx, value))
         return false;
 
     /*
@@ -841,7 +952,7 @@ SetDefaultActionField(struct xkb_context *ctx, ActionsInfo *info,
      */
     if (!action_equal(into, &from)) {
         const bool replace = (merge != MERGE_AUGMENT);
-        log_vrb(ctx, 9, XKB_LOG_MESSAGE_NO_ID,
+        log_vrb(ctx, XKB_LOG_VERBOSITY_VERBOSE, XKB_LOG_MESSAGE_NO_ID,
                 "Conflicting field \"%s\" for default action \"%s\"; "
                 "Using %s, ignore %s\n",
                 fieldText(action_field), ActionTypeText(action),

@@ -260,10 +260,14 @@ learn_status_cb (void *opaque, const char *line)
   return err;
 }
 
+
 /* Perform the LEARN command and return a list of all private keys
-   stored on the card. */
+ * stored on the card.  If DEMAND_SN is given the info is returned for
+ * the card with that S/N instead of the current card.  This may then
+ * switch the current card.  */
 int
 agent_card_learn (ctrl_t ctrl,
+                  const char *demand_sn,
                   void (*kpinfo_cb)(void*, const char *),
                   void *kpinfo_cb_arg,
                   void (*certinfo_cb)(void*, const char *),
@@ -273,6 +277,7 @@ agent_card_learn (ctrl_t ctrl,
 {
   int rc;
   struct learn_parm_s parm;
+  char line[ASSUAN_LINELENGTH];
 
   rc = start_scd (ctrl);
   if (rc)
@@ -285,7 +290,13 @@ agent_card_learn (ctrl_t ctrl,
   parm.certinfo_cb_arg = certinfo_cb_arg;
   parm.sinfo_cb = sinfo_cb;
   parm.sinfo_cb_arg = sinfo_cb_arg;
-  rc = assuan_transact (daemon_ctx (ctrl), "LEARN --force",
+
+  if (demand_sn && *demand_sn)
+    snprintf (line, sizeof line, "LEARN --demand=%s --force", demand_sn);
+  else
+    snprintf (line, sizeof line, "LEARN --force");
+
+  rc = assuan_transact (daemon_ctx (ctrl), line,
                         NULL, NULL, NULL, NULL,
                         learn_status_cb, &parm);
   if (rc)
@@ -471,6 +482,33 @@ hash_algo_option (int algo)
 }
 
 
+static int
+prepare_setdata (ctrl_t ctrl, const unsigned char *indata, size_t indatalen)
+{
+  int rc;
+  char *p, line[ASSUAN_LINELENGTH];
+  size_t len;
+  int i;
+
+  for (len = 0; len < indatalen;)
+    {
+      p = stpcpy (line, "SETDATA ");
+      if (len)
+        p = stpcpy (p, "--append ");
+      for (i=0; len < indatalen && (i*2 < DIM(line)-50); i++, len++)
+        {
+          sprintf (p, "%02X", indata[len]);
+          p += 2;
+        }
+      rc = assuan_transact (daemon_ctx (ctrl), line,
+                            NULL, NULL, NULL, NULL, NULL, NULL);
+      if (rc)
+        return rc;
+    }
+
+  return 0;
+}
+
 /* Create a signature using the current card.  MDALGO is either 0 or
  * gives the digest algorithm.  DESC_TEXT is an additional parameter
  * passed to GETPIN_CB. */
@@ -500,13 +538,7 @@ agent_card_pksign (ctrl_t ctrl,
   if (!mdalgo)
     return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
 
-  if (indatalen*2 + 50 > DIM(line))
-    return unlock_scd (ctrl, gpg_error (GPG_ERR_GENERAL));
-
-  bin2hex (indata, indatalen, stpcpy (line, "SETDATA "));
-
-  rc = assuan_transact (daemon_ctx (ctrl), line,
-                        NULL, NULL, NULL, NULL, pincache_put_cb, NULL);
+  rc = prepare_setdata (ctrl, indata, indatalen);
   if (rc)
     return unlock_scd (ctrl, rc);
 
@@ -554,7 +586,8 @@ padding_info_cb (void *opaque, const char *line)
 
   if ((s=has_leading_keyword (line, "PADDING")))
     {
-      *r_padding = atoi (s);
+      if (r_padding)
+        *r_padding = atoi (s);
     }
   else if ((s=has_leading_keyword (line, "PINCACHE_PUT")))
     err = handle_pincache_put (s);
@@ -566,8 +599,8 @@ padding_info_cb (void *opaque, const char *line)
 /* Decipher INDATA using the current card.  Note that the returned
  * value is not an s-expression but the raw data as returned by
  * scdaemon.  The padding information is stored at R_PADDING with -1
- * for not known.  DESC_TEXT is an additional parameter passed to
- * GETPIN_CB.  */
+ * for not known, when it's not NULL.  DESC_TEXT is an additional
+ * parameter passed to GETPIN_CB.  */
 int
 agent_card_pkdecrypt (ctrl_t ctrl,
                       const char *keyid,
@@ -576,37 +609,26 @@ agent_card_pkdecrypt (ctrl_t ctrl,
                       void *getpin_cb_arg,
                       const char *desc_text,
                       const unsigned char *indata, size_t indatalen,
-                      char **r_buf, size_t *r_buflen, int *r_padding)
+                      unsigned char **r_buf, size_t *r_buflen, int *r_padding)
 {
-  int rc, i;
-  char *p, line[ASSUAN_LINELENGTH];
+  int rc;
+  char line[ASSUAN_LINELENGTH];
   membuf_t data;
   struct inq_needpin_parm_s inqparm;
   size_t len;
 
   *r_buf = NULL;
-  *r_padding = -1; /* Unknown.  */
+  if (r_padding)
+    *r_padding = -1; /* Unknown.  */
   rc = start_scd (ctrl);
   if (rc)
     return rc;
 
   /* FIXME: use secure memory where appropriate */
 
-  for (len = 0; len < indatalen;)
-    {
-      p = stpcpy (line, "SETDATA ");
-      if (len)
-        p = stpcpy (p, "--append ");
-      for (i=0; len < indatalen && (i*2 < DIM(line)-50); i++, len++)
-        {
-          sprintf (p, "%02X", indata[len]);
-          p += 2;
-        }
-      rc = assuan_transact (daemon_ctx (ctrl), line,
-                            NULL, NULL, NULL, NULL, NULL, NULL);
-      if (rc)
-        return unlock_scd (ctrl, rc);
-    }
+  rc = prepare_setdata (ctrl, indata, indatalen);
+  if (rc)
+    return unlock_scd (ctrl, rc);
 
   init_membuf (&data, 1024);
   inqparm.ctx = daemon_ctx (ctrl);
@@ -1225,7 +1247,7 @@ agent_card_devinfo (ctrl_t ctrl, void *assuan_context)
 
       FD_ZERO (&fdset);
       FD_SET (FD2INT (client_input), &fdset);
-      nfd = FD2INT (client_input);
+      nfd = FD2NUM (client_input);
 
       ret = npth_select (nfd+1, &fdset, NULL, NULL, NULL);
       if (ret == 1)

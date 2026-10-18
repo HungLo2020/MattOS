@@ -21,17 +21,18 @@
 #pragma once
 
 #include <gst/wayland/wayland.h>
+#include <gst/video/video.h>
 
 G_BEGIN_DECLS
 
 #define GST_TYPE_WL_BUFFER gst_wl_buffer_get_type ()
 
 GST_WL_API
-G_DECLARE_FINAL_TYPE (GstWlBuffer, gst_wl_buffer, GST, WL_BUFFER, GObject);
+G_DECLARE_FINAL_TYPE (GstWlBuffer, gst_wl_buffer, GST, WL_BUFFER, GstObject);
 
 struct _GstWlBuffer
 {
-  GObject parent_instance;
+  GstObject parent_instance;
 };
 
 GST_WL_API
@@ -55,5 +56,11 @@ void gst_wl_buffer_unref_buffer(GstWlBuffer * self);
 
 GST_WL_API
 GstWlDisplay *gst_wl_buffer_get_display (GstWlBuffer * self);
+
+GST_WL_API
+GstVideoMeta * gst_wl_buffer_get_video_meta (GstWlBuffer * self);
+
+GST_WL_API
+GstVideoCropMeta * gst_wl_buffer_get_video_crop_meta (GstWlBuffer * self);
 
 G_END_DECLS

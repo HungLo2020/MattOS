@@ -54,63 +54,60 @@ GType               gdk_pixbuf_animation_get_type        (void) G_GNUC_CONST;
 
 #ifdef G_OS_WIN32
 /* API/ABI compat, see gdk-pixbuf-core.h for details */
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_file_utf8   (const char         *filename,
                                                                GError            **error);
 #endif
 
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_file   (const char         *filename,
                                                           GError            **error);
-GDK_PIXBUF_AVAILABLE_IN_2_28
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_stream (GInputStream       *stream,
                                                           GCancellable       *cancellable,
                                                           GError            **error);
-GDK_PIXBUF_AVAILABLE_IN_2_28
+GDK_PIXBUF_DEPRECATED_IN_2_44
 void                gdk_pixbuf_animation_new_from_stream_async (GInputStream *stream,
                                                           GCancellable       *cancellable,
                                                           GAsyncReadyCallback callback,
                                                           gpointer            user_data);
-GDK_PIXBUF_AVAILABLE_IN_2_28
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_stream_finish (GAsyncResult*async_result,
                                                           GError            **error);
-GDK_PIXBUF_AVAILABLE_IN_2_28
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_resource(const char        *resource_path,
                                                           GError            **error);
-
-#ifndef GDK_PIXBUF_DISABLE_DEPRECATED
 
 GDK_PIXBUF_DEPRECATED_IN_2_0_FOR(g_object_ref)
 GdkPixbufAnimation *gdk_pixbuf_animation_ref             (GdkPixbufAnimation *animation);
 GDK_PIXBUF_DEPRECATED_IN_2_0_FOR(g_object_unref)
 void                gdk_pixbuf_animation_unref           (GdkPixbufAnimation *animation);
-#endif
 
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 int                 gdk_pixbuf_animation_get_width       (GdkPixbufAnimation *animation);
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 int                 gdk_pixbuf_animation_get_height      (GdkPixbufAnimation *animation);
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 gboolean            gdk_pixbuf_animation_is_static_image  (GdkPixbufAnimation *animation);
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbuf          *gdk_pixbuf_animation_get_static_image (GdkPixbufAnimation *animation);
 
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimationIter *gdk_pixbuf_animation_get_iter                        (GdkPixbufAnimation     *animation,
                                                                               const GTimeVal         *start_time);
 G_GNUC_END_IGNORE_DEPRECATIONS
 
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GType                   gdk_pixbuf_animation_iter_get_type                   (void) G_GNUC_CONST;
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 int                     gdk_pixbuf_animation_iter_get_delay_time             (GdkPixbufAnimationIter *iter);
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbuf              *gdk_pixbuf_animation_iter_get_pixbuf                 (GdkPixbufAnimationIter *iter);
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 gboolean                gdk_pixbuf_animation_iter_on_currently_loading_frame (GdkPixbufAnimationIter *iter);
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 gboolean                gdk_pixbuf_animation_iter_advance                    (GdkPixbufAnimationIter *iter,
                                                                               const GTimeVal         *current_time);
 G_GNUC_END_IGNORE_DEPRECATIONS
@@ -131,6 +128,8 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * Modules supporting animations must derive a type from 
  * #GdkPixbufAnimation, providing suitable implementations of the 
  * virtual functions.
+ *
+ * Deprecated: 2.44: Use a different image loading library for animatable assets
  */
 typedef struct _GdkPixbufAnimationClass GdkPixbufAnimationClass;
 
@@ -179,6 +178,8 @@ G_GNUC_END_IGNORE_DEPRECATIONS
  * Modules supporting animations must derive a type from 
  * #GdkPixbufAnimationIter, providing suitable implementations of the 
  * virtual functions.
+ *
+ * Deprecated: 2.44: Use a different image loading library for animatable assets
  */
 typedef struct _GdkPixbufAnimationIterClass GdkPixbufAnimationIterClass;
 
@@ -207,14 +208,21 @@ struct _GdkPixbufAnimationIterClass {
                                         const GTimeVal         *current_time);
 };
 G_GNUC_END_IGNORE_DEPRECATIONS
-      
+
+#define GDK_TYPE_PIXBUF_NON_ANIM              (gdk_pixbuf_non_anim_get_type ())
+#define GDK_PIXBUF_NON_ANIM(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_PIXBUF_NON_ANIM, GdkPixbufNonAnim))
+#define GDK_IS_PIXBUF_NON_ANIM(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_PIXBUF_NON_ANIM))
+
 
 GDK_PIXBUF_AVAILABLE_IN_ALL
 GType               gdk_pixbuf_non_anim_get_type (void) G_GNUC_CONST;
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimation* gdk_pixbuf_non_anim_new (GdkPixbuf *pixbuf);
 
 #endif /* GDK_PIXBUF_ENABLE_BACKEND */
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (GdkPixbufAnimation, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (GdkPixbufAnimationIter, g_object_unref)
 
 G_END_DECLS
 

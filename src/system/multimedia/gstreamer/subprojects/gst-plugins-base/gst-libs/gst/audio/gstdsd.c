@@ -180,7 +180,7 @@ gst_dsd_plane_offset_meta_get_info (void)
  * @buffer: a #GstBuffer
  * @num_channels: Number of channels in the DSD data
  * @num_bytes_per_channel: Number of bytes per channel
- * @offsets: (nullable): the offsets (in bytes) where each channel plane starts
+ * @offsets: (array length=num_channels) (nullable): the offsets (in bytes) where each channel plane starts
  *   in the buffer
  *
  * Allocates and attaches a #GstDsdPlaneOffsetMeta on @buffer, which must be
@@ -447,7 +447,7 @@ gboolean
 gst_dsd_info_from_caps (GstDsdInfo * info, const GstCaps * caps)
 {
   GstStructure *fmt_structure;
-  const gchar *media_type;
+  const gchar *media_type GST_UNUSED_CHECKS;
   const gchar *format_str = NULL;
   const gchar *layout_str = NULL;
   gboolean reversed_bytes = FALSE;
@@ -460,9 +460,10 @@ gst_dsd_info_from_caps (GstDsdInfo * info, const GstCaps * caps)
   g_return_val_if_fail (gst_caps_is_fixed (caps), FALSE);
 
   fmt_structure = gst_caps_get_structure (caps, 0);
+#ifndef G_DISABLE_CHECKS
   media_type = gst_structure_get_name (fmt_structure);
-
   g_return_val_if_fail (g_strcmp0 (media_type, GST_DSD_MEDIA_TYPE) == 0, FALSE);
+#endif
 
   /* Parse the format */
 
@@ -962,14 +963,14 @@ gst_dsd_convert_non_interleaved_to_non_interleaved (const guint8 * input_data,
 
 /**
  * gst_dsd_convert:
- * @input_data: the DSD format conversion's input source
- * @output_data: the DSD format conversion's output destination
+ * @input_data: (array): the DSD format conversion's input source
+ * @output_data: (array): the DSD format conversion's output destination
  * @input_format: DSD format of the input data to convert from
  * @output_format: DSD format of the output data to convert to
  * @input_layout: Input data layout
  * @output_layout: Output data layout
- * @input_plane_offsets: Plane offsets for non-interleaved input data
- * @output_plane_offsets: Plane offsets for non-interleaved output data
+ * @input_plane_offsets: (array length=num_channels) (nullable): Plane offsets for non-interleaved input data
+ * @output_plane_offsets: (array length=num_channels) (nullable): Plane offsets for non-interleaved output data
  * @num_dsd_bytes: How many bytes with DSD data to convert
  * @num_channels: Number of channels (must be at least 1)
  * @reverse_byte_bits: If TRUE, reverse the bits in each DSD byte

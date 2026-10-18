@@ -68,7 +68,7 @@ fn both_file_panes_stop_parent_navigation_at_the_workspace_root() {
 }
 
 #[test]
-fn both_file_panes_reject_outside_directories_but_allow_explicit_file_opening() {
+fn both_file_panes_stay_inside_the_workspace_and_offer_outside_folders_as_workspaces() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path().join("workspace");
     let sibling = dir.path().join("workspace-other");
@@ -80,10 +80,18 @@ fn both_file_panes_reject_outside_directories_but_allow_explicit_file_opening() 
     std::os::unix::fs::symlink(&sibling, root.join("outside-link")).unwrap();
     for terminal in [true, false] {
         let mut app = app(&root, terminal);
+        // Unsaved work makes the terminal interface ask before switching.
+        app.dispatch(Command::Focus {
+            pane: common::editor_pane(&app),
+        });
+        app.dispatch(Command::Paste {
+            text: "unsaved".into(),
+        });
         let mut paths = vec!["..".into(), sibling.clone()];
         #[cfg(unix)]
         paths.push(root.join("outside-link"));
         for path in paths {
+            // The browser never navigates outside the workspace.
             app.dispatch(Command::Browse { path: path.clone() });
             assert!(
                 app.status.contains("outside the workspace"),
@@ -91,11 +99,22 @@ fn both_file_panes_reject_outside_directories_but_allow_explicit_file_opening() 
                 app.status
             );
             assert_eq!(frame(&mut app).browser, root.to_string_lossy());
+            // Opening an outside folder offers it as a workspace instead:
+            // the GUI asks where, the TUI asks about unsaved changes.
             app.dispatch(Command::Open { path });
-            common::settle(&mut app, "directory rejection", |a| {
-                a.status.contains("outside the workspace")
-            });
+            common::settle(&mut app, "open folder question", |a| a.prompt.is_some());
+            let kind = app.prompt.as_ref().unwrap().kind.clone();
+            assert_eq!(
+                kind,
+                if terminal {
+                    "switch-workspace"
+                } else {
+                    "open-folder-where"
+                }
+            );
+            app.dispatch(Command::DismissPrompt);
             assert_eq!(frame(&mut app).browser, root.to_string_lossy());
+            assert_eq!(app.root, root);
         }
         if !terminal {
             app.dispatch(Command::Focus {
@@ -164,5 +183,66 @@ fn recovery_keeps_valid_browser_locations_and_resets_outside_ones() {
                 .values()
                 .any(|d| d.text() == "unsaved" && d.dirty()));
         }
+    }
+}
+
+#[test]
+fn both_file_panes_collapse_all_folders_and_open_terminals_in_entries() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("workspace");
+    let child = root.join("child");
+    let outside = dir.path().join("outside");
+    fs::create_dir_all(&child).unwrap();
+    fs::create_dir(&outside).unwrap();
+    fs::write(child.join("nested.txt"), "nested").unwrap();
+    for terminal in [true, false] {
+        let mut app = app(&root, terminal);
+        common::settle(&mut app, "workspace listing", |a| {
+            frame(a).files.iter().any(|e| e.name == "child")
+        });
+        app.dispatch(Command::Focus {
+            pane: common::side_pane(&app),
+        });
+        if terminal {
+            app.dispatch(Command::Browse {
+                path: child.clone(),
+            });
+        } else {
+            app.dispatch(Command::Action {
+                name: "expand-folder".into(),
+                argument: child.to_string_lossy().into_owned(),
+            });
+        }
+        common::settle(&mut app, "child rows", |a| {
+            frame(a).files.iter().any(|e| e.name == "nested.txt")
+        });
+        app.dispatch(Command::Action {
+            name: "collapse-all-folders".into(),
+            argument: String::new(),
+        });
+        common::settle(&mut app, "collapsed listing", |a| {
+            let f = frame(a);
+            f.browser == root.to_string_lossy()
+                && f.files.iter().any(|e| e.name == "child" && !e.expanded)
+                && !f.files.iter().any(|e| e.name == "nested.txt")
+        });
+
+        let before = app.terminals.len();
+        app.dispatch(Command::Action {
+            name: "terminal-here".into(),
+            argument: outside.to_string_lossy().into_owned(),
+        });
+        assert!(
+            app.status.contains("outside the workspace"),
+            "{}",
+            app.status
+        );
+        assert_eq!(app.terminals.len(), before);
+        // A file starts the terminal in its folder.
+        app.dispatch(Command::Action {
+            name: "terminal-here".into(),
+            argument: child.join("nested.txt").to_string_lossy().into_owned(),
+        });
+        assert_eq!(app.terminals.len(), before + 1, "{}", app.status);
     }
 }

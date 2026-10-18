@@ -121,6 +121,12 @@ fn build_gdk_pixbuf(repo_root: &Path) -> Result<()> {
             "-Dintrospection=disabled",
             "-Dman=false",
             "-Dgio_sniffing=false",
+            // Keep the existing native PNG/GIF closure. Glycin is optional
+            // upstream and would otherwise change loader selection when found.
+            "-Dglycin=disabled",
+            "-Dpng=enabled",
+            "-Dgif=enabled",
+            "-Dandroid=disabled",
             "-Djpeg=disabled",
             "-Dtiff=disabled",
             "-Dothers=disabled",

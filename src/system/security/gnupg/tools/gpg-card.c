@@ -39,7 +39,6 @@
 #include "../common/userids.h"
 #include "../common/ccparray.h"
 #include "../common/exectool.h"
-#include "../common/exechelp.h"
 #include "../common/ttyio.h"
 #include "../common/server-help.h"
 #include "../common/openpgpdefs.h"
@@ -315,9 +314,9 @@ main (int argc, char **argv)
 
   /* Set defaults for non given options.  */
   if (!opt.gpg_program)
-    opt.gpg_program = gnupg_module_name (GNUPG_MODULE_NAME_GPG);
+    opt.gpg_program = xstrdup (gnupg_module_name (GNUPG_MODULE_NAME_GPG));
   if (!opt.gpgsm_program)
-    opt.gpgsm_program = gnupg_module_name (GNUPG_MODULE_NAME_GPGSM);
+    opt.gpgsm_program = xstrdup (gnupg_module_name (GNUPG_MODULE_NAME_GPGSM));
 
   /* Now build the list of commands.  We guess the size of the array
    * by assuming each item is a complete command.  Obviously this will
@@ -836,6 +835,21 @@ list_one_kinfo (card_info_t info, key_info_t kinfo,
 }
 
 
+/* Return the retired key number if KEYREF is for a retired key; 0 if
+ * not.  */
+static int
+piv_keyref_is_retired (const char *keyref)
+{
+  if (!strncmp (keyref, "PIV.8", 5)
+      && keyref[5] >= '2' && hexdigitp (keyref + 5))
+    return xtoi_1 (keyref+5) - 1;
+  else if (!strncmp (keyref, "PIV.9", 5)
+           && keyref[5] >= '0' && keyref[5] <= '5')
+    return atoi_1 (keyref+5) + 15;
+  else
+    return 0;
+}
+
 /* List all keyinfo in INFO using the list of LABELS.  */
 static void
 list_all_kinfo (card_info_t info, keyinfolabel_t labels, estream_t fp,
@@ -843,6 +857,7 @@ list_all_kinfo (card_info_t info, keyinfolabel_t labels, estream_t fp,
 {
   key_info_t kinfo;
   int idx, i, j;
+  int rn;
 
   /* Print the keyinfo.  We first print those we known and then all
    * remaining item.  */
@@ -864,9 +879,15 @@ list_all_kinfo (card_info_t info, keyinfolabel_t labels, estream_t fp,
     {
       if (kinfo->xflag)
         continue;
-      tty_fprintf (fp, "Key %s", kinfo->keyref);
-      for (i=4+strlen (kinfo->keyref), j=0; i < 18; i++, j=1)
-        tty_fprintf (fp, j? ".":" ");
+      if (info->apptype == APP_TYPE_PIV
+          && (rn = piv_keyref_is_retired (kinfo->keyref)))
+        tty_fprintf (fp, "Key retired %2d ...", rn);
+      else
+        {
+          tty_fprintf (fp, "Key %s", kinfo->keyref);
+          for (i=4+strlen (kinfo->keyref), j=0; i < 18; i++, j=1)
+            tty_fprintf (fp, j? ".":" ");
+        }
       tty_fprintf (fp, ":");
       list_one_kinfo (info, kinfo, NULL, fp, no_key_lookup, create_shadow);
     }
@@ -1162,7 +1183,7 @@ print_card_list (estream_t fp, card_info_t info, strlist_t cards,
 
 /* The LIST command.  This also updates INFO if needed. */
 static gpg_error_t
-cmd_list (card_info_t info, char *argstr)
+cmd_list (card_info_t info, char *argstr, int use_opt_cards)
 {
   gpg_error_t err;
   int opt_cards, opt_apps, opt_info, opt_reread, opt_no_key_lookup;
@@ -1192,8 +1213,8 @@ cmd_list (card_info_t info, char *argstr)
        "  --no-key-lookup do not list matching OpenPGP or X.509 keys\n"
        , 0);
 
-  opt_cards = has_leading_option (argstr, "--cards");
-  opt_apps = has_leading_option (argstr, "--apps");
+  opt_cards = (use_opt_cards || has_leading_option (argstr, "--cards"));
+  opt_apps = (use_opt_cards || has_leading_option (argstr, "--apps"));
   opt_info = has_leading_option (argstr, "--info");
   opt_reread = has_leading_option (argstr, "--reread");
   opt_shadow = has_leading_option (argstr, "--shadow");
@@ -1260,11 +1281,13 @@ cmd_list (card_info_t info, char *argstr)
       need_learn = 1;
     }
 
-  if (opt_cards || opt_apps)
+  if ((opt_cards || opt_apps) && !use_opt_cards)
     {
       /* Note that with option --apps CARDS is here the list of all
        * apps.  Format is "SERIALNO APPNAME {APPNAME}".  We print the
-       * card number in the first column. */
+       * card number in the first column.  If use_opt_cards (ie. "ll")
+       * is used we do not get here but handle this below so that we
+       * can also switch cards with the ll command. */
       if (opt_apps)
         err = scd_applist (&cards, opt_cards);
       else
@@ -1279,7 +1302,10 @@ cmd_list (card_info_t info, char *argstr)
         {
           int i, cardno;
 
-          err = scd_cardlist (&cards);
+          if (use_opt_cards)
+            err = scd_applist (&cards, 1);
+          else
+            err = scd_cardlist (&cards);
           if (err)
             goto leave;
 
@@ -1335,6 +1361,8 @@ cmd_list (card_info_t info, char *argstr)
 
       if (err)
         ;
+      else if (use_opt_cards)
+        print_card_list (fp, info, cards, 0);
       else if (opt_info)
         print_card_list (fp, info, cards, 1);
       else
@@ -2218,13 +2246,15 @@ cmd_writecert (card_info_t info, char *argstr)
           && ascii_memistr (data, datalen, "-----END CERTIFICATE-----")
           && !memchr (data, 0, datalen) && !memchr (data, 1, datalen))
         {
-          struct b64state b64;
+          gpgrt_b64state_t b64;
 
-          err = b64dec_start (&b64, "");
+          b64 = gpgrt_b64dec_start ("");
+          if (!b64)
+            err = gpg_error_from_syserror ();
+          else
+            err = gpgrt_b64dec_proc (b64, data, datalen, &datalen);
           if (!err)
-            err = b64dec_proc (&b64, data, datalen, &datalen);
-          if (!err)
-            err = b64dec_finish (&b64);
+            err = gpgrt_b64dec_finish (b64);
           if (err)
             goto leave;
         }
@@ -3200,7 +3230,7 @@ cmd_factoryreset (card_info_t info)
    *   /echo Card has been reset to factory defaults
    *
    * For a PIV application on a Yubikey it merely issues the Yubikey
-   * specific resset command.
+   * specific reset command.
    */
 
   err = scd_learn (info, 0);
@@ -3779,7 +3809,7 @@ cmd_gpg (card_info_t info, char *argstr, int use_gpgsm)
   char **argarray;
   ccparray_t ccp;
   const char **argv = NULL;
-  pid_t pid;
+  gpgrt_process_t proc;
   int i;
 
   if (!info)
@@ -3807,15 +3837,15 @@ cmd_gpg (card_info_t info, char *argstr, int use_gpgsm)
       goto leave;
     }
 
-  err = gnupg_spawn_process (use_gpgsm? opt.gpgsm_program:opt.gpg_program,
-                             argv, NULL, (GNUPG_SPAWN_KEEP_STDOUT
-                                          |GNUPG_SPAWN_KEEP_STDERR),
-                             NULL, NULL, NULL, &pid);
+  err = gpgrt_process_spawn (use_gpgsm? opt.gpgsm_program:opt.gpg_program,
+                             argv,
+                             (GPGRT_PROCESS_STDOUT_KEEP
+                              | GPGRT_PROCESS_STDERR_KEEP),
+                             NULL, &proc);
   if (!err)
     {
-      err = gnupg_wait_process (use_gpgsm? opt.gpgsm_program:opt.gpg_program,
-                                pid, 1, NULL);
-      gnupg_release_process (pid);
+      err = gpgrt_process_wait (proc, 1);
+      gpgrt_process_release (proc);
     }
 
 
@@ -3859,7 +3889,7 @@ cmd_history (card_info_t info, char *argstr)
 enum cmdids
   {
     cmdNOP = 0,
-    cmdQUIT, cmdHELP, cmdLIST, cmdRESET, cmdVERIFY,
+    cmdQUIT, cmdHELP, cmdLIST, cmdLISTCARDS, cmdRESET, cmdVERIFY,
     cmdNAME, cmdURL, cmdFETCH, cmdLOGIN, cmdLANG, cmdSALUT, cmdCAFPR,
     cmdFORCESIG, cmdGENERATE, cmdPASSWD, cmdPRIVATEDO, cmdWRITECERT,
     cmdREADCERT, cmdWRITEKEY,  cmdUNBLOCK, cmdFACTRST, cmdKDFSETUP,
@@ -3881,6 +3911,7 @@ static struct
   { "?"       ,  cmdHELP,       NULL },
   { "list"    ,  cmdLIST,       N_("list all available data")},
   { "l"       ,  cmdLIST,       NULL },
+  { "ll"      ,  cmdLISTCARDS,  NULL },
   { "name"    ,  cmdNAME,       N_("change card holder's name")},
   { "url"     ,  cmdURL,        N_("change URL to retrieve key")},
   { "fetch"   ,  cmdFETCH,      N_("fetch the key specified in the card URL")},
@@ -4015,7 +4046,8 @@ dispatch_command (card_info_t info, const char *orig_command)
         }
       break;
 
-    case cmdLIST:         err = cmd_list (info, argstr); break;
+    case cmdLIST:         err = cmd_list (info, argstr, 0); break;
+    case cmdLISTCARDS:    err = cmd_list (info, argstr, 1); break;
     case cmdVERIFY:       err = cmd_verify (info, argstr); break;
     case cmdAUTH:         err = cmd_authenticate (info, argstr); break;
     case cmdNAME:         err = cmd_name (info, argstr); break;
@@ -4127,7 +4159,7 @@ interactive_loop (void)
         }
       else if (redisplay)
         {
-          err = cmd_list (info, "");
+          err = cmd_list (info, "", 0);
           if (err)
             {
               err = fixup_scd_errors (err);
@@ -4267,7 +4299,8 @@ interactive_loop (void)
             }
           break;
 
-        case cmdLIST:      err = cmd_list (info, argstr); break;
+        case cmdLIST:      err = cmd_list (info, argstr, 0); break;
+        case cmdLISTCARDS: err = cmd_list (info, argstr, 1); break;
         case cmdVERIFY:
           err = cmd_verify (info, argstr);
           if (!err)

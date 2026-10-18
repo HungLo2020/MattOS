@@ -98,7 +98,7 @@ gboolean             gdk_pixbuf_loader_write_bytes   (GdkPixbufLoader *loader,
                                                       GError         **error);
 GDK_PIXBUF_AVAILABLE_IN_ALL
 GdkPixbuf *          gdk_pixbuf_loader_get_pixbuf    (GdkPixbufLoader *loader);
-GDK_PIXBUF_AVAILABLE_IN_ALL
+GDK_PIXBUF_DEPRECATED_IN_2_44
 GdkPixbufAnimation * gdk_pixbuf_loader_get_animation (GdkPixbufLoader *loader);
 GDK_PIXBUF_AVAILABLE_IN_ALL
 gboolean             gdk_pixbuf_loader_close         (GdkPixbufLoader *loader,
@@ -106,8 +106,8 @@ gboolean             gdk_pixbuf_loader_close         (GdkPixbufLoader *loader,
 GDK_PIXBUF_AVAILABLE_IN_2_2
 GdkPixbufFormat     *gdk_pixbuf_loader_get_format    (GdkPixbufLoader *loader);
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GdkPixbufLoader, g_object_unref)
+
 G_END_DECLS
 
 #endif
-
-

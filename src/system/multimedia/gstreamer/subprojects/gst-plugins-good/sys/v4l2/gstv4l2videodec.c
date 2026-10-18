@@ -39,6 +39,7 @@
 #include "gstv4l2mpeg4codec.h"
 #include "gstv4l2vp8codec.h"
 #include "gstv4l2vp9codec.h"
+#include "gstv4l2av1codec.h"
 
 #include <string.h>
 #include <glib/gi18n-lib.h>
@@ -923,6 +924,7 @@ beach:
   if (ret == GST_V4L2_FLOW_RESOLUTION_CHANGE) {
     GST_VIDEO_DECODER_STREAM_LOCK (decoder);
     self->draining = TRUE;
+    self->wait_for_source_change = FALSE;
     GST_VIDEO_DECODER_STREAM_UNLOCK (decoder);
     GST_INFO_OBJECT (decoder, "Received resolution change");
     return;
@@ -1459,6 +1461,9 @@ G_STMT_START { \
   } else if (gst_structure_has_name (s, "video/x-vp9")) {
     SET_META ("VP9");
     cdata->codec = gst_v4l2_vp9_get_codec ();
+  } else if (gst_structure_has_name (s, "video/x-av1")) {
+    SET_META ("AV1");
+    cdata->codec = gst_v4l2_av1_get_codec ();
   } else if (gst_structure_has_name (s, "video/x-bayer")) {
     SET_META ("BAYER");
   } else if (gst_structure_has_name (s, "video/x-sonix")) {

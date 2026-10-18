@@ -188,7 +188,7 @@ glob_arg (struct add_arg_s *parm, const char *pattern)
 
 /* Return the number of backslashes.  */
 static unsigned int
-count_backslashes (const char *s)
+count_leading_backslashes (const char *s)
 {
   unsigned int count = 0;
 
@@ -207,7 +207,7 @@ strip_one_arg (char *string, int endquote)
   for (s=d=string; *s; s++)
     if (*s == '\\')
       {
-        n = count_backslashes (s);
+        n = count_leading_backslashes (s);
         if (s[n] == '"')
           {
             for (i=0; i < n/2; i++)
@@ -276,7 +276,7 @@ parse_cmdstring (char *string, char **argv, unsigned char *argvflags)
               inquote = 0;
             }
         }
-      else if (*p == '\\' && (n=count_backslashes (p)))
+      else if (*p == '\\' && (n=count_leading_backslashes (p)))
         {
           if (!p0) /* First non-WS; set start.  */
             p0 = p;

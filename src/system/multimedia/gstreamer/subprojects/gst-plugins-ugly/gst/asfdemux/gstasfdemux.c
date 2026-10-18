@@ -534,7 +534,11 @@ gst_asf_demux_seek_index_lookup (GstASFDemux * demux, guint * packet,
     return FALSE;
   }
 
-  *packet = demux->sidx_entries[idx].packet;
+  if (seek_time == 0)
+    *packet = 0;
+  else
+    *packet = demux->sidx_entries[idx].packet;
+
   if (speed)
     *speed = demux->sidx_entries[idx].count;
 
@@ -2381,7 +2385,7 @@ eos:
 }
 
 static inline gboolean
-gst_asf_demux_skip_bytes (guint num_bytes, guint8 ** p_data, guint64 * p_size)
+gst_asf_demux_skip_bytes (guint64 num_bytes, guint8 ** p_data, guint64 * p_size)
 {
   if (*p_size < num_bytes)
     return FALSE;
@@ -3167,6 +3171,9 @@ gst_asf_demux_parse_stream_object (GstASFDemux * demux, guint8 * data,
       if (!gst_asf_demux_get_stream_video (&video_object, &data, &size))
         goto not_enough_data;
 
+      if (video_object.size < 40)
+        goto not_enough_data;
+
       vsize = video_object.size - 40;   /* Byte order gets offset by single byte */
 
       GST_INFO ("object is a video stream with %u bytes of "
@@ -3648,8 +3655,9 @@ gst_asf_demux_process_metadata (GstASFDemux * demux, guint8 * data,
 
   for (i = 0; i < blockcount; ++i) {
     GstStructure *s;
-    guint16 stream_num, name_len, data_type, lang_idx G_GNUC_UNUSED;
-    guint32 data_len, ival;
+    guint16 stream_num, data_type, lang_idx G_GNUC_UNUSED;
+    guint32 ival;
+    guint64 name_len, data_len;
     gchar *name_utf8;
 
     if (size < (2 + 2 + 2 + 2 + 4))
@@ -3690,6 +3698,8 @@ gst_asf_demux_process_metadata (GstASFDemux * demux, guint8 * data,
     ival = gst_asf_demux_get_uint32 (&data, &size);
 
     /* skip anything else there may be, just in case */
+    if (data_len < 4)
+      goto not_enough_data;
     gst_asf_demux_skip_bytes (data_len - 4, &data, &size);
 
     s = gst_asf_demux_get_metadata_for_stream (demux, stream_num);
@@ -4087,6 +4097,11 @@ gst_asf_demux_process_simple_index (GstASFDemux * demux, guint8 * data,
   interval = gst_asf_demux_get_uint64 (&data, &size) * (GstClockTime) 100;
   gst_asf_demux_skip_bytes (4, &data, &size);
   count = gst_asf_demux_get_uint32 (&data, &size);
+
+  /* clamp to the actual available number of entries */
+  if (G_UNLIKELY (count > size / 6))
+    count = (guint32) MIN (size / 6, (guint64) G_MAXUINT32);
+
   if (count > 0) {
     demux->sidx_interval = interval;
     demux->sidx_num_entries = count;
@@ -4505,6 +4520,9 @@ gst_asf_demux_process_object (GstASFDemux * demux, guint8 ** p_data,
           TRUE))
     return GST_FLOW_ERROR;
   gst_asf_demux_skip_bytes (ASF_OBJECT_HEADER_SIZE, p_data, p_size);
+
+  if (obj.size < ASF_OBJECT_HEADER_SIZE)
+    return GST_FLOW_ERROR;
 
   obj_data_size = obj.size - ASF_OBJECT_HEADER_SIZE;
 

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -938,7 +939,7 @@ get_contents_posix (const gchar  *filename,
       FILE *f;
       gboolean retval;
 
-      f = fdopen (fd, "r");
+      f = fdopen (fd, "re");
       
       if (f == NULL)
         {
@@ -969,7 +970,7 @@ get_contents_win32 (const gchar  *filename,
   FILE *f;
   gboolean retval;
   
-  f = g_fopen (filename, "rb");
+  f = g_fopen (filename, "rbe");
 
   if (f == NULL)
     {
@@ -1318,8 +1319,8 @@ g_file_set_contents (const gchar  *filename,
  * to 7 characters to @filename.
  *
  * If the file didn’t exist before and is created, it will be given the
- * permissions from @mode. Otherwise, the permissions of the existing file may
- * be changed to @mode depending on @flags, or they may remain unchanged.
+ * permissions from @mode. Otherwise, the permissions of the existing file will
+ * remain unchanged.
  *
  * Returns: %TRUE on success, %FALSE if an error occurred
  *
@@ -1361,7 +1362,12 @@ g_file_set_contents_full (const gchar            *filename,
       GError *rename_error = NULL;
       gboolean retval;
       int fd;
-      gboolean do_fsync;
+      gboolean do_fsync, maintain_perms;
+      GStatBuf old_stat;
+
+      maintain_perms = !g_stat (filename, &old_stat);
+      if (maintain_perms)
+        mode = 0600;
 
       tmp_filename = g_strdup_printf ("%s.XXXXXX", filename);
 
@@ -1377,6 +1383,27 @@ g_file_set_contents_full (const gchar            *filename,
                             saved_errno);
           retval = FALSE;
           goto consistent_out;
+        }
+
+      /* Maintain the permissions of the file if it exists */
+      if (maintain_perms)
+        {
+#ifndef G_OS_WIN32
+          if (fchmod (fd, old_stat.st_mode))
+#else  /* G_OS_WIN32 */
+          if (g_chmod (tmp_filename, old_stat.st_mode))
+#endif /* G_OS_WIN32 */
+            {
+              int saved_errno = errno;
+              if (error)
+                set_file_error (error,
+                                tmp_filename, _ ("Failed to set permissions of “%s”: %s"),
+                                saved_errno);
+              close (fd);
+              g_unlink (tmp_filename);
+              retval = FALSE;
+              goto consistent_out;
+            }
         }
 
       do_fsync = fd_should_be_fsynced (fd, filename, flags);
@@ -1907,13 +1934,13 @@ g_build_path_va (const gchar  *separator,
 		 gchar       **str_array)
 {
   GString *result;
-  gint separator_len = strlen (separator);
+  size_t separator_len = strlen (separator);
   gboolean is_first = TRUE;
   gboolean have_leading = FALSE;
   const gchar *single_element = NULL;
   const gchar *next_element;
   const gchar *last_trailing = NULL;
-  gint i = 0;
+  size_t i = 0;
 
   result = g_string_new (NULL);
 
@@ -2005,7 +2032,7 @@ g_build_path_va (const gchar  *separator,
 
 /**
  * g_build_pathv:
- * @separator: a string used to separator the elements of the path.
+ * @separator: a string used to separate the elements of the path.
  * @args: (array zero-terminated=1) (element-type filename): %NULL-terminated
  *   array of strings containing the path elements.
  * 
@@ -2032,7 +2059,7 @@ g_build_pathv (const gchar  *separator,
 
 /**
  * g_build_path:
- * @separator: (type filename): a string used to separator the elements of the path.
+ * @separator: (type filename): a string used to separate the elements of the path.
  * @first_element: (type filename): the first element in the path
  * @...: remaining elements in path, terminated by %NULL
  * 
@@ -2101,7 +2128,7 @@ g_build_pathname_va (const gchar  *first_element,
   const gchar *next_element;
   const gchar *last_trailing = NULL;
   gchar current_separator = '\\';
-  gint i = 0;
+  size_t i = 0;
 
   result = g_string_new (NULL);
 
@@ -2555,7 +2582,7 @@ g_path_skip_root (const gchar *file_name)
 const gchar *
 g_basename (const gchar *file_name)
 {
-  gchar *base;
+  const gchar *base;
 
   g_return_val_if_fail (file_name != NULL, NULL);
 
@@ -2563,7 +2590,7 @@ g_basename (const gchar *file_name)
 
 #ifdef G_OS_WIN32
   {
-    gchar *q;
+    const gchar *q;
     q = strrchr (file_name, '/');
     if (base == NULL || (q != NULL && q > base))
       base = q;
@@ -2598,8 +2625,8 @@ g_basename (const gchar *file_name)
 gchar *
 g_path_get_basename (const gchar *file_name)
 {
-  gssize base;
-  gssize last_nonslash;
+  size_t base;
+  size_t last_nonslash;
   gsize len;
   gchar *retval;
 
@@ -2610,10 +2637,10 @@ g_path_get_basename (const gchar *file_name)
 
   last_nonslash = strlen (file_name) - 1;
 
-  while (last_nonslash >= 0 && G_IS_DIR_SEPARATOR (file_name [last_nonslash]))
+  while (last_nonslash > 0 && G_IS_DIR_SEPARATOR (file_name[last_nonslash]))
     last_nonslash--;
 
-  if (last_nonslash == -1)
+  if (last_nonslash == 0 && G_IS_DIR_SEPARATOR (file_name[0]))
     /* string only containing slashes */
     return g_strdup (G_DIR_SEPARATOR_S);
 
@@ -2626,20 +2653,36 @@ g_path_get_basename (const gchar *file_name)
 #endif
   base = last_nonslash;
 
-  while (base >=0 && !G_IS_DIR_SEPARATOR (file_name [base]))
+  while (base > 0 && !G_IS_DIR_SEPARATOR (file_name[base]))
     base--;
 
-#ifdef G_OS_WIN32
-  if (base == -1 &&
-      g_ascii_isalpha (file_name[0]) &&
-      file_name[1] == ':')
-    base = 1;
-#endif /* G_OS_WIN32 */
+  /* Does the file_name start without a directory separator, with the only
+   * directory separators being at the end of the string? e.g. `dir/` */
+  if (base == 0 && !G_IS_DIR_SEPARATOR (file_name[0]))
+    {
+      base = 0;
 
-  len = last_nonslash - base;
+#ifdef G_OS_WIN32
+      /* Does it start with a drive letter? e.g. `C:dir/`
+       * If so, skip that. */
+      if (g_ascii_isalpha (file_name[0]) &&
+          file_name[1] == ':')
+        base = 2;
+#endif /* G_OS_WIN32 */
+    }
+  else
+    {
+      /* Otherwise, `base` now points at the last directory separator character
+       * before the component we want as the basename, so increase the index
+       * again. */
+      base += 1;
+    }
+
+  len = last_nonslash - base + 1;
+  g_assert (len < SIZE_MAX);
   retval = g_malloc (len + 1);
-  memcpy (retval, file_name + (base + 1), len);
-  retval [len] = '\0';
+  memcpy (retval, file_name + base, len);
+  retval[len] = '\0';
 
   return retval;
 }
@@ -2674,7 +2717,8 @@ g_path_get_basename (const gchar *file_name)
 gchar *
 g_path_get_dirname (const gchar *file_name)
 {
-  gchar *base;
+  const gchar *base;
+  gchar *base_p;
   gsize len;
 
   g_return_val_if_fail (file_name != NULL, NULL);
@@ -2683,7 +2727,7 @@ g_path_get_dirname (const gchar *file_name)
 
 #ifdef G_OS_WIN32
   {
-    gchar *q;
+    const gchar *q;
     q = strrchr (file_name, '/');
     if (base == NULL || (q != NULL && q > base))
       base = q;
@@ -2740,11 +2784,11 @@ g_path_get_dirname (const gchar *file_name)
       if (p == base + 1)
         {
           len = (guint) strlen (file_name) + 1;
-          base = g_new (gchar, len + 1);
-          strcpy (base, file_name);
-          base[len-1] = G_DIR_SEPARATOR;
-          base[len] = 0;
-          return base;
+          base_p = g_new (gchar, len + 1);
+          strcpy (base_p, file_name);
+          base_p[len-1] = G_DIR_SEPARATOR;
+          base_p[len] = 0;
+          return base_p;
         }
       if (G_IS_DIR_SEPARATOR (*p))
         {
@@ -2758,11 +2802,11 @@ g_path_get_dirname (const gchar *file_name)
 #endif
 
   len = (guint) 1 + base - file_name;
-  base = g_new (gchar, len + 1);
-  memmove (base, file_name, len);
-  base[len] = 0;
+  base_p = g_new (gchar, len + 1);
+  memmove (base_p, file_name, len);
+  base_p[len] = 0;
 
-  return base;
+  return base_p;
 }
 
 /**

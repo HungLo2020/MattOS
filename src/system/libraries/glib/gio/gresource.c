@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <stdint.h>
 #include <string.h>
 
 #include "gresource.h"
@@ -208,9 +209,9 @@ G_DEFINE_BOXED_TYPE (GResource, g_resource, g_resource_ref, g_resource_unref)
  * supported.
  *
  * Substitutions must start with a slash, and must not contain a trailing slash
- * before the `=`.  The path after the slash should ideally be absolute, but
- * this is not strictly required.  It is possible to overlay the location of a
- * single resource with an individual file.
+ * before the `=`.  The filesystem path after the `=` should ideally be absolute,
+ * but this is not strictly required.  It is possible to overlay the location of
+ * a single resource with an individual file.
  *
  * Since: 2.32
  */
@@ -353,7 +354,6 @@ g_resource_find_overlay (const gchar    *path,
   static const gchar * const *overlay_dirs;
   gboolean res = FALSE;
   size_t path_len = 0;
-  gint i;
 
   /* We try to be very fast in case there are no overlays.  Otherwise,
    * we can take a bit more time...
@@ -371,14 +371,14 @@ g_resource_find_overlay (const gchar    *path,
       if (envvar != NULL)
         {
           gchar **parts;
-          gint j;
+          size_t j = 0;
 
           parts = g_strsplit (envvar, G_SEARCHPATH_SEPARATOR_S, 0);
 
           /* Sanity check the parts, dropping those that are invalid.
            * 'i' may grow faster than 'j'.
            */
-          for (i = j = 0; parts[i]; i++)
+          for (size_t i = 0; parts[i]; i++)
             {
               gchar *part = parts[i];
               gchar *eq;
@@ -446,7 +446,7 @@ g_resource_find_overlay (const gchar    *path,
       g_once_init_leave_pointer (&overlay_dirs, result);
     }
 
-  for (i = 0; overlay_dirs[i]; i++)
+  for (size_t i = 0; overlay_dirs[i]; i++)
     {
       const gchar *src;
       size_t src_len;
@@ -455,7 +455,7 @@ g_resource_find_overlay (const gchar    *path,
       gchar *candidate;
 
       {
-        gchar *eq;
+        const gchar *eq;
 
         /* split the overlay into src/dst */
         src = overlay_dirs[i];
@@ -488,6 +488,10 @@ g_resource_find_overlay (const gchar    *path,
        *
        *    dst + remaining_path + nul
        */
+      if (path_len - src_len > SIZE_MAX - 1 ||
+          dst_len > SIZE_MAX - 1 - (path_len - src_len))
+        continue;
+
       candidate = g_malloc (dst_len + (path_len - src_len) + 1);
       memcpy (candidate, dst, dst_len);
       memcpy (candidate + dst_len, path + src_len, path_len - src_len);
@@ -740,11 +744,19 @@ do_lookup (GResource             *resource,
         *data = g_variant_get_data (array);
       if (data_size)
         {
-          /* Don't report trailing newline that non-compressed files has */
+          static const char *no_data = "";
+          size_t array_size = g_variant_get_size (array);
+
+          /* Don't report trailing nul that non-compressed files have */
           if (_flags & G_RESOURCE_FLAGS_COMPRESSED)
-            *data_size = g_variant_get_size (array);
+            *data_size = array_size;
+          else if (array_size > 0)
+            *data_size = array_size - 1;
           else
-            *data_size = g_variant_get_size (array) - 1;
+            {
+              *data = no_data;
+              *data_size = 0;
+            }
         }
       g_variant_unref (array);
       g_variant_unref (value);

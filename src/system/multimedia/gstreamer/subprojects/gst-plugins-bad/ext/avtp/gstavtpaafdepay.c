@@ -59,8 +59,8 @@ G_DEFINE_TYPE (GstAvtpAafDepay, gst_avtp_aaf_depay,
 GST_ELEMENT_REGISTER_DEFINE (avtpaafdepay, "avtpaafdepay", GST_RANK_NONE,
     GST_TYPE_AVTP_AAF_DEPAY);
 
-static GstFlowReturn gst_avtp_aaf_depay_chain (GstPad * pad, GstObject * parent,
-    GstBuffer * buffer);
+static GstFlowReturn gst_avtp_aaf_depay_process (GstAvtpBaseDepayload *
+    basedepay, GstBuffer * buffer);
 
 static void
 gst_avtp_aaf_depay_class_init (GstAvtpAafDepayClass * klass)
@@ -77,7 +77,7 @@ gst_avtp_aaf_depay_class_init (GstAvtpAafDepayClass * klass)
       "Extracts raw audio from AAF AVTPDUs",
       "Andre Guedes <andre.guedes@intel.com>");
 
-  avtpbasedepayload_class->chain = GST_DEBUG_FUNCPTR (gst_avtp_aaf_depay_chain);
+  avtpbasedepayload_class->process = gst_avtp_aaf_depay_process;
 
   GST_DEBUG_CATEGORY_INIT (avtpaafdepay_debug, "avtpaafdepay", 0,
       "AAF AVTP Depayloader");
@@ -207,9 +207,10 @@ gst_avtp_aaf_depay_are_audio_features_valid (GstAvtpAafDepay * avtpaafdepay,
 }
 
 static GstFlowReturn
-gst_avtp_aaf_depay_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
+gst_avtp_aaf_depay_process (GstAvtpBaseDepayload * avtpbasedepayload,
+    GstBuffer * buffer)
 {
-  int res;
+  int res GST_UNUSED_ASSERT;
   GstMapInfo info;
   guint32 subtype, version;
   GstClockTime ptime;
@@ -217,7 +218,6 @@ gst_avtp_aaf_depay_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
   struct avtp_stream_pdu *pdu;
   guint64 channels, depth, rate, format, tstamp, seqnum, streamid,
       streamid_valid, data_len;
-  GstAvtpBaseDepayload *avtpbasedepayload = GST_AVTP_BASE_DEPAYLOAD (parent);
   GstAvtpAafDepay *avtpaafdepay = GST_AVTP_AAF_DEPAY (avtpbasedepayload);
 
   if (!gst_buffer_map (buffer, &info, GST_MAP_READ)) {
@@ -284,10 +284,6 @@ gst_avtp_aaf_depay_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
       gst_buffer_unref (buffer);
       return GST_FLOW_NOT_NEGOTIATED;
     }
-    if (!gst_avtp_base_depayload_push_segment_event (avtpbasedepayload, tstamp)) {
-      gst_buffer_unref (buffer);
-      return GST_FLOW_ERROR;
-    }
 
     avtpbasedepayload->seqnum = seqnum;
   }
@@ -304,16 +300,16 @@ gst_avtp_aaf_depay_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
   avtpbasedepayload->seqnum++;
 
   ptime = gst_avtp_base_depayload_tstamp_to_ptime (avtpbasedepayload, tstamp,
-      avtpbasedepayload->prev_ptime);
+      avtpbasedepayload->last_dts);
 
   subbuffer = gst_buffer_copy_region (buffer, GST_BUFFER_COPY_ALL,
       sizeof (struct avtp_stream_pdu), data_len);
   GST_BUFFER_PTS (subbuffer) = ptime;
   GST_BUFFER_DTS (subbuffer) = ptime;
 
-  avtpbasedepayload->prev_ptime = ptime;
   gst_buffer_unref (buffer);
-  return gst_pad_push (avtpbasedepayload->srcpad, subbuffer);
+
+  return gst_avtp_base_depayload_push (avtpbasedepayload, subbuffer);
 
 discard:
   gst_buffer_unref (buffer);

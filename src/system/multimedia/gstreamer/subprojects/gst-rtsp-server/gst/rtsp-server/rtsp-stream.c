@@ -2652,7 +2652,7 @@ check_transport_backlog (GstRTSPStream * stream, GstRTSPStreamTransport * trans)
     GstBuffer *buffer;
     GstBufferList *buffer_list;
     gboolean is_rtp;
-    gboolean popped;
+    gboolean popped GST_UNUSED_ASSERT;
 
     is_rtp = gst_rtsp_stream_transport_backlog_peek_is_rtp (trans);
 
@@ -2827,13 +2827,14 @@ handle_new_sample (GstAppSink * sink, gpointer user_data)
     }
   }
 
+  g_mutex_unlock (&priv->lock);
+
+  g_mutex_lock (&priv->send_lock);
+
   if (priv->send_thread == NULL) {
     priv->send_thread = g_thread_new (NULL, (GThreadFunc) send_func, user_data);
   }
 
-  g_mutex_unlock (&priv->lock);
-
-  g_mutex_lock (&priv->send_lock);
   priv->send_cookie++;
   g_cond_signal (&priv->send_cond);
   g_mutex_unlock (&priv->send_lock);
@@ -3332,7 +3333,7 @@ create_and_plug_queue_to_linked_stream_probe_cb (GstPad * inpad,
   GstPad *tee_pad;
   GstPad *queue_pad;
   guint index;
-  gboolean unlinked G_GNUC_UNUSED;      /* G_DISABLE_ASSERT */
+  gboolean unlinked GST_UNUSED_ASSERT;
 
   stream = data->stream;
   priv = stream->priv;
@@ -4121,6 +4122,7 @@ gst_rtsp_stream_leave_bin (GstRTSPStream * stream, GstBin * bin,
 {
   GstRTSPStreamPrivate *priv;
   gint i;
+  GThread *send_thread;
 
   g_return_val_if_fail (GST_IS_RTSP_STREAM (stream), FALSE);
   g_return_val_if_fail (GST_IS_BIN (bin), FALSE);
@@ -4131,11 +4133,12 @@ gst_rtsp_stream_leave_bin (GstRTSPStream * stream, GstBin * bin,
   g_mutex_lock (&priv->send_lock);
   priv->continue_sending = FALSE;
   priv->send_cookie++;
+  send_thread = g_steal_pointer (&priv->send_thread);
   g_cond_signal (&priv->send_cond);
   g_mutex_unlock (&priv->send_lock);
 
-  if (priv->send_thread) {
-    g_thread_join (priv->send_thread);
+  if (send_thread) {
+    g_thread_join (send_thread);
   }
 
   g_mutex_lock (&priv->lock);
@@ -6265,7 +6268,7 @@ strip_chars (gchar * str)
     str[len] = '\0';
   }
   for (s = str; *s && IS_STRIP_CHAR (*s); s++);
-  memmove (str, s, len + 1);
+  memmove (str, s, strlen (s) + 1);
 }
 
 /**

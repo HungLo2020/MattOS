@@ -49,6 +49,11 @@
      Signing-Key: 68A638998DFABAC510EA645CE34F9686B2EDF7EA
      %commit
 
+   Commnn extensions:
+     ExtKeyUsage: clientAuth (suggested) serverAuth (suggested)
+     -> 2.5.29.37 n 301406082B0601050507030206082B06010505070301
+
+
 */
 
 
@@ -106,6 +111,7 @@ struct reqgen_ctrl_s
 {
   int lnr;
   int dryrun;
+  int no_protection;
 };
 
 
@@ -297,6 +303,8 @@ read_parameters (ctrl_t ctrl, estream_t fp, estream_t out_fp)
             log_info ("%s\n", value);
           else if (!ascii_strcasecmp (keyword, "%dry-run"))
             outctrl.dryrun = 1;
+          else if (!ascii_strcasecmp (keyword, "%no-protection"))
+            outctrl.no_protection = 1;
           else if (!ascii_strcasecmp( keyword, "%commit"))
             {
               rc = proc_parameters (ctrl, para, out_fp, &outctrl);
@@ -472,7 +480,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
     }
 
   /* Check the keylength.  NOTE: If you change this make sure that it
-     macthes the gpgconflist item in gpgsm.c  */
+     matches the gpgconflist item in gpgsm.c  */
   if (!get_parameter (para, pKEYLENGTH, 0))
     nbits = 3072;
   else
@@ -755,7 +763,7 @@ proc_parameters (ctrl_t ctrl, struct para_data_s *para,
           xfree (cardkeyid);
           return gpg_error (GPG_ERR_INV_PARAMETER);
         }
-      rc = gpgsm_agent_genkey (ctrl, keyparms, &public);
+      rc = gpgsm_agent_genkey (ctrl, outctrl->no_protection, keyparms, &public);
       if (rc)
         {
           r = get_parameter (para, pKEYTYPE, 0);
@@ -850,7 +858,7 @@ create_request (ctrl_t ctrl,
   sigkeylen = sigkey? gcry_sexp_canon_len (sigkey, 0, NULL, NULL) : 0;
 
   publicpkalgo = get_pk_algo_from_canon_sexp (public, publiclen);
-  sigkeypkalgo = sigkey? get_pk_algo_from_canon_sexp (public, publiclen) : 0;
+  sigkeypkalgo = sigkey? get_pk_algo_from_canon_sexp (sigkey, sigkeylen) : 0;
 
   if (publicpkalgo == GCRY_PK_EDDSA)
     {
@@ -1265,7 +1273,7 @@ create_request (ctrl_t ctrl,
             }
           der[0] = 0x30; /* Sequence */
           der[1] = qlen + 2;
-          der[2] = 0x80; /* Context tag for an implict Octet String. */
+          der[2] = 0x80; /* Context tag for an implicit Octet String. */
           der[3] = qlen;
           memcpy (der+4, q, qlen);
           err = ksba_certreq_add_extension (cr, oidstr_authorityKeyIdentifier,

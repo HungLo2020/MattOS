@@ -98,6 +98,9 @@ open_filename(struct archive *a, int mbs_fn, const void *filename)
 	struct write_file_data *mine;
 	int r;
 
+	archive_check_magic(a, ARCHIVE_WRITE_MAGIC,
+	    ARCHIVE_STATE_NEW, "open_filename");
+
 	mine = calloc(1, sizeof(*mine));
 	if (mine == NULL) {
 		archive_set_error(a, ENOMEM, "No memory");
@@ -191,6 +194,8 @@ file_open(struct archive *a, void *client_data)
 			archive_set_error(a, errno, "Couldn't stat '%s'", mbs);
 		else
 			archive_set_error(a, errno, "Couldn't stat '%ls'", wcs);
+		close(mine->fd);
+		mine->fd = -1;
 		return (ARCHIVE_FATAL);
 	}
 

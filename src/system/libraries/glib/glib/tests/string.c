@@ -95,8 +95,8 @@ test_string_new (void)
   g_assert_cmpstr ("hi pete!", ==, string1->str);
   g_assert_cmpstr ("", ==, string2->str);
 
-  g_string_free (string1, TRUE);
-  g_string_free (string2, TRUE);
+  g_string_free_deep (string1);
+  g_string_free_deep (string2);
 
   string1 = g_string_new_len ("foo", -1);
   string2 = g_string_new_len ("foobar", 3);
@@ -106,8 +106,8 @@ test_string_new (void)
   g_assert_cmpstr (string2->str, ==, "foo");
   g_assert_cmpuint (string2->len, ==, 3);
 
-  g_string_free (string1, TRUE);
-  g_string_free (string2, TRUE);
+  g_string_free_deep (string1);
+  g_string_free_deep (string2);
 }
 
 G_GNUC_PRINTF(2, 3)
@@ -767,35 +767,88 @@ test_string_new_take_null (void)
   g_string_free (g_steal_pointer (&string), TRUE);
 }
 
+static void
+test_string_copy (void)
+{
+  GString *string1 = NULL, *string2 = NULL;
+
+  string1 = g_string_new ("hello");
+  string2 = g_string_copy (string1);
+  g_assert_cmpstr (string1->str, ==, string2->str);
+  g_assert_true (string1->str != string2->str);
+  g_assert_cmpuint (string1->len, ==, string2->len);
+  g_assert_cmpuint (string2->allocated_len, ==, string2->allocated_len);
+  g_string_free (string1, TRUE);
+  g_string_free (string2, TRUE);
+
+  string1 = g_string_sized_new (100);
+  string2 = g_string_copy (string1);
+  g_assert_cmpstr (string1->str, ==, string2->str);
+  g_assert_true (string1->str != string2->str);
+  g_assert_cmpuint (string1->len, ==, string2->len);
+  g_assert_cmpuint (string2->allocated_len, ==, string2->allocated_len);
+  g_string_free (string1, TRUE);
+  g_string_free (string2, TRUE);
+
+  string1 = g_string_sized_new (200);
+  g_string_append_len (string1, "test with embedded\0nuls", sizeof ("test with embedded\0nuls"));
+  string2 = g_string_copy (string1);
+  g_assert_cmpmem (string1->str, string1->len, string2->str, string2->len);
+  g_assert_true (string1->str != string2->str);
+  g_assert_cmpuint (string1->len, ==, string2->len);
+  g_assert_cmpuint (string2->allocated_len, ==, string2->allocated_len);
+  g_string_free (string1, TRUE);
+  g_string_free (string2, TRUE);
+}
+
+static void
+test_string_sized_new (void)
+{
+
+  if (g_test_subprocess ())
+    {
+      GString *string = g_string_sized_new (G_MAXSIZE);
+      g_string_free (string, TRUE);
+    }
+  else
+    {
+      g_test_trap_subprocess (NULL, 0, G_TEST_SUBPROCESS_DEFAULT);
+      g_test_trap_assert_failed ();
+      g_test_trap_assert_stderr ("*string would overflow*");
+    }
+}
+
 int
 main (int   argc,
       char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/string/test-string-chunks", test_string_chunks);
-  g_test_add_func ("/string/test-string-chunk-insert", test_string_chunk_insert);
-  g_test_add_func ("/string/test-string-new", test_string_new);
-  g_test_add_func ("/string/test-string-printf", test_string_printf);
-  g_test_add_func ("/string/test-string-assign", test_string_assign);
-  g_test_add_func ("/string/test-string-append-c", test_string_append_c);
-  g_test_add_func ("/string/test-string-append", test_string_append);
-  g_test_add_func ("/string/test-string-append-vprintf", test_string_append_vprintf);
-  g_test_add_func ("/string/test-string-prepend-c", test_string_prepend_c);
-  g_test_add_func ("/string/test-string-prepend", test_string_prepend);
-  g_test_add_func ("/string/test-string-insert", test_string_insert);
-  g_test_add_func ("/string/test-string-insert-unichar", test_string_insert_unichar);
-  g_test_add_func ("/string/test-string-equal", test_string_equal);
-  g_test_add_func ("/string/test-string-truncate", test_string_truncate);
-  g_test_add_func ("/string/test-string-overwrite", test_string_overwrite);
-  g_test_add_func ("/string/test-string-nul-handling", test_string_nul_handling);
-  g_test_add_func ("/string/test-string-up-down", test_string_up_down);
-  g_test_add_func ("/string/test-string-set-size", test_string_set_size);
-  g_test_add_func ("/string/test-string-to-bytes", test_string_to_bytes);
-  g_test_add_func ("/string/test-string-replace", test_string_replace);
-  g_test_add_func ("/string/test-string-steal", test_string_steal);
-  g_test_add_func ("/string/test-string-new-take", test_string_new_take);
-  g_test_add_func ("/string/test-string-new-take/null", test_string_new_take_null);
+  g_test_add_func ("/string/chunks", test_string_chunks);
+  g_test_add_func ("/string/chunk-insert", test_string_chunk_insert);
+  g_test_add_func ("/string/new", test_string_new);
+  g_test_add_func ("/string/printf", test_string_printf);
+  g_test_add_func ("/string/assign", test_string_assign);
+  g_test_add_func ("/string/append-c", test_string_append_c);
+  g_test_add_func ("/string/append", test_string_append);
+  g_test_add_func ("/string/append-vprintf", test_string_append_vprintf);
+  g_test_add_func ("/string/prepend-c", test_string_prepend_c);
+  g_test_add_func ("/string/prepend", test_string_prepend);
+  g_test_add_func ("/string/insert", test_string_insert);
+  g_test_add_func ("/string/insert-unichar", test_string_insert_unichar);
+  g_test_add_func ("/string/equal", test_string_equal);
+  g_test_add_func ("/string/truncate", test_string_truncate);
+  g_test_add_func ("/string/overwrite", test_string_overwrite);
+  g_test_add_func ("/string/nul-handling", test_string_nul_handling);
+  g_test_add_func ("/string/up-down", test_string_up_down);
+  g_test_add_func ("/string/set-size", test_string_set_size);
+  g_test_add_func ("/string/to-bytes", test_string_to_bytes);
+  g_test_add_func ("/string/replace", test_string_replace);
+  g_test_add_func ("/string/steal", test_string_steal);
+  g_test_add_func ("/string/new-take", test_string_new_take);
+  g_test_add_func ("/string/new-take/null", test_string_new_take_null);
+  g_test_add_func ("/string/copy", test_string_copy);
+  g_test_add_func ("/string/sized-new", test_string_sized_new);
 
   return g_test_run();
 }

@@ -36,6 +36,13 @@ pub struct Preferences {
     /// Content themes are independent of desktop menus and dialogs.
     pub editor_theme: String,
     pub terminal_theme: String,
+    /// The file browser and Git panes: `editor` (their default) uses the
+    /// editor's colours, `auto` the desktop's, or `dark`/`light`.
+    pub files_theme: String,
+    pub git_theme: String,
+    /// Where the GUI opens another folder: `ask` (the default), `current`
+    /// (this window) or `new` (a new window). The TUI has one window.
+    pub open_folder_in: String,
     pub file_startup: StartupMode,
     pub directory_startup: StartupMode,
     /// `default` or `nano`. Choosing a keymap replaces the key tables below.
@@ -102,7 +109,7 @@ pub const DEBUG_KEYS: &[(&str, &str)] = &[
 ];
 
 /// Bumped whenever a keymap gains default bindings.
-pub const KEYS_REVISION: u32 = 3;
+pub const KEYS_REVISION: u32 = 4;
 
 fn keys(entries: &[(&str, &str)]) -> BTreeMap<String, String> {
     entries
@@ -115,10 +122,13 @@ const TERMINAL_KEYS: &[(&str, &str)] = &[
     ("Ctrl+Shift+v", "paste"),
     ("Alt+c", "copy"),
     ("Alt+v", "paste"),
+    ("Ctrl+pagedown", "next-tab"),
+    ("Ctrl+pageup", "previous-tab"),
 ];
 const COMMON_GLOBAL_KEYS: &[(&str, &str)] = &[
     ("f6", "next-pane"),
     ("f7", "next-tab"),
+    ("Shift+f7", "previous-tab"),
     ("f8", "terminal"),
     ("f9", "split-right"),
     ("Shift+f9", "split-down"),
@@ -284,7 +294,11 @@ impl Default for Preferences {
             line_numbers: true,
             theme: "auto".into(),
             editor_theme: "dark".into(),
-            terminal_theme: "dark".into(),
+            // Terminals match the editor unless themed separately.
+            terminal_theme: "editor".into(),
+            files_theme: "editor".into(),
+            git_theme: "editor".into(),
+            open_folder_in: "ask".into(),
             file_startup: StartupMode::EditorOnly,
             directory_startup: StartupMode::Workspace,
             keymap: "default".into(),
@@ -325,6 +339,10 @@ pub struct Setting {
     pub label: &'static str,
     pub kind: SettingKind,
 }
+/// Tool pane themes: the editor's colours (the default), the desktop's
+/// (`auto`), or a fixed palette.
+pub const PANE_THEMES: &[&str] = &["editor", "auto", "dark", "light"];
+
 pub const SETTINGS: &[Setting] = &[
     Setting {
         name: "profile",
@@ -370,6 +388,21 @@ pub const SETTINGS: &[Setting] = &[
         name: "terminal-theme",
         label: "Terminal theme",
         kind: SettingKind::Choice(&["auto", "dark", "light", "editor"]),
+    },
+    Setting {
+        name: "files-theme",
+        label: "File browser theme",
+        kind: SettingKind::Choice(PANE_THEMES),
+    },
+    Setting {
+        name: "git-theme",
+        label: "Git pane theme",
+        kind: SettingKind::Choice(PANE_THEMES),
+    },
+    Setting {
+        name: "open-folder-in",
+        label: "Open folders in (GUI)",
+        kind: SettingKind::Choice(&["ask", "current", "new"]),
     },
     Setting {
         name: "keymap",
@@ -464,6 +497,9 @@ impl Preferences {
             "line-numbers" => self.line_numbers.to_string(),
             "theme" | "editor-theme" => self.editor_theme.clone(),
             "terminal-theme" => self.terminal_theme.clone(),
+            "files-theme" => self.files_theme.clone(),
+            "git-theme" => self.git_theme.clone(),
+            "open-folder-in" => self.open_folder_in.clone(),
             "keymap" => self.keymap.clone(),
             "soft-wrap" => self.soft_wrap.to_string(),
             "wrap-column" => self.wrap_column.to_string(),
@@ -541,6 +577,15 @@ impl Preferences {
         if !["auto", "dark", "light", "editor"].contains(&self.terminal_theme.as_str()) {
             bail!("terminal_theme must be auto, dark, light or editor");
         }
+        if !PANE_THEMES.contains(&self.files_theme.as_str()) {
+            bail!("files_theme must be editor, auto, dark or light");
+        }
+        if !PANE_THEMES.contains(&self.git_theme.as_str()) {
+            bail!("git_theme must be editor, auto, dark or light");
+        }
+        if !["ask", "current", "new"].contains(&self.open_folder_in.as_str()) {
+            bail!("open_folder_in must be ask, current or new");
+        }
         if !["default", "nano"].contains(&self.keymap.as_str()) {
             bail!("keymap must be default or nano");
         }
@@ -574,9 +619,12 @@ impl Preferences {
         if !path.exists() {
             return Ok(Self::default());
         }
-        let source = fs::read_to_string(path)?;
-        let table: toml::Table = toml::from_str(&source).context("Invalid settings.toml")?;
-        let mut settings: Self = toml::from_str(&source).context("Invalid settings.toml")?;
+        Self::parse(&fs::read_to_string(path)?)
+    }
+    /// Settings as a settings.toml text defines them, older files migrated.
+    pub(crate) fn parse(source: &str) -> Result<Self> {
+        let table: toml::Table = toml::from_str(source).context("Invalid settings.toml")?;
+        let mut settings: Self = toml::from_str(source).context("Invalid settings.toml")?;
         // Preserve an older explicit light/dark choice. Older automatic
         // settings gain the darker content defaults without changing Qt chrome.
         if !table.contains_key("editor_theme") && settings.theme != "auto" {
@@ -617,6 +665,97 @@ impl Preferences {
     pub fn save(&self) -> Result<()> {
         self.validate()?;
         crate::fsio::write_private(&Self::path(), toml::to_string_pretty(self)?.as_bytes())
+    }
+}
+
+/// Change one preferences file in place. The file is re-read under a lock
+/// (another instance or the user may have edited it), `change` applies to
+/// what it says (`read` parses it), and only settings whose values change
+/// are written: comments, layout and everything else stay as they are, and
+/// session-only state (launch options, profile defaults) never reaches it.
+/// `section` names the table holding the preferences, or the file's root.
+pub(crate) fn edit_preferences(
+    path: &std::path::Path,
+    section: Option<&str>,
+    read: impl Fn(&str) -> Result<Preferences>,
+    change: impl FnOnce(&mut Preferences) -> Result<()>,
+) -> Result<()> {
+    crate::fsio::with_lock(path, || {
+        let name = path.file_name().unwrap_or_default().to_string_lossy();
+        let source = match fs::read_to_string(path) {
+            Ok(source) => source,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
+            Err(e) => return Err(e.into()),
+        };
+        let before = read(&source)
+            .and_then(|p| p.validate().map(|()| p))
+            .map_err(|e| anyhow::anyhow!("Not saving over {name} until it is fixed: {e:#}"))?;
+        let mut after = before.clone();
+        change(&mut after)?;
+        after.validate()?;
+        let old = toml::Table::try_from(&before)?;
+        let new = toml::Table::try_from(&after)?;
+        let mut keys: Vec<&String> = new.keys().filter(|k| old.get(*k) != new.get(*k)).collect();
+        // Key tables are migrated together (see `load`): writing one writes
+        // them all with the revision they belong to.
+        if keys.iter().any(|k| k.ends_with("_keys")) {
+            keys = new
+                .keys()
+                .filter(|k| k.ends_with("_keys") || *k == "keys_revision" || keys.contains(k))
+                .collect();
+        }
+        let mut document: toml_edit::DocumentMut =
+            source.parse().with_context(|| format!("Invalid {name}"))?;
+        let table = match section {
+            None => document.as_table_mut(),
+            Some(section) => document
+                .get_mut(section)
+                .and_then(toml_edit::Item::as_table_mut)
+                .with_context(|| format!("{name} has no [{section}] table"))?,
+        };
+        for key in keys {
+            let fragment =
+                toml::to_string(&toml::Table::from_iter([(key.clone(), new[key].clone())]))?;
+            let mut fragment: toml_edit::DocumentMut = fragment.parse()?;
+            let item = fragment.remove(key).context("Setting did not serialize")?;
+            merge(table, key, item);
+        }
+        let text = document.to_string();
+        anyhow::ensure!(
+            toml::Table::try_from(read(&text)?)? == new,
+            "Could not update {name} without changing other settings"
+        );
+        crate::fsio::write_private(path, text.as_bytes())
+    })
+}
+
+/// Set `key` in `table`, keeping what surrounds unchanged values: comments
+/// beside a value and inside a table (such as a key table) survive.
+fn merge(table: &mut toml_edit::Table, key: &str, item: toml_edit::Item) {
+    use toml_edit::Item;
+    match (table.get_mut(key), item) {
+        (Some(Item::Value(old)), Item::Value(mut value)) => {
+            if old.to_string().trim() != value.to_string().trim() {
+                *value.decor_mut() = old.decor().clone();
+                *old = value;
+            }
+        }
+        (Some(Item::Table(old)), Item::Table(new)) => {
+            let stale: Vec<String> = old
+                .iter()
+                .map(|(k, _)| k.to_string())
+                .filter(|k| !new.contains_key(k))
+                .collect();
+            for k in stale {
+                old.remove(&k);
+            }
+            for (k, value) in new {
+                merge(old, &k, value);
+            }
+        }
+        (_, item) => {
+            table.insert(key, item);
+        }
     }
 }
 
@@ -684,66 +823,98 @@ impl App {
                 bail!("Not saving over settings.toml until it is fixed: {e:#}");
             }
         }
+        let profile = self.preference_layers.base.profile.clone();
         if name == "profile" {
             return self.select_profile(value);
         }
-        let mut settings = self.preference_layers.base.clone();
         let flag = |value: &str| -> Result<bool> {
             value
                 .parse()
                 .map_err(|_| anyhow::anyhow!("{name} must be true or false"))
         };
-        match name {
-            "indent-width" => settings.indent_width = value.parse()?,
-            "tab-width" => settings.tab_width = value.parse()?,
-            "history-log" => settings.history_log = flag(value)?,
-            "locking" => settings.locking = flag(value)?,
-            "insert-spaces" => settings.insert_spaces = flag(value)?,
-            "auto-indent" => settings.auto_indent = flag(value)?,
-            "line-numbers" => settings.line_numbers = flag(value)?,
-            "theme" | "editor-theme" => {
-                settings.theme = value.into();
-                settings.editor_theme = value.into();
+        // Applied to the settings file as it is now, not to this session's
+        // settings (which include launch options and profile defaults).
+        self.edit_profile_preferences(|settings| {
+            match name {
+                "indent-width" => settings.indent_width = value.parse()?,
+                "tab-width" => settings.tab_width = value.parse()?,
+                "history-log" => settings.history_log = flag(value)?,
+                "locking" => settings.locking = flag(value)?,
+                "insert-spaces" => settings.insert_spaces = flag(value)?,
+                "auto-indent" => settings.auto_indent = flag(value)?,
+                "line-numbers" => settings.line_numbers = flag(value)?,
+                "theme" | "editor-theme" => {
+                    settings.theme = value.into();
+                    settings.editor_theme = value.into();
+                }
+                "terminal-theme" => settings.terminal_theme = value.into(),
+                "files-theme" => settings.files_theme = value.into(),
+                "git-theme" => settings.git_theme = value.into(),
+                "open-folder-in" => settings.open_folder_in = value.into(),
+                "file-startup" | "directory-startup" => {
+                    // The minimal and workspace profiles choose both startup
+                    // modes. Choosing one here leaves them for the default
+                    // profile, keeping the profile's choice for the other.
+                    let forced = match settings.profile.as_str() {
+                        "minimal" => Some(StartupMode::EditorOnly),
+                        "workspace" => Some(StartupMode::Workspace),
+                        _ => None,
+                    };
+                    if let Some(mode) = forced {
+                        settings.file_startup = mode;
+                        settings.directory_startup = mode;
+                        settings.profile = "default".into();
+                    }
+                    let mode = value.parse()?;
+                    if name == "file-startup" {
+                        settings.file_startup = mode;
+                    } else {
+                        settings.directory_startup = mode;
+                    }
+                }
+                "keymap" => {
+                    let (global, editor, terminal) = keymap(value)?;
+                    settings.keymap = value.into();
+                    settings.global_keys = global;
+                    settings.editor_keys = editor;
+                    settings.terminal_keys = terminal;
+                }
+                "soft-wrap" => settings.soft_wrap = flag(value)?,
+                "wrap-column" => settings.wrap_column = value.parse()?,
+                "hard-wrap" => settings.hard_wrap = flag(value)?,
+                "backup" => settings.backup = flag(value)?,
+                "file-recovery" => settings.file_recovery = flag(value)?,
+                "tui-mouse" | "mouse" => settings.tui_mouse = flag(value)?,
+                "show-whitespace" => settings.show_whitespace = flag(value)?,
+                "auto-reload" => settings.auto_reload = flag(value)?,
+                "terminal-scrollback" => settings.terminal_scrollback = value.parse()?,
+                "auto-close-brackets" => settings.auto_close_brackets = flag(value)?,
+                "format-on-save" => settings.format_on_save = flag(value)?,
+                "terminal-clipboard" => settings.terminal_clipboard = flag(value)?,
+                "complete-while-typing" => settings.complete_while_typing = flag(value)?,
+                "accept-completion-on-enter" => settings.accept_completion_on_enter = flag(value)?,
+                "minimap" => settings.minimap = flag(value)?,
+                "font-family" => settings.font_family = value.trim().into(),
+                "font-size" => settings.font_size = value.parse()?,
+                _ => bail!(
+                    "Options: {}, minimap, font-family, font-size",
+                    SETTINGS
+                        .iter()
+                        .map(|s| s.name)
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
             }
-            "terminal-theme" => settings.terminal_theme = value.into(),
-            "file-startup" => settings.file_startup = value.parse()?,
-            "directory-startup" => settings.directory_startup = value.parse()?,
-            "keymap" => {
-                let (global, editor, terminal) = keymap(value)?;
-                settings.keymap = value.into();
-                settings.global_keys = global;
-                settings.editor_keys = editor;
-                settings.terminal_keys = terminal;
-            }
-            "soft-wrap" => settings.soft_wrap = flag(value)?,
-            "wrap-column" => settings.wrap_column = value.parse()?,
-            "hard-wrap" => settings.hard_wrap = flag(value)?,
-            "backup" => settings.backup = flag(value)?,
-            "file-recovery" => settings.file_recovery = flag(value)?,
-            "tui-mouse" | "mouse" => settings.tui_mouse = flag(value)?,
-            "show-whitespace" => settings.show_whitespace = flag(value)?,
-            "auto-reload" => settings.auto_reload = flag(value)?,
-            "terminal-scrollback" => settings.terminal_scrollback = value.parse()?,
-            "auto-close-brackets" => settings.auto_close_brackets = flag(value)?,
-            "format-on-save" => settings.format_on_save = flag(value)?,
-            "terminal-clipboard" => settings.terminal_clipboard = flag(value)?,
-            "complete-while-typing" => settings.complete_while_typing = flag(value)?,
-            "accept-completion-on-enter" => settings.accept_completion_on_enter = flag(value)?,
-            "minimap" => settings.minimap = flag(value)?,
-            "font-family" => settings.font_family = value.trim().into(),
-            "font-size" => settings.font_size = value.parse()?,
-            _ => bail!(
-                "Options: {}, minimap, font-family, font-size",
-                SETTINGS
-                    .iter()
-                    .map(|s| s.name)
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            ),
-        }
-        self.persist_profile_preferences(&settings)?;
+            Ok(())
+        })?;
         self.load_preferences();
-        self.status = format!("Set {name} to {value}");
+        self.status = if self.preference_layers.base.profile == profile {
+            format!("Set {name} to {value}")
+        } else {
+            format!(
+                "Set {name} to {value}; the {profile} profile chose startup, so the default profile is active"
+            )
+        };
         Ok(())
     }
     pub(super) fn apply_pane_colors(&mut self) {
@@ -764,6 +935,14 @@ impl App {
             "editor" => editor.clone(),
             _ => crate::theme::Palette::dark(true),
         };
+        let tool = |theme: &str| match theme {
+            "auto" => automatic(),
+            "light" => crate::theme::Palette::light(),
+            "dark" => crate::theme::Palette::dark(false),
+            _ => editor.clone(),
+        };
+        self.files_colors = tool(&self.preferences.files_theme);
+        self.git_colors = tool(&self.preferences.git_theme);
         self.colors = (
             editor.foreground,
             editor.background,
@@ -794,21 +973,21 @@ impl App {
             command.is_empty() || self.resolve_command_line(command).is_some(),
             "Unknown command"
         );
-        let mut p = self.preference_layers.base.clone();
-        let table = match scope {
-            "global" => &mut p.global_keys,
-            "editor" => &mut p.editor_keys,
-            "terminal" => &mut p.terminal_keys,
-            "debug" => &mut p.debug_keys,
-            _ => bail!("Unknown shortcut scope"),
-        };
-        if command.is_empty() {
-            table.remove(chord);
-        } else {
-            table.insert(chord.into(), command.into());
-        }
-        p.validate()?;
-        self.persist_profile_preferences(&p)?;
+        self.edit_profile_preferences(|p| {
+            let table = match scope {
+                "global" => &mut p.global_keys,
+                "editor" => &mut p.editor_keys,
+                "terminal" => &mut p.terminal_keys,
+                "debug" => &mut p.debug_keys,
+                _ => bail!("Unknown shortcut scope"),
+            };
+            if command.is_empty() {
+                table.remove(chord);
+            } else {
+                table.insert(chord.into(), command.into());
+            }
+            Ok(())
+        })?;
         self.load_preferences();
         self.status = "Shortcut saved".into();
         Ok(())
@@ -832,7 +1011,7 @@ mod tests {
         let mut app = crate::App::new(&file).unwrap();
         let default = app.snapshot(100, 30, 0, 1, 1, 0);
         assert_eq!(default.background, "#1b1e26");
-        assert_eq!(default.terminal_background, "#14171c");
+        assert_eq!(default.terminal_background, "#1b1e26");
         app.dispatch(crate::Command::Theme {
             foreground: "#101010".into(),
             background: "#ffffff".into(),
@@ -863,7 +1042,151 @@ mod tests {
         std::fs::write(Preferences::path(), "theme = \"light\"\n").unwrap();
         let migrated = Preferences::load().unwrap();
         assert_eq!(migrated.editor_theme, "light");
-        assert_eq!(migrated.terminal_theme, "dark");
+        assert_eq!(migrated.terminal_theme, "editor");
+    }
+
+    #[test]
+    fn choosing_a_startup_mode_leaves_a_profile_that_forces_it() {
+        let _env = crate::paths::TEST_ENV
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("XDG_CONFIG_HOME", dir.path().join("config"));
+        std::env::set_var("XDG_STATE_HOME", dir.path().join("state"));
+        let file = dir.path().join("file.txt");
+        std::fs::write(&file, "hello").unwrap();
+        let mut app = crate::App::new(&file).unwrap();
+        app.configure("profile", "workspace").unwrap();
+        assert_eq!(app.preferences.file_startup, StartupMode::Workspace);
+        // The choice takes effect instead of snapping back to the profile's.
+        app.configure("file-startup", "editor-only").unwrap();
+        assert_eq!(app.preferences.profile, "default");
+        assert_eq!(app.preferences.file_startup, StartupMode::EditorOnly);
+        // The profile's choice for the other mode is kept.
+        assert_eq!(app.preferences.directory_startup, StartupMode::Workspace);
+        assert!(app.status.contains("default profile"), "{}", app.status);
+        let saved = Preferences::load().unwrap();
+        assert_eq!(saved.profile, "default");
+        assert_eq!(saved.file_startup, StartupMode::EditorOnly);
+        assert_eq!(saved.directory_startup, StartupMode::Workspace);
+        // On the default profile, startup choices change nothing else.
+        app.configure("directory-startup", "editor-only").unwrap();
+        assert_eq!(app.preferences.profile, "default");
+        assert_eq!(app.preferences.directory_startup, StartupMode::EditorOnly);
+        assert_eq!(app.status, "Set directory-startup to editor-only");
+    }
+
+    #[test]
+    fn tool_panes_follow_the_editor_unless_themed_separately() {
+        let _env = crate::paths::TEST_ENV
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("XDG_CONFIG_HOME", dir.path().join("config"));
+        std::env::set_var("XDG_STATE_HOME", dir.path().join("state"));
+        let file = dir.path().join("file.txt");
+        std::fs::write(&file, "hello").unwrap();
+        let mut app = crate::App::new(&file).unwrap();
+        // By default both use the editor's colours, not the desktop's.
+        let frame = app.snapshot(100, 30, 0, 1, 1, 0);
+        for pane in [&frame.files_colors, &frame.git_colors] {
+            assert_eq!(pane.background, frame.background);
+            assert_eq!(pane.foreground, frame.foreground);
+            assert_eq!(pane.selection, frame.selection);
+            assert!(!pane.desktop);
+        }
+        // Following the editor tracks its theme changes.
+        app.configure("editor-theme", "light").unwrap();
+        let frame = app.snapshot(100, 30, 0, 1, 1, 0);
+        assert_eq!(frame.files_colors.background, frame.background);
+        assert!(crate::theme::is_light(&frame.git_colors.background));
+        // Each pane is themed on its own; "auto" follows the desktop.
+        app.dispatch(crate::Command::Theme {
+            foreground: "#101010".into(),
+            background: "#f4f4f4".into(),
+            selection: "#abcdef".into(),
+            accent: "#123456".into(),
+            selection_foreground: "#010101".into(),
+        });
+        app.configure("files-theme", "auto").unwrap();
+        app.configure("git-theme", "dark").unwrap();
+        let frame = app.snapshot(100, 30, 0, 1, 1, 0);
+        assert!(frame.files_colors.desktop);
+        assert_eq!(frame.files_colors.background, "#f4f4f4");
+        assert!(!frame.git_colors.desktop);
+        assert_eq!(frame.git_colors.background, "#1b1e26");
+        assert_ne!(frame.background, frame.git_colors.background);
+        // The choices are saved and survive a reload.
+        let saved = Preferences::load().unwrap();
+        assert_eq!(
+            (saved.files_theme.as_str(), saved.git_theme.as_str()),
+            ("auto", "dark")
+        );
+        app.load_preferences();
+        assert_eq!(app.preferences.value("git-theme"), "dark");
+        assert!(app.configure("git-theme", "neon").is_err());
+        assert_eq!(app.preferences.value("git-theme"), "dark");
+        // Older settings files gain the editor default.
+        std::fs::write(Preferences::path(), "editor_theme = \"dark\"\n").unwrap();
+        let older = Preferences::load().unwrap();
+        assert_eq!(
+            (older.files_theme.as_str(), older.git_theme.as_str()),
+            ("editor", "editor")
+        );
+    }
+
+    #[test]
+    fn saving_a_setting_edits_the_file_without_session_state() {
+        let _env = crate::paths::TEST_ENV
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::tempdir().unwrap();
+        std::env::set_var("XDG_CONFIG_HOME", dir.path().join("config"));
+        std::env::set_var("XDG_STATE_HOME", dir.path().join("state"));
+        let file = dir.path().join("file.txt");
+        std::fs::write(&file, "hello").unwrap();
+        std::fs::create_dir_all(dir.path().join("config/slate")).unwrap();
+        let original = "# My settings\nprofile = \"minimal\"\nindent_width = 3 # narrow\n\n[editor_keys]\n# mine\n\"Ctrl+p\" = \"print\"\n";
+        std::fs::write(Preferences::path(), original).unwrap();
+        // Launch options (-S soft wrap, -B backups) are for this session only.
+        let args = ["-S", "-B", file.to_str().unwrap()];
+        let launch = crate::cli::parse(args.iter().map(std::ffi::OsString::from)).unwrap();
+        let mut app = crate::App::launch(&launch, None).unwrap();
+        assert!(app.preferences.soft_wrap && app.preferences.backup);
+        assert_eq!(app.preferences.directory_startup, StartupMode::EditorOnly);
+        // Another instance (or the user) changes the file meanwhile.
+        let edited = original.replace("indent_width = 3", "indent_width = 2");
+        std::fs::write(Preferences::path(), &edited).unwrap();
+        app.configure("line-numbers", "false").unwrap();
+        let saved = std::fs::read_to_string(Preferences::path()).unwrap();
+        assert!(
+            saved.starts_with("# My settings\nprofile = \"minimal\"\nindent_width = 2 # narrow\n"),
+            "{saved}"
+        );
+        assert!(saved.contains("line_numbers = false"), "{saved}");
+        for session in ["soft_wrap", "backup", "file_startup", "directory_startup"] {
+            assert!(!saved.contains(session), "{session} leaked into {saved}");
+        }
+        assert_eq!(app.preferences.indent_width, 2, "Reloaded from disk");
+        assert!(app.preferences.soft_wrap, "Launch options still apply");
+        // A shortcut keeps the table's comment and the user's binding.
+        app.set_shortcut("editor", "Ctrl+Shift+k", "cut-line")
+            .unwrap();
+        let saved = std::fs::read_to_string(Preferences::path()).unwrap();
+        assert!(saved.contains("# mine\n"), "{saved}");
+        let loaded = Preferences::load().unwrap();
+        assert_eq!(loaded.editor_keys["Ctrl+p"], "print");
+        assert_eq!(loaded.editor_keys["Ctrl+Shift+k"], "cut-line");
+        assert!(!loaded.soft_wrap && !loaded.backup && !loaded.line_numbers);
+        assert_eq!(loaded.directory_startup, StartupMode::Workspace);
+        // A file that does not parse is never replaced.
+        std::fs::write(Preferences::path(), "indent_width = [\n").unwrap();
+        assert!(app.configure("line-numbers", "true").is_err());
+        assert!(app.set_shortcut("editor", "Ctrl+Shift+k", "").is_err());
+        assert_eq!(
+            std::fs::read_to_string(Preferences::path()).unwrap(),
+            "indent_width = [\n"
+        );
     }
 
     #[test]

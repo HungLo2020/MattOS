@@ -23,7 +23,6 @@
 #endif
 
 #include "gstvkdevice.h"
-#include "gstvkdebug.h"
 #include "gstvkphysicaldevice-private.h"
 
 #include <string.h>
@@ -179,6 +178,8 @@ struct extension;
 typedef gboolean (*CanExtensionBeEnabled) (const struct extension * extension,
     GstVulkanPhysicalDevice * phy_dev);
 
+typedef gboolean (*IsFeatureEnabled) (GstVulkanPhysicalDevice * phy_dev);
+
 struct extension
 {
   /* name of the extension */
@@ -191,7 +192,17 @@ struct extension
   /* the Vulkan API version that the extension has been promoted to core and
    * does not need explicit enabling */
   guint promoted_api_version;
+  /* other extension in which this depend on */
+  const char *dependency;
+  /* function to check it the feature is enabled in physical device */
+  IsFeatureEnabled is_enabled;
 };
+
+static inline gboolean
+gst_vulkan_physical_device_has_feature_none (GstVulkanPhysicalDevice * phy_dev)
+{
+  return TRUE;
+}
 
 #define NEVER_VK_VERSION VK_MAKE_VERSION (999, 0, 0)
 
@@ -206,42 +217,47 @@ can_enable_api_version (const struct extension *extension,
           VK_VERSION_PATCH (extension->promoted_api_version)))
     return FALSE;
 
-  return gst_vulkan_physical_device_check_api_version (phy_dev,
-      VK_VERSION_MAJOR (extension->min_api_version),
-      VK_VERSION_MINOR (extension->min_api_version),
-      VK_VERSION_PATCH (extension->min_api_version));
-}
-
-#define OPTIONAL_EXTENSION_VERSION(name, min, promoted) \
-  { name, can_enable_api_version, min, promoted, }
-
-#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
-static gboolean
-can_enable_video_queue (const struct extension *extension,
-    GstVulkanPhysicalDevice * phy_dev)
-{
-  if (gst_vulkan_physical_device_check_api_version (phy_dev, 1, 3, 0))
+  if (gst_vulkan_physical_device_check_api_version (phy_dev,
+          VK_VERSION_MAJOR (extension->min_api_version),
+          VK_VERSION_MINOR (extension->min_api_version),
+          VK_VERSION_PATCH (extension->min_api_version))) {
+    if (extension->is_enabled && !extension->is_enabled (phy_dev))
+      return FALSE;
+    if (extension->dependency) {
+      return gst_vulkan_physical_device_get_extension_info (phy_dev,
+          extension->dependency, NULL);
+    }
     return TRUE;
-
-#if defined(VK_KHR_synchronization2)
-  if (gst_vulkan_physical_device_check_api_version (phy_dev, 1, 1, 0)
-      && gst_vulkan_physical_device_get_extension_info (phy_dev,
-          VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME, NULL))
-    return TRUE;
-#endif
+  }
 
   return FALSE;
 }
 
-#define OPTIONAL_VIDEO_EXTENSION(name) \
-  { name, can_enable_video_queue, VK_MAKE_VERSION (1, 1, 0), NEVER_VK_VERSION, }
+#define OPTIONAL_EXTENSION_VERSION(name, min, promoted)   \
+  { name, can_enable_api_version, min, promoted, NULL, \
+      gst_vulkan_physical_device_has_feature_none }
+#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
+#define OPTIONAL_VIDEO_EXTENSION(name, dep, feat)                       \
+  { name, can_enable_api_version, VK_MAKE_VERSION (1, 3, 0),            \
+      NEVER_VK_VERSION, dep, gst_vulkan_physical_device_has_feature_##feat }
 #endif
 
 static const struct extension optional_extensions[] = {
   OPTIONAL_EXTENSION_VERSION (VK_KHR_SWAPCHAIN_EXTENSION_NAME,
       VK_MAKE_VERSION (1, 0, 0), NEVER_VK_VERSION),
   OPTIONAL_EXTENSION_VERSION (VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+      VK_MAKE_VERSION (1, 0, 0), NEVER_VK_VERSION),
+#if defined(VK_KHR_get_physical_device_properties2)
+  OPTIONAL_EXTENSION_VERSION
+      (VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
       VK_MAKE_VERSION (1, 0, 0), VK_MAKE_VERSION (1, 1, 0)),
+#endif
+#if defined(VK_KHR_format_feature_flags2)
+  /* TODO: dependency on VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME
+   * in 1.0 */
+  OPTIONAL_EXTENSION_VERSION (VK_KHR_FORMAT_FEATURE_FLAGS_2_EXTENSION_NAME,
+      VK_MAKE_VERSION (1, 1, 0), VK_MAKE_VERSION (1, 3, 0)),
+#endif
 #if defined(VK_KHR_timeline_semaphore)
   OPTIONAL_EXTENSION_VERSION (VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
       VK_MAKE_VERSION (1, 1, 0), VK_MAKE_VERSION (1, 2, 0)),
@@ -251,17 +267,56 @@ static const struct extension optional_extensions[] = {
       VK_MAKE_VERSION (1, 1, 0), VK_MAKE_VERSION (1, 3, 0)),
 #endif
 #if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_QUEUE_EXTENSION_NAME),
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME),
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME),
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME),
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME),
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME),
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_ENCODE_H265_EXTENSION_NAME),
-#if defined(VK_KHR_video_maintenance1)
-  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_MAINTENANCE_1_EXTENSION_NAME),
+# if defined(VK_KHR_video_queue)
+  /* synchronization2 was promoted in 1.3 */
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,
+      /* VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME */ NULL, none),
 #endif
-#endif
+# if defined(VK_KHR_video_decode_queue)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,
+      VK_KHR_VIDEO_QUEUE_EXTENSION_NAME, none),
+# endif
+# if defined(VK_KHR_video_decode_h264)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,
+      VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME, none),
+# endif
+# if defined(VK_KHR_video_decode_h265)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,
+      VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME, none),
+# endif
+# if defined(VK_KHR_video_decode_av1)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME,
+      VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME, none),
+# endif
+# if defined(VK_KHR_video_encode_queue)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME,
+      VK_KHR_VIDEO_QUEUE_EXTENSION_NAME, none),
+# endif
+# if defined(VK_KHR_video_encode_h264)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME,
+      VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME, none),
+# endif
+# if defined(VK_KHR_video_encode_h265)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_ENCODE_H265_EXTENSION_NAME,
+      VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME, none),
+# endif
+# if defined(VK_KHR_video_maintenance1)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_MAINTENANCE_1_EXTENSION_NAME,
+      VK_KHR_VIDEO_QUEUE_EXTENSION_NAME, video_maintenance1),
+# endif
+# if defined(VK_KHR_video_maintenance2)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_MAINTENANCE_2_EXTENSION_NAME,
+      VK_KHR_VIDEO_QUEUE_EXTENSION_NAME, video_maintenance2),
+# endif
+# if defined(VK_KHR_video_encode_av1)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_ENCODE_AV1_EXTENSION_NAME,
+      VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME, video_encode_av1),
+# endif
+# if defined(VK_KHR_video_decode_vp9)
+  OPTIONAL_VIDEO_EXTENSION (VK_KHR_VIDEO_DECODE_VP9_EXTENSION_NAME,
+      VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME, video_decode_vp9),
+# endif
+#endif /* GST_VULKAN_HAVE_VIDEO_EXTENSIONS */
 };
 
 static void
@@ -447,10 +502,6 @@ gst_vulkan_device_choose_queues (GstVulkanDevice * device)
   GArray *array;
   guint32 *family_scores, n_queue_families;
   int graph_index, comp_index, tx_index;
-#if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
-  int dec_index = -1;
-  int enc_index = -1;
-#endif
 
   n_queue_families = device->physical_device->n_queue_families;
   queue_family_props = device->physical_device->queue_family_props;
@@ -470,13 +521,21 @@ gst_vulkan_device_choose_queues (GstVulkanDevice * device)
       VK_QUEUE_TRANSFER_BIT, family_scores);
   array = _append_queue_create_info (array, tx_index, queue_family_props);
 #if GST_VULKAN_HAVE_VIDEO_EXTENSIONS
-  dec_index = _pick_queue_family (queue_family_props, n_queue_families,
-      VK_QUEUE_VIDEO_DECODE_BIT_KHR, family_scores);
-  array = _append_queue_create_info (array, dec_index, queue_family_props);
-  enc_index = _pick_queue_family (queue_family_props, n_queue_families,
-      VK_QUEUE_VIDEO_ENCODE_BIT_KHR, family_scores);
-  array = _append_queue_create_info (array, enc_index, queue_family_props);
-#endif
+# if defined(VK_KHR_video_decode_queue)
+  {
+    int dec_index = _pick_queue_family (queue_family_props, n_queue_families,
+        VK_QUEUE_VIDEO_DECODE_BIT_KHR, family_scores);
+    array = _append_queue_create_info (array, dec_index, queue_family_props);
+  }
+# endif
+# if defined(VK_KHR_video_encode_queue)
+  {
+    int enc_index = _pick_queue_family (queue_family_props, n_queue_families,
+        VK_QUEUE_VIDEO_ENCODE_BIT_KHR, family_scores);
+    array = _append_queue_create_info (array, enc_index, queue_family_props);
+  }
+# endif
+#endif /* GST_VULKAN_HAVE_VIDEO_EXTENSIONS */
 
   g_free (family_scores);
 

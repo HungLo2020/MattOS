@@ -133,6 +133,7 @@ parse_export_options(char *str,unsigned int *options,int noisy)
        NULL},
       {"export-minimal",EXPORT_MINIMAL|EXPORT_CLEAN,NULL,
        N_("remove as much as possible from key during export")},
+      {"keep-expired-subkeys",EXPORT_KEEP_EXPIRED,NULL, NULL },
 
       {"export-dane", EXPORT_DANE_FORMAT, NULL, NULL },
 
@@ -424,11 +425,8 @@ do_export (ctrl_t ctrl, strlist_t users, int secret, unsigned int options,
   IOBUF out = NULL;
   int any, rc;
   armor_filter_context_t *afx = NULL;
-  compress_filter_context_t zfx;
 
-  memset( &zfx, 0, sizeof zfx);
-
-  rc = open_outfile (-1, NULL, 0, !!secret, &out );
+  rc = open_outfile (GNUPG_INVALID_FD, NULL, 0, !!secret, &out);
   if (rc)
     return rc;
 
@@ -567,7 +565,8 @@ match_curve_skey_pk (gcry_sexp_t s_key, PKT_public_key *pk)
 
   if (!(pk->pubkey_algo==PUBKEY_ALGO_ECDH
         || pk->pubkey_algo==PUBKEY_ALGO_ECDSA
-        || pk->pubkey_algo==PUBKEY_ALGO_EDDSA))
+        || pk->pubkey_algo==PUBKEY_ALGO_EDDSA
+        || pk->pubkey_algo==PUBKEY_ALGO_KYBER))
     return gpg_error (GPG_ERR_PUBKEY_ALGO);
 
   curve = gcry_sexp_find_token (s_key, "curve", 0);
@@ -585,7 +584,7 @@ match_curve_skey_pk (gcry_sexp_t s_key, PKT_public_key *pk)
     }
   if (!strcmp (curve_str, "Ed448"))
     is_eddsa = 1;
-  oidstr = openpgp_curve_to_oid (curve_str, NULL, NULL);
+  oidstr = openpgp_curve_to_oid (curve_str, NULL, NULL, (pk->version > 4));
   if (!oidstr)
     {
       log_error ("no OID known for curve '%s'\n", curve_str);
@@ -646,9 +645,10 @@ canon_pk_algo (enum gcry_pk_algos algo)
 
 
 /* Take an s-expression with the public and private key and change the
- * parameter array in PK to include the secret parameters.  */
+ * parameter array in PK to include the secret parameters.  With
+ * IS_PART2 set the second key from a composite key is merged into PK.  */
 static gpg_error_t
-secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
+secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk, int is_part2)
 {
   gpg_error_t err;
   gcry_sexp_t list = NULL;
@@ -671,8 +671,6 @@ secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
       goto leave;
     }
 
-  log_assert (!pk->seckey_info);
-
   /* Parse the gcrypt PK algo and check that it is okay.  */
   l2 = gcry_sexp_cadr (list);
   if (!l2)
@@ -691,8 +689,7 @@ secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
   pk_algo = gcry_pk_map_name (string);
   xfree (string); string = NULL;
   if (gcry_pk_algo_info (pk_algo, GCRYCTL_GET_ALGO_NPKEY, NULL, &npkey)
-      || gcry_pk_algo_info (pk_algo, GCRYCTL_GET_ALGO_NSKEY, NULL, &nskey)
-      || !npkey || npkey >= nskey)
+      || !npkey)
     {
       err = gpg_error (GPG_ERR_BAD_SECKEY);
       goto leave;
@@ -700,6 +697,7 @@ secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
 
   /* Check that the pubkey algo and the received parameters matches
    * those from the public key.  */
+
   switch (canon_pk_algo (pk_algo))
     {
     case GCRY_PK_RSA:
@@ -739,7 +737,8 @@ secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
       err = 0;
       if (!(pk->pubkey_algo == PUBKEY_ALGO_ECDSA
             || pk->pubkey_algo == PUBKEY_ALGO_ECDH
-            || pk->pubkey_algo == PUBKEY_ALGO_EDDSA))
+            || pk->pubkey_algo == PUBKEY_ALGO_EDDSA
+            || pk->pubkey_algo == PUBKEY_ALGO_KYBER))
         {
           err = gpg_error (GPG_ERR_PUBKEY_ALGO);  /* Does not match.  */
           goto leave;
@@ -758,6 +757,26 @@ secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
         err = gpg_error (GPG_ERR_BAD_PUBKEY);
       break;
 
+    case GCRY_PK_KEM:  /* This is Kyber768 or Kyber1024 */
+      err = 0;
+      if (!(pk->pubkey_algo == PUBKEY_ALGO_KYBER) || !is_part2)
+        {
+          /* The algorithm does not match or this function has not
+           * been called with the flag for the second (Kyber) part.  */
+          err = gpg_error (GPG_ERR_PUBKEY_ALGO);
+          goto leave;
+        }
+      log_assert (npkey == 1);
+      err = gcry_sexp_extract_param (list, NULL, "/p", &pub_params[0], NULL);
+      if (err)
+        goto leave;
+      if (gcry_mpi_cmp (pk->pkey[2], pub_params[0]))
+        {
+          err = gpg_error (GPG_ERR_BAD_PUBKEY);
+          goto leave;
+        }
+      break;
+
     default:
       err = gpg_error (GPG_ERR_PUBKEY_ALGO);  /* Unknown.  */
       break;
@@ -765,16 +784,10 @@ secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
   if (err)
     goto leave;
 
-  nskey = npkey + 1;  /* We only have one skey param.  */
-  if (nskey > PUBKEY_MAX_NSKEY)
-    {
-      err = gpg_error (GPG_ERR_BAD_SECKEY);
-      goto leave;
-    }
-
-  /* Check that the public key parameters match.  For ECC we already
-   * did this in the switch above.  */
-  if (canon_pk_algo (pk_algo) != GCRY_PK_ECC)
+  /* Check that the public key parameters match.  For ECC and Kyber we
+   * already did this in the switch above.  */
+  if (canon_pk_algo (pk_algo) != GCRY_PK_ECC
+      && canon_pk_algo (pk_algo) != GCRY_PK_KEM)
     {
       for (idx=0; idx < npkey; idx++)
         if (gcry_mpi_cmp (pk->pkey[idx], pub_params[idx]))
@@ -784,35 +797,75 @@ secret_key_to_mode1003 (gcry_sexp_t s_key, PKT_public_key *pk)
           }
     }
 
+  /* For ECC+Kyber we need to adjust the npkey.  */
+  if (pk->pubkey_algo == PUBKEY_ALGO_KYBER)
+    npkey = 3;  /* ECC + Kyber */
+
+  /* Note that we always have just one secret key parameter in
+   * mode1003.  That one is the entire s-expression as received from
+   * the agent and thus also includes the public part.  For a composite key
+   * both s-expressions are simply concatenated.  */
+  nskey = npkey + 1;
+  if (nskey > PUBKEY_MAX_NSKEY)
+    {
+      err = gpg_error (GPG_ERR_BAD_SECKEY);
+      goto leave;
+    }
+
   /* Store the maybe protected secret key as an s-expression.  */
-  pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
-  if (!ski)
+  if (!is_part2)
     {
-      err = gpg_error_from_syserror ();
-      goto leave;
+      pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
+      if (!ski)
+        {
+          err = gpg_error_from_syserror ();
+          goto leave;
+        }
+      ski->is_protected = 1;
+      ski->s2k.mode = 1003;
     }
+  else
+    log_assert (pk->seckey_info);
 
-  pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
-  if (!ski)
+  /* Store the entire s-expression as the secret parameter.  */
+  if (1)
     {
-      err = gpg_error_from_syserror ();
-      goto leave;
-    }
+      unsigned char *buf;
+      size_t buflen;
 
-  ski->is_protected = 1;
-  ski->s2k.mode = 1003;
+      err = make_canon_sexp (s_key, &buf, &buflen);
+      if (err)
+        goto leave;
+      if (is_part2)  /* Append secret s-expr to the existing one.  */
+        {
+          char const prefix[] = "(13:composite-key";
+          unsigned int prefixlen = strlen (prefix);
+          const unsigned char *oldbuf;
+          unsigned int oldbuflen;
+          unsigned char *newbuf;
 
-  {
-    unsigned char *buf;
-    size_t buflen;
-
-    err = make_canon_sexp (s_key, &buf, &buflen);
-    if (err)
-      goto leave;
-    pk->pkey[npkey] = gcry_mpi_set_opaque (NULL, buf, buflen*8);
-    for (idx=npkey+1; idx < PUBKEY_MAX_NSKEY; idx++)
+          log_assert (pk->pkey[npkey] &&
+                      gcry_mpi_get_flag (pk->pkey[npkey], GCRYMPI_FLAG_OPAQUE));
+          oldbuf = gcry_mpi_get_opaque (pk->pkey[npkey], &oldbuflen);
+          oldbuflen = (oldbuflen +7)/8;  /* Fixup bits to bytes */
+          newbuf = xtrymalloc_secure (prefixlen + oldbuflen + buflen + 1);
+          if (!newbuf)
+            {
+              err = gpg_error_from_syserror ();
+              goto leave;
+            }
+          memcpy (newbuf, prefix, prefixlen);
+          memcpy (newbuf+prefixlen, oldbuf, oldbuflen);
+          memcpy (newbuf+prefixlen+oldbuflen, buf, buflen);
+          newbuf[prefixlen+oldbuflen+buflen] = ')'; /* close prefix */
+          buf = newbuf;
+          buflen = prefixlen + oldbuflen + buflen + 1;
+        }
+      /* Note that BUF is consumed by gcry_mpi_set_opaque.  */
+      pk->pkey[npkey] = gcry_mpi_set_opaque (NULL, buf, buflen*8);
+      for (idx=npkey+1; idx < PUBKEY_MAX_NSKEY; idx++)
       pk->pkey[idx] = NULL;
-  }
+    }
 
  leave:
   gcry_sexp_release (list);
@@ -1280,7 +1333,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
           goto leave;
         }
 
-      oidstr = openpgp_curve_to_oid (curve, NULL, NULL);
+      oidstr = openpgp_curve_to_oid (curve, NULL, NULL, (pk->version > 4));
       if (!oidstr)
         {
           log_error ("no OID known for curve '%s'\n", curve);
@@ -1406,7 +1459,7 @@ transfer_format_to_openpgp (gcry_sexp_t s_pgp, PKT_public_key *pk)
 
 
 /* Print an "EXPORTED" status line.  PK is the primary public key.  */
-static void
+void
 print_status_exported (PKT_public_key *pk)
 {
   char *hexfpr;
@@ -1434,7 +1487,8 @@ print_status_exported (PKT_public_key *pk)
  * If MODE1003 is set, the key is requested in raw GnuPG format from
  * the agent.  This usually does not require a passphrase unless the
  * gpg-agent has not yet used the key and needs to convert it to its
- * internal format first.
+ * internal format first.  For the second key of a composite key IS_PART2
+ * needs to be set.
  *
  * CACHE_NONCE_ADDR is used to share nonce for multiple key retrievals.
  *
@@ -1443,7 +1497,7 @@ print_status_exported (PKT_public_key *pk)
  */
 gpg_error_t
 receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
-                           int cleartext, int mode1003,
+                           int cleartext, int mode1003, int is_part2,
                            char **cache_nonce_addr, const char *hexgrip,
                            PKT_public_key *pk, gcry_sexp_t *r_key)
 {
@@ -1503,7 +1557,7 @@ receive_seckey_from_agent (ctrl_t ctrl, gcry_cipher_hd_t cipherhd,
   if (!err)
     {
       if (pk && mode1003)
-        err = secret_key_to_mode1003 (s_skey, pk);
+        err = secret_key_to_mode1003 (s_skey, pk, is_part2);
       else if (pk && cleartext)
         err = cleartext_secret_key_to_openpgp (s_skey, pk);
       else if (pk)
@@ -1819,8 +1873,12 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
   subkey_list_t subkey_list = NULL;  /* Track already processed subkeys. */
   int skip_until_subkey = 0;
   int cleartext = 0;
+  int cleartext2 = 0;
   char *hexgrip = NULL;
+  char *p;
+  const char *hexgrip2;
   char *serialno = NULL;
+  char *serialno2 = NULL;
   PKT_public_key *pk;
   u32 subkidbuf[2], *subkid;
   kbnode_t kbctx, node;
@@ -1962,8 +2020,19 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
               continue;
             }
 
+          /* In case of a composite key let hexgrip2 point to the second.  */
+          if ((p = strchr (hexgrip, ',')))
+            {
+              *p = 0;
+              hexgrip2 = p+1;
+            }
+          else
+            hexgrip2 = NULL;
+
           xfree (serialno);
           serialno = NULL;
+          xfree (serialno2);
+          serialno2 = NULL;
           if (secret == 2 && node->pkt->pkttype == PKT_PUBLIC_KEY)
             {
               /* We are asked not to export the secret parts of the
@@ -1972,10 +2041,83 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
               err = GPG_ERR_NOT_FOUND;
             }
           else
-            err = agent_get_keyinfo (ctrl, hexgrip, &serialno, &cleartext);
+            {
+              err = agent_get_keyinfo (ctrl, hexgrip, &serialno, &cleartext);
+              if (!err && hexgrip2)
+                err = agent_get_keyinfo (ctrl,hexgrip2,&serialno2,&cleartext2);
+            }
 
-          if ((!err && serialno)
-              && secret == 2 && node->pkt->pkttype == PKT_PUBLIC_KEY)
+          if (!err && hexgrip2)
+            {
+              /* Dual key with two keygrips needs a special case.  For
+               * example, we may have one key on card and the other on
+               * disk or even both on disk or both on card.  There are
+               * too many combinations and thus we resort to using
+               * mode1003 which stores both s-expression received from
+               * gpg-agent in the OpenPGP format (the special 1003
+               * mode).  That means that a stub is also stored.  We
+               * do this even if both keys are on card.  */
+              struct seckey_info *ski;
+
+              if (pk->pubkey_algo != PUBKEY_ALGO_KYBER)
+                err = gpg_error (GPG_ERR_NOT_SUPPORTED);
+
+              if (!err)
+                err = receive_seckey_from_agent (ctrl, cipherhd,
+                                                 cleartext,
+                                                 1,  /* Force mode1003 */
+                                                 0,  /* First part.  */
+                                                 &cache_nonce,
+                                                 hexgrip, pk, NULL);
+              if (!err)
+                err = receive_seckey_from_agent (ctrl, cipherhd,
+                                                 cleartext,
+                                                 1,  /* Force mode1003 */
+                                                 1,  /* Second part.  */
+                                                 &cache_nonce,
+                                                 hexgrip2, pk, NULL);
+
+              if (err)
+                {
+                  /* If we receive a fully canceled error we stop
+                   * immediately.  If we receive a cancel for a public
+                   * key we also stop immediately because a
+                   * public/secret key is always required first If we
+                   * receive a subkey we skip to the next subkey.  */
+                  if (gpg_err_code (err) == GPG_ERR_FULLY_CANCELED
+                      || (node->pkt->pkttype == PKT_PUBLIC_KEY
+                          && gpg_err_code (err) == GPG_ERR_CANCELED))
+                    goto leave;
+                  write_status_error ("export_keys.secret", err);
+                  skip_until_subkey = 1;
+                  err = 0;
+                }
+              else
+                {
+                  pk->seckey_info = ski = xtrycalloc (1, sizeof *ski);
+                  if (!ski)
+                    {
+                      err = gpg_error_from_syserror ();
+                      goto leave;
+                    }
+
+                  ski->is_protected = 1; /* Required for mode1003.  */
+                  ski->s2k.mode = 1003;  /* Mode 1003.  */
+
+                  if ((options & EXPORT_BACKUP))
+                    err = build_packet_and_meta (out, node->pkt);
+                  else
+                    err = build_packet (out, node->pkt);
+                  if (!err && node->pkt->pkttype == PKT_PUBLIC_KEY)
+                    {
+                      stats->exported++;
+                      if (!(options & EXPORT_NO_STATUS))
+                        print_status_exported (node->pkt->pkt.public_key);
+                    }
+                }
+            }
+          else if ((!err && (serialno || serialno2))
+                   && secret == 2 && node->pkt->pkttype == PKT_PUBLIC_KEY)
             {
               /* It does not make sense to export a key with its
                * primary key on card using a non-key stub.  Thus we
@@ -2016,7 +2158,8 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
               if (!err && node->pkt->pkttype == PKT_PUBLIC_KEY)
                 {
                   stats->exported++;
-                  print_status_exported (node->pkt->pkt.public_key);
+                  if (!(options & EXPORT_NO_STATUS))
+                    print_status_exported (node->pkt->pkt.public_key);
                 }
             }
           else if (!err)
@@ -2024,6 +2167,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
               err = receive_seckey_from_agent (ctrl, cipherhd,
                                                cleartext,
                                                !!(options & EXPORT_MODE1003),
+                                               0,
                                                &cache_nonce,
                                                hexgrip, pk, NULL);
               if (err)
@@ -2052,7 +2196,8 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
                   if (node->pkt->pkttype == PKT_PUBLIC_KEY)
                     {
                       stats->exported++;
-                      print_status_exported (node->pkt->pkt.public_key);
+                      if (!(options & EXPORT_NO_STATUS))
+                        print_status_exported (node->pkt->pkt.public_key);
                     }
                 }
             }
@@ -2086,9 +2231,11 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
           if (!err && node->pkt->pkttype == PKT_PUBLIC_KEY)
             {
               stats->exported++;
-              print_status_exported (node->pkt->pkt.public_key);
+              if (!(options & EXPORT_NO_STATUS))
+                print_status_exported (node->pkt->pkt.public_key);
             }
         }
+
 
       if (err)
         {
@@ -2104,6 +2251,7 @@ do_export_one_keyblock (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
  leave:
   release_subkey_list (subkey_list);
   xfree (serialno);
+  xfree (serialno2);
   xfree (hexgrip);
   xfree (cache_nonce);
   return err;
@@ -2129,7 +2277,7 @@ do_export_revocs (ctrl_t ctrl, kbnode_t keyblock, u32 *keyid,
         continue;
       sig = node->pkt->pkt.signature;
 
-      /* We are only interested in revocation certifcates.  */
+      /* We are only interested in revocation certificates.  */
       if (!(IS_KEY_REV (sig) || IS_UID_REV (sig) || IS_SUBKEY_REV (sig)))
         continue;
 
@@ -2356,7 +2504,7 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
           if (pk->version == 3)
             {
               log_info ("key %s: PGP 2.x style key (v3) export "
-                        "not yet supported - skipped\n", keystr (keyid));
+                        "not supported - skipped\n", keystr (keyid));
               continue;
             }
           stats->secret_count++;
@@ -2370,6 +2518,7 @@ do_export_stream (ctrl_t ctrl, iobuf_t out, strlist_t users, int secret,
           merge_keys_and_selfsig (ctrl, keyblock);
           clean_all_uids (ctrl, keyblock, opt.verbose, options, NULL, NULL);
           clean_all_subkeys (ctrl, keyblock, opt.verbose,
+                             (options&EXPORT_KEEP_EXPIRED)? KEY_CLEAN_INVALID :
                              (options&EXPORT_MINIMAL)? KEY_CLEAN_ALL
                              /**/                    : KEY_CLEAN_AUTHENCR,
                              NULL, NULL);
@@ -2707,18 +2856,18 @@ export_one_ssh_key (estream_t fp, PKT_public_key *pk)
   blob = get_membuf (&mb, &bloblen);
   if (blob)
     {
-      struct b64state b64_state;
+      gpgrt_b64state_t b64_state;
 
       es_fprintf (fp, "%s ", identifier);
-      err = b64enc_start_es (&b64_state, fp, "");
-      if (err)
+      b64_state = gpgrt_b64enc_start (fp, "");
+      if (!b64_state)
         {
           xfree (blob);
           goto leave;
         }
 
-      err = b64enc_write (&b64_state, blob, bloblen);
-      b64enc_finish (&b64_state);
+      err = gpgrt_b64enc_write (b64_state, blob, bloblen);
+      gpgrt_b64enc_finish (b64_state);
 
       es_fprintf (fp, " openpgp:0x%08lX\n", (ulong)keyid_from_pk (pk, NULL));
       xfree (blob);
@@ -2962,7 +3111,7 @@ export_secret_ssh_key (ctrl_t ctrl, const char *userid)
   int pkalgo;
   int i;
   gcry_mpi_t keyparam[10] = { NULL };
-  struct b64state b64_state;
+  gpgrt_b64state_t b64_state;
 
   init_membuf_secure (&mb, 1024);
   init_membuf_secure (&mb2, 1024);
@@ -2973,7 +3122,7 @@ export_secret_ssh_key (ctrl_t ctrl, const char *userid)
     {
       log_error (_("key \"%s\" not found: %s\n"), userid,
                  err? gpg_strerror (err) : "Not a Keygrip" );
-      return err;
+      goto leave;
     }
 
   bin2hex (desc.u.grip, KEYGRIP_LEN, hexgrip);
@@ -2981,7 +3130,7 @@ export_secret_ssh_key (ctrl_t ctrl, const char *userid)
   if ((err = get_keywrap_key (ctrl, &cipherhd)))
     goto leave;
 
-  err = receive_seckey_from_agent (ctrl, cipherhd, 0, 0, NULL, hexgrip, NULL,
+  err = receive_seckey_from_agent (ctrl, cipherhd, 0, 0, 0, NULL, hexgrip, NULL,
                                    &skey);
   if (err)
     goto leave;
@@ -3140,11 +3289,11 @@ export_secret_ssh_key (ctrl_t ctrl, const char *userid)
       goto leave;
     }
 
-  err = b64enc_start_es (&b64_state, fp, "OPENSSH PRIVATE_KEY");
-  if (err)
+  b64_state = gpgrt_b64enc_start (fp, "OPENSSH PRIVATE_KEY");
+  if (!b64_state)
     goto leave;
-  err = b64enc_write (&b64_state, blob, bloblen);
-  b64enc_finish (&b64_state);
+  err = gpgrt_b64enc_write (b64_state, blob, bloblen);
+  gpgrt_b64enc_finish (b64_state);
   if (err)
     goto leave;
 

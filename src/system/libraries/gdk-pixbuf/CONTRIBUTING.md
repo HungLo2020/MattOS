@@ -3,6 +3,15 @@ Contributing to GdkPixbuf
 
 Thank you for considering contributing to GdkPixbuf!
 
+**NOTE**: GdkPixbuf is an old library, and its data format is
+not equipped to support all the features of modern image formats.
+It is also using many image libraries that are written in C,
+in-process. For these reasons, we don't encourage adding new
+features or support for more image formats to GdkPixbuf at this
+point. You should probably look at using a modern image loading
+framework such as [glycin](https://gitlab.gnome.org/GNOME/glycin/)
+instead.
+
 These guidelines are meant for new contributors, regardless of their level
 of proficiency; following them allows the core developers of GdkPixbuf to
 more effectively evaluate your contribution, and provide prompt feedback to
@@ -173,7 +182,7 @@ Closes #1234
  `git commit -a --author "Joe Coder <joe@coder.org>"` and `--signoff`.
 
  - If your commit is addressing an issue, use the
- [GitLab syntax](https://docs.gitlab.com/ce/user/project/issues/automatic_issue_closing.html)
+ [GitLab syntax](https://docs.gitlab.com/ce/user/project/issues/managing_issues.html#default-closing-pattern)
  to automatically close the issue when merging the commit with the upstream
  repository:
 

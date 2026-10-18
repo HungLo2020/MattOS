@@ -49,7 +49,8 @@ Ben Kibbey  <bjk@luxsci.net>  Assigns past and future changes.
 
 Birger Langkjer <birger.langkjer@image.dk> Translations [da]
 
-Maxim Britov <maxim.britov@gmail.com> Translations [ru]
+Daniel Cerqueira <dan.git@lispclub.com> Translations [pt]
+Pedro Morais <morais@poli.org> Translations [pt_PT]
 
 Daniel Resare  <daniel@resare.com> Translations [sv]
 Per Tunedal    <per@clipanish.com> Translations [sv]
@@ -79,6 +80,7 @@ Gaël Quéri  <gael@lautre.net>  Translations [fr]
     (fixed a lot of typos)
 
 Gregory Steuck <steuck@iname.com> Translations [ru]
+Maxim Britov <maxim.britov@gmail.com> Translations [ru]
 
 Nagy Ferenc László <nfl@nfllab.com> Translations [hu]
 
@@ -129,8 +131,6 @@ Paul Eggert <eggert@twinsun.com>
 Pavel I. Shajdo <pshajdo@gmail.com> Translations [ru]
     (man pages)
 
-Pedro Morais <morais@poli.org> Translations [pt_PT]
-
 Rémi Guyomarch	<rguyom@mail.dotcom.fr> Assigns past and future changes.
     (g10/compress.c, g10/encr-data.c,
      g10/free-packet.c, g10/mdfilter.c, g10/plaintext.c, util/iobuf.c)
@@ -178,11 +178,17 @@ Andreas Schwier <andreas.schwier@cardcontact.de>
 Arnaud Fontaine <arnaud.fontaine at ssi.gouv.fr>
 2016-10-17:580484F4.8040806@ssi.gouv.fr:
 
+Artemii Bigdan <artem@bigdan.in>
+2026-06-21:1827966a-9168-4e9b-8b53-540293b37568@bigdan.in:
+
 Ben McGinnes <ben@adversary.org>
 2017-12-16:20171216002102.l6aejk5xdp6xhtfi@adversary.org:
 
 Christian Aistleitner <christian@quelltextlich.at>
 2013-05-26:20130626112332.GA2228@quelltextlich.at:
+
+Collin Funk <collin.funk1@gmail.com>
+2025-04-29:87y0vi5imt.fsf@gmail.com:
 
 Damien Goutte-Gattat <dgouttegattat@incenp.org>
 2015-01-17:54BA49AA.2040708@incenp.org:
@@ -220,6 +226,9 @@ Jussi Kivilinna <jussi.kivilinna@iki.fi>
 Kyle Butt <kylebutt@gmail.com>
 2013-05-29:CAAODAYLbCtqOG6msLLL0UTdASKWT6u2ptxsgUQ1JpusBESBoNQ@mail.gmail.com:
 
+Mario Haustein <mario.haustein@hrz.tu-chemnitz.de>
+2022-09-26:8149069.T7Z3S40VBb@localdomain:
+
 Michael Haubenwallner <michael.haubenwallner@ssi-schaefer.com>
 2018-07-13:c397e637-f1ce-34f0-7e6a-df04a76e1c35@ssi-schaefer.com:
 
@@ -229,6 +238,9 @@ Phil Pennock <phil@pennock-tech.com>
 
 Rainer Perske <rainer.perske@uni-muenster.de>
 2017-10-24:permail-2017102014511105be2aed00002fc6-perske@message-id.uni-muenster.de:
+
+Ramón García Fernández <ramon.garcia.f@gmail.com>
+2015-02-09:CA+=ghChvG7GqRhb25eTSxXT16z-qah2tWwCaxp5xQ4PZt2TF1w@mail.gmail.com:
 
 Stefan Tomanek <tomanek@internet-sicherheit.de>
 2014-01-30:20140129234449.GY30808@zirkel.wertarbyte.de:

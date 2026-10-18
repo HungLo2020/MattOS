@@ -77,6 +77,7 @@
 # endif /*_DOTLOCK_PREFIX*/
 # define dotlock_disable          _DOTLOCK_PREFIX(dotlock_disable)
 # define dotlock_create           _DOTLOCK_PREFIX(dotlock_create)
+# define dotlock_create_with      _DOTLOCK_PREFIX(dotlock_create_with)
 # define dotlock_set_fd           _DOTLOCK_PREFIX(dotlock_set_fd)
 # define dotlock_get_fd           _DOTLOCK_PREFIX(dotlock_get_fd)
 # define dotlock_destroy          _DOTLOCK_PREFIX(dotlock_destroy)
@@ -99,30 +100,30 @@ typedef struct dotlock_handle *dotlock_t;
 
 enum dotlock_reasons
   {
-    DOTLOCK_CONFIG_TEST,   /* Can't check system - function terminates.  */
-    DOTLOCK_FILE_ERROR,    /* General file error - function terminates.  */
-    DOTLOCK_INV_FILE,      /* Invalid file       - function terminates.  */
-    DOTLOCK_CONFLICT,      /* Something is wrong - function terminates.  */
-    DOTLOCK_NOT_LOCKED,    /* Not locked - No action required.           */
-    DOTLOCK_STALE_REMOVED, /* Stale lock file was removed - retrying.    */
-    DOTLOCK_WAITING        /* Waiting for the lock - may be terminated.  */
+    DOTLOCK_CONFIG_TEST,    /* Can't check system - function terminates.  */
+    DOTLOCK_FILE_ERROR,     /* General file error - function terminates.  */
+    DOTLOCK_INV_FILE,       /* Invalid file       - function terminates.  */
+    DOTLOCK_CONFLICT,       /* Something is wrong - function terminates.  */
+    DOTLOCK_NOT_LOCKED,     /* Not locked - No action required.           */
+    DOTLOCK_STALE_REMOVED,  /* Stale lock file was removed - retrying.    */
+    DOTLOCK_WAITING,        /* Waiting for the lock - may be terminated.  */
+    DOTLOCK_LOCKED_ALREADY, /* Not locked - No action required.           */
+    DOTLOCK_FATAL           /* Fatal runtime error.                       */
   };
 
 /* Flags for dotlock_create.  */
-#define DOTLOCK_PREPARE_CREATE (1U << 5) /* Require dotlock_finish_create.  */
-#define DOTLOCK_LOCK_BY_PARENT (1U << 6) /* Used by dotlock util.  */
-#define DOTLOCK_LOCKED         (1U << 7) /* Used by dotlock util.  */
+#define DOTLOCK_LOCK_BY_PARENT (1U << 6) /* Used by dotlock_tool.  */
+#define DOTLOCK_LOCKED         (1U << 7) /* Used by dotlock_tool.  */
 
 void dotlock_disable (void);
 dotlock_t dotlock_create (const char *file_to_lock, unsigned int flags);
-dotlock_t dotlock_finish_create (dotlock_t h, const char *file_to_lock);
+dotlock_t dotlock_create_with (const char *file_to_lock, unsigned int flags,
+                               int (*cb)(dotlock_t, void *,
+                                         enum dotlock_reasons reason,
+                                         const char *, ...),
+                               void *cb_arg);
 void dotlock_set_fd (dotlock_t h, int fd);
 int  dotlock_get_fd (dotlock_t h);
-void dotlock_set_info_cb (dotlock_t h,
-                          int (*cb)(dotlock_t, void *,
-                                    enum dotlock_reasons reason,
-                                    const char *,...),
-                          void *opaque);
 void dotlock_destroy (dotlock_t h);
 int dotlock_take (dotlock_t h, long timeout);
 int dotlock_is_locked (dotlock_t h);

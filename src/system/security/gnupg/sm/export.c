@@ -30,7 +30,6 @@
 #include <ksba.h>
 
 #include "keydb.h"
-#include "../common/exechelp.h"
 #include "../common/i18n.h"
 #include "../common/sysutils.h"
 #include "minip12.h"
@@ -317,11 +316,12 @@ gpgsm_export (ctrl_t ctrl, strlist_t names, estream_t stream)
 
 
 /* Export a certificate and its private key.  RAWMODE controls the
-   actual output:
-       0 - Private key and certifciate in PKCS#12 format
-       1 - Only unencrypted private key in PKCS#8 format
-       2 - Only unencrypted private key in PKCS#1 format
-    */
+ * actual output:
+ *     0 - Private key and certificate in PKCS#12 format
+ *         (With --no-protection no PKSC#12 passphrase is used)
+ *     1 - Only unencrypted private key in PKCS#8 format
+ *     2 - Only unencrypted private key in PKCS#1 format
+ */
 void
 gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
 {
@@ -485,7 +485,7 @@ gpgsm_p12_export (ctrl_t ctrl, const char *name, estream_t stream, int rawmode)
 }
 
 
-/* Print some info about the certifciate CERT to FP or STREAM */
+/* Print some info about the certificate CERT to FP or STREAM */
 static void
 print_short_info (ksba_cert_t cert, estream_t stream)
 {
@@ -715,22 +715,27 @@ export_p12 (ctrl_t ctrl, const unsigned char *certimg, size_t certimglen,
 
   if (rawmode)
     {
-      /* Export in raw mode, that is only the pkcs#1/#8 private key. */
+      /* Export in raw mode, that is only the pkcs#1/#8 unprotected
+       * private key. */
       result = p12_raw_build (kparms, rawmode, &resultlen);
       if (!result)
         err = gpg_error (GPG_ERR_GENERAL);
     }
   else
     {
-      err = gpgsm_agent_ask_passphrase
-        (ctrl,
-         i18n_utf8 (N_("Please enter the passphrase to protect the "
-                       "new PKCS#12 object.")),
-         1, &passphrase);
-      if (err)
-        goto leave;
+      if (!ctrl->no_protection)
+        {
+          err = gpgsm_agent_ask_passphrase
+            (ctrl,
+             i18n_utf8 (N_("Please enter the passphrase to protect the "
+                           "new PKCS#12 object.")),
+             1, &passphrase);
+          if (err)
+            goto leave;
+        }
 
-      result = p12_build (kparms, certimg, certimglen, passphrase,
+      result = p12_build (kparms, certimg, certimglen,
+                          ctrl->no_protection? "" : passphrase,
                           opt.p12_charset, &resultlen);
       xfree (passphrase);
       passphrase = NULL;

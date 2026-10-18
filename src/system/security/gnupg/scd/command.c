@@ -151,7 +151,7 @@ hex_to_buffer (const char *string, size_t *r_length)
 /* Reset the card and free the application context.  With SEND_RESET
    set to true actually send a RESET to the reader; this is the normal
    way of calling the function.  If KEEP_LOCK is set and the session
-   is locked that lock wil not be released.  */
+   is locked that lock will not be released.  */
 static void
 do_reset (ctrl_t ctrl, int send_reset, int keep_lock)
 {
@@ -384,27 +384,13 @@ cmd_serialno (assuan_context_t ctx, char *line)
 
 
 
-static const char hlp_switchcard[] =
-  "SWITCHCARD [<serialno>]\n"
-  "\n"
-  "Make the card with SERIALNO the current card.\n"
-  "The command \"getinfo card_list\" can be used to list\n"
-  "the serial numbers of inserted and known cards.  Note\n"
-  "that the command \"SERIALNO\" can be used to refresh\n"
-  "the list of known cards.  A simple SERIALNO status\n"
-  "is printed on success.";
+/* Helper for cmd_swicthcard and cmd_learn.  */
 static gpg_error_t
-cmd_switchcard (assuan_context_t ctx, char *line)
+switchcard_core (ctrl_t ctrl, const char *line)
 {
-  ctrl_t ctrl = assuan_get_pointer (ctx);
   gpg_error_t err = 0;
   unsigned char *sn_bin = NULL;
   size_t sn_bin_len = 0;
-
-  if ((err = open_card (ctrl)))
-    return err;
-
-  line = skip_options (line);
 
   if (*line)
     {
@@ -422,6 +408,30 @@ cmd_switchcard (assuan_context_t ctx, char *line)
  leave:
   xfree (sn_bin);
   return err;
+}
+
+
+static const char hlp_switchcard[] =
+  "SWITCHCARD [<serialno>]\n"
+  "\n"
+  "Make the card with SERIALNO the current card.\n"
+  "The command \"getinfo card_list\" can be used to list\n"
+  "the serial numbers of inserted and known cards.  Note\n"
+  "that the command \"SERIALNO\" can be used to refresh\n"
+  "the list of known cards.  A simple SERIALNO status\n"
+  "is printed on success.";
+static gpg_error_t
+cmd_switchcard (assuan_context_t ctx, char *line)
+{
+  ctrl_t ctrl = assuan_get_pointer (ctx);
+  gpg_error_t err;
+
+  if ((err = open_card (ctrl)))
+    return err;
+
+  line = skip_options (line);
+
+  return switchcard_core (ctrl, line);
 }
 
 
@@ -458,7 +468,8 @@ cmd_switchapp (assuan_context_t ctx, char *line)
 
 
 static const char hlp_learn[] =
-  "LEARN [--force] [--keypairinfo] [--reread] [--multi]\n"
+  "LEARN [--force] [--keypairinfo] [--reread] [--multi] KEYGRIP\n"
+  "LEARN [--demand=<serialno>] [--force] [--keypairinfo] [--reread] [--multi]\n"
   "\n"
   "Learn all useful information of the currently inserted card.  When\n"
   "used without the force options, the command might do an INQUIRE\n"
@@ -529,6 +540,8 @@ static const char hlp_learn[] =
   "\n"
   "The URL to be used for locating the entire public key.\n"
   "  \n"
+  "If KEYGRIP is given the card holding a key with that keygrip is used.\n"
+  "If --demand is used the card with the specified S/N is used.\n"
   "Note, that this function may even be used on a locked card.";
 static gpg_error_t
 cmd_learn (assuan_context_t ctx, char *line)
@@ -539,16 +552,36 @@ cmd_learn (assuan_context_t ctx, char *line)
   int opt_multi = has_option (line, "--multi");
   int opt_reread = has_option (line, "--reread");
   int opt_force = has_option (line, "--force");
+  const char *opt_demand;
   unsigned int flags;
   card_t card;
   const char *keygrip = NULL;
 
-  if ((rc = open_card (ctrl)))
-    return rc;
+  opt_demand = has_option_name (line, "--demand");
+  if (opt_demand)
+    {
+      if (*opt_demand != '=')
+        return set_error (GPG_ERR_ASS_PARAMETER, "missing value for option");
+      line = (char *)++opt_demand;
+      while (*line && !spacep (line))
+        line++;
+      if (*line)
+        *line++ = 0;
+    }
 
   line = skip_options (line);
   if (strlen (line) == 40)
     keygrip = line;
+
+  if ((rc = open_card (ctrl)))
+    return rc;
+
+  if (opt_demand)
+    {
+      rc = switchcard_core (ctrl, opt_demand);
+      if (rc)
+        return rc;
+    }
 
   card = card_get (ctrl, keygrip);
   if (!card)
@@ -841,6 +874,7 @@ cmd_readkey (assuan_context_t ctx, char *line)
       gcry_sexp_release (s_key);
       if (!err)
         err = assuan_send_data (ctx, buf, buflen);
+      es_free (buf);
     }
   else if (advanced)
     {
@@ -957,7 +991,8 @@ pin_cb (void *opaque, const char *info, char **retstr)
          We ignore any value returned.  */
       if (info)
         {
-          log_debug ("prompting for pinpad entry '%s'\n", info);
+          if (DBG_IPC)
+            log_debug ("prompting for pinpad entry '%s'\n", info);
           rc = gpgrt_asprintf (&command, "POPUPPINPADPROMPT %s", info);
           if (rc < 0)
             return gpg_error (gpg_err_code_from_errno (errno));
@@ -966,7 +1001,8 @@ pin_cb (void *opaque, const char *info, char **retstr)
         }
       else
         {
-          log_debug ("dismiss pinpad entry prompt\n");
+          if (DBG_IPC)
+            log_debug ("dismiss pinpad entry prompt\n");
           rc = assuan_inquire (ctx, "DISMISSPINPADPROMPT",
                                &value, &valuelen, MAXLEN_PIN);
         }
@@ -976,7 +1012,8 @@ pin_cb (void *opaque, const char *info, char **retstr)
     }
 
   *retstr = NULL;
-  log_debug ("asking for PIN '%s'\n", info);
+  if (DBG_IPC)
+    log_debug ("asking for PIN '%s'\n", info);
 
   rc = gpgrt_asprintf (&command, "NEEDPIN %s", info);
   if (rc < 0)
@@ -1353,7 +1390,7 @@ static const char hlp_writecert[] =
   "\n"
   "This command is used to store a certificate on a smartcard.  The\n"
   "allowed certids depend on the currently selected smartcard\n"
-  "application. The actual certifciate is requested using the inquiry\n"
+  "application. The actual certificate is requested using the inquiry\n"
   "\"CERTDATA\" and needs to be provided in its raw (e.g. DER) form.\n"
   "\n"
   "In almost all cases a PIN will be requested.  See the related\n"
@@ -1730,7 +1767,7 @@ static const char hlp_checkpin[] =
   "\n"
   "   For a definitive list, see the implementation in app-nks.c.\n"
   "   Note that we call a PW2.* PIN a \"PUK\" despite that since TCOS\n"
-  "   3.0 they are technically alternative PINs used to mutally\n"
+  "   3.0 they are technically alternative PINs used to mutually\n"
   "   unblock each other.\n"
   "\n"
   "For PKCS#15:\n"
@@ -2949,10 +2986,10 @@ void
 send_client_notifications (card_t card, int removal)
 {
   struct {
-    pid_t pid;
 #ifdef HAVE_W32_SYSTEM
     HANDLE handle;
 #else
+    pid_t pid;
     int signo;
 #endif
   } killed[50];
@@ -2972,10 +3009,10 @@ send_client_notifications (card_t card, int removal)
 
       if (sl->ctrl_backlink && sl->ctrl_backlink->card_ctx == card)
         {
-          pid_t pid;
 #ifdef HAVE_W32_SYSTEM
           HANDLE handle;
 #else
+          pid_t pid;
           int signo;
 #endif
 
@@ -2990,32 +3027,33 @@ send_client_notifications (card_t card, int removal)
           if (!sl->event_signal || !sl->assuan_ctx)
             continue;
 
-          pid = assuan_get_pid (sl->assuan_ctx);
-
 #ifdef HAVE_W32_SYSTEM
           handle = sl->event_signal;
           for (kidx=0; kidx < killidx; kidx++)
-            if (killed[kidx].pid == pid
-                && killed[kidx].handle == handle)
+            if (killed[kidx].handle == handle)
               break;
           if (kidx < killidx)
-            log_info ("event %p (%p) already triggered for client %d\n",
-                      sl->event_signal, handle, (int)pid);
+            {
+              if (opt.verbose)
+                log_info ("event %p already triggered for client\n",
+                          sl->event_signal);
+            }
           else
             {
-              log_info ("triggering event %p (%p) for client %d\n",
-                        sl->event_signal, handle, (int)pid);
+              if (opt.verbose)
+                log_info ("triggering event %p for client\n",
+                          sl->event_signal);
               if (!SetEvent (handle))
                 log_error ("SetEvent(%p) failed: %s\n",
                            sl->event_signal, w32_strerror (-1));
               if (killidx < DIM (killed))
                 {
-                  killed[killidx].pid = pid;
                   killed[killidx].handle = handle;
                   killidx++;
                 }
             }
 #else /*!HAVE_W32_SYSTEM*/
+          pid = assuan_get_pid (sl->assuan_ctx);
           signo = sl->event_signal;
 
           if (pid != (pid_t)(-1) && pid && signo > 0)
@@ -3025,12 +3063,16 @@ send_client_notifications (card_t card, int removal)
                     && killed[kidx].signo == signo)
                   break;
               if (kidx < killidx)
-                log_info ("signal %d already sent to client %d\n",
-                          signo, (int)pid);
+                {
+                  if (opt.verbose)
+                    log_info ("signal %d already sent to client %d\n",
+                              signo, (int)pid);
+                }
               else
                 {
-                  log_info ("sending signal %d to client %d\n",
-                            signo, (int)pid);
+                  if (opt.verbose)
+                    log_info ("sending signal %d to client %d\n",
+                              signo, (int)pid);
                   kill (pid, signo);
                   if (killidx < DIM (killed))
                     {

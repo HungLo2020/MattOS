@@ -818,7 +818,8 @@ gpg_error_t
 agent_write_private_key (ctrl_t ctrl, const unsigned char *grip,
                          const void *buffer, size_t length, int force,
                          const char *serialno, const char *keyref,
-                         const char *dispserialno, time_t timestamp)
+                         const char *dispserialno, time_t timestamp,
+                         const char *linkattr)
 {
   char hexgrip[40+4+1];
   char *p;
@@ -829,6 +830,7 @@ agent_write_private_key (ctrl_t ctrl, const unsigned char *grip,
   (void)keyref;
   (void)timestamp;
   (void)dispserialno;
+  (void)linkattr;
 
   bin2hex (grip, 20, hexgrip);
   strcpy (hexgrip+40, ".key");

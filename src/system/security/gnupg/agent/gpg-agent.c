@@ -81,6 +81,7 @@ enum cmd_and_opt_values
   oDebugWait,
   oDebugQuickRandom,
   oDebugPinentry,
+  oDebugNoLibgcrypt,
   oNoOptions,
   oHomedir,
   oNoDetach,
@@ -146,6 +147,7 @@ enum cmd_and_opt_values
   oAutoExpandSecmem,
   oListenBacklog,
   oInactivityTimeout,
+  oChangeStdEnvName,
 
   oWriteEnvFile,
 
@@ -169,7 +171,7 @@ static gpgrt_opt_t opts[] = {
   ARGPARSE_s_n (oDaemon,  "daemon", N_("run in daemon mode (background)")),
   ARGPARSE_s_n (oServer,  "server", N_("run in server mode (foreground)")),
 #ifndef HAVE_W32_SYSTEM
-  ARGPARSE_s_n (oSupervised,  "supervised", "@"),
+  ARGPARSE_s_n (oSupervised,  "deprecated-supervised", "@"),
 #endif
   ARGPARSE_s_n (oNoDetach,  "no-detach", N_("do not detach from the console")),
   ARGPARSE_s_n (oSh,	  "sh",        N_("sh-style command output")),
@@ -196,6 +198,7 @@ static gpgrt_opt_t opts[] = {
   ARGPARSE_s_i (oDebugWait,  "debug-wait",  "@"),
   ARGPARSE_s_n (oDebugQuickRandom, "debug-quick-random", "@"),
   ARGPARSE_s_n (oDebugPinentry, "debug-pinentry", "@"),
+  ARGPARSE_s_n (oDebugNoLibgcrypt, "debug-no-libgcrypt", "@"),
   ARGPARSE_s_s (oLogFile,   "log-file",
                 /* */       N_("|FILE|write server mode logs to FILE")),
 
@@ -239,7 +242,7 @@ static gpgrt_opt_t opts[] = {
   ARGPARSE_s_i (oListenBacklog, "listen-backlog", "@"),
   ARGPARSE_op_u (oAutoExpandSecmem, "auto-expand-secmem", "@"),
   ARGPARSE_s_s (oFakedSystemTime, "faked-system-time", "@"),
-
+  ARGPARSE_s_s (oChangeStdEnvName, "change-std-env-name", "@"),
 
   ARGPARSE_header ("Security", N_("Options controlling the security")),
 
@@ -341,14 +344,21 @@ static struct debug_flags_s debug_flags [] =
 #define MIN_PASSPHRASE_NONALPHA (1)
 #define MAX_PASSPHRASE_DAYS   (0)
 
-/* The timer tick used for housekeeping stuff.  Note that on Windows
- * we use a SetWaitableTimer seems to signal earlier than about 2
- * seconds.  Thus we use 4 seconds on all platforms.
- * CHECK_OWN_SOCKET_INTERVAL defines how often we check
- * our own socket in standard socket mode.  If that value is 0 we
- * don't check at all.  All values are in seconds. */
-#define TIMERTICK_INTERVAL          (4)
+/* CHECK_OWN_SOCKET_INTERVAL defines how often we check our own socket
+ * in standard socket mode.  If that value is 0 we don't check at all.
+ * Values is in seconds. */
 #define CHECK_OWN_SOCKET_INTERVAL  (60)
+/* CHECK_PROBLEMS_INTERVAL defines how often we check the existence of
+ * parent process and homedir.  Value is in seconds.  */
+#define CHECK_PROBLEMS_INTERVAL     (4)
+
+
+/* Collection of options used only in this module.  */
+/* These shall be used for new local options instead of all the
+ * separate file local variables.  */
+static struct {
+  unsigned int no_libgcrypt_debug;
+} mopt;
 
 
 /* Flag indicating that the ssh-agent subsystem has been enabled.  */
@@ -384,9 +394,6 @@ static int startup_signal_mask_valid;
 /* Flag to indicate that a shutdown was requested.  */
 static int shutdown_pending;
 
-/* Counter for the currently running own socket checks.  */
-static int check_own_socket_running;
-
 /* Flags to indicate that check_own_socket shall not be called.  */
 static int disable_check_own_socket;
 
@@ -395,6 +402,12 @@ static int is_supervised;
 
 /* Flag indicating to start the daemon even if one already runs.  */
 static int steal_socket;
+
+/* Flag to monitor problems.  */
+static int problem_detected;
+#define AGENT_PROBLEM_SOCKET_TAKEOVER (1 << 0)
+#define AGENT_PROBLEM_PARENT_HAS_GONE (1 << 1)
+#define AGENT_PROBLEM_HOMEDIR_REMOVED (1 << 2)
 
 /* Flag to inhibit socket removal in cleanup.  */
 static int inhibit_socket_removal;
@@ -432,6 +445,17 @@ static assuan_sock_nonce_t socket_nonce_ssh;
  * Let's try this as default.  Change at runtime with --listen-backlog.  */
 static int listen_backlog = 64;
 
+#ifdef HAVE_W32_SYSTEM
+/* The event to break the select call.  */
+static HANDLE the_event2;
+#elif defined(HAVE_PSELECT_NO_EINTR)
+/* An FD to break the select call.  */
+static int event_pipe_fd;
+#else
+/* PID of the main thread.  */
+static pid_t main_thread_pid;
+#endif
+
 /* Default values for options passed to the pinentry. */
 static char *default_display;
 static char *default_ttyname;
@@ -452,20 +476,20 @@ static const char *debug_level;
    the log file after a SIGHUP if it didn't changed. Malloced. */
 static char *current_logfile;
 
-/* The handle_tick() function may test whether a parent is still
- * running.  We record the PID of the parent here or -1 if it should
- * be watched.  */
+#ifdef HAVE_W32_SYSTEM
+#define HAVE_PARENT_PID_SUPPORT 0
+#else
+#define HAVE_PARENT_PID_SUPPORT 1
+#endif
+/* The check_others_thread() function may test whether a parent is
+ * still running.  We record the PID of the parent here or -1 if it
+ * should be watched.  */
 static pid_t parent_pid = (pid_t)(-1);
 
 /* This flag is true if the inotify mechanism for detecting the
  * removal of the homedir is active.  This flag is used to disable the
  * alternative but portable stat based check.  */
 static int have_homedir_inotify;
-
-/* Depending on how gpg-agent was started, the homedir inotify watch
- * may not be reliable.  This flag is set if we assume that inotify
- * works reliable.  */
-static int reliable_homedir_inotify;
 
 /* Number of active connections.  */
 static int active_connections;
@@ -516,13 +540,13 @@ static void agent_deinit_default_ctrl (ctrl_t ctrl);
 static void handle_connections (gnupg_fd_t listen_fd,
                                 gnupg_fd_t listen_fd_extra,
                                 gnupg_fd_t listen_fd_browser,
-                                gnupg_fd_t listen_fd_ssh);
-static void check_own_socket (void);
+                                gnupg_fd_t listen_fd_ssh,
+                                int reliable_homedir_inotify);
 static int check_for_running_agent (int silent);
-
-/* Pth wrapper function definitions. */
-ASSUAN_SYSTEM_NPTH_IMPL;
-
+#if CHECK_OWN_SOCKET_INTERVAL > 0
+static void *check_own_socket_thread (void *arg);
+#endif
+static void *check_others_thread (void *arg);
 
 /*
    Functions.
@@ -634,9 +658,9 @@ set_debug (void)
   if (opt.debug && opt.quiet)
     opt.quiet = 0;
 
-  if (opt.debug & DBG_MPI_VALUE)
+  if ((opt.debug & DBG_MPI_VALUE)  && !mopt.no_libgcrypt_debug)
     gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 2);
-  if (opt.debug & DBG_CRYPTO_VALUE )
+  if ((opt.debug & DBG_CRYPTO_VALUE) && !mopt.no_libgcrypt_debug)
     gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1);
   gcry_control (GCRYCTL_SET_VERBOSITY, (int)opt.verbose);
 
@@ -702,10 +726,10 @@ map_supervised_sockets (gnupg_fd_t *r_fd,
   envvar = getenv ("LISTEN_PID");
   if (!envvar)
     log_error ("no LISTEN_PID environment variable found in "
-               "--supervised mode (ignoring)\n");
+               "--deprecated-supervised mode (ignoring)\n");
   else if (strtoul (envvar, NULL, 10) != (unsigned long)getpid ())
     log_error ("environment variable LISTEN_PID (%lu) does not match"
-               " our pid (%lu) in --supervised mode (ignoring)\n",
+               " our pid (%lu) in --deprecated-supervised mode (ignoring)\n",
                (unsigned long)strtoul (envvar, NULL, 10),
                (unsigned long)getpid ());
 
@@ -735,21 +759,23 @@ map_supervised_sockets (gnupg_fd_t *r_fd,
     fd_count = atoi (envvar);
   else if (fdnames)
     {
-      log_error ("no LISTEN_FDS environment variable found in --supervised"
+      log_error ("no LISTEN_FDS environment variable found in"
+                 " --deprecated-supervised"
                  " mode (relying on LISTEN_FDNAMES instead)\n");
       fd_count = nfdnames;
     }
   else
     {
       log_error ("no LISTEN_FDS or LISTEN_FDNAMES environment variables "
-                "found in --supervised mode"
+                "found in --deprecated-supervised mode"
                 " (assuming 1 active descriptor)\n");
       fd_count = 1;
     }
 
   if (fd_count < 1)
     {
-      log_error ("--supervised mode expects at least one file descriptor"
+      log_error ("--deprecated-supervised mode expects at least"
+                 " one file descriptor"
                  " (was told %d, carrying on as though it were 1)\n",
                  fd_count);
       fd_count = 1;
@@ -762,11 +788,12 @@ map_supervised_sockets (gnupg_fd_t *r_fd,
 
       if (fd_count != 1)
         log_error ("no LISTEN_FDNAMES and LISTEN_FDS (%d) != 1"
-                   " in --supervised mode."
+                   " in --deprecated-supervised mode."
                    " (ignoring all sockets but the first one)\n",
                    fd_count);
       if (fstat (3, &statbuf) == -1 && errno ==EBADF)
-        log_fatal ("file descriptor 3 must be valid in --supervised mode"
+        log_fatal ("file descriptor 3 must be valid in"
+                   " --deprecated-supervised mode"
                    " if LISTEN_FDNAMES is not set\n");
       *r_fd = 3;
       socket_name = gnupg_get_socket_name (3);
@@ -774,7 +801,7 @@ map_supervised_sockets (gnupg_fd_t *r_fd,
   else if (fd_count != nfdnames)
     {
       log_fatal ("number of items in LISTEN_FDNAMES (%d) does not match "
-                 "LISTEN_FDS (%d) in --supervised mode\n",
+                 "LISTEN_FDS (%d) in --deprecated-supervised mode\n",
                  nfdnames, fd_count);
     }
   else
@@ -864,6 +891,7 @@ parse_rereadable_options (gpgrt_argparse_t *pargs, int reread)
       opt.debug = 0;
       opt.no_grab = 1;
       opt.debug_pinentry = 0;
+      mopt.no_libgcrypt_debug = 0;
       xfree (opt.pinentry_program);
       opt.pinentry_program = NULL;
       opt.pinentry_touch_file = NULL;
@@ -909,6 +937,7 @@ parse_rereadable_options (gpgrt_argparse_t *pargs, int reread)
     case oDebugAll: opt.debug = ~0; break;
     case oDebugLevel: debug_level = pargs->r.ret_str; break;
     case oDebugPinentry: opt.debug_pinentry = 1; break;
+    case oDebugNoLibgcrypt: mopt.no_libgcrypt_debug = 1; break;
 
     case oLogFile:
       if (!reread)
@@ -1034,7 +1063,7 @@ finalize_rereadable_options (void)
 
 
 static void
-thread_init_once (void)
+agent_thread_init_once (void)
 {
   static int npth_initialized = 0;
 
@@ -1050,14 +1079,14 @@ thread_init_once (void)
    * initialized and thus Libgcrypt could not set its system call
    * clamp.  */
   gcry_control (GCRYCTL_REINIT_SYSCALL_CLAMP, 0, 0);
+  assuan_control (ASSUAN_CONTROL_REINIT_SYSCALL_CLAMP, NULL);
 }
 
 
 static void
 initialize_modules (void)
 {
-  thread_init_once ();
-  assuan_set_system_hooks (ASSUAN_SYSTEM_NPTH);
+  agent_thread_init_once ();
   initialize_module_cache ();
   initialize_module_call_pinentry ();
   initialize_module_daemon ();
@@ -1085,6 +1114,7 @@ main (int argc, char **argv)
   int gpgconf_list = 0;
   gpg_error_t err;
   struct assuan_malloc_hooks malloc_hooks;
+  int reliable_homedir_inotify = 1;
 
   early_system_init ();
 
@@ -1117,7 +1147,6 @@ main (int argc, char **argv)
   assuan_set_malloc_hooks (&malloc_hooks);
   assuan_set_gpg_err_source (GPG_ERR_SOURCE_DEFAULT);
   assuan_sock_init ();
-  assuan_sock_set_system_hooks (ASSUAN_SYSTEM_NPTH);
   setup_libassuan_logging (&opt.debug, NULL);
 
   setup_libgcrypt_logging ();
@@ -1204,7 +1233,7 @@ main (int argc, char **argv)
    *  Now we are now working under our real uid
    */
 
-  /* The configuraton directories for use by gpgrt_argparser.  */
+  /* The configuration directories for use by gpgrt_argparser.  */
   gpgrt_set_confdir (GPGRT_CONFDIR_SYS, gnupg_sysconfdir ());
   gpgrt_set_confdir (GPGRT_CONFDIR_USER, gnupg_homedir ());
 
@@ -1213,7 +1242,7 @@ main (int argc, char **argv)
   pargs.argc = &argc;
   pargs.argv = &argv;
   /* We are re-using the struct, thus the reset flag.  We OR the
-   * flags so that the internal intialized flag won't be cleared. */
+   * flags so that the internal initialized flag won't be cleared. */
   pargs.flags |= (ARGPARSE_FLAG_RESET
                   | ARGPARSE_FLAG_KEEP
                   | ARGPARSE_FLAG_SYS
@@ -1284,6 +1313,10 @@ main (int argc, char **argv)
         case oKeepTTY: opt.keep_tty = 1; break;
         case oKeepDISPLAY: opt.keep_display = 1; break;
 
+        case oChangeStdEnvName:
+          session_env_mod_stdenvnames (pargs.r.ret_str);
+          break;
+
 	case oSSHSupport:
           ssh_support = 1;
           break;
@@ -1314,10 +1347,7 @@ main (int argc, char **argv)
           break;
 
         case oAutoExpandSecmem:
-          /* Try to enable this option.  It will officially only be
-           * supported by Libgcrypt 1.9 but 1.8.2 already supports it
-           * on the quiet and thus we use the numeric value value.  */
-          gcry_control (78 /*GCRYCTL_AUTO_EXPAND_SECMEM*/,
+          gcry_control (GCRYCTL_AUTO_EXPAND_SECMEM,
                         (unsigned int)pargs.r.ret_ulong,  0);
           break;
 
@@ -1443,7 +1473,7 @@ main (int argc, char **argv)
 
   if (debug_wait && pipe_server)
     {
-      thread_init_once ();
+      agent_thread_init_once ();
       log_debug ("waiting for debugger - my pid is %u .....\n",
                  (unsigned int)getpid());
       gnupg_sleep (debug_wait);
@@ -1584,7 +1614,7 @@ main (int argc, char **argv)
 
       log_info ("listening on: std=%d extra=%d browser=%d ssh=%d\n",
                 fd, fd_extra, fd_browser, fd_ssh);
-      handle_connections (fd, fd_extra, fd_browser, fd_ssh);
+      handle_connections (fd, fd_extra, fd_browser, fd_ssh, 1);
 #endif /*!HAVE_W32_SYSTEM*/
     }
   else if (!is_daemon)
@@ -1812,13 +1842,13 @@ main (int argc, char **argv)
           log_get_prefix (&oldflags);
           log_set_prefix (NULL, oldflags | GPGRT_LOG_RUN_DETACHED);
           opt.running_detached = 1;
-
-          /* Unless we are running with a program given on the command
-           * line we can assume that the inotify things works and thus
-           * we can avoid the regular stat calls.  */
-          if (!argc)
-            reliable_homedir_inotify = 1;
         }
+
+      /* When we are running with a program given on the command
+       * line, the inotify things may not work well and thus
+       * we cannot avoid the regular stat calls.  */
+      if (argc)
+        reliable_homedir_inotify = 0;
 
       {
         struct sigaction sa;
@@ -1838,7 +1868,11 @@ main (int argc, char **argv)
         }
 
       log_info ("%s %s started\n", gpgrt_strusage(11), gpgrt_strusage(13) );
-      handle_connections (fd, fd_extra, fd_browser, fd_ssh);
+#ifdef HAVE_W32_SYSTEM
+      w32_ack_to_frontend ();
+#endif
+      handle_connections (fd, fd_extra, fd_browser, fd_ssh,
+                          reliable_homedir_inotify);
       assuan_sock_close (fd);
     }
 
@@ -2140,39 +2174,45 @@ get_agent_active_connection_count (void)
    notification event.  Calling it the first time creates that
    event.  */
 #if defined(HAVE_W32_SYSTEM)
+static void *
+create_an_event (void)
+{
+  HANDLE h, h2;
+  SECURITY_ATTRIBUTES sa = { sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
+
+  /* We need to use a manual reset event object due to the way our
+     w32-pth wait function works: If we would use an automatic
+     reset event we are not able to figure out which handle has
+     been signaled because at the time we single out the signaled
+     handles using WFSO the event has already been reset due to
+     the WFMO.  */
+  h = CreateEvent (&sa, TRUE, FALSE, NULL);
+  if (!h)
+    log_error ("can't create an event: %s\n", w32_strerror (-1) );
+  else if (!DuplicateHandle (GetCurrentProcess(), h,
+                             GetCurrentProcess(), &h2,
+                             EVENT_MODIFY_STATE|SYNCHRONIZE, TRUE, 0))
+    {
+      log_error ("setting synchronize for an event failed: %s\n",
+                 w32_strerror (-1) );
+      CloseHandle (h);
+    }
+  else
+    {
+      CloseHandle (h);
+      return h2;
+    }
+
+  return INVALID_HANDLE_VALUE;
+}
+
 void *
 get_agent_daemon_notify_event (void)
 {
   static HANDLE the_event = INVALID_HANDLE_VALUE;
 
   if (the_event == INVALID_HANDLE_VALUE)
-    {
-      HANDLE h, h2;
-      SECURITY_ATTRIBUTES sa = { sizeof (SECURITY_ATTRIBUTES), NULL, TRUE};
-
-      /* We need to use a manual reset event object due to the way our
-         w32-pth wait function works: If we would use an automatic
-         reset event we are not able to figure out which handle has
-         been signaled because at the time we single out the signaled
-         handles using WFSO the event has already been reset due to
-         the WFMO.  */
-      h = CreateEvent (&sa, TRUE, FALSE, NULL);
-      if (!h)
-        log_error ("can't create scd notify event: %s\n", w32_strerror (-1) );
-      else if (!DuplicateHandle (GetCurrentProcess(), h,
-                                 GetCurrentProcess(), &h2,
-                                 EVENT_MODIFY_STATE|SYNCHRONIZE, TRUE, 0))
-        {
-          log_error ("setting synchronize for scd notify event failed: %s\n",
-                     w32_strerror (-1) );
-          CloseHandle (h);
-        }
-      else
-        {
-          CloseHandle (h);
-          the_event = h2;
-        }
-    }
+    the_event = create_an_event ();
 
   return the_event;
 }
@@ -2283,7 +2323,7 @@ create_server_socket (char *name, int primary, int cygwin,
       if (primary && !check_for_running_agent (1))
         {
           if (steal_socket)
-            log_info (N_("trying to steal socket from running %s\n"),
+            log_info (_("trying to steal socket from running %s\n"),
                       "gpg-agent");
           else
             {
@@ -2298,17 +2338,19 @@ create_server_socket (char *name, int primary, int cygwin,
             }
         }
       gnupg_remove (unaddr->sun_path);
+      log_info (_("socket file removed - retrying binding\n"));
       rc = assuan_sock_bind (fd, addr, len);
     }
   if (rc != -1 && (rc=assuan_sock_get_nonce (addr, len, nonce)))
     log_error (_("error getting nonce for the socket\n"));
   if (rc == -1)
     {
+      rc = gpg_error_from_syserror ();
+      log_libassuan_system_error (fd);
       /* We use gpg_strerror here because it allows us to get strings
          for some W32 socket error codes.  */
       log_error (_("error binding socket to '%s': %s\n"),
-                 unaddr->sun_path,
-                 gpg_strerror (gpg_error_from_syserror ()));
+                 unaddr->sun_path, gpg_strerror (rc));
 
       assuan_sock_close (fd);
       *name = 0; /* Inhibit removal of the socket by cleanup(). */
@@ -2429,57 +2471,6 @@ create_directories (void)
 }
 
 
-
-/* This is the worker for the ticker.  It is called every few seconds
-   and may only do fast operations. */
-static void
-handle_tick (void)
-{
-  static time_t last_minute;
-  struct stat statbuf;
-
-  if (!last_minute)
-    last_minute = time (NULL);
-
-  /* If we are running as a child of another process, check whether
-     the parent is still alive and shutdown if not. */
-#ifndef HAVE_W32_SYSTEM
-  if (parent_pid != (pid_t)(-1))
-    {
-      if (kill (parent_pid, 0))
-        {
-          shutdown_pending = 2;
-          log_info ("parent process died - shutting down\n");
-          log_info ("%s %s stopped\n", gpgrt_strusage(11), gpgrt_strusage(13));
-          cleanup ();
-          agent_exit (0);
-        }
-    }
-#endif /*HAVE_W32_SYSTEM*/
-
-  /* Code to be run from time to time.  */
-#if CHECK_OWN_SOCKET_INTERVAL > 0
-  if (last_minute + CHECK_OWN_SOCKET_INTERVAL <= time (NULL))
-    {
-      check_own_socket ();
-      last_minute = time (NULL);
-    }
-#endif
-
-  /* Need to check for expired cache entries.  */
-  agent_cache_housekeeping ();
-
-  /* Check whether the homedir is still available.  */
-  if (!shutdown_pending
-      && (!have_homedir_inotify || !reliable_homedir_inotify)
-      && gnupg_stat (gnupg_homedir (), &statbuf) && errno == ENOENT)
-    {
-      shutdown_pending = 1;
-      log_info ("homedir has been removed - shutting down\n");
-    }
-}
-
-
 /* A global function which allows us to call the reload stuff from
    other places too.  This is only used when build for W32.  */
 void
@@ -2538,6 +2529,11 @@ handle_signal (int signo)
       agent_sigusr2_action ();
       break;
 
+    case SIGCONT:
+      /* Do nothing, but break the syscall.  */
+      log_debug ("SIGCONT received - breaking select\n");
+      break;
+
     case SIGTERM:
       if (!shutdown_pending)
         log_info ("SIGTERM received - shutting down ...\n");
@@ -2575,7 +2571,7 @@ check_nonce (ctrl_t ctrl, assuan_sock_nonce_t *nonce)
   if (assuan_sock_check_nonce (ctrl->thread_startup.fd, nonce))
     {
       log_info (_("error reading nonce on fd %d: %s\n"),
-                FD2INT(ctrl->thread_startup.fd), strerror (errno));
+                FD_DBG (ctrl->thread_startup.fd), strerror (errno));
       assuan_sock_close (ctrl->thread_startup.fd);
       xfree (ctrl);
       return -1;
@@ -2705,7 +2701,6 @@ putty_message_proc (HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
   xfree (ctrl);
   if (data)
     UnmapViewOfFile (data);
-  xfree (mapsid);
   if (psd)
     LocalFree (psd);
   xfree (mysid);
@@ -2875,12 +2870,12 @@ do_start_connection_thread (ctrl_t ctrl)
   agent_init_default_ctrl (ctrl);
   if (opt.verbose > 1 && !DBG_IPC)
     log_info (_("handler 0x%lx for fd %d started\n"),
-              (unsigned long) npth_self(), FD2INT(ctrl->thread_startup.fd));
+              (unsigned long) npth_self(), FD_DBG (ctrl->thread_startup.fd));
 
   start_command_handler (ctrl, GNUPG_INVALID_FD, ctrl->thread_startup.fd);
   if (opt.verbose > 1 && !DBG_IPC)
     log_info (_("handler 0x%lx for fd %d terminated\n"),
-              (unsigned long) npth_self(), FD2INT(ctrl->thread_startup.fd));
+              (unsigned long) npth_self(), FD_DBG (ctrl->thread_startup.fd));
 
   agent_deinit_default_ctrl (ctrl);
   xfree (ctrl);
@@ -2955,17 +2950,39 @@ start_connection_thread_ssh (void *arg)
   agent_init_default_ctrl (ctrl);
   if (opt.verbose)
     log_info (_("ssh handler 0x%lx for fd %d started\n"),
-              (unsigned long) npth_self(), FD2INT(ctrl->thread_startup.fd));
+              (unsigned long) npth_self(), FD_DBG (ctrl->thread_startup.fd));
 
   start_command_handler_ssh (ctrl, ctrl->thread_startup.fd);
   if (opt.verbose)
     log_info (_("ssh handler 0x%lx for fd %d terminated\n"),
-              (unsigned long) npth_self(), FD2INT(ctrl->thread_startup.fd));
+              (unsigned long) npth_self(), FD_DBG (ctrl->thread_startup.fd));
 
   agent_deinit_default_ctrl (ctrl);
   xfree (ctrl);
   active_connections--;
   return NULL;
+}
+
+
+void
+agent_kick_the_loop (void)
+{
+  /* Kick the select loop.  */
+#ifdef HAVE_W32_SYSTEM
+  int ret = SetEvent (the_event2);
+  if (ret == 0)
+    log_error ("SetEvent for agent_kick_the_loop failed: %s\n",
+               w32_strerror (-1));
+#else
+# ifdef HAVE_PSELECT_NO_EINTR
+  write (event_pipe_fd, "", 1);
+# else
+  int ret = kill (main_thread_pid, SIGCONT);
+  if (ret < 0)
+    log_error ("sending signal for agent_kick_the_loop failed: %s\n",
+               gpg_strerror (gpg_error_from_syserror ()));
+# endif
+#endif
 }
 
 
@@ -2975,7 +2992,8 @@ static void
 handle_connections (gnupg_fd_t listen_fd,
                     gnupg_fd_t listen_fd_extra,
                     gnupg_fd_t listen_fd_browser,
-                    gnupg_fd_t listen_fd_ssh)
+                    gnupg_fd_t listen_fd_ssh,
+                    int reliable_homedir_inotify)
 {
   gpg_error_t err;
   npth_attr_t tattr;
@@ -2986,12 +3004,15 @@ handle_connections (gnupg_fd_t listen_fd,
   gnupg_fd_t fd;
   int nfd;
   int saved_errno;
-  struct timespec abstime;
-  struct timespec curtime;
-  struct timespec timeout;
+  struct timespec *tp;
 #ifdef HAVE_W32_SYSTEM
-  HANDLE events[2];
+  HANDLE events[3];
   unsigned int events_set;
+#else
+  int signo;
+# ifdef HAVE_PSELECT_NO_EINTR
+  int pipe_fd[2];
+# endif
 #endif
   int sock_inotify_fd = -1;
   int home_inotify_fd = -1;
@@ -3019,11 +3040,24 @@ handle_connections (gnupg_fd_t listen_fd,
   npth_sigev_add (SIGUSR1);
   npth_sigev_add (SIGUSR2);
   npth_sigev_add (SIGINT);
+  npth_sigev_add (SIGCONT);
   npth_sigev_add (SIGTERM);
   npth_sigev_fini ();
+# ifdef HAVE_PSELECT_NO_EINTR
+  ret = gnupg_create_pipe (pipe_fd, 0);
+  if (ret)
+    {
+      log_error ("pipe creation failed: %s\n", gpg_strerror (ret));
+      return;
+    }
+  event_pipe_fd = pipe_fd[1];
+# else
+  main_thread_pid = getpid ();
+# endif
 #else
   events[0] = get_agent_daemon_notify_event ();
-  events[1] = INVALID_HANDLE_VALUE;
+  events[1] = the_event2 = create_an_event ();
+  events[2] = INVALID_HANDLE_VALUE;
 #endif
 
   if (disable_check_own_socket)
@@ -3035,7 +3069,7 @@ handle_connections (gnupg_fd_t listen_fd,
                   gpg_strerror (err));
     }
 
-  if (disable_check_own_socket)
+  if (!reliable_homedir_inotify)
     home_inotify_fd = -1;
   else if ((err = gnupg_inotify_watch_delete_self (&home_inotify_fd,
                                                    gnupg_homedir ())))
@@ -3046,6 +3080,27 @@ handle_connections (gnupg_fd_t listen_fd,
     }
   else
     have_homedir_inotify = 1;
+
+#if CHECK_OWN_SOCKET_INTERVAL > 0
+  if (!disable_check_own_socket && sock_inotify_fd == -1)
+    {
+      npth_t thread;
+
+      err = npth_create (&thread, &tattr, check_own_socket_thread, NULL);
+      if (err)
+        log_error ("error spawning check_own_socket_thread: %s\n", strerror (err));
+    }
+#endif
+
+  if ((HAVE_PARENT_PID_SUPPORT && parent_pid != (pid_t)(-1))
+      || !have_homedir_inotify)
+    {
+      npth_t thread;
+
+      err = npth_create (&thread, &tattr, check_others_thread, NULL);
+      if (err)
+        log_error ("error spawning check_others_thread: %s\n", strerror (err));
+    }
 
   /* On Windows we need to fire up a separate thread to listen for
      requests from Putty (an SSH client), so we can replace Putty's
@@ -3076,24 +3131,24 @@ handle_connections (gnupg_fd_t listen_fd,
 
   FD_ZERO (&fdset);
   FD_SET (FD2INT (listen_fd), &fdset);
-  nfd = FD2INT (listen_fd);
+  nfd = FD2NUM (listen_fd);
   if (listen_fd_extra != GNUPG_INVALID_FD)
     {
       FD_SET ( FD2INT(listen_fd_extra), &fdset);
       if (FD2INT (listen_fd_extra) > nfd)
-        nfd = FD2INT (listen_fd_extra);
+        nfd = FD2NUM (listen_fd_extra);
     }
   if (listen_fd_browser != GNUPG_INVALID_FD)
     {
       FD_SET ( FD2INT(listen_fd_browser), &fdset);
       if (FD2INT (listen_fd_browser) > nfd)
-        nfd = FD2INT (listen_fd_browser);
+        nfd = FD2NUM (listen_fd_browser);
     }
   if (listen_fd_ssh != GNUPG_INVALID_FD)
     {
       FD_SET ( FD2INT(listen_fd_ssh), &fdset);
       if (FD2INT (listen_fd_ssh) > nfd)
-        nfd = FD2INT (listen_fd_ssh);
+        nfd = FD2NUM (listen_fd_ssh);
     }
   if (sock_inotify_fd != -1)
     {
@@ -3113,15 +3168,12 @@ handle_connections (gnupg_fd_t listen_fd,
   listentbl[2].l_fd = listen_fd_browser;
   listentbl[3].l_fd = listen_fd_ssh;
 
-  npth_clock_gettime (&abstime);
-  abstime.tv_sec += TIMERTICK_INTERVAL;
-
   for (;;)
     {
       /* Shutdown test.  */
       if (shutdown_pending)
         {
-          if (active_connections == 0)
+          if (active_connections == 0 || is_supervised)
             break; /* ready */
 
           /* Do not accept new connections but keep on running the
@@ -3150,28 +3202,23 @@ handle_connections (gnupg_fd_t listen_fd,
          thus a simple assignment is fine to copy the entire set.  */
       read_fdset = fdset;
 
-      npth_clock_gettime (&curtime);
-      if (!(npth_timercmp (&curtime, &abstime, <)))
-	{
-	  /* Timeout.  */
-	  handle_tick ();
-	  npth_clock_gettime (&abstime);
-	  abstime.tv_sec += TIMERTICK_INTERVAL;
-	}
-      npth_timersub (&abstime, &curtime, &timeout);
+#ifdef HAVE_PSELECT_NO_EINTR
+      FD_SET (pipe_fd[0], &read_fdset);
+      if (nfd < pipe_fd[0])
+        nfd = pipe_fd[0];
+#endif
+
+      tp = agent_cache_expiration ();
 
 #ifndef HAVE_W32_SYSTEM
-      ret = npth_pselect (nfd+1, &read_fdset, NULL, NULL, &timeout,
+      ret = npth_pselect (nfd+1, &read_fdset, NULL, NULL, tp,
                           npth_sigev_sigmask ());
       saved_errno = errno;
 
-      {
-        int signo;
-        while (npth_sigev_get_pending (&signo))
-          handle_signal (signo);
-      }
+      while (npth_sigev_get_pending (&signo))
+        handle_signal (signo);
 #else
-      ret = npth_eselect (nfd+1, &read_fdset, NULL, NULL, &timeout,
+      ret = npth_eselect (nfd+1, &read_fdset, NULL, NULL, tp,
                           events, &events_set);
       saved_errno = errno;
 
@@ -3187,10 +3234,46 @@ handle_connections (gnupg_fd_t listen_fd,
           gnupg_sleep (1);
           continue;
 	}
+
+#ifndef HAVE_W32_SYSTEM
+      if ((problem_detected & AGENT_PROBLEM_PARENT_HAS_GONE))
+        {
+          shutdown_pending = 2;
+          log_info ("parent process died - shutting down\n");
+          log_info ("%s %s stopped\n", gpgrt_strusage(11), gpgrt_strusage(13));
+          cleanup ();
+          agent_exit (0);
+        }
+#endif
+
+      if ((problem_detected & AGENT_PROBLEM_SOCKET_TAKEOVER))
+        {
+          /* We may not remove the socket as it is now in use by another
+             server. */
+          inhibit_socket_removal = 1;
+          shutdown_pending = 2;
+          log_info ("this process is useless - shutting down\n");
+        }
+
+      if ((problem_detected & AGENT_PROBLEM_HOMEDIR_REMOVED))
+        {
+          shutdown_pending = 1;
+          log_info ("homedir has been removed - shutting down\n");
+        }
+
       if (ret <= 0)
 	/* Interrupt or timeout.  Will be handled when calculating the
 	   next timeout.  */
 	continue;
+
+#ifdef HAVE_PSELECT_NO_EINTR
+      if (FD_ISSET (pipe_fd[0], &read_fdset))
+        {
+          char buf[256];
+
+          read (pipe_fd[0], buf, sizeof buf);
+        }
+#endif
 
       /* The inotify fds are set even when a shutdown is pending (see
        * above).  So we must handle them in any case.  To avoid that
@@ -3199,7 +3282,10 @@ handle_connections (gnupg_fd_t listen_fd,
           && FD_ISSET (sock_inotify_fd, &read_fdset)
           && gnupg_inotify_has_name (sock_inotify_fd, GPG_AGENT_SOCK_NAME))
         {
-          shutdown_pending = 1;
+          /* We may not remove the socket (if any), as it may be now
+             in use by another server.  */
+          inhibit_socket_removal = 1;
+          shutdown_pending = 2;
           close (sock_inotify_fd);
           sock_inotify_fd = -1;
           log_info ("socket file has been removed - shutting down\n");
@@ -3228,12 +3314,14 @@ handle_connections (gnupg_fd_t listen_fd,
                 continue;
 
               plen = sizeof paddr;
-              fd = INT2FD (npth_accept (FD2INT(listentbl[idx].l_fd),
-                                        (struct sockaddr *)&paddr, &plen));
+              fd = assuan_sock_accept (listentbl[idx].l_fd,
+                                       (struct sockaddr *)&paddr, &plen);
               if (fd == GNUPG_INVALID_FD)
                 {
+                  gpg_error_t myerr = gpg_error_from_syserror ();
+                  log_libassuan_system_error (listentbl[idx].l_fd);
                   log_error ("accept failed for %s: %s\n",
-                             listentbl[idx].name, strerror (errno));
+                             listentbl[idx].name, gpg_strerror (myerr));
                 }
               else if ( !(ctrl = xtrycalloc (1, sizeof *ctrl)))
                 {
@@ -3269,13 +3357,21 @@ handle_connections (gnupg_fd_t listen_fd,
     close (sock_inotify_fd);
   if (home_inotify_fd != -1)
     close (home_inotify_fd);
+#ifdef HAVE_W32_SYSTEM
+  if (the_event2 != INVALID_HANDLE_VALUE)
+    CloseHandle (the_event2);
+#endif
+#ifdef HAVE_PSELECT_NO_EINTR
+  close (pipe_fd[0]);
+  close (pipe_fd[1]);
+#endif
   cleanup ();
   log_info (_("%s %s stopped\n"), gpgrt_strusage(11), gpgrt_strusage(13));
   npth_attr_destroy (&tattr);
 }
 
 
-
+#if CHECK_OWN_SOCKET_INTERVAL > 0
 /* Helper for check_own_socket.  */
 static gpg_error_t
 check_own_socket_pid_cb (void *opaque, const void *buffer, size_t length)
@@ -3286,19 +3382,17 @@ check_own_socket_pid_cb (void *opaque, const void *buffer, size_t length)
 }
 
 
-/* The thread running the actual check.  We need to run this in a
-   separate thread so that check_own_thread can be called from the
-   timer tick.  */
-static void *
-check_own_socket_thread (void *arg)
+/* Check whether we are still listening on our own socket.  In case
+   another gpg-agent process started after us has taken ownership of
+   our socket, we would linger around without any real task.  Thus we
+   better check once in a while whether we are really needed.  */
+static int
+do_check_own_socket (const char *sockname)
 {
   int rc;
-  char *sockname = arg;
   assuan_context_t ctx = NULL;
   membuf_t mb;
   char *buffer;
-
-  check_own_socket_running++;
 
   rc = assuan_new (&ctx);
   if (rc)
@@ -3337,58 +3431,78 @@ check_own_socket_thread (void *arg)
   xfree (buffer);
 
  leave:
-  xfree (sockname);
   if (ctx)
     assuan_release (ctx);
-  if (rc)
-    {
-      /* We may not remove the socket as it is now in use by another
-         server. */
-      inhibit_socket_removal = 1;
-      shutdown_pending = 2;
-      log_info ("this process is useless - shutting down\n");
-    }
-  check_own_socket_running--;
-  return NULL;
+
+  return rc;
 }
 
-
-/* Check whether we are still listening on our own socket.  In case
-   another gpg-agent process started after us has taken ownership of
-   our socket, we would linger around without any real task.  Thus we
-   better check once in a while whether we are really needed.  */
-static void
-check_own_socket (void)
+/* The thread running the actual check.  */
+static void *
+check_own_socket_thread (void *arg)
 {
   char *sockname;
-  npth_t thread;
-  npth_attr_t tattr;
-  int err;
 
-  if (disable_check_own_socket)
-    return;
-
-  if (check_own_socket_running || shutdown_pending)
-    return;  /* Still running or already shutting down.  */
+  (void)arg;
 
   sockname = make_filename_try (gnupg_socketdir (), GPG_AGENT_SOCK_NAME, NULL);
   if (!sockname)
-    return; /* Out of memory.  */
+    return NULL; /* Out of memory.  */
 
-  err = npth_attr_init (&tattr);
-  if (err)
+  while (!problem_detected)
     {
-      xfree (sockname);
-      return;
+      if (shutdown_pending)
+        goto leave;
+
+      gnupg_sleep (CHECK_OWN_SOCKET_INTERVAL);
+
+      if (do_check_own_socket (sockname))
+        problem_detected |= AGENT_PROBLEM_SOCKET_TAKEOVER;
     }
-  npth_attr_setdetachstate (&tattr, NPTH_CREATE_DETACHED);
-  err = npth_create (&thread, &tattr, check_own_socket_thread, sockname);
-  if (err)
-    log_error ("error spawning check_own_socket_thread: %s\n", strerror (err));
-  npth_attr_destroy (&tattr);
+
+  agent_kick_the_loop ();
+
+ leave:
+  xfree (sockname);
+  return NULL;
 }
+#endif
 
+/* The thread running other checks.  */
+static void *
+check_others_thread (void *arg)
+{
+  const char *homedir = gnupg_homedir ();
 
+  (void)arg;
+
+  while (!problem_detected)
+    {
+      struct stat statbuf;
+
+      if (shutdown_pending)
+        goto leave;
+
+      gnupg_sleep (CHECK_PROBLEMS_INTERVAL);
+
+      /* If we are running as a child of another process, check whether
+         the parent is still alive and shutdown if not. */
+#ifndef HAVE_W32_SYSTEM
+      if (parent_pid != (pid_t)(-1) && kill (parent_pid, 0))
+        problem_detected |= AGENT_PROBLEM_PARENT_HAS_GONE;
+#endif /*HAVE_W32_SYSTEM*/
+
+      /* Check whether the homedir is still available.  */
+      if (!have_homedir_inotify
+          && gnupg_stat (homedir, &statbuf) && errno == ENOENT)
+        problem_detected |= AGENT_PROBLEM_HOMEDIR_REMOVED;
+    }
+
+  agent_kick_the_loop ();
+
+ leave:
+  return NULL;
+}
 
 /* Figure out whether an agent is available and running. Prints an
    error if not.  If SILENT is true, no messages are printed.

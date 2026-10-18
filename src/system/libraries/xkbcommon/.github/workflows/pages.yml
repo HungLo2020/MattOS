@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Download doxygen from Linux build
-        uses: dawidd6/action-download-artifact@v9
+        uses: dawidd6/action-download-artifact@v10
         with:
           workflow: linux.yml
           workflow_conclusion: success
@@ -37,7 +37,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: doxygen/
 

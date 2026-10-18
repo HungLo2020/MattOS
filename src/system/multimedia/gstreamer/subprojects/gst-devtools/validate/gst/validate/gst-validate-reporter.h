@@ -51,7 +51,6 @@ G_BEGIN_DECLS
  * Reports a new issue in the GstValidate reporting system with @m
  * as the source of that issue.
  */
-#ifdef G_HAVE_ISO_VARARGS
 #define GST_VALIDATE_REPORT(m, issue_id, ...)				\
   G_STMT_START {							\
     gst_validate_report (GST_VALIDATE_REPORTER (m),			\
@@ -66,20 +65,6 @@ G_BEGIN_DECLS
 			 __VA_ARGS__ );					\
   } G_STMT_END
 
-#else /* G_HAVE_GNUC_VARARGS */
-#ifdef G_HAVE_GNUC_VARARGS
-#define GST_VALIDATE_REPORT(m, issue_id, args...)			\
-  G_STMT_START {							\
-    gst_validate_report (GST_VALIDATE_REPORTER (m),			\
-			 issue_id, ##args );	\
-  } G_STMT_END
-#define GST_VALIDATE_REPORT_ACTION(m, a, issue_id, args...)			\
-  G_STMT_START {							\
-    gst_validate_report_action (GST_VALIDATE_REPORTER (m), a,		\
-			 issue_id, ##args );	\
-  } G_STMT_END
-#endif /* G_HAVE_ISO_VARARGS */
-#endif /* G_HAVE_GNUC_VARARGS */
 GST_VALIDATE_API
 GType gst_validate_reporter_get_type (void);
 
@@ -122,7 +107,7 @@ void gst_validate_reporter_set_name            (GstValidateReporter * reporter,
 GST_VALIDATE_API
 const gchar * gst_validate_reporter_get_name            (GstValidateReporter * reporter);
 GST_VALIDATE_API
-GstValidateRunner * gst_validate_reporter_get_runner (GstValidateReporter *reporter);
+GstValidateRunner * gst_validate_reporter_get_runner (GstValidateReporter *reporter) G_GNUC_WARN_UNUSED_RESULT;
 GST_VALIDATE_API
 void gst_validate_reporter_init                (GstValidateReporter * reporter, const gchar *name);
 GST_VALIDATE_API
@@ -148,7 +133,7 @@ GST_VALIDATE_API
 GstValidateReport * gst_validate_reporter_get_report (GstValidateReporter *reporter,
                                                       GstValidateIssueId issue_id);
 GST_VALIDATE_API
-GList * gst_validate_reporter_get_reports (GstValidateReporter * reporter);
+GList * gst_validate_reporter_get_reports (GstValidateReporter * reporter) G_GNUC_WARN_UNUSED_RESULT;
 GST_VALIDATE_API
 gint gst_validate_reporter_get_reports_count (GstValidateReporter *reporter);
 GST_VALIDATE_API
@@ -157,7 +142,7 @@ GstValidateReportingDetails gst_validate_reporter_get_reporting_level (GstValida
 GST_VALIDATE_API
 void gst_validate_reporter_purge_reports (GstValidateReporter * reporter);
 GST_VALIDATE_API
-GstPipeline * gst_validate_reporter_get_pipeline (GstValidateReporter * reporter);
+GstPipeline * gst_validate_reporter_get_pipeline (GstValidateReporter * reporter) G_GNUC_WARN_UNUSED_RESULT;
 
 G_END_DECLS
 #endif /* _GST_VALIDATE_REPORTER_ */

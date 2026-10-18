@@ -11,6 +11,8 @@ xkbcommon provides multiple tools for debugging. Please consult the manual pages
 ### Basic tools
 
 - Interactive:
+  - `xkbcli interactive` to test your current configuration by detecting the
+    session type.
   - `xkbcli interactive-x11` to test your current configuration in an *X11* session.
   - `xkbcli interactive-wayland` to test your current configuration in a *Wayland*
     session.
@@ -67,4 +69,4 @@ it is advised to try custom configurations safely with the following workflow:
 
 Happy hacking!
 
-[user-configuration locations]: @ref user-config-locations
+[user-configuration locations]: @ref xkb-data-locations

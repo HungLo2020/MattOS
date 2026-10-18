@@ -73,10 +73,10 @@
 #endif
 
 #if GST_GL_HAVE_PLATFORM_GLX
-#include "x11/gstglcontext_glx.h"
+#include "x11/gstglcontext_glx_private.h"
 #endif
 #if GST_GL_HAVE_PLATFORM_EGL
-#include "egl/gstglcontext_egl.h"
+#include "egl/gstglcontext_egl_private.h"
 #endif
 #if GST_GL_HAVE_PLATFORM_CGL
 #include "cocoa/gstglcontext_cocoa.h"
@@ -107,10 +107,11 @@ load_opengl_module (gpointer user_data)
 #else
   /* On Linux the .so is only in -dev packages, try with a real soname
    * Proper compilers will optimize away the strcmp */
-  if (g_strcmp0 (G_MODULE_SUFFIX, "so") == 0)
-    module_opengl = g_module_open ("libGL.so.1", G_MODULE_BIND_LAZY);
-  else if (g_strcmp0 (G_MODULE_SUFFIX, "dll") == 0)
-    module_opengl = g_module_open ("opengl32.dll", G_MODULE_BIND_LAZY);
+#ifdef __linux__
+  module_opengl = g_module_open ("libGL.so.1", G_MODULE_BIND_LAZY);
+#elif defined(G_OS_WIN32)
+  module_opengl = g_module_open ("opengl32.dll", G_MODULE_BIND_LAZY);
+#endif
 
   /* This automatically handles the suffix and even .la files */
   if (!module_opengl)
@@ -134,8 +135,9 @@ load_gles2_module (gpointer user_data)
 #else
   /* On Linux the .so is only in -dev packages, try with a real soname
    * Proper compilers will optimize away the strcmp */
-  if (g_strcmp0 (G_MODULE_SUFFIX, "so") == 0)
-    module_gles2 = g_module_open ("libGLESv2.so.2", G_MODULE_BIND_LAZY);
+#ifdef __linux__
+  module_gles2 = g_module_open ("libGLESv2.so.2", G_MODULE_BIND_LAZY);
+#endif
 
   /* This automatically handles the suffix and even .la files */
   if (!module_gles2)
@@ -413,7 +415,7 @@ gst_gl_context_new_wrapped (GstGLDisplay * display, guintptr handle,
   GstGLContext *context;
   GstGLWrappedContext *context_wrap = NULL;
   GstGLContextClass *context_class;
-  GstGLAPI display_api;
+  GstGLAPI display_api GST_UNUSED_CHECKS;
 
   _init_debug ();
 
@@ -424,9 +426,11 @@ gst_gl_context_new_wrapped (GstGLDisplay * display, guintptr handle,
   g_return_val_if_fail (context_type != GST_GL_PLATFORM_NONE, NULL);
   g_return_val_if_fail (context_type != GST_GL_PLATFORM_ANY, NULL);
 
+#ifndef G_DISABLE_CHECKS
   display_api = gst_gl_display_get_gl_api (display);
   g_return_val_if_fail ((display_api & available_apis) != GST_GL_API_NONE,
       NULL);
+#endif
 
   context_wrap = g_object_new (GST_TYPE_GL_WRAPPED_CONTEXT, NULL);
   gst_object_ref_sink (context_wrap);

@@ -269,6 +269,7 @@ gst_cuda_allocator_update_info (const GstVideoInfo * reference,
     case GST_VIDEO_FORMAT_BGRx:
     case GST_VIDEO_FORMAT_ARGB:
     case GST_VIDEO_FORMAT_ABGR:
+    case GST_VIDEO_FORMAT_ARGB64:
     case GST_VIDEO_FORMAT_RGB:
     case GST_VIDEO_FORMAT_BGR:
     case GST_VIDEO_FORMAT_BGR10A2_LE:
@@ -815,6 +816,7 @@ static const TextureFormat format_map[] = {
   MAKE_FORMAT_RGBP (GBR_12LE, UNSIGNED_INT16),
   MAKE_FORMAT_RGBP (GBR_16LE, UNSIGNED_INT16),
   MAKE_FORMAT_RGBAP (GBRA, UNSIGNED_INT8),
+  MAKE_FORMAT_RGB (VUYA, UNSIGNED_INT8),
 };
 
 /**
@@ -1164,6 +1166,42 @@ gst_cuda_allocator_alloc (GstCudaAllocator * allocator,
 
   return gst_cuda_allocator_alloc_internal (allocator, context, stream,
       info, info->stride[0], alloc_height, FALSE, nullptr);
+}
+
+/**
+ * gst_cuda_allocator_alloc_stream_ordered:
+ * @allocator: (transfer none) (allow-none): a #GstCudaAllocator
+ * @context: (transfer none): a #GstCudaContext
+ * @stream: (transfer none): a #GstCudaStream
+ * @info: a #GstVideoInfo
+ *
+ * Returns: (transfer full) (nullable): a newly allocated #GstCudaMemory
+ *
+ * Since: 1.28
+ */
+GstMemory *
+gst_cuda_allocator_alloc_stream_ordered (GstCudaAllocator * allocator,
+    GstCudaContext * context, GstCudaStream * stream, const GstVideoInfo * info)
+{
+  guint alloc_height;
+
+  g_return_val_if_fail (GST_IS_CUDA_CONTEXT (context), nullptr);
+  g_return_val_if_fail (GST_IS_CUDA_STREAM (stream), nullptr);
+  g_return_val_if_fail (info != nullptr, nullptr);
+
+  if (stream->context != context) {
+    GST_ERROR_OBJECT (context,
+        "stream object is holding different CUDA context");
+    return nullptr;
+  }
+
+  if (!allocator)
+    allocator = (GstCudaAllocator *) _gst_cuda_allocator;
+
+  alloc_height = gst_cuda_allocator_calculate_alloc_height (info);
+
+  return gst_cuda_allocator_alloc_internal (allocator, context, stream,
+      info, info->stride[0], alloc_height, TRUE, nullptr);
 }
 
 /**

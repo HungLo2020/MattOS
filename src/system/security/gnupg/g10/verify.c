@@ -240,7 +240,8 @@ verify_files (ctrl_t ctrl, int nfiles, char **files )
    FIXME: OUTFP is not yet implemented.
 */
 int
-gpg_verify (ctrl_t ctrl, int sig_fd, int data_fd, estream_t out_fp)
+gpg_verify (ctrl_t ctrl, gnupg_fd_t sig_fd, gnupg_fd_t data_fd,
+            estream_t out_fp)
 {
   int rc;
   iobuf_t fp;
@@ -260,7 +261,8 @@ gpg_verify (ctrl_t ctrl, int sig_fd, int data_fd, estream_t out_fp)
   if (!fp)
     {
       rc = gpg_error_from_syserror ();
-      log_error (_("can't open fd %d: %s\n"), sig_fd, strerror (errno));
+      log_error (_("can't open fd %d: %s\n"), FD_DBG (sig_fd),
+                 strerror (errno));
       goto leave;
     }
 

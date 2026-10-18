@@ -49,11 +49,6 @@
 #endif /*HAVE_W32_SYSTEM*/
 
 
-#if USE_GPG2_HACK
-# define gpg2_suffix "2"
-#else
-# define gpg2_suffix ""
-#endif
 
 
 static int verbose;
@@ -303,10 +298,6 @@ main (int argc, char **argv)
 
   fputs ("\n@c Flags\n\n", stdout);
 
-#if USE_GPG2_HACK
-  fputs ("@set gpgtwohack 1\n\n", stdout);
-#endif
-
   fputs ("\n@c Directories\n\n", stdout);
 
   print_filename ("@set BINDIR         ", GNUPG_BINDIR );
@@ -341,12 +332,12 @@ main (int argc, char **argv)
   fputs ("\n@c Algorithm defaults\n\n", stdout);
 
   /* Fixme: Use a config.h macro here:  */
-  fputs ("@set GPGSYMENCALGO AES-128\n", stdout);
+  fputs ("@set GPGSYMENCALGO AES-256\n", stdout);
 
   fputs ("\n@c Macros\n\n", stdout);
 
-  printf ("@macro gpgname\n%s%s\n@end macro\n", GPG_NAME, gpg2_suffix);
-  printf ("@macro gpgvname\n%sv%s\n@end macro\n", GPG_NAME, gpg2_suffix);
+  printf ("@macro gpgname\n%s\n@end macro\n", GPG_NAME);
+  printf ("@macro gpgvname\n%sv\n@end macro\n", GPG_NAME);
 
 
   /* Trailer.  */

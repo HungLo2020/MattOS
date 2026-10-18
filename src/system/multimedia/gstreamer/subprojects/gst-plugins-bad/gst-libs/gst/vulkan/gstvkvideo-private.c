@@ -38,6 +38,14 @@ const VkExtensionProperties _vk_codec_extensions[] = {
     .extensionName = VK_STD_VULKAN_VIDEO_CODEC_H265_DECODE_EXTENSION_NAME,
     .specVersion = VK_STD_VULKAN_VIDEO_CODEC_H265_DECODE_SPEC_VERSION,
   },
+  [GST_VK_VIDEO_EXTENSION_DECODE_VP9] = {
+    .extensionName = VK_STD_VULKAN_VIDEO_CODEC_VP9_DECODE_EXTENSION_NAME,
+    .specVersion = VK_STD_VULKAN_VIDEO_CODEC_VP9_DECODE_SPEC_VERSION,
+  },
+  [GST_VK_VIDEO_EXTENSION_DECODE_AV1] = {
+    .extensionName = VK_STD_VULKAN_VIDEO_CODEC_AV1_DECODE_EXTENSION_NAME,
+    .specVersion = VK_STD_VULKAN_VIDEO_CODEC_AV1_DECODE_SPEC_VERSION,
+  },
   [GST_VK_VIDEO_EXTENSION_ENCODE_H264] = {
     .extensionName = VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_EXTENSION_NAME,
     .specVersion = VK_STD_VULKAN_VIDEO_CODEC_H264_ENCODE_SPEC_VERSION,
@@ -45,7 +53,11 @@ const VkExtensionProperties _vk_codec_extensions[] = {
   [GST_VK_VIDEO_EXTENSION_ENCODE_H265] = {
     .extensionName = VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_EXTENSION_NAME,
     .specVersion = VK_STD_VULKAN_VIDEO_CODEC_H265_ENCODE_SPEC_VERSION,
-  }
+  },
+  [GST_VK_VIDEO_EXTENSION_ENCODE_AV1] = {
+    .extensionName = VK_STD_VULKAN_VIDEO_CODEC_AV1_ENCODE_EXTENSION_NAME,
+    .specVersion = VK_STD_VULKAN_VIDEO_CODEC_AV1_ENCODE_SPEC_VERSION,
+  },
 };
 
 const VkComponentMapping _vk_identity_component_map = {
@@ -57,28 +69,46 @@ const VkComponentMapping _vk_identity_component_map = {
 /* *INDENT-ON* */
 
 gboolean
-gst_vulkan_video_get_vk_functions (GstVulkanInstance * instance,
-    GstVulkanVideoFunctions * vk_funcs)
+gst_vulkan_video_get_vk_functions (GstVulkanDevice * device,
+    GstVulkanVideoFunctions * vk_funcs,
+    VkVideoCodecOperationFlagBitsKHR codec_op)
 {
   gboolean ret = FALSE;
+  GstVulkanInstance *instance;
 
-  g_return_val_if_fail (GST_IS_VULKAN_INSTANCE (instance), FALSE);
+  g_return_val_if_fail (GST_IS_VULKAN_DEVICE (device), FALSE);
   g_return_val_if_fail (vk_funcs, FALSE);
 
-#define GET_PROC_ADDRESS_REQUIRED(name)                                 \
+  instance = gst_vulkan_device_get_instance (device);
+
+#define GET_PROC_ADDRESS_REQUIRED(name, type)                           \
   G_STMT_START {                                                        \
     const char *fname = "vk" G_STRINGIFY (name) "KHR";                  \
-    vk_funcs->G_PASTE (, name) = gst_vulkan_instance_get_proc_address (instance, fname); \
+    vk_funcs->G_PASTE (, name) = G_PASTE(G_PASTE(gst_vulkan_, type), _get_proc_address) (type, fname); \
     if (!vk_funcs->G_PASTE(, name)) {                                   \
-      GST_ERROR_OBJECT (instance, "Failed to find required function %s", fname); \
+      GST_ERROR_OBJECT (device, "Failed to find required function %s", fname); \
       goto bail;                                                        \
     }                                                                   \
   } G_STMT_END;
-  GST_VULKAN_VIDEO_FN_LIST (GET_PROC_ADDRESS_REQUIRED)
+#define GET_DEVICE_PROC_ADDRESS_REQUIRED(name) GET_PROC_ADDRESS_REQUIRED(name, device)
+#define GET_INSTANCE_PROC_ADDRESS_REQUIRED(name) GET_PROC_ADDRESS_REQUIRED(name, instance)
+  GST_VULKAN_DEVICE_VIDEO_FN_LIST_COMMON (GET_DEVICE_PROC_ADDRESS_REQUIRED);
+
+  if (GST_VULKAN_VIDEO_CODEC_OPERATION_IS_DECODE (codec_op))
+    GST_VULKAN_DEVICE_VIDEO_FN_LIST_DECODE (GET_DEVICE_PROC_ADDRESS_REQUIRED);
+
+  if (GST_VULKAN_VIDEO_CODEC_OPERATION_IS_ENCODE (codec_op)) {
+    GST_VULKAN_DEVICE_VIDEO_FN_LIST_ENCODE (GET_DEVICE_PROC_ADDRESS_REQUIRED);
+    GST_VULKAN_INSTANCE_VIDEO_FN_LIST_ENCODE
+        (GET_INSTANCE_PROC_ADDRESS_REQUIRED);
+  }
+#undef GET_DEVICE_PROC_ADDRESS_REQUIRED
+#undef GET_INSTANCE_PROC_ADDRESS_REQUIRED
 #undef GET_PROC_ADDRESS_REQUIRED
-      ret = TRUE;
+  ret = TRUE;
 
 bail:
+  gst_object_unref (instance);
   return ret;
 }
 
@@ -115,11 +145,10 @@ gst_vulkan_video_session_create (GstVulkanVideoSession * session,
   g_return_val_if_fail (vk, FALSE);
   g_return_val_if_fail (session_create, FALSE);
 
-#if defined(VK_KHR_video_maintenance1)
-  if (gst_vulkan_video_has_maintenance1 (device)) {
+  if (gst_vulkan_physical_device_has_feature_video_maintenance1
+      (device->physical_device)) {
     session_create->flags |= VK_VIDEO_SESSION_CREATE_INLINE_QUERIES_BIT_KHR;
   }
-#endif
 
   res = vk->CreateVideoSession (device->device, session_create, NULL,
       &vk_session);
@@ -327,22 +356,162 @@ gst_vulkan_video_image_create_view (GstBuffer * buf, gboolean layered_dpb,
       &view_create_info);
 }
 
+/**
+ * gst_vulkan_video_try_configuration:
+ * @device: a #GstVulkanPhysicalDevice
+ * @profile: the #GstVulkanVideoProfile to configure
+ * @out_vkcaps: (out caller-allocates): the capabilities given @profile
+ * @out_caps: (out) (optional) (transfer full): the codec #GstCaps given
+ *   @profile
+ * @out_formats: (out) (optional) (transfer full): a #GArray with all possible
+ *   raw video formats
+ * @error: (out) (optional) (transfer full): the resulting error
+ *
+ * This function will try @profile, as a configuration in @device, by getting
+ * its Vulkan capabilities and the output formats that @profile can produce by
+ * the driver.
+ *
+ * If the capabilities are fetched correctly, then @out_caps is generated. If
+ * the output formats are fetched correctly, then @out_formats is generated.
+ *
+ * Return: whether @profile configuration is possible in @device
+ */
 gboolean
-gst_vulkan_video_has_maintenance1 (GstVulkanDevice * device)
+gst_vulkan_video_try_configuration (GstVulkanPhysicalDevice * device,
+    GstVulkanVideoProfile * profile, GstVulkanVideoCapabilities * out_vkcaps,
+    GstCaps ** out_caps, GArray ** out_formats, GError ** error)
 {
-#if defined(VK_KHR_video_maintenance1)
-  const VkPhysicalDeviceFeatures2 *features;
-  const VkBaseOutStructure *iter;
+  VkVideoCodecOperationFlagBitsKHR codec_op;
+  VkImageUsageFlags image_usage;
+  GstVulkanVideoCapabilities vkcaps = {
+    .caps = {.sType = VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR,},
+  };
+  GArray *fmts;
+  gboolean decode, encode;
 
-  features = gst_vulkan_physical_device_get_features (device->physical_device);
-  for (iter = (const VkBaseOutStructure *) features; iter; iter = iter->pNext) {
-    if (iter->sType ==
-        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_MAINTENANCE_1_FEATURES_KHR) {
-      const VkPhysicalDeviceVideoMaintenance1FeaturesKHR *video_maintenance1 =
-          (const VkPhysicalDeviceVideoMaintenance1FeaturesKHR *) iter;
-      return video_maintenance1->videoMaintenance1;
-    }
+  g_return_val_if_fail (GST_IS_VULKAN_PHYSICAL_DEVICE (device), FALSE);
+  g_return_val_if_fail (profile && profile->profile.videoCodecOperation, FALSE);
+
+  codec_op = profile->profile.videoCodecOperation;
+
+  /* VkVideoCodecOperationFlagBitsKHR distinguish decoding and encoding
+   * operations by the bit position with the following masks */
+  decode = GST_VULKAN_VIDEO_CODEC_OPERATION_IS_DECODE (codec_op);
+  encode = GST_VULKAN_VIDEO_CODEC_OPERATION_IS_ENCODE (codec_op);
+  g_assert (decode ^ encode);
+
+  /* fill vkcaps & output format usage */
+  if (decode) {
+    gboolean dedicated_dpb;
+
+    vkcaps.caps.pNext = &vkcaps.decoder;
+    /* *INDENT-OFF* */
+    vkcaps.decoder.caps = (VkVideoDecodeCapabilitiesKHR) {
+      .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR,
+      .pNext = &vkcaps.decoder.codec,
+    };
+    /* *INDENT-ON* */
+
+    dedicated_dpb = ((vkcaps.decoder.caps.flags &
+            VK_VIDEO_DECODE_CAPABILITY_DPB_AND_OUTPUT_COINCIDE_BIT_KHR) == 0);
+
+    image_usage = VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR
+        | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    if (!dedicated_dpb)
+      image_usage |= VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;
+  } else if (encode) {
+    vkcaps.caps.pNext = &vkcaps.encoder;
+    /* *INDENT-OFF* */
+    vkcaps.encoder.caps = (VkVideoEncodeCapabilitiesKHR) {
+      .sType = VK_STRUCTURE_TYPE_VIDEO_ENCODE_CAPABILITIES_KHR,
+      .pNext = &vkcaps.encoder.codec,
+    };
+    /* *INDENT-ON* */
+
+    image_usage = VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR
+        | VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR;
+  } else {
+    g_assert_not_reached ();
   }
-#endif
-  return FALSE;
+
+  switch (codec_op) {
+    case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR:
+      /* *INDENT-OFF* */
+      vkcaps.decoder.codec.h264 = (VkVideoDecodeH264CapabilitiesKHR) {
+          .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
+      /* *INDENT-OFF* */
+      vkcaps.decoder.codec.h265 = (VkVideoDecodeH265CapabilitiesKHR) {
+          .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR:
+      /* *INDENT-OFF* */
+      vkcaps.decoder.codec.vp9 = (VkVideoDecodeVP9CapabilitiesKHR) {
+          .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_VP9_CAPABILITIES_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_KHR:
+      /* *INDENT-OFF* */
+      vkcaps.encoder.codec.h264 = (VkVideoEncodeH264CapabilitiesKHR) {
+        .sType = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H264_CAPABILITIES_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR:
+      /* *INDENT-OFF* */
+      vkcaps.decoder.codec.av1 = (VkVideoDecodeAV1CapabilitiesKHR) {
+        .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_CAPABILITIES_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_KHR:
+      /* *INDENT-OFF* */
+      vkcaps.encoder.codec.h265 = (VkVideoEncodeH265CapabilitiesKHR) {
+        .sType = VK_STRUCTURE_TYPE_VIDEO_ENCODE_H265_CAPABILITIES_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_ENCODE_AV1_BIT_KHR:
+      /* *INDENT-OFF* */
+      vkcaps.encoder.codec.av1 = (VkVideoEncodeAV1CapabilitiesKHR) {
+        .sType = VK_STRUCTURE_TYPE_VIDEO_ENCODE_AV1_CAPABILITIES_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    default:
+      g_assert_not_reached ();
+  }
+
+  if (!gst_vulkan_physical_device_get_video_capabilities (device,
+          &profile->profile, &vkcaps.caps, error))
+    return FALSE;
+
+  fmts =
+      gst_vulkan_physical_device_get_video_formats (device, image_usage,
+      &profile->profile, error);
+  if (!fmts || (error && *error)) {
+    g_clear_pointer (&fmts, g_array_unref);
+    return FALSE;
+  }
+
+  if (out_vkcaps) {
+    *out_vkcaps = vkcaps;
+    out_vkcaps->caps.pNext = NULL;
+  }
+
+  if (out_formats)
+    *out_formats = fmts;
+  else
+    g_array_unref (fmts);
+
+  if (out_caps)
+    *out_caps = gst_vulkan_video_profile_to_caps (profile);
+
+  return TRUE;
 }

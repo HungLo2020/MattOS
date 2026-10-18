@@ -134,6 +134,7 @@ struct gnupg_ksba_io_s {
 
 
 /* The base-64 character list */
+GPGRT_ATTR_NONSTRING
 static char bintoasc[64] =
        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
        "abcdefghijklmnopqrstuvwxyz"

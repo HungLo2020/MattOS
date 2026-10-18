@@ -2399,6 +2399,8 @@ static int vidioc_s_ctrl(struct file *file, struct v4l2_control *arg)
 			struct spa_pod_frame f[1];
 			struct spa_pod *param;
 			pod = spa_pod_get_values(type, &n_vals, &choice);
+			if (n_vals < 1)
+				break;
 
 			spa_pod_builder_push_object(&b, &f[0],
 					SPA_TYPE_OBJECT_Props,  SPA_PARAM_Props);
@@ -2568,7 +2570,10 @@ static void *v4l2_mmap(void *addr, size_t length, int prot,
 	buf = &file->buffers[id];
 	data = &buf->buf->buffer->datas[0];
 
-        pw_map_range_init(&range, data->mapoffset, data->maxsize, 1024);
+        if (pw_map_range_init(&range, data->mapoffset, data->maxsize, 1024) < 0) {
+		res = MAP_FAILED;
+		goto error_unlock;
+	}
 
 	if (!SPA_FLAG_IS_SET(data->flags, SPA_DATA_FLAG_READABLE))
 		prot &= ~PROT_READ;

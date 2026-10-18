@@ -295,7 +295,7 @@ struct http_session_s
   } verify;
   char *servername; /* Malloced server name.  */
 
-  /* A callback function to log details of TLS certifciates.  */
+  /* A callback function to log details of TLS certificates.  */
   void (*cert_log_cb) (http_session_t, gpg_error_t, const char *,
                        const void **, size_t *);
 
@@ -441,7 +441,7 @@ _my_socket_new (int lnr, assuan_fd_t fd)
   so->refcount = 1;
   if (opt_debug)
     log_debug ("http.c:%d:socket_new: object %p for fd %d created\n",
-               lnr, so, (int)so->fd);
+               lnr, so, FD_DBG (so->fd));
   return so;
 }
 #define my_socket_new(a) _my_socket_new (__LINE__, (a))
@@ -453,7 +453,7 @@ _my_socket_ref (int lnr, my_socket_t so)
   so->refcount++;
   if (opt_debug > 1)
     log_debug ("http.c:%d:socket_ref: object %p for fd %d refcount now %d\n",
-               lnr, so, (int)so->fd, so->refcount);
+               lnr, so, FD_DBG (so->fd), so->refcount);
   return so;
 }
 #define my_socket_ref(a) _my_socket_ref (__LINE__,(a))
@@ -471,7 +471,7 @@ _my_socket_unref (int lnr, my_socket_t so,
       so->refcount--;
       if (opt_debug > 1)
         log_debug ("http.c:%d:socket_unref: object %p for fd %d ref now %d\n",
-                   lnr, so, (int)so->fd, so->refcount);
+                   lnr, so, FD_DBG (so->fd), so->refcount);
 
       if (!so->refcount)
         {
@@ -2018,7 +2018,7 @@ w32_get_proxy (const char *url)
  * If OVERRIDE_PROXY is not NULL and not empty, this proxy will be
  * used instead of any configured or dynamically determined proxy.  If
  * the function runs into an error an error code is returned and NULL
- * is stored at R_PROXY.  If the fucntion was successful and a proxy
+ * is stored at R_PROXY.  If the function was successful and a proxy
  * is to be used, information on the procy is stored at R_PROXY; if no
  * proxy shall be used R_PROXY is set to NULL.  Caller should always
  * use release_proxy_info on the value stored at R_PROXY.  */
@@ -2200,7 +2200,7 @@ run_ntbtls_handshake (http_t hd)
       /* Until we support send/recv in estream under Windows we need
        * to use es_fopencookie.  */
 # ifdef HAVE_W32_SYSTEM
-      in = es_fopencookie ((void*)(unsigned int)hd->sock->fd, "rb",
+      in = es_fopencookie (hd->sock->fd, "rb",
                            simple_cookie_functions);
 # else
       in = es_fdopen_nc (hd->sock->fd, "rb");
@@ -2212,7 +2212,7 @@ run_ntbtls_handshake (http_t hd)
         }
 
 # ifdef HAVE_W32_SYSTEM
-      out = es_fopencookie ((void*)(unsigned int)hd->sock->fd, "wb",
+      out = es_fopencookie (hd->sock->fd, "wb",
                             simple_cookie_functions);
 # else
       out = es_fdopen_nc (hd->sock->fd, "wb");
@@ -2358,8 +2358,8 @@ run_gnutls_handshake (http_t hd, const char *server)
 #endif /*HTTP_USE_GNUTLS*/
 
 
-/* It INPUTSTRING is NULL get the intial token.  If INPUTSTRING is not
- * NULL, decode the string and use this as input from teh server.  On
+/* It INPUTSTRING is NULL get the initial token.  If INPUTSTRING is not
+ * NULL, decode the string and use this as input from the server.  On
  * success the final output token is stored at PROXY->OUTTOKEN and
  * OUTTOKLEN.  IF the authentication succeeded OUTTOKLEN is zero. */
 static gpg_error_t
@@ -2379,7 +2379,7 @@ proxy_get_token (proxy_info_t proxy, const char *inputstring)
 
   if (inputstring)
     {
-      /* The input is expected in the token parameter but the paremter
+      /* The input is expected in the token parameter but the parameter
        * name is often forgotten.  Thus we simply detect the parameter
        * name and skip it, assuming no other parameters are given.  */
       if (!strncmp (inputstring, "token=", 6))
@@ -3571,7 +3571,7 @@ connect_with_timeout (assuan_fd_t sock,
   tval.tv_sec = timeout / 1000;
   tval.tv_usec = (timeout % 1000) * 1000;
 
-  n = my_select (FD2INT(sock)+1, &rset, &wset, NULL, &tval);
+  n = my_select (FD2NUM(sock)+1, &rset, &wset, NULL, &tval);
   if (n < 0)
     {
       err = gpg_err_make (default_errsource, gpg_err_code_from_syserror ());
@@ -4424,8 +4424,8 @@ same_host_p (parsed_uri_t a, parsed_uri_t b)
 
 /* Prepare a new URL for a HTTP redirect.  INFO has flags controlling
  * the operation, STATUS_CODE is used for diagnostics, LOCATION is the
- * value of the "Location" header, and R_URL reveives the new URL on
- * success or NULL or error.  Note that INFO->ORIG_URL is
+ * value of the "Location" header, and R_URL receives the new URL on
+ * success or NULL on error.  Note that INFO->ORIG_URL is
  * required.  */
 gpg_error_t
 http_prepare_redirect (http_redir_info_t *info, unsigned int status_code,
@@ -4596,7 +4596,7 @@ http_status2string (unsigned int status)
 }
 
 
-/* Fucntion called on SIGHUP to flush internal variables.  */
+/* Function called on SIGHUP to flush internal variables.  */
 void
 http_reinitialize (void)
 {

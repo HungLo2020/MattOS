@@ -214,7 +214,7 @@ gst_h264_parse_finalize (GObject * object)
 
   gst_video_clear_user_data_unregistered (&h264parse->user_data_unregistered,
       TRUE);
-  gst_video_clear_user_data (&h264parse->user_data, TRUE);
+  gst_video_clear_user_data (&h264parse->user_data);
 
   g_object_unref (h264parse->frame_out);
 
@@ -243,7 +243,7 @@ gst_h264_parse_reset_frame (GstH264Parse * h264parse)
   h264parse->have_pps_in_frame = FALSE;
   h264parse->have_aud_in_frame = FALSE;
   gst_adapter_clear (h264parse->frame_out);
-  gst_video_clear_user_data (&h264parse->user_data, FALSE);
+  gst_video_clear_user_data (&h264parse->user_data);
   gst_video_clear_user_data_unregistered (&h264parse->user_data_unregistered,
       FALSE);
 }
@@ -265,6 +265,7 @@ gst_h264_parse_reset_stream_info (GstH264Parse * h264parse)
   h264parse->parsed_colorimetry.matrix = GST_VIDEO_COLOR_MATRIX_UNKNOWN;
   h264parse->parsed_colorimetry.transfer = GST_VIDEO_TRANSFER_UNKNOWN;
   h264parse->parsed_colorimetry.primaries = GST_VIDEO_COLOR_PRIMARIES_UNKNOWN;
+  h264parse->lcevc = FALSE;
 
   h264parse->have_pps = FALSE;
   h264parse->have_sps = FALSE;
@@ -1105,7 +1106,8 @@ gst_h264_parse_process_nal (GstH264Parse * h264parse, GstH264NalUnit * nalu)
       h264parse->picture_start = TRUE;
 
       /* don't need to parse the whole slice (header) here */
-      if (*(nalu->data + nalu->offset + nalu->header_bytes) & 0x80) {
+      if (nalu->size > nalu->header_bytes &&
+          *(nalu->data + nalu->offset + nalu->header_bytes) & 0x80) {
         /* means first_mb_in_slice == 0 */
         /* real frame data */
         GST_DEBUG_OBJECT (h264parse, "first_mb_in_slice = 0");
@@ -1258,16 +1260,12 @@ gst_h264_parse_handle_frame_packetized (GstBaseParse * parse,
   GstH264NalUnit nalu;
   const guint nl = h264parse->nal_length_size;
   GstMapInfo map;
-  gint left;
+  gsize parsed, left;
 
   if (nl < 1 || nl > 4) {
     GST_DEBUG_OBJECT (h264parse, "insufficient data to split input");
     return GST_FLOW_NOT_NEGOTIATED;
   }
-
-  /* need to save buffer from invalidation upon _finish_frame */
-  if (h264parse->split_packetized)
-    buffer = gst_buffer_copy (frame->buffer);
 
   gst_buffer_map (buffer, &map, GST_MAP_READ);
 
@@ -1317,27 +1315,64 @@ gst_h264_parse_handle_frame_packetized (GstBaseParse * parse,
        * a replacement output buffer is provided anyway. */
       gst_h264_parse_parse_frame (parse, &tmp_frame);
       ret = gst_base_parse_finish_frame (parse, &tmp_frame, nl + nalu.size);
-      left -= nl + nalu.size;
+      gst_base_parse_frame_free (&tmp_frame);
+
+      /* Bail out if we get a flow error. */
+      if (ret != GST_FLOW_OK) {
+        gst_buffer_unmap (buffer, &map);
+        return ret;
+      }
     }
+    left -= nl + nalu.size;
 
     parse_res = gst_h264_parser_identify_nalu_avc (h264parse->nalparser,
         map.data, nalu.offset + nalu.size, map.size, nl, &nalu);
   }
 
+  parsed = map.size - left;
   gst_buffer_unmap (buffer, &map);
 
   if (!h264parse->split_packetized) {
-    h264parse->marker = TRUE;
-    gst_h264_parse_parse_frame (parse, frame);
-    ret = gst_base_parse_finish_frame (parse, frame, map.size);
-  } else {
-    gst_buffer_unref (buffer);
-    if (G_UNLIKELY (left)) {
-      /* should not be happening for nice AVC */
-      GST_WARNING_OBJECT (parse, "skipping leftover AVC data %d", left);
-      frame->flags |= GST_BASE_PARSE_FRAME_FLAG_DROP;
-      ret = gst_base_parse_finish_frame (parse, frame, map.size);
+    /* Nothing to do if no NAL unit was parsed, the whole AU will be dropped
+     * below. */
+    if (parsed > 0) {
+      if (G_UNLIKELY (left)) {
+        /* Only part of the AU could be parsed, split out that part the rest
+         * will be dropped below. Should not be happening for nice AVC. */
+        GST_WARNING_OBJECT (parse, "Problem parsing part of AU, keep part that "
+            "has been correctly parsed (%" G_GSIZE_FORMAT " bytes).", parsed);
+        GstBaseParseFrame tmp_frame;
+
+        gst_base_parse_frame_init (&tmp_frame);
+        tmp_frame.flags |= frame->flags;
+        tmp_frame.offset = frame->offset;
+        tmp_frame.overhead = frame->overhead;
+        tmp_frame.buffer = gst_buffer_copy_region (buffer, GST_BUFFER_COPY_ALL,
+            0, parsed);
+
+        h264parse->marker = TRUE;
+        gst_h264_parse_parse_frame (parse, &tmp_frame);
+        ret = gst_base_parse_finish_frame (parse, &tmp_frame, parsed);
+        gst_base_parse_frame_free (&tmp_frame);
+
+        /* Bail out if we get a flow error. */
+        if (ret != GST_FLOW_OK)
+          return ret;
+      } else {
+        /* The whole AU succesfully parsed. */
+        h264parse->marker = TRUE;
+        gst_h264_parse_parse_frame (parse, frame);
+        ret = gst_base_parse_finish_frame (parse, frame, parsed);
+      }
     }
+  }
+
+  if (G_UNLIKELY (left)) {
+    /* should not be happening for nice AVC */
+    GST_WARNING_OBJECT (parse, "skipping leftover AVC data %" G_GSIZE_FORMAT,
+        left);
+    frame->flags |= GST_BASE_PARSE_FRAME_FLAG_DROP;
+    ret = gst_base_parse_finish_frame (parse, frame, left);
   }
 
   if (parse_res == GST_H264_PARSER_NO_NAL_END ||
@@ -1893,8 +1928,9 @@ get_compatible_profile_caps (GstH264SPS * sps)
       g_value_unset (&value);
     }
     gst_caps_set_value (caps, "profile", &compat_profiles);
-    g_value_unset (&compat_profiles);
   }
+
+  g_value_unset (&compat_profiles);
 
   return caps;
 }
@@ -2205,6 +2241,8 @@ gst_h264_parse_update_src_caps (GstH264Parse * h264parse, GstCaps * caps)
     gint par_n, par_d;
     GstH264VUIParams *vui = &sps->vui_parameters;
     gchar *colorimetry = NULL;
+    gint upstream_fps_n = 0;
+    gint upstream_fps_d = 1;
 
     if (sps->frame_cropping_flag) {
       crop_width = sps->crop_rect_width;
@@ -2221,6 +2259,14 @@ gst_h264_parse_update_src_caps (GstH264Parse * h264parse, GstCaps * caps)
       h264parse->width = crop_width;
       h264parse->height = crop_height;
       modified = TRUE;
+    }
+
+    if (s && gst_structure_get_fraction (s,
+            "framerate", &upstream_fps_n, &upstream_fps_d)) {
+      if (upstream_fps_n <= 0 || upstream_fps_d <= 0) {
+        upstream_fps_n = 0;
+        upstream_fps_d = 1;
+      }
     }
 
     /* 0/1 is set as the default in the codec parser, we will set
@@ -2369,8 +2415,9 @@ gst_h264_parse_update_src_caps (GstH264Parse * h264parse, GstCaps * caps)
           "height", G_TYPE_INT, height, NULL);
 
       /* upstream overrides */
-      if (s && gst_structure_has_field (s, "framerate")) {
-        gst_structure_get_fraction (s, "framerate", &fps_num, &fps_den);
+      if (upstream_fps_n > 0 && upstream_fps_d > 0) {
+        fps_num = upstream_fps_n;
+        fps_den = upstream_fps_d;
       }
 
       /* but not necessarily or reliably this */
@@ -2491,7 +2538,7 @@ gst_h264_parse_update_src_caps (GstH264Parse * h264parse, GstCaps * caps)
           "Couldn't set content light level to caps");
     }
 
-    if (h264parse->user_data.lcevc_enhancement_data)
+    if (h264parse->user_data.lcevc_enhancement_data || h264parse->lcevc)
       gst_caps_set_simple (caps, "lcevc", G_TYPE_BOOLEAN, TRUE, NULL);
     else
       gst_caps_set_simple (caps, "lcevc", G_TYPE_BOOLEAN, FALSE, NULL);
@@ -2780,7 +2827,7 @@ gst_h264_parse_get_timestamp (GstH264Parse * h264parse,
           sps->vui_parameters.num_units_in_tick,
           sps->vui_parameters.time_scale);
     }
-  } else {
+  } else if (!GST_CLOCK_TIME_IS_VALID (*out_dur)) {
     GstClockTime dur;
 
     GST_LOG_OBJECT (h264parse, "duration based ts");
@@ -2820,7 +2867,8 @@ gst_h264_parse_parse_frame (GstBaseParse * parse, GstBaseParseFrame * frame)
 
   /* don't mess with timestamps if provided by upstream,
    * particularly since our ts not that good they handle seeking etc */
-  if (h264parse->do_ts) {
+  if (h264parse->do_ts && (!GST_BUFFER_DTS_IS_VALID (buffer) ||
+          !GST_BUFFER_DURATION_IS_VALID (buffer))) {
     gst_h264_parse_get_timestamp (h264parse,
         &GST_BUFFER_DTS (buffer), &GST_BUFFER_DURATION (buffer),
         h264parse->frame_start);
@@ -3670,6 +3718,7 @@ gst_h264_parse_set_caps (GstBaseParse * parse, GstCaps * caps)
       &h264parse->fps_den);
   gst_structure_get_fraction (str, "pixel-aspect-ratio",
       &h264parse->upstream_par_n, &h264parse->upstream_par_d);
+  gst_structure_get_boolean (str, "lcevc", &h264parse->lcevc);
 
   /* get upstream format and align from caps */
   gst_h264_parse_format_from_caps (caps, &format, &align);
@@ -3863,6 +3912,7 @@ remove_fields (GstCaps * caps, gboolean all)
       gst_structure_remove_field (s, "stream-format");
     }
     gst_structure_remove_field (s, "parsed");
+    gst_structure_remove_field (s, "lcevc");
   }
 }
 

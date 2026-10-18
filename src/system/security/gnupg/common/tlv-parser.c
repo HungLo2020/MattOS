@@ -409,7 +409,7 @@ _tlv_parser_next (tlv_parser_t tlv, unsigned int flag, int lno)
 }
 
 
-/* Return the current neting level of the TLV object.  */
+/* Return the current nesting level of the TLV object.  */
 unsigned int
 tlv_parser_level (tlv_parser_t tlv)
 {

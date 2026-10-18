@@ -34,3 +34,10 @@ env = environment()
 env.prepend('_GI_OVERRIDES_PATH', [meson.current_source_dir(), meson.current_build_dir()])
 env.prepend('PYGI_OVERRIDES_PATH', [meson.current_source_dir(), meson.current_build_dir()])
 meson.add_devenv(env)
+
+# Convenience target to build the Python extension modules
+# This ensures the _gi_gst and _gi_gst_analytics modules are built
+gst_python_extensions = alias_target('gst-python-extensions',
+  gstpython,
+  gstanalyticspython
+)

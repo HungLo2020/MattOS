@@ -3,7 +3,8 @@
 ### Prerequisites
 
 - Have write access to xkbcommon Git repositories.
-- Be subscribed to the [wayland-devel](https://lists.freedesktop.org/mailman/listinfo/wayland-devel) mailing list.
+- Be subscribed to the [wayland-devel](https://lists.freedesktop.org/postorius/lists/wayland-devel.lists.freedesktop.org/) mailing list.
+  <!-- Old link: https://lists.freedesktop.org/mailman/listinfo/wayland-devel -->
 
 ### Steps
 
@@ -15,6 +16,8 @@
 
 - [ ] Ensure all items in the current milestone are processed. Remaining items
   must be *explicitly* postponed by changing their milestone.
+
+- [ ] Ensure the keysyms header is up-to-date (see [xorgproto])
 
 - [ ] Create a release branch: `git checkout -b release/vMAJOR.MINOR.PATCH master`
 
@@ -30,9 +33,11 @@
 
 - [ ] Merge the pull request.
 
-- [ ] Tag `git pull && git tag --annotate -m xkbcommon-<MAJOR.MINOR.PATCH> xkbcommon-<MAJOR.MINOR.PATCH>`.
+- [ ] Tag `git switch master && git pull && git tag --annotate -m xkbcommon-<MAJOR.MINOR.PATCH> xkbcommon-<MAJOR.MINOR.PATCH>`.
 
 - [ ] Push the tag `git push origin xkbcommon-<MAJOR.MINOR.PATCH>`.
+
+[xorgproto]: https://gitlab.freedesktop.org/xorg/proto/xorgproto/-/tree/master/include/X11
 
 #### Send announcement email to wayland-devel
 
@@ -61,9 +66,13 @@ git commit: <git commit sha>
   It may be necessary to use another version of Doxygen to get a clean build.
   Building from source using the main branch is also a good option.
 
+- [ ] Apply manual Doxygen fixes:
+  - [ ] Fix labels of the TOC in the “Release notes” page.
+
 - [ ] Update the `current` symlink: `ln -nsrf doc/<MAJOR.MINOR.PATCH> doc/current`.
 
-- [ ] Grab a link to the announcement mail from the [wayland-devel archives](https://lists.freedesktop.org/archives/wayland-devel/).
+- [ ] Grab a link to the announcement mail from the [wayland-devel archives](https://lore.freedesktop.org/wayland-devel/).
+  <!-- Old archives: https://lists.freedesktop.org/archives/wayland-devel/ -->
 
 - [ ] Update the `index.html`:
     - "Our latest API- and ABI-stable release ..."

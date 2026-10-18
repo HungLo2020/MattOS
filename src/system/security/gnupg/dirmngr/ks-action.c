@@ -31,6 +31,7 @@
 #include "ks-engine.h"
 #include "ks-action.h"
 #if USE_LDAP
+# include "ldapserver.h"  /* (ldapserver_parse_one) */
 # include "ldap-parse-uri.h"
 #endif
 
@@ -288,11 +289,28 @@ ks_action_search (ctrl_t ctrl, uri_item_t keyservers,
       int is_http = uri->parsed_uri->is_http;
       int is_ldap = 0;
       unsigned int http_status = 0;
+
 #if USE_LDAP
       is_ldap = (!strcmp (uri->parsed_uri->scheme, "ldap")
 		 || !strcmp (uri->parsed_uri->scheme, "ldaps")
 		 || !strcmp (uri->parsed_uri->scheme, "ldapi")
                  || uri->parsed_uri->opaque);
+      if (is_ldap && uri->parsed_uri->opaque)
+        {
+          ldap_server_t server;
+
+          server = ldapserver_parse_one (uri->parsed_uri->path, NULL, 0);
+          if (server && server->upload)
+            {
+              if (DBG_LDAP)
+                log_debug ("skipping upload-only server '%s'\n",
+                           uri->parsed_uri->path);
+              is_ldap = 0;
+            }
+          ldapserver_list_free (server);
+          if (!is_ldap )
+            continue;
+        }
 #endif
       if (is_http || is_ldap)
         {
@@ -373,6 +391,24 @@ ks_action_get (ctrl_t ctrl, uri_item_t keyservers,
 		 || !strcmp (uri->parsed_uri->scheme, "ldaps")
 		 || !strcmp (uri->parsed_uri->scheme, "ldapi")
                  || uri->parsed_uri->opaque);
+      if (is_ldap && uri->parsed_uri->opaque)
+        {
+          ldap_server_t server;
+
+          server = ldapserver_parse_one (uri->parsed_uri->path, NULL, 0);
+          if (server && server->upload)
+            {
+              if (DBG_LDAP)
+                log_debug ("skipping upload-only server '%s'\n",
+                           uri->parsed_uri->path);
+              is_ldap = 0;
+            }
+          ldapserver_list_free (server);
+          if (!is_ldap )
+            continue;
+        }
+#else
+      (void)newer;
 #endif
 
       if (is_hkp_s || is_http_s || is_ldap)
@@ -501,14 +537,43 @@ ks_action_put (ctrl_t ctrl, uri_item_t keyservers,
   gpg_error_t first_err = 0;
   int any_server = 0;
   uri_item_t uri;
+  uri_item_t upload_uri = NULL;
 
   (void) info;
   (void) infolen;
+
+
+#if USE_LDAP
+  /* Check whether we have an upload only server and save the first
+   * one.  Fixme: We should do the parsing when loading the list of
+   * ldap servers to keep the upload flags in the uri_item_t.   */
+  for (uri = keyservers; uri && !upload_uri; uri = uri->next)
+    {
+      ldap_server_t server;
+
+      if (!uri->parsed_uri->opaque)
+        continue;
+      server = ldapserver_parse_one (uri->parsed_uri->path, NULL, 0);
+      if (server && server->upload)
+        {
+          if (DBG_LDAP)
+            log_debug ("found upload-only server '%s'\n",
+                       uri->parsed_uri->path);
+          upload_uri = uri;  /* found */
+        }
+      ldapserver_list_free (server);
+    }
+#endif /*USE_LDAP*/
+
 
   for (uri = keyservers; !err && uri; uri = uri->next)
     {
       int is_http = uri->parsed_uri->is_http;
       int is_ldap = 0;
+
+      /* If we have an upload server skip all other servers.  */
+      if (upload_uri && upload_uri != uri)
+        continue;
 
 #if USE_LDAP
       is_ldap = (!strcmp (uri->parsed_uri->scheme, "ldap")
@@ -544,6 +609,40 @@ ks_action_put (ctrl_t ctrl, uri_item_t keyservers,
   return err;
 }
 
+
+
+/* Delete an OpenPGP key from all KEYSERVERS which use LDAP.  The key
+ * is specifified by PATTERNS.  */
+gpg_error_t
+ks_action_del (ctrl_t ctrl, uri_item_t keyservers, strlist_t fprlist)
+{
+  gpg_error_t err = 0;
+  gpg_error_t first_err = 0;
+  int any_server = 0;
+  uri_item_t uri;
+
+  for (uri = keyservers; uri; uri = uri->next)
+    {
+#if USE_LDAP
+      if ( !strcmp (uri->parsed_uri->scheme, "ldap")
+           || !strcmp (uri->parsed_uri->scheme, "ldaps")
+           || !strcmp (uri->parsed_uri->scheme, "ldapi")
+           || uri->parsed_uri->opaque )
+        {
+          any_server = 1;
+          err = ks_ldap_del (ctrl, uri->parsed_uri, fprlist);
+          if (err && !first_err)
+            first_err = err;
+        }
+#endif
+    }
+
+  if (!any_server)
+    err = gpg_error (GPG_ERR_NO_KEYSERVER); /* No LDAP keyserver */
+  else if (!err && first_err)
+    err = first_err;
+  return err;
+}
 
 
 /* Query the default LDAP server or the one given by URL using
@@ -590,6 +689,13 @@ ks_action_query (ctrl_t ctrl, const char *url, unsigned int ks_get_flags,
   return err;
 
 #else /* !USE_LDAP */
+  (void)ctrl;
+  (void)url;
+  (void)ks_get_flags;
+  (void)filter;
+  (void)attrs;
+  (void)newer;
+  (void)outfp;
   return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
 #endif
 }

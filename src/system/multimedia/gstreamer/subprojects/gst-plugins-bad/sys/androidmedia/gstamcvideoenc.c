@@ -41,10 +41,7 @@
 #define orc_memcpy memcpy
 #endif
 
-#ifdef HAVE_JNI_H
-#include "gstjniutils.h"
-#endif
-
+#include "gstamcutils.h"
 #include "gstamcvideoenc.h"
 #include "gstamc-constants.h"
 
@@ -236,6 +233,22 @@ create_amc_format (GstAmcVideoEnc * encoder, GstVideoCodecState * input_state,
     mime = "video/x-vnd.on2.vp9";
   } else if (strcmp (name, "video/x-av1") == 0) {
     mime = "video/av01";
+  } else if (strcmp (name, "video/x-wmv") == 0) {
+    const gchar *format;
+    gint wmvversion = -1;
+
+    gst_structure_get_int (s, "wmvversion", &wmvversion);
+    format = gst_structure_get_string (s, "format");
+    if (wmvversion == 1)
+      mime = "video/x-ms-wmv7";
+    else if (wmvversion == 2)
+      mime = "video/x-ms-wmv8";
+    else if (wmvversion == 3)
+      mime = "video/x-ms-wmv";
+    else if (!format || strcmp (format, "WMV3") == 0)
+      mime = "video/x-ms-wmv";
+    else if (strcmp (format, "WVC1") == 0)
+      mime = "video/wvc1";
   } else {
     GST_ERROR_OBJECT (encoder, "Failed to convert caps(%s/...) to any mime",
         name);
@@ -288,21 +301,10 @@ create_amc_format (GstAmcVideoEnc * encoder, GstVideoCodecState * input_state,
   }
 
   /* On Android N_MR1 and higher, i-frame-interval can be a float value */
-#ifdef HAVE_JNI_H
-  if (gst_amc_jni_get_android_level () >= 25) {
-    GST_LOG_OBJECT (encoder, "Setting i-frame-interval to %f",
-        encoder->i_frame_int);
-    gst_amc_format_set_float (format, "i-frame-interval", encoder->i_frame_int,
-        &err);
-  } else
-#endif
-  {
-    int i_frame_int = encoder->i_frame_int;
-    /* Round a fractional interval to 1 per sec on older Android */
-    if (encoder->i_frame_int > 0 && encoder->i_frame_int < 1.0)
-      i_frame_int = 1;
-    gst_amc_format_set_int (format, "i-frame-interval", i_frame_int, &err);
-  }
+  GST_LOG_OBJECT (encoder, "Setting i-frame-interval to %f",
+      encoder->i_frame_int);
+  gst_amc_format_set_float (format, "i-frame-interval", encoder->i_frame_int,
+      &err);
   if (err)
     GST_ELEMENT_WARNING_FROM_ERROR (encoder, err);
 
@@ -523,7 +525,8 @@ gst_amc_video_enc_base_init (gpointer g_class)
   longname = g_strdup_printf ("Android MediaCodec %s", codec_info->name);
   gst_element_class_set_metadata (element_class,
       codec_info->name,
-      "Codec/Encoder/Video/Hardware",
+      gst_amc_codec_info_is_hardware (codec_info) ?
+      "Codec/Encoder/Video/Hardware" : "Codec/Encoder/Video",
       longname, "Sebastian Dröge <sebastian.droege@collabora.co.uk>");
   g_free (longname);
 }
@@ -1691,8 +1694,14 @@ again:
 
 downstream_error:
   {
-    GST_ERROR_OBJECT (self, "Downstream returned %s",
-        gst_flow_get_name (self->downstream_flow_ret));
+    if (self->downstream_flow_ret == GST_FLOW_NOT_LINKED
+        || self->downstream_flow_ret < GST_FLOW_EOS) {
+      GST_ERROR_OBJECT (self, "Downstream returned %s",
+          gst_flow_get_name (self->downstream_flow_ret));
+    } else {
+      GST_DEBUG_OBJECT (self, "Downstream returned %s",
+          gst_flow_get_name (self->downstream_flow_ret));
+    }
 
     gst_video_codec_frame_unref (frame);
     return self->downstream_flow_ret;

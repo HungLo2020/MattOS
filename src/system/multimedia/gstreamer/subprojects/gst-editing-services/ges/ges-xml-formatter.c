@@ -1325,14 +1325,16 @@ _save_assets (GESXmlFormatter * self, GString * str, GESProject * project,
   GESXmlFormatterPrivate *priv = self->priv;
 
   assets = ges_project_list_assets (project, GES_TYPE_EXTRACTABLE);
-  for (tmp = g_list_sort (assets, (GCompareFunc) sort_assets); tmp;
-      tmp = tmp->next) {
+  assets = g_list_sort (assets, (GCompareFunc) sort_assets);
+  for (tmp = assets; tmp; tmp = tmp->next) {
     asset = GES_ASSET (tmp->data);
     id = ges_asset_get_id (asset);
 
     if (GES_IS_PROJECT (asset)) {
-      if (!_save_subproject (self, str, project, asset, error, depth))
+      if (!_save_subproject (self, str, project, asset, error, depth)) {
+        g_list_free_full (assets, gst_object_unref);
         return FALSE;
+      }
 
       continue;
     }
@@ -1491,7 +1493,8 @@ _save_keyframes (GString * str, GESTrackElement * trackelement, gint index,
           "absolute", &absolute, NULL);
 
       if (GST_IS_INTERPOLATION_CONTROL_SOURCE (source)) {
-        GList *timed_values, *tmp;
+        GstTimedValue *timed_values;
+        gsize n_values;
         GstInterpolationMode mode;
 
         append_escaped (str,
@@ -1506,18 +1509,25 @@ _save_keyframes (GString * str, GESTrackElement * trackelement, gint index,
             depth);
         append_escaped (str, g_markup_printf_escaped (" values ='"), depth);
         timed_values =
-            gst_timed_value_control_source_get_all
-            (GST_TIMED_VALUE_CONTROL_SOURCE (source));
-        for (tmp = timed_values; tmp; tmp = tmp->next) {
-          gchar strbuf[G_ASCII_DTOSTR_BUF_SIZE];
-          GstTimedValue *value;
+            gst_timed_value_control_source_list_control_points
+            (GST_TIMED_VALUE_CONTROL_SOURCE (source), &n_values);
 
-          value = (GstTimedValue *) tmp->data;
-          append_escaped (str, g_markup_printf_escaped (" %" G_GUINT64_FORMAT
-                  ":%s ", value->timestamp, g_ascii_dtostr (strbuf,
-                      G_ASCII_DTOSTR_BUF_SIZE, value->value)), depth);
+        if (timed_values) {
+          gsize i;
+
+          for (i = 0; i < n_values; i++) {
+            gchar strbuf[G_ASCII_DTOSTR_BUF_SIZE];
+            GstTimedValue *value;
+
+            value = &timed_values[i];
+            append_escaped (str, g_markup_printf_escaped (" %" G_GUINT64_FORMAT
+                    ":%s ", value->timestamp, g_ascii_dtostr (strbuf,
+                        G_ASCII_DTOSTR_BUF_SIZE, value->value)), depth);
+          }
+
+          g_free (timed_values);
         }
-        g_list_free (timed_values);
+
         append_escaped (str, g_markup_printf_escaped ("'/>\n"), depth);
       } else
         GST_DEBUG ("control source not in [interpolation]");

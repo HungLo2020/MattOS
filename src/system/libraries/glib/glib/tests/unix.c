@@ -588,19 +588,31 @@ test_signal_alternate_stack (int signal)
 #ifndef SA_ONSTACK
   g_test_skip ("alternate stack is not supported");
 #else
+  /* MINSIGSTKSZ is only the minimum stack accepted by sigaltstack().  It
+   * need not leave enough room for the signal frame and this test's handler.
+   * SIGSTKSZ is the implementation's conventional allocation size.  Some
+   * non-XSI systems expose SA_ONSTACK without SIGSTKSZ, so keep the standard
+   * minimum as a portable fallback. */
   size_t minsigstksz = MINSIGSTKSZ;
+#ifdef SIGSTKSZ
+  minsigstksz = MAX (minsigstksz, (size_t) SIGSTKSZ);
+#endif
   guint8 *stack_memory = NULL;
   guint8 *zero_mem = NULL;
   stack_t stack = { 0 };
   stack_t old_stack = { 0 };
 
 #ifdef _SC_MINSIGSTKSZ
-  /* Use the kernel-provided minimum stack size, if available. Otherwise default
-   * to MINSIGSTKSZ. Unfortunately that might not be big enough for huge
-   * register files for big CPU instruction set extensions. */
-  minsigstksz = sysconf (_SC_MINSIGSTKSZ);
-  if (minsigstksz == (size_t) -1 || minsigstksz < (size_t) MINSIGSTKSZ)
-    minsigstksz = MINSIGSTKSZ;
+  /* The kernel can require a larger stack for its signal frame.  Its value
+   * is a lower bound, therefore retain the larger conventional size chosen
+   * above if sysconf() fails or returns a smaller value. */
+  {
+    long runtime_minsigstksz = sysconf (_SC_MINSIGSTKSZ);
+
+    if (runtime_minsigstksz > 0 &&
+        (size_t) runtime_minsigstksz > minsigstksz)
+      minsigstksz = (size_t) runtime_minsigstksz;
+  }
 #endif
 
   stack_memory = g_malloc0 (minsigstksz);
@@ -910,6 +922,61 @@ test_child_wait (void)
     }
 }
 
+static void
+test_fd_query_path (void)
+{
+  int fd;
+  GError *error = NULL;
+  char *fd_path;
+
+#if defined (__GNU__)
+  g_test_skip ("Querying file path from FD is not supported in GNU hurd");
+  return;
+#endif
+
+  fd = g_open ("/dev/null", O_RDONLY);
+  g_assert_no_errno (errno);
+  g_assert_cmpint (fd, >=, 0);
+
+  g_test_message ("Checking FD %d for /dev/null", fd);
+
+  fd_path = g_unix_fd_query_path (fd, &error);
+  g_assert_no_error (error);
+#ifdef __sun
+  /* /dev/null is a symlink on Solaris, so follow the link */
+  char *dev_null_path = realpath ("/dev/null", NULL);
+  g_assert_no_errno (errno);
+  g_assert_nonnull (dev_null_path);
+  g_assert_cmpstr (fd_path, ==, dev_null_path);
+  g_free (dev_null_path);
+#else
+  g_assert_cmpstr (fd_path, ==, "/dev/null");
+#endif
+
+  g_clear_fd (&fd, &error);
+  g_assert_no_error (error);
+  g_clear_pointer (&fd_path, g_free);
+}
+
+static void
+test_fd_query_path_error (void)
+{
+  GError *error = NULL;
+  char *fd_path;
+
+  fd_path = g_unix_fd_query_path (G_MAXINT, &error);
+  g_assert_null (fd_path);
+  g_assert_nonnull (error);
+  g_assert_cmpint (error->domain, ==, G_FILE_ERROR);
+
+#ifdef __linux__
+  g_assert_error (error, G_FILE_ERROR, G_FILE_ERROR_NOENT);
+#endif
+
+  g_clear_error (&error);
+  g_clear_pointer (&fd_path, g_free);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -938,6 +1005,8 @@ main (int   argc,
   g_test_add_func ("/glib-unix/get-passwd-entry/root", test_get_passwd_entry_root);
   g_test_add_func ("/glib-unix/get-passwd-entry/nonexistent", test_get_passwd_entry_nonexistent);
   g_test_add_func ("/glib-unix/child-wait", test_child_wait);
+  g_test_add_func ("/glib-unix/fd-query-path", test_fd_query_path);
+  g_test_add_func ("/glib-unix/fd-query-path-error", test_fd_query_path_error);
 
   return g_test_run();
 }

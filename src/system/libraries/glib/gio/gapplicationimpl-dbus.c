@@ -211,7 +211,7 @@ g_application_impl_method_call (GDBusConnection       *connection,
       const gchar *hint;
       GVariant *array;
       GFile **files;
-      gint n, i;
+      size_t n, i;
 
       flags = g_application_get_flags (impl->app);
       if ((flags & G_APPLICATION_HANDLES_OPEN) == 0)
@@ -860,7 +860,11 @@ g_application_impl_command_line (GApplicationImpl    *impl,
      */
     fd_list = g_unix_fd_list_new ();
     g_unix_fd_list_append (fd_list, 0, &error);
-    g_assert_no_error (error);
+    if (error != NULL)
+      {
+        g_error ("Error appending to FD list: %s", error->message);
+        g_clear_error (&error);
+      }
 
     g_dbus_connection_call_with_unix_fd_list (impl->session_bus, impl->bus_name, impl->object_path,
                                               "org.gtk.Application", "CommandLine",

@@ -44,9 +44,9 @@ struct log_item_s
   gpg_error_t err;     /* The logged error code.  */
   int intvalue;        /* A logged integer value.  */
   char *string;        /* A malloced string or NULL.  */
-  ksba_cert_t cert;    /* A certifciate or NULL. */
-  int have_err:1;
-  int have_intvalue:1;
+  ksba_cert_t cert;    /* A certificate or NULL. */
+  unsigned int have_err:1;
+  unsigned int have_intvalue:1;
 };
 typedef struct log_item_s *log_item_t;
 
@@ -752,7 +752,7 @@ proc_type_encrypt (audit_ctx_t ctx)
   log_item_t loopitem, item;
   int recp_no, idx;
   char numbuf[35];
-  int algo;
+  int algo, mode;
   char *name;
 
   item = find_log_item (ctx, AUDIT_ENCRYPTION_DONE, 0);
@@ -768,8 +768,14 @@ proc_type_encrypt (audit_ctx_t ctx)
   if (item)
     {
       algo = gcry_cipher_map_name (item->string);
+      mode = gcry_cipher_mode_from_oid (item->string);
       if (algo)
-        writeout_rem (ctx, _("algorithm: %s"), gnupg_cipher_algo_name (algo));
+        {
+          char *tmp = xstrconcat (gnupg_cipher_algo_name (algo), "-",
+                                  gnupg_cipher_mode_name (mode), NULL);
+          writeout_rem (ctx, _("algorithm: %s"), tmp);
+          xfree (tmp);
+        }
       else if (item->string && !strcmp (item->string, "1.2.840.113549.3.2"))
         writeout_rem (ctx, _("unsupported algorithm: %s"), "RC2");
       else if (item->string)

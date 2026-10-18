@@ -59,6 +59,8 @@ struct _GstVulkanDecoderPrivate
   GstVulkanVideoFunctions vk;
 
   gboolean started;
+
+  guint32 features;
 };
 
 #define GST_CAT_DEFAULT gst_vulkan_decoder_debug
@@ -77,19 +79,13 @@ _populate_function_table (GstVulkanDecoder * self)
 {
   GstVulkanDecoderPrivate *priv =
       gst_vulkan_decoder_get_instance_private (self);
-  GstVulkanInstance *instance;
 
   if (priv->vk_populated)
     return TRUE;
 
-  instance = gst_vulkan_device_get_instance (self->queue->device);
-  if (!instance) {
-    GST_ERROR_OBJECT (self, "Failed to get instance from the device");
-    return FALSE;
-  }
-
-  priv->vk_populated = gst_vulkan_video_get_vk_functions (instance, &priv->vk);
-  gst_object_unref (instance);
+  priv->vk_populated =
+      gst_vulkan_video_get_vk_functions (self->queue->device, &priv->vk,
+      self->codec);
   return priv->vk_populated;
 }
 
@@ -116,6 +112,47 @@ gst_vulkan_decoder_class_init (GstVulkanDecoderClass * klass)
   gobject_class->finalize = gst_vulkan_decoder_finalize;
 }
 
+static gboolean
+_create_empty_params (GstVulkanDecoder * self, GError ** error)
+{
+  GstVulkanDecoderParameters empty_params;
+  GstVulkanDecoderPrivate *priv =
+      gst_vulkan_decoder_get_instance_private (self);
+
+  switch (self->profile.profile.videoCodecOperation) {
+    case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR:
+      /* *INDENT-OFF* */
+      empty_params.h264 = (VkVideoDecodeH264SessionParametersCreateInfoKHR) {
+        .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
+      /* *INDENT-OFF* */
+      empty_params.h265 = (VkVideoDecodeH265SessionParametersCreateInfoKHR) {
+        .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR:
+      /* VP9 doesn't have session parameters */
+      return TRUE;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR:
+      /* *INDENT-OFF* */
+      empty_params.av1 = (VkVideoDecodeAV1SessionParametersCreateInfoKHR) {
+        .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_AV1_SESSION_PARAMETERS_CREATE_INFO_KHR,
+      };
+      /* *INDENT-ON* */
+      break;
+    default:
+      g_assert_not_reached ();
+  }
+
+  priv->empty_params = gst_vulkan_decoder_new_video_session_parameters (self,
+      &empty_params, error);
+  return (priv->empty_params != NULL);
+}
+
 /**
  * gst_vulkan_decoder_start:
  * @self: a #GstVulkanDecoder
@@ -132,26 +169,17 @@ gst_vulkan_decoder_start (GstVulkanDecoder * self,
     GstVulkanVideoProfile * profile, GError ** error)
 {
   GstVulkanDecoderPrivate *priv;
-  VkPhysicalDevice gpu;
-  VkResult res;
-  VkVideoFormatPropertiesKHR *fmts = NULL;
-  VkVideoProfileListInfoKHR profile_list = {
-    .sType = VK_STRUCTURE_TYPE_VIDEO_PROFILE_LIST_INFO_KHR,
-    .profileCount = 1,
-  };
-  VkPhysicalDeviceVideoFormatInfoKHR fmt_info = {
-    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VIDEO_FORMAT_INFO_KHR,
-    .pNext = &profile_list,
-  };
+  GArray *fmts = NULL;
   VkVideoSessionCreateInfoKHR session_create;
-  GstVulkanDecoderParameters empty_params;
-  guint i, maxlevel, n_fmts, codec_idx;
+  guint i, maxlevel, codec_idx;
   GstVideoFormat format = GST_VIDEO_FORMAT_UNKNOWN;
   VkFormat vk_format = VK_FORMAT_UNDEFINED;
   GstVulkanCommandPool *cmd_pool;
+  GstVulkanPhysicalDevice *phy_dev;
   GError *query_err = NULL;
 
   g_return_val_if_fail (GST_IS_VULKAN_DECODER (self), FALSE);
+  g_return_val_if_fail (profile != NULL, FALSE);
 
   priv = gst_vulkan_decoder_get_instance_private (self);
 
@@ -169,6 +197,8 @@ gst_vulkan_decoder_start (GstVulkanDecoder * self,
   switch (self->codec) {
     case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR:
     case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
+    case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR:
+    case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR:
       if (!gst_vulkan_video_profile_is_valid (profile, self->codec)) {
         g_set_error (error, GST_VULKAN_ERROR, VK_ERROR_INITIALIZATION_FAILED,
             "Invalid profile");
@@ -185,57 +215,32 @@ gst_vulkan_decoder_start (GstVulkanDecoder * self,
   self->profile.profile.pNext = &self->profile.usage.decode;
   self->profile.usage.decode.pNext = &self->profile.codec;
 
+  phy_dev = self->queue->device->physical_device;
+  if (!gst_vulkan_video_try_configuration (phy_dev, &self->profile, &priv->caps,
+          &priv->profile_caps, &fmts, error))
+    return FALSE;
+
   switch (self->codec) {
     case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR:
-      /* *INDENT-OFF* */
-      priv->caps.decoder.codec.h264 = (VkVideoDecodeH264CapabilitiesKHR) {
-          .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_CAPABILITIES_KHR,
-      };
-      /* *INDENT-ON* */
       codec_idx = GST_VK_VIDEO_EXTENSION_DECODE_H264;
+      maxlevel = priv->caps.decoder.codec.h264.maxLevelIdc;
       break;
     case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
-      /* *INDENT-OFF* */
-      priv->caps.decoder.codec.h265 = (VkVideoDecodeH265CapabilitiesKHR) {
-          .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_CAPABILITIES_KHR,
-      };
-      /* *INDENT-ON* */
       codec_idx = GST_VK_VIDEO_EXTENSION_DECODE_H265;
+      maxlevel = priv->caps.decoder.codec.h265.maxLevelIdc;
+      break;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR:
+      codec_idx = GST_VK_VIDEO_EXTENSION_DECODE_VP9;
+      maxlevel = priv->caps.decoder.codec.vp9.maxLevel;
+      break;
+    case VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR:
+      codec_idx = GST_VK_VIDEO_EXTENSION_DECODE_AV1;
+      maxlevel = priv->caps.decoder.codec.av1.maxLevel;
       break;
     default:
       g_assert_not_reached ();
   }
 
-  /* *INDENT-OFF* */
-  priv->caps.decoder.caps = (VkVideoDecodeCapabilitiesKHR) {
-    .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_CAPABILITIES_KHR,
-    .pNext = &priv->caps.decoder.codec,
-  };
-  priv->caps.caps =  (VkVideoCapabilitiesKHR) {
-    .sType = VK_STRUCTURE_TYPE_VIDEO_CAPABILITIES_KHR,
-    .pNext = &priv->caps.decoder.caps,
-  };
-  /* *INDENT-ON* */
-
-  gpu = gst_vulkan_device_get_physical_device (self->queue->device);
-  res = priv->vk.GetPhysicalDeviceVideoCapabilities (gpu,
-      &self->profile.profile, &priv->caps.caps);
-  if (gst_vulkan_error_to_g_error (res, error,
-          "vkGetPhysicalDeviceVideoCapabilitiesKHR") != VK_SUCCESS)
-    return FALSE;
-
-  switch (self->codec) {
-    case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR:
-      maxlevel = priv->caps.decoder.codec.h264.maxLevelIdc;
-      break;
-    case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
-      maxlevel = priv->caps.decoder.codec.h265.maxLevelIdc;
-      break;
-    default:
-      maxlevel = 0;
-  }
-
-  priv->profile_caps = gst_vulkan_video_profile_to_caps (&self->profile);
   GST_LOG_OBJECT (self, "Capabilities for %" GST_PTR_FORMAT ":\n"
       "     Maximum level: %d\n"
       "     Width from %i to %i\n"
@@ -295,60 +300,22 @@ gst_vulkan_decoder_start (GstVulkanDecoder * self,
   self->layered_dpb = ((priv->caps.caps.flags &
           VK_VIDEO_CAPABILITY_SEPARATE_REFERENCE_IMAGES_BIT_KHR) == 0);
 
-  priv->caps.caps.pNext = NULL;
-
-  /* Get output format */
-  profile_list.pProfiles = &self->profile.profile;
-
-  fmt_info.imageUsage = VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR
-      | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-  if (!self->dedicated_dpb)
-    fmt_info.imageUsage |= VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;
-
-  res = priv->vk.GetPhysicalDeviceVideoFormatProperties (gpu, &fmt_info,
-      &n_fmts, NULL);
-  if (gst_vulkan_error_to_g_error (res, error,
-          "vkGetPhysicalDeviceVideoFormatPropertiesKHR") != VK_SUCCESS)
-    goto failed;
-
-  if (n_fmts == 0) {
-    g_set_error (error, GST_VULKAN_ERROR, VK_ERROR_INITIALIZATION_FAILED,
-        "Profile doesn't have an output format");
-    goto failed;
-  }
-
-  fmts = g_new0 (VkVideoFormatPropertiesKHR, n_fmts);
-  for (i = 0; i < n_fmts; i++)
-    fmts[i].sType = VK_STRUCTURE_TYPE_VIDEO_FORMAT_PROPERTIES_KHR;
-
-  res = priv->vk.GetPhysicalDeviceVideoFormatProperties (gpu, &fmt_info,
-      &n_fmts, fmts);
-  if (gst_vulkan_error_to_g_error (res, error,
-          "vkGetPhysicalDeviceVideoFormatPropertiesKHR") != VK_SUCCESS) {
-    goto failed;
-  }
-
-  if (n_fmts == 0) {
-    g_free (fmts);
-    g_set_error (error, GST_VULKAN_ERROR, VK_ERROR_INITIALIZATION_FAILED,
-        "Profile doesn't have an output format");
-    goto failed;
-  }
-
   /* find the best output format */
-  for (i = 0; i < n_fmts; i++) {
-    format = gst_vulkan_format_to_video_format (fmts[i].format);
+  for (i = 0; i < fmts->len; i++) {
+    VkVideoFormatPropertiesKHR *fmt =
+        &g_array_index (fmts, VkVideoFormatPropertiesKHR, i);
+
+    format = gst_vulkan_format_to_video_format (fmt->format);
     if (format == GST_VIDEO_FORMAT_UNKNOWN) {
-      GST_WARNING_OBJECT (self, "Unknown Vulkan format %i", fmts[i].format);
+      GST_WARNING_OBJECT (self, "Unknown Vulkan format %i", fmt->format);
       continue;
     } else {
-      vk_format = fmts[i].format;
-      priv->format = fmts[i];
-      priv->format.pNext = NULL;
+      vk_format = fmt->format;
+      priv->format = *fmt;
       break;
     }
   }
-  g_clear_pointer (&fmts, g_free);
+  g_array_unref (fmts);
 
   if (vk_format == VK_FORMAT_UNDEFINED) {
     g_set_error (error, GST_VULKAN_ERROR, VK_ERROR_INITIALIZATION_FAILED,
@@ -373,35 +340,24 @@ gst_vulkan_decoder_start (GstVulkanDecoder * self,
   };
   /* *INDENT-ON* */
 
+  if (gst_vulkan_physical_device_has_feature_video_maintenance2 (self->
+          queue->device->physical_device)) {
+    priv->features |= GST_VULKAN_DECODER_FEATURE_INLINE_PARAMS;
+    session_create.flags |=
+        VK_VIDEO_SESSION_CREATE_INLINE_SESSION_PARAMETERS_BIT_KHR;
+  }
+
   /* create video session */
   if (!gst_vulkan_video_session_create (&priv->session, self->queue->device,
           &priv->vk, &session_create, error))
     goto failed;
 
-  /* create empty codec params */
-  switch (self->profile.profile.videoCodecOperation) {
-    case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR:
-      /* *INDENT-OFF* */
-      empty_params.h264 = (VkVideoDecodeH264SessionParametersCreateInfoKHR) {
-        .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H264_SESSION_PARAMETERS_CREATE_INFO_KHR,
-      };
-      /* *INDENT-ON* */
-      break;
-    case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
-      /* *INDENT-OFF* */
-      empty_params.h265 = (VkVideoDecodeH265SessionParametersCreateInfoKHR) {
-        .sType = VK_STRUCTURE_TYPE_VIDEO_DECODE_H265_SESSION_PARAMETERS_CREATE_INFO_KHR,
-      };
-      /* *INDENT-ON* */
-      break;
-    default:
-      g_assert_not_reached ();
+  if (!gst_vulkan_decoder_has_feature (self,
+          GST_VULKAN_DECODER_FEATURE_INLINE_PARAMS)) {
+    if (!_create_empty_params (self, error))
+      goto failed;
   }
 
-  priv->empty_params = gst_vulkan_decoder_new_video_session_parameters (self,
-      &empty_params, error);
-  if (!priv->empty_params)
-    goto failed;
   cmd_pool = gst_vulkan_queue_create_command_pool (self->queue, error);
   if (!cmd_pool)
     goto failed;
@@ -426,7 +382,6 @@ gst_vulkan_decoder_start (GstVulkanDecoder * self,
 
 failed:
   {
-    g_free (fmts);
     gst_clear_caps (&priv->profile_caps);
 
     if (priv->session.session)
@@ -470,6 +425,8 @@ gst_vulkan_decoder_stop (GstVulkanDecoder * self)
 
   gst_vulkan_video_session_destroy (&priv->session);
 
+  priv->features = 0;
+
   gst_clear_caps (&priv->profile_caps);
 
   gst_clear_vulkan_handle (&priv->empty_params);
@@ -512,14 +469,15 @@ gst_vulkan_decoder_flush (GstVulkanDecoder * self, GError ** error)
 
   priv = gst_vulkan_decoder_get_instance_private (self);
 
-  if (!(priv->empty_params && priv->exec))
+  if (!priv->exec)
     return FALSE;
 
   /* *INDENT-OFF* */
   decode_start = (VkVideoBeginCodingInfoKHR) {
     .sType = VK_STRUCTURE_TYPE_VIDEO_BEGIN_CODING_INFO_KHR,
     .videoSession = priv->session.session->handle,
-    .videoSessionParameters = priv->empty_params->handle,
+    .videoSessionParameters =
+        priv->empty_params ? priv->empty_params->handle : VK_NULL_HANDLE,
   };
   /* *INDENT-ON* */
 
@@ -570,6 +528,23 @@ gst_vulkan_decoder_create_dpb_pool (GstVulkanDecoder * self, GstCaps * caps)
   } else {
     min_buffers = priv->caps.caps.maxDpbSlots;
     max_buffers = 0;
+  }
+
+  if (priv->dpb_pool) {
+    GstCaps *old_caps = NULL;
+    gboolean keep_pool = FALSE;
+
+    config = gst_buffer_pool_get_config (priv->dpb_pool);
+    gst_buffer_pool_config_get_params (config, &old_caps, NULL, NULL, NULL);
+    keep_pool = gst_caps_is_strictly_equal (caps, old_caps);
+    gst_structure_free (config);
+
+    if (keep_pool) {
+      GST_INFO_OBJECT (self, "Reusing existing DPB pool");
+      return TRUE;
+    }
+
+    gst_clear_object (&priv->dpb_pool);
   }
 
   priv->dpb_pool = gst_vulkan_image_buffer_pool_new (self->queue->device);
@@ -646,15 +621,16 @@ gst_vulkan_decoder_decode (GstVulkanDecoder * self,
   decode_start = (VkVideoBeginCodingInfoKHR) {
     .sType = VK_STRUCTURE_TYPE_VIDEO_BEGIN_CODING_INFO_KHR,
     .videoSession = priv->session.session->handle,
-    .videoSessionParameters = priv->session_params->handle,
+    .videoSessionParameters =
+        priv->session_params ? priv->session_params->handle : VK_NULL_HANDLE,
     .referenceSlotCount = pic->decode_info.referenceSlotCount,
     .pReferenceSlots = pic->decode_info.pReferenceSlots,
   };
   /* *INDENT-ON* */
 
-  if (!(priv->started && priv->session_params)) {
+  if (!priv->started) {
     g_set_error (error, GST_VULKAN_ERROR, VK_ERROR_INITIALIZATION_FAILED,
-        "Vulkan Decoder has not started or no session parameters are set");
+        "Vulkan Decoder has not started");
     return FALSE;
   }
 
@@ -955,6 +931,12 @@ gst_vulkan_decoder_update_video_session_parameters (GstVulkanDecoder * self,
   g_return_val_if_fail (GST_IS_VULKAN_DECODER (self), FALSE);
   g_return_val_if_fail (params, FALSE);
 
+  /* if inline session parameters are enabled, there's no need to update session
+   * parameters. This function is no-op */
+  if (gst_vulkan_decoder_has_feature (self,
+          GST_VULKAN_DECODER_FEATURE_INLINE_PARAMS))
+    return TRUE;
+
   handle =
       gst_vulkan_decoder_new_video_session_parameters (self, params, error);
   if (!handle)
@@ -1001,43 +983,21 @@ gst_vulkan_decoder_update_ycbcr_sampler (GstVulkanDecoder * self,
     VkSamplerYcbcrRange range, VkChromaLocation xloc,
     VkChromaLocation yloc, GError ** error)
 {
-  const VkPhysicalDeviceFeatures2 *features;
-  const VkBaseOutStructure *iter;
   GstVulkanDevice *device;
   GstVulkanDecoderPrivate *priv;
   GstVulkanHandle *handle;
   VkSamplerYcbcrConversionCreateInfo create_info;
   VkSamplerYcbcrConversion ycbr_conversion;
   VkResult res;
-  gboolean found = FALSE;
 
   g_return_val_if_fail (GST_IS_VULKAN_DECODER (self), FALSE);
 
   device = self->queue->device;
 
-  if (!gst_vulkan_physical_device_check_api_version (device->physical_device, 1,
-          2, 0)) {
+  if (!gst_vulkan_physical_device_has_feature_sampler_ycbrc_conversion
+      (device->physical_device)) {
     g_set_error (error, GST_VULKAN_ERROR, VK_ERROR_INITIALIZATION_FAILED,
         "Sampler Ycbcr conversion not available in API");
-    return FALSE;
-  }
-
-  features = gst_vulkan_physical_device_get_features (device->physical_device);
-  for (iter = (const VkBaseOutStructure *) features; iter; iter = iter->pNext) {
-    if (iter->sType == VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES) {
-      const VkPhysicalDeviceVulkan11Features *features11 =
-          (const VkPhysicalDeviceVulkan11Features *) iter;
-
-      if (!features11->samplerYcbcrConversion)
-        return FALSE;
-      found = TRUE;
-      break;
-    }
-  }
-
-  if (!found) {
-    g_set_error (error, GST_VULKAN_ERROR, VK_ERROR_INITIALIZATION_FAILED,
-        "Sampler Ycbcr conversion not available in driver");
     return FALSE;
   }
 
@@ -1223,7 +1183,7 @@ gst_vulkan_decoder_append_slice (GstVulkanDecoder * self,
 
   /* append data */
   {
-    GstBufferMapInfo mapinfo;
+    GstMapInfo mapinfo;
     guint32 offset;
 
     if (!gst_buffer_map (self->input_buffer, &mapinfo, GST_MAP_WRITE))
@@ -1284,6 +1244,21 @@ gst_vulkan_decoder_wait (GstVulkanDecoder * self)
   return TRUE;
 }
 
+static const struct
+{
+  VkVideoCodecOperationFlagsKHR codec;
+  const char *extension;
+} _vk_decoder_extension_map[] = {
+  {VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR,
+      VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME},
+  {VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR,
+      VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME},
+  {VK_VIDEO_CODEC_OPERATION_DECODE_VP9_BIT_KHR,
+      VK_KHR_VIDEO_DECODE_VP9_EXTENSION_NAME},
+  {VK_VIDEO_CODEC_OPERATION_DECODE_AV1_BIT_KHR,
+      VK_KHR_VIDEO_DECODE_AV1_EXTENSION_NAME},
+};
+
 /**
  * gst_vulkan_decoder_new_from_queue:
  * @queue: a #GstVulkanQueue
@@ -1298,8 +1273,8 @@ gst_vulkan_decoder_new_from_queue (GstVulkanQueue * queue, guint codec)
 {
   GstVulkanPhysicalDevice *device;
   GstVulkanDecoder *decoder;
-  guint flags, expected_flag, supported_video_ops;
-  const char *extension;
+  guint i, flags, expected_flag, supported_video_ops;
+  const char *extension = NULL;
   static gsize cat_gonce = 0;
 
   g_return_val_if_fail (GST_IS_VULKAN_QUEUE (queue), NULL);
@@ -1315,25 +1290,25 @@ gst_vulkan_decoder_new_from_queue (GstVulkanQueue * queue, guint codec)
     g_once_init_leave (&cat_gonce, TRUE);
   }
 
-  if (device->properties.apiVersion < VK_MAKE_VERSION (1, 3, 275)) {
+  /* XXX: sync with the meson version for vulkan video enabling */
+  if (!gst_vulkan_physical_device_check_api_version (device, 1, 4, 306)) {
     GST_WARNING_OBJECT (queue,
-        "Driver API version [%d.%d.%d] doesn't support Video extensions",
+        "Driver version [%d.%d.%d] doesn't support required video extensions",
         VK_VERSION_MAJOR (device->properties.apiVersion),
         VK_VERSION_MINOR (device->properties.apiVersion),
         VK_VERSION_PATCH (device->properties.apiVersion));
     return NULL;
   }
 
-  switch (codec) {
-    case VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR:
-      extension = VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME;
+  for (i = 0; i < G_N_ELEMENTS (_vk_decoder_extension_map); i++) {
+    if (_vk_decoder_extension_map[i].codec == codec) {
+      extension = _vk_decoder_extension_map[i].extension;
       break;
-    case VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR:
-      extension = VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME;
-      break;
-    default:
-      GST_WARNING_OBJECT (queue, "Unsupported codec %u", codec);
-      return NULL;
+    }
+  }
+  if (!extension) {
+    GST_WARNING_OBJECT (queue, "Unsupported codec %u", codec);
+    return NULL;
   }
   if ((flags & expected_flag) != expected_flag) {
     GST_WARNING_OBJECT (queue, "Queue doesn't support decoding");
@@ -1345,11 +1320,7 @@ gst_vulkan_decoder_new_from_queue (GstVulkanQueue * queue, guint codec)
     return NULL;
   }
 
-  if (!(gst_vulkan_device_is_extension_enabled (queue->device,
-              VK_KHR_VIDEO_QUEUE_EXTENSION_NAME)
-          && gst_vulkan_device_is_extension_enabled (queue->device,
-              VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME)
-          && gst_vulkan_device_is_extension_enabled (queue->device, extension)))
+  if (!gst_vulkan_device_is_extension_enabled (queue->device, extension))
     return NULL;
 
   decoder = g_object_new (GST_TYPE_VULKAN_DECODER, NULL);
@@ -1358,4 +1329,25 @@ gst_vulkan_decoder_new_from_queue (GstVulkanQueue * queue, guint codec)
   decoder->codec = codec;
 
   return decoder;
+}
+
+/**
+ * gst_vulkan_decoder_has_feature:
+ * @self: a #GstVulkanDecoder
+ * @features: (type guint32): the features to support
+ *
+ * Check if the #GstVulkanDecoder supports the given features
+ *
+ * Returns: whether the features are supported
+  */
+gboolean
+gst_vulkan_decoder_has_feature (GstVulkanDecoder * self, guint32 features)
+{
+  GstVulkanDecoderPrivate *priv;
+
+  g_return_val_if_fail (GST_IS_VULKAN_DECODER (self), FALSE);
+
+  priv = gst_vulkan_decoder_get_instance_private (self);
+
+  return ((priv->features & features) != 0);
 }

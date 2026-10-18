@@ -546,6 +546,11 @@ msgstr "poging om socket te stelen van actieve %s\n"
 msgid "a gpg-agent is already running - not starting a new one\n"
 msgstr "er is al een gpg-agent actief - er wordt geen nieuwe opgestart\n"
 
+#, fuzzy, c-format
+#| msgid "key %s: removed multiple subkey binding\n"
+msgid "socket file removed - retrying binding\n"
+msgstr "sleutel %s: meervoudige koppeling van de subsleutel verwijderd\n"
+
 #, c-format
 msgid "error getting nonce for the socket\n"
 msgstr "fout bij het verkrijgen van nonce voor de socket\n"
@@ -688,10 +693,6 @@ msgid "error opening '%s': %s\n"
 msgstr "fout bij het openen van '%s': %s\n"
 
 #, c-format
-msgid "file '%s', line %d: %s\n"
-msgstr "bestand '%s', regel %d: %s\n"
-
-#, c-format
 msgid "statement \"%s\" ignored in '%s', line %d\n"
 msgstr "instructie \"%s\" genegeerd in '%s', regel %d\n"
 
@@ -742,7 +743,7 @@ msgstr "Nee"
 #. insert a line break.  The double percent sign is actually
 #. needed because it is also a printf format string.  If you
 #. need to insert a plain % sign, you need to encode it as
-#. "%%25".  The second "%s" gets replaced by a hexdecimal
+#. "%%25".  The second "%s" gets replaced by a hexadecimal
 #. fingerprint string whereas the first one receives the name
 #. as stored in the certificate.
 #, c-format
@@ -755,7 +756,8 @@ msgstr ""
 
 #. TRANSLATORS: "Correct" is the label of a button and intended
 #. to be hit if the fingerprint matches the one of the CA.  The
-#. other button is "the default "Cancel" of the Pinentry.
+#. other button is "the default "Cancel" of the Pinentry.  We
+#. fix the English strings with hacks to avoid a string changes.
 msgid "Correct"
 msgstr "Juist"
 
@@ -781,6 +783,11 @@ msgstr "De wachtwoordzin wijzigen"
 
 msgid "I'll change it later"
 msgstr "Ik zal hem later wijzigen"
+
+#, fuzzy, c-format
+#| msgid "receiving line failed: %s\n"
+msgid "Unprotecting key failed: %s\n"
+msgstr "ontvangen van regel is mislukt: %s\n"
 
 msgid "Please insert the card with serial number"
 msgstr "Voer de kaart met het serienummer in"
@@ -849,34 +856,6 @@ msgstr "fout bij het creëren van een pijp: %s\n"
 #, c-format
 msgid "error creating a stream for a pipe: %s\n"
 msgstr "fout bij het creëren van een stroom voor een pijp: %s\n"
-
-#, c-format
-msgid "error forking process: %s\n"
-msgstr "fout bij het starten van een nieuw proces (fork): %s\n"
-
-#, c-format
-msgid "waiting for process %d to terminate failed: %s\n"
-msgstr "wachten op het einde van proces %d is mislukt: %s\n"
-
-#, c-format
-msgid "error running '%s': probably not installed\n"
-msgstr "fout bij het uitvoeren van '%s': wellicht niet geïnstalleerd\n"
-
-#, c-format
-msgid "error running '%s': exit status %d\n"
-msgstr "fout bij het uitvoeren van '%s': afsluitstatus %d\n"
-
-#, c-format
-msgid "error running '%s': terminated\n"
-msgstr "fout bij het uitvoeren van '%s': gestopt\n"
-
-#, c-format
-msgid "waiting for processes to terminate failed: %s\n"
-msgstr "wachten op beëindiging van processen is mislukt: %s\n"
-
-#, c-format
-msgid "error getting exit code of process %d: %s\n"
-msgstr "fout bij het opvragen van de afsluitcode van proces %d: %s\n"
 
 #, c-format
 msgid "can't connect to '%s': %s\n"
@@ -1159,6 +1138,10 @@ msgstr "Dirmngr kan gebruikt worden"
 #, c-format
 msgid "No help available for '%s'."
 msgstr "Geen hulp beschikbaar voor '%s'."
+
+#, c-format
+msgid "file '%s', line %d: %s\n"
+msgstr "bestand '%s', regel %d: %s\n"
 
 msgid "ignoring garbage line"
 msgstr "regel met rommel wordt genegeerd"
@@ -1446,6 +1429,17 @@ msgstr "geforceerd"
 msgid "Please try command \"%s\" if the listing does not look correct\n"
 msgstr "Probeer commando \"%s\" als de lijst er niet juist uitziet\n"
 
+#, c-format
+msgid ""
+"Please note that the factory settings of the PINs are\n"
+"   PIN = '%s'     Admin PIN = '%s'\n"
+"You should change them using the command --change-pin\n"
+msgstr ""
+"Gelieve te noteren dat de fabrieksinstellingen voor de pincodes de volgende "
+"zijn:\n"
+"   pincode = '%s'     Beheerderspincode = '%s'\n"
+"U wordt aangeraden deze te wijzigen met het commando --change-pin\n"
+
 msgid "Error: Only plain ASCII is currently allowed.\n"
 msgstr "Fout: alleen platte ASCII is momenteel toegestaan.\n"
 
@@ -1605,17 +1599,6 @@ msgstr "Let op: sleutels worden al op de kaart bewaard!\n"
 msgid "Replace existing keys? (y/N) "
 msgstr "Bestaande sleutels vervangen? (j/N) "
 
-#, c-format
-msgid ""
-"Please note that the factory settings of the PINs are\n"
-"   PIN = '%s'     Admin PIN = '%s'\n"
-"You should change them using the command --change-pin\n"
-msgstr ""
-"Gelieve te noteren dat de fabrieksinstellingen voor de pincodes de volgende "
-"zijn:\n"
-"   pincode = '%s'     Beheerderspincode = '%s'\n"
-"U wordt aangeraden deze te wijzigen met het commando --change-pin\n"
-
 msgid "Please select the type of key to generate:\n"
 msgstr "Selecteer het type sleutel dat aangemaakt moet worden:\n"
 
@@ -1736,6 +1719,16 @@ msgstr "Beheerderscommando's zijn niet toegestaan\n"
 msgid "Invalid command  (try \"help\")\n"
 msgstr "Ongeldig commando  (probeer \"help\")\n"
 
+#, fuzzy, c-format
+#| msgid "key operation not possible: %s\n"
+msgid "modifying the recipients is not possible: %s\n"
+msgstr "sleutelbewerking is niet mogelijk: %s\n"
+
+#, fuzzy
+#| msgid "decryption failed: %s\n"
+msgid "decryption failed"
+msgstr "ontcijferen mislukt: %s\n"
+
 #, c-format
 msgid "--output doesn't work for this command\n"
 msgstr "--output werkt niet voor dit commando\n"
@@ -1822,6 +1815,10 @@ msgstr ""
 "gebruik de optie \"--delete-secret-keys\" om hem eerst te verwijderen.\n"
 
 #, c-format
+msgid "%s/%s.%s encrypted for: \"%s\"\n"
+msgstr "%s/%s.%s versleuteld voor: \"%s\"\n"
+
+#, c-format
 msgid ""
 "WARNING: forcing symmetric cipher %s (%d) violates recipient preferences\n"
 msgstr ""
@@ -1874,6 +1871,11 @@ msgstr "u mag hashalgoritme '%s' niet gebruiken in %s-modus\n"
 msgid "reading from '%s'\n"
 msgstr "lezen van '%s'\n"
 
+#, fuzzy, c-format
+#| msgid "problem handling encrypted packet\n"
+msgid "Note: Using the %s encryption packet\n"
+msgstr "probleem met het verwerken van het versleutelde pakket\n"
+
 #, c-format
 msgid ""
 "WARNING: forcing compression algorithm %s (%d) violates recipient "
@@ -1882,13 +1884,19 @@ msgstr ""
 "WAARSCHUWING: het dwingend opleggen van het compressiealgoritme %s (%d) gaat "
 "in tegen de voorkeuren van de ontvanger\n"
 
-#, c-format
-msgid "%s/%s.%s encrypted for: \"%s\"\n"
-msgstr "%s/%s.%s versleuteld voor: \"%s\"\n"
+#, fuzzy, c-format
+#| msgid "Number of recipients"
+msgid "number of removed recipients: %u\n"
+msgstr "Aantal ontvangers"
 
 #, c-format
 msgid "option '%s' may not be used in %s mode\n"
 msgstr "u mag optie '%s' niet gebruiken in de %s-modus\n"
+
+#, fuzzy, c-format
+#| msgid "can't encrypt to '%s'\n"
+msgid "already encrypted to %08lX\n"
+msgstr "kan niet versleutelen naar '%s'\n"
 
 #, c-format
 msgid "%s encrypted data\n"
@@ -2077,6 +2085,12 @@ msgstr "snel een sleutel ondertekenen"
 
 msgid "quickly sign a key locally"
 msgstr "een sleutel snel lokaal ondertekenen"
+
+#, fuzzy
+#| msgid "sign selected user IDs with a trust signature"
+msgid "quickly sign a key with a trust signature"
+msgstr ""
+"geselecteerde gebruikers-ID's met een betrouwbare handtekening ondertekenen"
 
 msgid "quickly revoke a key signature"
 msgstr "een sleutelhandtekening snel intrekken"
@@ -2387,6 +2401,11 @@ msgstr "voorkeuren tonen"
 
 msgid "show ownertrust"
 msgstr "de betrouwbaarheidsinformatie weergeven"
+
+#, fuzzy
+#| msgid "Unknown critical signature notation: "
+msgid "show trust signature information"
+msgstr "Onbekende kritieke notatie van de handtekening: "
 
 #, c-format
 msgid "unknown TOFU policy '%s'\n"
@@ -2729,6 +2748,9 @@ msgstr "|FD|statusinformatie naar deze bestandsindicator (FD) schrijven"
 msgid "|ALGO|reject signatures made with ALGO"
 msgstr "|ALGO|handtekeningen gemaakt met ALGO verwerpen"
 
+msgid "|NAME|print the notation NAME to stdout"
+msgstr ""
+
 msgid "Usage: gpgv [options] [files] (-h for help)"
 msgstr "Gebruik: gpgv [opties] [bestanden] (-h voor hulp)"
 
@@ -2791,6 +2813,14 @@ msgstr "ervan uitgaan dat de indeling in GnuPG sleutelback-up is"
 
 msgid "repair keys on import"
 msgstr "sleutels repareren bij import"
+
+msgid "update even unchanged keys"
+msgstr ""
+
+#, fuzzy
+#| msgid "list secret keys"
+msgid "do not import secret keys"
+msgstr "geheime sleutels tonen"
 
 #, c-format
 msgid "skipping block of type %d\n"
@@ -3059,9 +3089,15 @@ msgstr "Gebruikers-ID is niet langer geldig"
 msgid "reason for revocation: "
 msgstr "reden van de intrekking: "
 
-#, c-format
-msgid "revocation comment: "
-msgstr "toelichting bij de intrekking: "
+#, fuzzy, c-format
+#| msgid "key %s: can't locate original keyblock: %s\n"
+msgid "key %s: can't locate keyblock: %s\n"
+msgstr "sleutel %s: kan het originele sleutelblok niet vinden: %s\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: can't read original keyblock: %s\n"
+msgid "key %s: can't read keyblock: %s\n"
+msgstr "sleutel %s: kan het originele sleutelblok niet lezen: %s\n"
 
 #, c-format
 msgid "key %s: no public key - can't apply revocation certificate\n"
@@ -3675,6 +3711,18 @@ msgstr "Werkelijk alle geselecteerde gebruikers-ID's verwijderen? (j/N) "
 msgid "Really remove this user ID? (y/N) "
 msgstr "Wilt u deze gebruikers-ID echt verwijderen? (j/N) "
 
+msgid "Command expects a filename argument\n"
+msgstr "Commando verwacht een bestandsnaam als argument\n"
+
+#, c-format
+msgid "Can't open '%s': %s\n"
+msgstr "Kan '%s' niet openen: %s\n"
+
+#, fuzzy, c-format
+#| msgid "Error reading backup key from '%s': %s\n"
+msgid "Error reading key from '%s': %s\n"
+msgstr "Fout bij het lezen van reservesleutel van '%s': %s\n"
+
 #. TRANSLATORS: Please take care: This is about
 #. moving the key and not about removing it.
 msgid "Really move the primary key? (y/N) "
@@ -3682,13 +3730,6 @@ msgstr "Wilt u echt de primaire sleutel verplaatsen? (j/N) "
 
 msgid "You must select exactly one key.\n"
 msgstr "U moet exact één sleutel selecteren.\n"
-
-msgid "Command expects a filename argument\n"
-msgstr "Commando verwacht een bestandsnaam als argument\n"
-
-#, c-format
-msgid "Can't open '%s': %s\n"
-msgstr "Kan '%s' niet openen: %s\n"
 
 #, c-format
 msgid "Error reading backup key from '%s': %s\n"
@@ -3782,6 +3823,11 @@ msgstr "Geen overeenkomende gebruikers-ID's."
 
 msgid "Nothing to sign.\n"
 msgstr "Er valt niets te ondertekenen.\n"
+
+#, fuzzy, c-format
+#| msgid "revoking the key signature failed: %s\n"
+msgid "creating key signature failed: %s\n"
+msgstr "het intrekken van de sleutelondertekening is mislukt: %s\n"
 
 #, c-format
 msgid "Not signed by you.\n"
@@ -4315,17 +4361,27 @@ msgstr "  (%d) Bestaande sleutel%s\n"
 msgid "  (%d) Existing key from card%s\n"
 msgstr "  (%d) Bestaande sleutel op de kaart%s\n"
 
+#, fuzzy, c-format
+#| msgid "   (%d) ECC (sign and encrypt)%s\n"
+msgid "  (%d) ECC and Kyber%s\n"
+msgstr "   (%d) ondertekenen, versleutelen%s\n"
+
+#, fuzzy, c-format
+#| msgid "  (%d) ECC (encrypt only)%s\n"
+msgid "  (%d) Kyber (encrypt only)%s\n"
+msgstr "  (%d) ECC (alleen versleutelen)%s\n"
+
 msgid "Enter the keygrip: "
 msgstr "Voer de sleutelhendel in: "
+
+msgid "No key with this keygrip\n"
+msgstr "Deze sleutelhendel heeft geen sleutel bij zich\n"
 
 #, c-format
 msgid "Not a valid keygrip (expecting 40 hex digits)\n"
 msgstr ""
 "Geen geldige sleutelhendel (een reeks van 40 hexadecimale cijfers wordt "
 "verwacht)\n"
-
-msgid "No key with this keygrip\n"
-msgstr "Deze sleutelhendel heeft geen sleutel bij zich\n"
 
 #, c-format
 msgid "error reading the card: %s\n"
@@ -4356,6 +4412,11 @@ msgstr "Gevraagde sleutellengte is %u bits\n"
 
 msgid "Please select which elliptic curve you want:\n"
 msgstr "Selecteer welke elliptische curve u wilt:\n"
+
+#, fuzzy, c-format
+#| msgid "Please select what kind of key you want:\n"
+msgid "Please select the %s variant you want:\n"
+msgstr "Selecteer het soort sleutel dat u wilt:\n"
 
 msgid ""
 "Please specify how long the key should be valid.\n"
@@ -4705,8 +4766,17 @@ msgstr[1] "Waarschuwing: %lu sleutels overgeslagen vanwege hun grote omvang\n"
 msgid "Keyring"
 msgstr "Sleutelring"
 
+#, c-format
+msgid "revocation comment: "
+msgstr "toelichting bij de intrekking: "
+
 msgid "Revocable by: "
 msgstr "Intrekbaar door: "
+
+#, fuzzy, c-format
+#| msgid "error writing to '%s': %s\n"
+msgid "error writing to stdout: %s\n"
+msgstr "fout bij het schrijven naar '%s': %s\n"
 
 msgid "Primary key fingerprint:"
 msgstr "Vingerafdruk van de primaire sleutel:"
@@ -4776,6 +4846,9 @@ msgstr ""
 "de URL van de voorkeurssleutelserver zoals die in de sleutel vermeld staat "
 "honoreren"
 
+msgid "update a key before sending it"
+msgstr ""
+
 msgid "disabled"
 msgstr "uitgeschakeld"
 
@@ -4789,6 +4862,11 @@ msgstr "ongeldig sleutelserverprotocol (wij %d!=verwerkingsroutine %d)\n"
 #, c-format
 msgid "\"%s\" not a key ID: skipping\n"
 msgstr "\"%s\" is geen sleutel-ID: overgeslagen\n"
+
+#, fuzzy, c-format
+#| msgid "\"%s\" is not a fingerprint\n"
+msgid "\"%s\" not a fingerprint: skipping\n"
+msgstr "\"%s\" is geen vingerafdruk\n"
 
 #, c-format
 msgid "refreshing %d key from %s\n"
@@ -4816,6 +4894,10 @@ msgstr "opvragen sleutel %s van %s\n"
 #, c-format
 msgid "no keyserver known\n"
 msgstr "geen bekende sleutelser\n"
+
+#, c-format
+msgid "upload skipped due to non-LDAP keyserver\n"
+msgstr ""
 
 #, c-format
 msgid "skipped \"%s\": %s\n"
@@ -4868,6 +4950,10 @@ msgstr "      \"%s\"\n"
 #, c-format
 msgid "encrypted with %s key, ID %s\n"
 msgstr "versleuteld met %s-sleutel, ID %s\n"
+
+#, c-format
+msgid "WARNING: key is not quantum-resistant\n"
+msgstr ""
 
 #, c-format
 msgid "WARNING: multiple plaintexts seen\n"
@@ -5155,6 +5241,11 @@ msgstr "niet gecomprimeerd|geen"
 msgid "this message may not be usable by %s\n"
 msgstr "dit bericht kan mogelijk niet gebruikt worden door %s\n"
 
+#, fuzzy
+#| msgid "enable key"
+msgid "enabled"
+msgstr "de sleutel inschakelen"
+
 #, c-format
 msgid "ambiguous option '%s'\n"
 msgstr "dubbelzinnige optie '%s'\n"
@@ -5172,6 +5263,11 @@ msgstr ""
 #, c-format
 msgid "unknown weak digest '%s'\n"
 msgstr "onbekende zwakke hash-waarde '%s'\n"
+
+#, fuzzy, c-format
+#| msgid "new cache dir file '%s' created\n"
+msgid "Note: partial file '%s' removed\n"
+msgstr "nieuwe map '%s' aangemaakt in de cachemap\n"
 
 #, c-format
 msgid "File '%s' exists. "
@@ -5659,6 +5755,13 @@ msgstr "gebruikte sleutel is niet gemarkeerd voor encryptiegebruik.\n"
 msgid "okay, we are the anonymous recipient.\n"
 msgstr "oké, wij zijn de anonieme ontvanger.\n"
 
+#, fuzzy, c-format
+#| msgid "WARNING: signing subkey %s is not cross-certified\n"
+msgid "WARNING: session key is not quantum-resistant\n"
+msgstr ""
+"WAARSCHUWING: er is geen kruiscertificering gebeurd\n"
+"              van de ondertekenende subsleutel %s\n"
+
 #, c-format
 msgid "old encoding of the DEK is not supported\n"
 msgstr "de oude codering van de DEK wordt niet ondersteund\n"
@@ -5918,6 +6021,13 @@ msgid "assuming bad signature from key %s due to an unknown critical bit\n"
 msgstr ""
 "er wordt verondersteld dat de ondertekening van\n"
 "sleutel %s slecht is als gevolg van een onbekende kritieke bit\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: no public key - can't apply revocation certificate\n"
+msgid "key %s: no public key - can't check revocation signature.\n"
+msgstr ""
+"sleutel %s: geen publieke sleutel - kan intrekkingscertificaat niet "
+"toepassen\n"
 
 #, c-format
 msgid "key %s: no subkey for subkey revocation signature\n"
@@ -6768,8 +6878,8 @@ msgstr ""
 "||Gelieve de pincode in te voeren voor de sleutel die bevoegde "
 "handtekeningen kan aanmaken."
 
-#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-#. the start of the string.  Use %0A (single percent) for a linefeed.
+#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+#. start of the string.
 msgid "|A|Please enter the Admin PIN"
 msgstr "|A|Gelieve de pincode van de beheerder in te voeren"
 
@@ -6851,27 +6961,6 @@ msgid "%sNumber: %s%%0AHolder: %s%%0ACounter: %lu%s"
 msgstr "%sNummer: %s%%0AHouder: %s%%0ATeller: %lu%s"
 
 #, c-format
-msgid "using default PIN as %s\n"
-msgstr "de standaardpincode wordt gebruikt voor %s\n"
-
-#, c-format
-msgid "failed to use default PIN as %s: %s - disabling further default use\n"
-msgstr ""
-"de standaardpincode gebruiken voor %s is mislukt: %s - standaard\n"
-"wordt in het vervolg niet meer gebruikt\n"
-
-msgid "||Please unlock the card"
-msgstr "||Gelieve de kaart te ontgrendelen"
-
-#, c-format
-msgid "PIN for CHV%d is too short; minimum length is %d\n"
-msgstr "Pincode voor CHV%d is te kort; die moet minimaal %d lang zijn\n"
-
-#, c-format
-msgid "verify CHV%d failed: %s\n"
-msgstr "controle van CHV%d is mislukt: %s\n"
-
-#, c-format
 msgid "card is permanently locked!\n"
 msgstr "kaart is permanent vergrendeld!\n"
 
@@ -6885,6 +6974,27 @@ msgstr[0] ""
 msgstr[1] ""
 "De beheerder heeft %d resterende pogingen om de pincode in te voeren\n"
 "voordat de kaart permanent vergrendeld wordt\n"
+
+msgid "||Please unlock the card"
+msgstr "||Gelieve de kaart te ontgrendelen"
+
+#, c-format
+msgid "using default PIN as %s\n"
+msgstr "de standaardpincode wordt gebruikt voor %s\n"
+
+#, c-format
+msgid "failed to use default PIN as %s: %s - disabling further default use\n"
+msgstr ""
+"de standaardpincode gebruiken voor %s is mislukt: %s - standaard\n"
+"wordt in het vervolg niet meer gebruikt\n"
+
+#, c-format
+msgid "PIN for CHV%d is too short; minimum length is %d\n"
+msgstr "Pincode voor CHV%d is te kort; die moet minimaal %d lang zijn\n"
+
+#, c-format
+msgid "verify CHV%d failed: %s\n"
+msgstr "controle van CHV%d is mislukt: %s\n"
 
 #, c-format
 msgid "access to admin commands is not configured\n"
@@ -7490,6 +7600,11 @@ msgstr " (facultatief; beëindig met een lege regel):\n"
 msgid "Enter URIs"
 msgstr "Voer de URI's in"
 
+#, fuzzy
+#| msgid "Enter the notation: "
+msgid "Enter extensions"
+msgstr "Voer de notatie in: "
+
 msgid "Create self-signed certificate? (y/N) "
 msgstr "Een zelf-ondertekend certificaat aanmaken? (j/N) "
 
@@ -7665,6 +7780,11 @@ msgstr "Let op: zal niet in staat zijn om te versleutelen naar '%s': %s\n"
 msgid "unknown validation model '%s'\n"
 msgstr "onbekend valideringsmodel '%s'\n"
 
+#, fuzzy, c-format
+#| msgid "cipher algorithm %d%s is unknown or disabled\n"
+msgid "given cipher algorithm '%s' is unknown - using '%s'\n"
+msgstr "versleutelingsalgoritme %d%s is onbekend of uitgeschakeld\n"
+
 #, c-format
 msgid "importing common certificates '%s'\n"
 msgstr "importeren van gemeenschappelijke certificaten '%s'\n"
@@ -7672,6 +7792,11 @@ msgstr "importeren van gemeenschappelijke certificaten '%s'\n"
 #, c-format
 msgid "can't sign using '%s': %s\n"
 msgstr "kan niet ondertekenen met '%s': %s\n"
+
+#, fuzzy, c-format
+#| msgid "can't open fd %d: %s\n"
+msgid "can't open outputfile: %s\n"
+msgstr "kan bestandsindicator %d niet openen: %s\n"
 
 #, c-format
 msgid "invalid command (there is no implicit command)\n"
@@ -7725,21 +7850,20 @@ msgid "error storing certificate: %s\n"
 msgstr "fout bij het opslaan van het certificaat: %s\n"
 
 #, c-format
-msgid "problem re-searching certificate: %s\n"
-msgstr "probleem bij het opnieuw opzoeken van het certificaat: %s\n"
-
-#, c-format
 msgid "error storing flags: %s\n"
 msgstr "fout bij het opslaan van de vlaggen: %s\n"
+
+#, c-format
+msgid "problem re-searching certificate: %s\n"
+msgstr "probleem bij het opnieuw opzoeken van het certificaat: %s\n"
 
 msgid "Error - "
 msgstr "Fout - "
 
-#, c-format
-msgid "GPG_TTY has not been set - using maybe bogus default\n"
-msgstr ""
-"GPG_TTY werd niet ingesteld - de standaard, die misschien gebrekkig zal "
-"functioneren, wordt gebruik\n"
+#, fuzzy, c-format
+#| msgid "error writing to pipe: %s\n"
+msgid "error writing to output: %s\n"
+msgstr "fout bij het schrijven naar pijp: %s\n"
 
 #, c-format
 msgid "invalid formatted fingerprint in '%s', line %d\n"
@@ -8619,6 +8743,10 @@ msgid "colons are not allowed in the socket name\n"
 msgstr "dubbele punten zijn niet toegestaan in de socketnaam\n"
 
 #, c-format
+msgid "error forking process: %s\n"
+msgstr "fout bij het starten van een nieuw proces (fork): %s\n"
+
+#, c-format
 msgid "fetching CRL from '%s' failed: %s\n"
 msgstr "ophalen van lijst met intrekkingen uit '%s' is mislukt: %s\n"
 
@@ -9250,3 +9378,33 @@ msgstr "Beheercommando's voor Yubikey"
 
 msgid "manage the command history"
 msgstr "de commandogeschiedenis beheren"
+
+#, c-format
+#~ msgid "waiting for process %d to terminate failed: %s\n"
+#~ msgstr "wachten op het einde van proces %d is mislukt: %s\n"
+
+#, c-format
+#~ msgid "error running '%s': probably not installed\n"
+#~ msgstr "fout bij het uitvoeren van '%s': wellicht niet geïnstalleerd\n"
+
+#, c-format
+#~ msgid "error running '%s': exit status %d\n"
+#~ msgstr "fout bij het uitvoeren van '%s': afsluitstatus %d\n"
+
+#, c-format
+#~ msgid "error running '%s': terminated\n"
+#~ msgstr "fout bij het uitvoeren van '%s': gestopt\n"
+
+#, c-format
+#~ msgid "waiting for processes to terminate failed: %s\n"
+#~ msgstr "wachten op beëindiging van processen is mislukt: %s\n"
+
+#, c-format
+#~ msgid "error getting exit code of process %d: %s\n"
+#~ msgstr "fout bij het opvragen van de afsluitcode van proces %d: %s\n"
+
+#, c-format
+#~ msgid "GPG_TTY has not been set - using maybe bogus default\n"
+#~ msgstr ""
+#~ "GPG_TTY werd niet ingesteld - de standaard, die misschien gebrekkig zal "
+#~ "functioneren, wordt gebruik\n"

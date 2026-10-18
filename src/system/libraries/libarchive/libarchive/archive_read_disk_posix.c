@@ -97,9 +97,6 @@
 #include "archive_private.h"
 #include "archive_read_disk_private.h"
 
-#ifndef HAVE_FCHDIR
-#error fchdir function required.
-#endif
 #ifndef O_BINARY
 #define O_BINARY	0
 #endif
@@ -107,9 +104,23 @@
 #define O_CLOEXEC	0
 #endif
 
+#define MAX_FILESYSTEM_ID 1000000
+
 #if defined(__hpux) && !defined(HAVE_DIRFD)
 #define dirfd(x) ((x)->__dd_fd)
 #define HAVE_DIRFD
+#endif
+
+#ifndef HAVE_FCHDIR
+/*
+ * Stub function for platforms that do not support fchdir.  This is OK on
+ * platforms with newer *at functions as fchdir isn't used there (e.g. WASI).
+ */
+static int fchdir(int fd)
+{
+	errno = ENOSYS;
+	return -1;
+}
 #endif
 
 /*-
@@ -451,6 +462,10 @@ archive_read_disk_new(void)
 	a->archive.state = ARCHIVE_STATE_NEW;
 	a->archive.vtable = &archive_read_disk_vtable;
 	a->entry = archive_entry_new2(&a->archive);
+	if (a->entry == NULL) {
+		free(a);
+		return (NULL);
+	}
 	a->lookup_uname = trivial_lookup_uname;
 	a->lookup_gname = trivial_lookup_gname;
 	a->flags = ARCHIVE_READDISK_MAC_COPYFILE;
@@ -918,8 +933,8 @@ next_entry(struct archive_read_disk *a, struct tree *t,
 	if (a->matching) {
 		r = archive_match_path_excluded(a->matching, entry);
 		if (r < 0) {
-			archive_set_error(&(a->archive), errno,
-			    "Failed : %s", archive_error_string(a->matching));
+			archive_set_error(&(a->archive), archive_errno(a->matching),
+			    "%s", archive_error_string(a->matching));
 			return (r);
 		}
 		if (r) {
@@ -1032,8 +1047,8 @@ next_entry(struct archive_read_disk *a, struct tree *t,
 	if (a->matching) {
 		r = archive_match_time_excluded(a->matching, entry);
 		if (r < 0) {
-			archive_set_error(&(a->archive), errno,
-			    "Failed : %s", archive_error_string(a->matching));
+			archive_set_error(&(a->archive), archive_errno(a->matching),
+			    "%s", archive_error_string(a->matching));
 			return (r);
 		}
 		if (r) {
@@ -1058,8 +1073,8 @@ next_entry(struct archive_read_disk *a, struct tree *t,
 	if (a->matching) {
 		r = archive_match_owner_excluded(a->matching, entry);
 		if (r < 0) {
-			archive_set_error(&(a->archive), errno,
-			    "Failed : %s", archive_error_string(a->matching));
+			archive_set_error(&(a->archive), archive_errno(a->matching),
+			    "%s", archive_error_string(a->matching));
 			return (r);
 		}
 		if (r) {
@@ -1411,14 +1426,18 @@ update_current_filesystem(struct archive_read_disk *a, int64_t dev)
 	/*
 	 * This is the new filesystem which we have to generate a new ID for.
 	 */
-	fid = t->max_filesystem_id++;
-	if (t->max_filesystem_id > t->allocated_filesystem) {
-		size_t s;
+	fid = t->max_filesystem_id;
+	if (fid >= MAX_FILESYSTEM_ID) {
+		archive_set_error(&a->archive, ENOMEM, "Too many filesystems");
+		return (ARCHIVE_FATAL);
+	}
+	if (fid + 1 > t->allocated_filesystem) {
+		int s;
 		void *p;
 
-		s = t->max_filesystem_id * 2;
+		s = (fid + 1) * 2;
 		p = realloc(t->filesystem_table,
-		        s * sizeof(*t->filesystem_table));
+		    s * sizeof(*t->filesystem_table));
 		if (p == NULL) {
 			archive_set_error(&a->archive, ENOMEM,
 			    "Can't allocate tar data");
@@ -1427,6 +1446,7 @@ update_current_filesystem(struct archive_read_disk *a, int64_t dev)
 		t->filesystem_table = (struct filesystem *)p;
 		t->allocated_filesystem = s;
 	}
+	t->max_filesystem_id = fid + 1;
 	t->current_filesystem_id = fid;
 	t->current_filesystem = &(t->filesystem_table[fid]);
 	t->current_filesystem->dev = dev;
@@ -1693,8 +1713,6 @@ setup_current_filesystem(struct archive_read_disk *a)
 #endif
 		t->current_filesystem->noatime = 0;
 
-	/* Set maximum filename length. */
-	t->current_filesystem->name_max = svfs.f_namemax;
 	return (ARCHIVE_OK);
 }
 
@@ -2014,11 +2032,8 @@ tree_dup(int fd)
 	}
 #endif /* F_DUPFD_CLOEXEC */
 	new_fd = dup(fd);
-	if (new_fd != -1) {
-		__archive_ensure_cloexec_flag(new_fd);
-		return (new_fd);
-	}
-	return (-1);
+	__archive_ensure_cloexec_flag(new_fd);
+	return (new_fd);
 }
 
 /*
@@ -2140,16 +2155,11 @@ tree_reopen(struct tree *t, const char *path, int restore_time)
 	 * so try again for execute. The consequences of not opening this are
 	 * unhelpful and unnecessary errors later.
 	 */
-	if (t->initial_dir_fd < 0) {
+	if (t->initial_dir_fd < 0)
 		t->initial_dir_fd = open(".", o_flag | O_CLOEXEC);
-		if (t->initial_dir_fd < 0)
-			return NULL;
-	}
 #endif
 	__archive_ensure_cloexec_flag(t->initial_dir_fd);
 	t->working_dir_fd = tree_dup(t->initial_dir_fd);
-	if (t->working_dir_fd < 0)
-		return NULL;
 	return (t);
 }
 
@@ -2355,15 +2365,20 @@ static int
 tree_dir_next_posix(struct tree *t)
 {
 	int r;
+#if defined(HAVE_FDOPENDIR)
+	int fd;
+#endif
 	const char *name;
 	size_t namelen;
 
 	if (t->d == NULL) {
 
 #if defined(HAVE_FDOPENDIR)
-		int fd = tree_dup(t->working_dir_fd);
-		if (fd != -1)
-			t->d = fdopendir(fd);
+		if (t->working_dir_fd >= 0) {
+			fd = tree_dup(t->working_dir_fd);
+			if (fd != -1)
+				t->d = fdopendir(fd);
+		}
 #else /* HAVE_FDOPENDIR */
 		if (tree_enter_working_dir(t) == 0) {
 			t->d = opendir(".");

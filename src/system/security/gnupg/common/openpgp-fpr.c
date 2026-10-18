@@ -136,7 +136,7 @@ compute_openpgp_fpr (int keyversion, int pgpalgo, unsigned long timestamp,
   /*   log_printhex (iov[i].data, iov[i].len, "cmpfpr i=%d: ", i); */
 
   err = gcry_md_hash_buffers (hashalgo, 0, result, iov, iovcnt);
-  /* log_printhex (result, 20, "fingerpint: "); */
+  /* log_printhex (result, 20, "fingerprint: "); */
 
   /* Better clear the first element because it was set by us.  */
   iov[0].size = 0;
@@ -231,7 +231,8 @@ compute_openpgp_fpr_ecc (int keyversion, unsigned long timestamp,
   unsigned char nbits_q[2];
   unsigned int n;
 
-  curveoidstr = openpgp_curve_to_oid (curvename, &curvebits, &pgpalgo);
+  curveoidstr = openpgp_curve_to_oid (curvename, &curvebits, &pgpalgo,
+                                      (keyversion > 4));
   err = openpgp_oid_from_str (curveoidstr, &curveoid);
   if (err)
     goto leave;

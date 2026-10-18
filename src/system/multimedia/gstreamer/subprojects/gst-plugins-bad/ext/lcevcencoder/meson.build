@@ -3,12 +3,16 @@ lcevcencoder_sources = [
   'gstlcevcencoderutils.c',
   'gstlcevcencoder.c',
   'gstlcevch264enc.c',
+  'gstlcevch265enc.c',
+  'gstlcevch266enc.c',
 ]
 
 lcevcencoder_headers = [
   'gstlcevcencoder.h',
   'gstlcevcencoderutils.h',
   'gstlcevch264enc.h',
+  'gstlcevch265enc.h',
+  'gstlcevch266enc.h',
 ]
 
 doc_sources = []

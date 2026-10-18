@@ -66,18 +66,21 @@ typedef struct pt_extra_hash_data_s *pt_extra_hash_data_t;
 
 
 /*
- * Create notations and other stuff.  It is assumed that the strings in
- * STRLIST are already checked to contain only printable data and have
- * a valid NAME=VALUE format.
+ * Create notations and other stuff.  It is assumed that the strings
+ * in STRLIST are already checked to contain only printable data and
+ * have a valid NAME=VALUE format.  If with_manu is set a "manu"
+ * notation is also added: a value of 1 includes it in the standard
+ * way and a value of 23 assumes that the data is de-vs compliant.
  */
 static void
 mk_notation_policy_etc (ctrl_t ctrl, PKT_signature *sig,
-			PKT_public_key *pk, PKT_public_key *pksk)
+			PKT_public_key *pk, PKT_public_key *pksk, int with_manu)
 {
   const char *string;
   char *p = NULL;
   strlist_t pu = NULL;
   struct notation *nd = NULL;
+  struct notation *ndmanu = NULL;
   struct expando_args args;
 
   log_assert (sig->version >= 4);
@@ -93,6 +96,18 @@ mk_notation_policy_etc (ctrl_t ctrl, PKT_signature *sig,
     nd = opt.sig_notations;
   else if (IS_CERT(sig) && opt.cert_notations)
     nd = opt.cert_notations;
+
+  if (with_manu)
+    {
+      /* Modifiying ND (i.e. opt.cert_notations) to temporary store
+       * the manu is obviously not thread-save.  */
+      ndmanu = name_value_to_notation
+        ("manu",
+         gnupg_manu_notation_value (with_manu == 23? CO_DE_VS :
+                                    with_manu == 140? CO_FIPS : CO_GNUPG));
+      ndmanu->next = nd;
+      nd = ndmanu;
+    }
 
   if (nd)
     {
@@ -112,6 +127,14 @@ mk_notation_policy_etc (ctrl_t ctrl, PKT_signature *sig,
         {
           xfree (item->altvalue);
           item->altvalue = NULL;
+        }
+      if (with_manu)
+        {
+          /* Restore the original nd and release ndmanu.  */
+          nd = ndmanu->next;
+          ndmanu->next = NULL;
+          free_notation (ndmanu);
+          /* ND is now again opt.sig_notations or opt.cert_notations. */
         }
     }
 
@@ -337,6 +360,11 @@ hash_sigversion_to_magic (gcry_md_hd_t md, const PKT_signature *sig,
   if (sig->hashed)
     {
       n = sig->hashed->len;
+      if (sig->version >= 6)
+        {
+          gcry_md_putc (md, (n >> 24) );
+          gcry_md_putc (md, (n >> 16) );
+        }
       gcry_md_putc (md, (n >> 8) );
       gcry_md_putc (md,  n       );
       gcry_md_write (md, sig->hashed->data, n );
@@ -344,10 +372,18 @@ hash_sigversion_to_magic (gcry_md_hd_t md, const PKT_signature *sig,
     }
   else
     {
+      if (sig->version >= 6)
+        {
+          gcry_md_putc (md, 0);
+          gcry_md_putc (md, 0);
+        }
       gcry_md_putc (md, 0);  /* Always hash the length of the subpacket.  */
       gcry_md_putc (md, 0);
       n = 6;
     }
+  if (sig->version >= 6)
+    n += 2; /* Fixup for the two extra octets hashed.  */
+
   /* Hash data from the literal data packet.  */
   if (sig->version >= 5 && (sig->sig_class == 0x00 || sig->sig_class == 0x01))
     {
@@ -382,7 +418,7 @@ hash_sigversion_to_magic (gcry_md_hd_t md, const PKT_signature *sig,
   i = 0;
   buf[i++] = sig->version;  /* Hash convention version.  */
   buf[i++] = 0xff;          /* Not any sig type value.   */
-  if (sig->version >= 5)
+  if (sig->version >= 5 && sig->version != 6)
     {
       /* Note: We don't hashed any data larger than 2^32 and thus we
        * can always use 0 here.  See also note below.  */
@@ -495,6 +531,7 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
       gcry_sexp_t s_sigval;
 
       desc = gpg_format_keydesc (ctrl, pksk, FORMAT_KEYDESC_NORMAL, 1);
+      /* FIXME: Eventually support composite keys.  */
       err = agent_pksign (NULL/*ctrl*/, cache_nonce, hexgrip, desc,
                           pksk->keyid, pksk->main_keyid, pksk->pubkey_algo,
                           dp, gcry_md_get_algo_dlen (mdalgo), mdalgo,
@@ -519,6 +556,12 @@ do_sign (ctrl_t ctrl, PKT_public_key *pksk, PKT_signature *sig,
           err = sexp_extract_param_sos (s_sigval, "r", &sig->data[0]);
           if (!err)
             err = sexp_extract_param_sos (s_sigval, "s", &sig->data[1]);
+        }
+      else if (pksk->pubkey_algo == PUBKEY_ALGO_ED25519)
+        {
+          sig->data[0] = get_r_s_mpi_from_sexp (s_sigval);
+          if (!sig->data[0])
+            err = gpg_error (GPG_ERR_NO_OBJ);
         }
       else
         {
@@ -580,6 +623,7 @@ openpgp_card_v1_p (PKT_public_key *pk)
     {
       char *hexgrip;
 
+      /* Note: No need to care about composite keys for non-RSA keys.  */
       err = hexkeygrip_from_pk (pk, &hexgrip);
       if (err)
         {
@@ -682,7 +726,7 @@ hash_for (PKT_public_key *pk)
 	 like a new DSA key that just happens to have a 160-bit q
 	 (i.e. allow truncation).  If q is not 160, by definition it
 	 must be a new DSA key.  We ignore the personal_digest_prefs
-	 for ECDSA because they should always macth the curve and
+	 for ECDSA because they should always match the curve and
 	 truncated hashes are not useful either.  Even worse,
 	 smartcards may reject non matching hash lengths for curves
 	 (e.g. using SHA-512 with brainpooolP385r1 on a Yubikey).  */
@@ -807,7 +851,7 @@ write_onepass_sig_packets (SK_LIST sk_list, IOBUF out, int sigclass )
 
 /*
  * Helper to write the plaintext (literal data) packet.  At
- * R_EXTRAHASH a malloced object with the with the extra data hashed
+ * R_EXTRAHASH a malloced object with the extra data hashed
  * into v5 signatures is stored.
  */
 static int
@@ -918,7 +962,7 @@ write_plaintext_packet (iobuf_t out, iobuf_t inp,
 /*
  * Write the signatures from the SK_LIST to OUT. HASH must be a
  * non-finalized hash which will not be changes here.  EXTRAHASH is
- * either NULL or the extra data tro be hashed into v5 signatures.
+ * either NULL or the extra data to be hashed into v5 signatures.
  */
 static int
 write_signature_packets (ctrl_t ctrl,
@@ -928,6 +972,7 @@ write_signature_packets (ctrl_t ctrl,
 			 int status_letter, const char *cache_nonce)
 {
   SK_LIST sk_rover;
+  int with_manu;
 
   /* Loop over the certificates with secret keys. */
   for (sk_rover = sk_list; sk_rover; sk_rover = sk_rover->next)
@@ -964,7 +1009,19 @@ write_signature_packets (ctrl_t ctrl,
         BUG ();
 
       build_sig_subpkt_from_sig (sig, pk, 0);
-      mk_notation_policy_etc (ctrl, sig, NULL, pk);
+
+      if (opt.compliance == CO_DE_VS
+          && gnupg_rng_is_compliant (CO_DE_VS))
+        with_manu = 23;  /* FIXME: Also check that the algos are compliant?*/
+      else if (opt.compliance == CO_FIPS
+          && gnupg_rng_is_compliant (CO_FIPS))
+        with_manu = 140;
+      else if (!(opt.compat_flags & COMPAT_NO_MANU))
+        with_manu = 1;
+      else
+        with_manu = 0;
+
+      mk_notation_policy_etc (ctrl, sig, NULL, pk, with_manu);
       if (opt.flags.include_key_block && IS_SIG (sig))
         err = mk_sig_subpkt_key_block (ctrl, sig, pk);
       else
@@ -1022,7 +1079,9 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
   const char *fname;
   armor_filter_context_t *afx;
   compress_filter_context_t zfx;
+  gcry_md_hd_t md = NULL;
   md_filter_context_t mfx;
+  md_thd_filter_context_t mfx2 = NULL;
   text_filter_context_t tfx;
   progress_filter_context_t *pfx;
   encrypt_filter_context_t efx;
@@ -1115,7 +1174,7 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
       else if (opt.verbose)
         log_info (_("writing to '%s'\n"), outfile);
     }
-  else if ((rc = open_outfile (-1, fname,
+  else if ((rc = open_outfile (GNUPG_INVALID_FD, fname,
                                opt.armor? 1 : detached? 2 : 0, 0, &out)))
     {
       goto leave;
@@ -1128,10 +1187,10 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
       iobuf_push_filter (inp, text_filter, &tfx);
     }
 
-  if (gcry_md_open (&mfx.md, 0, 0))
+  if (gcry_md_open (&md, 0, 0))
     BUG ();
   if (DBG_HASHING)
-    gcry_md_debug (mfx.md, "sign");
+    gcry_md_debug (md, "sign");
 
   /* If we're encrypting and signing, it is reasonable to pick the
    * hash algorithm to use out of the recipient key prefs.  This is
@@ -1228,10 +1287,21 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
     }
 
   for (sk_rover = sk_list; sk_rover; sk_rover = sk_rover->next)
-    gcry_md_enable (mfx.md, hash_for (sk_rover->pk));
+    gcry_md_enable (md, hash_for (sk_rover->pk));
 
   if (!multifile)
-    iobuf_push_filter (inp, md_filter, &mfx);
+    {
+      if (encryptflag && (opt.compat_flags & COMPAT_PARALLELIZED))
+        {
+          iobuf_push_filter (inp, md_thd_filter, &mfx2);
+          md_thd_filter_set_md (mfx2, md);
+        }
+      else
+        {
+          iobuf_push_filter (inp, md_filter, &mfx);
+          mfx.md = md;
+        }
+    }
 
   if (detached && !encryptflag)
     afx->what = 2;
@@ -1294,7 +1364,7 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
         goto leave;
     }
 
-  write_status_begin_signing (mfx.md);
+  write_status_begin_signing (md);
 
   /* Setup the inner packet. */
   if (detached)
@@ -1307,7 +1377,7 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
 
           if (opt.verbose)
             log_info (_("signing:") );
-          /* Must walk reverse trough this list.  */
+          /* Must walk reverse through this list.  */
           for (sl = strlist_last(filenames);
                sl;
                sl = strlist_prev( filenames, sl))
@@ -1334,7 +1404,16 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
                   memset (&tfx, 0, sizeof tfx);
                   iobuf_push_filter (inp, text_filter, &tfx);
                 }
-              iobuf_push_filter (inp, md_filter, &mfx);
+              if (encryptflag && (opt.compat_flags & COMPAT_PARALLELIZED))
+                {
+                  iobuf_push_filter (inp, md_thd_filter, &mfx2);
+                  md_thd_filter_set_md (mfx2, md);
+                }
+              else
+                {
+                  iobuf_push_filter (inp, md_filter, &mfx);
+                  mfx.md = md;
+                }
               while (iobuf_read (inp, NULL, iobuf_size) != -1)
                 ;
               iobuf_close (inp);
@@ -1363,7 +1442,7 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
     goto leave;
 
   /* Write the signatures. */
-  rc = write_signature_packets (ctrl, sk_list, out, mfx.md, extrahash,
+  rc = write_signature_packets (ctrl, sk_list, out, md, extrahash,
                                 opt.textmode && !outfile? 0x01 : 0x00,
                                 0, duration, detached ? 'D':'S', NULL);
   if (rc)
@@ -1380,7 +1459,7 @@ sign_file (ctrl_t ctrl, strlist_t filenames, int detached, strlist_t locusr,
         write_status (STATUS_END_ENCRYPTION);
     }
   iobuf_close (inp);
-  gcry_md_close (mfx.md);
+  gcry_md_close (md);
   release_sk_list (sk_list);
   release_pk_list (pk_list);
   recipient_digest_algo = 0;
@@ -1461,7 +1540,7 @@ clearsign_file (ctrl_t ctrl,
         log_info (_("writing to '%s'\n"), outfile);
 
     }
-  else if ((rc = open_outfile (-1, fname, 1, 0, &out)))
+  else if ((rc = open_outfile (GNUPG_INVALID_FD, fname, 1, 0, &out)))
     {
       goto leave;
     }
@@ -1563,6 +1642,8 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
   progress_filter_context_t *pfx;
   compress_filter_context_t zfx;
   md_filter_context_t mfx;
+  md_thd_filter_context_t mfx2 = NULL;
+  gcry_md_hd_t md = NULL;
   text_filter_context_t tfx;
   cipher_filter_context_t cfx;
   iobuf_t inp = NULL;
@@ -1639,22 +1720,32 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
               /**/             : "CFB");
 
   /* Now create the outfile.  */
-  rc = open_outfile (-1, fname, opt.armor? 1:0, 0, &out);
+  rc = open_outfile (GNUPG_INVALID_FD, fname, opt.armor? 1:0, 0, &out);
   if (rc)
     goto leave;
 
   /* Prepare to calculate the MD over the input.  */
   if (opt.textmode)
     iobuf_push_filter (inp, text_filter, &tfx);
-  if (gcry_md_open (&mfx.md, 0, 0))
+  if (gcry_md_open (&md, 0, 0))
     BUG ();
   if  (DBG_HASHING)
-    gcry_md_debug (mfx.md, "symc-sign");
+    gcry_md_debug (md, "symc-sign");
 
   for (sk_rover = sk_list; sk_rover; sk_rover = sk_rover->next)
-    gcry_md_enable (mfx.md, hash_for (sk_rover->pk));
+    gcry_md_enable (md, hash_for (sk_rover->pk));
 
-  iobuf_push_filter (inp, md_filter, &mfx);
+  if ((opt.compat_flags & COMPAT_PARALLELIZED))
+    {
+      iobuf_push_filter (inp, md_thd_filter, &mfx2);
+      md_thd_filter_set_md (mfx2, md);
+    }
+  else
+    {
+      iobuf_push_filter (inp, md_filter, &mfx);
+      mfx.md = md;
+    }
+
 
   /* Push armor output filter */
   if (opt.armor)
@@ -1663,7 +1754,18 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
   /* Write the symmetric key packet */
   /* (current filters: armor)*/
   {
-    PKT_symkey_enc *enc = xmalloc_clear( sizeof *enc );
+    PKT_symkey_enc *enc = xmalloc_clear (sizeof *enc);
+
+    /* FIXME: seskeylen is 0, thus we directly encrypt the session key:
+     *
+     *     ...then the S2K algorithm applied to the passphrase produces
+     *    the session key for decrypting the file, using the symmetric
+     *    cipher algorithm from the Symmetric-Key Encrypted Session Key
+     *    packet.
+     *
+     * The problem is that this does not allow us to add additional
+     * encrypted session keys.
+     */
 
     enc->version = cfx.dek->use_aead ? 5 : 4;
     enc->cipher_algo = cfx.dek->algo;
@@ -1696,7 +1798,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
   if (rc)
     goto leave;
 
-  write_status_begin_signing (mfx.md);
+  write_status_begin_signing (md);
 
   /* Pipe data through all filters; i.e. write the signed stuff.  */
   /* (current filters: zip - encrypt - armor) */
@@ -1708,7 +1810,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
 
   /* Write the signatures.  */
   /* (current filters: zip - encrypt - armor) */
-  rc = write_signature_packets (ctrl, sk_list, out, mfx.md, extrahash,
+  rc = write_signature_packets (ctrl, sk_list, out, md, extrahash,
                                 opt.textmode? 0x01 : 0x00,
                                 0, duration, 'S', NULL);
   if (rc)
@@ -1725,7 +1827,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
     }
   iobuf_close (inp);
   release_sk_list (sk_list);
-  gcry_md_close (mfx.md);
+  gcry_md_close (md);
   xfree (cfx.dek);
   xfree (s2k);
   release_progress_context (pfx);
@@ -1736,7 +1838,7 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
 
 
 /*
- * Create a v4 signature in *RET_SIG.
+ * Create a v4/v5 signature in *RET_SIG.
  *
  * PK is the primary key to sign (required for all sigs)
  * UID is the user id to sign (required for 0x10..0x13, 0x30)
@@ -1752,13 +1854,14 @@ sign_symencrypt_file (ctrl_t ctrl, const char *fname, strlist_t locusr)
  * expires.
  *
  * If CACHED_NONCE is not NULL the agent may use it to avoid
- * additional pinnetry popups for the same keyblock.
+ * additional Pinentry popups for the same keyblock.
  *
  * This function creates the following subpackets: issuer, created,
- * and expire (if duration is not 0).  Additional subpackets can be
- * added using MKSUBPKT, which is called after these subpackets are
- * added and before the signature is generated.  OPAQUE is passed to
- * MKSUBPKT.
+ * and expire (if duration is not 0). For revocation signatures the
+ * intended recipient fingerprint subpacket is created.
+ * Additional subpackets can be added using MKSUBPKT, which is called
+ * after these subpackets are added and before the signature is generated.
+ * OPAQUE is passed to MKSUBPKT.
  */
 int
 make_keysig_packet (ctrl_t ctrl,
@@ -1777,12 +1880,19 @@ make_keysig_packet (ctrl_t ctrl,
   gcry_md_hd_t md;
   u32 pk_keyid[2], pksk_keyid[2];
   unsigned int signhints;
+  int with_manu;
 
-  log_assert ((sigclass >= 0x10 && sigclass <= 0x13) || sigclass == 0x1F
-              || sigclass == 0x20 || sigclass == 0x18 || sigclass == 0x19
-              || sigclass == 0x30 || sigclass == 0x28 );
+  log_assert ((sigclass&~3) == SIGCLASS_CERT
+              || sigclass == SIGCLASS_KEY
+              || sigclass == SIGCLASS_KEYREV
+              || sigclass == SIGCLASS_SUBKEY
+              || sigclass == SIGCLASS_BACKSIG
+              || sigclass == SIGCLASS_CERTREV
+              || sigclass == SIGCLASS_SUBREV );
 
-  if (pksk->version >= 5)
+  if (pksk->version == 6 && RFC9980)
+    sigversion = 6;
+  else if (pksk->version >= 5)
     sigversion = 5;
   else
     sigversion = 4;
@@ -1802,6 +1912,10 @@ make_keysig_packet (ctrl_t ctrl,
       else
         digest_algo = DIGEST_ALGO_SHA256;
     }
+  else if (pksk->pubkey_algo == PUBKEY_ALGO_ED25519)
+    {
+      digest_algo = DIGEST_ALGO_SHA256;
+    }
   else /* Use the default.  */
     digest_algo = DEFAULT_DIGEST_ALGO;
 
@@ -1813,18 +1927,21 @@ make_keysig_packet (ctrl_t ctrl,
 
   if (gcry_md_open (&md, digest_algo, 0))
     BUG ();
+  if  (DBG_HASHING)
+    gcry_md_debug (md, "mkkeysig");
 
   /* Hash the public key certificate. */
-  hash_public_key (md, pk);
+  hash_public_key (md, pk, NULL);
 
-  if (sigclass == 0x18 || sigclass == 0x19 || sigclass == 0x28)
+  if (sigclass == SIGCLASS_SUBKEY || sigclass == SIGCLASS_BACKSIG
+      || sigclass == SIGCLASS_SUBREV)
     {
       /* Hash the subkey binding/backsig/revocation.  */
-      hash_public_key (md, subpk);
+      hash_public_key (md, subpk, NULL);
       if ((subpk->pubkey_usage & PUBKEY_USAGE_RENC))
         signhints |= SIGNHINT_ADSK;
     }
-  else if (sigclass != 0x1F && sigclass != 0x20)
+  else if (sigclass != SIGCLASS_KEY && sigclass != SIGCLASS_KEYREV)
     {
       /* Hash the user id. */
       hash_uid (md, sigversion, uid);
@@ -1841,9 +1958,36 @@ make_keysig_packet (ctrl_t ctrl,
   if (duration)
     sig->expiredate = sig->timestamp + duration;
   sig->sig_class = sigclass;
+  /* Get the fpr of the subject of the revocation signature. */
+  if (IS_KEY_REV (sig))
+    {
+      size_t rs_fprlen = 0;
+
+      sig->rev_subject_info = xmalloc_clear (sizeof *sig->rev_subject_info);
+
+      fingerprint_from_pk (pk, sig->rev_subject_info->fpr,
+                           &rs_fprlen);
+      sig->rev_subject_info->fprlen = rs_fprlen;
+    }
 
   build_sig_subpkt_from_sig (sig, pksk, signhints);
-  mk_notation_policy_etc (ctrl, sig, pk, pksk);
+
+  with_manu = 0;
+  if ((signhints & SIGNHINT_SELFSIG)       /* Only for self-signatures.  */
+      && ((sigclass&~3) == SIGCLASS_CERT   /* on UIDs and subkeys.       */
+          || sigclass == SIGCLASS_SUBKEY))
+    {
+      if (opt.compliance == CO_DE_VS
+          && gnupg_rng_is_compliant (CO_DE_VS))
+        with_manu = 23;  /* Always in de-vs mode.  */
+      else if (opt.compliance == CO_FIPS
+               && gnupg_rng_is_compliant (CO_FIPS))
+        with_manu = 140;
+      else if (!(opt.compat_flags & COMPAT_NO_MANU))
+        with_manu = 1;
+    }
+
+  mk_notation_policy_etc (ctrl, sig, pk, pksk, with_manu);
 
   /* Crucial that the call to mksubpkt comes LAST before the calls
    * to finalize the sig as that makes it possible for the mksubpkt
@@ -1925,10 +2069,10 @@ update_keysig_packet (ctrl_t ctrl,
     BUG ();
 
   /* Hash the public key certificate and the user id. */
-  hash_public_key (md, pk);
+  hash_public_key (md, pk, NULL);
 
   if (orig_sig->sig_class == 0x18)
-    hash_public_key (md, subpk);
+    hash_public_key (md, subpk, orig_sig);
   else
     hash_uid (md, orig_sig->version, uid);
 

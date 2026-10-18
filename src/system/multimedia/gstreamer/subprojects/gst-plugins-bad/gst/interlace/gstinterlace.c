@@ -188,7 +188,7 @@ gst_interlace_pattern_get_type (void)
   "v308, IYU2, Y444, NV24, "                                               /*  8-bit 4:4:4 */ \
   "v216, I422_12BE, I422_12LE, "                                           /* 16-bit 4:2:2 */ \
   "Y212_BE, Y212_LE, "                                                     /* 12-bit 4:2:2 */ \
-  "UYVP, Y210, NV16_10LE32, v210, I422_10BE, I422_10LE, "                  /* 10-bit 4:2:2 */ \
+  "UYVP, Y210, NV16_10LE40, NV16_10LE32, v210, I422_10BE, I422_10LE, "     /* 10-bit 4:2:2 */ \
   "YUY2, UYVY, VYUY, YVYU, Y42B, NV16, NV61, "                             /*  8-bit 4:2:2 */ \
   "P016_BE, P016_LE, "                                                     /* 16-bit 4:2:0 */ \
   "I420_12BE, I420_12LE, P012_BE, P012_LE, "                               /* 12-bit 4:2:0 */ \
@@ -1005,24 +1005,17 @@ gst_interlace_getcaps (GstPad * pad, GstInterlace * interlace, GstCaps * filter)
     icaps = gst_caps_merge (icaps, alternate);
   }
 
-  /* Drop framerate for sinkpad */
-  if (pad == interlace->sinkpad) {
+  if (pattern == GST_INTERLACE_PATTERN_1_1) {
+    icaps =
+        gst_interlace_caps_double_framerate (icaps, (pad == interlace->srcpad),
+        FALSE);
+  } else if (pattern != GST_INTERLACE_PATTERN_2_2) {
+    GST_FIXME_OBJECT (interlace,
+        "Add calculations for telecine framerate conversions");
     for (i = 0; i < gst_caps_get_size (icaps); ++i) {
       GstStructure *s = gst_caps_get_structure (icaps, i);
 
       gst_structure_remove_field (s, "framerate");
-    }
-  } else {
-    if (pattern == GST_INTERLACE_PATTERN_1_1) {
-      icaps = gst_interlace_caps_double_framerate (icaps, TRUE, FALSE);
-    } else if (pattern != GST_INTERLACE_PATTERN_2_2) {
-      GST_FIXME_OBJECT (interlace,
-          "Add calculations for telecine framerate conversions");
-      for (i = 0; i < gst_caps_get_size (icaps); ++i) {
-        GstStructure *s = gst_caps_get_structure (icaps, i);
-
-        gst_structure_remove_field (s, "framerate");
-      }
     }
   }
 

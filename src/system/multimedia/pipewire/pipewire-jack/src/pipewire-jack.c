@@ -73,7 +73,6 @@ PW_LOG_TOPIC_STATIC(jack_log_topic, "jack");
 
 #define TYPE_ID_IS_EVENT(t)	((t) >= TYPE_ID_MIDI && (t) <= TYPE_ID_UMP)
 #define TYPE_ID_CAN_OSC(t)	((t) == TYPE_ID_MIDI || (t) == TYPE_ID_OSC)
-#define TYPE_ID_IS_HIDDEN(t)	((t) >= TYPE_ID_OTHER)
 #define TYPE_ID_IS_COMPATIBLE(a,b)(((a) == (b)) || (TYPE_ID_IS_EVENT(a) && TYPE_ID_IS_EVENT(b)))
 
 #define SELF_CONNECT_ALLOW	0
@@ -86,7 +85,7 @@ PW_LOG_TOPIC_STATIC(jack_log_topic, "jack");
 #define OTHER_CONNECT_FAIL	-1
 #define OTHER_CONNECT_IGNORE	0
 
-#define NOTIFY_BUFFER_SIZE	(1u<<13)
+#define NOTIFY_BUFFER_SIZE	(1u<<16)
 #define NOTIFY_BUFFER_MASK	(NOTIFY_BUFFER_SIZE-1)
 
 struct notify {
@@ -104,8 +103,8 @@ struct notify {
 #define NOTIFY_TYPE_TOTAL_LATENCY	((9<<4)|NOTIFY_ACTIVE_FLAG)
 #define NOTIFY_TYPE_PORT_RENAME		((10<<4)|NOTIFY_ACTIVE_FLAG)
 	int type;
-	struct object *object;
 	int arg1;
+	struct object *object;
 	const char *msg;
 };
 
@@ -233,6 +232,13 @@ struct buffer {
 	uint32_t n_mem;
 };
 
+struct mix_info {
+	struct spa_pod_parser parser;
+	struct spa_pod_frame frame;
+	struct spa_pod_control control;
+	const void *control_body;
+};
+
 struct mix {
 	struct spa_list link;
 	struct spa_list port_link;
@@ -242,10 +248,13 @@ struct mix {
 	struct port *peer_port;
 
 	struct spa_io_buffers *io[2];
+	uint32_t io_busy;
 
 	struct spa_list queue;
 	struct buffer buffers[MAX_BUFFERS];
 	uint32_t n_buffers;
+
+	struct mix_info mix_info;
 
 	unsigned int to_free:1;
 };
@@ -630,8 +639,8 @@ do_mix_set_io(struct spa_loop *loop, bool async, uint32_t seq,
 static inline void mix_set_io(struct mix *mix, void *data, size_t size)
 {
 	struct io_info info = { .mix = mix, .data = data, .size = size };
-	pw_data_loop_invoke(mix->port->client->loop,
-		do_mix_set_io, SPA_ID_INVALID, &info, sizeof(info), false, NULL);
+	pw_loop_locked(mix->port->client->loop->loop,
+		do_mix_set_io, SPA_ID_INVALID, &info, sizeof(info), NULL);
 }
 
 static void init_mix(struct mix *mix, uint32_t mix_id, struct port *port, uint32_t peer_id)
@@ -644,6 +653,7 @@ static void init_mix(struct mix *mix, uint32_t mix_id, struct port *port, uint32
 	mix->io[0] = mix->io[1] = NULL;
 	mix->n_buffers = 0;
 	spa_list_init(&mix->queue);
+	SPA_ATOMIC_STORE(mix->io_busy, 0);
 	if (mix_id == SPA_ID_INVALID) {
 		port->global_mix = mix;
 		if (port->n_mix > 0)
@@ -725,6 +735,7 @@ static int clear_buffers(struct client *c, struct mix *mix)
 	}
 	mix->n_buffers = 0;
 	spa_list_init(&mix->queue);
+	SPA_ATOMIC_STORE(mix->io_busy, 0);
 	return 0;
 }
 
@@ -868,6 +879,8 @@ static struct object *find_port_by_name(struct client *c, const char *name)
 static struct object *find_by_id(struct client *c, uint32_t id)
 {
 	struct object *o;
+	if (id == SPA_ID_INVALID)
+		return NULL;
 	spa_list_for_each(o, &c->context.objects, link) {
 		if (o->id == id)
 			return o;
@@ -882,6 +895,14 @@ static struct object *find_by_serial(struct client *c, uint32_t serial)
 		if (o->serial == serial)
 			return o;
 	}
+	return NULL;
+}
+
+static struct object *find_port_by_serial(struct client *c, uint32_t serial)
+{
+	struct object *o = find_by_serial(c, serial);
+	if (o != NULL && o->type == INTERFACE_Port)
+		return o;
 	return NULL;
 }
 
@@ -906,15 +927,17 @@ static struct object *find_client(struct client *c, uint32_t client_id)
 	return find_type(c, client_id, INTERFACE_Client, false);
 }
 
-static struct object *find_link(struct client *c, uint32_t src, uint32_t dst)
+/* Matches a link by serial instead of object id, since the object id might be
+ * re-used. See #5356. */
+static struct object *find_link(struct client *c, uint32_t src_serial, uint32_t dst_serial)
 {
 	struct object *l;
 
 	spa_list_for_each(l, &c->context.objects, link) {
-		if (l->type != INTERFACE_Link || l->removed)
+		if (l->type != INTERFACE_Link || l->removing || l->removed)
 			continue;
-		if (l->port_link.src == src &&
-		    l->port_link.dst == dst) {
+		if (l->port_link.src_serial == src_serial &&
+		    l->port_link.dst_serial == dst_serial) {
 			return l;
 		}
 	}
@@ -1439,8 +1462,9 @@ static size_t convert_from_event(void *midi, void *buffer, size_t size, uint32_t
 
 	switch (type) {
 	case TYPE_ID_MIDI:
+		event_type = SPA_CONTROL_Midi;
+		break;
 	case TYPE_ID_OSC:
-		/* we handle MIDI as OSC, check below */
 		event_type = SPA_CONTROL_OSC;
 		break;
 	case TYPE_ID_UMP:
@@ -1457,27 +1481,15 @@ static size_t convert_from_event(void *midi, void *buffer, size_t size, uint32_t
 	for (i = 0; i < count; i++) {
 		jack_midi_event_t ev;
 		jack_midi_event_get(&ev, midi, i);
+		uint32_t ev_type;
 
-		if (type != TYPE_ID_MIDI || is_osc(&ev)) {
-			/* no midi port or it's OSC */
-			spa_pod_builder_control(&b, ev.time, event_type);
-			spa_pod_builder_bytes(&b, ev.buffer, ev.size);
-		} else {
-			/* midi port and it's not OSC, convert to UMP */
-			uint8_t *data = ev.buffer;
-			size_t size = ev.size;
-			uint64_t state = 0;
+		if (type == TYPE_ID_MIDI && is_osc(&ev))
+			ev_type = SPA_CONTROL_OSC;
+		else
+			ev_type = event_type;
 
-			while (size > 0) {
-				uint32_t ump[4];
-				int ump_size = spa_ump_from_midi(&data, &size,
-						ump, sizeof(ump), 0, &state);
-				if (ump_size <= 0)
-					break;
-				spa_pod_builder_control(&b, ev.time, SPA_CONTROL_UMP);
-				spa_pod_builder_bytes(&b, ump, ump_size);
-			}
-		}
+		spa_pod_builder_control(&b, ev.time, ev_type);
+		spa_pod_builder_bytes(&b, ev.buffer, ev.size);
 	}
 	spa_pod_builder_pop(&b, &f);
 	return b.state.offset;
@@ -1494,7 +1506,8 @@ static inline int event_compare(uint8_t s1, uint8_t s2)
 	return priotab[(s2>>4) & 7] - priotab[(s1>>4) & 7];
 }
 
-static inline int event_sort(struct spa_pod_control *a, struct spa_pod_control *b)
+static inline int event_sort(struct spa_pod_control *a, const void *abody,
+		struct spa_pod_control *b, const void *bbody)
 {
 	if (a->offset < b->offset)
 		return -1;
@@ -1505,14 +1518,14 @@ static inline int event_sort(struct spa_pod_control *a, struct spa_pod_control *
 	switch(a->type) {
 	case SPA_CONTROL_Midi:
 	{
-		uint8_t *sa = SPA_POD_BODY(&a->value), *sb = SPA_POD_BODY(&b->value);
+		const uint8_t *sa = abody, *sb = bbody;
 		if (SPA_POD_BODY_SIZE(&a->value) < 1 || SPA_POD_BODY_SIZE(&b->value) < 1)
 			return 0;
 		return event_compare(sa[0], sb[0]);
 	}
 	case SPA_CONTROL_UMP:
 	{
-		uint32_t *sa = SPA_POD_BODY(&a->value), *sb = SPA_POD_BODY(&b->value);
+		const uint32_t *sa = abody, *sb = bbody;
 		if (SPA_POD_BODY_SIZE(&a->value) < 4 || SPA_POD_BODY_SIZE(&b->value) < 4)
 			return 0;
 		if (((sa[0] >> 28) != 2 && (sa[0] >> 28) != 4) ||
@@ -1600,56 +1613,54 @@ static inline int midi_event_write(void *port_buffer,
 	return 0;
 }
 
-static void convert_to_event(struct spa_pod_sequence **seq, uint32_t n_seq, void *midi, bool fix, uint32_t type)
+static void convert_to_event(struct mix_info **mix, uint32_t n_mix, void *midi, bool fix, uint32_t type)
 {
-	struct spa_pod_control *c[n_seq];
-	uint64_t state = 0;
 	uint32_t i;
 	int res = 0;
 	bool in_sysex = false;
 
-	for (i = 0; i < n_seq; i++)
-		c[i] = spa_pod_control_first(&seq[i]->body);
-
 	while (true) {
-		struct spa_pod_control *next = NULL;
+		struct mix_info *next = NULL;
 		uint32_t next_index = 0;
+		struct spa_pod_control *control;
+		size_t size;
+		uint8_t *data;
+		uint64_t state = 0;
 
-		for (i = 0; i < n_seq; i++) {
-			if (!spa_pod_control_is_inside(&seq[i]->body,
-						SPA_POD_BODY_SIZE(seq[i]), c[i]))
-				continue;
-
-			if (next == NULL || event_sort(c[i], next) <= 0) {
-				next = c[i];
+		for (i = 0; i < n_mix; i++) {
+			struct mix_info *m = mix[i];
+			if (next == NULL || event_sort(&m->control, m->control_body,
+						&next->control, next->control_body) <= 0) {
+				next = m;
 				next_index = i;
 			}
 		}
 		if (SPA_UNLIKELY(next == NULL))
 			break;
 
-		switch(next->type) {
+		control = &next->control;
+		data = (uint8_t*)next->control_body;
+		size = SPA_POD_BODY_SIZE(&control->value);
+
+		switch(control->type) {
 		case SPA_CONTROL_OSC:
 			if (!TYPE_ID_CAN_OSC(type))
 				break;
 			SPA_FALLTHROUGH;
 		case SPA_CONTROL_Midi:
 		{
-			uint8_t *data = SPA_POD_BODY(&next->value);
-			size_t size = SPA_POD_BODY_SIZE(&next->value);
-
 			if (type == TYPE_ID_UMP) {
 				while (size > 0) {
 					uint32_t ump[4];
 					int ump_size = spa_ump_from_midi(&data, &size, ump, sizeof(ump), 0, &state);
 					if (ump_size <= 0)
 						break;
-					if ((res = midi_event_write(midi, next->offset,
+					if ((res = midi_event_write(midi, control->offset,
 								(uint8_t*)ump, ump_size, false)) < 0)
 						break;
 				}
 			} else {
-				res = midi_event_write(midi, next->offset, data, size, fix);
+				res = midi_event_write(midi, control->offset, data, size, fix);
 			}
 			if (res < 0)
 				pw_log_warn("midi %p: can't write event: %s", midi,
@@ -1658,38 +1669,43 @@ static void convert_to_event(struct spa_pod_sequence **seq, uint32_t n_seq, void
 		}
 		case SPA_CONTROL_UMP:
 		{
-			void *data = SPA_POD_BODY(&next->value);
-			size_t size = SPA_POD_BODY_SIZE(&next->value);
-			uint8_t ev[32];
-			bool was_sysex = in_sysex;
-
 			if (type == TYPE_ID_MIDI) {
-				int ev_size = spa_ump_to_midi(data, size, ev, sizeof(ev));
-				if (ev_size <= 0)
-					break;
+				uint8_t ev[32];
+				const uint32_t *d = (uint32_t*)data;
 
-				size = ev_size;
-				data = ev;
+				while (size > 0) {
+					bool was_sysex = in_sysex;
+					int ev_size = spa_ump_to_midi(&d, &size, ev, sizeof(ev), &state);
+					if (ev_size <= 0)
+						break;
 
-				if (!in_sysex && ev[0] == 0xf0)
-					in_sysex = true;
-				if (in_sysex && ev[ev_size-1] == 0xf7)
-					in_sysex = false;
+					if (!in_sysex && ev[0] == 0xf0)
+						in_sysex = true;
+					if (in_sysex && ev[ev_size-1] == 0xf7)
+						in_sysex = false;
 
-			} else if (type != TYPE_ID_UMP)
-				break;
+					if (was_sysex)
+						res = midi_event_append(midi, ev, ev_size);
+					else
+						res = midi_event_write(midi, control->offset, ev, ev_size, fix);
+					if (res < 0)
+						break;
 
-			if (was_sysex)
-				res = midi_event_append(midi, data, size);
-			else
-				res = midi_event_write(midi, next->offset, data, size, fix);
-
+				}
+			} else if (type == TYPE_ID_UMP) {
+				res = midi_event_write(midi, control->offset, data, size, fix);
+			}
 			if (res < 0)
 				pw_log_warn("midi %p: can't write event: %s", midi,
 						spa_strerror(res));
+			break;
 		}
 		}
-		c[next_index] = spa_pod_control_next(c[next_index]);
+		if (spa_pod_parser_get_control_body(&next->parser,
+					&next->control, &next->control_body) < 0) {
+			spa_pod_parser_pop(&next->parser, &next->frame);
+			mix[next_index] = mix[--n_mix];
+		}
 	}
 }
 
@@ -1717,11 +1733,11 @@ static inline void *get_buffer_output(struct port *p, uint32_t frames, uint32_t 
 	if (SPA_UNLIKELY((io = mix->io[cycle]) == NULL || mix->n_buffers == 0))
 		return NULL;
 
-	if (io->status == SPA_STATUS_HAVE_DATA &&
+	if (SPA_ATOMIC_LOAD(io->status) == SPA_STATUS_HAVE_DATA &&
 	    io->buffer_id < mix->n_buffers) {
 		b = &mix->buffers[io->buffer_id];
 		d = &b->datas[0];
-	} else {
+	} else if (SPA_ATOMIC_CAS(mix->io_busy, 0, 1)) {
 		if (mix->n_buffers == 1) {
 			b = &mix->buffers[0];
 		} else {
@@ -1732,6 +1748,7 @@ static inline void *get_buffer_output(struct port *p, uint32_t frames, uint32_t 
 			if (SPA_UNLIKELY(b == NULL)) {
 				pw_log_warn("port %p: out of buffers %d", p, mix->n_buffers);
 				io->buffer_id = SPA_ID_INVALID;
+				SPA_ATOMIC_STORE(mix->io_busy, 0);
 				return NULL;
 			}
 		}
@@ -1741,7 +1758,15 @@ static inline void *get_buffer_output(struct port *p, uint32_t frames, uint32_t 
 		d->chunk->stride = stride;
 
 		io->buffer_id = b->id;
-		io->status = SPA_STATUS_HAVE_DATA;
+		SPA_ATOMIC_STORE(io->status, SPA_STATUS_HAVE_DATA);
+		SPA_ATOMIC_STORE(mix->io_busy, 0);
+	} else {
+		while (SPA_ATOMIC_LOAD(io->status) != SPA_STATUS_HAVE_DATA)
+			;
+		if (SPA_UNLIKELY(io->buffer_id >= mix->n_buffers))
+			return NULL;
+		b = &mix->buffers[io->buffer_id];
+		d = &b->datas[0];
 	}
 	ptr = d->data;
 	if (buf)
@@ -2197,7 +2222,7 @@ on_rtsocket_condition(void *data, int fd, uint32_t mask)
 		}
 	} else if (SPA_LIKELY(mask & SPA_IO_IN)) {
 		uint32_t buffer_frames;
-		int status = 0;
+		int status = -EBUSY;
 
 		buffer_frames = cycle_run(c);
 
@@ -2513,16 +2538,16 @@ static int client_node_command(void *data, const struct spa_command *command)
 	case SPA_NODE_COMMAND_Suspend:
 	case SPA_NODE_COMMAND_Pause:
 		if (c->started) {
-			pw_data_loop_invoke(c->loop,
-				do_unprepare_client, SPA_ID_INVALID, NULL, 0, false, c);
+			pw_loop_locked(c->loop->loop,
+				do_unprepare_client, SPA_ID_INVALID, NULL, 0, c);
 			c->started = false;
 		}
 		break;
 
 	case SPA_NODE_COMMAND_Start:
 		if (!c->started) {
-			pw_data_loop_invoke(c->loop,
-				do_prepare_client, SPA_ID_INVALID, NULL, 0, false, c);
+			pw_loop_locked(c->loop->loop,
+				do_prepare_client, SPA_ID_INVALID, NULL, 0, c);
 			c->started = true;
 		}
 		break;
@@ -2566,28 +2591,11 @@ static int param_enum_format(struct client *c, struct port *p,
 	case TYPE_ID_UMP:
 	case TYPE_ID_OSC:
 	case TYPE_ID_MIDI:
-	{
-		struct spa_pod_frame f;
-		int32_t types = 0;
-
-		spa_pod_builder_push_object(b, &f,
-			SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
-		spa_pod_builder_add(b,
+		*param = spa_pod_builder_add_object(b,
+			SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
 			SPA_FORMAT_mediaType,      SPA_POD_Id(SPA_MEDIA_TYPE_application),
-			SPA_FORMAT_mediaSubtype,   SPA_POD_Id(SPA_MEDIA_SUBTYPE_control),
-			0);
-		if (p->object->port.type_id == TYPE_ID_UMP)
-			types |= 1u<<SPA_CONTROL_UMP;
-		if (p->object->port.type_id == TYPE_ID_OSC)
-			types |= 1u<<SPA_CONTROL_OSC;
-		if (types != 0)
-			spa_pod_builder_add(b,
-				SPA_FORMAT_CONTROL_types,  SPA_POD_CHOICE_FLAGS_Int(types),
-				0);
-
-		*param = spa_pod_builder_pop(b, &f);
+			SPA_FORMAT_mediaSubtype,   SPA_POD_Id(SPA_MEDIA_SUBTYPE_control));
 		break;
-	}
 	case TYPE_ID_VIDEO:
 		*param = spa_pod_builder_add_object(b,
 			SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat,
@@ -3313,8 +3321,8 @@ static int client_node_set_activation(void *data,
 		link->trigger = link->activation->server_version < 1 ? trigger_link_v0 : trigger_link_v1;
 		spa_list_append(&c->links, &link->link);
 
-		pw_data_loop_invoke(c->loop,
-                       do_add_link, SPA_ID_INVALID, NULL, 0, false, link);
+		pw_loop_locked(c->loop->loop,
+                       do_add_link, SPA_ID_INVALID, NULL, 0, link);
 	}
 	else {
 		link = find_activation(&c->links, node_id);
@@ -3324,8 +3332,8 @@ static int client_node_set_activation(void *data,
 		}
 		spa_list_remove(&link->link);
 
-		pw_data_loop_invoke(c->loop,
-                       do_remove_link, SPA_ID_INVALID, NULL, 0, false, link);
+		pw_loop_locked(c->loop->loop,
+                       do_remove_link, SPA_ID_INVALID, NULL, 0, link);
 		queue_free_link(c, link);
 	}
 
@@ -3850,6 +3858,8 @@ static void registry_event_global(void *data, uint32_t id,
 		if (str == NULL)
 			str = node_name;
 		if (str == NULL)
+			str = spa_dict_lookup(props, PW_KEY_OBJECT_PATH);
+		if (str == NULL)
 			str = "node";
 
 		if (app && !spa_streq(app, str))
@@ -3907,8 +3917,9 @@ static void registry_event_global(void *data, uint32_t id,
 		const char *name;
 
 		if ((str = spa_dict_lookup(props, PW_KEY_FORMAT_DSP)) == NULL)
-			str = "other";
-		if ((type_id = string_to_type(str)) == SPA_ID_INVALID)
+			goto exit;
+		if ((type_id = string_to_type(str)) == SPA_ID_INVALID ||
+		    !type_is_dsp(type_id))
 			goto exit;
 
 		if ((str = spa_dict_lookup(props, PW_KEY_NODE_ID)) == NULL)
@@ -4167,6 +4178,13 @@ static void registry_event_global_remove(void *data, uint32_t id)
 	}
 	o->removing = true;
 
+	/* pipewire will reuse the global id for this object from now on, so we
+	 * retire it here instead of when the jack object is freed. Until then the
+	 * object remains reachable by its serial which is what's being used as
+	 * jack_port_id, but unassigning the global id prevents that serial from
+	 * being re-issued to new ports as they appear in the future. See #5356. */
+	o->id = SPA_ID_INVALID;
+
 	switch (o->type) {
 	case INTERFACE_Client:
 		free_object(c, o);
@@ -4179,20 +4197,20 @@ static void registry_event_global_remove(void *data, uint32_t id)
 				c->metadata->default_audio_source[0] = '\0';
 		}
 		if (find_node(c, o->node.name) == NULL) {
-			pw_log_info("%p: client %u removed \"%s\"", c, o->id, o->node.name);
+			pw_log_info("%p: client %u removed \"%s\"", c, id, o->node.name);
 			queue_notify(c, NOTIFY_TYPE_REGISTRATION, o, 0, NULL);
 		} else {
 			free_object(c, o);
 		}
 		break;
 	case INTERFACE_Port:
-		pw_log_info("%p: port %u/%u removed \"%s\"", c, o->id, o->serial, o->port.name);
+		pw_log_info("%p: port %u/%u removed \"%s\"", c, id, o->serial, o->port.name);
 		queue_notify(c, NOTIFY_TYPE_PORTREGISTRATION, o, 0, NULL);
 		break;
 	case INTERFACE_Link:
-		if (find_type(c, o->port_link.src, INTERFACE_Port, true) != NULL &&
-		    find_type(c, o->port_link.dst, INTERFACE_Port, true) != NULL) {
-			pw_log_info("%p: link %u %u/%u -> %u/%u removed", c, o->id,
+		if (find_port_by_serial(c, o->port_link.src_serial) != NULL &&
+		    find_port_by_serial(c, o->port_link.dst_serial) != NULL) {
+			pw_log_info("%p: link %u %u/%u -> %u/%u removed", c, id,
 					o->port_link.src, o->port_link.src_serial,
 					o->port_link.dst, o->port_link.dst_serial);
 			queue_notify(c, NOTIFY_TYPE_CONNECT, o, 0, NULL);
@@ -4303,6 +4321,7 @@ jack_client_t * jack_client_open (const char *client_name,
 
 	client->props = pw_properties_new(
 			PW_KEY_LOOP_CANCEL, "true",
+			SPA_KEY_THREAD_RESET_ON_FORK, "false",
 			PW_KEY_REMOTE_NAME, client->server_name,
 			PW_KEY_CLIENT_NAME, client_name,
 			PW_KEY_CLIENT_API, "jack",
@@ -4876,7 +4895,7 @@ int jack_activate (jack_client_t *client)
 	freeze_callbacks(c);
 
 	/* reemit buffer_frames */
-	c->buffer_frames = 0;
+	c->buffer_frames = (uint32_t)-1;
 
 	pw_data_loop_start(c->loop);
 	c->active = true;
@@ -4945,7 +4964,7 @@ int jack_deactivate (jack_client_t *client)
 	pw_client_node_set_active(c->node, false);
 
 	spa_list_for_each(o, &c->context.objects, link) {
-		if (o->type != INTERFACE_Link || o->removed)
+		if (o->type != INTERFACE_Link || o->removing || o->removed)
 			continue;
 		if (o->port_link.src_ours || o->port_link.dst_ours)
 			pw_registry_destroy(c->registry, o->id);
@@ -5338,7 +5357,7 @@ int jack_set_freewheel(jack_client_t* client, int onoff)
 	pw_thread_loop_lock(c->context.loop);
 	str = pw_properties_get(c->props, PW_KEY_NODE_GROUP);
 	if (str != NULL) {
-		char *p = strstr(str, ",pipewire.freewheel");
+		const char *p = strstr(str, ",pipewire.freewheel");
 		if (p == NULL)
 			p = strstr(str, "pipewire.freewheel");
 		if (p == NULL && onoff)
@@ -5457,7 +5476,7 @@ SPA_EXPORT
 jack_nframes_t jack_get_buffer_size (jack_client_t *client)
 {
 	struct client *c = (struct client *) client;
-	jack_nframes_t res = -1;
+	uint32_t res = -1;
 
 	return_val_if_fail(c != NULL, 0);
 
@@ -5474,7 +5493,7 @@ jack_nframes_t jack_get_buffer_size (jack_client_t *client)
 	}
 	c->buffer_frames = res;
 	pw_log_debug("buffer_frames: %u", res);
-	return res;
+	return (jack_nframes_t)res;
 }
 
 SPA_EXPORT
@@ -5543,7 +5562,8 @@ jack_port_t * jack_port_register (jack_client_t *client,
 		return NULL;
 	}
 
-	if ((type_id = string_to_type(port_type)) == SPA_ID_INVALID) {
+	if ((type_id = string_to_type(port_type)) == SPA_ID_INVALID ||
+	    !type_is_dsp(type_id)) {
 		pw_log_warn("unknown port type %s", port_type);
 		return NULL;
 	}
@@ -5824,13 +5844,15 @@ static void *get_buffer_input_midi(struct port *p, jack_nframes_t frames)
 	struct mix *mix;
 	void *ptr = p->emptyptr;
 	struct midi_buffer *mb = (struct midi_buffer*)midi_scratch;
-	struct spa_pod_sequence *seq[MAX_MIX];
-	uint32_t n_seq = 0;
+	struct mix_info *mix_info[MAX_MIX];
+	uint32_t n_mix_info = 0;
 
 	spa_list_for_each(mix, &p->mix, port_link) {
 		struct spa_data *d;
 		struct buffer *b;
-		void *pod;
+		struct mix_info *mi = &mix->mix_info;
+		struct spa_pod_sequence seq;
+		const void *seq_body;
 
 		if (mix->id == SPA_ID_INVALID)
 			continue;
@@ -5842,21 +5864,24 @@ static void *get_buffer_input_midi(struct port *p, jack_nframes_t frames)
 			continue;
 
 		d = &b->datas[0];
+		spa_pod_parser_init_from_data(&mi->parser, d->data, d->maxsize,
+				d->chunk->offset, d->chunk->size);
+		if (spa_pod_parser_push_sequence_body(&mi->parser,
+					&mi->frame, &seq, &seq_body) < 0)
+                        continue;
+                if (spa_pod_parser_get_control_body(&mi->parser,
+                                        &mi->control, &mi->control_body) < 0)
+                        continue;
 
-		if ((pod = spa_pod_from_data(d->data, d->maxsize, d->chunk->offset, d->chunk->size)) == NULL)
-			continue;
-		if (!spa_pod_is_sequence(pod))
-			continue;
-
-		seq[n_seq++] = pod;
-		if (n_seq == MAX_MIX)
+		mix_info[n_mix_info++] = mi;
+		if (n_mix_info == MAX_MIX)
 			break;
 	}
 	midi_init_buffer(mb, MIDI_SCRATCH_FRAMES, frames);
 	/* first convert to a thread local scratch buffer, then memcpy into
 	 * the per port buffer. This makes it possible to call this function concurrently
 	 * but also have different pointers per port */
-	convert_to_event(seq, n_seq, mb, p->client->fix_midi_events, p->object->port.type_id);
+	convert_to_event(mix_info, n_mix_info, mb, p->client->fix_midi_events, p->object->port.type_id);
 	memcpy(ptr, mb, sizeof(struct midi_buffer) + (mb->event_count
                               * sizeof(struct midi_event)));
 	if (mb->write_pos > 0) {
@@ -5923,21 +5948,26 @@ void * jack_port_get_buffer (jack_port_t *port, jack_nframes_t frames)
 			goto done;
 
 		if (TYPE_ID_IS_EVENT(o->port.type_id)) {
-			struct spa_pod_sequence *seq[1];
+			struct mix_info *mix_info[1], mi;
 			struct spa_data *d;
-			void *pod;
+			struct spa_pod_sequence seq;
+			const void *seq_body;
 
 			ptr = midi_scratch;
 			midi_init_buffer(ptr, MIDI_SCRATCH_FRAMES, frames);
 
 			d = &b->datas[0];
-			if ((pod = spa_pod_from_data(d->data, d->maxsize,
-							d->chunk->offset, d->chunk->size)) == NULL)
+			spa_pod_parser_init_from_data(&mi.parser, d->data, d->maxsize,
+					d->chunk->offset, d->chunk->size);
+			if (spa_pod_parser_push_sequence_body(&mi.parser,
+						&mi.frame, &seq, &seq_body) < 0)
 				goto done;
-			if (!spa_pod_is_sequence(pod))
+	                if (spa_pod_parser_get_control_body(&mi.parser,
+	                                        &mi.control, &mi.control_body) < 0)
 				goto done;
-			seq[0] = pod;
-			convert_to_event(seq, 1, ptr, c->fix_midi_events, o->port.type_id);
+
+			mix_info[0] = &mi;
+			convert_to_event(mix_info, 1, ptr, c->fix_midi_events, o->port.type_id);
 		} else {
 			ptr = get_buffer_data(b, frames);
 		}
@@ -6096,7 +6126,7 @@ int jack_port_connected_to (const jack_port_t *port,
 		p = o;
 		o = l;
 	}
-	if ((l = find_link(c, o->id, p->id)) != NULL)
+	if ((l = find_link(c, o->serial, p->serial)) != NULL)
 		res = 1;
 
      exit:
@@ -6140,9 +6170,9 @@ const char ** jack_port_get_all_connections (const jack_client_t *client,
 		if (l->type != INTERFACE_Link || l->removed)
 			continue;
 		if (l->port_link.src_serial == o->serial)
-			p = find_type(c, l->port_link.dst, INTERFACE_Port, true);
+			p = find_port_by_serial(c, l->port_link.dst_serial);
 		else if (l->port_link.dst_serial == o->serial)
-			p = find_type(c, l->port_link.src, INTERFACE_Port, true);
+			p = find_port_by_serial(c, l->port_link.src_serial);
 		else
 			continue;
 
@@ -6593,7 +6623,7 @@ int jack_disconnect (jack_client_t *client,
 	if ((res = check_connect(c, src, dst)) != 1)
 		goto exit;
 
-	if ((l = find_link(c, src->id, dst->id)) == NULL) {
+	if ((l = find_link(c, src->serial, dst->serial)) == NULL) {
 		res = -ENOENT;
 		goto exit;
 	}
@@ -6937,8 +6967,6 @@ const char ** jack_get_ports (jack_client_t *client,
 			continue;
 		pw_log_debug("%p: check port type:%d flags:%08lx name:\"%s\"", c,
 				o->port.type_id, o->port.flags, o->port.name);
-		if (TYPE_ID_IS_HIDDEN(o->port.type_id))
-			continue;
 		if (!SPA_FLAG_IS_SET(o->port.flags, flags))
 			continue;
 		if (str != NULL && o->port.node != NULL) {

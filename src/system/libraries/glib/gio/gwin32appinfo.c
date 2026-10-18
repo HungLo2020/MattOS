@@ -22,11 +22,18 @@
  *          Руслан Ижбулатов  <lrn1986@gmail.com>
  */
 
+#ifdef NTDDI_VERSION
+#undef NTDDI_VERSION
+#endif
+
+#define NTDDI_VERSION NTDDI_WIN8
+
 #include "config.h"
 
 #define COBJMACROS
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "gcontenttype.h"
 #include "gappinfoprivate.h"
@@ -38,11 +45,7 @@
 #include "glibintl.h"
 #include <gio/gwin32registrykey.h>
 #include <shlobj.h>
-/* Contains the definitions from shlobj.h that are
- * guarded as Windows8-or-newer and are unavailable
- * to GLib, being only Windows7-or-newer.
- */
-#include "gwin32api-application-activation-manager.h"
+#include <shobjidl.h>
 
 #include <windows.h>
 /* For SHLoadIndirectString() */
@@ -369,11 +372,11 @@ struct _GWin32AppInfoApplication {
 #define G_TYPE_WIN32_APPINFO_SHELL_VERB           (g_win32_appinfo_shell_verb_get_type ())
 #define G_WIN32_APPINFO_SHELL_VERB(obj)          (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_TYPE_WIN32_APPINFO_SHELL_VERB, GWin32AppInfoShellVerb))
 
-GType g_win32_appinfo_url_schema_get_type (void) G_GNUC_CONST;
-GType g_win32_appinfo_file_extension_get_type (void) G_GNUC_CONST;
-GType g_win32_appinfo_shell_verb_get_type (void) G_GNUC_CONST;
-GType g_win32_appinfo_handler_get_type (void) G_GNUC_CONST;
-GType g_win32_appinfo_application_get_type (void) G_GNUC_CONST;
+GType g_win32_appinfo_url_schema_get_type (void);
+GType g_win32_appinfo_file_extension_get_type (void);
+GType g_win32_appinfo_shell_verb_get_type (void);
+GType g_win32_appinfo_handler_get_type (void);
+GType g_win32_appinfo_application_get_type (void);
 
 G_DEFINE_TYPE (GWin32AppInfoURLSchema, g_win32_appinfo_url_schema, G_TYPE_OBJECT)
 G_DEFINE_TYPE (GWin32AppInfoFileExtension, g_win32_appinfo_file_extension, G_TYPE_OBJECT)
@@ -4398,7 +4401,7 @@ expand_macro (char               macro,
 Legend: (from http://msdn.microsoft.com/en-us/library/windows/desktop/cc144101%28v=vs.85%29.aspx)
 %* - replace with all parameters
 %~ - replace with all parameters starting with and following the second parameter
-%0 or %1 the first file parameter. For example "C:\\Users\\Eric\\Destop\\New Text Document.txt". Generally this should be in quotes and the applications command line parsing should accept quotes to disambiguate files with spaces in the name and different command line parameters (this is a security best practice and I believe mentioned in MSDN).
+%0 or %1 the first file parameter. For example "C:\\Users\\Eric\\Desktop\\New Text Document.txt". Generally this should be in quotes and the applications command line parsing should accept quotes to disambiguate files with spaces in the name and different command line parameters (this is a security best practice and I believe mentioned in MSDN).
 %<n> (where N is 2 - 9), replace with the nth parameter
 %s - show command
 %h - hotkey value
@@ -4892,6 +4895,55 @@ emit_launch_failed (GAppLaunchContext *context,
     }
 }
 
+typedef struct
+{
+  /* Allow steal focus */
+  bool foreground_window;
+} ContextOptions;
+
+ContextOptions context_options_default = {
+  false,
+};
+
+static ContextOptions
+startup_notify_id_to_context_options (const char *startup_notify_id)
+{
+  ContextOptions context_options = context_options_default;
+
+  if (startup_notify_id)
+    {
+      char **tokens;
+
+      if (!g_str_has_prefix (startup_notify_id, "win32-startup-notify,"))
+        {
+          g_warning_once ("Unknown startup-notify-id format");
+          return context_options;
+        }
+
+      tokens = g_strsplit (startup_notify_id, ",", 0);
+
+      typedef const char * const * const_iter_t;
+
+      for (const_iter_t iter = (const_iter_t) (tokens + 1); *iter != NULL; iter++)
+        {
+          const char *token = *iter;
+
+          if (g_strcmp0 (token, "foreground-window") == 0)
+            {
+              context_options.foreground_window = true;
+            }
+          else
+            {
+              g_debug ("Unknown token in startup-notify-id");
+            }
+        }
+
+      g_strfreev (tokens);
+    }
+
+  return context_options;
+}
+
 typedef enum
 {
   /* PLAIN: just open the application, without arguments of any kind
@@ -4975,7 +5027,7 @@ g_win32_app_info_launch_uwp_single (IApplicationActivationManager  *app_activati
        * ApplicationActivationManager methods return a process ID, but it
        * keeps no open HANDLE to the spawned process internally (tested
        * on Windows 10 21H2). So we cannot guarantee that by the time
-       * OpenProcess is called, process ID still referes to the spawned
+       * OpenProcess is called, process ID still refers to the spawned
        * process. Anyway hitting such case is extremely unlikely.
        *
        * https://docs.microsoft.com/en-us/answers/questions/942879/
@@ -5046,6 +5098,8 @@ g_win32_app_info_launch_uwp_internal (GWin32AppInfo           *info,
   IApplicationActivationManager *paam = NULL;
   gboolean com_initialized = FALSE;
   gboolean result = FALSE;
+  char *startup_notify_id = NULL;
+  ContextOptions context_options;
   HRESULT hr;
 
   /* ApplicationActivationManager threading model is both,
@@ -5086,6 +5140,20 @@ g_win32_app_info_launch_uwp_internal (GWin32AppInfo           *info,
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Failed to create ApplicationActivationManager: 0x%lx", hr);
       goto cleanup;
+    }
+
+  startup_notify_id = g_app_launch_context_get_startup_notify_id (launch_context,
+                                                                  G_APP_INFO (info),
+                                                                  NULL);
+  context_options = startup_notify_id_to_context_options (startup_notify_id);
+
+  if (context_options.foreground_window)
+    {
+      hr = CoAllowSetForegroundWindow ((IUnknown*)paam, NULL);
+#ifdef G_ENABLE_DEBUG
+      if (FAILED (hr) && hr != E_ACCESSDENIED)
+        g_debug ("%s failed with HRESULT %lx", "CoAllowSetForegroundWindow", hr);
+#endif
     }
 
   if (!objs)
@@ -5161,6 +5229,8 @@ g_win32_app_info_launch_uwp_internal (GWin32AppInfo           *info,
 
 cleanup:
 
+  g_free (startup_notify_id);
+
   if (paam)
     {
       IApplicationActivationManager_Release (paam);
@@ -5192,6 +5262,8 @@ g_win32_app_info_launch_internal (GWin32AppInfo      *info,
   const gchar *command;
   gchar *apppath;
   GWin32AppInfoShellVerb *shverb;
+  char *startup_notify_id = NULL;
+  ContextOptions context_options;
   GPid pid = NULL;
 
   g_return_val_if_fail (info != NULL, FALSE);
@@ -5283,6 +5355,11 @@ g_win32_app_info_launch_internal (GWin32AppInfo      *info,
         }
     }
 
+  startup_notify_id = g_app_launch_context_get_startup_notify_id (launch_context,
+                                                                  G_APP_INFO (info),
+                                                                  NULL);
+  context_options = startup_notify_id_to_context_options (startup_notify_id);
+
   do
     {
       if (from_task && g_task_return_error_if_cancelled (from_task))
@@ -5312,8 +5389,19 @@ g_win32_app_info_launch_internal (GWin32AppInfo      *info,
 
           goto out;
         }
-      else if (launch_context)
-        emit_launched (launch_context, info, &pid, from_task);
+
+      if (context_options.foreground_window)
+        {
+          DWORD id = GetProcessId ((HANDLE)pid);
+
+          if (id != 0)
+            AllowSetForegroundWindow (id);
+        }
+
+      if (launch_context)
+        {
+          emit_launched (launch_context, info, &pid, from_task);
+        }
 
       g_spawn_close_pid (pid);
       pid = NULL;
@@ -5328,6 +5416,7 @@ out:
   g_spawn_close_pid (pid);
   g_strfreev (argv);
   g_strfreev (envp);
+  g_free (startup_notify_id);
 
   return completed;
 }

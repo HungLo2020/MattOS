@@ -26,8 +26,21 @@
 #include "gstwasapi2util.h"
 #include "gstwasapi2enumerator.h"
 
-GST_DEBUG_CATEGORY_EXTERN (gst_wasapi2_debug);
-#define GST_CAT_DEFAULT gst_wasapi2_debug
+#ifndef GST_DISABLE_GST_DEBUG
+#define GST_CAT_DEFAULT ensure_debug_category()
+static GstDebugCategory *
+ensure_debug_category (void)
+{
+  static GstDebugCategory *cat = nullptr;
+
+  GST_WASAPI2_CALL_ONCE_BEGIN {
+    cat = _gst_debug_category_new ("wasapi2deviceprovider",
+        0, "wasapi2deviceprovider");
+  } GST_WASAPI2_CALL_ONCE_END;
+
+  return cat;
+}
+#endif
 
 enum
 {
@@ -42,6 +55,7 @@ struct _GstWasapi2Device
   gchar *device_id;
   const gchar *factory_name;
   GstWasapi2EndpointClass device_class;
+  gboolean is_default;
 };
 
 G_DEFINE_TYPE (GstWasapi2Device, gst_wasapi2_device, GST_TYPE_DEVICE);
@@ -216,24 +230,62 @@ gst_wasapi2_device_provider_probe (GstDeviceProvider * provider)
 
     auto props = gst_structure_new ("wasapi2-proplist",
         "device.api", G_TYPE_STRING, "wasapi2",
-        "device.id", G_TYPE_STRING, entry->device_id,
+        "device.id", G_TYPE_STRING, entry->device_id.c_str (),
         "device.default", G_TYPE_BOOLEAN, entry->is_default,
-        "wasapi2.device.description", G_TYPE_STRING, entry->device_name,
-        nullptr);
+        "wasapi2.device.description", G_TYPE_STRING,
+        entry->device_name.c_str (),
+        "device.form-factor", G_TYPE_INT,
+        (gint) entry->device_props.form_factor,
+        "device.form-factor-name", G_TYPE_STRING,
+        gst_wasapi2_form_factor_to_string (entry->device_props.form_factor),
+        "device.enumerator-name", G_TYPE_STRING,
+        entry->device_props.enumerator_name.c_str (), nullptr);
+
+    if (entry->is_default) {
+      if (!entry->actual_device_id.empty ()) {
+        gst_structure_set (props, "device.actual-id", G_TYPE_STRING,
+            entry->actual_device_id.c_str (), nullptr);
+      }
+
+      if (!entry->actual_device_name.empty ()) {
+        gst_structure_set (props, "device.actual-name", G_TYPE_STRING,
+            entry->actual_device_name.c_str (), nullptr);
+      }
+    } else {
+      gst_structure_set (props,
+          "device.shared-mode-engine-default-period-us", G_TYPE_INT64,
+          entry->shared_mode_engine_default_period_us,
+          "device.shared-mode-engine-fundamental-period-us", G_TYPE_INT64,
+          entry->shared_mode_engine_fundamental_period_us,
+          "device.shared-mode-engine-min-period-us", G_TYPE_INT64,
+          entry->shared_mode_engine_min_period_us,
+          "device.shared-mode-engine-max-period-us", G_TYPE_INT64,
+          entry->shared_mode_engine_max_period_us,
+          "device.default-device-period-us", G_TYPE_INT64,
+          entry->default_device_period_us,
+          "device.min-device-period-us", G_TYPE_INT64,
+          entry->min_device_period_us, nullptr);
+    }
 
     if (entry->flow == eCapture) {
       gst_structure_set (props,
           "wasapi2.device.loopback", G_TYPE_BOOLEAN, FALSE, nullptr);
 
+      if (!entry->is_default && entry->exclusive_caps) {
+        gst_structure_set (props, "device.exclusive-caps", GST_TYPE_CAPS,
+            entry->exclusive_caps, nullptr);
+      }
+
       auto device = (GstDevice *) g_object_new (GST_TYPE_WASAPI2_DEVICE,
-          "device", entry->device_id,
-          "display-name", entry->device_name, "caps", entry->caps,
+          "device", entry->device_id.c_str (),
+          "display-name", entry->device_name.c_str (), "caps", entry->caps,
           "device-class", "Audio/Source", "properties", props, nullptr);
       gst_structure_free (props);
 
-      GST_WASAPI2_DEVICE (device)->factory_name = "wasapi2src";
-      GST_WASAPI2_DEVICE (device)->device_class =
-          GST_WASAPI2_ENDPOINT_CLASS_CAPTURE;
+      auto wasapi2_dev = GST_WASAPI2_DEVICE (device);
+      wasapi2_dev->factory_name = "wasapi2src";
+      wasapi2_dev->device_class = GST_WASAPI2_ENDPOINT_CLASS_CAPTURE;
+      wasapi2_dev->is_default = entry->is_default;
 
       devices = g_list_append (devices, device);
     } else {
@@ -241,27 +293,34 @@ gst_wasapi2_device_provider_probe (GstDeviceProvider * provider)
       gst_structure_set (prop_copy,
           "wasapi2.device.loopback", G_TYPE_BOOLEAN, TRUE, nullptr);
 
+      if (!entry->is_default && entry->exclusive_caps) {
+        gst_structure_set (props, "device.exclusive-caps", GST_TYPE_CAPS,
+            entry->exclusive_caps, nullptr);
+      }
+
       auto device = (GstDevice *) g_object_new (GST_TYPE_WASAPI2_DEVICE,
-          "device", entry->device_id,
-          "display-name", entry->device_name, "caps", entry->caps,
+          "device", entry->device_id.c_str (),
+          "display-name", entry->device_name.c_str (), "caps", entry->caps,
           "device-class", "Audio/Sink", "properties", props, nullptr);
       gst_structure_free (props);
 
-      GST_WASAPI2_DEVICE (device)->factory_name = "wasapi2sink";
-      GST_WASAPI2_DEVICE (device)->device_class =
-          GST_WASAPI2_ENDPOINT_CLASS_RENDER;
+      auto wasapi2_dev = GST_WASAPI2_DEVICE (device);
+      wasapi2_dev->factory_name = "wasapi2sink";
+      wasapi2_dev->device_class = GST_WASAPI2_ENDPOINT_CLASS_RENDER;
+      wasapi2_dev->is_default = entry->is_default;
 
       devices = g_list_append (devices, device);
 
       device = (GstDevice *) g_object_new (GST_TYPE_WASAPI2_DEVICE,
-          "device", entry->device_id,
-          "display-name", entry->device_name, "caps", entry->caps,
+          "device", entry->device_id.c_str (),
+          "display-name", entry->device_name.c_str (), "caps", entry->caps,
           "device-class", "Audio/Source", "properties", prop_copy, nullptr);
       gst_structure_free (prop_copy);
 
-      GST_WASAPI2_DEVICE (device)->factory_name = "wasapi2src";
-      GST_WASAPI2_DEVICE (device)->device_class =
-          GST_WASAPI2_ENDPOINT_CLASS_LOOPBACK_CAPTURE;
+      wasapi2_dev = GST_WASAPI2_DEVICE (device);
+      wasapi2_dev->factory_name = "wasapi2src";
+      wasapi2_dev->device_class = GST_WASAPI2_ENDPOINT_CLASS_LOOPBACK_CAPTURE;
+      wasapi2_dev->is_default = entry->is_default;
 
       devices = g_list_append (devices, device);
     }
@@ -334,6 +393,63 @@ gst_wasapi2_device_is_in_list (GList * list, GstDevice * device)
   return found;
 }
 
+static gboolean
+dump_structure_field (const GstIdStr * fieldname, const GValue * value,
+    gpointer user_data)
+{
+  auto str = (GString *) user_data;
+  gchar *val;
+
+  if (G_VALUE_HOLDS_UINT (value)) {
+    val = g_strdup_printf ("%u (0x%08x)", g_value_get_uint (value),
+        g_value_get_uint (value));
+  } else if (G_VALUE_HOLDS_STRING (value)) {
+    val = g_value_dup_string (value);
+  } else {
+    val = gst_value_serialize (value);
+  }
+
+  if (val) {
+    g_string_append_printf (str,
+        "\t%s = %s\n", gst_id_str_as_str (fieldname), val);
+  }
+
+  g_free (val);
+
+  return TRUE;
+}
+
+static gchar *
+gst_wasapi2_dump_devices (GList * device_list)
+{
+#ifndef GST_DISABLE_GST_DEBUG
+  if (gst_debug_category_get_threshold (GST_CAT_DEFAULT) < GST_LEVEL_LOG ||
+      !device_list) {
+    return nullptr;
+  }
+
+  auto str = g_string_new (nullptr);
+  GList *iter;
+  for (iter = device_list; iter; iter = g_list_next (iter)) {
+    auto device = GST_DEVICE (iter->data);
+    auto name = gst_device_get_display_name (device);
+    auto device_class = gst_device_get_device_class (device);
+    auto prop = gst_device_get_properties (device);
+    g_string_append_printf (str, "%s (%s)\n", name, device_class);
+    gst_structure_foreach_id_str (prop, dump_structure_field, str);
+    g_string_append_c (str, '\n');
+
+    g_free (name);
+    g_free (device_class);
+    gst_structure_free (prop);
+  }
+
+  return g_string_free (str, FALSE);
+#else
+  return nullptr;
+#endif
+}
+
 static void
 gst_wasapi2_device_provider_update_devices (GstWasapi2DeviceProvider * self)
 {
@@ -342,7 +458,7 @@ gst_wasapi2_device_provider_update_devices (GstWasapi2DeviceProvider * self)
   GList *new_devices = nullptr;
   GList *to_add = nullptr;
   GList *to_remove = nullptr;
-  GList *iter;
+  GList *iter, *walk;
 
   GST_OBJECT_LOCK (self);
   prev_devices = g_list_copy_deep (provider->devices,
@@ -368,6 +484,70 @@ gst_wasapi2_device_provider_update_devices (GstWasapi2DeviceProvider * self)
   for (iter = prev_devices; iter; iter = g_list_next (iter)) {
     if (!gst_wasapi2_device_is_in_list (new_devices, GST_DEVICE (iter->data))) {
       to_remove = g_list_prepend (to_remove, gst_object_ref (iter->data));
+    }
+  }
+
+  iter = to_remove;
+  while (iter) {
+    auto prev_dev = GST_WASAPI2_DEVICE (iter->data);
+
+    if (!prev_dev->is_default) {
+      iter = g_list_next (iter);
+      continue;
+    }
+
+    walk = to_add;
+    bool found = false;
+    while (walk) {
+      auto new_dev = GST_WASAPI2_DEVICE (walk->data);
+
+      if (!new_dev->is_default ||
+          prev_dev->device_class != new_dev->device_class) {
+        walk = g_list_next (walk);
+        continue;
+      }
+
+      gst_device_provider_device_changed (provider, GST_DEVICE (new_dev),
+          GST_DEVICE (prev_dev));
+      gst_object_unref (new_dev);
+      to_add = g_list_delete_link (to_add, walk);
+      found = true;
+      break;
+    }
+
+    if (found) {
+      gst_object_unref (prev_dev);
+      auto next = iter->next;
+      to_remove = g_list_delete_link (to_remove, iter);
+      iter = next;
+    } else {
+      iter = g_list_next (iter);
+    }
+  }
+
+  if (to_add || to_remove) {
+    auto dump = gst_wasapi2_dump_devices (prev_devices);
+    if (dump) {
+      GST_LOG_OBJECT (self, "Previous devices:\n%s", dump);
+      g_free (dump);
+    }
+
+    dump = gst_wasapi2_dump_devices (new_devices);
+    if (dump) {
+      GST_LOG_OBJECT (self, "Probed devices:\n%s", dump);
+      g_free (dump);
+    }
+
+    dump = gst_wasapi2_dump_devices (to_add);
+    if (dump) {
+      GST_LOG_OBJECT (self, "New devices:\n%s", dump);
+      g_free (dump);
+    }
+
+    dump = gst_wasapi2_dump_devices (to_remove);
+    if (dump) {
+      GST_LOG_OBJECT (self, "Removed devices:\n%s", dump);
+      g_free (dump);
     }
   }
 

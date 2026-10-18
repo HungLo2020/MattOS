@@ -615,6 +615,11 @@ _get_stats_from_ice_candidates (GstWebRTCBin * webrtc,
      long                priority;
      DOMString           url;
      DOMString           relayProtocol;
+     DOMString           foundation;
+     DOMString           relatedAddress;
+     long                relatedPort;
+     DOMString           usernameFragment;
+     RTCIceTcpCandidateType tcpType;
    */
 
   if (transport_id)
@@ -630,6 +635,21 @@ _get_stats_from_ice_candidates (GstWebRTCBin * webrtc,
         NULL);
   if (can->url)
     gst_structure_set (stats, "url", G_TYPE_STRING, can->url, NULL);
+  if (can->ABI.abi.foundation)
+    gst_structure_set (stats, "foundation", G_TYPE_STRING,
+        can->ABI.abi.foundation, NULL);
+  if (can->ABI.abi.related_address)
+    gst_structure_set (stats, "related-address", G_TYPE_STRING,
+        can->ABI.abi.related_address, NULL);
+  if (can->ABI.abi.related_port != -1)
+    gst_structure_set (stats, "related-port", G_TYPE_UINT,
+        can->ABI.abi.related_port, NULL);
+  if (can->ABI.abi.username_fragment)
+    gst_structure_set (stats, "username-fragment", G_TYPE_STRING,
+        can->ABI.abi.username_fragment, NULL);
+  if (can->ABI.abi.tcp_type != GST_WEBRTC_ICE_TCP_CANDIDATE_TYPE_NONE)
+    gst_structure_set (stats, "tcp-type",
+        GST_TYPE_WEBRTC_ICE_TCP_CANDIDATE_TYPE, can->ABI.abi.tcp_type, NULL);
 
   gst_structure_set (s, id, GST_TYPE_STRUCTURE, stats, NULL);
   gst_structure_free (stats);
@@ -648,6 +668,7 @@ _get_stats_from_ice_transport (GstWebRTCBin * webrtc,
   gchar *id;
   gchar *local_cand_id = NULL, *remote_cand_id = NULL;
   double ts;
+  GstWebRTCICECandidatePair *selected_pair;
   GstWebRTCICECandidateStats *local_cand = NULL, *remote_cand = NULL;
 
   gst_structure_get_double (s, "timestamp", &ts);
@@ -694,23 +715,30 @@ _get_stats_from_ice_transport (GstWebRTCBin * webrtc,
      unsigned long long            responseBytesSent;
    */
 
-  if (gst_webrtc_ice_get_selected_pair (webrtc->priv->ice, stream,
-          &local_cand, &remote_cand)) {
-    local_cand_id =
-        _get_stats_from_ice_candidates (webrtc, local_cand, transport_id,
-        "local", s);
-    remote_cand_id =
-        _get_stats_from_ice_candidates (webrtc, remote_cand, transport_id,
-        "remote", s);
+  selected_pair =
+      gst_webrtc_ice_transport_get_selected_candidate_pair (transport);
+  if (selected_pair) {
+    if (selected_pair->local) {
+      local_cand_id =
+          _get_stats_from_ice_candidates (webrtc, selected_pair->local->stats,
+          transport_id, "local", s);
+      gst_structure_set (stats, "local-candidate-id", G_TYPE_STRING,
+          local_cand_id, NULL);
+    }
+    if (selected_pair->remote) {
+      remote_cand_id =
+          _get_stats_from_ice_candidates (webrtc, selected_pair->remote->stats,
+          transport_id, "remote", s);
 
-    gst_structure_set (stats, "local-candidate-id", G_TYPE_STRING,
-        local_cand_id, NULL);
-    gst_structure_set (stats, "remote-candidate-id", G_TYPE_STRING,
-        remote_cand_id, NULL);
-  } else
+      gst_structure_set (stats, "remote-candidate-id", G_TYPE_STRING,
+          remote_cand_id, NULL);
+    }
+    gst_webrtc_ice_candidate_pair_free (selected_pair);
+  } else {
     GST_INFO_OBJECT (webrtc,
         "No selected ICE candidate pair was found for transport %s",
         GST_OBJECT_NAME (transport));
+  }
 
   /* XXX: these stats are at the rtp session level but there isn't a specific
    * stats structure for that. The RTCIceCandidatePairStats is the closest with
@@ -743,6 +771,7 @@ _get_stats_from_dtls_transport (GstWebRTCBin * webrtc,
   gchar *id;
   double ts;
   gchar *ice_id;
+  GstWebRTCDTLSRole dtls_role = GST_WEBRTC_DTLS_ROLE_UNKNOWN;
 
   gst_structure_get_double (s, "timestamp", &ts);
 
@@ -778,6 +807,17 @@ _get_stats_from_dtls_transport (GstWebRTCBin * webrtc,
         ice_id, NULL);
     g_free (ice_id);
   }
+
+  if (transport->state > GST_WEBRTC_DTLS_TRANSPORT_STATE_NEW) {
+    if (transport->client) {
+      dtls_role = GST_WEBRTC_DTLS_ROLE_CLIENT;
+    } else {
+      dtls_role = GST_WEBRTC_DTLS_ROLE_SERVER;
+    }
+  }
+  gst_structure_set (stats, "dtls-role", GST_TYPE_WEBRTC_DTLS_ROLE, dtls_role,
+      "dtls-state", GST_TYPE_WEBRTC_DTLS_TRANSPORT_STATE, transport->state,
+      NULL);
 
   gst_structure_set (s, id, GST_TYPE_STRUCTURE, stats, NULL);
   gst_structure_free (stats);
@@ -1015,6 +1055,28 @@ out:
   return TRUE;
 }
 
+static void
+_get_data_channel_transport_stats (GstWebRTCBin * webrtc, GstStructure * s)
+{
+  struct transport_stream_stats ts_stats = {
+    NULL,
+  };
+  GObject *gst_rtp_session;
+
+  if (!webrtc->priv->data_channel_transport)
+    return;
+
+  ts_stats.stream = webrtc->priv->data_channel_transport;
+
+  g_signal_emit_by_name (webrtc->rtpbin, "get-session",
+      ts_stats.stream->session_id, &gst_rtp_session);
+
+  ts_stats.transport_id =
+      _get_stats_from_dtls_transport (webrtc, ts_stats.stream->transport,
+      GST_WEBRTC_ICE_STREAM (ts_stats.stream->stream), NULL, s);
+  g_clear_pointer (&ts_stats.transport_id, g_free);
+}
+
 GstStructure *
 gst_webrtc_bin_create_stats (GstWebRTCBin * webrtc, GstPad * pad)
 {
@@ -1038,6 +1100,8 @@ gst_webrtc_bin_create_stats (GstWebRTCBin * webrtc, GstPad * pad)
     gst_structure_set (s, id, GST_TYPE_STRUCTURE, pc_stats, NULL);
     gst_structure_free (pc_stats);
   }
+
+  _get_data_channel_transport_stats (webrtc, s);
 
   if (pad)
     _get_stats_from_pad (webrtc, pad, s);

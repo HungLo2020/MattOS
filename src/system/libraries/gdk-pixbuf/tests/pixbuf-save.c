@@ -104,7 +104,7 @@ test_save_ico (void)
   pixbuf = gdk_pixbuf_new_from_file ("pixbuf-save-roundtrip", &error);
   g_assert_no_error (error);
 
-  g_assert (pixbuf_equal (pixbuf, ref));
+  g_assert (pixdata_equal (pixbuf, ref, NULL));
 
   g_object_unref (pixbuf);
   g_object_unref (ref);

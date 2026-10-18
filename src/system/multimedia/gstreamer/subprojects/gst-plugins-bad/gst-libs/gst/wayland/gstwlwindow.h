@@ -28,20 +28,27 @@ G_BEGIN_DECLS
 #define GST_TYPE_WL_WINDOW (gst_wl_window_get_type ())
 
 GST_WL_API
-G_DECLARE_FINAL_TYPE (GstWlWindow, gst_wl_window, GST, WL_WINDOW, GObject);
+G_DECLARE_FINAL_TYPE (GstWlWindow, gst_wl_window, GST, WL_WINDOW, GstObject);
 
 struct _GstWlWindow
 {
-  GObject parent_instance;
+  GstObject parent_instance;
 };
 
 GST_WL_API
-void gst_wl_window_ensure_fullscreen (GstWlWindow * self,
-        gboolean fullscreen);
+void gst_wl_window_ensure_fullscreen (GstWlWindow * self, gboolean fullscreen);
+
+GST_WL_API
+void gst_wl_window_ensure_fullscreen_for_output (GstWlWindow * self,
+        gboolean fullscreen, const gchar * output_name);
 
 GST_WL_API
 GstWlWindow *gst_wl_window_new_toplevel (GstWlDisplay * display,
         const GstVideoInfo * info, gboolean fullscreen, GMutex * render_lock);
+
+GST_WL_API
+GstWlWindow * gst_wl_window_new_toplevel_full (GstWlDisplay * display, const GstVideoInfo * info,
+        gboolean fullscreen,  const gchar * output_name, GMutex * render_lock);
 
 GST_WL_API
 GstWlWindow *gst_wl_window_new_in_surface (GstWlDisplay * display,
@@ -64,6 +71,14 @@ gboolean gst_wl_window_render (GstWlWindow * self, GstWlBuffer * buffer,
         const GstVideoInfo * info);
 
 GST_WL_API
+gboolean gst_wl_window_flush (GstWlWindow * self);
+
+GST_WL_API
+gboolean gst_wl_window_render_hdr (GstWlWindow * self, GstWlBuffer * buffer,
+        const GstVideoInfo * info, const GstVideoMasteringDisplayInfo *minfo,
+        const GstVideoContentLightLevel *linfo);
+
+GST_WL_API
 void gst_wl_window_set_render_rectangle (GstWlWindow * self, gint x, gint y,
         gint w, gint h);
 
@@ -73,5 +88,9 @@ const GstVideoRectangle *gst_wl_window_get_render_rectangle (GstWlWindow * self)
 GST_WL_API
 void gst_wl_window_set_rotate_method (GstWlWindow               *self,
         GstVideoOrientationMethod  rotate_method);
+
+GST_WL_API
+void gst_wl_window_set_force_aspect_ratio (GstWlWindow * self,
+        gboolean force_aspect_ratio);
 
 G_END_DECLS

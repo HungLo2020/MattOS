@@ -3635,7 +3635,7 @@
                         "presence": "always"
                     },
                     "src": {
-                        "caps": "audio/x-wavpack:\n          depth: [ 1, 32 ]\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\n         framed: true\naudio/x-wavpack-correction:\n         framed: true\n",
+                        "caps": "audio/x-wavpack:\n          depth: [ 1, 32 ]\n          width: { (int)8, (int)16, (int)24, (int)32 }\n       channels: [ 1, 4096 ]\n           rate: [ 6000, 2147483647 ]\n    sample-type: { (string)int, (string)float, (string)dsd }\n         framed: true\naudio/x-wavpack-correction:\n         framed: true\n",
                         "direction": "src",
                         "presence": "always"
                     }
@@ -4475,7 +4475,7 @@
         "description": "elements for testing and debugging",
         "elements": {
             "breakmydata": {
-                "author": "Benjamin Otte <otte@gnome>",
+                "author": "Benjamin Otte <otte@gnome.org>",
                 "description": "randomly change data in the stream",
                 "hierarchy": [
                     "GstBreakMyData",
@@ -5044,7 +5044,7 @@
                 "rank": "none"
             },
             "testsink": {
-                "author": "Benjamin Otte <otte@gnome>",
+                "author": "Benjamin Otte <otte@gnome.org>",
                 "description": "perform a number of tests",
                 "hierarchy": [
                     "GstTest",
@@ -5201,12 +5201,12 @@
                 "long-name": "Deinterlacer",
                 "pad-templates": {
                     "sink": {
-                        "caps": "video/x-raw:\n         format: { AYUV, ARGB, ABGR, RGBA, BGRA, Y444, xRGB, xBGR, RGBx, BGRx, RGB, BGR, YUY2, YVYU, UYVY, Y42B, I420, YV12, Y41B, NV12, NV21, Y444_16LE, Y444_12LE, Y444_10LE, I422_12LE, I422_10LE, I420_12LE, I420_10LE }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(ANY):\n         format: { DMA_DRM, A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, r210, I422_10LE, I422_10BE, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
+                        "caps": "video/x-raw:\n         format: { AYUV, ARGB, ABGR, RGBA, BGRA, Y444, xRGB, xBGR, RGBx, BGRx, RGB, BGR, YUY2, YVYU, UYVY, Y42B, I420, YV12, Y41B, NV12, NV21, Y444_16LE, Y444_12LE, Y444_10LE, I422_12LE, I422_10LE, I420_12LE, I420_10LE }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(ANY):\n         format: { DMA_DRM, A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, BGR10x2_LE, RGB10x2_LE, r210, I422_10LE, I422_10BE, NV16_10LE40, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
                         "direction": "sink",
                         "presence": "always"
                     },
                     "src": {
-                        "caps": "video/x-raw:\n         format: { AYUV, ARGB, ABGR, RGBA, BGRA, Y444, xRGB, xBGR, RGBx, BGRx, RGB, BGR, YUY2, YVYU, UYVY, Y42B, I420, YV12, Y41B, NV12, NV21, Y444_16LE, Y444_12LE, Y444_10LE, I422_12LE, I422_10LE, I420_12LE, I420_10LE }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(ANY):\n         format: { DMA_DRM, A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, r210, I422_10LE, I422_10BE, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
+                        "caps": "video/x-raw:\n         format: { AYUV, ARGB, ABGR, RGBA, BGRA, Y444, xRGB, xBGR, RGBx, BGRx, RGB, BGR, YUY2, YVYU, UYVY, Y42B, I420, YV12, Y41B, NV12, NV21, Y444_16LE, Y444_12LE, Y444_10LE, I422_12LE, I422_10LE, I420_12LE, I420_10LE }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(ANY):\n         format: { DMA_DRM, A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, BGR10x2_LE, RGB10x2_LE, r210, I422_10LE, I422_10BE, NV16_10LE40, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
                         "direction": "src",
                         "presence": "always"
                     }
@@ -6022,7 +6022,7 @@
                 "rank": "none"
             },
             "optv": {
-                "author": "FUKUCHI, Kentarou <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
+                "author": "Kentaro Fukuchi <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
                 "description": "Optical art meets real-time video effect",
                 "hierarchy": [
                     "GstOpTV",
@@ -6092,7 +6092,7 @@
                 "rank": "none"
             },
             "quarktv": {
-                "author": "FUKUCHI, Kentarou <fukuchi@users.sourceforge.net>",
+                "author": "Kentaro Fukuchi <fukuchi@users.sourceforge.net>",
                 "description": "Motion dissolver",
                 "hierarchy": [
                     "GstQuarkTV",
@@ -6136,7 +6136,7 @@
                 "rank": "none"
             },
             "radioactv": {
-                "author": "FUKUCHI, Kentarou <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
+                "author": "Kentaro Fukuchi <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
                 "description": "motion-enlightment effect",
                 "hierarchy": [
                     "GstRadioacTV",
@@ -6288,7 +6288,7 @@
                 "rank": "none"
             },
             "rippletv": {
-                "author": "FUKUCHI, Kentarou <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
+                "author": "Kentaro Fukuchi <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
                 "description": "RippleTV does ripple mark effect on the video input",
                 "hierarchy": [
                     "GstRippleTV",
@@ -6371,7 +6371,7 @@
                 "rank": "none"
             },
             "streaktv": {
-                "author": "FUKUCHI, Kentarou <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
+                "author": "Kentaro Fukuchi <fukuchi@users.sourceforge.net>, Sebastian Dröge <sebastian.droege@collabora.co.uk>",
                 "description": "StreakTV makes after images of moving objects",
                 "hierarchy": [
                     "GstStreakTV",
@@ -7287,6 +7287,57 @@
     "flv": {
         "description": "FLV muxing and demuxing plugin",
         "elements": {
+            "eflvmux": {
+                "author": "Taruntej Kanakamalla <tarun@centricular.com>",
+                "description": "Muxes multiple video/audio streams into an FLV stream in the extended format as per Enhnaced RTMP (V2) specification",
+                "hierarchy": [
+                    "GstEFlvMux",
+                    "GstFlvMux",
+                    "GstAggregator",
+                    "GstElement",
+                    "GstObject",
+                    "GInitiallyUnowned",
+                    "GObject"
+                ],
+                "interfaces": [
+                    "GstChildProxy",
+                    "GstTagSetter"
+                ],
+                "klass": "Codec/Muxer",
+                "pad-templates": {
+                    "audio": {
+                        "caps": "audio/x-adpcm:\n         layout: swf\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)11025, (int)22050, (int)44100 }\naudio/mpeg:\n    mpegversion: 1\n          layer: 3\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)8000, (int)11025, (int)22050, (int)44100 }\n         parsed: true\naudio/mpeg:\n    mpegversion: { (int)4, (int)2 }\n  stream-format: raw\naudio/x-nellymoser:\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)8000, (int)11025, (int)16000, (int)22050, (int)44100 }\naudio/x-raw:\n         format: { U8, S16LE }\n         layout: interleaved\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)11025, (int)22050, (int)44100 }\naudio/x-alaw:\n       channels: { (int)1, (int)2 }\n           rate: 8000\naudio/x-mulaw:\n       channels: { (int)1, (int)2 }\n           rate: 8000\naudio/x-speex:\n       channels: 1\n           rate: 16000\n",
+                        "direction": "sink",
+                        "presence": "request",
+                        "type": "GstEFlvMuxPad"
+                    },
+                    "audio_%%u": {
+                        "caps": "audio/mpeg:\n    mpegversion: 1\n          layer: 3\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)8000, (int)11025, (int)22050, (int)44100 }\n         parsed: true\naudio/mpeg:\n    mpegversion: { (int)4, (int)2 }\n  stream-format: raw\n",
+                        "direction": "sink",
+                        "presence": "request",
+                        "type": "GstFlvMuxPad"
+                    },
+                    "src": {
+                        "caps": "video/x-flv:\n",
+                        "direction": "src",
+                        "presence": "always",
+                        "type": "GstAggregatorPad"
+                    },
+                    "video": {
+                        "caps": "video/x-flash-video:\nvideo/x-flash-screen:\nvideo/x-vp6-flash:\nvideo/x-vp6-alpha:\nvideo/x-h264:\n  stream-format: avc\nvideo/x-h265:\n  stream-format: hvc1\n      alignment: au\n",
+                        "direction": "sink",
+                        "presence": "request",
+                        "type": "GstEFlvMuxPad"
+                    },
+                    "video_%%u": {
+                        "caps": "video/x-h264:\n  stream-format: avc\nvideo/x-h265:\n  stream-format: hvc1\n",
+                        "direction": "sink",
+                        "presence": "request",
+                        "type": "GstFlvMuxPad"
+                    }
+                },
+                "rank": "primary"
+            },
             "flvdemux": {
                 "author": "Julien Moutte <julien@moutte.net>",
                 "description": "Demux FLV feeds into digital streams",
@@ -7305,13 +7356,23 @@
                         "direction": "src",
                         "presence": "sometimes"
                     },
+                    "audio_%%u": {
+                        "caps": "audio/x-adpcm:\n         layout: swf\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)11025, (int)22050, (int)44100 }\naudio/mpeg:\n    mpegversion: 1\n          layer: 3\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)8000, (int)11025, (int)22050, (int)44100 }\n         parsed: true\naudio/mpeg:\n    mpegversion: 4\n  stream-format: raw\n         framed: true\naudio/x-nellymoser:\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)8000, (int)11025, (int)16000, (int)22050, (int)44100 }\naudio/x-raw:\n         format: { U8, S16LE }\n         layout: interleaved\n       channels: { (int)1, (int)2 }\n           rate: { (int)5512, (int)11025, (int)22050, (int)44100 }\naudio/x-alaw:\n       channels: { (int)1, (int)2 }\n           rate: 8000\naudio/x-mulaw:\n       channels: { (int)1, (int)2 }\n           rate: 8000\naudio/x-speex:\n       channels: 1\n           rate: 16000\n",
+                        "direction": "src",
+                        "presence": "sometimes"
+                    },
                     "sink": {
                         "caps": "video/x-flv:\n",
                         "direction": "sink",
                         "presence": "always"
                     },
                     "video": {
-                        "caps": "video/x-flash-video:\n     flvversion: 1\nvideo/x-flash-screen:\nvideo/x-vp6-flash:\nvideo/x-vp6-alpha:\nvideo/x-h264:\n  stream-format: avc\n",
+                        "caps": "video/x-flash-video:\n     flvversion: 1\nvideo/x-flash-screen:\nvideo/x-vp6-flash:\nvideo/x-vp6-alpha:\nvideo/x-h264:\n  stream-format: avc\nvideo/x-h265:\n  stream-format: hvc1\n      alignment: au\n",
+                        "direction": "src",
+                        "presence": "sometimes"
+                    },
+                    "video_%%u": {
+                        "caps": "video/x-flash-video:\n     flvversion: 1\nvideo/x-flash-screen:\nvideo/x-vp6-flash:\nvideo/x-vp6-alpha:\nvideo/x-h264:\n  stream-format: avc\nvideo/x-h265:\n  stream-format: hvc1\n      alignment: au\n",
                         "direction": "src",
                         "presence": "sometimes"
                     }
@@ -7331,6 +7392,7 @@
                     "GObject"
                 ],
                 "interfaces": [
+                    "GstChildProxy",
                     "GstTagSetter"
                 ],
                 "klass": "Codec/Muxer",
@@ -7423,6 +7485,109 @@
         "filename": "gstflv",
         "license": "LGPL",
         "other-types": {
+            "GstEFlvMuxPad": {
+                "hierarchy": [
+                    "GstEFlvMuxPad",
+                    "GstFlvMuxPad",
+                    "GstAggregatorPad",
+                    "GstPad",
+                    "GstObject",
+                    "GInitiallyUnowned",
+                    "GObject"
+                ],
+                "kind": "object",
+                "properties": {
+                    "flv-track-mode": {
+                        "blurb": "Determines whether to stream FLV in Enhanced multitrack or non-multitrack or legacy format",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "legacy (2)",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "GstFlvTrackMode",
+                        "writable": true
+                    }
+                }
+            },
+            "GstFlvMux": {
+                "hierarchy": [
+                    "GstFlvMux",
+                    "GstAggregator",
+                    "GstElement",
+                    "GstObject",
+                    "GInitiallyUnowned",
+                    "GObject"
+                ],
+                "interfaces": [
+                    "GstChildProxy",
+                    "GstTagSetter"
+                ],
+                "kind": "object",
+                "properties": {
+                    "encoder": {
+                        "blurb": "The value of encoder in the meta packet.",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "GStreamer {VERSION} FLV muxer",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gchararray",
+                        "writable": true
+                    },
+                    "enforce-increasing-timestamps": {
+                        "blurb": "If set to true, flvmux will modify buffers timestamps to ensure they are always strictly increasing, inside one stream and also between the audio and video streams",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "true",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gboolean",
+                        "writable": true
+                    },
+                    "metadatacreator": {
+                        "blurb": "The value of metadatacreator in the meta packet.",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "GStreamer {VERSION} FLV muxer",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gchararray",
+                        "writable": true
+                    },
+                    "skip-backwards-streams": {
+                        "blurb": "If set to true, streams that go backwards related to the other stream will have buffers dropped until they reach the correct timestamp",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "false",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gboolean",
+                        "writable": true
+                    },
+                    "streamable": {
+                        "blurb": "If set to true, the output should be as if it is to be streamed and hence no indexes written or duration written.",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "false",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gboolean",
+                        "writable": true
+                    }
+                }
+            },
             "GstFlvMuxPad": {
                 "hierarchy": [
                     "GstFlvMuxPad",
@@ -7435,6 +7600,26 @@
                 "kind": "object",
                 "properties": {},
                 "signals": {}
+            },
+            "GstFlvTrackMode": {
+                "kind": "enum",
+                "values": [
+                    {
+                        "desc": "Enhanced FLV multitrack type with track ID 0",
+                        "name": "multitrack",
+                        "value": "0"
+                    },
+                    {
+                        "desc": "Enhanced FLV but not multitrack type, i.e., no track ID",
+                        "name": "non-multitrack",
+                        "value": "1"
+                    },
+                    {
+                        "desc": "Legacy FLV",
+                        "name": "legacy",
+                        "value": "2"
+                    }
+                ]
             }
         },
         "package": "GStreamer Good Plug-ins",
@@ -7497,7 +7682,7 @@
                 "long-name": "GdkPixbuf image decoder",
                 "pad-templates": {
                     "sink": {
-                        "caps": "image/png:\nimage/x-icon:\napplication/x-navi-animation:\nimage/x-cmu-raster:\nimage/x-sun-raster:\nimage/x-pixmap:\nimage/tiff:\nimage/x-portable-anymap:\nimage/x-portable-bitmap:\nimage/x-portable-graymap:\nimage/x-portable-pixmap:\nimage/bmp:\nimage/x-bmp:\nimage/x-MS-bmp:\nimage/vnd.wap.wbmp:\nimage/x-bitmap:\nimage/x-tga:\nimage/x-pcx:\nimage/svg:\nimage/svg+xml:\n",
+                        "caps": "image/png:\nimage/x-icon:\napplication/x-navi-animation:\nimage/x-pixmap:\nimage/tiff:\nimage/x-portable-anymap:\nimage/x-portable-bitmap:\nimage/x-portable-graymap:\nimage/x-portable-pixmap:\nimage/bmp:\nimage/x-bmp:\nimage/x-MS-bmp:\nimage/vnd.wap.wbmp:\nimage/x-bitmap:\nimage/x-tga:\nimage/x-pcx:\nimage/svg:\nimage/svg+xml:\n",
                         "direction": "sink",
                         "presence": "always"
                     },
@@ -7507,7 +7692,7 @@
                         "presence": "always"
                     }
                 },
-                "rank": "secondary"
+                "rank": "none"
             },
             "gdkpixbufoverlay": {
                 "author": "Tim-Philipp Müller <tim centricular net>",
@@ -7525,12 +7710,12 @@
                 "long-name": "GdkPixbuf Overlay",
                 "pad-templates": {
                     "sink": {
-                        "caps": "video/x-raw:\n         format: { A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, r210, I422_10LE, I422_10BE, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
+                        "caps": "video/x-raw:\n         format: { A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, BGR10x2_LE, RGB10x2_LE, r210, I422_10LE, I422_10BE, NV16_10LE40, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
                         "direction": "sink",
                         "presence": "always"
                     },
                     "src": {
-                        "caps": "video/x-raw:\n         format: { A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, r210, I422_10LE, I422_10BE, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
+                        "caps": "video/x-raw:\n         format: { A444_16LE, A444_16BE, Y416_LE, AYUV64, RGBA64_LE, ARGB64, ARGB64_LE, BGRA64_LE, ABGR64_LE, Y416_BE, RGBA64_BE, ARGB64_BE, BGRA64_BE, ABGR64_BE, A422_16LE, A422_16BE, A420_16LE, A420_16BE, A444_12LE, GBRA_12LE, A444_12BE, GBRA_12BE, Y412_LE, Y412_BE, A422_12LE, A422_12BE, A420_12LE, A420_12BE, A444_10LE, GBRA_10LE, A444_10BE, GBRA_10BE, A422_10LE, A422_10BE, A420_10LE, A420_10BE, BGR10A2_LE, RGB10A2_LE, Y410, A444, GBRA, AYUV, VUYA, RGBA, RBGA, ARGB, BGRA, ABGR, A422, A420, AV12, Y444_16LE, GBR_16LE, Y444_16BE, GBR_16BE, Y216_LE, Y216_BE, v216, P016_LE, P016_BE, Y444_12LE, GBR_12LE, Y444_12BE, GBR_12BE, I422_12LE, I422_12BE, Y212_LE, Y212_BE, I420_12LE, I420_12BE, P012_LE, P012_BE, Y444_10LE, GBR_10LE, Y444_10BE, GBR_10BE, BGR10x2_LE, RGB10x2_LE, r210, I422_10LE, I422_10BE, NV16_10LE40, NV16_10LE32, Y210, UYVP, v210, I420_10LE, I420_10BE, P010_10LE, NV12_10LE40, NV12_10LE32, P010_10BE, MT2110R, MT2110T, NV12_10BE_8L128, NV12_10LE40_4L4, Y444, BGRP, GBR, RGBP, NV24, v308, IYU2, RGBx, xRGB, BGRx, xBGR, RGB, BGR, Y42B, NV16, NV61, YUY2, YVYU, UYVY, VYUY, I420, YV12, NV12, NV21, NV12_16L32S, NV12_32L32, NV12_4L4, NV12_64Z32, NV12_8L128, Y41B, IYU1, YUV9, YVU9, BGR16, RGB16, BGR15, RGB15, RGB8P, GRAY16_LE, GRAY16_BE, GRAY10_LE16, GRAY10_LE32, GRAY8 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
                         "direction": "src",
                         "presence": "always"
                     }
@@ -8097,6 +8282,32 @@
                     }
                 },
                 "rank": "primary"
+            },
+            "id3metaparse": {
+                "author": "Jan Schmidt <jan@centricular.com>",
+                "description": "Collects timed ID3 metadata streams into complete packets",
+                "hierarchy": [
+                    "GstId3MetaParse",
+                    "GstBaseParse",
+                    "GstElement",
+                    "GstObject",
+                    "GInitiallyUnowned",
+                    "GObject"
+                ],
+                "klass": "Codec/Parser/Meta",
+                "pad-templates": {
+                    "sink": {
+                        "caps": "meta/x-id3:\n",
+                        "direction": "sink",
+                        "presence": "always"
+                    },
+                    "src": {
+                        "caps": "meta/x-id3:\n         parsed: true\n",
+                        "direction": "src",
+                        "presence": "always"
+                    }
+                },
+                "rank": "primary"
             }
         },
         "filename": "gstid3demux",
@@ -8202,12 +8413,12 @@
                 "long-name": "Audio deinterleaver",
                 "pad-templates": {
                     "sink": {
-                        "caps": "audio/x-raw:\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n           rate: [ 1, 2147483647 ]\n       channels: [ 1, 2147483647 ]\n         layout: interleaved\n",
+                        "caps": "audio/x-raw:\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20_32LE, S20_32BE, U20_32LE, U20_32BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n           rate: [ 1, 2147483647 ]\n       channels: [ 1, 2147483647 ]\n         layout: interleaved\n",
                         "direction": "sink",
                         "presence": "always"
                     },
                     "src_%%u": {
-                        "caps": "audio/x-raw:\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n           rate: [ 1, 2147483647 ]\n       channels: 1\n         layout: { (string)non-interleaved, (string)interleaved }\n",
+                        "caps": "audio/x-raw:\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20_32LE, S20_32BE, U20_32LE, U20_32BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n           rate: [ 1, 2147483647 ]\n       channels: 1\n         layout: { (string)non-interleaved, (string)interleaved }\n",
                         "direction": "src",
                         "presence": "sometimes"
                     }
@@ -8243,12 +8454,12 @@
                 "long-name": "Audio interleaver",
                 "pad-templates": {
                     "sink_%%u": {
-                        "caps": "audio/x-raw:\n           rate: [ 1, 2147483647 ]\n       channels: 1\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n         layout: { (string)non-interleaved, (string)interleaved }\n",
+                        "caps": "audio/x-raw:\n           rate: [ 1, 2147483647 ]\n       channels: 1\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20_32LE, S20_32BE, U20_32LE, U20_32BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n         layout: { (string)non-interleaved, (string)interleaved }\n",
                         "direction": "sink",
                         "presence": "request"
                     },
                     "src": {
-                        "caps": "audio/x-raw:\n           rate: [ 1, 2147483647 ]\n       channels: [ 1, 2147483647 ]\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n         layout: interleaved\n",
+                        "caps": "audio/x-raw:\n           rate: [ 1, 2147483647 ]\n       channels: [ 1, 2147483647 ]\n         format: { F64LE, F64BE, F32LE, F32BE, S32LE, S32BE, U32LE, U32BE, S24_32LE, S24_32BE, U24_32LE, U24_32BE, S24LE, S24BE, U24LE, U24BE, S20_32LE, S20_32BE, U20_32LE, U20_32BE, S20LE, S20BE, U20LE, U20BE, S18LE, S18BE, U18LE, U18BE, S16LE, S16BE, U16LE, U16BE, S8, U8 }\n         layout: interleaved\n",
                         "direction": "src",
                         "presence": "always"
                     }
@@ -8484,7 +8695,7 @@
                 "long-name": "MP4 Muxer",
                 "pad-templates": {
                     "audio_%%u": {
-                        "caps": "audio/mpeg:\n    mpegversion: 1\n          layer: [ 1, 3 ]\n       channels: [ 1, 2 ]\n           rate: [ 1, 2147483647 ]\naudio/mpeg:\n    mpegversion: 4\n  stream-format: raw\n       channels: [ 1, 8 ]\n           rate: [ 1, 2147483647 ]\naudio/x-ac3:\n       channels: [ 1, 6 ]\n           rate: [ 1, 2147483647 ]\naudio/x-alac:\n       channels: [ 1, 2 ]\n           rate: [ 1, 2147483647 ]\naudio/x-opus:\nchannel-mapping-family: [ 0, 255 ]\n       channels: [ 1, 8 ]\n           rate: [ 1, 2147483647 ]\n",
+                        "caps": "audio/mpeg:\n    mpegversion: 1\n          layer: [ 1, 3 ]\n       channels: [ 1, 2 ]\n           rate: [ 1, 2147483647 ]\naudio/mpeg:\n    mpegversion: 4\n  stream-format: raw\n       channels: [ 1, 8 ]\n           rate: [ 1, 2147483647 ]\naudio/x-ac3:\n       channels: [ 1, 6 ]\n           rate: [ 1, 2147483647 ]\naudio/x-eac3:\n      alignment: iec61937\n         framed: true\n       channels: [ 1, 16 ]\n           rate: [ 1, 2147483647 ]\naudio/x-alac:\n       channels: [ 1, 2 ]\n           rate: [ 1, 2147483647 ]\naudio/x-opus:\nchannel-mapping-family: [ 0, 255 ]\n       channels: [ 1, 8 ]\n           rate: [ 1, 2147483647 ]\n",
                         "direction": "sink",
                         "presence": "request",
                         "type": "GstQTMuxPad"
@@ -12439,7 +12650,7 @@
                         "writable": true
                     },
                     "root-item": {
-                        "blurb": "The root QQuickItem from the qml-scene used to render",
+                        "blurb": "On set, provides the QML scene to render. If not set (!= NULL), then the qml-scene property is used to construct the QML scene. In both cases, the returned value is the root QQuickItem used for rendering.",
                         "conditionally-available": false,
                         "construct": false,
                         "construct-only": false,
@@ -12447,10 +12658,84 @@
                         "mutable": "null",
                         "readable": true,
                         "type": "gpointer",
-                        "writable": false
+                        "writable": true
                     },
                     "widget": {
                         "blurb": "The QQuickItem to place the input video in the object hierarchy",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gpointer",
+                        "writable": true
+                    }
+                },
+                "rank": "none",
+                "signals": {
+                    "qml-scene-destroyed": {
+                        "args": [],
+                        "return-type": "void",
+                        "when": "last"
+                    },
+                    "qml-scene-initialized": {
+                        "args": [],
+                        "return-type": "void",
+                        "when": "last"
+                    }
+                }
+            },
+            "qml6glrendersrc": {
+                "author": "Matthew Waters <matthew@centricular.com>",
+                "description": "A video src that renders a QML scene",
+                "hierarchy": [
+                    "GstQml6GLRenderSrc",
+                    "GstGLBaseSrc",
+                    "GstPushSrc",
+                    "GstBaseSrc",
+                    "GstElement",
+                    "GstObject",
+                    "GInitiallyUnowned",
+                    "GObject"
+                ],
+                "klass": "Source/Video",
+                "pad-templates": {
+                    "src": {
+                        "caps": "video/x-raw(memory:GLMemory):\n         format: RGBA\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n texture-target: 2D\n",
+                        "direction": "src",
+                        "presence": "always"
+                    }
+                },
+                "properties": {
+                    "max-framerate": {
+                        "blurb": "The maximum framerate to render when running with a variable framerate",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "25/1",
+                        "max": "2147483647/1",
+                        "min": "0/2147483647",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "GstFraction",
+                        "writable": true
+                    },
+                    "qml-scene": {
+                        "blurb": "The contents of the QML scene",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "NULL",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gchararray",
+                        "writable": true
+                    },
+                    "root-item": {
+                        "blurb": "Provides the 'QQuickItem *' to render.",
                         "conditionally-available": false,
                         "construct": false,
                         "construct-only": false,
@@ -15340,7 +15625,7 @@
                 "rank": "secondary"
             },
             "rtph263pay": {
-                "author": "Neil Stratford <neils@vipadia.com>Dejan Sakelsak <dejan.sakelsak@marand.si>",
+                "author": "Neil Stratford <neils@vipadia.com>, Dejan Sakelsak <dejan.sakelsak@marand.si>",
                 "description": "Payload-encodes H263 video in RTP packets (RFC 2190)",
                 "hierarchy": [
                     "GstRtpH263Pay",
@@ -15475,6 +15760,20 @@
                     }
                 },
                 "properties": {
+                    "max-fragmentation-unit-size": {
+                        "blurb": "Maximum size in bytes for a fragmentation unit (0 = auto)",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "33554432",
+                        "max": "-1",
+                        "min": "0",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "guint",
+                        "writable": true
+                    },
                     "request-keyframe": {
                         "blurb": "Request new keyframe when packet loss is detected",
                         "conditionally-available": false,
@@ -15595,6 +15894,20 @@
                     }
                 },
                 "properties": {
+                    "max-fragmentation-unit-size": {
+                        "blurb": "Maximum size in bytes for a fragmentation unit (0 = auto)",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "33554432",
+                        "max": "-1",
+                        "min": "0",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "guint",
+                        "writable": true
+                    },
                     "request-keyframe": {
                         "blurb": "Request new keyframe when packet loss is detected",
                         "conditionally-available": false,
@@ -19842,7 +20155,7 @@
                     "GInitiallyUnowned",
                     "GObject"
                 ],
-                "klass": "Demux/Network/RTP",
+                "klass": "Demuxer/Network/RTP",
                 "long-name": "RTP Demux",
                 "pad-templates": {
                     "sink": {
@@ -20692,7 +21005,7 @@
                     "GInitiallyUnowned",
                     "GObject"
                 ],
-                "klass": "Demux/Network/RTP",
+                "klass": "Demuxer/Network/RTP",
                 "long-name": "RTP SSRC Demux",
                 "pad-templates": {
                     "rtcp_sink": {
@@ -21143,6 +21456,20 @@
                         "type": "guint",
                         "writable": true
                     },
+                    "max-csrcs": {
+                        "blurb": "How many contributing sources to track per SSRC. After the limit is reached the oldest CSRC is timed out. Only applies to receiver sources.",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "15",
+                        "max": "-1",
+                        "min": "0",
+                        "mutable": "ready",
+                        "readable": true,
+                        "type": "guint",
+                        "writable": true
+                    },
                     "max-dropout-time": {
                         "blurb": "The maximum time (milliseconds) of missing packets tolerated.",
                         "conditionally-available": false,
@@ -21167,6 +21494,20 @@
                         "max": "-1",
                         "min": "0",
                         "mutable": "null",
+                        "readable": true,
+                        "type": "guint",
+                        "writable": true
+                    },
+                    "max-sources": {
+                        "blurb": "How many sources to track. After the limit is reached the oldest SSRC / CSRC is timed out. Only applies to receiver sources, and acts as a global limit to the number of tracked sources.",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "150",
+                        "max": "-1",
+                        "min": "0",
+                        "mutable": "ready",
                         "readable": true,
                         "type": "guint",
                         "writable": true
@@ -24482,6 +24823,18 @@
                         "type": "gchararray",
                         "writable": true
                     },
+                    "location-trusted": {
+                        "blurb": "Whether the original location is trusted (preserve headers/cookies/auth on cross-origin redirects)",
+                        "conditionally-available": false,
+                        "construct": false,
+                        "construct-only": false,
+                        "controllable": false,
+                        "default": "false",
+                        "mutable": "null",
+                        "readable": true,
+                        "type": "gboolean",
+                        "writable": true
+                    },
                     "method": {
                         "blurb": "The HTTP method to use (GET, HEAD, OPTIONS, etc)",
                         "conditionally-available": false,
@@ -26316,7 +26669,7 @@
                 "long-name": "Video (video4linux2) Sink",
                 "pad-templates": {
                     "sink": {
-                        "caps": "video/x-raw(memory:DMABuf):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(memory:DMABuf, format:Interlaced):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\nimage/jpeg:\n         parsed: true\nvideo/mpeg:\n    mpegversion: 4\n   systemstream: false\nvideo/mpeg:\n    mpegversion: { (int)1, (int)2 }\nvideo/mpegts:\n   systemstream: true\nvideo/x-bayer:\n         format: { bggr, gbrg, grbg, rggb, bggr10le, gbrg10le, grbg10le, rggb10le, bggr12le, gbrg12le, grbg12le, rggb12le, bggr14le, gbrg14le, grbg14le, rggb14le, bggr16le, gbrg16le, grbg16le, rggb16le }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-dv:\n   systemstream: true\nvideo/x-fwht:\nvideo/x-h263:\n        variant: itu\nvideo/x-h264:\n  stream-format: { (string)byte-stream, (string)avc }\n      alignment: au\nvideo/x-h265:\n  stream-format: byte-stream\n      alignment: au\nvideo/x-pwc1:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-pwc2:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-raw:\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-sonix:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-vp8:\nvideo/x-vp9:\nvideo/x-wmv:\n     wmvversion: 3\n         format: { WVC1, WMV3 }\n\nvideo/x-raw(format:Interlaced):\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\n",
+                        "caps": "video/x-raw(memory:DMABuf):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(memory:DMABuf, format:Interlaced):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\nimage/jpeg:\n         parsed: true\nvideo/mpeg:\n    mpegversion: 4\n   systemstream: false\nvideo/mpeg:\n    mpegversion: { (int)1, (int)2 }\nvideo/mpegts:\n   systemstream: true\nvideo/x-av1:\n  stream-format: obu-stream\n      alignment: tu\nvideo/x-bayer:\n         format: { bggr, gbrg, grbg, rggb, bggr10le, gbrg10le, grbg10le, rggb10le, bggr12le, gbrg12le, grbg12le, rggb12le, bggr14le, gbrg14le, grbg14le, rggb14le, bggr16le, gbrg16le, grbg16le, rggb16le }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-dv:\n   systemstream: true\nvideo/x-fwht:\nvideo/x-h263:\n        variant: itu\nvideo/x-h264:\n  stream-format: { (string)byte-stream, (string)avc }\n      alignment: au\nvideo/x-h265:\n  stream-format: byte-stream\n      alignment: au\nvideo/x-pwc1:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-pwc2:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-raw:\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, VYUY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-sonix:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-vp8:\nvideo/x-vp9:\nvideo/x-wmv:\n     wmvversion: 3\n         format: { WVC1, WMV3 }\n\nvideo/x-raw(format:Interlaced):\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, VYUY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\n",
                         "direction": "sink",
                         "presence": "always"
                     }
@@ -26624,7 +26977,7 @@
                 "long-name": "Video (video4linux2) Source",
                 "pad-templates": {
                     "src": {
-                        "caps": "video/x-raw(memory:DMABuf):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(memory:DMABuf, format:Interlaced):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\nimage/jpeg:\n         parsed: true\nvideo/mpeg:\n    mpegversion: 4\n   systemstream: false\nvideo/mpeg:\n    mpegversion: { (int)1, (int)2 }\nvideo/mpegts:\n   systemstream: true\nvideo/x-bayer:\n         format: { bggr, gbrg, grbg, rggb, bggr10le, gbrg10le, grbg10le, rggb10le, bggr12le, gbrg12le, grbg12le, rggb12le, bggr14le, gbrg14le, grbg14le, rggb14le, bggr16le, gbrg16le, grbg16le, rggb16le }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-dv:\n   systemstream: true\nvideo/x-fwht:\nvideo/x-h263:\n        variant: itu\nvideo/x-h264:\n  stream-format: { (string)byte-stream, (string)avc }\n      alignment: au\nvideo/x-h265:\n  stream-format: byte-stream\n      alignment: au\nvideo/x-pwc1:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-pwc2:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-raw:\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-sonix:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-vp8:\nvideo/x-vp9:\nvideo/x-wmv:\n     wmvversion: 3\n         format: { WVC1, WMV3 }\n\nvideo/x-raw(format:Interlaced):\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\n",
+                        "caps": "video/x-raw(memory:DMABuf):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n\nvideo/x-raw(memory:DMABuf, format:Interlaced):\n         format: DMA_DRM\n     drm-format: { (string)RGB8, (string)AR15, (string)XR15_BE, (string)AR15_BE, (string)RG16, (string)RG16_BE, (string)RG24, (string)BG24, (string)AR24, (string)RA24, (string)RX24, (string)AB24, (string)XB24, (string)BA24, (string)AR30, (string)\"R8\\ \\ \", (string)\"R4\\ \\ \", (string)\"R10\\ \", (string)\"R12\\ \", (string)\"R16\\ \", (string)\"R16\\ _BE\", (string)GR88, (string)YUV9, (string)YVU9, (string)YUYV, (string)UYVY, (string)VYUY, (string)YU11, (string)NV12:0x0400000000000001, (string)NV24, (string)NV42, (string)NV12:0x0b00000000000001, (string)P010, (string)NV61, (string)NV16, (string)NV21, (string)NV12:0x0400000000000002, (string)NV12, (string)YU16, (string)YVYU, (string)YV12, (string)YU12, (string)BX24, (string)XR24, (string)XR15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\nimage/jpeg:\n         parsed: true\nvideo/mpeg:\n    mpegversion: 4\n   systemstream: false\nvideo/mpeg:\n    mpegversion: { (int)1, (int)2 }\nvideo/mpegts:\n   systemstream: true\nvideo/x-av1:\n  stream-format: obu-stream\n      alignment: tu\nvideo/x-bayer:\n         format: { bggr, gbrg, grbg, rggb, bggr10le, gbrg10le, grbg10le, rggb10le, bggr12le, gbrg12le, grbg12le, rggb12le, bggr14le, gbrg14le, grbg14le, rggb14le, bggr16le, gbrg16le, grbg16le, rggb16le }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-dv:\n   systemstream: true\nvideo/x-fwht:\nvideo/x-h263:\n        variant: itu\nvideo/x-h264:\n  stream-format: { (string)byte-stream, (string)avc }\n      alignment: au\nvideo/x-h265:\n  stream-format: byte-stream\n      alignment: au\nvideo/x-pwc1:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-pwc2:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-raw:\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, VYUY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-sonix:\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\nvideo/x-vp8:\nvideo/x-vp9:\nvideo/x-wmv:\n     wmvversion: 3\n         format: { WVC1, WMV3 }\n\nvideo/x-raw(format:Interlaced):\n         format: { RGB16, BGR, RGB, ABGR, xBGR, RGBA, RGBx, BGR10A2_LE, BGR15, GRAY8, GRAY16_LE, GRAY16_BE, YUV9, YVU9, YUY2, YVYU, UYVY, VYUY, Y41B, NV12_64Z32, NV12_8L128, NV12_10BE_8L128, NV24, NV12_16L32S, P010_10LE, NV61, NV16, NV21, NV12, Y42B, YV12, I420, ARGB, xRGB, BGRA, BGRx, RGB15 }\n          width: [ 1, 32768 ]\n         height: [ 1, 32768 ]\n      framerate: [ 0/1, 2147483647/1 ]\n interlace-mode: alternate\n",
                         "direction": "src",
                         "presence": "always"
                     }
@@ -27553,7 +27906,7 @@
         "description": "Video filters plugin",
         "elements": {
             "gamma": {
-                "author": "Arwed v. Merkatz <v.merkatz@gmx.net",
+                "author": "Arwed v. Merkatz <v.merkatz@gmx.net>",
                 "description": "Adjusts gamma on a video stream",
                 "hierarchy": [
                     "GstGamma",
@@ -29126,12 +29479,12 @@
                 "long-name": "Wavpack audio decoder",
                 "pad-templates": {
                     "sink": {
-                        "caps": "audio/x-wavpack:\n          depth: [ 1, 32 ]\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\n         framed: true\n",
+                        "caps": "audio/x-wavpack:\n          depth: [ 1, 32 ]\n       channels: [ 1, 4096 ]\n           rate: [ 6000, 2147483647 ]\n         framed: true\n",
                         "direction": "sink",
                         "presence": "always"
                     },
                     "src": {
-                        "caps": "audio/x-raw:\n         format: S8\n         layout: interleaved\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\naudio/x-raw:\n         format: S16LE\n         layout: interleaved\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\naudio/x-raw:\n         format: S32LE\n         layout: interleaved\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\naudio/x-raw:\n         format: F32LE\n         layout: interleaved\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\n",
+                        "caps": "audio/x-raw:\n         format: { S8, S16LE, S18LE, S20LE, S24LE, S32LE }\n         layout: interleaved\n       channels: [ 1, 4096 ]\n           rate: [ 6000, 2147483647 ]\naudio/x-raw:\n         format: F32LE\n         layout: interleaved\n       channels: [ 1, 4096 ]\n           rate: [ 6000, 2147483647 ]\n",
                         "direction": "src",
                         "presence": "always"
                     }
@@ -29157,12 +29510,12 @@
                 "long-name": "Wavpack audio encoder",
                 "pad-templates": {
                     "sink": {
-                        "caps": "audio/x-raw:\n         format: S32LE\n         layout: interleaved\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\n",
+                        "caps": "audio/x-raw:\n         format: { S8, S16LE, S18LE, S20LE, S24LE, S32LE }\n         layout: interleaved\n       channels: [ 1, 4096 ]\n           rate: [ 6000, 2147483647 ]\naudio/x-raw:\n         format: F32LE\n         layout: interleaved\n       channels: [ 1, 4096 ]\n           rate: [ 6000, 2147483647 ]\n",
                         "direction": "sink",
                         "presence": "always"
                     },
                     "src": {
-                        "caps": "audio/x-wavpack:\n          depth: [ 1, 32 ]\n       channels: [ 1, 8 ]\n           rate: [ 6000, 192000 ]\n         framed: true\n",
+                        "caps": "audio/x-wavpack:\n          depth: [ 1, 32 ]\n          width: { (int)8, (int)16, (int)24, (int)32 }\n    sample-type: { (string)int, (string)float }\n       channels: [ 1, 4096 ]\n           rate: [ 6000, 2147483647 ]\n         framed: true\n",
                         "direction": "src",
                         "presence": "always"
                     },
@@ -29611,9 +29964,35 @@
         "tracers": {},
         "url": "Unknown package origin"
     },
-    "y4menc": {
-        "description": "Encodes a YUV frame into the yuv4mpeg format (mjpegtools)",
+    "y4m": {
+        "description": "Encodes and demuxes/decodes YUV4MPEG streams (mjpegtools)",
         "elements": {
+            "y4mdec": {
+                "author": "David Schleef <ds@schleef.org>\nVictor Jaquez <vjaquez@igalia.com>",
+                "description": "Demuxes/decodes YUV4MPEG streams",
+                "hierarchy": [
+                    "GstY4mDec",
+                    "GstBaseParse",
+                    "GstElement",
+                    "GstObject",
+                    "GInitiallyUnowned",
+                    "GObject"
+                ],
+                "klass": "Codec/Demuxer",
+                "pad-templates": {
+                    "sink": {
+                        "caps": "application/x-yuv4mpeg:\n     y4mversion: 2\n",
+                        "direction": "sink",
+                        "presence": "always"
+                    },
+                    "src": {
+                        "caps": "video/x-raw:\n         format: { I420, Y42B, Y41B, Y444, A444, GRAY8, I420_12LE, I422_12LE, Y444_12LE, I420_10LE, I422_10LE, Y444_10LE, GRAY10_LE16, GRAY16_LE }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
+                        "direction": "src",
+                        "presence": "always"
+                    }
+                },
+                "rank": "secondary"
+            },
             "y4menc": {
                 "author": "Wim Taymans <wim.taymans@gmail.com>",
                 "description": "Encodes a YUV frame into the yuv4mpeg format (mjpegtools)",
@@ -29629,10 +30008,9 @@
                     "GstPreset"
                 ],
                 "klass": "Codec/Encoder/Video",
-                "long-name": "YUV4MPEG video encoder",
                 "pad-templates": {
                     "sink": {
-                        "caps": "video/x-raw:\n         format: { IYUV, I420, Y42B, Y41B, Y444 }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
+                        "caps": "video/x-raw:\n         format: { I420, Y42B, Y41B, Y444, A444, GRAY8, I420_12LE, I422_12LE, Y444_12LE, I420_10LE, I422_10LE, Y444_10LE, GRAY10_LE16, GRAY16_LE }\n          width: [ 1, 2147483647 ]\n         height: [ 1, 2147483647 ]\n      framerate: [ 0/1, 2147483647/1 ]\n",
                         "direction": "sink",
                         "presence": "always"
                     },
@@ -29642,11 +30020,10 @@
                         "presence": "always"
                     }
                 },
-                "properties": {},
                 "rank": "primary"
             }
         },
-        "filename": "gsty4menc",
+        "filename": "gsty4m",
         "license": "LGPL",
         "other-types": {},
         "package": "GStreamer Good Plug-ins",

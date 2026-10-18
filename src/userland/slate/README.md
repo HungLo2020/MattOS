@@ -24,8 +24,11 @@ keep running. **Ctrl+W** closes the active editor tab in either frontend. Closin
 a shared document's tab leaves its other views intact; closing its last view
 asks before discarding unsaved changes. Cancel to save first. In the TUI, press
 **D** to discard or **Escape / Enter** to cancel. Closing the final editor tab
-leaves an empty editor. On narrow tab bars, use the GUI's tab menu or **F7** in
-the TUI to select hidden tabs.
+leaves an empty editor. On narrow tab bars, use the GUI's tab menu to select
+hidden tabs. The TUI numbers crowded tabs and shortens their titles, then shows
+a window of tabs around the active one with **‹** / **›** for the rest; **F7** /
+**Shift+F7** (or **Ctrl+PageDown** / **Ctrl+PageUp**, also in terminals) switch
+to the next / previous tab.
 
 The GUI uses Qt's native file dialogs for **Open File**, **Open Folder**, and
 **Save As**. On Plasma, the desktop's Qt platform integration (`plasma-integration`
@@ -301,11 +304,18 @@ is undoable. Reload Settings refreshes the cached files. Trimming is limited to
 10,000 affected lines per save; an unrepresentable encoding or oversized edit
 refuses the save without changing the buffer or file.
 
-GUI Open Folder creates another workspace window. TUI Open Folder switches the
-root, configuration, tools, Git, trust and recovery session, asking to save/discard
-unsaved buffers first. Recent Projects is available in the File menu and command
-palette. Window geometry is saved locally and clamped to available screens at
-startup. GUI Settings includes a shortcut editor for global/editor/terminal/debug
+Every way of opening a folder behaves the same: Open Folder, Recent Projects (File
+menu and command palette), `:open-folder`, and a folder opened as a file or dropped
+on the window from outside the workspace (folders inside it are shown in the file
+browser). The window's own folder is shown rather than opened again, and a folder
+already open in another Slate window is not opened twice. Otherwise the GUI asks
+whether to open it in this window or a new one; **Don't ask again**, or Settings →
+**Open folders in** (`open_folder_in = "ask" | "current" | "new"`), remembers the
+answer. Opening in this window, like TUI Open Folder, switches the root,
+configuration, tools, Git, trust and recovery session, asking to save/discard
+unsaved buffers first; its documents and terminals close. Window geometry is saved
+locally and clamped to available screens at startup; a window opened from another
+opens slightly offset rather than exactly over it. GUI Settings includes a shortcut editor for global/editor/terminal/debug
 scopes. `locking = true` / `--locking` enables advisory file-in-use warnings;
 these do not prevent editing and do not replace save-conflict detection.
 
@@ -415,7 +425,9 @@ clipboard (OSC 52) only with the **Terminal programs may set the clipboard**
 setting (`terminal_clipboard`), since anything printed to a terminal (a `cat`
 of a downloaded file, say) could otherwise replace what you copied. Pasted text
 has control characters removed. The **Terminal scrollback lines** setting
-controls history.
+controls each terminal's history. All of a window's terminals share a budget of
+20,000 lines (or the setting, when larger): a new terminal gets what the others
+leave, and never less than 500 lines.
 
 ## Startup and settings
 
@@ -430,10 +442,13 @@ Settings are saved automatically to `$XDG_CONFIG_HOME/slate/settings.toml`
 (normally `~/.config/slate/settings.toml`). The equivalent TOML fields are:
 
 ```toml
-file_startup = "editor-only"
+file_startup = "editor-only"     # the minimal and workspace profiles choose both
 directory_startup = "workspace"
 editor_theme = "dark"     # auto, dark, light
-terminal_theme = "dark"   # auto, dark, light, editor
+terminal_theme = "editor" # editor (default), auto, dark, light
+files_theme = "editor"    # file browser: editor (default), auto (desktop), dark, light
+git_theme = "editor"      # Git pane: editor (default), auto (desktop), dark, light
+open_folder_in = "ask"    # GUI: ask, current (this window) or new (a new window)
 keymap = "default"        # or "nano"
 soft_wrap = false
 wrap_column = 80          # justify and hard wrap
@@ -446,8 +461,10 @@ complete_while_typing = true
 accept_completion_on_enter = true
 ```
 
-Editor and terminal themes are independent. Their dark defaults use charcoal
-backgrounds (`#1b1e26` and `#14171c`) while GUI menus and dialogs keep the desktop
+Editor and terminal themes are independent. The editor defaults to a dark
+charcoal background (`#1b1e26`); terminals, the file browser and the Git pane
+follow the editor's colors unless themed separately (the terminal's own `dark`
+palette is `#14171c`), while GUI menus, dialogs and pane tabs keep the desktop
 palette. `auto` follows the desktop palette in the GUI and uses a dark fallback
 in the TUI. Terminal `editor` follows the editor's colors, including selection.
 Terminal ANSI colors adapt to light/dark backgrounds; explicit application RGB
@@ -576,8 +593,9 @@ slate`; subsequent releases arrive through normal APT updates.
   a pane leaves sessions running; closing a terminal tab or `terminate-terminal`
   explicitly stops that session.
 - Git branch/status, staged/unstaged/untracked groups, direct stage/unstage,
-  read-only diffs and untracked previews, bulk/section staging, and a commit
-  message composer. Directory listing and Git commands have separate workers. File opens/saves have their own worker;
+  read-only diffs and untracked previews, bulk/section staging, a commit
+  message composer, a commit graph, discard, branch switching and fetch, pull
+  and push. Directory listing and Git commands have separate workers. File opens/saves have their own worker;
   saving a snapshot leaves edits made during the save dirty. Git operations use
   the repository root, including when opening a subfolder.
 - Atomic saves preserve permissions, owner/group, extended attributes, hard
@@ -598,7 +616,8 @@ slate`; subsequent releases arrive through normal APT updates.
 | --- | --- |
 | F1 or Ctrl+Shift+P | Command palette |
 | F6 | Next pane; also escapes input captured by a terminal program |
-| F7 | Next tab/view in the current pane |
+| F7 / Shift+F7 | Next / previous tab in the current pane, terminals included |
+| Ctrl+PageDown / Ctrl+PageUp | Next / previous tab (editors and terminals) |
 | F8 | New terminal in the current pane |
 | F9 / Shift+F9 | Split right / below |
 | F10 | Expand / collapse workspace |
@@ -651,15 +670,33 @@ and Refresh reloads changes made outside Slate. **Stage all** and **Unstage all*
 operate on the workspace subtree when its repository is larger; section +/−
 controls operate on that group. Commits include all staged repository changes,
 including changes staged outside the workspace.
-Unstaging preserves working files. The GUI shows section counts, file names and
-parent folders, and reserves a gutter for the scrollbar beside the row actions.
+Unstaging preserves working files. The GUI shows one line per change (icon, name,
+folder and a coloured status letter), collapsible groups with counts, and row
+actions on hover: open, discard, inspect and stage. It reserves a gutter for the
+scrollbar beside the row actions. **Discard changes…** asks first; it restores a
+tracked file from the index and moves an untracked file to the desktop Trash.
+Right-click a change to open it, copy its path or reveal it in the file browser.
+
+The header shows the branch, how far it is ahead of and behind its upstream
+(↑/↓), and actions to stage or unstage everything, refresh, fetch, pull, push,
+switch branch and create a branch. Pull only fast-forwards. Push sets an upstream
+on `origin` (or the only remote) the first time. Remote commands never prompt:
+SSH runs in batch mode unless you configured your own SSH command, so use an SSH
+agent or a credential helper.
+
+Below the changes, the **Graph** lists the history of HEAD and its upstream with
+coloured lanes, branch and tag badges, authors and ages, 200 commits at a time
+(**Load more commits** continues). Click a commit to open its message, statistics
+and patch read-only; drag the divider to resize the graph, or collapse it.
 
 Type a message in the GUI composer and click **Commit**, or press **Ctrl+Enter**.
 Commit operates on staged files. Short panes open a compact message dialog.
 The draft survives pane/layout changes and failed commits; successful commits
 clear it. Hover file controls for explanations, or right-click a file for actions.
-In the TUI Git pane, S stages, U unstages, C opens the commit form, R refreshes,
-and Enter inspects the selected change.
+In the TUI Git pane, S stages, U unstages, D discards, O opens the file, C opens
+the commit form, F fetches, R refreshes, and Enter inspects the selected change.
+The commit graph follows the changes, drawn with box-drawing lanes; Enter on a
+commit opens it read-only. The pane title shows ↑/↓ counts for the upstream.
 
 Settings provides file/directory startup defaults, theme, indentation, spaces/tabs,
 auto-indent and line-number controls in both frontends. GUI Settings also offers
@@ -737,7 +774,9 @@ commands discard unsaved work. GUI window closure asks before discarding.
 `set` writes `$XDG_CONFIG_HOME/slate/settings.toml` (normally
 `~/.config/slate/settings.toml`). Supported options: `indent-width` (1–16),
 `insert-spaces`, `auto-indent`, `line-numbers` (booleans), `editor-theme`
-(`auto`, `dark`, `light`), `terminal-theme` (`auto`, `dark`, `light`, `editor`),
+(`auto`, `dark`, `light`), `terminal-theme` (`auto`, `dark`, `light`, `editor`), `files-theme` and
+`git-theme` (`editor`, `auto`, `dark`, `light`; the file browser and Git pane use
+the editor's colours unless set, and `auto` follows the desktop),
 `theme` (an alias for `editor-theme`), `keymap` (`default`, `nano`; choosing one replaces the
 key tables), `soft-wrap`, `wrap-column` (10–500), `hard-wrap`, `backup`,
 `file-recovery`, `tui-mouse`, `terminal-clipboard`, `complete-while-typing`
@@ -843,6 +882,7 @@ python3 scripts/gui-layout-smoke.py target/debug/slate  # Qt Test, Basic/Fusion/
 SLATE_GUI_DESKTOP_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
 SLATE_GUI_IDE_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
 python3 scripts/single-instance-smoke.py target/debug/slate-gui
+python3 scripts/gui-termination-smoke.py target/debug/slate # SIGTERM at each startup phase
 SLATE_GUI_FEATURE_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
 SLATE_GUI_FILE_DIALOG_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
 SLATE_GUI_TAB_CLOSE_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
@@ -850,6 +890,7 @@ QT_QPA_PLATFORMTHEME=kde SLATE_GUI_PLATFORM=wayland SLATE_GUI_REQUIRE_KDE_DIALOG
 SLATE_GUI_GIT_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
 SLATE_GUI_COMMAND_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
 SLATE_GUI_AUDIT_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate
+SLATE_GUI_MARKUP_SMOKE=1 python3 scripts/gui-offscreen-smoke.py target/debug/slate # file names never render as markup
 SLATE_GUI_PLATFORM=wayland python3 scripts/gui-desktop-integration.py target/debug/slate # private AT-SPI bus
 python3 scripts/gui-wayland-smoke.py target/debug/slate # Weston headless + KDE integration
 cargo build --release -p slate -p slate-gui --features slate-gui/smoke
@@ -877,7 +918,8 @@ KDE dialogs, X11/Wayland accessibility, Orca discovery, and the minimum Rust 1.8
 compiler check. Automated accessibility checks exercise document ranges, cursor
 and selection; speech output still needs manual listening.
 The populated Git workflow checks normal/narrow/short panes and large fonts,
-scrollbar/action separation, bulk and section staging, and commit hook failures.
+scrollbar/action separation, bulk and section staging, commit hook failures,
+the commit graph after committing, and opening a commit.
 Set `SLATE_GUI_ARTIFACT_DIR` to retain its screenshots and report.
 Release performance checks measure actual input handlers and rendered frames at
 normal, 1080p and 4K sizes, plus cursor/selection layout retention, scrolling,

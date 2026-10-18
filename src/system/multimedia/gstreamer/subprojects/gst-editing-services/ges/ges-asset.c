@@ -789,7 +789,8 @@ ges_asset_cache_deinit (void)
   _deinit_formatter_assets ();
 
   LOCK_CACHE;
-  g_hash_table_destroy (type_entries_table);
+  if (type_entries_table)
+    g_hash_table_destroy (type_entries_table);
   type_entries_table = NULL;
   UNLOCK_CACHE;
 }
@@ -1330,8 +1331,11 @@ ges_asset_request (GType extractable_type, const gchar * id, GError ** error)
       asset = g_initable_new (asset_type,
           NULL, error, "id", real_id, "extractable-type",
           extractable_type, NULL);
-    } else {
-      GST_INFO ("Tried to create an Asset for type %s but no ->init method",
+      if (!asset)
+        GST_WARNING ("Unable to create asset for %s(->%s) for type %s",
+            id, real_id, g_type_name (asset_type));
+    } else if (!g_type_is_a (extractable_type, GES_TYPE_URI_CLIP)) {
+      GST_WARNING ("Tried to create an Asset for type %s but no ->init method",
           g_type_name (extractable_type));
     }
     g_type_class_unref (klass);

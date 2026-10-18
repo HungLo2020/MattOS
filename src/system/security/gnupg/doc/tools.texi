@@ -125,7 +125,7 @@ $ watchgnupg --time-only
 @end example
 
 This waits for connections on the local socket
-(e.g. @file{/var/run/user/1234/gnupg/S.log}) and shows all log
+(e.g., @file{/var/run/user/1234/gnupg/S.log}) and shows all log
 entries.  To make this work the option @option{log-file} needs to be
 used with all modules which logs are to be shown.  The suggested entry
 for the configuration files is:
@@ -134,8 +134,8 @@ for the configuration files is:
 log-file socket://
 @end example
 
-If the default socket as given above and returned by "echo $(gpgconf
---list-dirs socketdir)/S.log" is not desired an arbitrary socket name
+If the default socket as given above and returned by @code{"echo $(gpgconf
+--list-dirs socketdir)/S.log"} is not desired an arbitrary socket name
 can be specified, for example @file{socket:///home/foo/bar/mysocket}.
 For debugging purposes it is also possible to do remote logging.  Take
 care if you use this feature because the information is send in the
@@ -1152,12 +1152,20 @@ More fields may be added in future to the output.
 
   Under Windows this file is used to install GnuPG as a portable
   application.  An empty file named @file{gpgconf.ctl} is expected in
-  the same directory as the tool @file{gpgconf.exe}.  The root of the
+  the same directory as the tool @file{gpgconf.exe} or the file must
+  have a keyword @code{portable} with the value true.  The root of the
   installation is then that directory; or, if @file{gpgconf.exe} has
   been installed directly below a directory named @file{bin}, its parent
   directory.  You also need to make sure that the following directories
   exist and are writable: @file{ROOT/home} for the GnuPG home and
   @file{ROOT@value{LOCALCACHEDIR}} for internal cache files.
+
+  On both platforms the keyword @code{gnupg} can be used to change the
+  standard home directory.  For example a value of "gnupg-vsd" will
+  change the default home directory on unix from @file{~/.gnupg} to
+  @file{~/.gnupg-vsd}.  The socket directory is changed accordingly
+  unless the @code{socketdir} keyword has been used.  On Windows the
+  Registry keys are modified as well.
 
 
 @item /etc/gnupg/gpgconf.conf
@@ -1285,7 +1293,7 @@ Alternatively an arbitrary string may be used to identify a
 passphrase; it is suggested that such a string is prefixed with the
 name of the application (e.g @code{foo:12346}).  Scripts should always
 use the option @option{--with-colons}, which provides the keygrip in a
-"grp" line (cf. @file{doc/DETAILS})/
+"grp" line (cf.@: @file{doc/DETAILS})/
 
 @noindent
 One of the following command options must be given:
@@ -1766,7 +1774,7 @@ The return value of this command is
 @table @code
 
 @item 0
-The certificate under question is valid; i.e. there is a valid CRL
+The certificate under question is valid; i.e., there is a valid CRL
 available and it is not listed there or the OCSP request returned that
 that certificate is valid.
 
@@ -1819,7 +1827,7 @@ Do the check using the OCSP protocol and ignore any CRLs.
 @item --force-default-responder
 @opindex force-default-responder
 When checking using the OCSP protocol, force the use of the default OCSP
-responder.  That is not to use the Reponder as given by the certificate.
+responder.  That is not to use the Responder as given by the certificate.
 
 @item --ping
 @opindex ping
@@ -2016,11 +2024,12 @@ Do not actually output the extracted files.
 @item --directory @var{dir}
 @itemx -C @var{dir}
 @opindex directory
-Extract the files into the directory @var{dir}.  The default is to
-take the directory name from the input filename.  If no input filename
-is known a directory named @file{GPGARCH} is used.  For tarball
-creation, switch to directory @var{dir} before performing any
-operations.
+Extract the files into the directory @var{dir}.  It raises an error
+when @var{dir} is not empty, or @var{dir} is a symlink to other
+directory.  When this option is not given, the default is to take the
+directory name from the input filename.  If no input filename is known
+a directory, named @file{GPGARCH} is used.  For tarball creation,
+switch to directory @var{dir} before performing any operations.
 
 @item --files-from @var{file}
 @itemx -T @var{file}
@@ -2052,7 +2061,8 @@ implemented.
 @item --batch
 @opindex batch
 Use batch mode.  Never ask but use the default action.  This option is
-passed directly to @command{gpg}.
+passed directly to @command{gpg}.  This option is also required to
+activate the @option{log-file} in @file{common.conf} for this program.
 
 @item --yes
 @opindex yes
@@ -2089,9 +2099,9 @@ This option is deprecated in favor of option @option{--directory}.
 
 @item --no-compress
 @opindex no-compress
-This option tells gpg to disable compression (i.e. using option -z0).
+This option tells gpg to disable compression (i.e., using option -z0).
 It is useful for archiving only large files which are already
-compressed (e.g. a set of videos).
+compressed (e.g., a set of videos).
 
 @item --gpg @var{gpgcmd}
 @opindex gpg
@@ -2104,9 +2114,10 @@ Pass the specified extra options to @command{gpg}.
 @item --tar-args @var{args}
 @opindex tar-args
 Assume @var{args} are standard options of the command @command{tar}
-and parse them.  The only supported tar options are "--directory",
-"--files-from", and "--null" This is an obsolete options because those
-supported tar options can also be given directly.
+and parse them.  The only supported tar options are
+@option{--directory}, @option{--files-from}, and @option{--null}.
+This is an obsolete options because those supported tar options can
+also be given directly.
 
 @item --tar @var{command}
 @opindex tar
@@ -2183,6 +2194,12 @@ stdout.
 The recipients must be plain mail addresses
 (e.g. @code{foo@@example.org}) and should in general list the To and
 Cc addresses contained in the mail.
+
+The tool needs to insert strings into the mails which can be
+configured using a plain text file.  The installed default files for
+English (@file{mail-tube.txt}) and German (@file{mail-tube.de.txt})
+can be copied to the system configuration directory and changed to
+local needs.  Environment variables in these texts are expanded.
 
 @mansect options
 @noindent
@@ -2271,6 +2288,39 @@ transport_filter = /usr/local/bin/gpg-mail-tube --setenv HOME=$@{home@} \
 @noindent
 For a remote transport the use of @option{size_addition} and an
 explicit setting of the user and its home directory might be required.
+To avoid permission problems it is often better to use a service like
+@command{userv} to run the command under a different user.  This can
+be done by using this transport_filter:
+
+@example
+transport_filter = /usr/bin/userv -- foo gpg-mail-tube $pipe_addresses
+@end example
+
+With @var{foo} being the account name used by GnuPG.  In that user's
+home directory you will install a file @file{~/.userv/rc} with this
+content:
+
+@example
+if ( glob service gpg-mail-tube
+     & glob calling-user Debian-exim
+     & glob service-user foo
+   )
+   reset
+   errors-to-syslog
+   no-suppress-args
+   execute /usr/local/bin/gpg-mail-tube \
+      -v --no-stderr \
+      --log-file /home/foo/logs/mail-tube.log \
+      --setenv HOME=/home/foo  --
+   quit
+fi
+@end example
+
+Take care to have the trailing double dashes and adjust the log-file
+as needed.  The errors-to-syslog statement makes sure that errors
+pertaining to the userv system (e.g. script errors) are directed to
+the syslog (facility is "user", level is "error").  If needed replace
+Debian-exim by the name of the user under which Exim is running.
 
 
 @mansect see also

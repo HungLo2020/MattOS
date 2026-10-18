@@ -87,6 +87,16 @@ namespace Gst.App {
 			}
 		}
 
+		[GLib.Property ("dropped")]
+		public ulong Dropped {
+			get {
+				GLib.Value val = GetProperty ("dropped");
+				ulong ret = (ulong) val;
+				val.Dispose ();
+				return ret;
+			}
+		}
+
 		[DllImport("gstapp-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
 		static extern ulong gst_app_src_get_duration(IntPtr raw);
 
@@ -150,6 +160,16 @@ namespace Gst.App {
 				GLib.Value val = new GLib.Value(value);
 				SetProperty("handle-segment-change", val);
 				val.Dispose ();
+			}
+		}
+
+		[GLib.Property ("in")]
+		public ulong In {
+			get {
+				GLib.Value val = GetProperty ("in");
+				ulong ret = (ulong) val;
+				val.Dispose ();
+				return ret;
 			}
 		}
 
@@ -281,6 +301,31 @@ namespace Gst.App {
 			set {
 				GLib.Value val = new GLib.Value(value);
 				SetProperty("min-percent", val);
+				val.Dispose ();
+			}
+		}
+
+		[GLib.Property ("out")]
+		public ulong Out {
+			get {
+				GLib.Value val = GetProperty ("out");
+				ulong ret = (ulong) val;
+				val.Dispose ();
+				return ret;
+			}
+		}
+
+		[GLib.Property ("silent")]
+		public bool Silent {
+			get {
+				GLib.Value val = GetProperty ("silent");
+				bool ret = (bool) val;
+				val.Dispose ();
+				return ret;
+			}
+			set {
+				GLib.Value val = new GLib.Value(value);
+				SetProperty("silent", val);
 				val.Dispose ();
 			}
 		}
@@ -928,6 +973,17 @@ namespace Gst.App {
 
 		public void SetLatency(ulong min, ulong max) {
 			gst_app_src_set_latency(Handle, min, max);
+		}
+
+		[DllImport("gstapp-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]
+		static extern void gst_app_src_set_simple_callbacks(IntPtr raw, IntPtr value);
+
+		public Gst.App.AppSrcSimpleCallbacks SimpleCallbacks { 
+			set {
+				IntPtr native_value = GLib.Marshaller.StructureToPtrAlloc (value);
+				gst_app_src_set_simple_callbacks(Handle, native_value);
+				Marshal.FreeHGlobal (native_value);
+			}
 		}
 
 		[DllImport("gstreamer-1.0-0.dll", CallingConvention = CallingConvention.Cdecl)]

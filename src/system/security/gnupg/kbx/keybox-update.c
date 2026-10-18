@@ -376,7 +376,7 @@ keybox_insert_keyblock (KEYBOX_HANDLE hd, const void *image, size_t imagelen)
      the write operation.  */
   _keybox_close_file (hd);
 
-  err = _keybox_parse_openpgp (image, imagelen, &nparsed, &info);
+  err = _keybox_parse_openpgp (image, imagelen, 0, &nparsed, &info);
   if (err)
     return err;
   assert (nparsed <= imagelen);
@@ -427,7 +427,7 @@ keybox_update_keyblock (KEYBOX_HANDLE hd, const void *image, size_t imagelen)
   _keybox_close_file (hd);
 
   /* Build a new blob.  */
-  err = _keybox_parse_openpgp (image, imagelen, &nparsed, &info);
+  err = _keybox_parse_openpgp (image, imagelen, 0, &nparsed, &info);
   if (err)
     return err;
   assert (nparsed <= imagelen);
@@ -624,12 +624,13 @@ keybox_delete (KEYBOX_HANDLE hd)
 }
 
 
-/* Compress the keybox file.  This should be run with the file
-   locked. */
-int
-keybox_compress (KEYBOX_HANDLE hd)
+/* Compress the keybox file, if needed and not used by other
+ * process.  */
+void
+keybox_compress_when_no_other_users (void *token, int for_openpgp)
 {
-  gpg_err_code_t ec;
+  KEYBOX_HANDLE hd;
+  gpg_error_t err;
   int read_rc, rc, rc2;
   const char *fname;
   estream_t fp, newfp;
@@ -641,28 +642,51 @@ keybox_compress (KEYBOX_HANDLE hd)
   int any_changes = 0;
   int skipped_deleted;
 
-  if (!hd)
-    return gpg_error (GPG_ERR_INV_HANDLE);
-  if (!hd->kb)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+  if (for_openpgp)
+    hd = keybox_new_openpgp (token, 0);
+  else
+    hd = keybox_new_x509 (token, 0);
+  if (!hd || !hd->kb)
+    return;
+
   if (hd->secret)
-    return gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    return;
   fname = hd->kb->fname;
   if (!fname)
-    return gpg_error (GPG_ERR_INV_HANDLE);
+    {
+      keybox_fp_close (hd);
+      keybox_release (hd);
+      return;
+    }
+
+  if (keybox_lock (hd, 1, 0))
+    {
+      keybox_fp_close (hd);
+      keybox_release (hd);
+      return;
+    }
 
   _keybox_close_file (hd);
 
   /* Open the source file. Because we do a rename, we have to check the
      permissions of the file */
-  if ((ec = gnupg_access (fname, W_OK)))
-    return gpg_error (ec);
+  if ((rc = gnupg_access (fname, W_OK)))
+    {
+      err = gpg_error (rc);
+      goto leave;
+    }
 
   rc = _keybox_ll_open (&fp, fname, 0);
   if (gpg_err_code (rc) == GPG_ERR_ENOENT)
-    return 0; /* Ready. File has been deleted right after the access above. */
+    {
+      err = 0; /* Ready. File has been deleted right after the access above. */
+      goto leave;
+    }
   if (rc)
-    return rc;
+    {
+      err = gpg_error (rc);
+      goto leave;
+    }
 
   /* A quick test to see if we need to compress the file at all.  We
      schedule a compress run after 3 hours. */
@@ -680,7 +704,8 @@ keybox_compress (KEYBOX_HANDLE hd)
             {
               _keybox_ll_close (fp);
               _keybox_release_blob (blob);
-              return 0; /* Compress run not yet needed. */
+              err = 0;
+              goto leave; /* Compress run not yet needed. */
             }
         }
       _keybox_release_blob (blob);
@@ -693,7 +718,8 @@ keybox_compress (KEYBOX_HANDLE hd)
   if (rc)
     {
       _keybox_ll_close (fp);
-      return rc;;
+      err = gpg_error (rc);
+      goto leave;
     }
 
 
@@ -747,7 +773,7 @@ keybox_compress (KEYBOX_HANDLE hd)
                                      KEYBOX_FLAG_BLOB, &pos, &size)
           || size != 2)
         {
-          rc = gpg_error (GPG_ERR_BUG);
+          rc = GPG_ERR_BUG;
           break;
         }
       blobflags = buf16_to_uint (buffer+pos);
@@ -794,5 +820,18 @@ keybox_compress (KEYBOX_HANDLE hd)
 
   xfree(bakfname);
   xfree(tmpfname);
-  return rc;
+  if (rc)
+    err = gpg_error (rc);
+  else
+    err = 0;
+
+  if (err)
+    log_error ("keybox: error compressing keybox '%s': %s\n",
+               fname, gpg_strerror (err));
+
+ leave:
+  keybox_fp_close (hd);
+  keybox_lock (hd, 0, 0);
+  keybox_release (hd);
+  return;
 }

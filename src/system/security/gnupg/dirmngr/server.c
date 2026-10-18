@@ -297,6 +297,21 @@ data_line_cookie_close (void *cookie)
 }
 
 
+
+/* Return the number of colons in S.  */
+static unsigned int
+count_colons (const char *s)
+{
+  unsigned int count = 0;
+
+  for ( ;*s; s++)
+    if (*s == ':')
+      count++;
+  return count;
+}
+
+
+
 /* Copy the % and + escaped string S into the buffer D and replace the
    escape sequences.  Note, that it is sufficient to allocate the
    target string D as long as the source string S, i.e.: strlen(s)+1.
@@ -321,6 +336,66 @@ strcpy_escaped_plus (char *d, const unsigned char *s)
         *d++ = *s++;
     }
   *d = 0;
+}
+
+
+/* Break the LINE into space delimited tokens, put them into a new
+ * strlist and return it at R_LIST.  On error an erro code is
+ * returned.  If no tokens are found the list is set to NULL.
+ * Percent-plus encoding is removed from each token.  Note that the
+ * function will modify LINE.  */
+static gpg_error_t
+percentplus_line_to_strlist (char *line, strlist_t *r_list)
+{
+  strlist_t list = NULL;
+  strlist_t sl;
+  char *p;
+
+  for (p=line; *p; line = p)
+    {
+      while (*p && *p != ' ')
+        p++;
+      if (*p)
+        *p++ = 0;
+      if (*line)
+        {
+          sl = xtrymalloc (sizeof *sl + strlen (line));
+          if (!sl)
+            {
+              gpg_error_t err = gpg_error_from_syserror ();
+              free_strlist (list);
+              *r_list = NULL;
+              return err;
+            }
+          sl->flags = 0;
+          strcpy_escaped_plus (sl->d, line);
+          sl->next = list;
+          list = sl;
+        }
+    }
+
+  *r_list = list;
+  return 0;
+}
+
+
+/* Parse a hex string.  Return an Assuan error code or 0 on success and the
+   length of the parsed string in LEN. */
+static gpg_error_t
+parse_hexstring (assuan_context_t ctx, const char *string, size_t *len)
+{
+  const char *p;
+  size_t n;
+
+  /* parse the hash value */
+  for (p=string, n=0; hexdigitp (p); p++, n++)
+    ;
+  if (*p != ' ' && *p != '\t' && *p)
+    return set_error (GPG_ERR_ASS_PARAMETER, "invalid hexstring");
+  if ((n&1))
+    return set_error (GPG_ERR_ASS_PARAMETER, "odd number of digits");
+  *len = n;
+  return 0;
 }
 
 
@@ -857,7 +932,7 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
   int is_wkd_query;   /* True if this is a real WKD query.  */
   int no_log = 0;
   char portstr[20] = { 0 };
-  int subdomain_mode = 0;
+  int subdomain_mode, try_without_subdomain;
 
   opt_submission_addr = has_option (line, "--submission-address");
   opt_policy_flags = has_option (line, "--policy-flags");
@@ -875,7 +950,6 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
   *domain++ = 0;
   domain_orig = domain;
 
-
   /* Let's check whether we already know that the domain does not
    * support WKD.  */
   if (is_wkd_query)
@@ -889,13 +963,18 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
     }
 
 
+  try_without_subdomain = 0;
+ again:
+  subdomain_mode = 0;
+
   /* First try the new "openpgp" subdomain.  We check that the domain
    * is valid because it is later used as an unescaped filename part
    * of the URI.  */
-  if (is_valid_domain_name (domain_orig))
+  if (!try_without_subdomain && is_valid_domain_name (domain_orig))
     {
       dns_addrinfo_t aibuf;
 
+      xfree (domainbuf);
       domainbuf = strconcat ( "openpgpkey.", domain_orig, NULL);
       if (!domainbuf)
         {
@@ -922,7 +1001,7 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
     }
 
   /* Check for SRV records unless we have a subdomain. */
-  if (!subdomain_mode)
+  if (!subdomain_mode && !try_without_subdomain)
     {
       struct srventry *srvs;
       unsigned int srvscount;
@@ -932,7 +1011,7 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
       err = get_dns_srv (ctrl, domain, "openpgpkey", NULL, &srvs, &srvscount);
       if (err)
         {
-          /* Ignore server failed becuase there are too many resolvers
+          /* Ignore server failed because there are too many resolvers
            * which do not work as expected.  */
           if (gpg_err_code (err) == GPG_ERR_SERVER_FAILED)
             err = 0; /*(srvcount is guaranteed to be 0)*/
@@ -968,6 +1047,7 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
                   && !ascii_strcasecmp (srvs[i].target, domain)))
             {
               /* found.  */
+              xfree (domainbuf);
               domainbuf = xtrystrdup (srvs[i].target);
               if (!domainbuf)
                 {
@@ -986,6 +1066,7 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
 
   /* Prepare the hash of the local part.  */
   gcry_md_hash_buffer (GCRY_MD_SHA1, sha1buf, mbox, strlen (mbox));
+  xfree (encodedhash);
   encodedhash = zb32_encode (sha1buf, 8*20);
   if (!encodedhash)
     {
@@ -993,6 +1074,7 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
       goto leave;
     }
 
+  xfree (uri);
   if (opt_submission_addr)
     {
       uri = strconcat ("https://",
@@ -1096,6 +1178,24 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
               domaininfo_set_wkd_not_supported (domain_orig);
             break;
 
+          case GPG_ERR_WRONG_NAME:
+            if (is_wkd_query && subdomain_mode)
+              {
+                /* Some sites accidently use the "openpgpkey."
+                 * subdomain but do not have it in their certificate.
+                 * In this case we try again without subdomain but
+                 * keep the original error code.  */
+                subdomain_mode = 0;
+                try_without_subdomain = 1;
+                xfree (domainbuf);
+                domainbuf = NULL;
+                domain = domain_orig;
+                if (opt.verbose)
+                  log_info ("retrying without \"openpgpkey\" sub-domain\n");
+                goto again;
+              }
+            break;
+
           default:
             /* Don't register other errors.  */
             break;
@@ -1104,6 +1204,8 @@ proc_wkd_get (ctrl_t ctrl, assuan_context_t ctx, char *line)
   }
 
  leave:
+  if (try_without_subdomain && err)
+    err = gpg_error (GPG_ERR_WRONG_NAME);
   xfree (uri);
   xfree (encodedhash);
   xfree (mbox);
@@ -2209,8 +2311,10 @@ ensure_keyserver (ctrl_t ctrl)
   if (!opt.keyserver)
     {
       /* No global option set.  Fall back to default:  */
-      return make_keyserver_item (DIRMNGR_DEFAULT_KEYSERVER,
-                                  &ctrl->server_local->keyservers);
+      /* return make_keyserver_item (DIRMNGR_DEFAULT_KEYSERVER, */
+      /*                             &ctrl->server_local->keyservers); */
+      err = gpg_error (GPG_ERR_NO_KEYSERVER);  /* No more default.  */
+      goto leave;
     }
 
   for (sl = opt.keyserver; sl; sl = sl->next)
@@ -2412,7 +2516,19 @@ cmd_keyserver (assuan_context_t ctx, char *line)
         }
 
       for (u=ctrl->server_local->keyservers; u; u = u->next)
-        dirmngr_status (ctrl, "KEYSERVER", u->uri, NULL);
+        {
+          dirmngr_status (ctrl, "KEYSERVER", u->uri, NULL);
+          /* Print a warning if an opaque URI looks like ldap.  A common
+           * misconfiguration is ldap.example.com::uid-foo:::starttls
+           *          instead of ldap:ldap.example.com::uid-foo:::starttls */
+          if (u->parsed_uri->opaque
+              && strncmp (u->uri, "ldap:", 5)
+              && strncmp (u->uri, "ldaps:", 6)
+              && count_colons (u->uri) > 3)
+            dirmngr_status (ctrl, "WARNING", "keyserver_config 0",
+                            "The \"ldap:\" prefix might be missing"
+                            " before the host name", NULL);
+        }
     }
   err = 0;
 
@@ -2432,37 +2548,16 @@ cmd_ks_search (assuan_context_t ctx, char *line)
 {
   ctrl_t ctrl = assuan_get_pointer (ctx);
   gpg_error_t err;
-  strlist_t list, sl;
-  char *p;
+  strlist_t list;
   estream_t outfp;
 
   if (has_option (line, "--quick"))
     ctrl->timeout = opt.connect_quick_timeout;
   line = skip_options (line);
 
-  /* Break the line down into an strlist.  Each pattern is
-     percent-plus escaped. */
-  list = NULL;
-  for (p=line; *p; line = p)
-    {
-      while (*p && *p != ' ')
-        p++;
-      if (*p)
-        *p++ = 0;
-      if (*line)
-        {
-          sl = xtrymalloc (sizeof *sl + strlen (line));
-          if (!sl)
-            {
-              err = gpg_error_from_syserror ();
-              goto leave;
-            }
-          sl->flags = 0;
-          strcpy_escaped_plus (sl->d, line);
-          sl->next = list;
-          list = sl;
-        }
-    }
+  err = percentplus_line_to_strlist (line, &list);
+  if (err)
+    goto leave;
 
   err = ensure_keyserver (ctrl);
   if (err)
@@ -2501,9 +2596,7 @@ cmd_ks_get (assuan_context_t ctx, char *line)
   ctrl_t ctrl = assuan_get_pointer (ctx);
   gpg_error_t err;
   strlist_t list = NULL;
-  strlist_t sl;
   const char *s;
-  char *p;
   estream_t outfp;
   unsigned int flags = 0;
   gnupg_isotime_t opt_newer;
@@ -2526,30 +2619,13 @@ cmd_ks_get (assuan_context_t ctx, char *line)
     }
   line = skip_options (line);
 
-  /* Break the line into a strlist.  Each pattern is by
-     definition percent-plus escaped.  However we only support keyids
-     and fingerprints and thus the client has no need to apply the
-     escaping.  */
-  for (p=line; *p; line = p)
-    {
-      while (*p && *p != ' ')
-        p++;
-      if (*p)
-        *p++ = 0;
-      if (*line)
-        {
-          sl = xtrymalloc (sizeof *sl + strlen (line));
-          if (!sl)
-            {
-              err = gpg_error_from_syserror ();
-              goto leave;
-            }
-          sl->flags = 0;
-          strcpy_escaped_plus (sl->d, line);
-          sl->next = list;
-          list = sl;
-        }
-    }
+  /* Break the line into a strlist.  Each pattern is by definition
+     percent-plus escaped.  However we only support keyids and
+     fingerprints and thus the caler of this function has no need to
+     apply the escaping.  */
+  err = percentplus_line_to_strlist (line, &list);
+  if (err)
+    goto leave;
 
   if ((flags & KS_GET_FLAG_FIRST) && !(flags & KS_GET_FLAG_ONLY_LDAP))
     {
@@ -2720,6 +2796,51 @@ cmd_ks_put (assuan_context_t ctx, char *line)
 }
 
 
+static const char hlp_ks_del[] =
+  "KS_DEL --ldap {<fingerprints>}\n"
+  "\n"
+  "Delete the keys specified by primary keys FINGERPRINTS from the\n"
+  "configured OpenPGP LDAP server.  The option --ldap is mandatory.";
+static gpg_error_t
+cmd_ks_del (assuan_context_t ctx, char *line)
+{
+  ctrl_t ctrl = assuan_get_pointer (ctx);
+  gpg_error_t err;
+  strlist_t list = NULL;
+  unsigned int flags = 0;
+
+  if (has_option (line, "--ldap"))
+    flags |= KS_GET_FLAG_ONLY_LDAP;
+  line = skip_options (line);
+
+  err = percentplus_line_to_strlist (line, &list);
+  if (err)
+    goto leave;
+
+  if (!(flags & KS_GET_FLAG_ONLY_LDAP))
+    {
+      err = set_error (GPG_ERR_SYNTAX, "option --ldap is mandatory");
+      goto leave;
+    }
+
+  if (!list)
+    {
+      err = set_error (GPG_ERR_SYNTAX, "no fingerprints given");
+      goto leave;
+    }
+
+  err = ensure_keyserver (ctrl);
+  if (err)
+    goto leave;
+
+  err = ks_action_del (ctrl, ctrl->server_local->keyservers, list);
+
+ leave:
+  free_strlist (list);
+  return leave_cmd (ctx, err);
+}
+
+
 
 static const char hlp_ad_query[] =
   "AD_QUERY [--first|--next] [--] <filter> \n"
@@ -2826,6 +2947,110 @@ cmd_ad_query (assuan_context_t ctx, char *line)
   es_fclose (outfp);
   xfree (opt_attr);
   ctrl->server_local->inhibit_data_logging = 0;
+  return leave_cmd (ctx, err);
+}
+
+
+
+static const char hlp_timestamp[] =
+  "TIMESTAMP [--hash=<name>] <hexstring>\n"
+  "TIMESTAMP --set-url <url-of-tsa>\n"
+  "\n"
+  "If --hash is not used the algorithm is deduced from the length\n"
+  "of <hexstring>";
+static gpg_error_t
+cmd_timestamp (assuan_context_t ctx, char *line)
+{
+  gpg_error_t err;
+  ctrl_t ctrl = assuan_get_pointer (ctx);
+  int algo;
+  int opt_set_url;
+  size_t n;
+
+
+  /* Parse the optional hash algorithm.  */
+  if (has_option_name (line, "--hash"))
+    {
+      if (has_option (line, "--hash=sha256"))
+        algo = GCRY_MD_SHA256;
+      else if (has_option (line, "--hash=sha384"))
+        algo = GCRY_MD_SHA384;
+      else if (has_option (line, "--hash=sha512"))
+        algo = GCRY_MD_SHA512;
+      else
+        {
+          err = set_error (GPG_ERR_ASS_PARAMETER, "invalid hash algorithm");
+          goto leave;
+        }
+    }
+  else
+    algo = 0;
+
+  if ((opt_set_url = has_option (line, "--set-url")))
+    {
+      if (algo)  /* Option may not be used along with --hash.  */
+        {
+          err = set_error (GPG_ERR_ASS_PARAMETER, "invalid option syntax");
+          goto leave;
+        }
+    }
+
+  line = skip_options (line);
+
+  if (opt_set_url)
+    {
+      (void)ctrl;
+
+      /* Change the default TSA URL for this session. */
+      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+    }
+  else
+    {
+      /* Parse the hash value. */
+      n = 0;
+      err = parse_hexstring (ctx, line, &n);
+      if (err)
+        goto leave;
+      n /= 2;
+
+      /* Do some checking.  Note that the --hash option is not very
+       * useful and only here in case we ever add SHA3 algos.  */
+      if (n == 32 && n != 48 && n != 64)
+        {
+          err = set_error (GPG_ERR_ASS_PARAMETER, "unsupported length of hash");
+          goto leave;
+        }
+
+      if (n > MAX_DIGEST_LEN)
+        {
+          err = set_error (GPG_ERR_ASS_PARAMETER, "hash value to long");
+          goto leave;
+        }
+
+      if (algo)
+        ;
+      else if (n == 32)
+        algo = GCRY_MD_SHA256;
+      else if (n == 48)
+        algo = GCRY_MD_SHA384;
+      else if (n == 64)
+        algo = GCRY_MD_SHA384;
+
+      if (!((algo == GCRY_MD_SHA256 && n == 32)
+            || (algo == GCRY_MD_SHA384 && n == 48)
+            || (algo == GCRY_MD_SHA512 && n == 64)))
+        {
+          err = set_error (GPG_ERR_ASS_PARAMETER,
+                           "hash algo does not match data length");
+          goto leave;
+        }
+
+      /* Call the time stamping services.  */
+      err = gpg_error (GPG_ERR_NOT_IMPLEMENTED);
+         /* dirmngr_get_timestamp (ctrl, algo, buf, n); */
+    }
+
+ leave:
   return leave_cmd (ctx, err);
 }
 
@@ -3060,8 +3285,10 @@ register_commands (assuan_context_t ctx)
     { "KS_GET",     cmd_ks_get,     hlp_ks_get },
     { "KS_FETCH",   cmd_ks_fetch,   hlp_ks_fetch },
     { "KS_PUT",     cmd_ks_put,     hlp_ks_put },
+    { "KS_DEL",     cmd_ks_del,     hlp_ks_del },
     { "AD_QUERY",   cmd_ad_query,   hlp_ad_query },
     { "GETINFO",    cmd_getinfo,    hlp_getinfo },
+    { "TIMESTAMP",  cmd_timestamp,  hlp_timestamp },
     { "LOADSWDB",   cmd_loadswdb,   hlp_loadswdb },
     { "KILLDIRMNGR",cmd_killdirmngr,hlp_killdirmngr },
     { "RELOADDIRMNGR",cmd_reloaddirmngr,hlp_reloaddirmngr },

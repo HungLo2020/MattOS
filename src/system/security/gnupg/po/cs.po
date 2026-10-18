@@ -548,6 +548,11 @@ msgstr "zkouší se ukrást socket z běžícího programu %s\n"
 msgid "a gpg-agent is already running - not starting a new one\n"
 msgstr "gpg-agent již běží – nový nebude spuštěn\n"
 
+#, fuzzy, c-format
+#| msgid "key %s: removed multiple subkey binding\n"
+msgid "socket file removed - retrying binding\n"
+msgstr "klíč %s: smazána vícenásobná vazba podklíče\n"
+
 #, c-format
 msgid "error getting nonce for the socket\n"
 msgstr "chyba při získávání soli pro socket\n"
@@ -688,10 +693,6 @@ msgid "error opening '%s': %s\n"
 msgstr "chyba při otevírání „%s“: %s\n"
 
 #, c-format
-msgid "file '%s', line %d: %s\n"
-msgstr "soubor „%s“, řádek %d: %s\n"
-
-#, c-format
 msgid "statement \"%s\" ignored in '%s', line %d\n"
 msgstr "ignorováno sdělení „%s“ z „%s“, řádku %d\n"
 
@@ -742,7 +743,7 @@ msgstr "Ne"
 #. insert a line break.  The double percent sign is actually
 #. needed because it is also a printf format string.  If you
 #. need to insert a plain % sign, you need to encode it as
-#. "%%25".  The second "%s" gets replaced by a hexdecimal
+#. "%%25".  The second "%s" gets replaced by a hexadecimal
 #. fingerprint string whereas the first one receives the name
 #. as stored in the certificate.
 #, c-format
@@ -754,7 +755,8 @@ msgstr ""
 
 #. TRANSLATORS: "Correct" is the label of a button and intended
 #. to be hit if the fingerprint matches the one of the CA.  The
-#. other button is "the default "Cancel" of the Pinentry.
+#. other button is "the default "Cancel" of the Pinentry.  We
+#. fix the English strings with hacks to avoid a string changes.
 msgid "Correct"
 msgstr "V pořádku"
 
@@ -776,6 +778,11 @@ msgstr "Změnit heslo"
 
 msgid "I'll change it later"
 msgstr "Změním jej později"
+
+#, fuzzy, c-format
+#| msgid "receiving line failed: %s\n"
+msgid "Unprotecting key failed: %s\n"
+msgstr "přijímání řádku se nezdařilo: %s\n"
 
 msgid "Please insert the card with serial number"
 msgstr "Prosím, vložte kartu se sériovým číslem"
@@ -840,34 +847,6 @@ msgstr "chyba při vytváření roury: %s\n"
 #, c-format
 msgid "error creating a stream for a pipe: %s\n"
 msgstr "chyba při vytváření proudu pro rouru: %s\n"
-
-#, c-format
-msgid "error forking process: %s\n"
-msgstr "chyba při rozdvojování procesu: %s\n"
-
-#, c-format
-msgid "waiting for process %d to terminate failed: %s\n"
-msgstr "čekání na konec procesu %d se nezdařilo: %s\n"
-
-#, c-format
-msgid "error running '%s': probably not installed\n"
-msgstr "chyba při spouštění „%s“: pravděpodobně není nainstalován\n"
-
-#, c-format
-msgid "error running '%s': exit status %d\n"
-msgstr "chyba v běhu „%s“: návratový kód %d\n"
-
-#, c-format
-msgid "error running '%s': terminated\n"
-msgstr "chyba v běhu „%s“: násilně ukončeno\n"
-
-#, c-format
-msgid "waiting for processes to terminate failed: %s\n"
-msgstr "čekání na ukončení procesu se nezdařilo: %s\n"
-
-#, c-format
-msgid "error getting exit code of process %d: %s\n"
-msgstr "chyba při získání návratového kódu procesu %d: %s\n"
 
 #, c-format
 msgid "can't connect to '%s': %s\n"
@@ -1147,6 +1126,10 @@ msgstr "Dirmngr je použitelný"
 #, c-format
 msgid "No help available for '%s'."
 msgstr "Nápověda pro „%s“ není dostupná.'"
+
+#, c-format
+msgid "file '%s', line %d: %s\n"
+msgstr "soubor „%s“, řádek %d: %s\n"
 
 msgid "ignoring garbage line"
 msgstr "ignoruji řádek s nepořádkem"
@@ -1433,6 +1416,16 @@ msgstr "vyžadováno"
 msgid "Please try command \"%s\" if the listing does not look correct\n"
 msgstr "Pokud výpis nevypadá v pořádku, zkuste příkaz „%s“\n"
 
+#, c-format
+msgid ""
+"Please note that the factory settings of the PINs are\n"
+"   PIN = '%s'     Admin PIN = '%s'\n"
+"You should change them using the command --change-pin\n"
+msgstr ""
+"Prosím nezapomeňte, že tovární nastavení PINů je\n"
+"   PIN = „%s“     PIN správce = „%s“\n"
+"Měli byste je změnit příkazem --change-pin\n"
+
 msgid "Error: Only plain ASCII is currently allowed.\n"
 msgstr "Chyba: V současné verzi je povolenou pouze plain ASCII.\n"
 
@@ -1586,16 +1579,6 @@ msgstr "Poznámka: na kartě jsou již klíče uloženy!\n"
 msgid "Replace existing keys? (y/N) "
 msgstr "Přepsat existující klíče? (a/N) "
 
-#, c-format
-msgid ""
-"Please note that the factory settings of the PINs are\n"
-"   PIN = '%s'     Admin PIN = '%s'\n"
-"You should change them using the command --change-pin\n"
-msgstr ""
-"Prosím nezapomeňte, že tovární nastavení PINů je\n"
-"   PIN = „%s“     PIN správce = „%s“\n"
-"Měli byste je změnit příkazem --change-pin\n"
-
 msgid "Please select the type of key to generate:\n"
 msgstr "Prosím, vyberte druh klíče, který chcete generovat:\n"
 
@@ -1715,6 +1698,16 @@ msgstr "Příkazy správce nejsou povoleny\n"
 msgid "Invalid command  (try \"help\")\n"
 msgstr "Neplatný příkaz (zkuste „help“)\n"
 
+#, fuzzy, c-format
+#| msgid "key operation not possible: %s\n"
+msgid "modifying the recipients is not possible: %s\n"
+msgstr "operace s klíčem není možná: %s\n"
+
+#, fuzzy
+#| msgid "decryption failed: %s\n"
+msgid "decryption failed"
+msgstr "dešifrování selhalo: %s\n"
+
 #, c-format
 msgid "--output doesn't work for this command\n"
 msgstr "--output pro tento příkaz není platný\n"
@@ -1798,6 +1791,10 @@ msgstr ""
 "abyste ho smazal(a), použijte nejprve parametr „--delete-secret-key“.\n"
 
 #, c-format
+msgid "%s/%s.%s encrypted for: \"%s\"\n"
+msgstr "zašifrováno pomocí %s/%s.%s pro: „%s“\n"
+
+#, c-format
 msgid ""
 "WARNING: forcing symmetric cipher %s (%d) violates recipient preferences\n"
 msgstr ""
@@ -1847,6 +1844,11 @@ msgstr "hashovací algoritmus „%s“ se nesmí používat v režimu %s\n"
 msgid "reading from '%s'\n"
 msgstr "čte se z „%s“\n"
 
+#, fuzzy, c-format
+#| msgid "problem handling encrypted packet\n"
+msgid "Note: Using the %s encryption packet\n"
+msgstr "problém se zašifrovaným paketem\n"
+
 #, c-format
 msgid ""
 "WARNING: forcing compression algorithm %s (%d) violates recipient "
@@ -1855,13 +1857,19 @@ msgstr ""
 "POZOR: vyžádaný komprimační algoritmus %s (%d) nevyhovuje předvolbám "
 "příjemce\n"
 
-#, c-format
-msgid "%s/%s.%s encrypted for: \"%s\"\n"
-msgstr "zašifrováno pomocí %s/%s.%s pro: „%s“\n"
+#, fuzzy, c-format
+#| msgid "Number of recipients"
+msgid "number of removed recipients: %u\n"
+msgstr "Počet příjemců"
 
 #, c-format
 msgid "option '%s' may not be used in %s mode\n"
 msgstr "volba „%s“ se nesmí používat v režimu %s\n"
+
+#, fuzzy, c-format
+#| msgid "can't encrypt to '%s'\n"
+msgid "already encrypted to %08lX\n"
+msgstr "nelze zašifrovat pro „%s“\n"
 
 #, c-format
 msgid "%s encrypted data\n"
@@ -2047,6 +2055,11 @@ msgstr "rychle podepsat klíč"
 
 msgid "quickly sign a key locally"
 msgstr "rychle lokálně podepsat klíč"
+
+#, fuzzy
+#| msgid "sign selected user IDs with a trust signature"
+msgid "quickly sign a key with a trust signature"
+msgstr "podepsat vybrané uživatelské ID důvěryhodným podpisem"
 
 msgid "quickly revoke a key signature"
 msgstr "rychle odvolat podpis klíče"
@@ -2351,6 +2364,11 @@ msgstr "vypsat předvolby"
 #| msgid "change the ownertrust"
 msgid "show ownertrust"
 msgstr "změnit důvěryhodnost vlastníka klíče"
+
+#, fuzzy
+#| msgid "Unknown critical signature notation: "
+msgid "show trust signature information"
+msgstr "Neznámá kritická notace podpisu: "
 
 #, c-format
 msgid "unknown TOFU policy '%s'\n"
@@ -2685,6 +2703,9 @@ msgstr "|FD|zapsat informace o stavu do tohoto FD"
 msgid "|ALGO|reject signatures made with ALGO"
 msgstr "|ALGORITMUS|zamítnout podpisy založené na ALGORITMU"
 
+msgid "|NAME|print the notation NAME to stdout"
+msgstr ""
+
 msgid "Usage: gpgv [options] [files] (-h for help)"
 msgstr "Použití: gpg [volby] [soubory] (-h pro pomoc)"
 
@@ -2743,6 +2764,14 @@ msgstr "předpokládat vstup ve formátu zálohy klíčů GnuPG"
 
 msgid "repair keys on import"
 msgstr "při importu opravit klíče"
+
+msgid "update even unchanged keys"
+msgstr ""
+
+#, fuzzy
+#| msgid "list secret keys"
+msgid "do not import secret keys"
+msgstr "vypsat seznam tajných klíčů"
 
 #, c-format
 msgid "skipping block of type %d\n"
@@ -3008,9 +3037,15 @@ msgstr "Identifikátor uživatele již neplatí"
 msgid "reason for revocation: "
 msgstr "důvod pro revokaci: "
 
-#, c-format
-msgid "revocation comment: "
-msgstr "revokační poznámka: "
+#, fuzzy, c-format
+#| msgid "key %s: can't locate original keyblock: %s\n"
+msgid "key %s: can't locate keyblock: %s\n"
+msgstr "klíč %s: nemohu najít originální blok klíče: %s\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: can't read original keyblock: %s\n"
+msgid "key %s: can't read keyblock: %s\n"
+msgstr "klíč %s: nemohu číst originální blok klíče: %s\n"
 
 #, c-format
 msgid "key %s: no public key - can't apply revocation certificate\n"
@@ -3594,6 +3629,18 @@ msgstr "Opravdu odstranit všechny vybrané id uživatele? (a/N) "
 msgid "Really remove this user ID? (y/N) "
 msgstr "Opravdu odstranit tento id uživatele? (a/N) "
 
+msgid "Command expects a filename argument\n"
+msgstr "Příkaz očekává jméno souboru jako argument\n"
+
+#, c-format
+msgid "Can't open '%s': %s\n"
+msgstr "Nelze otevřít „%s“: %s\n"
+
+#, fuzzy, c-format
+#| msgid "Error reading backup key from '%s': %s\n"
+msgid "Error reading key from '%s': %s\n"
+msgstr "Chyba při čtení záložního klíče z „%s“: %s\n"
+
 #. TRANSLATORS: Please take care: This is about
 #. moving the key and not about removing it.
 msgid "Really move the primary key? (y/N) "
@@ -3601,13 +3648,6 @@ msgstr "Opravdu přesunout primární klíč? (a/N) "
 
 msgid "You must select exactly one key.\n"
 msgstr "Musíte vybrat právě jeden klíč.\n"
-
-msgid "Command expects a filename argument\n"
-msgstr "Příkaz očekává jméno souboru jako argument\n"
-
-#, c-format
-msgid "Can't open '%s': %s\n"
-msgstr "Nelze otevřít „%s“: %s\n"
 
 #, c-format
 msgid "Error reading backup key from '%s': %s\n"
@@ -3699,6 +3739,11 @@ msgstr "Žádný identifikátor uživatele neodpovídá."
 
 msgid "Nothing to sign.\n"
 msgstr "Nic na podepsání.\n"
+
+#, fuzzy, c-format
+#| msgid "revoking the key signature failed: %s\n"
+msgid "creating key signature failed: %s\n"
+msgstr "odvolat podpis klíče se nepodařilo: %s\n"
 
 #, c-format
 msgid "Not signed by you.\n"
@@ -4212,15 +4257,25 @@ msgstr "  (%d) Existující klíč%s\n"
 msgid "  (%d) Existing key from card%s\n"
 msgstr "  (%d) Klíč existující na kartě%s\n"
 
+#, fuzzy, c-format
+#| msgid "   (%d) ECC and ECC\n"
+msgid "  (%d) ECC and Kyber%s\n"
+msgstr "   (%d) ECC a ECC\n"
+
+#, fuzzy, c-format
+#| msgid "  (%d) ECC (encrypt only)%s\n"
+msgid "  (%d) Kyber (encrypt only)%s\n"
+msgstr "  (%d) ECC (pouze pro šifrování)%s\n"
+
 msgid "Enter the keygrip: "
 msgstr "Vložte keygrip: "
+
+msgid "No key with this keygrip\n"
+msgstr "Klíč s takovým keygripem neexistuje\n"
 
 #, c-format
 msgid "Not a valid keygrip (expecting 40 hex digits)\n"
 msgstr "Není platným keygripem (očekáváno 40 šestnáctkových číslic)\n"
-
-msgid "No key with this keygrip\n"
-msgstr "Klíč s takovým keygripem neexistuje\n"
 
 #, c-format
 msgid "error reading the card: %s\n"
@@ -4251,6 +4306,11 @@ msgstr "Požadovaná délka klíče je %u bitů.\n"
 
 msgid "Please select which elliptic curve you want:\n"
 msgstr "Prosím, vyberte, kterou eliptickou křivku chcete:\n"
+
+#, fuzzy, c-format
+#| msgid "Please select what kind of key you want:\n"
+msgid "Please select the %s variant you want:\n"
+msgstr "Prosím, vyberte druh klíče, který chcete:\n"
 
 msgid ""
 "Please specify how long the key should be valid.\n"
@@ -4594,8 +4654,16 @@ msgstr[2] "Pozor: %lu klíčů přeskočeno kvůli jejich přílišné velikosti
 msgid "Keyring"
 msgstr "Soubor klíčů (keyring)"
 
+#, c-format
+msgid "revocation comment: "
+msgstr "revokační poznámka: "
+
 msgid "Revocable by: "
 msgstr ""
+
+#, c-format
+msgid "error writing to stdout: %s\n"
+msgstr "chyba při zápisu na standardní výstup: %s\n"
 
 msgid "Primary key fingerprint:"
 msgstr "Otisk primárního klíče:"
@@ -4664,6 +4732,9 @@ msgstr "automaticky získávat klíče při ověřování podpisů"
 msgid "honor the preferred keyserver URL set on the key"
 msgstr "respektovat URL upřednostňovaných serverů klíčů daného klíče"
 
+msgid "update a key before sending it"
+msgstr ""
+
 msgid "disabled"
 msgstr "zneplatněn"
 
@@ -4677,6 +4748,11 @@ msgstr "neplatný protokol serveru klíčů (naše %d!=obsluha %d)\n"
 #, c-format
 msgid "\"%s\" not a key ID: skipping\n"
 msgstr "„%s“ není ID klíče: přeskočeno\n"
+
+#, fuzzy, c-format
+#| msgid "\"%s\" is not a fingerprint\n"
+msgid "\"%s\" not a fingerprint: skipping\n"
+msgstr "„%s“ není otisk\n"
 
 #, c-format
 msgid "refreshing %d key from %s\n"
@@ -4704,6 +4780,10 @@ msgstr "požaduji klíč %s z %s\n"
 #, c-format
 msgid "no keyserver known\n"
 msgstr "není znám žádný server s klíči\n"
+
+#, c-format
+msgid "upload skipped due to non-LDAP keyserver\n"
+msgstr ""
 
 #, c-format
 msgid "skipped \"%s\": %s\n"
@@ -4758,6 +4838,10 @@ msgstr "      „%s“\n"
 #, c-format
 msgid "encrypted with %s key, ID %s\n"
 msgstr "zašifrováno klíčem %s, ID %s\n"
+
+#, c-format
+msgid "WARNING: key is not quantum-resistant\n"
+msgstr ""
 
 #, c-format
 msgid "WARNING: multiple plaintexts seen\n"
@@ -5031,6 +5115,11 @@ msgstr "nezkomprimováno|nic"
 msgid "this message may not be usable by %s\n"
 msgstr "tato zpráva nemusí být s %s použitelná\n"
 
+#, fuzzy
+#| msgid "enable key"
+msgid "enabled"
+msgstr "nastavit klíč jako platný (enable)"
+
 #, c-format
 msgid "ambiguous option '%s'\n"
 msgstr "nejednoznačná volba „%s“\n"
@@ -5048,6 +5137,11 @@ msgstr ""
 #, c-format
 msgid "unknown weak digest '%s'\n"
 msgstr "neznámý slabý hashovací algoritmus „%s“\n"
+
+#, fuzzy, c-format
+#| msgid "Note: old default options file '%s' ignored\n"
+msgid "Note: partial file '%s' removed\n"
+msgstr "Poznámka: starý implicitní soubor s možnostmi „%s“ ignorován\n"
 
 #, c-format
 msgid "File '%s' exists. "
@@ -5513,6 +5607,11 @@ msgstr "použitý klíč nemá vyznačeno použití pro šifrování.\n"
 msgid "okay, we are the anonymous recipient.\n"
 msgstr "dobrá, my jsme anonymní adresát.\n"
 
+#, fuzzy, c-format
+#| msgid "WARNING: signing subkey %s is not cross-certified\n"
+msgid "WARNING: session key is not quantum-resistant\n"
+msgstr "POZOR: podepisovací podklíč %s není křížově certifikován\n"
+
 #, c-format
 msgid "old encoding of the DEK is not supported\n"
 msgstr "staré kódování DEK není podporováno\n"
@@ -5773,6 +5872,11 @@ msgid "assuming bad signature from key %s due to an unknown critical bit\n"
 msgstr ""
 "předpokládám špatný podpis klíčem %s, protože je nastaven neznámý kritický "
 "bit\n"
+
+#, fuzzy, c-format
+#| msgid "key %s: no public key - can't apply revocation certificate\n"
+msgid "key %s: no public key - can't check revocation signature.\n"
+msgstr "klíč %s: chybí veřejný klíč – nemohu aplikovat revokační certifikát\n"
 
 #, c-format
 msgid "key %s: no subkey for subkey revocation signature\n"
@@ -6623,8 +6727,8 @@ msgid "||Please enter the PIN for the key to create qualified signatures."
 msgstr ""
 "||Prosím, zadejte PIN klíče určeného na tvorbu kvalifikovaných podpisů."
 
-#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at
-#. the start of the string.  Use %0A (single percent) for a linefeed.
+#. TRANSLATORS: Do not translate the "|A|" prefix but keep it at the
+#. start of the string.
 msgid "|A|Please enter the Admin PIN"
 msgstr "|A|Prosím, zadejte PIN správce"
 
@@ -6703,26 +6807,6 @@ msgid "%sNumber: %s%%0AHolder: %s%%0ACounter: %lu%s"
 msgstr "%sČíslo: %s%%0ADržitel: %s%%0APočítadlo: %lu%s"
 
 #, c-format
-msgid "using default PIN as %s\n"
-msgstr "použije se výchozí PIN jako %s\n"
-
-#, c-format
-msgid "failed to use default PIN as %s: %s - disabling further default use\n"
-msgstr ""
-"použití výchozího PINu jako %s selhalo: %s – vypínám jeho budoucí použití\n"
-
-msgid "||Please unlock the card"
-msgstr "||Prosím, odemkněte kartu"
-
-#, c-format
-msgid "PIN for CHV%d is too short; minimum length is %d\n"
-msgstr "PIN pro CHV%d je příliš krátký; minimální délka je %d\n"
-
-#, c-format
-msgid "verify CHV%d failed: %s\n"
-msgstr "ověření CHV%d se nezdařilo: %s\n"
-
-#, c-format
 msgid "card is permanently locked!\n"
 msgstr "karta je trvale uzamčena!\n"
 
@@ -6736,6 +6820,26 @@ msgstr[1] ""
 "Do trvalého uzamčení karty zůstávají %d pokusy na zadání PINu správce\n"
 msgstr[2] ""
 "Do trvalého uzamčení karty zůstává %d pokusů na zadání PINu správce\n"
+
+msgid "||Please unlock the card"
+msgstr "||Prosím, odemkněte kartu"
+
+#, c-format
+msgid "using default PIN as %s\n"
+msgstr "použije se výchozí PIN jako %s\n"
+
+#, c-format
+msgid "failed to use default PIN as %s: %s - disabling further default use\n"
+msgstr ""
+"použití výchozího PINu jako %s selhalo: %s – vypínám jeho budoucí použití\n"
+
+#, c-format
+msgid "PIN for CHV%d is too short; minimum length is %d\n"
+msgstr "PIN pro CHV%d je příliš krátký; minimální délka je %d\n"
+
+#, c-format
+msgid "verify CHV%d failed: %s\n"
+msgstr "ověření CHV%d se nezdařilo: %s\n"
 
 #, c-format
 msgid "access to admin commands is not configured\n"
@@ -7315,6 +7419,11 @@ msgstr " (volitelné; ukončete prázdným řádkem):\n"
 msgid "Enter URIs"
 msgstr "Zadejte (několik) URI"
 
+#, fuzzy
+#| msgid "Enter the notation: "
+msgid "Enter extensions"
+msgstr "Vložte poznámku: "
+
 msgid "Create self-signed certificate? (y/N) "
 msgstr "Vytvořit sám sebou podepsaný certifikát? (a/N)"
 
@@ -7487,6 +7596,11 @@ msgstr "Poznámka: nebude možné šifrovat pro „%s“: %s\n"
 msgid "unknown validation model '%s'\n"
 msgstr "neznámý model ověřování „%s“\n"
 
+#, fuzzy, c-format
+#| msgid "cipher algorithm %d%s is unknown or disabled\n"
+msgid "given cipher algorithm '%s' is unknown - using '%s'\n"
+msgstr "šifrovací algoritmus %d%s je neznámý nebo je zneplatněn\n"
+
 #, c-format
 msgid "importing common certificates '%s'\n"
 msgstr "importují se běžné certifikáty „%s“\n"
@@ -7494,6 +7608,11 @@ msgstr "importují se běžné certifikáty „%s“\n"
 #, c-format
 msgid "can't sign using '%s': %s\n"
 msgstr "nelze podepsat pomocí „%s“: %s\n"
+
+#, fuzzy, c-format
+#| msgid "can't open fd %d: %s\n"
+msgid "can't open outputfile: %s\n"
+msgstr "nemohu otevřít deskriptor %d: %s\n"
 
 #, c-format
 msgid "invalid command (there is no implicit command)\n"
@@ -7544,19 +7663,20 @@ msgid "error storing certificate: %s\n"
 msgstr "chyba při ukládání certifikátu: %s\n"
 
 #, c-format
-msgid "problem re-searching certificate: %s\n"
-msgstr "problém při opakovaném hledání certifikátu: %s\n"
-
-#, c-format
 msgid "error storing flags: %s\n"
 msgstr "chyba při ukládání příznaků: %s\n"
+
+#, c-format
+msgid "problem re-searching certificate: %s\n"
+msgstr "problém při opakovaném hledání certifikátu: %s\n"
 
 msgid "Error - "
 msgstr "Chyba – "
 
-#, c-format
-msgid "GPG_TTY has not been set - using maybe bogus default\n"
-msgstr "GPG_TTY nebyla nastavena – použiji možná chybnou implicitní hodnotu\n"
+#, fuzzy, c-format
+#| msgid "error writing to stdout: %s\n"
+msgid "error writing to output: %s\n"
+msgstr "chyba při zápisu na standardní výstup: %s\n"
 
 #, c-format
 msgid "invalid formatted fingerprint in '%s', line %d\n"
@@ -8401,6 +8521,10 @@ msgid "colons are not allowed in the socket name\n"
 msgstr "dvojtečky v názvu socketu jsou nepřípustné\n"
 
 #, c-format
+msgid "error forking process: %s\n"
+msgstr "chyba při rozdvojování procesu: %s\n"
+
+#, c-format
 msgid "fetching CRL from '%s' failed: %s\n"
 msgstr "stahování CRL z „%s“ selhalo: %s\n"
 
@@ -9023,8 +9147,38 @@ msgid "manage the command history"
 msgstr "spravuje historii příkazů"
 
 #, c-format
+#~ msgid "GPG_TTY has not been set - using maybe bogus default\n"
+#~ msgstr ""
+#~ "GPG_TTY nebyla nastavena – použiji možná chybnou implicitní hodnotu\n"
+
+#, c-format
 #~ msgid "public key of ultimately trusted key %s not found\n"
 #~ msgstr "veřejný klíč k absolutně důvěryhodnému klíči %s nebyl nalezen\n"
+
+#, c-format
+#~ msgid "waiting for process %d to terminate failed: %s\n"
+#~ msgstr "čekání na konec procesu %d se nezdařilo: %s\n"
+
+#, fuzzy, c-format
+#~| msgid "waiting for processes to terminate failed: %s\n"
+#~ msgid "waiting for process to terminate failed: ec=%d\n"
+#~ msgstr "čekání na ukončení procesu se nezdařilo: %s\n"
+
+#, c-format
+#~ msgid "error running '%s': probably not installed\n"
+#~ msgstr "chyba při spouštění „%s“: pravděpodobně není nainstalován\n"
+
+#, c-format
+#~ msgid "error running '%s': exit status %d\n"
+#~ msgstr "chyba v běhu „%s“: návratový kód %d\n"
+
+#, c-format
+#~ msgid "error running '%s': terminated\n"
+#~ msgstr "chyba v běhu „%s“: násilně ukončeno\n"
+
+#, c-format
+#~ msgid "error getting exit code of process %d: %s\n"
+#~ msgstr "chyba při získání návratového kódu procesu %d: %s\n"
 
 #~ msgid "use canonical text mode"
 #~ msgstr "použít kanonický textový režim"
@@ -9143,17 +9297,11 @@ msgstr "spravuje historii příkazů"
 #~ msgid "unable to read external program response: %s\n"
 #~ msgstr "nelze přečíst odpověď externího programu: %s\n"
 
-#~ msgid "Note: old default options file '%s' ignored\n"
-#~ msgstr "Poznámka: starý implicitní soubor s možnostmi „%s“ ignorován\n"
-
 #~ msgid "validate signatures with PKA data"
 #~ msgstr "ověřovat podpisy s daty PKA"
 
 #~ msgid "elevate the trust of signatures with valid PKA data"
 #~ msgstr "vyzvednout důvěru podpisů s platnými daty PKA"
-
-#~ msgid "   (%d) ECC and ECC\n"
-#~ msgstr "   (%d) ECC a ECC\n"
 
 #~ msgid "honor the PKA record set on a key when retrieving keys"
 #~ msgstr "respektovat PKA záznamy klíče při získávání klíčů"
@@ -9233,9 +9381,6 @@ msgstr "spravuje historii příkazů"
 
 #~ msgid "scanning result for attribute '%s'\n"
 #~ msgstr "ve výsledku se hledá atribut „%s“\n"
-
-#~ msgid "error writing to stdout: %s\n"
-#~ msgstr "chyba při zápisu na standardní výstup: %s\n"
 
 #~ msgid "          available attribute '%s'\n"
 #~ msgstr "          dostupný atribut „%s“\n"

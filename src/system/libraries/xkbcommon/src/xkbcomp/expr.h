@@ -4,6 +4,10 @@
  */
 #pragma once
 
+#include "config.h"
+
+#include "xkbcommon/xkbcommon.h"
+
 #include "ast.h"
 #include "keymap.h"
 #include "text.h"
@@ -36,8 +40,12 @@ ExprResolveLevel(struct xkb_context *ctx, const ExprDef *expr,
                  xkb_level_index_t *level_rtrn);
 
 bool
-ExprResolveGroup(struct xkb_context *ctx, const ExprDef *expr,
-                 xkb_layout_index_t *group_rtrn);
+ExprResolveGroup(struct xkb_context *ctx, xkb_layout_index_t max_groups,
+                 const ExprDef *expr, xkb_layout_index_t *group_rtrn);
+
+bool
+ExprResolveGroupMask(struct xkb_context *ctx, xkb_layout_index_t max_groups,
+                     const ExprDef *expr, xkb_layout_index_t *group_rtrn);
 
 bool
 ExprResolveButton(struct xkb_context *ctx, const ExprDef *expr,

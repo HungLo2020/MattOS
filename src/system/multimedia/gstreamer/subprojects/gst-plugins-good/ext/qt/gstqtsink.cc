@@ -158,7 +158,7 @@ gst_qt_sink_class_init (GstQtSinkClass * klass)
   gobject_class->set_property = gst_qt_sink_set_property;
   gobject_class->get_property = gst_qt_sink_get_property;
 
-  gst_element_class_set_metadata (gstelement_class, "Qt Video Sink",
+  gst_element_class_set_static_metadata (gstelement_class, "Qt Video Sink",
       "Sink/Video", "A video sink that renders to a QQuickItem",
       "Matthew Waters <matthew@centricular.com>");
 
@@ -341,8 +341,8 @@ gst_qt_sink_change_state (GstElement * element, GstStateChange transition)
   QGuiApplication *app;
 
   GST_DEBUG ("changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   switch (transition) {
     case GST_STATE_CHANGE_NULL_TO_READY:

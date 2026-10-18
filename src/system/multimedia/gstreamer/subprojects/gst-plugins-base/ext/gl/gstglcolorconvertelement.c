@@ -27,7 +27,6 @@
 
 #include "gstglelements.h"
 #include "gstglcolorconvertelement.h"
-#include "gstglutils.h"
 
 GST_DEBUG_CATEGORY_STATIC (gst_gl_color_convert_element_debug);
 #define gst_gl_color_convert_element_parent_class parent_class
@@ -116,7 +115,7 @@ gst_gl_color_convert_element_class_init (GstGLColorConvertElementClass * klass)
   gst_element_class_add_static_pad_template (element_class,
       &gst_gl_color_convert_element_sink_pad_template);
 
-  gst_element_class_set_metadata (element_class,
+  gst_element_class_set_static_metadata (element_class,
       "OpenGL color converter", "Filter/Converter/Video",
       "Converts between color spaces using OpenGL shaders",
       "Matthew Waters <matthew@centricular.com>");
@@ -293,8 +292,8 @@ gst_gl_color_convert_element_change_state (GstElement * element,
   GstStateChangeReturn ret = GST_STATE_CHANGE_SUCCESS;
 
   GST_DEBUG_OBJECT (convert, "changing state: %s => %s",
-      gst_element_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
-      gst_element_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
+      gst_state_get_name (GST_STATE_TRANSITION_CURRENT (transition)),
+      gst_state_get_name (GST_STATE_TRANSITION_NEXT (transition)));
 
   ret = GST_ELEMENT_CLASS (parent_class)->change_state (element, transition);
   if (ret == GST_STATE_CHANGE_FAILURE)

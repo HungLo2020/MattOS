@@ -978,6 +978,10 @@ test_split_fields_colon (void)
 }
 
 
+/*
+ * Escape the newline control character.
+ * Replace the space into underscore character.
+ */
 static char *
 stresc (char *s)
 {
@@ -996,8 +1000,7 @@ stresc (char *s)
       else if (*p == '\n')
         {
           p[l ++] = '\\';
-          p[l ++] = 'n';
-          p[l] = '\n';
+          p[l] = 'n';
         }
       else
         p[l] = *s;
@@ -1199,6 +1202,117 @@ test_compare_version_strings (void)
 
 
 static void
+test_replace_substr (void)
+{
+  struct {
+    const char *string;
+    const char *substr;
+    const char *replace;
+    const char *result;
+  } t[] = {
+    { "Look afar and see the end from the beginning.",
+      "see ",
+      "view ",
+      "Look afar and view the end from the beginning."
+    },
+    { "Look afar and see the end from the beginning.",
+      "see ",
+      "xxx ",
+      "Look afar and xxx the end from the beginning."
+    },
+    { "Look afar and see the end from the beginning.",
+      "see ",
+      "xx ",
+      "Look afar and xx the end from the beginning."
+    },
+    { "Look afar and see the end from the beginning.",
+      "see ",
+      "x ",
+      "Look afar and x the end from the beginning."
+    },
+    { "Look afar and see the end from the beginning.",
+      "see ",
+      " ",
+      "Look afar and  the end from the beginning."
+    },
+    { "Look afar and see the end from the beginning.",
+      "see ",
+      "",
+      "Look afar and the end from the beginning."
+    },
+    { "Be different: conform.",
+      "",
+      "xxx",
+      "xxxBe different: conform."
+    },
+    { "Be different: conform.",
+      "foo",
+      "bar",
+      "Be different: conform."
+    },
+    { "Be different: conform.",
+      "different",
+      "unlike",
+      "Be unlike: conform."
+    },
+    { "Be different: conform.",
+      "B",
+      "Bee",
+      "Beee different: conform."
+    },
+    { "Be different: conform.",
+      ".",
+      "",
+      "Be different: conform"
+    },
+    { "Be different: conform.",
+      ".",
+      "!",
+      "Be different: conform!"
+    },
+    { "Be different: conform.",
+      ".",
+      "...",
+      "Be different: conform..."
+    },
+    { "Be different: conform.",
+      ":",
+      " - this is a very long replacement string - ",
+      "Be different - this is a very long replacement string -  conform."
+    },
+    { "",
+      "",
+      "",
+      ""
+    }
+  };
+  int idx;
+  char *res;
+
+  for (idx=0; idx < DIM(t); idx++)
+    {
+      res = replace_substr (t[idx].string, t[idx].substr, t[idx].replace);
+      if (!res)
+        {
+          fprintf (stderr,"error replacing in '%s' (test %d): %s\n",
+                   t[idx].string, idx, strerror (errno));
+          exit (2);
+        }
+      if (strcmp (res, t[idx].result))
+        {
+          fprintf (stderr, "string is '%s'\n", t[idx].string);
+          fprintf (stderr, "   substr '%s'\n", t[idx].substr);
+          fprintf (stderr, "  replace '%s'\n", t[idx].replace);
+          fprintf (stderr, " expected '%s'\n", t[idx].result);
+          fprintf (stderr, "      got '%s'\n", res);
+          fail (idx);
+        }
+      xfree (res);
+    }
+}
+
+
+static void
 test_substitute_envvars (void)
 {
   struct {
@@ -1314,6 +1428,7 @@ main (int argc, char **argv)
   test_split_fields_colon ();
   test_compare_version_strings ();
   test_format_text ();
+  test_replace_substr ();
   test_substitute_envvars ();
 
   xfree (home_buffer);

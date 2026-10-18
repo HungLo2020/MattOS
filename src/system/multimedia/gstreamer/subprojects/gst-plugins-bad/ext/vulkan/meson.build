@@ -1,6 +1,7 @@
 vulkan_sources = [
   'gstvulkan.c',
   'gstvulkanelement.c',
+  'gstvkutils.c',
   'vkdownload.c',
   'vkdeviceprovider.c',
   'vksink.c',
@@ -14,6 +15,7 @@ vulkan_headers = [
   'vkdownload.h',
   'vkh264dec.h',
   'vkh265dec.h',
+  'vkvp9dec.h',
   'vkimageidentity.h',
   'vkoverlaycompositor.h',
   'vkshaderspv.h',
@@ -31,8 +33,13 @@ glsc_sources = [
 ]
 
 video_sources = [
+  'base/gsth264encoder.c',
+  'gstvkvideocaps.c',
+  'vkav1dec.c',
+  'vkh264enc.c',
   'vkh264dec.c',
   'vkh265dec.c',
+  'vkvp9dec.c',
 ]
 
 doc_sources = []
@@ -96,6 +103,7 @@ gstvulkan_plugin = library('gstvulkan',
   objc_args : gst_plugins_bad_args,
   link_args : noseh_link_args,
   include_directories : [configinc],
+  kwargs: vulkan_plugin_kwargs,
   dependencies : [gstvideo_dep, gstbase_dep, gstvulkan_dep, vulkan_dep, gio_dep] + extra_deps,
   install : true,
   install_dir : plugins_install_dir,

@@ -109,16 +109,16 @@ typedef gboolean (*GSignalAccumulator)	(GSignalInvocationHint *ihint,
 /* --- run, match and connect types --- */
 /**
  * GSignalFlags:
- * @G_SIGNAL_RUN_FIRST: Invoke the object method handler in the first emission stage.
- * @G_SIGNAL_RUN_LAST: Invoke the object method handler in the third emission stage.
- * @G_SIGNAL_RUN_CLEANUP: Invoke the object method handler in the last emission stage.
+ * @G_SIGNAL_RUN_FIRST: Invoke the default signal handler in the first emission stage
+ * @G_SIGNAL_RUN_LAST: Invoke the default signal handler in the third emission stage
+ * @G_SIGNAL_RUN_CLEANUP: Invoke the default signal handler in the last emission stage
  * @G_SIGNAL_NO_RECURSE: Signals being emitted for an object while currently being in
  *  emission for this very object will not be emitted recursively,
  *  but instead cause the first emission to be restarted.
- * @G_SIGNAL_DETAILED: This signal supports "::detail" appendices to the signal name
+ * @G_SIGNAL_DETAILED: This signal supports `::detail` appendices to the signal name
  *  upon handler connections and emissions.
  * @G_SIGNAL_ACTION: Action signals are signals that may freely be emitted on alive
- *  objects from user code via g_signal_emit() and friends, without
+ *  objects from user code via [func@GObject.signal_emit] and friends, without
  *  the need of being embedded into extra code that performs pre or
  *  post emission adjustments on the object. They can also be thought
  *  of as object methods which can be called generically by 
@@ -140,7 +140,7 @@ typedef enum
   G_SIGNAL_DEPRECATED   = 1 << 8,
   /* normal signal flags until 1 << 16 */
   G_SIGNAL_ACCUMULATOR_FIRST_RUN    = 1 << 17,
-} GSignalFlags;
+} G_GNUC_FLAG_ENUM GSignalFlags;
 
 /**
  * G_SIGNAL_MUST_COLLECT:
@@ -182,7 +182,6 @@ typedef enum
 #define G_SIGNAL_FLAGS_MASK  0x1ff
 /**
  * GConnectFlags:
- * @G_CONNECT_DEFAULT: Default behaviour (no special flags). Since: 2.74
  * @G_CONNECT_AFTER: If set, the handler should be called after the
  *  default handler of the signal. Normally, the handler is called before
  *  the default handler.
@@ -194,10 +193,17 @@ typedef enum
  */
 typedef enum
 {
+  /**
+   * G_CONNECT_DEFAULT:
+   *
+   * Default behaviour (no special flags).
+   *
+   * Since: 2.74
+   */
   G_CONNECT_DEFAULT GOBJECT_AVAILABLE_ENUMERATOR_IN_2_74 = 0,
   G_CONNECT_AFTER	= 1 << 0,
   G_CONNECT_SWAPPED	= 1 << 1
-} GConnectFlags;
+} G_GNUC_FLAG_ENUM GConnectFlags;
 /**
  * GSignalMatchType:
  * @G_SIGNAL_MATCH_ID: The signal id must be equal.
@@ -219,7 +225,7 @@ typedef enum
   G_SIGNAL_MATCH_FUNC	   = 1 << 3,
   G_SIGNAL_MATCH_DATA	   = 1 << 4,
   G_SIGNAL_MATCH_UNBLOCKED = 1 << 5
-} GSignalMatchType;
+} G_GNUC_FLAG_ENUM GSignalMatchType;
 /**
  * G_SIGNAL_MATCH_MASK:
  * 

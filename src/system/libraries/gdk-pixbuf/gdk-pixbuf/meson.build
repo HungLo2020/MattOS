@@ -93,7 +93,6 @@ gdk_pixbuf_features_h = configure_file(input: 'gdk-pixbuf-features.h.in',
 gdkpixbuf_headers = [
   'gdk-pixbuf.h',
   'gdk-pixbuf-animation.h',
-  'gdk-pixbuf-autocleanups.h',
   'gdk-pixbuf-core.h',
   'gdk-pixbuf-io.h',
   'gdk-pixbuf-loader.h',
@@ -193,6 +192,73 @@ if native_windows_loaders
   endif
 endif
 
+if enabled_loaders.contains('android')
+  if not builtin_loaders.contains('all')
+    builtin_loaders += 'android' # always builtin, for the summary
+  endif
+  included_loaders_cflags += ['-DINCLUDE_android']
+  android_loader_formats = [ 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico', 'wbmp', 'heif' ]
+  android_base_loader_sources = [ 'io-android-utils.c' ]
+  android_loader_sources = android_base_loader_sources
+  foreach loader: android_loader_formats
+    android_loader_sources += 'io-android-@0@.c'.format(loader)
+  endforeach
+
+  mod = static_library('staticpixbufloader-android',
+                       android_loader_sources,
+                       gdkpixbuf_enum_h,
+                       dependencies: loaders_deps + gdk_pixbuf_deps,
+                       include_directories: [ root_inc, gdk_pixbuf_inc ],
+                       c_args: common_cflags + gdk_pixbuf_cflags)
+
+  included_loaders_deps += declare_dependency(link_with: mod)
+endif
+
+if enabled_loaders.contains('glycin')
+  # List of formats supported by the glycin-based loader(s)
+  glycin_loader_formats = [
+    'avif',
+    'bmp',
+    'dds',
+    'gif',
+    'heic',
+    'ico',
+    'jpeg',
+    'jxl',
+    'openexr',
+    'png',
+    'pnm',
+    'qoi',
+    'raw',
+    'svg',
+    'tga',
+    'tiff',
+    'webp',
+    'xbm',
+    'xpm',
+  ]
+  glycin_base_loader_sources = [ 'io-glycin-utils.c' ]
+
+  # Build the glycin loaders as static modules, if requested
+  if builtin_loaders.contains('glycin') or builtin_all_loaders
+    cflag_for_included_loader = ['-DINCLUDE_glycin']
+    included_loaders_cflags += cflag_for_included_loader
+    glycin_loader_sources = glycin_base_loader_sources
+    foreach loader: glycin_loader_formats
+      glycin_loader_sources += 'io-glycin-@0@.c'.format(loader)
+    endforeach
+
+    mod = static_library('staticpixbufloader-glycin',
+                         glycin_loader_sources,
+                         gdkpixbuf_enum_h,
+                         dependencies: loaders_deps + gdk_pixbuf_deps,
+                         include_directories: [ root_inc, gdk_pixbuf_inc ],
+                         c_args: common_cflags + gdk_pixbuf_cflags + cflag_for_included_loader)
+
+    included_loaders_deps += declare_dependency(link_with: mod)
+  endif
+endif
+
 # The main gdk-pixbuf shared library
 gdkpixbuf = library('gdk_pixbuf-2.0',
                     sources: [
@@ -269,7 +335,7 @@ endif
 gdkpixbuf_dep = declare_dependency(
   link_with: gdkpixbuf,
   include_directories: root_inc,
-  dependencies: gdk_pixbuf_deps,
+  dependencies: [ gdk_pixbuf_deps, included_loaders_deps ],
   sources: [ gdkpixbuf_enum_h, built_girs ],
 )
 meson.override_dependency('gdk-pixbuf-2.0', gdkpixbuf_dep)
@@ -339,7 +405,7 @@ foreach bin: gdkpixbuf_bin
 
   bin = executable(bin_name, bin_source,
                    gdkpixbuf_enum_h,
-                   dependencies: gdk_pixbuf_deps + [ gdkpixbuf_dep ],
+                   dependencies: gdkpixbuf_dep,
                    include_directories: [ root_inc, gdk_pixbuf_inc ],
                    c_args: common_cflags + gdk_pixbuf_cflags,
                    install: true)
@@ -357,7 +423,7 @@ if not meson.is_cross_build()
                                 capture: true,
                                 command: [
                                   gdk_pixbuf_query_loaders,
-                                  dynamic_loaders,
+                                  dynamic_loaders.length() > 0 ? dynamic_loaders : '',
                                 ],
                                 depends: dynamic_loaders_dep,
                                 build_by_default: true)
@@ -373,7 +439,6 @@ pkgconfig.generate(
   name: 'GdkPixbuf',
   description: 'Image loading and scaling',
   variables: [
-    'bindir=${prefix}/@0@'.format(get_option('bindir')),
     'gdk_pixbuf_binary_version=@0@'.format(gdk_pixbuf_binary_version),
     'gdk_pixbuf_binarydir=${libdir}/@0@/@1@'.format(gdk_pixbuf_api_name, gdk_pixbuf_binary_version),
     'gdk_pixbuf_moduledir=${gdk_pixbuf_binarydir}/loaders',

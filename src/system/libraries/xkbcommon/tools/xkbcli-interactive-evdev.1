@@ -43,6 +43,9 @@ to read the standard input
 .It Fl \-help
 Print help and exit
 .
+.It Fl \-verbose
+Enable verbose debugging output
+.
 .It Fl \-include Ar PATH
 Add the given path to the include path list.
 This option is order\-dependent, include paths given first are searched first.
@@ -54,6 +57,10 @@ to add the default include paths.
 .It Fl \-include\-defaults
 Add the default set of include directories.
 This option is order-dependent, include paths given first are searched first.
+.
+.It Fl \-format Ar keymap_format
+Specify the keymap format (numeric or label, e.g.\&
+.Dq v1 )
 .
 .It Fl \-rules Ar rules
 The XKB ruleset
@@ -90,12 +97,6 @@ Note that this option may affect the default values of the previous options.
 Specify a keymap path.
 This option is mutually exclusive with the RMLVO options.
 .
-.It Fl \-short
-Do not print layout nor Unicode keysym translation.
-.
-.It Fl \-report\-state\-changes
-Report changes to the keyboard state
-.
 .It Fl \-enable\-compose
 Enable Compose functionality
 .
@@ -105,6 +106,18 @@ Set the consumed modifiers mode (default: xkb)
 .It Fl \-without\-x11\-offset
 Don't add an offset of 8 when converting an evdev keycode to an XKB keycode.
 You probably don't want this option.
+.
+.It Fl \-report\-state\-changes
+Report changes to the keyboard state
+.It Fl 1, \-uniline
+Enable uniline event output.
+.
+.It Fl \-multiline
+Enable multiline event output.
+.
+.It Fl \-short
+Print shorter event output.
+.
 .El
 .
 .Sh SEE ALSO

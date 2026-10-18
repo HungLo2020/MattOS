@@ -50,8 +50,7 @@ GST_DEBUG_CATEGORY_STATIC (gst_nv_h265_encoder_debug);
 
 #define DOC_SINK_CAPS_COMM \
     "format = (string) { NV12, P010_10LE, Y444, Y444_16LE, GBR, GBR_16LE, VUYA, RGBA, RGBx, BGRA, BGRx, RGB10A2_LE }, " \
-    "width = (int) [ 144, 8192 ], height = (int) [ 48, 8192 ], " \
-    "interlace-mode = (string) progressive"
+    "width = (int) [ 144, 8192 ], height = (int) [ 48, 8192 ]"
 
 #define DOC_SINK_CAPS \
     "video/x-raw(memory:CUDAMemory), " DOC_SINK_CAPS_COMM "; " \
@@ -129,6 +128,7 @@ enum
   /* h265 specific */
   PROP_AUD,
   PROP_REPEAT_SEQUENCE_HEADER,
+  PROP_NUM_SLICES,
 };
 
 #define DEFAULT_PRESET            GST_NV_ENCODER_PRESET_DEFAULT
@@ -154,6 +154,7 @@ enum
 #define DEFAULT_CONST_QUALITY     0
 #define DEFAULT_AUD               TRUE
 #define DEFAULT_REPEAT_SEQUENCE_HEADER FALSE
+#define DEFAULT_NUM_SLICES        0
 
 typedef enum
 {
@@ -219,6 +220,7 @@ typedef struct _GstNvH265Encoder
 
   gboolean aud;
   gboolean repeat_sequence_header;
+  guint num_slices;
 } GstNvH265Encoder;
 
 typedef struct _GstNvH265EncoderClass
@@ -602,6 +604,12 @@ gst_nv_h265_encoder_class_init (GstNvH265EncoderClass * klass, gpointer data)
           "Insert sequence headers (SPS/PPS) per IDR, "
           "ignored if negotiated stream-format is \"hvc1\"",
           DEFAULT_REPEAT_SEQUENCE_HEADER, param_flags));
+  if (dev_caps->dynamic_slice_mode) {
+    g_object_class_install_property (object_class, PROP_NUM_SLICES,
+        g_param_spec_uint ("num-slices", "Number of Slices",
+            "Number of slices per frame (0 = default, 1-32 = specific count)",
+            0, 32, DEFAULT_NUM_SLICES, conditional_param_flags));
+  }
 
   GstPadTemplate *pad_templ = gst_pad_template_new ("sink",
       GST_PAD_SINK, GST_PAD_ALWAYS, cdata->sink_caps);
@@ -720,6 +728,7 @@ gst_nv_h265_encoder_init (GstNvH265Encoder * self)
   self->const_quality = DEFAULT_CONST_QUALITY;
   self->aud = DEFAULT_AUD;
   self->repeat_sequence_header = DEFAULT_REPEAT_SEQUENCE_HEADER;
+  self->num_slices = DEFAULT_NUM_SLICES;
 
   self->parser = gst_h265_parser_new ();
   self->sei_array = g_array_new (FALSE, FALSE, sizeof (GstH265SEIMessage));
@@ -1006,6 +1015,9 @@ gst_nv_h265_encoder_set_property (GObject * object, guint prop_id,
       update_boolean (self,
           &self->repeat_sequence_header, value, UPDATE_INIT_PARAM);
       break;
+    case PROP_NUM_SLICES:
+      update_uint (self, &self->num_slices, value, UPDATE_INIT_PARAM);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1128,6 +1140,9 @@ gst_nv_h265_encoder_get_property (GObject * object, guint prop_id,
       break;
     case PROP_REPEAT_SEQUENCE_HEADER:
       g_value_set_boolean (value, self->repeat_sequence_header);
+      break;
+    case PROP_NUM_SLICES:
+      g_value_set_uint (value, self->num_slices);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1606,6 +1621,11 @@ gst_nv_h265_encoder_set_format (GstNvEncoder * encoder,
   } else {
     hevc_config->disableSPSPPS = 0;
     hevc_config->repeatSPSPPS = 0;
+  }
+
+  if (dev_caps->dynamic_slice_mode && self->num_slices > 0) {
+    hevc_config->sliceMode = 3;
+    hevc_config->sliceModeData = self->num_slices;
   }
 
   GstVideoColorimetry cinfo;
@@ -2367,8 +2387,7 @@ gst_nv_h265_encoder_create_class_data (GstObject * device, gpointer session,
       std::to_string (GST_ROUND_UP_16 (dev_caps.height_min))
       + ", " + std::to_string (dev_caps.height_max) + " ]";
 
-  sink_caps_str = "video/x-raw, " + format_str + ", " + resolution_str
-      + ", interlace-mode = (string) progressive";
+  sink_caps_str = "video/x-raw, " + format_str + ", " + resolution_str;
 
   src_caps_str = "video/x-h265, " + resolution_str + ", " + profile_str +
       ", stream-format = (string) { byte-stream, hvc1, hev1 }" +
@@ -2418,6 +2437,7 @@ gst_nv_h265_encoder_create_class_data (GstObject * device, gpointer session,
   cdata->src_caps = gst_caps_from_string (src_caps_str.c_str ());
   cdata->device_caps = dev_caps;
   cdata->device_mode = device_mode;
+  cdata->codec = cudaVideoCodec_HEVC;
 
   /* *INDENT-OFF* */
   for (const auto &iter: formats)
@@ -2447,8 +2467,7 @@ gst_nv_h265_encoder_create_class_data (GstObject * device, gpointer session,
 }
 
 GstNvEncoderClassData *
-gst_nv_h265_encoder_register_cuda (GstPlugin * plugin, GstCudaContext * context,
-    guint rank)
+gst_nv_h265_encoder_inspect (GstPlugin * plugin, GstCudaContext * context)
 {
   NV_ENC_OPEN_ENCODE_SESSION_EX_PARAMS session_params = { 0, };
   gpointer session;
@@ -2474,10 +2493,13 @@ gst_nv_h265_encoder_register_cuda (GstPlugin * plugin, GstCudaContext * context,
       GST_NV_ENCODER_DEVICE_CUDA);
   NvEncDestroyEncoder (session);
 
-  if (!cdata)
-    return nullptr;
+  return cdata;
+}
 
-  gst_nv_encoder_class_data_ref (cdata);
+GstNvEncoderClassData *
+gst_nv_h265_encoder_register (GstPlugin * plugin,
+    GstNvEncoderClassData * cdata, guint rank)
+{
 
   GType type;
   gchar *type_name;
@@ -2714,8 +2736,7 @@ gst_nv_h265_encoder_register_auto_select (GstPlugin * plugin,
       std::to_string (GST_ROUND_UP_16 (dev_caps.height_min))
       + ", " + std::to_string (dev_caps.height_max) + " ]";
 
-  sink_caps_str = "video/x-raw, " + format_str + ", " + resolution_str
-      + ", interlace-mode = (string) progressive";
+  sink_caps_str = "video/x-raw, " + format_str + ", " + resolution_str;
 
   src_caps_str = "video/x-h265, " + resolution_str + ", " + profile_str +
       ", stream-format = (string) { byte-stream, hvc1, hev1 }" +
@@ -2756,6 +2777,7 @@ gst_nv_h265_encoder_register_auto_select (GstPlugin * plugin,
   cdata->src_caps = gst_caps_from_string (src_caps_str.c_str ());
   cdata->device_caps = dev_caps;
   cdata->device_mode = GST_NV_ENCODER_DEVICE_AUTO_SELECT;
+  cdata->codec = cudaVideoCodec_HEVC;
   cdata->adapter_luid = adapter_luid_list[0];
   cdata->adapter_luid_size = adapter_luid_size;
   memcpy (&cdata->adapter_luid_list,

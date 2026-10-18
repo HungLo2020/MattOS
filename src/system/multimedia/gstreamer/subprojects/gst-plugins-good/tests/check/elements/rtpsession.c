@@ -56,14 +56,14 @@ static GstBuffer *
 generate_test_buffer_full (GstClockTime ts,
     guint seqnum, guint32 rtp_ts, guint ssrc,
     gboolean marker_bit, guint8 payload_type, guint8 twcc_ext_id,
-    guint16 twcc_seqnum)
+    guint16 twcc_seqnum, GArray * csrcs)
 {
   GstBuffer *buf;
   guint8 *payload;
   guint i;
   GstRTPBuffer rtp = GST_RTP_BUFFER_INIT;
 
-  buf = gst_rtp_buffer_new_allocate (TEST_BUF_SIZE, 0, 0);
+  buf = gst_rtp_buffer_new_allocate (TEST_BUF_SIZE, 0, csrcs ? csrcs->len : 0);
   GST_BUFFER_PTS (buf) = ts;
   GST_BUFFER_DTS (buf) = ts;
 
@@ -73,6 +73,13 @@ generate_test_buffer_full (GstClockTime ts,
   gst_rtp_buffer_set_timestamp (&rtp, rtp_ts);
   gst_rtp_buffer_set_ssrc (&rtp, ssrc);
   gst_rtp_buffer_set_marker (&rtp, marker_bit);
+
+  if (csrcs) {
+    for (i = 0; i < csrcs->len; i++) {
+      guint csrc = g_array_index (csrcs, guint, i);
+      gst_rtp_buffer_set_csrc (&rtp, i, csrc);
+    }
+  }
 
   payload = gst_rtp_buffer_get_payload (&rtp);
   for (i = 0; i < TEST_BUF_SIZE; i++)
@@ -94,7 +101,16 @@ static GstBuffer *
 generate_test_buffer (guint seqnum, guint ssrc)
 {
   return generate_test_buffer_full (seqnum * TEST_BUF_DURATION,
-      seqnum, seqnum * TEST_RTP_TS_DURATION, ssrc, FALSE, TEST_BUF_PT, 0, 0);
+      seqnum, seqnum * TEST_RTP_TS_DURATION, ssrc, FALSE, TEST_BUF_PT, 0, 0,
+      NULL);
+}
+
+static GstBuffer *
+generate_test_buffer_with_csrcs (guint seqnum, guint ssrc, GArray * csrcs)
+{
+  return generate_test_buffer_full (seqnum * TEST_BUF_DURATION,
+      seqnum, seqnum * TEST_RTP_TS_DURATION, ssrc, FALSE, TEST_BUF_PT, 0, 0,
+      csrcs);
 }
 
 static GstBuffer *
@@ -103,7 +119,7 @@ generate_twcc_recv_buffer (guint seqnum,
 {
   return generate_test_buffer_full (arrival_time, seqnum,
       seqnum * TEST_RTP_TS_DURATION, TEST_BUF_SSRC, marker_bit, TEST_BUF_PT,
-      TEST_TWCC_EXT_ID, seqnum);
+      TEST_TWCC_EXT_ID, seqnum, NULL);
 }
 
 static GstBuffer *
@@ -112,7 +128,7 @@ generate_twcc_send_buffer_full (guint seqnum, gboolean marker_bit,
 {
   return generate_test_buffer_full (seqnum * TEST_BUF_DURATION,
       seqnum, seqnum * TEST_RTP_TS_DURATION, ssrc, marker_bit,
-      payload_type, TEST_TWCC_EXT_ID, seqnum);
+      payload_type, TEST_TWCC_EXT_ID, seqnum, NULL);
 }
 
 static GstBuffer *
@@ -389,10 +405,10 @@ GST_START_TEST (test_multiple_ssrc_rr)
   out_buf = session_harness_pull_rtcp (h);
 
   /* verify we have report blocks for both ssrcs */
-  g_assert (out_buf != NULL);
+  g_assert_nonnull (out_buf);
   fail_unless (gst_rtcp_buffer_validate (out_buf));
   gst_rtcp_buffer_map (out_buf, GST_MAP_READ, &rtcp);
-  g_assert (gst_rtcp_buffer_get_first_packet (&rtcp, &rtcp_packet));
+  g_assert_true (gst_rtcp_buffer_get_first_packet (&rtcp, &rtcp_packet));
   fail_unless_equals_int (GST_RTCP_TYPE_RR,
       gst_rtcp_packet_get_type (&rtcp_packet));
 
@@ -460,7 +476,7 @@ GST_START_TEST (test_multiple_senders_roundrobin_rbs)
 
     session_harness_produce_rtcp (h, 1);
     buf = session_harness_pull_rtcp (h);
-    g_assert (buf != NULL);
+    g_assert_nonnull (buf);
     fail_unless (gst_rtcp_buffer_validate (buf));
 
     gst_rtcp_buffer_map (buf, GST_MAP_READ, &rtcp);
@@ -480,7 +496,7 @@ GST_START_TEST (test_multiple_senders_roundrobin_rbs)
       g_hash_table_insert (rb_ssrcs, GUINT_TO_POINTER (ssrc), tmp_set);
     } else {
       tmp_set = g_hash_table_lookup (rb_ssrcs, GUINT_TO_POINTER (ssrc));
-      g_assert (tmp_set);
+      g_assert_nonnull (tmp_set);
     }
 
     for (j = 0; j < expected_rb_count; j++) {
@@ -498,7 +514,7 @@ GST_START_TEST (test_multiple_senders_roundrobin_rbs)
   /* now verify all received ssrcs have been reported */
   fail_unless_equals_int (1, g_hash_table_size (rb_ssrcs));
   tmp_set = g_hash_table_lookup (rb_ssrcs, GUINT_TO_POINTER (0xDEADBEEF));
-  g_assert (tmp_set);
+  g_assert_nonnull (tmp_set);
   fail_unless_equals_int (35, g_hash_table_size (tmp_set));
 
   g_hash_table_unref (rb_ssrcs);
@@ -539,11 +555,11 @@ GST_START_TEST (test_no_rbs_for_internal_senders)
   /* verify the rtcp packets */
   for (i = 0; i < 2; i++) {
     buf = session_harness_pull_rtcp (h);
-    g_assert (buf != NULL);
-    g_assert (gst_rtcp_buffer_validate (buf));
+    g_assert_nonnull (buf);
+    g_assert_true (gst_rtcp_buffer_validate (buf));
 
     gst_rtcp_buffer_map (buf, GST_MAP_READ, &rtcp);
-    g_assert (gst_rtcp_buffer_get_first_packet (&rtcp, &rtcp_packet));
+    g_assert_true (gst_rtcp_buffer_get_first_packet (&rtcp, &rtcp_packet));
     fail_unless_equals_int (GST_RTCP_TYPE_SR,
         gst_rtcp_packet_get_type (&rtcp_packet));
 
@@ -581,11 +597,11 @@ GST_START_TEST (test_no_rbs_for_internal_senders)
   for (i = 0; i < 2; i++) {
     session_harness_produce_rtcp (h, 1);
     buf = session_harness_pull_rtcp (h);
-    g_assert (buf != NULL);
-    g_assert (gst_rtcp_buffer_validate (buf));
+    g_assert_nonnull (buf);
+    g_assert_true (gst_rtcp_buffer_validate (buf));
 
     gst_rtcp_buffer_map (buf, GST_MAP_READ, &rtcp);
-    g_assert (gst_rtcp_buffer_get_first_packet (&rtcp, &rtcp_packet));
+    g_assert_true (gst_rtcp_buffer_get_first_packet (&rtcp, &rtcp_packet));
     fail_unless_equals_int (GST_RTCP_TYPE_SR,
         gst_rtcp_packet_get_type (&rtcp_packet));
 
@@ -618,7 +634,7 @@ GST_START_TEST (test_no_rbs_for_internal_senders)
   fail_unless_equals_int (2, g_hash_table_size (rb_ssrcs));
   for (i = 10000; i < 10002; i++) {
     tmp_set = g_hash_table_lookup (rb_ssrcs, GUINT_TO_POINTER (i));
-    g_assert (tmp_set);
+    g_assert_nonnull (tmp_set);
     fail_unless_equals_int (2, g_hash_table_size (tmp_set));
   }
 
@@ -705,7 +721,7 @@ GST_START_TEST (test_internal_sources_timeout)
   for (i = 0; i < 5; i++) {
     session_harness_produce_rtcp (h, 1);
     buf = session_harness_pull_rtcp (h);
-    g_assert (buf != NULL);
+    g_assert_nonnull (buf);
     fail_unless (gst_rtcp_buffer_validate (buf));
     gst_rtcp_buffer_map (buf, GST_MAP_READ, &rtcp);
     fail_unless (gst_rtcp_buffer_get_first_packet (&rtcp, &rtcp_packet));
@@ -865,7 +881,7 @@ stats_test_cb (GObject * object, GParamSpec * spec, gpointer data)
 {
   guint num_sources = 0;
   gboolean *cb_called = data;
-  g_assert (*cb_called == FALSE);
+  g_assert_false (*cb_called);
 
   /* We should be able to get a rtpsession property
      without introducing the deadlock */
@@ -910,18 +926,18 @@ suspicious_bye_cb (GObject * object, GParamSpec * spec, gpointer data)
   guint ssrc = 0;
   guint i;
 
-  g_assert (*cb_called == FALSE);
+  g_assert_false (*cb_called);
   *cb_called = TRUE;
 
   g_object_get (object, "stats", &stats, NULL);
   stats_arr =
       g_value_get_boxed (gst_structure_get_value (stats, "source-stats"));
-  g_assert (stats_arr != NULL);
+  g_assert_nonnull (stats_arr);
   fail_unless (stats_arr->n_values >= 1);
 
   for (i = 0; i < stats_arr->n_values; i++) {
     internal_stats = g_value_get_boxed (g_value_array_get_nth (stats_arr, i));
-    g_assert (internal_stats != NULL);
+    g_assert_nonnull (internal_stats);
 
     gst_structure_get (internal_stats,
         "ssrc", G_TYPE_UINT, &ssrc,
@@ -1014,7 +1030,7 @@ GST_START_TEST (test_rr_stats_assignment)
   session_harness_crank_clock (h);
   rtcp_buf = session_harness_pull_rtcp (h);
 
-  g_assert (rtcp_buf != NULL);
+  g_assert_nonnull (rtcp_buf);
   fail_unless (gst_rtcp_buffer_validate (rtcp_buf));
 
   /* Now take this RTCP buffer to a second 'sender' session and check
@@ -1950,6 +1966,7 @@ validate_sdes_priv (GstBuffer * buf, const char *name_ref, const char *value)
         fail_unless (gst_rtcp_packet_sdes_get_entry (&pkt, &type, &len, &data));
 
         if (type == GST_RTCP_SDES_PRIV) {
+          fail_unless (data[0] + 1 <= len);
           char *name = g_strndup ((const gchar *) &data[1], data[0]);
           len -= data[0] + 1;
           data += data[0] + 1;
@@ -2686,7 +2703,7 @@ generate_stepped_ts_buffer (guint i, gboolean stepped)
               TEST_BUF_CLOCK_RATE)), i);
 
   buf = generate_test_buffer_full (i * GST_MSECOND, i, ts, 0xAAAA, FALSE,
-      TEST_BUF_PT, 0, 0);
+      TEST_BUF_PT, 0, 0, NULL);
   return buf;
 }
 
@@ -4593,6 +4610,139 @@ GST_START_TEST (test_twcc_reference_time_wrap_start_negative)
 
 GST_END_TEST;
 
+GST_START_TEST (test_csrc_dos)
+{
+  SessionHarness *h = session_harness_new ();
+  GstBuffer *buf;
+  guint i;
+  guint seq = 0;
+  guint num_sources;
+
+  g_object_set (h->internal_session, "max-csrcs", 10, NULL);
+
+  buf = generate_test_buffer (seq++, 0x12345678);
+  fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  buf = generate_test_buffer (seq++, 0x12345678);
+  fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+
+  for (i = 0; i < 2; i++) {
+    guint j;
+    GArray *csrcs = g_array_new (TRUE, FALSE, sizeof (guint));
+
+    for (j = 0; j < 10; j++) {
+      guint csrc = i * 15 + j;
+      g_array_append_val (csrcs, csrc);
+    }
+
+    buf = generate_test_buffer_with_csrcs (seq++, 0x12345678, csrcs);
+    g_array_free (csrcs, TRUE);
+
+
+    fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  }
+
+  g_object_get (h->session, "num-sources", &num_sources, NULL);
+
+  // We tried to add 20 CSRCs but hit the limit
+  fail_unless_equals_int (num_sources, 11);
+
+  // Advance the clock enough that the CSRcs get timed out, while keeping
+  // the main ssrc alive
+  fail_unless (session_harness_advance_and_crank (h, 10 * GST_SECOND));
+  buf = generate_test_buffer (seq++, 0x12345678);
+  fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  fail_unless (session_harness_advance_and_crank (h, 10 * GST_SECOND));
+  buf = generate_test_buffer (seq++, 0x12345678);
+  fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  fail_unless (session_harness_advance_and_crank (h, 10 * GST_SECOND));
+  buf = generate_test_buffer (seq++, 0x12345678);
+  fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  fail_unless (session_harness_advance_and_crank (h, 10 * GST_SECOND));
+
+  gst_buffer_unref (session_harness_pull_rtcp (h));
+
+  g_object_get (h->session, "num-sources", &num_sources, NULL);
+
+  // The old CSRCs have timed out, we can try again
+  // 2: main ssrc + internal ssrc created on timeout
+  fail_unless_equals_int (num_sources, 2);
+
+  for (i = 0; i < 1; i++) {
+    guint j;
+    GArray *csrcs = g_array_new (TRUE, FALSE, sizeof (guint));
+
+    for (j = 0; j < 10; j++) {
+      guint csrc = i * 15 + j;
+      g_array_append_val (csrcs, csrc);
+    }
+
+    buf = generate_test_buffer_with_csrcs (seq++, 0x12345678, csrcs);
+    g_array_free (csrcs, TRUE);
+
+    fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  }
+
+  g_object_get (h->session, "num-sources", &num_sources, NULL);
+
+  // We should not have hit the limit
+  fail_unless_equals_int (num_sources, 12);
+
+  session_harness_free (h);
+}
+
+GST_END_TEST;
+
+GST_START_TEST (test_ssrc_dos)
+{
+  SessionHarness *h = session_harness_new ();
+  GstBuffer *buf;
+  guint i;
+  guint seq = 0;
+  guint num_sources;
+
+  g_object_set (h->internal_session, "max-sources", 5, NULL);
+
+  for (i = 0; i < 10; i++) {
+    buf = generate_test_buffer (seq++, i);
+    fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+    buf = generate_test_buffer (seq++, i);
+    fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  }
+
+  g_object_get (h->session, "num-sources", &num_sources, NULL);
+
+  // We tried to add 10 CSRCs but hit the limit
+  fail_unless_equals_int (num_sources, 5);
+
+  // Advance the clock enough that the SSRcs get timed out, while keeping
+  // the main ssrc alive
+  fail_unless (session_harness_advance_and_crank (h, 40 * GST_SECOND));
+
+  gst_buffer_unref (session_harness_pull_rtcp (h));
+
+  g_object_get (h->session, "num-sources", &num_sources, NULL);
+
+  // The old SSRCs have timed out, we can try again
+  // 1: internal ssrc created on timeout
+  fail_unless_equals_int (num_sources, 1);
+
+  for (i = 0; i < 5; i++) {
+    buf = generate_test_buffer (seq++, i);
+    fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+    buf = generate_test_buffer (seq++, i);
+    fail_unless_equals_int (GST_FLOW_OK, session_harness_recv_rtp (h, buf));
+  }
+
+  g_object_get (h->session, "num-sources", &num_sources, NULL);
+
+  // We should not have hit the limit
+  fail_unless_equals_int (num_sources, 6);
+
+  session_harness_free (h);
+}
+
+GST_END_TEST;
+
 static Suite *
 rtpsession_suite (void)
 {
@@ -4616,6 +4766,8 @@ rtpsession_suite (void)
   tcase_add_test (tc_chain, test_ssrc_collision_third_party_favor_new);
   tcase_add_test (tc_chain,
       test_ssrc_collision_never_send_on_non_internal_source);
+  tcase_add_test (tc_chain, test_csrc_dos);
+  tcase_add_test (tc_chain, test_ssrc_dos);
 
   tcase_add_test (tc_chain, test_request_fir);
   tcase_add_test (tc_chain, test_request_pli);

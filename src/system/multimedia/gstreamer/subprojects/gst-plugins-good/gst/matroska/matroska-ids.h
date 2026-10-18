@@ -216,6 +216,7 @@
 #define GST_MATROSKA_ID_CUETRACK                   0xF7
 #define GST_MATROSKA_ID_CUECLUSTERPOSITION         0xF1
 #define GST_MATROSKA_ID_CUEBLOCKNUMBER             0x5378
+#define GST_MATROSKA_ID_CUERELATIVEPOSITION        0xF0
 /* semi-draft */
 #define GST_MATROSKA_ID_CUECODECSTATE              0xEA
 /* semi-draft */
@@ -517,6 +518,14 @@ typedef enum {
   GST_MATROSKA_ASPECT_RATIO_MODE_FIXED = 0x2,
 } GstMatroskaAspectRatioMode;
 
+typedef enum {
+  GST_MATROSKA_VIDEO_DISPLAY_UNIT_PIXELS      = 0,
+  GST_MATROSKA_VIDEO_DISPLAY_UNIT_CENTIMETERS = 1,
+  GST_MATROSKA_VIDEO_DISPLAY_UNIT_INCHES      = 2,
+  GST_MATROSKA_VIDEO_DISPLAY_UNIT_DAR         = 3,
+  GST_MATROSKA_VIDEO_DISPLAY_UNIT_UNKNOWN     = 4,
+} GstMatroskaVideoDisplayUnit;
+
 /*
  * These aren't in any way "matroska-form" things,
  * it's just something I use in the muxer/demuxer.
@@ -652,6 +661,7 @@ typedef struct _GstMatroskaTrackVideoContext {
 
   guint         pixel_width, pixel_height;
   guint         display_width, display_height;
+  GstMatroskaVideoDisplayUnit display_unit;
   gdouble       default_fps;
   GstMatroskaAspectRatioMode asr_mode;
   guint32       fourcc;
@@ -700,8 +710,12 @@ typedef struct _GstMatroskaTrackSubtitleContext {
 typedef struct _GstMatroskaIndex {
   guint64        pos;      /* of the corresponding *cluster*! */
   GstClockTime   time;     /* in nanoseconds */
-  guint32        block;    /* number of the block in the cluster */
+  union {
+    guint32      block;    /* number of the block in the cluster */
+    guint32      offset;   /* relative offset from start of cluster */
+  };
   guint16        track;    /* reference to 'num' */
+  gboolean       relative; /* whether we're using relative offset or block number */
 } GstMatroskaIndex;
 
 typedef struct _Wavpack4Header {

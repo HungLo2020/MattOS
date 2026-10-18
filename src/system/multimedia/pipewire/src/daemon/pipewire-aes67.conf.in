@@ -55,6 +55,11 @@ context.modules = [
             #rt.prio      = @rtprio_client@
             #rt.time.soft = -1
             #rt.time.hard = -1
+            #rlimits.enabled = true
+            #rtportal.enabled = true
+            #rtkit.enabled = true
+            #uclamp.min = 0
+            #uclamp.max = 1024
         }
         flags = [ ifexists nofail ]
     }
@@ -128,6 +133,11 @@ context.modules = [
             # This property is used if you aren't using ptp4l 4
             sess.ts-refclk = "ptp=traceable"
             sess.ts-offset = 0
+            # Directly synchronize output against the PTP-synced driver using the RTP timestamps
+            # This can be set to true if the reference clocks are the same; it then makes the
+            # synchronization more robust against transport delay variations and can help lower
+            # latency
+            sess.ts-direct = false
             # You can adjust the latency buffering here. Use integer values only
             sess.latency.msec = 3
             audio.format = "S24BE"

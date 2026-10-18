@@ -35,8 +35,8 @@
  *
  * ## Example launch lines
  * |[
- * gst-launch-1.0 -v videotestsrc ! unixfdsink socket-path=/tmp/blah
- * gst-launch-1.0 -v unixfdsrc socket-path=/tmp/blah ! autovideosink
+ * gst-launch-1.0 -v videotestsrc ! video/x-raw,format=RGBx,width=1920,height=1080 ! timeoverlay ! unixfdsink socket-path=/tmp/blah
+ * gst-launch-1.0 -v unixfdsrc socket-path=/tmp/blah ! videoconvert ! autovideosink
  * ]|
  *
  * Since: 1.24
@@ -44,9 +44,12 @@
 
 #include "gstunixfd.h"
 
+#include "gstunixfdallocator.h"
+
 #include <gst/base/base.h>
 #include <gst/allocators/allocators.h>
 
+#include <stdint.h>
 #include <glib/gstdio.h>
 #include <gio/gio.h>
 #include <gio/gunixsocketaddress.h>
@@ -91,6 +94,9 @@ struct _GstUnixFdSink
   gboolean wait_for_connection;
   GCond wait_for_connection_cond;
   gboolean unlock;
+
+  GstUnixFdAllocator *allocator;
+  gint64 min_memory_size;
 };
 
 G_DEFINE_TYPE (GstUnixFdSink, gst_unix_fd_sink, GST_TYPE_BASE_SINK);
@@ -99,6 +105,7 @@ GST_ELEMENT_REGISTER_DEFINE (unixfdsink, "unixfdsink", GST_RANK_NONE,
 
 #define DEFAULT_SOCKET_TYPE G_UNIX_SOCKET_ADDRESS_PATH
 #define DEFAULT_WAIT_FOR_CONNECTION FALSE
+#define DEFAULT_MIN_MEMORY_SIZE 0
 
 enum
 {
@@ -106,8 +113,12 @@ enum
   PROP_SOCKET_PATH,
   PROP_SOCKET_TYPE,
   PROP_WAIT_FOR_CONNECTION,
+  PROP_MIN_MEMORY_SIZE,
+  PROP_NUM_CLIENTS,
+  NUM_PROPERTIES
 };
 
+static GParamSpec *properties[NUM_PROPERTIES];
 
 static void
 client_free (Client * client)
@@ -116,6 +127,66 @@ client_free (Client * client)
   g_source_destroy (client->source);
   g_source_unref (client->source);
   g_free (client);
+}
+
+static GstMemory *
+copy_to_shm (GstUnixFdSink * self, GstMemory * mem)
+{
+  GST_OBJECT_LOCK (self);
+
+  if (self->min_memory_size < 0) {
+    GST_ERROR_OBJECT (self,
+        "Buffer has non-FD memories and copying is disabled. Set min-memory-size to a value >= 0 to allow copying.");
+    GST_OBJECT_UNLOCK (self);
+    return NULL;
+  }
+
+  if (self->allocator == NULL)
+    self->allocator = gst_unix_fd_allocator_new ();
+
+  gsize size = gst_memory_get_sizes (mem, NULL, NULL);
+  gsize alloc_size = MAX (size, self->min_memory_size);
+  GstMemory *fd_mem =
+      gst_allocator_alloc (GST_ALLOCATOR_CAST (self->allocator), alloc_size,
+      NULL);
+
+  GST_OBJECT_UNLOCK (self);
+
+  if (fd_mem == NULL) {
+    GST_ERROR_OBJECT (self, "Shared memory allocation failed.");
+    return NULL;
+  }
+
+  gst_memory_resize (fd_mem, 0, size);
+
+  GstMapInfo src_map, dst_map;
+
+  if (!gst_memory_map (mem, &src_map, GST_MAP_READ)) {
+    GST_ERROR_OBJECT (self, "Mapping of source memory failed.");
+    gst_memory_unref (fd_mem);
+    return NULL;
+  }
+
+  if (!gst_memory_map (fd_mem, &dst_map, GST_MAP_WRITE)) {
+    GST_ERROR_OBJECT (self, "Mapping of shared memory failed.");
+    gst_memory_unmap (mem, &src_map);
+    gst_memory_unref (fd_mem);
+    return NULL;
+  }
+
+  memcpy (dst_map.data, src_map.data, src_map.size);
+
+  gst_memory_unmap (mem, &src_map);
+  gst_memory_unmap (fd_mem, &dst_map);
+
+  return fd_mem;
+}
+
+static void
+allocator_unref (GstUnixFdAllocator * allocator)
+{
+  gst_unix_fd_allocator_flush (allocator);
+  g_object_unref (allocator);
 }
 
 static void
@@ -175,6 +246,10 @@ gst_unix_fd_sink_set_property (GObject * object, guint prop_id,
       self->wait_for_connection = g_value_get_boolean (value);
       g_cond_signal (&self->wait_for_connection_cond);
       break;
+    case PROP_MIN_MEMORY_SIZE:
+      self->min_memory_size = g_value_get_int64 (value);
+      g_clear_pointer (&self->allocator, allocator_unref);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -200,6 +275,12 @@ gst_unix_fd_sink_get_property (GObject * object, guint prop_id,
       break;
     case PROP_WAIT_FOR_CONNECTION:
       g_value_set_boolean (value, self->wait_for_connection);
+      break;
+    case PROP_MIN_MEMORY_SIZE:
+      g_value_set_int64 (value, self->min_memory_size);
+      break;
+    case PROP_NUM_CLIENTS:
+      g_value_set_uint (value, g_hash_table_size (self->clients));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -252,7 +333,9 @@ incoming_command_cb (GSocket * socket, GIOCondition cond, gpointer user_data)
       }
       /* id is actually the GstBuffer pointer casted to guint64.
        * We can now drop its reference kept for this client. */
-      if (!g_hash_table_remove (client->buffers, (gpointer) release_buffer->id)) {
+      if (release_buffer->id > UINTPTR_MAX
+          || !g_hash_table_remove (client->buffers,
+              (gpointer) (guintptr) release_buffer->id)) {
         GST_ERROR_OBJECT (self,
             "Received wrong id %" G_GUINT64_FORMAT
             " in release-buffer command from client %p", release_buffer->id,
@@ -277,6 +360,7 @@ on_error:
   g_clear_error (&error);
   g_free (payload);
   GST_OBJECT_UNLOCK (self);
+  g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_NUM_CLIENTS]);
   return G_SOURCE_REMOVE;
 }
 
@@ -332,6 +416,8 @@ new_client_cb (GSocket * socket, GIOCondition cond, gpointer user_data)
   g_cond_signal (&self->wait_for_connection_cond);
 
   GST_OBJECT_UNLOCK (self);
+
+  g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_NUM_CLIENTS]);
 
   return G_SOURCE_CONTINUE;
 }
@@ -418,7 +504,7 @@ gst_unix_fd_sink_stop (GstBaseSink * bsink)
   return TRUE;
 }
 
-static void
+static gboolean
 send_command_to_all (GstUnixFdSink * self, CommandType type, GUnixFDList * fds,
     const guint8 * payload, gsize payload_size, GstBuffer * buffer)
 {
@@ -426,6 +512,7 @@ send_command_to_all (GstUnixFdSink * self, CommandType type, GUnixFDList * fds,
   GSocket *socket;
   Client *client;
   GError *error = NULL;
+  gboolean client_removed = FALSE;
 
   g_hash_table_iter_init (&iter, self->clients);
   while (g_hash_table_iter_next (&iter, (gpointer) & socket,
@@ -436,12 +523,15 @@ send_command_to_all (GstUnixFdSink * self, CommandType type, GUnixFDList * fds,
           type, client, error->message);
       g_clear_error (&error);
       g_hash_table_iter_remove (&iter);
+      client_removed = TRUE;
       continue;
     }
     /* Keep a ref on this buffer until all clients released it. */
     if (buffer != NULL)
       g_hash_table_add (client->buffers, gst_buffer_ref (buffer));
   }
+
+  return client_removed;
 }
 
 static GstClockTime
@@ -510,7 +600,7 @@ gst_unix_fd_sink_render (GstBaseSink * bsink, GstBuffer * buffer)
   NewBufferPayload *new_buffer = (NewBufferPayload *) self->payload->data;
   /* Cast buffer pointer to guint64 identifier. Client will send us back that
    * id so we know which buffer to unref. */
-  new_buffer->id = (guint64) buffer;
+  new_buffer->id = (guint64) (guintptr) buffer;
   new_buffer->pts =
       to_monotonic (GST_BUFFER_PTS (buffer),
       &GST_BASE_SINK_CAST (self)->segment, base_time, latency, clock_diff);
@@ -534,14 +624,29 @@ gst_unix_fd_sink_render (GstBaseSink * bsink, GstBuffer * buffer)
     return GST_FLOW_ERROR;
   }
 
-  gboolean dmabuf_count = 0;
+  /* dst_buffer is used to hold reference on new GstMemory we'll create, if any.
+   * ref_original_buffer is set to TRUE if dst_buffer also needs to hold
+   * reference on the original buffer. */
+  GstBuffer *dst_buffer = NULL;
+  gboolean ref_original_buffer = FALSE;
+
+  gint dmabuf_count = 0;
   GUnixFDList *fds = g_unix_fd_list_new ();
+
   for (int i = 0; i < n_memory; i++) {
     GstMemory *mem = gst_buffer_peek_memory (buffer, i);
+
     if (!gst_is_fd_memory (mem)) {
-      GST_ERROR_OBJECT (self, "Expecting buffers with FD memories");
-      ret = GST_FLOW_ERROR;
-      goto out;
+      if (dst_buffer == NULL)
+        dst_buffer = gst_buffer_new ();
+      mem = copy_to_shm (self, mem);
+      if (mem == NULL) {
+        ret = GST_FLOW_ERROR;
+        goto out;
+      }
+      gst_buffer_append_memory (dst_buffer, mem);
+    } else {
+      ref_original_buffer = TRUE;
     }
 
     if (gst_is_dmabuf_memory (mem))
@@ -567,6 +672,13 @@ gst_unix_fd_sink_render (GstBaseSink * bsink, GstBuffer * buffer)
   if (dmabuf_count > 0)
     new_buffer->type = MEMORY_TYPE_DMABUF;
 
+  if (dst_buffer != NULL) {
+    new_buffer->id = (guint64) (guintptr) dst_buffer;
+    if (ref_original_buffer)
+      gst_buffer_add_parent_buffer_meta (dst_buffer, buffer);
+    buffer = dst_buffer;
+  }
+
   GST_OBJECT_LOCK (self);
 
   while (self->wait_for_connection && g_hash_table_size (self->clients) == 0) {
@@ -580,12 +692,18 @@ gst_unix_fd_sink_render (GstBaseSink * bsink, GstBuffer * buffer)
     }
   }
 
-  send_command_to_all (self, COMMAND_TYPE_NEW_BUFFER, fds,
+  gboolean client_removed =
+      send_command_to_all (self, COMMAND_TYPE_NEW_BUFFER, fds,
       self->payload->data, self->payload->len, buffer);
 
   GST_OBJECT_UNLOCK (self);
 
+  if (client_removed) {
+    g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_NUM_CLIENTS]);
+  }
+
 out:
+  gst_clear_buffer (&dst_buffer);
   g_clear_object (&fds);
   g_clear_error (&error);
   return ret;
@@ -631,16 +749,30 @@ gst_unix_fd_sink_event (GstBaseSink * bsink, GstEvent * event)
           self->caps);
       gsize payload_size;
       guint8 *payload = caps_to_payload (self->caps, &payload_size);
-      send_command_to_all (self, COMMAND_TYPE_CAPS, NULL, payload, payload_size,
+      gboolean client_removed =
+          send_command_to_all (self, COMMAND_TYPE_CAPS, NULL, payload,
+          payload_size,
           NULL);
       g_free (payload);
+      /* New caps could mean new buffer size, or even no copies needed anymore.
+       * We'll create a new pool if still needed. */
+      g_clear_pointer (&self->allocator, allocator_unref);
       GST_OBJECT_UNLOCK (self);
+      if (client_removed) {
+        g_object_notify_by_pspec (G_OBJECT (self),
+            properties[PROP_NUM_CLIENTS]);
+      }
       break;
     }
     case GST_EVENT_EOS:{
       GST_OBJECT_LOCK (self);
-      send_command_to_all (self, COMMAND_TYPE_EOS, NULL, NULL, 0, NULL);
+      gboolean client_removed =
+          send_command_to_all (self, COMMAND_TYPE_EOS, NULL, NULL, 0, NULL);
       GST_OBJECT_UNLOCK (self);
+      if (client_removed) {
+        g_object_notify_by_pspec (G_OBJECT (self),
+            properties[PROP_NUM_CLIENTS]);
+      }
       break;
     }
     default:
@@ -666,15 +798,31 @@ gst_unix_fd_sink_set_clock (GstElement * element, GstClock * clock)
 {
   GstUnixFdSink *self = (GstUnixFdSink *) element;
 
-  self->uses_monotonic_clock = FALSE;
-  if (clock != NULL && G_OBJECT_TYPE (clock) == GST_TYPE_SYSTEM_CLOCK) {
-    GstClockType clock_type;
-    g_object_get (clock, "clock-type", &clock_type, NULL);
-    self->uses_monotonic_clock = clock_type == GST_CLOCK_TYPE_MONOTONIC;
-  }
+  self->uses_monotonic_clock = clock != NULL
+      && gst_clock_is_system_monotonic (clock);
 
   return GST_ELEMENT_CLASS (gst_unix_fd_sink_parent_class)->set_clock (element,
       clock);
+}
+
+static GstStateChangeReturn
+gst_unix_fd_sink_change_state (GstElement * element, GstStateChange transition)
+{
+  GstUnixFdSink *self = (GstUnixFdSink *) element;
+
+  GstStateChangeReturn ret =
+      GST_ELEMENT_CLASS (gst_unix_fd_sink_parent_class)->change_state (element,
+      transition);
+
+  switch (transition) {
+    case GST_STATE_CHANGE_PAUSED_TO_READY:
+      g_clear_pointer (&self->allocator, allocator_unref);
+      break;
+    default:
+      break;
+  }
+
+  return ret;
 }
 
 static void
@@ -698,6 +846,8 @@ gst_unix_fd_sink_class_init (GstUnixFdSinkClass * klass)
   gobject_class->get_property = gst_unix_fd_sink_get_property;
 
   gstelement_class->set_clock = GST_DEBUG_FUNCPTR (gst_unix_fd_sink_set_clock);
+  gstelement_class->change_state =
+      GST_DEBUG_FUNCPTR (gst_unix_fd_sink_change_state);
 
   gstbasesink_class->start = GST_DEBUG_FUNCPTR (gst_unix_fd_sink_start);
   gstbasesink_class->stop = GST_DEBUG_FUNCPTR (gst_unix_fd_sink_stop);
@@ -709,21 +859,20 @@ gst_unix_fd_sink_class_init (GstUnixFdSinkClass * klass)
   gstbasesink_class->unlock_stop =
       GST_DEBUG_FUNCPTR (gst_unix_fd_sink_unlock_stop);
 
-  g_object_class_install_property (gobject_class, PROP_SOCKET_PATH,
+  properties[PROP_SOCKET_PATH] =
       g_param_spec_string ("socket-path",
-          "Path to the control socket",
-          "The path to the control socket used to control the shared memory "
-          "transport. This may be modified during the NULL->READY transition",
-          NULL,
-          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS |
-          GST_PARAM_MUTABLE_READY));
+      "Path to the control socket",
+      "The path to the control socket used to control the shared memory "
+      "transport. This may be modified during the NULL->READY transition",
+      NULL,
+      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | GST_PARAM_MUTABLE_READY);
 
-  g_object_class_install_property (gobject_class, PROP_SOCKET_TYPE,
+  properties[PROP_SOCKET_TYPE] =
       g_param_spec_enum ("socket-type", "Socket type",
-          "The type of underlying socket",
-          G_TYPE_UNIX_SOCKET_ADDRESS_TYPE, DEFAULT_SOCKET_TYPE,
-          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_CONSTRUCT |
-          GST_PARAM_MUTABLE_READY));
+      "The type of underlying socket",
+      G_TYPE_UNIX_SOCKET_ADDRESS_TYPE, DEFAULT_SOCKET_TYPE,
+      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_CONSTRUCT |
+      GST_PARAM_MUTABLE_READY);
 
   /**
    * GstUnixFdSink:wait-for-connection:
@@ -732,10 +881,46 @@ gst_unix_fd_sink_class_init (GstUnixFdSinkClass * klass)
    *
    * Since: 1.26
    */
-  g_object_class_install_property (gobject_class, PROP_WAIT_FOR_CONNECTION,
+  properties[PROP_WAIT_FOR_CONNECTION] =
       g_param_spec_boolean ("wait-for-connection",
-          "Wait for a connection until rendering",
-          "Block the stream until a least one client is connected",
-          DEFAULT_WAIT_FOR_CONNECTION,
-          G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS));
+      "Wait for a connection until rendering",
+      "Block the stream until a least one client is connected",
+      DEFAULT_WAIT_FOR_CONNECTION,
+      G_PARAM_READWRITE | G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS);
+
+  /**
+   * GstUnixFdSink:min-memory-size:
+   *
+   * Minimum size to allocate in the case a copy into shared memory is needed.
+   * Memories are kept in a pool and reused when possible.
+   *
+   * A value of 0 (the default) means only the needed size is allocated which
+   * reduces the possibility of reusing the memory in the case not all buffers
+   * need the same size.
+   *
+   * A negative value disables copying and the pipeline will stop with an error
+   * in the case a copy into shared memory is needed.
+   *
+   * Since: 1.28
+   */
+  properties[PROP_MIN_MEMORY_SIZE] =
+      g_param_spec_int64 ("min-memory-size", "Minimum memory size",
+      "Minimum size to allocate in the case a copy into shared memory is needed.",
+      -1, G_MAXINT64, DEFAULT_MIN_MEMORY_SIZE,
+      G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_CONSTRUCT);
+
+  /**
+   * GstUnixFdSink:num-clients:
+   *
+   * The number of clients that are currently connected to the sink.
+   * This property is read-only and reflects the current connection count.
+   *
+   * Since: 1.28
+   */
+  properties[PROP_NUM_CLIENTS] =
+      g_param_spec_uint ("num-clients", "Number of clients",
+      "The number of clients that are connected currently",
+      0, G_MAXUINT, 0, G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (gobject_class, NUM_PROPERTIES, properties);
 }

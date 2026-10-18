@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage MattOS Release"
+  short_description: "Version, commit, push, publish, and explain upgrades"
+  default_prompt: "Use $manage-release to release all local MattOS changes: finish the next version, validate, make and push one commit, publish the affected package repositories, and give existing-machine upgrade commands."

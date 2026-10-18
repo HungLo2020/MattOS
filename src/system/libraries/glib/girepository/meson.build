@@ -89,6 +89,7 @@ gir_c_args = [
   '-DGOBJECT_INTROSPECTION_LIBDIR="@0@"'.format(glib_libdir),
   '-DGOBJECT_INTROSPECTION_DATADIR="@0@"'.format(glib_datadir),
   '-DGOBJECT_INTROSPECTION_RELATIVE_LIBDIR="@0@"'.format(get_option('libdir')),
+  warning_sign_conversion_args,
 ]
 
 custom_c_args = []
@@ -218,13 +219,15 @@ libgirepository_dep = declare_dependency(
     'typelibdir': meson.current_build_dir() / 'introspection',
   },
 )
+meson.override_dependency('girepository-2.0', libgirepository_dep)
 
 executable('gi-dump-types',
   sources: 'gi-dump-types.c',
   dependencies: [
     libgirepository_dep,
     libgiounix_dep,
-    libgiowin32_dep
+    libgiowin32_dep,
+    app_profile_dep,
   ],
 )
 

@@ -110,7 +110,7 @@ generate_test_sound (const gchar * fn, const gchar * launch_string,
     guint num_samples)
 {
   GstElement *pipeline, *src, *parse, *enc_bin, *sink;
-  GstFlowReturn flow;
+  GstFlowReturn flow GST_UNUSED_ASSERT;
   GstMessage *msg;
   GstBuffer *buf;
   GstCaps *caps;
@@ -178,6 +178,7 @@ test_seek_FORMAT_TIME_by_sample (const gchar * fn, GList * seek_positions)
   GstCaps *caps;
   gconstpointer answer;
   guint answer_size;
+  GstMessage *message;
 
   pipeline = gst_parse_launch ("filesrc name=src ! decodebin ! "
       "audioconvert dithering=0 ! appsink name=sink", NULL);
@@ -196,8 +197,10 @@ test_seek_FORMAT_TIME_by_sample (const gchar * fn, GList * seek_positions)
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
 
   /* wait for preroll, so we can seek */
-  gst_bus_timed_pop_filtered (GST_ELEMENT_BUS (pipeline), GST_CLOCK_TIME_NONE,
-      GST_MESSAGE_ASYNC_DONE);
+  message =
+      gst_bus_timed_pop_filtered (GST_ELEMENT_BUS (pipeline),
+      GST_CLOCK_TIME_NONE, GST_MESSAGE_ASYNC_DONE);
+  g_clear_pointer (&message, gst_message_unref);
 
   /* first, read entire file to end */
   adapter = gst_adapter_new ();
@@ -215,7 +218,7 @@ test_seek_FORMAT_TIME_by_sample (const gchar * fn, GList * seek_positions)
     gconstpointer found;
     GstMapInfo map;
     GstBuffer *buf;
-    gboolean ret;
+    gboolean ret GST_UNUSED_ASSERT;
     guint actual_position, buffer_timestamp_position;
     guint seek_sample;
 

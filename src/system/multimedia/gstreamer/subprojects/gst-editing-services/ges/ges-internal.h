@@ -241,6 +241,15 @@ ges_effect_asset_id_get_type_and_bindesc (const char    *id,
                                           GESTrackType  *track_type,
                                           GError       **error);
 
+/* Untrusted-content enforcement (see ges-untrusted.c). */
+G_GNUC_INTERNAL void     ges_untrusted_context_push        (void);
+G_GNUC_INTERNAL void     ges_untrusted_context_pop         (void);
+G_GNUC_INTERNAL gboolean ges_untrusted_context_active      (void);
+G_GNUC_INTERNAL gboolean ges_untrusted_bin_desc_check      (const gchar  *bin_desc,
+                                                            GError      **error);
+G_GNUC_INTERNAL gboolean ges_untrusted_property_check      (const gchar  *property_name,
+                                                            GError      **error);
+
 G_GNUC_INTERNAL void _ges_uri_asset_cleanup (void);
 
 G_GNUC_INTERNAL gboolean _ges_uri_asset_ensure_setup (gpointer uriasset_class);
@@ -444,8 +453,6 @@ G_GNUC_INTERNAL void _ges_container_set_height            (GESContainer * contai
  *                  GESClip                         *
  ****************************************************/
 G_GNUC_INTERNAL void              ges_clip_set_layer              (GESClip *clip, GESLayer  *layer);
-G_GNUC_INTERNAL gboolean          ges_clip_is_moving_from_layer   (GESClip *clip);
-G_GNUC_INTERNAL void              ges_clip_set_moving_from_layer  (GESClip *clip, gboolean is_moving);
 G_GNUC_INTERNAL GESTrackElement*  ges_clip_create_track_element   (GESClip *clip, GESTrackType type);
 G_GNUC_INTERNAL GList*            ges_clip_create_track_elements  (GESClip *clip, GESTrackType type);
 G_GNUC_INTERNAL gboolean          ges_clip_can_set_inpoint_of_child (GESClip * clip, GESTrackElement * child, GstClockTime inpoint, GError ** error);
@@ -457,6 +464,7 @@ G_GNUC_INTERNAL gboolean          ges_clip_can_set_track_of_child (GESClip * cli
 G_GNUC_INTERNAL gboolean          ges_clip_can_set_time_property_of_child (GESClip * clip, GESTrackElement * child, GObject * prop_object, GParamSpec * pspec, const GValue * value, GError ** error);
 G_GNUC_INTERNAL GstClockTime      ges_clip_duration_limit_with_new_children_inpoints (GESClip * clip, GHashTable * child_inpoints);
 G_GNUC_INTERNAL GstClockTime      ges_clip_get_core_internal_time_from_timeline_time (GESClip * clip, GstClockTime timeline_time, gboolean * no_core, GError ** error);
+G_GNUC_INTERNAL GstElement*       ges_clip_get_last_time_effect_filter           (GESClip * clip, GESTrack *track);
 G_GNUC_INTERNAL void              ges_clip_empty_from_track       (GESClip * clip, GESTrack * track);
 G_GNUC_INTERNAL void              ges_clip_set_add_error          (GESClip * clip, GError * error);
 G_GNUC_INTERNAL void              ges_clip_take_add_error         (GESClip * clip, GError ** error);
@@ -546,8 +554,9 @@ ges_effect_from_description                   (const gchar *bin_desc,
  ****************************************************/
 typedef enum
 {
-  GES_CLIP_IS_MOVING = (1 << 0),
+  GES_CLIP_FREEZE_TRACK_ELEMENTS = (1 << 0),
   GES_TIMELINE_ELEMENT_SET_SIMPLE = (1 << 1),
+  GES_CLIP_IS_MOVING_BETWEEN_LAYERS = (1 << 2),
 } GESTimelineElementFlags;
 
 G_GNUC_INTERNAL GESTimelineElement * ges_timeline_element_peak_toplevel (GESTimelineElement * self);

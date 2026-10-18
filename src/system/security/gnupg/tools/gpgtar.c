@@ -84,6 +84,7 @@ enum cmd_and_opt_values
     oStatusFD,
     oRequireCompliance,
     oWithLog,
+    oCompatibilityFlags,
 
     /* Compatibility with gpg-zip.  */
     oGpgArgs,
@@ -127,9 +128,10 @@ static gpgrt_opt_t opts[] = {
   ARGPARSE_s_n (oBatch, "batch", "@"),
   ARGPARSE_s_n (oAnswerYes, "yes", "@"),
   ARGPARSE_s_n (oAnswerNo, "no", "@"),
-  ARGPARSE_s_i (oStatusFD, "status-fd", "@"),
+  ARGPARSE_s_s (oStatusFD, "status-fd", "@"),
   ARGPARSE_s_n (oRequireCompliance, "require-compliance", "@"),
   ARGPARSE_s_n (oWithLog, "with-log", "@"),
+  ARGPARSE_s_s (oCompatibilityFlags, "compatibility-flags", "@"),
 
   ARGPARSE_group (302, N_("@\nTar options:\n ")),
 
@@ -165,6 +167,16 @@ static gpgrt_opt_t tar_opts[] = {
 
   ARGPARSE_end ()
 };
+
+
+/* The list of compatibility flags.  */
+static struct compatibility_flags_s compatibility_flags [] =
+  {
+    { COMPAT_NO_DIR_CHECK, "no-dir-check" },
+    { 0, NULL }
+  };
+
+
 
 
 /* Global flags.  */
@@ -398,9 +410,18 @@ parse_arguments (gpgrt_argparse_t *pargs, gpgrt_opt_t *popts)
         case oBatch: opt.batch = 1; break;
         case oAnswerYes: opt.answer_yes = 1; break;
         case oAnswerNo: opt.answer_no = 1; break;
-        case oStatusFD: opt.status_fd = pargs->r.ret_int; break;
+        case oStatusFD: opt.status_fd = pargs->r.ret_str; break;
         case oRequireCompliance: opt.require_compliance = 1; break;
         case oWithLog: opt.with_log = 1; break;
+
+        case oCompatibilityFlags:
+          if (parse_compatibility_flags (pargs->r.ret_str, &opt.compat_flags,
+                                         compatibility_flags))
+            {
+              pargs->r_opt = ARGPARSE_INVALID_ARG;
+              pargs->err = ARGPARSE_PRINT_ERROR;
+            }
+          break;
 
         case oGpgArgs:;
           {
@@ -453,7 +474,7 @@ parse_arguments (gpgrt_argparse_t *pargs, gpgrt_opt_t *popts)
           opt.dry_run = 1;
           break;
 
-        default: pargs->err = 2; break;
+        default: pargs->err = ARGPARSE_PRINT_ERROR; break;
 	}
     }
 }
@@ -480,9 +501,9 @@ main (int argc, char **argv)
   log_assert (sizeof (struct ustar_raw_header) == 512);
 
   /* Set default options */
-  opt.status_fd = -1;
+  opt.status_fd = NULL;
 
-  /* The configuraton directories for use by gpgrt_argparser.  */
+  /* The configuration directories for use by gpgrt_argparser.  */
   gpgrt_set_confdir (GPGRT_CONFDIR_SYS, gnupg_sysconfdir ());
   gpgrt_set_confdir (GPGRT_CONFDIR_USER, gnupg_homedir ());
 
@@ -496,8 +517,11 @@ main (int argc, char **argv)
   if (log_get_errorcount (0))
     exit (2);
 
-  /* Get a log file from common.conf.  */
-  if (!parse_comopt (GNUPG_MODULE_NAME_GPGTAR, any_debug) && comopt.logfile)
+  /* Get a log file from common.conf but use it only in --batch mode
+   * because people expect to see the verbose output here even if they
+   * have a log-file in their common.conf.  */
+  if (!parse_comopt (GNUPG_MODULE_NAME_GPGTAR, any_debug) && comopt.logfile
+      && opt.batch)
     log_set_file (comopt.logfile);
 
   /* Print a warning if an argument looks like an option.  */
@@ -512,31 +536,32 @@ main (int argc, char **argv)
 
   /* Set status stream for our own use of --status-fd.  The original
    * status fd is passed verbatim to gpg.  */
-  if (opt.status_fd != -1)
+  if (opt.status_fd)
     {
-      int fd = translate_sys2libc_fd_int (opt.status_fd, 1);
+      es_syshd_t syshd;
 
-      if (!gnupg_fd_valid (fd))
-        log_fatal ("status-fd is invalid: %s\n", strerror (errno));
+      err = gnupg_parse_fdstr (opt.status_fd, &syshd);
+      if (err)
+        log_fatal ("status-fd is invalid: %s\n", gpg_strerror (err));
 
-      if (fd == 1)
+      if (syshd.type == ES_SYSHD_FD && syshd.u.fd == 1)
         {
           opt.status_stream = es_stdout;
           if (!skip_crypto)
             log_fatal ("using stdout for the status-fd is not possible\n");
         }
-      else if (fd == 2)
+      else if (syshd.type == ES_SYSHD_FD && syshd.u.fd == 2)
         opt.status_stream = es_stderr;
       else
         {
-          opt.status_stream = es_fdopen (fd, "w");
+          opt.status_stream = es_sysopen (&syshd, "w");
           if (opt.status_stream)
             es_setvbuf (opt.status_stream, NULL, _IOLBF, 0);
         }
       if (!opt.status_stream)
         {
-          log_fatal ("can't open fd %d for status output: %s\n",
-                     fd, strerror (errno));
+          log_fatal ("can't open fd %s for status output: %s\n",
+                     opt.status_fd, strerror (errno));
         }
     }
 

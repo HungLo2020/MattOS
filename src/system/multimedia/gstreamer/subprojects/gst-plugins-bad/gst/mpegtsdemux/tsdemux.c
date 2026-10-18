@@ -182,6 +182,8 @@ struct _TSDemuxStream
   GstClockTime pts;
   GstClockTime dts;
 
+  PESHeaderFlags current_pes_packet_flags;
+
   /* Reference PTS used to detect gaps */
   GstClockTime gap_ref_pts;
   /* Number of outputted buffers */
@@ -800,6 +802,7 @@ scan_keyframe_h264 (TSDemuxStream * stream, const guint8 * data,
         break;
       }
       default:
+        GST_TRACE_OBJECT (stream->pad, "unit type %d", unit.type);
         break;
     }
 
@@ -1118,7 +1121,7 @@ handle_psi (MpegTSBase * base, GstMpegtsSection * section)
     GList *tmp;
     gboolean forward = FALSE;
 
-    if (demux->send_scte35_events) {
+    if (demux->send_scte35_events && demux->program) {
       for (tmp = demux->program->stream_list; tmp; tmp = tmp->next) {
         TSDemuxStream *stream = (TSDemuxStream *) tmp->data;
 
@@ -1346,7 +1349,7 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
   GstPad *pad = NULL;
   gboolean sparse = FALSE;
   gboolean is_audio = FALSE, is_video = FALSE, is_subpicture = FALSE,
-      is_private = FALSE;
+      is_private = FALSE, is_metadata = FALSE;
 
   gst_ts_demux_create_tags (stream);
 
@@ -1401,6 +1404,9 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
         caps = gst_caps_new_empty_simple ("audio/x-dts");
         stream->target_pes_substream = 0x71;
         break;
+      default:
+        GST_DEBUG_OBJECT (demux, "Stream type %d", bstream->stream_type);
+        break;
     }
   }
 
@@ -1448,7 +1454,8 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
       if (desc) {
         GST_LOG_OBJECT (demux, "ac4 audio");
         is_audio = TRUE;
-        caps = gst_caps_new_empty_simple ("audio/x-ac4");
+        caps = gst_caps_new_simple ("audio/x-ac4",
+            "stream-format", G_TYPE_STRING, "syncframe", NULL);
         break;
       }
 
@@ -1690,12 +1697,21 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
         case DRF_ID_KLVA:
           sparse = TRUE;
           is_private = TRUE;
+          is_metadata = TRUE;
           caps = gst_caps_new_simple ("meta/x-klv",
               "parsed", G_TYPE_BOOLEAN, TRUE, NULL);
           break;
+        case DRF_ID_ID3:
+          sparse = TRUE;
+          is_private = TRUE;
+          is_metadata = TRUE;
+          caps = gst_caps_new_simple ("meta/x-id3",
+              "parsed", G_TYPE_BOOLEAN, FALSE, NULL);
+          break;
         case DRF_ID_AC4:
           is_audio = TRUE;
-          caps = gst_caps_new_empty_simple ("audio/x-ac4");
+          caps = gst_caps_new_simple ("audio/x-ac4",
+              "stream-format", G_TYPE_STRING, "syncframe", NULL);
           break;
         case DRF_ID_VP09:
           is_video = TRUE;
@@ -1703,6 +1719,7 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
           break;
         case DRF_ID_VANC:
           is_private = TRUE;
+          is_metadata = TRUE;
           caps =
               gst_caps_new_simple ("meta/x-st-2038", "alignment", G_TYPE_STRING,
               "line", NULL);
@@ -1758,17 +1775,32 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
       if (desc) {
         GstMpegtsMetadataDescriptor *metadataDescriptor;
         if (gst_mpegts_descriptor_parse_metadata (desc, &metadataDescriptor)) {
-          if ((metadataDescriptor->metadata_format ==
-                  GST_MPEGTS_METADATA_FORMAT_IDENTIFIER_FIELD)
-              && (metadataDescriptor->metadata_format_identifier ==
-                  DRF_ID_KLVA)) {
-            sparse = TRUE;
-            is_private = TRUE;
-            /* registration_id is not correctly set or parsed for some streams */
-            bstream->registration_id = DRF_ID_KLVA;
+          if (metadataDescriptor->metadata_format ==
+              GST_MPEGTS_METADATA_FORMAT_IDENTIFIER_FIELD) {
 
-            caps = gst_caps_new_simple ("meta/x-klv",
-                "parsed", G_TYPE_BOOLEAN, TRUE, NULL);
+            switch (metadataDescriptor->metadata_format_identifier) {
+              case DRF_ID_KLVA:
+                sparse = TRUE;
+                is_private = TRUE;
+                is_metadata = TRUE;
+                /* registration_id is not correctly set or parsed for some streams */
+                bstream->registration_id = DRF_ID_KLVA;
+
+                caps = gst_caps_new_simple ("meta/x-klv",
+                    "parsed", G_TYPE_BOOLEAN, TRUE, NULL);
+                break;
+
+              case DRF_ID_ID3:
+                sparse = TRUE;
+                is_private = TRUE;
+                is_metadata = TRUE;
+                bstream->registration_id = DRF_ID_ID3;
+
+                caps = gst_caps_new_simple ("meta/x-id3",
+                    "parsed", G_TYPE_BOOLEAN, FALSE, NULL);
+                break;
+            }
+
           }
           g_free (metadataDescriptor);
         }
@@ -1857,6 +1889,8 @@ create_pad_for_stream (MpegTSBase * base, MpegTSBaseStream * bstream,
             colorimetry_mode = GST_VIDEO_COLORIMETRY_BT709;
             break;
           default:
+            GST_DEBUG_OBJECT (demux, "color specification %d",
+                color_specification);
             break;
         }
         caps = gst_caps_new_simple ("image/x-jpc",
@@ -2092,6 +2126,9 @@ done:
       name =
           g_strdup_printf ("private_%01x_%04x", demux->program_generation,
           bstream->pid);
+      if (is_metadata)
+        gst_stream_set_stream_type (bstream->stream_object,
+            GST_STREAM_TYPE_METADATA);
     } else if (is_subpicture) {
       template = gst_static_pad_template_get (&subpicture_template);
       name =
@@ -2828,6 +2865,7 @@ gst_ts_demux_parse_pes_header (GstTSDemux * demux, TSDemuxStream * stream,
   stream->current_size = length;
 
   stream->state = PENDING_PACKET_BUFFER;
+  stream->current_pes_packet_flags = header.flags;
 
   if (stream->pending_header_data) {
     g_free (stream->pending_header_data);
@@ -3567,9 +3605,17 @@ parse_access_unit (GstTSDemux * demux, TSDemuxStream * stream,
     buffer = parse_jp2k_access_unit (stream);
   } else if (bs->stream_type == GST_MPEGTS_STREAM_TYPE_AUDIO_AAC_ADTS) {
     buffer = parse_aac_adts_frame (stream);
-  } else if (bs->stream_type == GST_MPEGTS_STREAM_TYPE_METADATA_PES_PACKETS
-      && bs->registration_id == DRF_ID_KLVA) {
-    buffer_list = parse_pes_metadata_frame (stream);
+  } else if (bs->stream_type == GST_MPEGTS_STREAM_TYPE_METADATA_PES_PACKETS) {
+    if (bs->registration_id == DRF_ID_KLVA) {
+      buffer_list = parse_pes_metadata_frame (stream);
+    } else if (bs->registration_id == DRF_ID_ID3) {
+      buffer = gst_buffer_new_wrapped (stream->data, stream->current_size);
+      if ((stream->current_pes_packet_flags & PES_FLAG_DATA_ALIGNMENT) == 0) {
+        gst_buffer_set_flags (buffer, GST_BUFFER_FLAG_DELTA_UNIT);
+      }
+    } else {
+      buffer = gst_buffer_new_wrapped (stream->data, stream->current_size);
+    }
   } else if (bs->stream_type == GST_MPEGTS_STREAM_TYPE_VIDEO_JPEG_XS) {
     buffer = parse_jpegxs_access_unit (stream);
   } else {
@@ -3874,7 +3920,11 @@ gst_ts_demux_handle_packet (GstTSDemux * demux, TSDemuxStream * stream,
     if (((stream->continuity_counter + 1) % 16) != cc) {
       if (stream->state != PENDING_PACKET_EMPTY) {
 #ifndef GST_DISABLE_GST_DEBUG
-        gchar *pad_name = gst_pad_get_name (stream->pad);
+        gchar *pad_name = NULL;
+
+        if (stream->pad)
+          pad_name = gst_pad_get_name (stream->pad);
+
         GST_ELEMENT_WARNING_WITH_DETAILS (demux, STREAM, DEMUX,
             ("CONTINUITY: Mismatch packet %d, stream %d (pid 0x%04x)", cc,
                 stream->continuity_counter, stream->stream.pid),
@@ -3883,6 +3933,7 @@ gst_ts_demux_handle_packet (GstTSDemux * demux, TSDemuxStream * stream,
                 G_TYPE_INT, cc, "stream", G_TYPE_INT,
                 stream->continuity_counter, "pid", G_TYPE_UINT,
                 stream->stream.pid, "pad-name", G_TYPE_STRING, pad_name, NULL));
+
         g_free (pad_name);
 #endif
         /* Clear pending state and don't process packet */
