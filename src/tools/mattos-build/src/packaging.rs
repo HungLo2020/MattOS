@@ -982,6 +982,10 @@ fn stale_compatibility_versions(repo_root: &Path, inventory: &PackageInventory) 
 
 fn package_stage_dependencies(source_component: &str) -> &'static [&'static str] {
     match source_component {
+        "alsa-utils" => &["alsa-utils"],
+        "alsa-lib" => &["alsa-lib"],
+        "alsa-ucm-conf" => &["alsa-ucm-conf"],
+        "sbc" => &["sbc"],
         "kde-cli-tools" => &["kde-cli-tools"],
         "plasma-integration" => &["plasma-integration"],
         "bluez-qt" => &["bluez-qt"],
@@ -1119,7 +1123,6 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "xdg-desktop-portal-kde" => &["xdg-desktop-portal-kde"],
             "dolphin" => &["dolphin"],
             "konsole" => &["konsole"],
-            "kate" => &["kate"],
             "ark" => &["ark"],
             "packagekit-qt" => &["packagekit-qt"],
             "haruna" => &["haruna"],
@@ -1246,7 +1249,6 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
             "libnl" => &["libnl"],
             "wpa-supplicant" => &["wpa-supplicant"],
             "grub" => &["grub"],
-            "cozy" => &["cozy"],
             "slate" => &["slate"],
             "slate-gui" => &["slate-gui"],
             "cpython" => &["cpython"],
@@ -1282,6 +1284,10 @@ fn package_stage_dependencies(source_component: &str) -> &'static [&'static str]
 
 fn package_source_roots(source_component: &str) -> &'static [&'static str] {
     match source_component {
+        "alsa-utils" => &["src/system/multimedia/alsa-utils", "upstream/policies/audio-release-archives.toml"],
+        "alsa-lib" => &["src/system/multimedia/alsa-lib"],
+        "alsa-ucm-conf" => &["src/system/multimedia/alsa-ucm-conf"],
+        "sbc" => &["src/system/multimedia/sbc"],
         "kde-cli-tools" => &["src/desktop/kde/kde-cli-tools"],
         "plasma-integration" => &["src/desktop/kde/plasma-integration"],
         "bluez-qt" => &["src/desktop/kde/bluez-qt"],
@@ -1416,6 +1422,7 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
         "dav1d" => &["src/system/multimedia/dav1d"],
         "glib" => &["src/system/libraries/glib"],
         "pipewire" => &[
+            "src/system/multimedia/policy",
             "src/system/multimedia/pipewire",
         ],
         "ffmpeg" => &["src/system/multimedia/ffmpeg"],
@@ -1865,7 +1872,6 @@ fn package_source_roots(source_component: &str) -> &'static [&'static str] {
             "src/system/network/wpa-supplicant",
         ],
         "grub" => &["src/boot/grub/upstream", "src/build-support/grub-gnulib"],
-        "cozy" => &["src/userland/cozy"],
         "slate" => &["src/userland/slate", "src/system/desktop/editor/slate-visual"],
         "slate-gui" => &["src/userland/slate", "src/system/desktop/editor/mimeapps.list"],
         "cpython" => &["src/development/python/cpython"],
@@ -1972,6 +1978,10 @@ pub(crate) fn package_coreutils_applets(binary: &Path) -> Result<Vec<String>> {
 
 fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
     let upstream = match spec.name {
+        "alsa-utils" => component_snapshot_version(repo_root, "alsa-utils")?,
+        "libasound2t64" => component_snapshot_version(repo_root, "alsa-lib")?,
+        "alsa-ucm-conf" => component_snapshot_version(repo_root, "alsa-ucm-conf")?,
+        "libsbc1" => component_snapshot_version(repo_root, "sbc")?,
         "mattos-release" => releases::release_version(repo_root)?,
         "mattos-upgrade" => cargo_package_version(&repo_root.join("src/system/release/Cargo.toml"))?,
         "mattos-filesystem" | "mattos-base-files" => "0.1".to_string(),
@@ -2197,7 +2207,7 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "libxcursor1" => component_snapshot_version(repo_root, "libxcursor")?,
         "libxft2" => component_snapshot_version(repo_root, "libxft")?,
         "libxcb1" => component_snapshot_version(repo_root, "libxcb")?,
-        "libx11-6" => component_snapshot_version(repo_root, "libx11")?,
+        "libx11-6" | "libx11-dev" => component_snapshot_version(repo_root, "libx11")?,
         "libxext6" => component_snapshot_version(repo_root, "libxext")?,
         "libxfixes3" => component_snapshot_version(repo_root, "libxfixes")?,
         "libglvnd0" | "libglvnd-dev" | "libglx0" | "libgl1" | "libopengl0" | "libegl1"
@@ -2244,7 +2254,6 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         "wpasupplicant" => component_snapshot_version(repo_root, "wpa-supplicant")?,
         "grub-efi-amd64" => component_snapshot_version(repo_root, "grub")?,
         "slate" | "slate-gui" => component_snapshot_version(repo_root, "slate")?,
-        "mattos-cozy" => cargo_package_version(&repo_root.join("src/userland/cozy/Cargo.toml"))?,
         "greetd" => component_snapshot_version(repo_root, "greetd")?,
         "plasma-login-manager" => component_snapshot_version(repo_root, "plasma-login-manager")?,
         "kwin" => component_snapshot_version(repo_root, "kwin")?,
@@ -2284,7 +2293,6 @@ fn package_version(repo_root: &Path, spec: &PackageSpec) -> Result<String> {
         }
         "dolphin" => component_snapshot_version(repo_root, "dolphin")?,
         "konsole" => component_snapshot_version(repo_root, "konsole")?,
-        "kate" => component_snapshot_version(repo_root, "kate")?,
         "ark" => component_snapshot_version(repo_root, "ark")?,
         "libpackagekitqt6-2" => component_snapshot_version(repo_root, "packagekit-qt")?,
         "haruna" => component_snapshot_version(repo_root, "haruna")?,

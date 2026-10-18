@@ -50,8 +50,9 @@ are not blocking document requests. `+LINE:COL` positions the cursor.
 The graphical package owns `/etc/xdg/mimeapps.list` as a conffile, selecting
 `slate.desktop` for the editor's advertised text and source formats. HTML
 keeps its browser default. Per-user MIME preferences take precedence over
-these distribution defaults. Kate and Cozy remain available as separately
-packaged editors.
+these distribution defaults. Kate/KWrite and Cozy are optional third-party
+editors. Their source is not vendored, and the default image does not install
+them.
 
 Slate can launch optional language servers, formatters, debuggers and external
 clipboard tools when installed. Making it the default editor does not install

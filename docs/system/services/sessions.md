@@ -73,3 +73,10 @@ This bus is not the system bus. The system broker continues to listen at `/run/d
 Sessions of the same user share one UID-scoped runtime directory, user manager, and user bus. On the live image the graphical session (greetd's initial session) and the ttyS0 serial autologin both run as `mattos`; in the CLI boot modes, tty1 and ttyS0 each autologin `mattos`. When one session exits, logind removes that session but retains the shared per-user services while another session remains. When the last session exits, logind stops the manager, the bus, and the runtime-directory unit and removes `/run/user/<uid>`. On a CLI console, getty then creates a fresh registered autologin session.
 
 On the live image, accounts and sessions are ephemeral because the root is a read-only SquashFS under a tmpfs-backed OverlayFS. Installed systems have a persistent root, so accounts, homes and user configuration persist; the installer removes the live autologin configuration (see [MattOS Installer](../installer.md)). MattOS does not enable lingering for any user. Interactive authorization is provided by Polkit and, in Plasma sessions, `polkit-kde-agent-1`.
+
+
+Systemd and udev are built with the MattOS ACL library. The packaged
+`70-uaccess.rules` and logind grant the active local desktop session access to
+sound devices; users do not need permanent `audio` group membership. See
+[Desktop Audio](../userland/audio.md) for the hardware backend and playback
+validation.

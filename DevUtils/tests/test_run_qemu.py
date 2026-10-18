@@ -87,10 +87,31 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
             self.assertIn(applet, loaded)
         self.assertIn("Cannot load library", loaded)
 
+    def test_hardware_audio_capture_requires_a_real_sound_card_and_non_silent_pcm(self):
+        import struct
+        import wave
+        self.assertEqual(run_qemu.hardware_audio_arguments(None), [])
+        args = run_qemu.hardware_audio_arguments(Path("recording.wav"))
+        self.assertIn("intel-hda", args)
+        self.assertIn("hda-duplex,audiodev=mattos-audio", args)
+        with TemporaryDirectory() as raw:
+            recording = Path(raw) / "audio.wav"
+            for sample, accepted in ((0, False), (5000, True)):
+                with wave.open(str(recording), "wb") as out:
+                    out.setnchannels(2)
+                    out.setsampwidth(2)
+                    out.setframerate(48000)
+                    out.writeframes(struct.pack("<hh", sample, sample) * 4800)
+                if accepted:
+                    self.assertEqual(run_qemu.verify_hardware_audio_capture(recording), 5000)
+                else:
+                    with self.assertRaises(RepoError):
+                        run_qemu.verify_hardware_audio_capture(recording)
+
     def test_installed_plasma_verifier_checks_every_shipped_kde_application(self) -> None:
         probes = dict(installed_kde_application_probes())
-        self.assertEqual(len(probes), 14)
-        for package in ("dolphin", "kate", "plasma-discover", "plasma-systemmonitor", "konsole",
+        self.assertEqual(len(probes), 13)
+        for package in ("dolphin", "plasma-discover", "plasma-systemmonitor", "konsole",
                         "systemsettings", "haruna", "spectacle", "kcalc", "gwenview",
                         "partitionmanager", "kwalletmanager", "ark", "elisa"):
             self.assertIn(f"dpkg-query -W {package} ", probes[f"app-{package}"])
@@ -619,7 +640,9 @@ class QemuNetworkArgumentsTests(unittest.TestCase):
                 "run_qemu.wait_for_socket"
             ), mock.patch("run_qemu.serial_command_stream", side_effect=["ok"] * 40), mock.patch(
                 "run_qemu.validate_completed_install", return_value={}
-            ), mock.patch("run_qemu.installed_kernel_probe", return_value="true"):
+            ), mock.patch("run_qemu.installed_kernel_probe", return_value="true"), mock.patch(
+                "run_qemu.verify_hardware_audio_capture", return_value=5000
+            ):
 
                 run_qemu._verify_installed_disk_boot(root, disk, args)
             verification_args = launched.call_args.args[2]

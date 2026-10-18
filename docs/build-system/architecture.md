@@ -265,7 +265,7 @@ their build-machine helpers. A toolchain stage that rebuilds under different
 host tools also warns before it runs.
 
 Cargo-built userland (`brush`, `coreutils`, `grep`, `sed`, `findutils`,
-`diffutils`, `init`, `sudo-rs`, `greetd`, `cozy`, `slate`, `slate-gui`, `installer`, and the
+`diffutils`, `init`, `sudo-rs`, `greetd`, `slate`, `slate-gui`, `installer`, and the
 `mattos-compat` package) and Meson builds with Rust components (`dbus-broker`,
 `mesa`, `gstreamer`) are compiled by the MattOS rustc from the `rust` stage,
 which is their declared dependency. The
@@ -310,6 +310,9 @@ authority when this table and the code disagree.
 | `expat`, `libcap`, `attr`, `zlib`, `bzip2`, `lz4`, `xz`, `xxhash`, `zstd`, `pcre2`, `libxcrypt`, `libmd`, `ncurses`, `iputils`, `libffi` | named component tree | none | formal sysroot | component install |
 | `kmod` | kmod | none | formal sysroot, zstd | kmod install |
 | `acl` | ACL | none | formal sysroot, Attr | ACL install |
+| `alsa-lib`, `sbc` | pinned ALSA library and SBC codec | none | formal sysroot | native libraries and development files |
+| `alsa-ucm-conf` | pinned ALSA UCM profiles | none | none (data only) | hardware profiles under `/usr/share/alsa` |
+| `alsa-utils` | pinned ALSA utilities and verified release bootstrap archive | none | formal sysroot, ALSA library, ncurses, systemd | playback/mixer tools and card-state service |
 | `openssl` | OpenSSL | none | formal sysroot, zlib, zstd | OpenSSL install |
 | `elfutils` | elfutils | none | formal sysroot, zlib, zstd | elfutils install |
 | `selinux` | SELinux | none | formal sysroot, PCRE2 | SELinux install |

@@ -1,7 +1,0 @@
-{
-    "description": "Create a QAbstractListModel derived class",
-    "replacements": [
-        { "description": "Class Name", "placeholder": "TMPL_QAbstractListModel", "default": "MyListModel" }
-    ],
-    "fileToOpen": "TMPL_QAbstractListModel.h"
-}

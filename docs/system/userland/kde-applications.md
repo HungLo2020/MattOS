@@ -3,8 +3,9 @@
 The Plasma profile (`mattos-plasma`) installs these KDE applications, each
 built from vendored source as its own stage and package:
 
-[Slate](slate.md) is the default graphical editor. Kate remains installed as
-an additional KDE editor.
+[Slate](slate.md) is the default graphical editor. Kate and KWrite are optional
+[third-party packages](../../packaging/third-party-packages.md); they are not
+vendored or installed by the Plasma profile.
 
 Font, palette, terminal, helper-command and Bluetooth integration are
 described in [Desktop Defaults](desktop-defaults.md).
@@ -12,7 +13,6 @@ described in [Desktop Defaults](desktop-defaults.md).
 | Application | Package | Executable |
 | --- | --- | --- |
 | Dolphin | dolphin | `dolphin` |
-| Kate | kate | `kate` |
 | Discover | plasma-discover | `plasma-discover` |
 | System Monitor | plasma-systemmonitor | `plasma-systemmonitor` |
 | Konsole | konsole | `konsole` |

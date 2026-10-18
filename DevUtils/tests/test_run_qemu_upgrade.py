@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 import sys
 import tempfile
 import unittest
@@ -115,6 +116,7 @@ class UpgradeTestHelperTests(unittest.TestCase):
             ["--upgrade-from", "x.iso"],
             ["--require-kernel-change"],
             ["--save-upgrade-baseline", "--upgrade-test"],
+            ["--upgrade-extra-package", "kate.deb"],
         ):
             with self.subTest(argv=argv), mock.patch.object(sys, "argv", ["run_qemu.py", *argv]):
                 with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
@@ -124,6 +126,42 @@ class UpgradeTestHelperTests(unittest.TestCase):
             args = run_qemu.parse_args()
         self.assertTrue(args.upgrade_test)
         self.assertEqual(args.upgrade_from, Path("old.iso"))
+
+    @unittest.skipUnless(shutil.which("dpkg-deb"), "dpkg-deb is required")
+    def test_optional_upgrade_repository_does_not_replace_native_producers(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            inventory = root / "out/packages/inventory.toml"
+            inventory.parent.mkdir(parents=True)
+            inventory.write_text('[[package]]\nname = "native"\nversion = "1.0"\n')
+            native_repo = root / "out/repository/marker"
+            native_repo.parent.mkdir(parents=True)
+            native_repo.write_text("native repository unchanged")
+
+            def package(name):
+                tree = root / name
+                control = tree / "DEBIAN/control"
+                control.parent.mkdir(parents=True)
+                control.write_text(f"Package: {name}\nVersion: 2.0-0mattos1\nArchitecture: amd64\n"
+                                   "Maintainer: MattOS <test@example.test>\nDescription: fixture\n")
+                artifact = root / f"{name}.deb"
+                subprocess.run(["dpkg-deb", "--build", "--root-owner-group", str(tree), str(artifact)],
+                               check=True, capture_output=True)
+                return artifact
+
+            kate = package("kate")
+            path, versions = run_qemu.prepare_upgrade_extra_repository(root, [kate])
+            self.assertEqual(versions, {"kate": "2.0-0mattos1"})
+            index = (path / "Packages").read_text()
+            import hashlib
+            self.assertIn(hashlib.sha256(kate.read_bytes()).hexdigest(), index)
+            self.assertIn("Filename: ./0.deb", index)
+            self.assertEqual((path / "0.deb").read_bytes(), kate.read_bytes())
+            self.assertEqual(native_repo.read_text(), "native repository unchanged")
+            with self.assertRaisesRegex(RepoError, "duplicates"):
+                run_qemu.prepare_upgrade_extra_repository(root, [package("native")])
+            with self.assertRaisesRegex(RepoError, "duplicates"):
+                run_qemu.prepare_upgrade_extra_repository(root, [kate, kate])
 
     def test_a_missing_baseline_is_reported_with_how_to_save_one(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

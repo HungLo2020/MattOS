@@ -12,6 +12,19 @@ use super::*;
 /// What the image installs, plus the dependency closure of each.
 pub(crate) const BUILDER_IMAGE_PACKAGES: &[&str] = &[
     "mattos-build-essential",
+    // Optional Kate/KWrite recipes build against the same target-owned SDK.
+    "qt6-base",
+    "qt6-declarative",
+    "kf6-ktexteditor",
+    "kf6-kiconthemes",
+    "kf6-kcrash",
+    "kf6-kguiaddons",
+    "libx11-dev",
+    // KIO's public CMake exports and KTextEditor's linked libraries.
+    "kf6-kbookmarks", "kf6-kcompletion", "kf6-kitemviews", "kf6-kjobwidgets",
+    "kf6-solid", "kf6-kservice", "kf6-karchive", "kf6-kauth", "kf6-kcodecs", "kf6-sonnet",
+    "kf6-kcolorscheme", "kf6-knotifications", "kf6-kglobalaccel",
+    "libmount1", "libsm6", "breeze-icons",
     "grep",
     "findutils",
     "diffutils",
@@ -277,7 +290,7 @@ mod tests {
         let order = package_closure(BUILDER_IMAGE_PACKAGES).unwrap();
         for required in [
             "gcc", "g++", "make", "cmake", "pkgconf", "dash", "sed", "mawk", "grep", "findutils", "diffutils",
-            "python3", "dpkg", "libc6-dev",
+            "python3", "dpkg", "libc6-dev", "kf6-ktexteditor", "qt6-speech", "kf6-kguiaddons", "libx11-dev", "kf6-kbookmarks", "kf6-solid", "kf6-sonnet", "kf6-kcolorscheme", "kf6-knotifications", "kf6-kglobalaccel", "libmount1", "libsm6", "breeze-icons",
         ] {
             assert!(order.contains(&required), "builder image lacks {required}");
         }

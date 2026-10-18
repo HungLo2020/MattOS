@@ -1,0 +1,27 @@
+name: Validate UCM configuration
+
+on: [push, pull_request]
+
+jobs:
+  ucm_validate:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+    steps:
+    - name: Prepare environment
+      run: |
+        dnf -y upgrade
+        dnf -y install alsa-lib-devel python3 make
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        path: alsa-ucm-conf
+    - name: Checkout alsa-tests
+      uses: actions/checkout@v4
+      with:
+        repository: alsa-project/alsa-tests
+        path: alsa-tests
+    - name: Validate configurations
+      run: |
+        cd alsa-tests/python/ucm-validator2
+        make configs

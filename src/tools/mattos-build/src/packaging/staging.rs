@@ -41,6 +41,13 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "tzdata" => stage_tzdata(repo_root, &staging)?,
         "linux-firmware" => stage_linux_firmware(repo_root, &staging)?,
         "wireless-regdb" => stage_wireless_regdb(repo_root, &staging)?,
+        "alsa-utils" => {
+            stage_install_tree(repo_root, &staging, "alsa-utils", "alsa-utils", "src/system/multimedia/alsa-utils", &["COPYING"])?;
+            fs::create_dir_all(staging.join("var/lib/alsa"))?;
+        },
+        "libasound2t64" => stage_multimedia_sdk(repo_root, &staging, "alsa-lib", "libasound2t64", "src/system/multimedia/alsa-lib/COPYING")?,
+        "alsa-ucm-conf" => stage_multimedia_sdk(repo_root, &staging, "alsa-ucm-conf", "alsa-ucm-conf", "src/system/multimedia/alsa-ucm-conf/LICENSE")?,
+        "libsbc1" => stage_multimedia_sdk(repo_root, &staging, "sbc", "libsbc1", "src/system/multimedia/sbc/COPYING.LIB")?,
         "libtalloc2" => {
             stage_library_family(repo_root, &staging, "talloc", &["libtalloc.so.2"])?;
             copy_preserving(&repo_root.join("src/system/network/samba/lib/talloc/LICENSE"), &staging.join("usr/share/doc/libtalloc2/copyright"))?;
@@ -412,7 +419,6 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         )?,
         "dolphin" => stage_kde_module(repo_root, &staging, "dolphin", "dolphin")?,
         "konsole" => stage_kde_module(repo_root, &staging, "konsole", "konsole")?,
-        "kate" => stage_kde_module(repo_root, &staging, "kate", "kate")?,
         "ark" => stage_kde_module(repo_root, &staging, "ark", "ark")?,
         "libpackagekitqt6-2" => stage_kde_module(repo_root, &staging, "packagekit-qt", "libpackagekitqt6-2")?,
         "haruna" => stage_kde_module(repo_root, &staging, "haruna", "haruna")?,
@@ -955,6 +961,7 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
                 &staging.join("usr/share/X11/locale"),
             )?;
         }
+        "libx11-dev" => stage_x11_development(repo_root, &staging)?,
         "libglvnd-dev" => stage_libglvnd_dev(repo_root, &staging)?,
         "libegl-mesa0" => stage_mesa_egl_vendor(repo_root, &staging)?,
         "libgl1-mesa-dri" => stage_mesa_dri_runtime(repo_root, &staging)?,
@@ -1025,7 +1032,6 @@ pub(crate) fn stage_package(repo_root: &Path, spec: &PackageSpec) -> Result<()> 
         "network-manager" => stage_network_manager(repo_root, &staging)?,
         "wpasupplicant" => stage_wpa_supplicant(repo_root, &staging)?,
         "grub-efi-amd64" => stage_grub_package(repo_root, &staging)?,
-        "mattos-cozy" => stage_cozy(repo_root, &staging)?,
         "slate" => stage_slate(repo_root, &staging, false)?,
         "slate-gui" => stage_slate(repo_root, &staging, true)?,
         "libdbus-1-3" => {
@@ -1723,6 +1729,10 @@ const LIBRARY_FAMILIES: &[(&str, &str, &[&str])] = &[
             "libncursesw.so.6",
             "libpanelw.so.6.6",
             "libpanelw.so.6",
+            "libformw.so.6.6",
+            "libformw.so.6",
+            "libmenuw.so.6.6",
+            "libmenuw.so.6",
         ],
     ),
     (
@@ -2200,4 +2210,25 @@ pub(crate) fn copy_preserving(source: &Path, destination: &Path) -> Result<()> {
         fs::set_permissions(destination, fs::Permissions::from_mode(mode))?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod audio_mixer_runtime_tests {
+    use super::*;
+
+    #[test]
+    fn ncurses_runtime_carries_the_mixer_form_menu_and_panel_libraries() {
+        let root = tempfile::tempdir().unwrap();
+        let library = root.path().join("out/build/ncurses/install/usr/lib/x86_64-linux-gnu");
+        fs::create_dir_all(&library).unwrap();
+        for stem in ["libncursesw.so", "libpanelw.so", "libformw.so", "libmenuw.so"] {
+            fs::write(library.join(format!("{stem}.6.6")), stem).unwrap();
+            std::os::unix::fs::symlink(format!("{stem}.6.6"), library.join(format!("{stem}.6"))).unwrap();
+        }
+        let staging = root.path().join("package");
+        stage_table_package(root.path(), &staging, "libncursesw6").unwrap();
+        for stem in ["libncursesw.so", "libpanelw.so", "libformw.so", "libmenuw.so"] {
+            assert_eq!(fs::read_to_string(staging.join(format!("usr/lib/x86_64-linux-gnu/{stem}.6"))).unwrap(), stem);
+        }
+    }
 }

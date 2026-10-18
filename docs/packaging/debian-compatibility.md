@@ -74,7 +74,7 @@ Packages classified `mattos-specific` in `trixie.toml` currently are
 `mattos-filesystem`, `mattos-compat`, `mattos-base-files`,
 `mattos-base-runtime`, `mattos-base`, `mattos-cli`, `mattos-plasma`,
 `mattos-plasma-live`, `mattos-plasma-theme`, `mattos-toolchain`,
-`mattos-installer`, `mattos-cozy`, `mattos-brush`, `mattos-gcc-common`,
+`mattos-installer`, `mattos-brush`, `mattos-gcc-common`,
 `mattos-libgcc-dev`, `mattos-libstdc++-dev`, `mattos-libcrypto3`,
 `mattos-libtinfow6`, `mattos-libproc2`, `mattos-libpam-misc0`, and
 `mattos-sudo-rs`. The GCC 15 development packages deliberately do not claim

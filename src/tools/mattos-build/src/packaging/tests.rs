@@ -13,7 +13,8 @@ fn live_root_leaves_out_only_real_development_packages_nothing_depends_on() {
             "{name} is not a MattOS package"
         );
     }
-    // Whatever the live root leaves out, installed systems get.
+    // Common development tools ship through the installed toolchain;
+    // optional SDK packages remain available from the offline repository.
     let toolchain = package_specs()
         .into_iter()
         .find(|spec| spec.name == MATTOS_TOOLCHAIN_META_PACKAGE)
@@ -950,7 +951,7 @@ fn third_milestone_package_families_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 445);
+    assert_eq!(PACKAGE_NAMES.len(), 448);
 }
 
 #[test]
@@ -1005,7 +1006,7 @@ fn base_userland_package_families_and_command_set_are_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 445);
+    assert_eq!(PACKAGE_NAMES.len(), 448);
     // The uutils search and comparison commands left mattos-base-runtime for
     // their Debian package names; the base profile still installs them.
     let base = specs.iter().find(|spec| spec.name == "mattos-base").unwrap();
@@ -1119,7 +1120,7 @@ fn self_hosting_development_package_families_are_split_and_complete() {
     ] {
         assert!(specs.iter().any(|spec| spec.name == name), "missing {name}");
     }
-    assert_eq!(PACKAGE_NAMES.len(), 445);
+    assert_eq!(PACKAGE_NAMES.len(), 448);
     let python = specs.iter().find(|spec| spec.name == "python3").unwrap();
     for dependency in [
         "libffi8",

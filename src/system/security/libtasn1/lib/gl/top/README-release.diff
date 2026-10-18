@@ -1,0 +1,101 @@
+--- README-release.orig	2026-01-08 09:42:57.052907546 +0100
++++ README-release	2026-01-08 09:43:02.040907818 +0100
+@@ -6,6 +6,13 @@
+     git checkout master
+     git pull origin master
+ 
++* Review changes compared to last release, and make sure NEWS file
++  contains a good summary of changes.
++
++    make review-diff
++
++* Make sure LT_* variables in configure.ac are updated properly.
++
+ * Ensure that the latest stable versions of autoconf, automake, etc.
+   are in your PATH.  See the buildreq list in bootstrap.conf for
+   the complete list of tools.
+@@ -19,14 +26,17 @@
+ 
+     git push origin master
+ 
++* Check that the GitLab autobuilder is reporting all is well:
++
++    https://gitlab.com/gsasl/libtasn1/-/pipelines
++
+ * Run the following command to download any new translations:
+ 
+     ./bootstrap && ./configure
+ 
+ * Pre-release testing: ensure that the following commands succeed:
+ 
+-    c=check ve=check-very-expensive; git grep -q "^$ve:\$" && c=$ve
+-    make $c syntax-check distcheck
++    make check syntax-check distcheck
+ 
+ * To (i) set the date, version number, and release TYPE near the top of
+   NEWS, (ii) commit that, and (iii) tag the release, run
+@@ -34,6 +44,13 @@
+     # "TYPE" must be stable, beta or alpha
+     make release-commit RELEASE='X.Y TYPE'
+ 
++* Push the tag and branch commit to allow the GitLab pipeline to build
++  reproducible source tarballs.
++
++    v=$(cat .version)
++    git push origin tag $v
++    git push origin HEAD
++
+ * Run the following to create release tarballs.  Your choice selects the
+   corresponding upload-to destination in the emitted gnupload command.
+   The different destinations are specified in cfg.mk.  See the definitions
+@@ -41,11 +58,14 @@
+ 
+     make release RELEASE='X.Y TYPE'
+ 
++* Compare the locally built tarball with the GitLab 'R-Guix' job
++  tarball artifacts, use 'diffoscope' to identify differences.
++
+ * Test the tarball.  Copy it to a few odd-ball systems and ensure that
+   it builds and passes all tests.
+ 
+ * While that's happening, write the release announcement that you will
+-  soon post.  Start with the template, $HOME/announce-@PACKAGE@-X.Y
++  soon post.  Start with the template, $HOME/announce-libtasn1-X.Y
+   that was just created by that "make" command.
+ 
+ Once all the builds and tests have passed,
+@@ -64,28 +84,6 @@
+     v=$(cat .prev-version)
+     git push origin master tag v$v
+ 
+-* Announce it on Savannah first, so you can include the savannah.org
+-  announcement link in the email message.
+-
+-  Go to the news-submission form:
+-
+-    https://savannah.gnu.org/news/submit.php?group=@PACKAGE@
+-
+-  If it does not work, then enable "News" for the project via this link:
+-
+-    https://savannah.gnu.org/project/admin/editgroupfeatures.php?group=@PACKAGE@
+-
+-  Write something like the following:
+-
+-    Subject: @PACKAGE@-X.Y released [stable]
+-    +verbatim+
+-    ...paste the announcement here...
+-    -verbatim-
+-
+-  Then go here to approve it:
+-
+-    https://savannah.gnu.org/news/approve.php?group=@PACKAGE@
+-
+ * Send the announcement email message.
+ 
+ * After each non-alpha release, run
+@@ -94,4 +92,4 @@
+ 
+   to update the on-line manual accessible at
+ 
+-    https://www.gnu.org/software/@PACKAGE@/manual/
++    https://www.gnu.org/software/libtasn1/manual/

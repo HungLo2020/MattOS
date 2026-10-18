@@ -678,7 +678,6 @@ fn production_scheduler_plan_is_valid_and_simulates_successful_cold_run() {
         ("brush", 262.577),
         ("bzip2", 3.025),
         ("coreutils", 283.164),
-        ("cozy", 30.000),
         ("pop-launcher", 60.000),
         ("greetd", 30.000),
         ("curl", 100.519),
@@ -5205,4 +5204,19 @@ fn nvidia_build_stamp_is_pinned_to_the_normalized_epoch() {
         NVIDIA_BUILD_STAMP_ARGS[2],
         format!("DATE=date -u -d @{}", performance::normalized_build_environment()["SOURCE_DATE_EPOCH"])
     );
+}
+
+#[test]
+fn audio_release_archive_is_pinned_and_isolated_from_the_toolchain() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let policy = fs::read_to_string(root.join("upstream/policies/audio-release-archives.toml")).unwrap();
+    assert!(policy.contains(ALSA_UTILS_RELEASE_ARCHIVE_URL));
+    assert!(policy.contains(ALSA_UTILS_RELEASE_ARCHIVE_SHA256));
+    assert!(policy.contains(&read_sync_state(&root, "alsa-utils").unwrap().unwrap().imported_commit));
+    assert!(policy.contains("output-mirror-only"));
+    let input = PathBuf::from("upstream/policies/audio-release-archives.toml");
+    assert!(crate::stage_inputs::source_inputs(BuildStage::AlsaUtils).contains(&input));
+    for stage in [BuildStage::Rust, BuildStage::Llvm, BuildStage::CrossToolchain] {
+        assert!(!crate::stage_inputs::source_inputs(stage).contains(&input));
+    }
 }

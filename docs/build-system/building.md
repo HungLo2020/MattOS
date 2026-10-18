@@ -198,7 +198,7 @@ from the internal stage IDs used in cache manifests, logs, and
   Cargo, built from the checksummed official source release and depending on
   `llvm`). This MattOS rustc compiles all target Rust code, so the Cargo-built
   stages (`brush`, `coreutils`, `grep`, `findutils`, `diffutils`,
-  `init`, `sudo-rs`, `greetd`, `cozy`, `slate`, `slate-gui`, `installer`) and the Meson builds with
+  `init`, `sudo-rs`, `greetd`, `slate`, `slate-gui`, `installer`) and the Meson builds with
   Rust components (`dbus-broker`, `mesa`, `gstreamer`) depend on `rust` as
   well as `formal-sysroot`.
 - **Graphics and desktop.** Wayland, Mesa, Vulkan, fonts, Qt (`qt-base`,
@@ -219,7 +219,7 @@ The live root installs every package except the development toolchain
 (`MATTOS_TOOLCHAIN_PACKAGES` in
 `src/tools/mattos-build/src/packaging/registry.rs`: GCC, Binutils, Make,
 Clang/LLD/LLVM, rustc/Cargo, and the `-dev` packages) and its
-`mattos-toolchain` metapackage. Every installed system gets the toolchain:
+`mattos-toolchain` metapackage, plus optional `libx11-dev` SDK files. Every installed system gets the common toolchain:
 the installer installs `mattos-toolchain` alongside the selected profile. The
 offline package repository with all packages, toolchain included, sits on the
 ISO at `/mattos/repository` rather than inside the SquashFS; the live root's

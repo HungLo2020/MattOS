@@ -210,7 +210,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::PlasmaWaylandProtocols => vec!["out/build/plasma-wayland-protocols/install".into()],
         BuildStage::WaylandProtocols => vec!["out/build/wayland-protocols/install".into()],
         BuildStage::PlasmaKWin | BuildStage::PlasmaFramework | BuildStage::PlasmaActivities | BuildStage::KActivityManagerd | BuildStage::KGlobalAccelD | BuildStage::PlasmaActivitiesStats | BuildStage::Plasma5Support | BuildStage::LibKScreen | BuildStage::LayerShellQt | BuildStage::KScreenLocker | BuildStage::KSysGuard | BuildStage::PlasmaWorkspace | BuildStage::PlasmaDesktop | BuildStage::Breeze | BuildStage::Icu | BuildStage::LmSensors | BuildStage::Highway
-        | BuildStage::KFileMetadata | BuildStage::KPty | BuildStage::NetworkManagerQt | BuildStage::ModemManager | BuildStage::ModemManagerQt | BuildStage::KPurpose | BuildStage::Milou | BuildStage::SystemSettings | BuildStage::KSystemStats | BuildStage::PlasmaSystemMonitor | BuildStage::PolkitKdeAgent | BuildStage::KQuickImageEditor | BuildStage::Ffmpeg | BuildStage::Libva | BuildStage::OpenCv | BuildStage::ZxingCpp | BuildStage::SndFile | BuildStage::PulseAudioClient | BuildStage::LibGudev | BuildStage::Gmp | BuildStage::Mpfr | BuildStage::Mpc | BuildStage::Nasm | BuildStage::PackageKit | BuildStage::Sqlite | BuildStage::Jansson | BuildStage::KdSingleApplication | BuildStage::Mpv | BuildStage::Libplacebo | BuildStage::Libass | BuildStage::Harfbuzz | BuildStage::Fribidi | BuildStage::Exiv2 | BuildStage::LibjpegTurbo | BuildStage::Libxrandr | BuildStage::LibBytesize | BuildStage::Keyutils | BuildStage::LibNvme | BuildStage::Popt | BuildStage::JsonC | BuildStage::E2fsprogs | BuildStage::DeviceMapper | BuildStage::Cryptsetup | BuildStage::LibBlockdev | BuildStage::WirePlumber | BuildStage::UPower | BuildStage::UDisks2 | BuildStage::BlueZ | BuildStage::PowerProfilesDaemon | BuildStage::KPipeWire | BuildStage::Spectacle | BuildStage::PulseAudioQt | BuildStage::PlasmaPa | BuildStage::PlasmaNm | BuildStage::PowerDevil | BuildStage::XdgDesktopPortalKde | BuildStage::Dolphin | BuildStage::Konsole | BuildStage::Kate | BuildStage::Ark | BuildStage::PackageKitQt | BuildStage::Haruna | BuildStage::MpvQt | BuildStage::Discover | BuildStage::Gwenview | BuildStage::KImageAnnotator | BuildStage::KColorPicker | BuildStage::Elisa | BuildStage::PartitionManager | BuildStage::KWalletManager | BuildStage::KCalc => vec![format!("out/build/{}/install", build_stage_id(stage)).into()],
+        | BuildStage::KFileMetadata | BuildStage::KPty | BuildStage::NetworkManagerQt | BuildStage::ModemManager | BuildStage::ModemManagerQt | BuildStage::KPurpose | BuildStage::Milou | BuildStage::SystemSettings | BuildStage::KSystemStats | BuildStage::PlasmaSystemMonitor | BuildStage::PolkitKdeAgent | BuildStage::KQuickImageEditor | BuildStage::Ffmpeg | BuildStage::Libva | BuildStage::OpenCv | BuildStage::ZxingCpp | BuildStage::SndFile | BuildStage::PulseAudioClient | BuildStage::LibGudev | BuildStage::Gmp | BuildStage::Mpfr | BuildStage::Mpc | BuildStage::Nasm | BuildStage::PackageKit | BuildStage::Sqlite | BuildStage::Jansson | BuildStage::KdSingleApplication | BuildStage::Mpv | BuildStage::Libplacebo | BuildStage::Libass | BuildStage::Harfbuzz | BuildStage::Fribidi | BuildStage::Exiv2 | BuildStage::LibjpegTurbo | BuildStage::Libxrandr | BuildStage::LibBytesize | BuildStage::Keyutils | BuildStage::LibNvme | BuildStage::Popt | BuildStage::JsonC | BuildStage::E2fsprogs | BuildStage::DeviceMapper | BuildStage::Cryptsetup | BuildStage::LibBlockdev | BuildStage::WirePlumber | BuildStage::UPower | BuildStage::UDisks2 | BuildStage::BlueZ | BuildStage::PowerProfilesDaemon | BuildStage::KPipeWire | BuildStage::Spectacle | BuildStage::PulseAudioQt | BuildStage::PlasmaPa | BuildStage::PlasmaNm | BuildStage::PowerDevil | BuildStage::XdgDesktopPortalKde | BuildStage::Dolphin | BuildStage::Konsole | BuildStage::Ark | BuildStage::PackageKitQt | BuildStage::Haruna | BuildStage::MpvQt | BuildStage::Discover | BuildStage::Gwenview | BuildStage::KImageAnnotator | BuildStage::KColorPicker | BuildStage::Elisa | BuildStage::PartitionManager | BuildStage::KWalletManager | BuildStage::KCalc => vec![format!("out/build/{}/install", build_stage_id(stage)).into()],
         BuildStage::Wayland => vec!["out/build/wayland/install".into()],
         BuildStage::Xkbcommon => vec!["out/build/xkbcommon/install".into()],
         BuildStage::Libseat => vec!["out/build/seatd/install".into()],
@@ -235,7 +235,7 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::XdgUtils => vec!["out/build/xdg-utils/install".into()],
         BuildStage::NotoColorEmoji => vec!["out/build/noto-color-emoji/install".into()],
         BuildStage::NotoSansCjk => vec!["out/build/noto-sans-cjk/install".into()],
-        BuildStage::ReleaseTools | BuildStage::Talloc | BuildStage::CifsUtils | BuildStage::Nettle | BuildStage::LibTasn1 | BuildStage::GnuTls => vec![format!("out/build/{}/install", build_stage_id(stage)).into()],
+        BuildStage::AlsaUtils | BuildStage::AlsaLib | BuildStage::AlsaUcmConf | BuildStage::Sbc | BuildStage::ReleaseTools | BuildStage::Talloc | BuildStage::CifsUtils | BuildStage::Nettle | BuildStage::LibTasn1 | BuildStage::GnuTls => vec![format!("out/build/{}/install", build_stage_id(stage)).into()],
         BuildStage::SambaClient => vec!["out/build/samba/install".into(), "out/build/samba/validation".into()],
         BuildStage::XdgUserDirs => vec!["out/build/xdg-user-dirs/install".into()],
         BuildStage::PopFonts => vec!["out/build/pop-fonts/install/usr/share/fonts/opentype/fira/FiraSans-Regular.otf".into()],
@@ -303,7 +303,6 @@ fn build_stage_spec(stage: BuildStage) -> performance::StageSpec {
         BuildStage::Ostree => vec!["out/build/ostree/install/usr/lib/x86_64-linux-gnu/libostree-1.so.1".into()],
         BuildStage::Greetd => vec!["out/build/greetd/install/usr/bin/greetd".into()],
         BuildStage::PlasmaLoginManager => vec!["out/build/plasma-login-manager/install/usr/bin/plasmalogin".into()],
-        BuildStage::Cozy => vec!["out/build/cozy/install/usr/bin/cozy".into()],
         BuildStage::Slate => vec!["out/build/slate/install".into()],
         BuildStage::SlateGui => vec!["out/build/slate-gui/install".into()],
         BuildStage::Python => vec!["out/build/cpython/install".into()],
@@ -651,7 +650,7 @@ fn stage_precedes_target_toolchain(stage_id: &str) -> bool {
 /// keying them on it would let them build before it exists and then rebuild
 /// once it does.
 fn stage_independent_of_target_toolchain(stage_id: &str) -> bool {
-    matches!(stage_id, "pop-fonts" | "material-cursors" | "noto-color-emoji" | "noto-sans-cjk" | "xdg-utils")
+    matches!(stage_id, "pop-fonts" | "material-cursors" | "noto-color-emoji" | "noto-sans-cjk" | "xdg-utils" | "alsa-ucm-conf")
 }
 
 /// Whether `stage_id` is compiled by the target toolchain, and so is keyed on
@@ -933,7 +932,6 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::XdgDesktopPortalKde => build_xdg_desktop_portal_kde(repo_root),
         BuildStage::Dolphin => build_dolphin(repo_root),
         BuildStage::Konsole => build_konsole(repo_root),
-        BuildStage::Kate => build_kate(repo_root),
         BuildStage::Ark => build_ark(repo_root),
         BuildStage::PackageKitQt => build_packagekit_qt(repo_root),
         BuildStage::Haruna => build_haruna(repo_root),
@@ -1004,7 +1002,6 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Gpgme => build_gpgme(repo_root),
         BuildStage::Ostree => build_ostree(repo_root),
         BuildStage::Greetd => build_greetd(repo_root),
-        BuildStage::Cozy => build_cozy(repo_root),
         BuildStage::Slate => build_slate(repo_root),
         BuildStage::SlateGui => build_slate_gui(repo_root),
         BuildStage::Python => build_cpython(repo_root),
@@ -1037,6 +1034,10 @@ fn build_stage_recipe(repo_root: &Path, stage: BuildStage) -> Result<()> {
         BuildStage::Zstd => build_zstd(repo_root),
         BuildStage::Dav1d => build_dav1d(repo_root),
         BuildStage::Glib => build_glib(repo_root),
+        BuildStage::AlsaUtils => build_alsa_utils(repo_root),
+        BuildStage::AlsaLib => build_alsa_lib(repo_root),
+        BuildStage::AlsaUcmConf => build_alsa_ucm_conf(repo_root),
+        BuildStage::Sbc => build_sbc(repo_root),
         BuildStage::Pipewire => build_pipewire(repo_root),
         BuildStage::Openssl => build_openssl(repo_root),
         BuildStage::Elfutils => build_elfutils(repo_root),

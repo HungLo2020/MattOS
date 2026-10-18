@@ -1,0 +1,88 @@
+SUBDIRS = init
+
+sbin_PROGRAMS=alsactl
+man_MANS=alsactl.1
+if USE_XMLTO
+man_MANS += alsactl_init.7
+endif
+EXTRA_DIST=alsactl.1 alsactl_init.xml
+
+AM_CFLAGS = -D_GNU_SOURCE
+
+AM_CPPFLAGS = -I$(top_srcdir)/include
+
+alsactl_SOURCES=alsactl.c state.c lock.c utils.c wait.c \
+		init_parse.c init_ucm.c boot_params.c \
+		daemon.c monitor.c clean.c info.c export.c
+
+alsactl_CFLAGS=$(AM_CFLAGS) -D__USE_GNU \
+               -DSYS_ASOUNDRC=\"$(ASOUND_STATE_DIR)/asound.state\" \
+               -DSYS_LOCKPATH=\"$(ASOUND_LOCK_DIR)\" \
+               -DSYS_LOCKFILE=\"asound.state.lock\" \
+               -DSYS_PIDFILE=\"$(ALSACTL_PIDFILE_DIR)/alsactl.pid\"
+
+noinst_HEADERS=alsactl.h list.h init_sysdeps.c init_utils_string.c \
+               init_utils_run.c init_sysfs.c
+
+udevrules_DATA = \
+	conf/90-alsa-restore.rules
+
+if HAVE_SYSTEMD
+
+systemdsystemunit_DATA = \
+	conf/alsa-state.service \
+	conf/alsa-restore.service \
+	conf/alsa-card-wait@.service
+
+install-data-hook:
+	$(MKDIR_P) -m 0755 \
+		$(DESTDIR)$(systemdsystemunitdir)/sound.target.wants
+	( cd $(DESTDIR)$(systemdsystemunitdir)/sound.target.wants && \
+		rm -f alsa-state.service alsa-restore.service && \
+		$(LN_S) ../alsa-state.service alsa-state.service && \
+		$(LN_S) ../alsa-restore.service alsa-restore.service)
+
+endif
+
+edit = \
+	extratest=$$(echo ' $(ALSACTL_UDEV_EXTRATEST)' | sed -e 's/__/ /g' -e 's/^ $$//'); \
+	args=$$(echo ' $(ALSACTL_UDEV_ARGS)' | sed -e 's/__/ /g' -e 's/^ $$//'); \
+	mkdir -p conf; \
+	$(SED) -r -e 's,@sbindir\@,$(sbindir),g' \
+		  -e 's,@mydatadir\@,$(mydatadir),g' \
+		  -e 's,@daemonswitch\@,$(ALSACTL_DAEMONSWITCH),g' \
+		  -e 's,@asoundrcfile\@,$(ASOUND_STATE_DIR)/asound.state,g' \
+		  -e "s;@extratest\@;$${extratest};g" \
+		  -e "s;@args\@;$${args};g" \
+							< $< > $@ || rm $@
+
+conf/alsa-state.service: conf/alsa-state.service.in
+	$(edit)
+
+conf/alsa-restore.service: conf/alsa-restore.service.in
+	$(edit)
+
+conf/alsa-card-wait@.service: conf/alsa-card-wait@.service.in
+	$(edit)
+
+conf/90-alsa-restore.rules: conf/90-alsa-restore.rules.in
+	$(edit)
+
+EXTRA_DIST += \
+	conf/alsa-state.service.in \
+	conf/alsa-restore.service.in \
+	conf/alsa-card-wait@.service.in \
+	conf/90-alsa-restore.rules.in
+
+CLEANFILES = \
+	conf/alsa-state.service \
+	conf/alsa-restore.service \
+	conf/alsa-card-wait@.service \
+	conf/90-alsa-restore.rules
+
+if USE_XMLTO
+CLEANFILES += alsactl_init.7
+endif
+
+%.7: %.xml
+	xmlto man $?

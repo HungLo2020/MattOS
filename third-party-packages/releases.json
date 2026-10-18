@@ -57,6 +57,11 @@
       "source_sha256": "940e349f0ef394e658fd57400b83d1d7a81b954f6e7bdbfbfad31b2718c10add",
       "revision": 2
     },
+    "kate": {
+      "version": "26.08.2",
+      "release_tag": "v26.08.2",
+      "source_sha256": "6fad08032362300d8de646c6d45f11dac72c9c7c6dfea2261c844a42a17a8652"
+    },
     "libmnl0": {
       "release_tag": "libmnl-1.0.5",
       "source_sha256": "274b9b919ef3152bfb3da3a13c950dd60d6e2bcd54230ffeca298d03b40d0525",
@@ -97,6 +102,11 @@
       "version": "1.6.0",
       "release_tag": "v1.6.0",
       "source_sha256": "e4ab7009bf0629fd11982d4c2aa83964cf244cffba7347ecd39019a9e38c4564"
+    },
+    "mattos-cozy": {
+      "version": "0.2.37",
+      "release_tag": "v0.2.37",
+      "source_sha256": "3f458002d3ce8fc82a455022c6eed7a0dc27938f84133262c70c8349f975aed8"
     },
     "netavark": {
       "release_tag": "v2.1.0",

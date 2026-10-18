@@ -50,6 +50,32 @@ mod wifi_grub_tests {
     }
 
     #[test]
+    fn slate_is_the_only_default_editor_and_retired_apps_have_no_native_producer() {
+        let specs = package_specs();
+        for forbidden in ["kate", "kwrite", "mattos-cozy"] {
+            assert!(!specs.iter().any(|p| p.name == forbidden));
+        }
+        for profile in ["mattos-base", "mattos-cli", "mattos-plasma"] {
+            let packages = closure(profile);
+            assert!(packages.contains("slate"));
+            for forbidden in ["kate", "kwrite", "mattos-cozy"] {
+                assert!(!packages.contains(forbidden), "{profile} installs {forbidden}");
+            }
+        }
+        assert!(closure("mattos-plasma").contains("slate-gui"));
+    }
+
+    #[test]
+    fn hardware_audio_requires_alsa_profiles_bluetooth_codecs_and_session_acls() {
+        let packages = closure("mattos-plasma");
+        for required in ["pipewire", "wireplumber", "libasound2t64", "alsa-ucm-conf", "alsa-utils", "libsbc1", "bluez"] {
+            assert!(packages.contains(required), "missing hardware audio dependency {required}");
+        }
+        assert!(package_specs().iter().find(|p| p.name == "systemd").unwrap().depends.contains(&"libacl1"));
+        assert!(crate::stage_graph::direct_dependencies(crate::stage_graph::BuildStage::Systemd).contains(&"acl"));
+    }
+
+    #[test]
     fn desktop_integration_has_a_complete_package_closure() {
         let desktop = closure("mattos-plasma");
         for name in ["plasma-integration", "bluedevil", "kf6-bluez-qt", "libpam-kwallet5", "libsecret-1-0", "xdg-utils", "fonts-noto-color-emoji", "fonts-noto-cjk"] {
@@ -275,7 +301,6 @@ mod wifi_grub_tests {
             "powerdevil",
             "dolphin",
             "konsole",
-            "kate",
             "ark",
             "haruna",
             "plasma-discover",
@@ -324,6 +349,11 @@ mod wifi_grub_tests {
 }
 
 pub(crate) const PACKAGE_NAMES: &[&str] = &[
+    "libx11-dev",
+    "alsa-utils",
+    "libasound2t64",
+    "alsa-ucm-conf",
+    "libsbc1",
     "mattos-release",
     "mattos-upgrade",
     "libtalloc2",
@@ -549,7 +579,6 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "xdg-desktop-portal-kde",
     "dolphin",
     "konsole",
-    "kate",
     "ark",
     "libpackagekitqt6-2",
     "haruna",
@@ -737,7 +766,6 @@ pub(crate) const PACKAGE_NAMES: &[&str] = &[
     "libnl-route-3-200",
     "wpasupplicant",
     "grub-efi-amd64",
-    "mattos-cozy",
     "slate",
     "slate-gui",
     "libpython3.14",
@@ -852,6 +880,7 @@ const MATTOS_BASE_DEPENDS: &[&str] = &[
 ];
 
 const MATTOS_PLASMA_DEPENDS: &[&str] = &[
+    "alsa-utils",
     "kde-cli-tools",
     "plasma-integration", "bluedevil", "libpam-kwallet5", "xdg-utils", "fonts-noto-color-emoji", "fonts-noto-cjk",
     "slate-gui",
@@ -974,7 +1003,6 @@ const MATTOS_PLASMA_DEPENDS: &[&str] = &[
     "power-profiles-daemon",
     "dolphin",
     "konsole",
-    "kate",
     "ark",
     "haruna",
     "plasma-discover",
@@ -1282,6 +1310,10 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             essential: false,
             priority: "important",
         },
+        PackageSpec { name: "alsa-utils", description: "ALSA mixer, playback and persistent card-state tools", source_component: "alsa-utils", depends: &["libasound2t64", "libncursesw6", "mattos-libtinfow6", "systemd"], provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
+        PackageSpec { name: "libasound2t64", description: "ALSA hardware audio library and development files", source_component: "alsa-lib", depends: &["libc6"], provides: &["libasound2", "libasound2-dev"], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
+        PackageSpec { name: "alsa-ucm-conf", description: "ALSA hardware use-case profiles", source_component: "alsa-ucm-conf", depends: &[], provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
+        PackageSpec { name: "libsbc1", description: "Bluetooth SBC audio codec library", source_component: "sbc", depends: &["libc6"], provides: &["libsbc-dev"], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
         PackageSpec { name: "libtalloc2", description: "Talloc from the pinned Samba source", source_component: "samba-talloc", depends: &["libc6"], provides: &[], conflicts: &[], replaces: &[], essential: false, priority: "optional" },
         PackageSpec {
             name: "cifs-utils",
@@ -1350,6 +1382,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             source_component: "systemd",
             depends: &[
                 "libc6",
+                "libacl1",
                 "libsystemd0",
                 "libudev1",
                 "libcap2",
@@ -2311,7 +2344,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             name: "pipewire",
             description: "PipeWire audio service, PulseAudio compatibility, and SPA runtime",
             source_component: "pipewire",
-            depends: &["libc6", "libdbus-1-3", "libsystemd0"],
+            depends: &["libasound2t64", "alsa-ucm-conf", "libsbc1", "bluez", "libglib2.0-0t64", "libsndfile1", "libc6", "libdbus-1-3", "libsystemd0"],
             provides: &[
                 "pipewire",
                 "pipewire-pulse",
@@ -4388,6 +4421,14 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             priority: "important",
         },
         PackageSpec {
+            name: "libx11-dev",
+            description: "Native Xlib, core XCB and X protocol development interface",
+            source_component: "x11-compat",
+            depends: &["libx11-6", "libxcb1", "libxau6", "libxdmcp6", "libc6-dev"],
+            provides: &["x11proto-dev"],
+            conflicts: &[], replaces: &[], essential: false, priority: "optional",
+        },
+        PackageSpec {
             name: "libxext6",
             description: "X11 extension ABI retained privately for NVIDIA Vulkan loader compatibility",
             source_component: "x11-compat",
@@ -5232,17 +5273,6 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             description: "Slate graphical text and code editor",
             source_component: "slate-gui",
             depends: &["slate", "libc6", "libgcc-s1", "libstdc++6", "qt6-base", "qt6-declarative", "qt6-svg", "qt6-wayland"],
-            provides: &[],
-            conflicts: &[],
-            replaces: &[],
-            essential: false,
-            priority: "optional",
-        },
-        PackageSpec {
-            name: "mattos-cozy",
-            description: "Cozy terminal text editor built from the pinned upstream source",
-            source_component: "cozy",
-            depends: &["libc6", "libgcc-s1"],
             provides: &[],
             conflicts: &[],
             replaces: &[],
@@ -6236,17 +6266,6 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             priority: "optional",
         },
         PackageSpec {
-            name: "kate",
-            description: "KDE advanced text editor",
-            source_component: "kate",
-            depends: &["qt6-base", "kf6-ktexteditor", "breeze-icons"],
-            provides: &["kate", "kwrite"],
-            conflicts: &[],
-            replaces: &[],
-            essential: false,
-            priority: "optional",
-        },
-        PackageSpec {
             name: "kcalc",
             description: "KDE scientific calculator",
             source_component: "kcalc",
@@ -6523,6 +6542,7 @@ pub(crate) fn package_specs() -> Vec<PackageSpec> {
             depends: &[
                 "qt6-base",
                 "qt6-declarative",
+                "qt6-speech",
                 "kf6-kio",
                 "kf6-kparts",
                 "kf6-ksyntaxhighlighting",
@@ -7126,10 +7146,13 @@ pub(crate) const MATTOS_TOOLCHAIN_PACKAGES: &[&str] = &[
 /// Installed on every installed system in addition to its profile.
 pub(crate) const MATTOS_TOOLCHAIN_META_PACKAGE: &str = "mattos-toolchain";
 
-/// Packages installed systems receive but the live root leaves out.
+/// Common toolchain and optional SDK packages omitted from the live root.
 pub(crate) fn live_excluded_packages() -> Vec<&'static str> {
     let mut excluded = MATTOS_TOOLCHAIN_PACKAGES.to_vec();
     excluded.push(MATTOS_TOOLCHAIN_META_PACKAGE);
+    // Optional SDK files are available in the offline repository, without
+    // pulling development tools into the live desktop or installed profiles.
+    excluded.push("libx11-dev");
     excluded
 }
 

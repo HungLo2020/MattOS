@@ -38,9 +38,11 @@ Gitlink replacements and exclusions are recorded in
 `upstream/policies/gitlinks.toml`. Official release archives used only to supply
 generated bootstrap inputs are pinned in
 `upstream/policies/release-archives.toml` and the SMB crypto closure's
-`upstream/policies/smb-release-archives.toml`. The separate SMB policy keeps
-adding or updating those pins from invalidating unrelated archive consumers
-such as the Rust toolchain. The provenance audit validates both policies.
+`upstream/policies/smb-release-archives.toml`, with ALSA utilities in
+`upstream/policies/audio-release-archives.toml`. Separate subsystem policies
+keep adding or updating those pins from invalidating unrelated archive
+consumers such as the Rust toolchain. The provenance audit validates all
+three policies.
 
 Source-selection policies under `upstream/policies/` declare reproducible
 component projections. The Linux policy is limited to `arch/`: it retains

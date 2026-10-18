@@ -227,7 +227,13 @@ fn build_release_autotools_program(
     let archive =
         ensure_verified_release_archive(&out_root, archive_filename, archive_url, archive_sha256)?;
     if !source_copy.join("configure").is_file() {
-        stage_release_source(&archive, &source_copy)?;
+        if archive.extension().and_then(OsStr::to_str) == Some("bz2") {
+            remove_path_if_exists(&source_copy)?;
+            fs::create_dir_all(&source_copy)?;
+            run_cmd(&source_copy, "tar", &["-xjf", path_str(&archive)?, "--strip-components=1"])?;
+        } else {
+            stage_release_source(&archive, &source_copy)?;
+        }
     }
     fs::create_dir_all(&build_dir)?;
     let env = staged_library_environment(repo_root, dependencies)?;

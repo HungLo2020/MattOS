@@ -8,4 +8,5 @@ Commands and base-system administration tools.
 - [MattOS Userland Commands](commands.md)
 - [KDE Applications](kde-applications.md)
 - [Desktop Defaults](desktop-defaults.md)
+- [Desktop Audio](audio.md)
 - [Slate Text Editor](slate.md)

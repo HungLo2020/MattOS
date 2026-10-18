@@ -3,6 +3,96 @@
 
 use super::*;
 
+/// Publish the Xlib interface consumed by KWindowSystem's public CMake
+/// export, including its protocol and core XCB prerequisites. All files are
+/// produced by the canonical X11 compatibility build, never the host SDK.
+pub(super) fn stage_x11_development(repo_root: &Path, staging: &Path) -> Result<()> {
+    for (component, directory) in [
+        ("libx11", "X11"), ("xorgproto", "X11"), ("libxcb", "xcb"),
+        ("libxau", "X11"), ("libxdmcp", "X11"),
+    ] {
+        copy_tree_preserving(
+            &component_install(repo_root, component).join("usr/include").join(directory),
+            &staging.join("usr/include").join(directory),
+        )?;
+    }
+    let install = component_install(repo_root, "x11-compat");
+    let libdir = "usr/lib/x86_64-linux-gnu";
+    for (linker, soname) in [
+        ("libX11.so", "libX11.so.6"), ("libX11-xcb.so", "libX11-xcb.so.1"),
+        ("libxcb.so", "libxcb.so.1"), ("libXau.so", "libXau.so.6"),
+        ("libXdmcp.so", "libXdmcp.so.6"),
+    ] {
+        // Link to runtime-owned SONAMEs rather than claiming their ELF files.
+        let target = staging.join(libdir).join(linker);
+        fs::create_dir_all(target.parent().unwrap())?;
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(soname, target)?;
+    }
+    for name in ["x11", "x11-xcb", "xcb", "xau", "xdmcp"] {
+        copy_preserving(&install.join(libdir).join(format!("pkgconfig/{name}.pc")),
+                        &staging.join(libdir).join(format!("pkgconfig/{name}.pc")))?;
+    }
+    copy_tree_preserving(&component_install(repo_root, "xorgproto").join("usr/share/pkgconfig"),
+                         &staging.join("usr/share/pkgconfig"))?;
+    let mut notices = String::new();
+    for component in ["libx11", "xorgproto", "libxcb", "libxau", "libxdmcp"] {
+        let source = repo_root.join("src/system/graphics").join(component);
+        let mut files = fs::read_dir(&source)?.collect::<std::io::Result<Vec<_>>>()?;
+        files.sort_by_key(|file| file.file_name());
+        for file in files {
+            if file.file_name().to_string_lossy().starts_with("COPYING") && file.path().is_file() {
+                notices.push_str(&format!("\n{component}/{}\n", file.file_name().to_string_lossy()));
+                notices.push_str(&fs::read_to_string(file.path())?);
+            }
+        }
+    }
+    let copyright = staging.join("usr/share/doc/libx11-dev/copyright");
+    fs::create_dir_all(copyright.parent().unwrap())?;
+    fs::write(copyright, notices)?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod x11_sdk_tests {
+    use super::*;
+
+    #[test]
+    fn xlib_sdk_has_relocatable_metadata_without_claiming_runtime_elf() {
+        let repo = tempfile::tempdir().unwrap();
+        for (component, directory) in [("libx11", "X11"), ("xorgproto", "X11"),
+            ("libxcb", "xcb"), ("libxau", "X11"), ("libxdmcp", "X11")] {
+            let header = component_install(repo.path(), component).join("usr/include").join(directory).join(format!("{component}.h"));
+            fs::create_dir_all(header.parent().unwrap()).unwrap();
+            fs::write(header, "header").unwrap();
+            let source = repo.path().join("src/system/graphics").join(component);
+            fs::create_dir_all(&source).unwrap();
+            fs::write(source.join("COPYING"), format!("{component} license\n")).unwrap();
+        }
+        let install = component_install(repo.path(), "x11-compat");
+        let pkgconfig = install.join("usr/lib/x86_64-linux-gnu/pkgconfig");
+        fs::create_dir_all(&pkgconfig).unwrap();
+        for name in ["x11", "x11-xcb", "xcb", "xau", "xdmcp"] {
+            fs::write(pkgconfig.join(format!("{name}.pc")), format!("prefix={}\n", component_install(repo.path(), "libx11").join("usr").display())).unwrap();
+        }
+        fs::write(install.join("usr/lib/x86_64-linux-gnu/libX11.so.6"), "runtime ELF").unwrap();
+        let protocols = component_install(repo.path(), "xorgproto").join("usr/share/pkgconfig");
+        fs::create_dir_all(&protocols).unwrap();
+        fs::write(protocols.join("xproto.pc"), "prefix=/usr\n").unwrap();
+        let staging = repo.path().join("package");
+        stage_x11_development(repo.path(), &staging).unwrap();
+        normalize_staged_pkgconfig_paths(repo.path(), &staging).unwrap();
+        let libraries = staging.join("usr/lib/x86_64-linux-gnu");
+        assert_eq!(fs::read_link(libraries.join("libX11.so")).unwrap(), PathBuf::from("libX11.so.6"));
+        assert!(!libraries.join("libX11.so.6").exists());
+        assert!(staging.join("usr/include/X11/libx11.h").is_file());
+        assert!(staging.join("usr/include/X11/xorgproto.h").is_file());
+        assert!(staging.join("usr/include/xcb/libxcb.h").is_file());
+        assert!(!fs::read_to_string(libraries.join("pkgconfig/x11.pc")).unwrap().contains(&repo.path().display().to_string()));
+        assert!(fs::read_to_string(staging.join("usr/share/doc/libx11-dev/copyright")).unwrap().contains("xorgproto license"));
+    }
+}
+
 /// Stage only libglvnd's development interface. Runtime packages retain
 /// ownership of every SONAME link and real shared object; downstream CMake,
 /// qmake and pkg-config consumers need these unversioned linker symlinks.
@@ -385,8 +475,8 @@ const DEVELOPMENT_PACKAGES: &[DevelopmentPackage] = &[
             "curses.h", "eti.h", "form.h", "menu.h", "ncurses.h", "ncurses_dll.h", "panel.h",
             "term.h", "term_entry.h", "termcap.h", "unctrl.h",
         ],
-        linker_names: &[("libncursesw.so", "libncursesw.so.6"), ("libtinfow.so", "libtinfow.so.6")],
-        pkgconfig: &["ncursesw.pc", "tinfow.pc"],
+        linker_names: &[("libncursesw.so", "libncursesw.so.6"), ("libtinfow.so", "libtinfow.so.6"), ("libformw.so", "libformw.so.6"), ("libmenuw.so", "libmenuw.so.6"), ("libpanelw.so", "libpanelw.so.6")],
+        pkgconfig: &["ncursesw.pc", "tinfow.pc", "formw.pc", "menuw.pc", "panelw.pc"],
         extra: &[],
         license: "src/system/terminal/ncurses/COPYING",
     },

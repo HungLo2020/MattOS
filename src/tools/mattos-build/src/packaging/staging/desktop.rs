@@ -1763,28 +1763,15 @@ pub(super) fn stage_slate(repo_root: &Path, staging: &Path, graphical: bool) -> 
     Ok(())
 }
 
-pub(super) fn stage_cozy(repo_root: &Path, staging: &Path) -> Result<()> {
-    stage_executable(
-        &component_install(repo_root, "cozy").join("usr/bin/cozy"),
-        &staging.join("usr/bin/cozy"),
-        0o755,
-    )?;
-    for license in ["LICENSE-MIT", "LICENSE-APACHE"] {
-        copy_preserving(
-            &repo_root.join("src/userland/cozy").join(license),
-            &staging.join("usr/share/doc/mattos-cozy").join(license),
-        )?;
-    }
-    Ok(())
-}
-
 pub(super) fn stage_pipewire(repo_root: &Path, staging: &Path) -> Result<()> {
     let install = component_install(repo_root, "pipewire");
     for relative in [
         "usr/bin",
         "usr/lib/x86_64-linux-gnu",
         "usr/lib/systemd/user",
+        "usr/lib/udev/rules.d",
         "usr/share/pipewire",
+        "usr/share/alsa-card-profile",
     ] {
         copy_tree_preserving(&install.join(relative), &staging.join(relative))?;
     }
@@ -1792,6 +1779,8 @@ pub(super) fn stage_pipewire(repo_root: &Path, staging: &Path) -> Result<()> {
         &repo_root.join("src/system/multimedia/pipewire/COPYING"),
         &staging.join("usr/share/doc/pipewire/copyright"),
     )?;
+    copy_preserving(&repo_root.join("src/system/multimedia/policy/audio-smoke.py"),
+        &staging.join("usr/share/doc/pipewire/examples/audio-smoke.py"))?;
     let socket_wants = staging.join("usr/lib/systemd/user/sockets.target.wants");
     fs::create_dir_all(&socket_wants)?;
     #[cfg(unix)]
@@ -1799,6 +1788,11 @@ pub(super) fn stage_pipewire(repo_root: &Path, staging: &Path) -> Result<()> {
         std::os::unix::fs::symlink(format!("../{unit}"), socket_wants.join(unit))?;
     }
     for required in [
+        "usr/lib/x86_64-linux-gnu/spa-0.2/alsa/libspa-alsa.so",
+        "usr/lib/x86_64-linux-gnu/spa-0.2/bluez5/libspa-bluez5.so",
+        "usr/share/alsa-card-profile/mixer/profile-sets/default.conf",
+        "usr/lib/udev/rules.d/90-pipewire-alsa.rules",
+        "usr/bin/pw-play",
         "usr/bin/pipewire",
         "usr/bin/pipewire-pulse",
         "usr/lib/x86_64-linux-gnu/libpipewire-0.3.so.0",
@@ -2274,4 +2268,41 @@ pub(super) fn stage_kwallet_pam(repo_root: &Path, staging: &Path) -> Result<()> 
         &staging.join("usr/lib/x86_64-linux-gnu/libexec/pam_kwallet_init"), 0o755,
     )?;
     Ok(())
+}
+
+#[cfg(test)]
+mod hardware_audio_staging_tests {
+    use super::*;
+
+    #[test]
+    fn pipewire_carries_hardware_plugins_mixer_profiles_and_udev_rules() {
+        let repository = tempfile::tempdir().unwrap();
+        let root = repository.path();
+        let install = root.join("out/build/pipewire/install");
+        for relative in [
+            "usr/bin/pw-cat", "usr/bin/pipewire", "usr/bin/pipewire-pulse",
+            "usr/lib/x86_64-linux-gnu/libpipewire-0.3.so.0",
+            "usr/lib/x86_64-linux-gnu/spa-0.2/alsa/libspa-alsa.so",
+            "usr/lib/x86_64-linux-gnu/spa-0.2/bluez5/libspa-bluez5.so",
+            "usr/lib/systemd/user/pipewire.service", "usr/lib/systemd/user/pipewire.socket",
+            "usr/lib/udev/rules.d/90-pipewire-alsa.rules",
+            "usr/share/pipewire/pipewire.conf",
+            "usr/share/alsa-card-profile/mixer/profile-sets/default.conf",
+        ] {
+            let path = install.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, relative).unwrap();
+        }
+        std::os::unix::fs::symlink("pw-cat", install.join("usr/bin/pw-play")).unwrap();
+        for relative in ["src/system/multimedia/pipewire/COPYING", "src/system/multimedia/policy/audio-smoke.py"] {
+            let path = root.join(relative);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, "fixture").unwrap();
+        }
+        let staging = root.join("package");
+        stage_pipewire(root, &staging).unwrap();
+        assert!(staging.join("usr/share/alsa-card-profile/mixer/profile-sets/default.conf").is_file());
+        assert!(staging.join("usr/bin/pw-play").is_file());
+        assert!(staging.join("usr/lib/systemd/user/sockets.target.wants/pipewire.socket").is_file());
+    }
 }

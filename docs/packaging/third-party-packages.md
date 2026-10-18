@@ -9,6 +9,7 @@ container and publishes it through the vendored repository client.
 
 | Group | Packages |
 | --- | --- |
+| Optional editors | kate (includes KWrite and provides `kwrite`), mattos-cozy (`cozy`) |
 | Tools | btop, fastfetch, htop, ripgrep, wget, gh, tailscale, codex |
 | Podman | podman, conmon, crun, netavark, aardvark-dns, passt, catatonit, containers-common, libseccomp2 |
 | nftables (rootful container networking) | nftables, libnftnl11, libmnl0 |
@@ -239,3 +240,49 @@ Go recipe `("go",)` (with `"c"` too when it enables cgo). A recipe can write `DE
 scripts into the staging tree (tailscale enables `tailscaled.service` on a
 running system; like MattOS's own scripts they exit when `DPKG_ROOT` is set). Tests in `third-party-packages/tests/` use local fixtures and
 mocked publication; they never upload.
+
+## Optional editors
+
+Slate remains the default terminal and graphical editor. Kate and KWrite are
+built together by `kate.py`; `mattos-cozy.py` builds the unrelated Cozy terminal
+editor. Their source is fetched and checksum-verified only for an explicit
+third-party build, never vendored or built by the native ISO graph. Installing
+either package leaves the system `EDITOR`, `VISUAL`, `editor` symlink, and MIME
+defaults with Slate.
+
+The first optional selections are Kate 26.08.2 and Cozy 0.2.37. These versions
+sort above the former native Kate 26.08.1 and Cozy 0.2.19 packages even though
+third-party packaging uses `-0mattos` revisions. Cozy keeps the `mattos-cozy`
+package identity, because Debian's `cozy` package is unrelated. The optional
+Kate package also provides `kwrite`, matching its former native ownership.
+Existing editor installations are preserved on OS upgrades; the new default
+profiles do not install or require them. The former native Kate package pins
+exact library revisions. Before publishing 26.10.2's native packages, publish
+its optional Kate replacement built against the prepared SDK, so APT can
+upgrade an existing Kate installation while changing those libraries. Prepare
+the native cohort with `--no-upload` first. Validate this with the canonical
+[upgrade test](../system/installer.md), offering the built editor `.deb` files
+through `--upgrade-extra-package`; these test inputs never enter the ISO.
+
+Kate builds against the MattOS Qt/KDE SDK in the canonical builder container.
+The KTextEditor package declares its Qt TextToSpeech dependency, so an
+optional installation and the SDK container receive its required library.
+The optional Kate package explicitly requires Qt's Wayland and SVG plugins,
+which dynamic plugin loading does not expose to ELF dependency discovery.
+Its Ninja build limits compilation to four workers and linking to one.
+Its checksum-pinned ECM 6.27.0 and GNU gettext 1.0 dependencies are build-only
+tools downloaded inside that container. Gettext supplies `msgfmt` and
+`msgmerge` for the public KF6I18n CMake macros. Both stay in the disposable
+workspace and are not shipped in the editor package.
+The recipe also creates a workspace-only QML tools CMake export pointing to
+the real MattOS SDK generators: Qt's cross installation leaves that export in
+its build tree. The builder image includes KDE GUI Addons for Kate's public SDK.
+It also includes the KDE libraries referenced by KIO's public exports and
+`libx11-dev`, staged from the native X11 build. That development package bundles
+Xlib, core XCB and X protocol headers, linker symlinks and pkg-config metadata;
+runtime ELF files stay owned by their existing packages. It is optional and
+is not added to a default installation profile.
+Qt's automatic CMake QML-plugin imports are disabled for this shared-library
+build because the runtime package deliberately omits Qt's test plugins.
+Build locally without publishing with `python3 third-party-packages/kate.py build` or
+`python3 third-party-packages/mattos-cozy.py build`.

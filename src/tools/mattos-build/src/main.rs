@@ -186,6 +186,10 @@ const MATTOS_GCC_INSTALL_DIR: &str = "/usr/lib/x86_64-linux-gnu/gcc/x86_64-pc-li
 const LESS_RELEASE_ARCHIVE_URL: &str = "https://www.greenwoodsoftware.com/less/less-704.tar.gz";
 const LESS_RELEASE_ARCHIVE_SHA256: &str =
     "20a0b0a2bb2525fa53c7eee9beb854b4c9cf172eabb209af7020743547bfe9fb";
+const ALSA_UTILS_RELEASE_ARCHIVE_URL: &str =
+    "https://www.alsa-project.org/files/pub/utils/alsa-utils-1.2.16.tar.bz2";
+const ALSA_UTILS_RELEASE_ARCHIVE_SHA256: &str =
+    "092399d5e8749a1d5e188e393157521cec4b75693b60ebb79bbce728cff2232c";
 const LIBSNDFILE_RELEASE_ARCHIVE_URL: &str =
     "https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2.tar.xz";
 const LIBSNDFILE_RELEASE_ARCHIVE_SHA256: &str =
@@ -1710,6 +1714,7 @@ include!("stages/grub.rs");
 include!("stages/foundation_libraries.rs");
 include!("stages/networking.rs");
 include!("stages/smb.rs");
+include!("stages/audio.rs");
 include!("stages/system_runtime.rs");
 include!("stages/runtime_libraries.rs");
 include!("stages/desktop_support.rs");

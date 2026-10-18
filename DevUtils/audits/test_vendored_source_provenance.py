@@ -780,9 +780,10 @@ def verify_linuxscripts() -> list[str]:
 def verify_release_archive_policy(components: dict[str, dict]) -> list[str]:
     document = load_toml(RELEASE_ARCHIVE_POLICY_PATH)
     smb = load_toml(ROOT / "upstream/policies/smb-release-archives.toml")
+    audio = load_toml(ROOT / "upstream/policies/audio-release-archives.toml")
     builder = (ROOT / "src/tools/mattos-build/src/main.rs").read_text()
     failures: list[str] = []
-    for archive in document.get("archive", []) + smb.get("archive", []):
+    for archive in document.get("archive", []) + smb.get("archive", []) + audio.get("archive", []):
         name = archive["component"]
         component = components.get(name)
         if component is None:

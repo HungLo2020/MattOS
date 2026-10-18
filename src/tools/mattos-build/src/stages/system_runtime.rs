@@ -35,6 +35,7 @@ fn build_systemd(repo_root: &Path) -> Result<()> {
         );
     }
     let dependency_installs = [
+        repo_root.join("out/build/acl/install/usr"),
         repo_root.join("out/build/dbus/install/usr"),
         repo_root.join("out/build/zlib/install/usr"),
         repo_root.join("out/build/bzip2/install/usr"),
@@ -278,7 +279,7 @@ fn systemd_meson_options() -> Vec<String> {
         "-Dglib=disabled".to_string(),
         "-Dseccomp=disabled".to_string(),
         "-Dselinux=enabled".to_string(),
-        "-Dacl=disabled".to_string(),
+        "-Dacl=enabled".to_string(),
         "-Daudit=disabled".to_string(),
         // udev must probe filesystem and GPT metadata so the stable
         // /dev/disk/by-{uuid,partuuid} names used by installed fstab entries

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import argparse
+import array
+import wave
 import base64
 import functools
 import hashlib
@@ -175,6 +177,8 @@ def parse_args() -> argparse.Namespace:
         metavar="ISO",
         help=f"baseline ISO for --upgrade-test (default: {UPGRADE_BASELINE_RELATIVE})",
     )
+    parser.add_argument("--upgrade-extra-package", action="append", type=Path, default=[], metavar="DEB",
+                        help="offer a locally built optional package during --upgrade-test (repeatable; never added to the ISO)")
     parser.add_argument(
         "--save-upgrade-baseline",
         action="store_true",
@@ -222,6 +226,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--require-kernel-change requires --upgrade-test")
     if args.upgrade_from and not args.upgrade_test:
         parser.error("--upgrade-from requires --upgrade-test")
+    if args.upgrade_extra_package and not args.upgrade_test:
+        parser.error("--upgrade-extra-package requires --upgrade-test")
     if args.save_upgrade_baseline and (args.upgrade_test or args.install or args.run_installed):
         parser.error("--save-upgrade-baseline only saves the current ISO; run the test separately")
     return args
@@ -716,6 +722,7 @@ def _launch_one(
         # PS/2 mouse is relative-only and did not produce usable pointer
         # motion in the Plasma KMS session. One USB tablet is sufficient.
         qemu_cmd.extend(["-device", QEMU_TABLET_CONTROLLER, "-device", QEMU_TABLET_DEVICE])
+    qemu_cmd.extend(hardware_audio_arguments(getattr(args, "audio_capture", None)))
     if install_disk is None:
         install_disk = prepare_install_disk(repo_root, args)
     if install_disk is not None:
@@ -1006,7 +1013,6 @@ def installed_plasma_applet_runtime_probes() -> tuple[tuple[str, str], ...]:
 # The KDE applications the Plasma profile ships: (package, executable).
 INSTALLED_KDE_APPLICATIONS = (
     ("dolphin", "dolphin"),
-    ("kate", "kate"),
     ("plasma-discover", "plasma-discover"),
     ("plasma-systemmonitor", "plasma-systemmonitor"),
     ("konsole", "konsole"),
@@ -1488,6 +1494,26 @@ def _verify_installed_disk_boot(
         shutil.rmtree(probe_root, ignore_errors=True)
 
 
+def hardware_audio_arguments(capture: Path | None) -> list[str]:
+    if capture is None:
+        return []
+    return ["-audiodev", f"wav,id=mattos-audio,path={capture}", "-device", "intel-hda",
+            "-device", "hda-duplex,audiodev=mattos-audio"]
+
+
+def verify_hardware_audio_capture(capture: Path) -> int:
+    with wave.open(str(capture), "rb") as recording:
+        if recording.getsampwidth() != 2:
+            raise RepoError("QEMU audio capture must contain 16-bit PCM")
+        samples = array.array("h", recording.readframes(recording.getnframes()))
+        if sys.byteorder != "little":
+            samples.byteswap()
+        peak = max((abs(value) for value in samples), default=0)
+        if peak < 100:
+            raise RepoError("Hardware playback produced no audible PCM in the QEMU sound device")
+    return peak
+
+
 def installed_release_probes(repo_root: Path) -> tuple[tuple[str, str], ...]:
     selector = repo_root / "src/system/release/current.toml"
     if not selector.is_file():
@@ -1526,6 +1552,10 @@ def _verify_installed_disk_boot_with(
     # neither hardware acceleration nor software rendering is available.
     verification_args.require_virgl = True
     verification_args.plasma_login_verification = getattr(args, "install_profile", "plasma") == "plasma"
+    if getattr(args, "install_profile", "plasma") == "plasma":
+        capture = repo_root / "out/logs/installed-audio.wav"
+        capture.unlink(missing_ok=True)
+        verification_args.audio_capture = capture
     verification_args.serial_console = False
     verification_args.headless = False
     output_path = install_task_log(repo_root).with_name("installed-test-boot.log")
@@ -1553,6 +1583,11 @@ def _verify_installed_disk_boot_with(
     ) if profile == "cli" else (
         ("plasma-package", "dpkg-query -W mattos-plasma plasma-login-manager kwin plasma-workspace plasma-desktop dolphin konsole systemsettings && ! dpkg-query -W greetd mattos-plasma-live >/dev/null 2>&1"),
         ("graphical-target", "systemctl is-active graphical.target"),
+        *((("optional-editors-absent", "test ! -x /usr/bin/kate && test ! -x /usr/bin/kwrite && test ! -x /usr/bin/cozy"),)
+          if not getattr(args, "allow_optional_editors", False) else (
+              ("optional-editor-runtimes", "for editor in kate kwrite cozy; do "
+               "if test -x /usr/bin/$editor; then QT_QPA_PLATFORM=offscreen "
+               "timeout 60 /usr/bin/$editor --version || exit 1; fi; done"),)),
         (
             "compositor",
             "(for n in $(seq 1 90); do "
@@ -1567,6 +1602,7 @@ def _verify_installed_disk_boot_with(
             "printf '%s\\n' mattos | sudo -S journalctl -b --no-pager -n 200 -u plasmalogin.service; "
             "exit 1)",
         ),
+        ("hardware-audio", "python3 /usr/share/doc/pipewire/examples/audio-smoke.py"),
         *installed_plasma_applet_runtime_probes(),
         ("xdg-user-directories-service", "systemctl --user show graphical-session-pre.target -p Wants --value | tr ' ' '\\n' | grep -Fx xdg-user-dirs.service && "
          "test \"$(systemctl --user show xdg-user-dirs.service -p ExecMainStartTimestampMonotonic --value)\" -gt 0 && "
@@ -1878,6 +1914,10 @@ def _verify_installed_disk_boot_with(
     )
     if exit_code != 0:
         raise RepoError(f"installed-disk verification VM exited with status {exit_code}")
+    if profile == "plasma":
+        peak = verify_hardware_audio_capture(verification_args.audio_capture)
+        print(f"[installed-check] PASS hardware-audio-capture peak={peak}")
+        result["hardware_audio_capture_peak"] = peak
     result["clean_shutdown"] = True
     return result
 
@@ -2134,6 +2174,49 @@ def serve_flat_repository(directory: Path) -> tuple[http.server.ThreadingHTTPSer
     return serve_test_directory(directory)
 
 
+def prepare_upgrade_extra_repository(repo_root: Path, artifacts: list[Path]) -> tuple[Path, dict[str, str]]:
+    """Offer optional recipe outputs to the disposable upgrade VM only.
+
+    Retired native applications can pin old libraries. Their optional
+    replacements must be offered alongside the new OS, without becoming
+    native producers or entering its offline/default installation closure.
+    """
+    native = build_inventory_versions(repo_root)
+    destination = repo_root / "out/qemu/upgrade-extra-repository"
+    entries = []
+    versions = {}
+    for artifact in artifacts:
+        path = (artifact if artifact.is_absolute() else repo_root / artifact).resolve()
+        if not path.is_file() or path.is_relative_to(destination.resolve()):
+            raise RepoError(f"invalid optional upgrade package: {path}")
+        control = run_command_capture(["dpkg-deb", "-f", str(path)], repo_root)
+        fields = dict(re.findall(r"(?m)^(Package|Version|Architecture): (\S+)$", control))
+        if set(fields) != {"Package", "Version", "Architecture"} or fields["Architecture"] not in ("amd64", "all"):
+            raise RepoError(f"invalid optional package metadata: {path}")
+        name = fields["Package"]
+        if name in native or name in versions:
+            raise RepoError(f"optional upgrade package duplicates a native or optional producer: {name}")
+        versions[name] = fields["Version"]
+        entries.append((path, control))
+    shutil.rmtree(destination, ignore_errors=True)
+    destination.mkdir(parents=True)
+    stanzas = []
+    for index, (path, control) in enumerate(entries):
+        filename = f"{index}.deb"
+        target = destination / filename
+        shutil.copyfile(path, target)
+        payload = target.read_bytes()
+        stanzas.append(control.rstrip() + f"\nFilename: ./{filename}\nSize: {len(payload)}\nSHA256: {hashlib.sha256(payload).hexdigest()}\n")
+    packages = ("\n".join(stanzas) + "\n").encode()
+    (destination / "Packages").write_bytes(packages)
+    (destination / "Release").write_text(
+        "Origin: MattOS\nLabel: MattOS Local\nCodename: trixie\nArchitectures: amd64\n"
+        f"SHA256:\n {hashlib.sha256(packages).hexdigest()} {len(packages)} Packages\n",
+        encoding="utf-8",
+    )
+    return destination, versions
+
+
 def serve_test_directory(directory: Path) -> tuple[http.server.ThreadingHTTPServer, int]:
     """Serve output-owned test inputs only on host loopback."""
     handler = functools.partial(_QuietRepositoryHandler, directory=str(directory))
@@ -2219,7 +2302,8 @@ def _upgrade_installed_system(
     log_path = (repo_root / UPGRADE_LOG_RELATIVE).resolve()
     sudo = f"printf '%s\\n' {shlex.quote(TEST_INSTALL_PASSWORD)} | sudo -S"
     inventory = build_inventory_versions(repo_root)
-    source = base64.b64encode(upgrade_test_source(port).encode()).decode()
+    extra_source = getattr(args, "upgrade_extra_source", "")
+    source = base64.b64encode((upgrade_test_source(port) + "\n" + extra_source).encode()).decode()
 
     def lifecycle(_proc: subprocess.Popen[str], control_paths: tuple[Path, Path]) -> None:
         wait_for_socket(control_paths[0], 120)
@@ -2273,8 +2357,11 @@ def _upgrade_installed_system(
         if summary["held"]:
             raise RepoError(f"apt held back {summary['held']} package(s) during the upgrade")
         remaining = parse_upgrade_summary(run(f"{sudo} apt-get -s full-upgrade"))
-        if any(remaining[key] for key in ("upgraded", "installed", "removed", "held")):
+        if not extra_source and any(remaining[key] for key in ("upgraded", "installed", "removed", "held")):
             raise RepoError(f"the upgrade left work undone: {remaining}")
+        # Optional recipe updates have their own policy. All installed native
+        # packages are still checked against the exact release versions below.
+        report["remaining_optional_update_summary"] = remaining
         run("test -z \"$(dpkg --audit)\"")
         run("grep -Fx mattos-upgrade-preserved ~/release-upgrade-user-data && "
             "grep -Fx '# mattos-upgrade-preserved' /etc/profile")
@@ -2283,6 +2370,12 @@ def _upgrade_installed_system(
         stale = stale_installed_packages(after, inventory)
         if stale:
             raise RepoError("installed packages are not at the built versions: " + "; ".join(stale))
+        before_names = {line.split()[0] for line in before.splitlines() if len(line.split()) == 2}
+        after_names = {line.split()[0] for line in after.splitlines() if len(line.split()) == 2}
+        optional_before = before_names - inventory.keys()
+        if optional_before - after_names:
+            raise RepoError("upgrade removed existing optional packages: " + ", ".join(sorted(optional_before - after_names)))
+        report["preserved_optional_packages"] = sorted(optional_before)
         if report["kernel_release_changed"]:
             previous = str(report["kernel_before"])
             image = shlex.quote(f"/boot/vmlinuz-{previous}")
@@ -2334,6 +2427,9 @@ def run_upgrade_test(repo_root: Path, args: argparse.Namespace) -> int:
     metadata = upgrade_baseline_metadata(baseline)
     if metadata.is_file():
         report["baseline"] = json.loads(metadata.read_text(encoding="utf-8"))
+    extra_directory = None
+    if getattr(args, "upgrade_extra_package", []):
+        extra_directory, report["optional_candidates"] = prepare_upgrade_extra_repository(repo_root, args.upgrade_extra_package)
     install_args = argparse.Namespace(**vars(args))
     install_args.install = True
     install_args.install_disk = args.install_disk or UPGRADE_TEST_DISK_RELATIVE
@@ -2342,7 +2438,14 @@ def run_upgrade_test(repo_root: Path, args: argparse.Namespace) -> int:
     report_path = (repo_root / UPGRADE_REPORT_RELATIVE).resolve()
     report_path.parent.mkdir(parents=True, exist_ok=True)
     server, port = serve_repository((repo_root / "out/repository").resolve())
+    extra_server = None
     try:
+        if extra_directory is not None:
+            extra_server, extra_port = serve_flat_repository(extra_directory)
+            install_args.upgrade_extra_source = (
+                f"Types: deb\nURIs: http://{QEMU_HOST_ADDRESS}:{extra_port}/\n"
+                "Suites: ./\nArchitectures: amd64\nTrusted: yes\n"
+            )
         print(f"[upgrade-test] installing the baseline {baseline} ({args.install_profile})", flush=True)
         result = _launch_one(
             repo_root,
@@ -2357,6 +2460,9 @@ def run_upgrade_test(repo_root: Path, args: argparse.Namespace) -> int:
         print("[upgrade-test] upgrading the installed baseline to the current build", flush=True)
         _upgrade_installed_system(repo_root, disk, install_args, port, report)
         print("[upgrade-test] rebooting the upgraded system for the installed-system checks", flush=True)
+        # Existing optional applications survive an OS upgrade. Only fresh
+        # default profiles must prove the retired native editors are absent.
+        install_args.allow_optional_editors = True
         verification = _verify_installed_disk_boot(repo_root, disk, install_args)
         boot_log = install_task_log(repo_root).with_name("installed-test-boot.log")
         report["verification"] = {
@@ -2371,6 +2477,9 @@ def run_upgrade_test(repo_root: Path, args: argparse.Namespace) -> int:
         print(f"[upgrade-test] failed upgrade disk retained for diagnosis: {disk}", file=sys.stderr)
         raise
     finally:
+        if extra_server is not None:
+            extra_server.shutdown()
+            extra_server.server_close()
         server.shutdown()
         server.server_close()
         report["finished_at"] = datetime.now(UTC).isoformat()

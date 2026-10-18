@@ -143,13 +143,6 @@ sync = "copy"
 patch_manifest = "upstream/patches/brush/manifest.toml"
 patch_manifest_sha256 = "2022eed5f30c792e3db50ed8c5be19a86d6ad93ed5eb5d326a6b78e54451d6f3"
 
-[[component]]
-name = "cozy"
-repo = "https://github.com/takakix2/cozy.git"
-branch = "main"
-revision = "c43a1d0f118f73d09e4a7414a3412479903e6bfe"
-path = "src/userland/cozy"
-sync = "copy"
 
 [[component]]
 name = "coreutils"
@@ -1987,13 +1980,6 @@ revision = "ed922221cbe0da81017f4de28e483e1777e6cd67"
 path = "src/desktop/kde/konsole"
 sync = "copy"
 
-[[component]]
-name = "kate"
-repo = "https://invent.kde.org/utilities/kate.git"
-branch = "v26.08.1"
-revision = "b219b9435490f2a9e26af72aecded08e36dfc774"
-path = "src/desktop/kde/kate"
-sync = "copy"
 
 [[component]]
 name = "kcalc"
@@ -2967,3 +2953,35 @@ path = "src/system/security/gnutls"
 sync = "copy"
 intentional_omission_policy = "upstream/policies/gitlinks.toml#gnutls"
 gitlink_policy = "upstream/policies/gitlinks.toml#gnutls"
+
+[[component]]
+name = "alsa-lib"
+repo = "https://github.com/alsa-project/alsa-lib.git"
+branch = "v1.2.16.1"
+revision = "a7babcb8e6361719bf18fa96f11354d125447500"
+path = "src/system/multimedia/alsa-lib"
+sync = "copy"
+
+[[component]]
+name = "alsa-ucm-conf"
+repo = "https://github.com/alsa-project/alsa-ucm-conf.git"
+branch = "v1.2.16.1"
+revision = "c68dcb174f432234dd224a3dc5270fa1f4856afd"
+path = "src/system/multimedia/alsa-ucm-conf"
+sync = "copy"
+
+[[component]]
+name = "sbc"
+repo = "https://git.kernel.org/pub/scm/bluetooth/sbc.git"
+branch = "2.2"
+revision = "b3deb8a5dcfb42d8c10ba1f2f1ac9bd7bf7271cc"
+path = "src/system/multimedia/sbc"
+sync = "copy"
+
+[[component]]
+name = "alsa-utils"
+repo = "https://github.com/alsa-project/alsa-utils.git"
+branch = "v1.2.16"
+revision = "9feb22ba45b48729729c8d194aaf1bc082a6842a"
+path = "src/system/multimedia/alsa-utils"
+sync = "copy"

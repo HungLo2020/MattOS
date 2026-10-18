@@ -1,0 +1,11 @@
+schema_version = 1
+policy = "Audio bootstrap archives are checksum-verified and staged only into output-owned mirrors."
+
+[[archive]]
+component = "alsa-utils"
+version = "1.2.16"
+source_tag = "v1.2.16"
+source_commit = "9feb22ba45b48729729c8d194aaf1bc082a6842a"
+url = "https://www.alsa-project.org/files/pub/utils/alsa-utils-1.2.16.tar.bz2"
+sha256 = "092399d5e8749a1d5e188e393157521cec4b75693b60ebb79bbce728cff2232c"
+staging_policy = "output-mirror-only"

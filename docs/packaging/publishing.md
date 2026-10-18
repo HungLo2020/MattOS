@@ -103,3 +103,15 @@ The release package and its immutable package manifest are uploaded only after
 the required component packages are hosted with their tested hashes. See
 [Releases and Upgrades](../system/releases.md) for numbering, release locks,
 legacy bootstrap and migration policy.
+
+## Applications moving to optional recipes
+
+A retired native application can pin exact native library revisions. Prepare
+the new native packages locally with `--no-upload`, then build and publish the
+optional replacement against that SDK before publishing the native upgrade.
+For 26.10.2 this includes Kate/KWrite, now provided by the optional `kate`
+recipe; Cozy also has an optional recipe. Validate the old installation with
+`run_qemu.py --upgrade-test --upgrade-extra-package PATH` for each built editor
+package. This offers replacements to the upgrade fixture without installing
+them by default or adding third-party artifacts to the ISO. See
+[optional editors](third-party-packages.md#optional-editors).

@@ -443,7 +443,6 @@ pub(crate) fn package_recipe_revision(package: &str) -> u32 {
         // Revision 3 depends on the packages of the libraries and helpers it
         // uses (FUSE 3, GDK Pixbuf, JSON-GLib, Bubblewrap) instead of Flatpak.
         "xdg-desktop-portal" => 3,
-        "mattos-cozy" => 1,
         "libgpg-error0" | "libgcrypt20" | "libassuan9" | "libksba8" | "libnpth0" | "gpgv" => 2,
         _ => 1,
     }

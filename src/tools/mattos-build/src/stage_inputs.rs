@@ -569,10 +569,6 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/desktop/kde/konsole",
             "src/tools/mattos-build/src/stages/plasma_apps.rs",
         ],
-        BuildStage::Kate => &[
-            "src/desktop/kde/kate",
-            "src/tools/mattos-build/src/stages/plasma_apps.rs",
-        ],
         BuildStage::KCalc => &[
             "src/desktop/kde/kcalc",
             "src/tools/mattos-build/src/stages/plasma_apps.rs",
@@ -737,10 +733,6 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/userland/slate",
             "src/tools/mattos-build/src/stages/slate.rs",
         ],
-        BuildStage::Cozy => &[
-            "src/userland/cozy",
-            "src/tools/mattos-build/src/stages/desktop_support.rs",
-        ],
         BuildStage::Flatpak => &[
             "src/system/packages/flatpak",
             "src/system/installer/flatpak-target-install.c",
@@ -854,6 +846,10 @@ pub(crate) fn source_inputs(stage: BuildStage) -> Vec<PathBuf> {
             "src/system/libraries/glib",
             "src/tools/mattos-build/src/stages/runtime_libraries.rs",
         ],
+        BuildStage::AlsaUtils => &["src/system/multimedia/alsa-utils", "src/tools/mattos-build/src/stages/audio.rs", "upstream/policies/audio-release-archives.toml"],
+        BuildStage::AlsaLib => &["src/system/multimedia/alsa-lib", "src/tools/mattos-build/src/stages/audio.rs"],
+        BuildStage::AlsaUcmConf => &["src/system/multimedia/alsa-ucm-conf", "src/tools/mattos-build/src/stages/audio.rs"],
+        BuildStage::Sbc => &["src/system/multimedia/sbc", "src/tools/mattos-build/src/stages/audio.rs"],
         BuildStage::Pipewire => &[
             "src/system/multimedia/pipewire",
             "src/tools/mattos-build/src/stages/runtime_libraries.rs",
@@ -1202,13 +1198,6 @@ pub(crate) fn configuration_inputs(stage: BuildStage) -> Vec<PathBuf> {
         inputs.extend(rootfs_configuration_inputs());
         inputs.push("out/packages/inventory.toml".into());
     }
-    match stage {
-        BuildStage::Cozy => {
-            inputs.push("src/userland/cozy/Cargo.toml".into());
-            inputs.push("src/userland/cozy/Cargo.lock".into());
-        }
-        _ => {}
-    }
     inputs
 }
 
@@ -1242,7 +1231,6 @@ pub(crate) fn ownership_contract_inputs(stage: BuildStage) -> Vec<PathBuf> {
         BuildStage::Diffutils => &["diffutils"],
         BuildStage::SudoRs => &["sudo-rs"],
         BuildStage::Installer => &["btrfs-progs", "dosfstools", "e2fsprogs"],
-        BuildStage::Cozy => &["cozy"],
         BuildStage::Slate | BuildStage::SlateGui => &["slate"],
         _ => &[],
     };
@@ -1362,12 +1350,13 @@ pub(crate) fn tool_names(stage: BuildStage) -> Vec<String> {
         | BuildStage::Libxfont
         | BuildStage::Libxshmfence => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
         BuildStage::ReleaseTools => &["cargo", "rustc", "gcc", "ld"],
+        BuildStage::AlsaLib | BuildStage::AlsaUtils | BuildStage::Sbc => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
         BuildStage::CifsUtils => &["autoreconf", "gcc", "ld", "make", "pkg-config"],
         BuildStage::Talloc => &["gcc", "ld", "python3", "pkg-config"],
         BuildStage::SambaClient => &["gcc", "ld", "python3", "pkg-config", "perl", "make", "tar", "curl", "readelf"],
         BuildStage::Nettle | BuildStage::LibTasn1 | BuildStage::GnuTls => &["gcc", "ld", "make", "pkg-config", "rsync", "tar"],
         BuildStage::Flatpak | BuildStage::Greetd => &["cargo", "rustc", "gcc", "ld", "pkg-config"],
-        BuildStage::Cozy | BuildStage::Slate => &["cargo", "rustc", "gcc", "ld"],
+        BuildStage::Slate => &["cargo", "rustc", "gcc", "ld"],
         BuildStage::SlateGui => &["cargo", "rustc", "gcc", "g++", "ld", "cmake", "ninja", "pkg-config"],
         BuildStage::Installer => &[
             "cargo",
@@ -1491,13 +1480,12 @@ pub(crate) fn recipe_revision(stage: BuildStage) -> u32 {
         // Revision 2 makes portal icon/sound validators embed the packaged
         // Bubblewrap runtime path rather than the staged build path.
         BuildStage::XdgDesktopPortal => 2,
-        BuildStage::Cozy => 1,
         BuildStage::Libseat => 2,
         BuildStage::Dbus => 3,
         // Revision 7 enables and publishes systemd-nspawn for mattos-compat;
         // the prior revision deliberately configured nspawn out.
-        BuildStage::Systemd => 7,
-        BuildStage::Pipewire => 2,
+        BuildStage::Systemd => 8,
+        BuildStage::Pipewire => 3,
         BuildStage::Glib => 2,
         BuildStage::Libdrm => 2,
         // Revision 2 enables target-owned libGL/GLX dispatch for Xwayland;
@@ -2171,11 +2159,11 @@ mod tests {
     }
 
     #[test]
-    fn desktop_support_recipe_change_does_not_fan_out() {
+    fn slate_recipe_change_does_not_fan_out() {
         let root = tempfile::tempdir().expect("temporary repository");
         let implementation = root
             .path()
-            .join("src/tools/mattos-build/src/stages/desktop_support.rs");
+            .join("src/tools/mattos-build/src/stages/slate.rs");
         std::fs::create_dir_all(implementation.parent().expect("implementation parent"))
             .expect("create implementation parent");
         std::fs::write(&implementation, "original desktop support recipe\n")
@@ -2191,7 +2179,7 @@ mod tests {
                 std::fs::write(path.join("README"), "source\n").expect("write directory input");
             }
         };
-        for input in source_inputs(BuildStage::Cozy) {
+        for input in source_inputs(BuildStage::Slate) {
             if input
                 != implementation
                     .strip_prefix(root.path())
@@ -2203,20 +2191,20 @@ mod tests {
         for input in source_inputs(BuildStage::Bzip2) {
             materialize(&input);
         }
-        let cozy_inputs = source_inputs(BuildStage::Cozy);
+        let slate_inputs = source_inputs(BuildStage::Slate);
         let bzip2_inputs = source_inputs(BuildStage::Bzip2);
-        let cozy_before =
-            crate::performance::tracked_source_digest(root.path(), &cozy_inputs, false)
-                .expect("cozy baseline");
+        let slate_before =
+            crate::performance::tracked_source_digest(root.path(), &slate_inputs, false)
+                .expect("slate baseline");
         let bzip2_before =
             crate::performance::tracked_source_digest(root.path(), &bzip2_inputs, false)
                 .expect("bzip2 baseline");
         std::fs::write(&implementation, "changed desktop support recipe\n")
             .expect("change implementation");
         assert_ne!(
-            cozy_before,
-            crate::performance::tracked_source_digest(root.path(), &cozy_inputs, false)
-                .expect("changed cozy identity")
+            slate_before,
+            crate::performance::tracked_source_digest(root.path(), &slate_inputs, false)
+                .expect("changed slate identity")
         );
         assert_eq!(
             bzip2_before,

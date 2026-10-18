@@ -1,0 +1,110 @@
+.TH ARECORDMIDI2 1 "4 July 2024"
+
+.SH NAME
+arecordmidi2 \- record a MIDI Clip file
+
+.SH SYNOPSIS
+.B arecordmidi2
+[options] midi2file
+
+.SH DESCRIPTION
+.B arecordmidi2
+is a command-line utility that records a MIDI Clip file from one or
+more ALSA sequencer ports.
+
+To stop recording, press Ctrl+C.
+
+When \fB\-\fP is passed to the MIDI Clip file argument,
+it's recorded to stdout.  It implies \fI\-s\fP option, too.
+
+.SH OPTIONS
+
+.TP
+.I \-h,\-\-help
+Prints a list of options.
+
+.TP
+.I \-V,\-\-version
+Prints the current version.
+
+.TP
+.I \-p,\-\-port=client:port,...
+Sets the sequencer port(s) from which events are recorded.
+
+A client can be specified by its number, its name, or a prefix of its
+name. A port is specified by its number; for port 0 of a client, the
+":0" part of the port specification can be omitted.
+
+\fBarecordmidi2\fP creates a UMP Endpoint containing the same number
+of Function Blocks as specified by this option, each of which is
+connected to the specified port as a source.
+
+When no source ports are specified with \fI\-p\fP option,
+\fBarecordmidi2\fP creates a UMP Endpoint with full 16 Function Blocks
+and records from those inputs.  User can connect the sequencer ports
+freely via \fBaconnect\fP, for example.  This mode can be used
+together with the interactive mode via \fI\-r\fP option.
+
+.TP
+.I \-b,\-\-bpm=beats
+Sets the musical tempo of the MIDI file, in beats per minute.
+The default value is 120 BPM.
+
+.TP
+.I \-t,\-\-ticks=ticks
+Sets the resolution of timestamps (ticks) in the MIDI file,
+in ticks per beat.
+The default value is 384 ticks/beat.
+
+.TP
+.I \-i,\-\-timesig=numerator:denominator
+Sets the time signature for the MIDI file.
+
+The time signature is specified as usual with two numbers, representing
+the numerator and denominator of the time signature as it would be
+notated. The denominator must be a power of two. Both numbers should be
+separated by a colon. The time signature is 4:4 by default.
+
+.TP
+.I \-n,\-\-num-events=events
+Stops the recording after receiving the given number of events.
+
+.TP
+.I \-u,\-\-ump=version
+Sets the UMP MIDI protocol version. Either 1 or 2 has to be given for
+MIDI 1.0 and MIDI 2.0 protocol, respectively.
+Default is 1.
+
+.TP
+.I \-r,\-\-interactive
+Run in the interactive mode.  \fBarecordmidi2\fP waits for a RETURN
+key input from the terminal to start the recording.  After starting,
+the recording ends when another RETURN key is input from the
+terminal.  The received events before the start of recording are
+discarded.
+
+.TP
+.I \-s,\-\-silent
+Don't print messages to stdout.
+
+.TP
+.I \-P,\-\-profile=file
+Read the UMP data from the given file and put them into the
+configuration section of the recorded output.
+The file must contain only valid UMP data encoded in big-endian.
+
+.TP
+.I \-\-song=text, \-\-clip=text, \-\-copyright=text, \-\-composer=text, \
+\-\-lyricist=text, \-\-arranger=text, \-\-publisher=text, \
+\-\-performer=text \-\-accompany=text, \-\-date=text, \-\-location=text
+Put the given meta data text in the configuration section.
+
+.SH SEE ALSO
+arecordmidi(1)
+.br
+aplaymidi2(1)
+
+.SH AUTHOR
+Takashi Iwai <tiwai@suse.de>
+
+

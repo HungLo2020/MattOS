@@ -235,6 +235,16 @@ python3 DevUtils/run_qemu.py --upgrade-test [--install-profile cli|plasma] [--up
 `--save-upgrade-baseline` keeps a copy of the current ISO as the baseline
 (`out/images/upgrade-baseline/mattos-x86_64.iso`, with a JSON record of its
 SHA-256 and git commit); save one from each build you treat as a release.
+When a former native application becomes optional, build its third-party recipe
+and offer its `.deb` only to the upgrade fixture with repeatable
+`--upgrade-extra-package PATH`. The launcher creates a separate temporary APT
+repository under `out/qemu`, rejects native package-name collisions, and never
+adds these packages to the native repository or ISO. For the 26.10.2 editor
+transition, offer the built Kate and Cozy packages: the old Kate package pins
+exact library revisions and must be replaceable during the OS upgrade.
+After reboot, the Plasma check also runs any retained Kate, KWrite and Cozy
+binaries and verifies that Slate remains the default editor.
+
 `--upgrade-test` then:
 
 1. installs the baseline ISO, with the same automated installer as
@@ -246,11 +256,14 @@ SHA-256 and git commit); save one from each build you treat as a release.
    built, before anything is published;
 3. bootstraps `mattos-upgrade`, runs its `plan`, `apply --yes` and `status`
    commands, and verifies the completed journal and migration state. It
-   requires that nothing was held back, that no APT upgrade work remains,
+   requires that nothing was held back, that no native APT upgrade work remains,
    that `dpkg --audit` is clean, and that every installed package MattOS builds
    is at its built version (`out/packages/inventory.toml`). Sentinel user data
    and a change to `/etc/profile` must survive. A build without release
-   metadata uses the legacy `apt-get full-upgrade` path;
+   metadata uses the legacy `apt-get full-upgrade` path. Existing optional
+   packages must survive. With an extra optional repository, independent
+   third-party updates may remain available; every installed native package
+   must still match its exact release version;
 4. restores the installed APT sources, reboots, and runs the same boot
    checks as `--install` (for Plasma, the graphical login, session and reboot
    checks too).
